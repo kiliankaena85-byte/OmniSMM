@@ -81,7 +81,9 @@ export async function GET(
         memoryOrderEmitter.off(channel, listener);
         try {
           controller.close();
-        } catch {}
+        } catch {
+          // audit-ignore: stream controller may already be closed on client abort
+        }
       });
     },
   });

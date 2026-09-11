@@ -92,7 +92,7 @@ function mapProviderDbError(err: unknown): string {
  * Counts everything that will be affected by provider deletion.
  */
 export async function getProviderDeleteInfoAction(rawId: string) {
-  return requireStaffPermission('providers', 'view', async () => {
+  return requireStaffPermission('providers', 'view', async (admin) => {
     try {
       const id = idSchema.parse(rawId);
       const provider = await db.provider.findUnique({
@@ -103,10 +103,12 @@ export async function getProviderDeleteInfoAction(rawId: string) {
         return { success: false as const, error: 'Провайдер не найден' };
       }
 
+      const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+
       const [services, routes, orders, shadowServices] = await Promise.all([
-        db.service.count({ where: { providerId: id } }),
+        db.service.count({ where: { providerId: id, ...tenantFilter } }),
         db.serviceRoute.count({ where: { providerId: id } }),
-        db.order.count({ where: { providerId: id } }),
+        db.order.count({ where: { providerId: id, ...tenantFilter } }),
         db.shadowService.count({ where: { providerId: id } }),
       ]);
 

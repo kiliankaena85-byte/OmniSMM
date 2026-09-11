@@ -305,6 +305,7 @@ class YooKassaGateway extends BasePaymentGateway {
         }
         resolvedTenantId = tenantId;
       } else {
+        // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
         const p = await db.payment.findFirst({
           where: { gatewayId },
           select: { tenantId: true }
@@ -339,6 +340,7 @@ class YooKassaGateway extends BasePaymentGateway {
 
     let resolvedTenantId = params.tenantId;
     if (!resolvedTenantId) {
+      // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
       const p = await db.payment.findFirst({
         where: { gatewayId: params.paymentGatewayId },
         select: { tenantId: true }
@@ -538,6 +540,7 @@ class CryptoBotGateway extends BasePaymentGateway {
     try {
       let resolvedTenantId = tenantId;
       if (!resolvedTenantId) {
+        // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
         const p = await db.payment.findFirst({
           where: { gatewayId },
           select: { tenantId: true }
@@ -558,10 +561,10 @@ class CryptoBotGateway extends BasePaymentGateway {
 
       if (!resp.ok) return false;
       const data = await resp.json();
-      if (!data.ok || !data.result || !data.result.items) return false;
+      if (!data.ok || !data.result || data.result.items.length === 0) return false;
 
-      const item = data.result.items[0];
-      return item && item.status === 'paid';
+      const invoice = data.result.items[0];
+      return invoice.status === 'paid';
     } catch (e) {
       console.error('[CryptoBotGateway] Error checking status:', e);
       return false;
@@ -627,11 +630,11 @@ class BalanceGateway extends BasePaymentGateway {
 
         // Also update any orders linked to this paymentId (Mass Orders / Basket)
         const basketOrders = await tx.order.findMany({ 
-          where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT' } 
+          where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT', ...(params.tenantId ? { tenantId: params.tenantId } : {}) } 
         });
         if (basketOrders.length > 0) {
           await tx.order.updateMany({
-            where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT' },
+            where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT', ...(params.tenantId ? { tenantId: params.tenantId } : {}) },
             data: { status: 'PENDING' }
           });
           for (const order of basketOrders) {

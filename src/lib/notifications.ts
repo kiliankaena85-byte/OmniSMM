@@ -101,6 +101,7 @@ export async function sendAdminAlertSync(message: string, severity: AlertSeverit
         text,
         parse_mode: 'HTML',
       }),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!res.ok) {

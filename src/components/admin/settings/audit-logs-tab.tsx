@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { AdminAuditLog } from '@prisma/client';
+import type { AdminAuditLog } from '@prisma/client';
 import { DataTable } from '@/components/ui/data-table';
 
 const auditColumns: ColumnDef<AdminAuditLog>[] = [

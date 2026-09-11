@@ -255,6 +255,7 @@ export async function getPaymentDisputePackAction(paymentId: string): Promise<Pa
       associatedOrders = await db.order.findMany({
         where: {
           userId: payment.userId,
+          tenantId: payment.tenantId || 'smmplan',
           createdAt: {
             gte: payment.createdAt,
             lte: new Date(payment.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days window
@@ -273,7 +274,10 @@ export async function getPaymentDisputePackAction(paymentId: string): Promise<Pa
     }
 
     const ledgerEntries = await db.ledgerEntry.findMany({
-      where: { userId: payment.userId },
+      where: { 
+        userId: payment.userId,
+        tenantId: payment.tenantId || 'smmplan',
+      },
       orderBy: { createdAt: 'desc' },
       take: 20,
     });
@@ -402,7 +406,11 @@ export async function manualApprovePaymentAction(input: z.infer<typeof manualApp
       await db.$transaction(async (tx) => {
         // 1. Atomic status transition: update only if still PENDING
         const updateResult = await tx.payment.updateMany({
-          where: { id: payment.id, status: 'PENDING' },
+          where: { 
+            id: payment.id, 
+            status: 'PENDING',
+            ...(payment.tenantId ? { tenantId: payment.tenantId } : {})
+          },
           data: {
             status: 'SUCCEEDED',
             gatewayId: parsed.data.gatewayTransactionId,

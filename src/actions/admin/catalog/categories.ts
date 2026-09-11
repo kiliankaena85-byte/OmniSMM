@@ -45,9 +45,10 @@ export async function createCategory(rawData: { name: string; slug?: string | nu
     }
 
     // Check slug collision
+    const categoryTenantId = data.tenantId || 'all';
     let finalSlug = rawSlug;
     let attempts = 0;
-    while (await db.category.findFirst({ where: { slug: finalSlug } })) {
+    while (await db.category.findFirst({ where: { slug: finalSlug, tenantId: categoryTenantId } })) {
       attempts++;
       finalSlug = `${rawSlug}-${attempts}`;
       if (attempts > 20) {
@@ -108,8 +109,10 @@ export async function updateCategory(rawId: string, rawData: { name: string; slu
     let updateSlug: string | undefined = undefined;
     if (data.slug?.trim()) {
       const targetSlug = data.slug.trim().toLowerCase();
+      const catExisting = await db.category.findUnique({ where: { id }, select: { tenantId: true } });
+      const targetTenantId = data.tenantId || catExisting?.tenantId || 'all';
       const existing = await db.category.findFirst({
-        where: { slug: targetSlug, id: { not: id } }
+        where: { slug: targetSlug, id: { not: id }, tenantId: targetTenantId }
       });
       if (existing) {
         return { success: false, error: `Слаг "${targetSlug}" уже занят другой категорией.` };
@@ -210,7 +213,7 @@ export async function hideCategoryAndServicesAction(categoryId: string) {
     const id = idSchema.parse(categoryId);
     const category = await db.category.findUnique({
       where: { id },
-      select: { id: true, name: true, _count: { select: { services: true } } }
+      select: { id: true, name: true, tenantId: true, _count: { select: { services: true } } }
     });
 
     if (!category) {
@@ -218,7 +221,7 @@ export async function hideCategoryAndServicesAction(categoryId: string) {
     }
 
     await db.service.updateMany({
-      where: { categoryId: id },
+      where: { categoryId: id, tenantId: category.tenantId },
       data: { isActive: false }
     });
 
@@ -296,7 +299,7 @@ export async function mergeCategoriesAction(sourceCategoryId: string, targetCate
     await db.$transaction(async (tx) => {
       // 1. Move all services from source to target
       await tx.service.updateMany({
-        where: { categoryId: sourceCategoryId },
+        where: { categoryId: sourceCategoryId, tenantId: sourceCat.tenantId },
         data: { categoryId: targetCategoryId }
       });
 
@@ -475,6 +478,7 @@ export async function deleteNetworkAction(id: string) {
     }
 
     // Check if network has categories
+    // tenant-isolation-ignore: Network deletion checks categories across all tenants for integrity
     const categoryCount = await db.category.count({
       where: { networkId: id }
     });
@@ -534,7 +538,8 @@ export async function cleanupEmptyCategoriesAction(networkId?: string | null) {
 
     const deleteResult = await db.category.deleteMany({
       where: {
-        id: { in: emptyCats.map(c => c.id) }
+        id: { in: emptyCats.map(c => c.id) },
+        ...(admin.role !== 'OWNER' && admin.tenantId ? { tenantId: admin.tenantId } : {})
       }
     });
 

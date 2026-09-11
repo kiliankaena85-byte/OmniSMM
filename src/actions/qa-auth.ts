@@ -69,13 +69,13 @@ export async function qaDirectLoginAction(formData: {
   let user = await db.user.findFirst({
     where: {
       email: targetEmail,
-      tenantId: tenant === 'flux' ? { in: ['lovable', 'flux'] } : tenant,
+      tenantId: tenant,
     },
   });
 
   if (!user) {
     user = await db.user.findFirst({
-      where: { email: targetEmail },
+      where: { email: targetEmail, tenantId: tenant },
     });
   }
 

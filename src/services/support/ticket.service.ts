@@ -56,7 +56,10 @@ class TicketService {
 
     // Find or create customer
     let user = await db.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' } }
+      where: { 
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        tenantId: resolvedTenant
+      }
     });
 
     if (!user) {

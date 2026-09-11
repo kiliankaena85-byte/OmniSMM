@@ -88,8 +88,10 @@ export async function updateCampaignStatus(campaignId: string, status: 'RUNNING'
 }
 
 export async function getServiceConfigs() {
-  return requireStaffPermission('catalog', 'view', async () => {
+  return requireStaffPermission('catalog', 'view', async (admin) => {
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
     const services = await db.service.findMany({
+      where: tenantFilter,
       orderBy: { name: 'asc' },
       include: {
         category: { select: { name: true, network: { select: { name: true, slug: true } } } },

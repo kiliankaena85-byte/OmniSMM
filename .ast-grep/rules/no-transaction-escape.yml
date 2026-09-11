@@ -1,0 +1,12 @@
+id: no-transaction-escape
+language: typescript
+message: "КАТЕГОРИЧЕСКАЯ ОШИБКА (ACID): Использование глобального db.* внутри $transaction! Все вызовы обязаны использовать параметр транзакции tx.*."
+severity: error
+rule:
+  all:
+    - inside:
+        pattern: |
+          $DB.$transaction(async ($TX) => {
+            $$$
+          })
+    - pattern: db.$METHOD($$$)

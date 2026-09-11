@@ -14,6 +14,15 @@ interface OrchestratorCheckoutParams {
   [key: string]: unknown;
 }
 
+export interface OrderCheckoutResultData {
+  orderId?: string;
+  numericId?: string | number;
+  paymentUrl?: string;
+  paymentId?: string;
+  redirectUrl?: string;
+  guestOrderToken?: string;
+}
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { OrderEngine } from '@/hooks/useOrderEngine';
@@ -23,6 +32,7 @@ import { IntelligencePlatform } from '@/services/analyzer/link-rules';
 import { ABVariant } from '@/hooks/useABTest';
 import { executePaymentRedirect } from '@/utils/payment-redirect';
 import { parseActionableError } from '@/lib/errors/actionable-error';
+import { safeFocus } from '@/utils/scroll-helpers';
 
 interface CheckoutOrchestratorOptions {
   engine: OrderEngine;
@@ -212,8 +222,7 @@ export function useCheckoutOrchestrator({
             setShowLinkModal(true);
             return;
           }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
+        } catch {
           setLinkHasError(true);
           toast.error("Неверный формат ссылки.", { position: 'top-center' });
           setShowLinkModal(true);
@@ -284,8 +293,7 @@ export function useCheckoutOrchestrator({
       setTimeout(() => {
         const warningEl = document.getElementById("warning-confirm-checkbox");
         if (warningEl) {
-          warningEl.scrollIntoView({ behavior: "smooth", block: "center" });
-          warningEl.focus();
+          safeFocus(warningEl, true);
         }
       }, 100);
       return;
@@ -297,8 +305,7 @@ export function useCheckoutOrchestrator({
       if (typeof window !== 'undefined') {
         const qtyInput = document.querySelector('input[type="text"][inputmode="numeric"]') as HTMLInputElement;
         if (qtyInput) {
-          qtyInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          qtyInput.focus();
+          safeFocus(qtyInput, true);
         }
       }
       return;
@@ -339,18 +346,18 @@ export function useCheckoutOrchestrator({
         position: "top-center",
         duration: 4000,
       });
-      // Scroll to and highlight the legal checkbox
+      // Safe focus and highlight the legal checkbox
       setTimeout(() => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
         const preferredId = isMobile ? "standard-legal-checkbox" : "desktop-legal-checkbox";
         const checkbox = 
           document.getElementById(preferredId) || 
           document.getElementById("standard-legal-checkbox") || 
+          document.getElementById("checkout-terms-checkbox") ||
           document.getElementById("wizard-legal-checkbox") || 
           document.getElementById("desktop-legal-checkbox");
         if (checkbox) {
-          checkbox.scrollIntoView({ behavior: "smooth", block: "center" });
-          checkbox.focus();
+          safeFocus(checkbox, true);
         }
       }, 100);
       return;
@@ -363,8 +370,7 @@ export function useCheckoutOrchestrator({
       if (typeof window !== 'undefined') {
         const emailInput = document.getElementById("email-input") || (window.innerWidth >= 768 ? desktopEmailInputRef?.current : mobileEmailInputRef?.current);
         if (emailInput) {
-          emailInput.scrollIntoView({ behavior: "smooth", block: "center" });
-          emailInput.focus();
+          safeFocus(emailInput, true);
         }
       }
       return;
@@ -408,6 +414,7 @@ export function useCheckoutOrchestrator({
             } catch {}
           }
 
+          const orderData = res.data as OrderCheckoutResultData | undefined;
           if (res.data?.paymentUrl) {
             const redirected = executePaymentRedirect(res.data.paymentUrl);
             if (!redirected) {
@@ -415,11 +422,11 @@ export function useCheckoutOrchestrator({
               toast.error('Не удалось открыть платежный шлюз');
             }
             return;
-          } else if (resolvedGateway === 'balance' || (res.data as any)?.redirectUrl) {
-            toast.success(`Заказ #${res.data?.numericId || res.data?.orderId || ''} успешно запущен!`, {
+          } else if (resolvedGateway === 'balance' || orderData?.redirectUrl) {
+            toast.success(`Заказ #${orderData?.numericId || orderData?.orderId || ''} успешно запущен!`, {
               description: 'Оплата произведена с вашего баланса.'
             });
-            window.location.href = (res.data as any)?.redirectUrl || `/dashboard/orders?success=1&orderId=${res.data?.orderId}&payment=balance`;
+            window.location.href = orderData?.redirectUrl || `/dashboard/orders?success=1&orderId=${orderData?.orderId}&payment=balance`;
             return;
           } else if (res.data?.orderId) {
             const tokenQuery = res.data.guestOrderToken ? `&token=${res.data.guestOrderToken}` : '';
@@ -514,17 +521,18 @@ export function useCheckoutOrchestrator({
         setIsSubmitting(false);
         setShowPaymentModal(false);
         if (res.success) {
+          const massData = res.data as OrderCheckoutResultData | undefined;
           if (res.data?.paymentUrl) {
             const redirected = executePaymentRedirect(res.data.paymentUrl);
             if (!redirected) {
               const errorMessage = 'Ошибка: не удалось получить ссылку на оплату.';
               window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&url=${encodeURIComponent(pendingCheckoutParams.text || '')}&paymentId=&orderId=`;
             }
-          } else if (gateway === 'balance' || (res.data as any)?.redirectUrl) {
+          } else if (gateway === 'balance' || massData?.redirectUrl) {
             toast.success('Массовый заказ успешно запущен!', {
               description: 'Оплата произведена с вашего баланса.'
             });
-            window.location.href = (res.data as any)?.redirectUrl || '/dashboard/orders?success=1&payment=balance';
+            window.location.href = massData?.redirectUrl || '/dashboard/orders?success=1&payment=balance';
           } else {
             const errorMessage = 'Ошибка: не удалось получить ссылку на оплату.';
             window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&url=${encodeURIComponent(pendingCheckoutParams.text || '')}&paymentId=&orderId=`;
@@ -563,17 +571,18 @@ export function useCheckoutOrchestrator({
           } catch {}
         }
 
+        const checkoutData = res.data as OrderCheckoutResultData | undefined;
         if (res.data?.paymentUrl) {
           const redirected = executePaymentRedirect(res.data.paymentUrl);
           if (!redirected) {
             const errorMessage = 'Ошибка: не удалось открыть платёжный шлюз.';
             window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&serviceId=${pendingCheckoutParams.serviceId}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&quantity=${pendingCheckoutParams.quantity}&url=${encodeURIComponent(pendingCheckoutParams.link || '')}&paymentId=&orderId=`;
           }
-        } else if (gateway === 'balance' || (res.data as any)?.redirectUrl) {
-          toast.success(`Заказ #${res.data?.numericId || res.data?.orderId || ''} успешно запущен!`, {
+        } else if (gateway === 'balance' || checkoutData?.redirectUrl) {
+          toast.success(`Заказ #${checkoutData?.numericId || checkoutData?.orderId || ''} успешно запущен!`, {
             description: 'Оплата произведена с вашего баланса.'
           });
-          window.location.href = (res.data as any)?.redirectUrl || `/dashboard/orders?success=1&orderId=${res.data?.orderId}&payment=balance`;
+          window.location.href = checkoutData?.redirectUrl || `/dashboard/orders?success=1&orderId=${checkoutData?.orderId}&payment=balance`;
         } else if (res.data?.orderId) {
           const tokenQuery = res.data.guestOrderToken ? `&token=${res.data.guestOrderToken}` : '';
           window.location.href = `/success?orderId=${res.data.orderId}${tokenQuery}`;

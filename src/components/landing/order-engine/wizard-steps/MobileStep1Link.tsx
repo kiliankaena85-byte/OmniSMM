@@ -161,23 +161,23 @@ export function MobileStep1Link({
             placeholder={step1LinkConfig.placeholder || "https://t.me/channel или vk.com/..."}
             aria-label={step1LinkConfig.label || "Введите ссылку для продвижения"}
             aria-describedby={validationErrors?.link || localUrlError ? "mobile-step1-url-error" : undefined}
-            className={`w-full h-12 pl-10.5 ${url.trim().length > 0 ? 'pr-12' : 'pr-28'} rounded-2xl bg-transparent text-base font-semibold text-foreground placeholder:text-muted-foreground/50 outline-none border-none transition-all`}
+            className={`w-full h-12 pl-10.5 ${url.trim().length > 0 ? 'pr-12' : 'pr-14 sm:pr-28'} rounded-2xl bg-transparent text-base font-semibold text-foreground placeholder:text-muted-foreground/50 outline-none border-none transition-all`}
           />
           {url.trim().length === 0 ? (
             <button
               type="button"
               onClick={handlePasteFromClipboard}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3.5 min-h-[44px] min-w-[44px] rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-primary"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-2 sm:px-3.5 min-h-[44px] min-w-[44px] rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-primary"
             >
               {isPasted ? (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Вставлено!</span>
+                  <span className="hidden sm:inline">Вставлено!</span>
                 </>
               ) : (
                 <>
                   <ClipboardPaste className="w-4 h-4" />
-                  <span>Вставить</span>
+                  <span className="hidden sm:inline">Вставить</span>
                 </>
               )}
             </button>

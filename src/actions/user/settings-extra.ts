@@ -284,7 +284,7 @@ export async function getTelegramBindDetailsAction(): Promise<TelegramBindDetail
     const tenantId = await SettingsProvider.getTenantId();
     const contactSettings = await SettingsProvider.getContactAndLegalSettings();
     let botUsername = contactSettings.TELEGRAM_SUPPORT_BOT;
-    if (tenantId === 'flux' || tenantId === 'lovable') {
+    if (tenantId === 'flux') {
       botUsername = process.env.FLUX_TELEGRAM_BOT || 'smmflux_support_bot';
     }
     if (!botUsername) {

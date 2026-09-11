@@ -14,6 +14,7 @@ export async function GET() {
       where: {
         userId: session.userId,
         status: 'PENDING',
+        ...(session.tenantId ? { tenantId: session.tenantId } : {}),
       },
     });
 

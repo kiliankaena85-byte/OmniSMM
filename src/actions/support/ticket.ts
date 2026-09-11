@@ -144,7 +144,7 @@ export async function addTicketMessage(formData: FormData) {
   if (orderId) {
     // Security check: verify user owns the SMM order
     const order = await db.order.findFirst({
-      where: { id: orderId, ...(isStaff ? {} : { userId: session.userId }) }
+      where: { id: orderId, ...(isStaff ? {} : { userId: session.userId }), tenantId: session.tenantId }
     });
     if (order) {
       verifiedOrderId = order.id;
@@ -160,6 +160,7 @@ export async function addTicketMessage(formData: FormData) {
       const order = await db.order.findFirst({
         where: {
           ...(isStaff ? {} : { userId: session.userId }),
+          tenantId: session.tenantId,
           OR: [
             { id: { in: extractedIds } },
             { numericId: { in: extractedIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)) } }
@@ -198,14 +199,14 @@ export async function adminReplyTicket(formData: FormData) {
     const isGlobalStaff = ['OWNER', 'ADMIN'].includes(admin.role);
     const ticket = await db.ticket.findFirst({
       where: isGlobalStaff ? { id: ticketId } : { id: ticketId, tenantId: admin.tenantId ?? 'smmplan' },
-      select: { id: true, userId: true, orderId: true }
+      select: { id: true, userId: true, orderId: true, tenantId: true }
     });
     if (!ticket) throw new Error('Ticket not found');
 
     let verifiedOrderId: string | undefined = undefined;
     if (orderId) {
       const order = await db.order.findFirst({
-        where: { id: orderId, userId: ticket.userId }
+        where: { id: orderId, userId: ticket.userId, tenantId: ticket.tenantId }
       });
       if (order) {
         verifiedOrderId = order.id;
@@ -222,6 +223,7 @@ export async function adminReplyTicket(formData: FormData) {
         const order = await db.order.findFirst({
           where: {
             userId: ticket.userId,
+            tenantId: ticket.tenantId,
             OR: [
               { id: { in: extractedIds } },
               { numericId: { in: extractedIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)) } }
@@ -521,7 +523,7 @@ export async function adminManualTelegramBind(formData: FormData) {
 
       // W6-4: Add confirmationToken flow
       if (confirm !== 'true') {
-        const tempUserOrders = await db.order.count({ where: { userId: tempUser.id } });
+        const tempUserOrders = await db.order.count({ where: { userId: tempUser.id, tenantId: tempUser.tenantId } });
         return { 
           preview: true, 
           data: {
@@ -537,9 +539,9 @@ export async function adminManualTelegramBind(formData: FormData) {
       const ipAddress = await getClientIp('unknown');
       await db.$transaction(async (tx) => {
         // 1. Move all relational data from tempUser to webUser (excluding LedgerEntries because of block trigger)
-        await tx.ticket.updateMany({ where: { userId: tempUser.id }, data: { userId: webUser.id } });
-        await tx.order.updateMany({ where: { userId: tempUser.id }, data: { userId: webUser.id } });
-        await tx.payment.updateMany({ where: { userId: tempUser.id }, data: { userId: webUser.id } });
+        await tx.ticket.updateMany({ where: { userId: tempUser.id, tenantId: tempUser.tenantId }, data: { userId: webUser.id } });
+        await tx.order.updateMany({ where: { userId: tempUser.id, tenantId: tempUser.tenantId }, data: { userId: webUser.id } });
+        await tx.payment.updateMany({ where: { userId: tempUser.id, tenantId: tempUser.tenantId }, data: { userId: webUser.id } });
         await tx.invoice.updateMany({ where: { userId: tempUser.id }, data: { userId: webUser.id } });
         await tx.auditLog.updateMany({ where: { userId: tempUser.id }, data: { userId: webUser.id } });
 
@@ -616,7 +618,7 @@ export async function bulkRefillOrdersAction(ticketId: string, orderIds: string[
       for (const orderId of orderIds) {
         try {
           const order = await tx.order.findFirst({
-            where: { id: orderId, userId: ticket.userId },
+            where: { id: orderId, userId: ticket.userId, tenantId: ticket.tenantId },
             include: { service: true }
           });
 

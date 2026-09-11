@@ -2,7 +2,7 @@ import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { SignJWT } from 'jose';
-import { getEncodedKey } from '@/lib/session-edge';
+import { getEncodedKey, SESSION_COOKIE_NAME } from '@/lib/session-edge';
 import { resolveContourFromHost } from '@/lib/tenant-resolver-edge';
 
 export async function GET(request: Request) {
@@ -39,18 +39,18 @@ export async function GET(request: Request) {
                       role === 'SUPPORT' ? 'support@smmplan.pro' : 'testclient1@example.com';
 
   let user = await db.user.findFirst({
-    where: { email: targetEmail }
+    where: { email: targetEmail, tenantId }
   });
 
   if (!user) {
     user = await db.user.findFirst({
-      where: { role: role as any }
+      where: { role: role as any, tenantId }
     });
   }
 
   if (!user) {
     // Try finding by email first, then create if missing
-    user = await db.user.findFirst({ where: { email: targetEmail } });
+    user = await db.user.findFirst({ where: { email: targetEmail, tenantId } });
     if (!user) {
       user = await db.user.create({
         data: {
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     expires: new Date(0),
   });
 
-  response.cookies.set('session_token', sessionToken, {
+  response.cookies.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: false,
     sameSite: 'lax',

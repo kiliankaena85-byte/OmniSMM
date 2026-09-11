@@ -19,7 +19,8 @@ export async function GET() {
 
     const startTime = Date.now();
     const res = await fetch(`https://api.telegram.org/bot${token}/getMe`, {
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(5000),
     });
     const pingMs = Date.now() - startTime;
     const data = await res.json();

@@ -198,7 +198,7 @@ export async function generateAiPatternAction(input: {
  * Dry-run testing against historical order links
  */
 export async function dryRunHistoryAction(pattern: string, limit: number = 200) {
-  return requireStaffPermission('catalog', 'view', async () => {
+  return requireStaffPermission('catalog', 'view', async (admin) => {
     const audit = SafeRegexValidator.staticAudit(pattern);
     if (!audit.isSafe) {
       return { success: false, error: audit.reason };
@@ -212,8 +212,10 @@ export async function dryRunHistoryAction(pattern: string, limit: number = 200) 
       return { success: false, error: `Ошибка регулярного выражения: ${err}` };
     }
 
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+
     const orders = await db.order.findMany({
-      where: { link: { not: '' } },
+      where: { link: { not: '' }, ...tenantFilter },
       select: { id: true, link: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
       take: Math.min(limit, 500)

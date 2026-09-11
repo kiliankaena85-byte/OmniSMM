@@ -1,0 +1,410 @@
+{
+  "timestamp": "2026-09-11T08:11:05.110Z",
+  "branch": "main",
+  "modifiedFiles": [
+    "package-lock.json",
+    "package.json",
+    "scripts/memory-client.ts",
+    "scripts/setup-vexboost-prod.ts",
+    "src/app/admin/marketing/promocode-columns.tsx",
+    "src/app/admin/settings/audit-columns.tsx",
+    "src/app/admin/settings/catalog-settings.tsx",
+    "src/app/admin/settings/general-settings.tsx",
+    "src/app/admin/settings/integrations-settings.tsx",
+    "src/app/admin/settings/support-templates.tsx",
+    "src/app/admin/settings/team-management.tsx",
+    "src/app/admin/settings/telegram-bot-settings.tsx",
+    "src/components/admin/settings/audit-logs-tab.tsx",
+    "src/components/landing/SmartLinkLanding.tsx",
+    "src/components/landing/order-engine/useCheckoutOrchestrator.ts",
+    "src/components/landing/order-engine/variants/PlanFullscreenCheckout.tsx",
+    "src/components/landing/order-engine/wizard-steps/MobileStep4Checkout.tsx",
+    "src/components/landing/order-engine/wizard-steps/useMobileWizard.ts",
+    "src/lib/network/network-router.ts",
+    "src/lib/session.ts",
+    "src/proxy.ts",
+    "scripts/ephemeral-sandbox-visual-loop.ts",
+    "scripts/import-vexboost-live.ts",
+    "scripts/maker-checker-ai.ts",
+    "scripts/multi-model-jury.ts",
+    "scripts/mutation-testing-redteam.ts",
+    "scripts/run-ast-guardrails.ts",
+    "scripts/seed-ai-methodologies-memory.ts",
+    "scripts/self-healing-ooda-loop.ts",
+    "scripts/verify-spec-maker-checker.ts",
+    "src/components/landing/LandingCatalogContent.tsx",
+    "src/components/landing/LandingFooterSection.tsx",
+    "src/components/landing/LandingHeroArea.tsx",
+    "src/components/landing/LandingModals.tsx",
+    "src/components/landing/order-engine/variants/PlanCheckoutGateways.tsx",
+    "src/components/landing/order-engine/variants/PlanCheckoutHeader.tsx",
+    "src/components/landing/order-engine/variants/PlanCheckoutInputs.tsx",
+    "src/components/landing/order-engine/variants/PlanCheckoutSummary.tsx",
+    "src/components/landing/order-engine/variants/usePlanCheckoutValidation.ts",
+    "src/components/landing/order-engine/wizard-steps/MobileCheckoutGateways.tsx",
+    "src/components/landing/order-engine/wizard-steps/MobileCheckoutInputs.tsx",
+    "src/components/landing/order-engine/wizard-steps/MobileCheckoutOrderSummary.tsx",
+    "src/utils/scroll-helpers.ts"
+  ],
+  "findings": [
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/setup-vexboost-prod.ts",
+      "line": 38,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "const pInstance = new UniversalProvider('https://vexboost.ru/api/v2', envApiKey, provider.metadata as any);"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/marketing/promocode-columns.tsx",
+      "line": 350,
+      "message": "Компонент превышает лимит в 200 строк (всего 350 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 350"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/catalog-settings.tsx",
+      "line": 384,
+      "message": "Компонент превышает лимит в 200 строк (всего 384 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 384"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/general-settings.tsx",
+      "line": 796,
+      "message": "Компонент превышает лимит в 200 строк (всего 796 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 796"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/general-settings.tsx",
+      "line": 532,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "<div className=\"p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20\">"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/integrations-settings.tsx",
+      "line": 1110,
+      "message": "Компонент превышает лимит в 200 строк (всего 1110 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 1110"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/integrations-settings.tsx",
+      "line": 264,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (err: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/integrations-settings.tsx",
+      "line": 896,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "className=\"font-bold bg-amber-600 hover:bg-amber-700 text-white gap-1.5\""
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/support-templates.tsx",
+      "line": 454,
+      "message": "Компонент превышает лимит в 200 строк (всего 454 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 454"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/support-templates.tsx",
+      "line": 188,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "className=\"font-bold bg-rose-600 hover:bg-rose-700 text-white gap-1.5\""
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/team-management.tsx",
+      "line": 910,
+      "message": "Компонент превышает лимит в 200 строк (всего 910 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 910"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/settings/telegram-bot-settings.tsx",
+      "line": 547,
+      "message": "Компонент превышает лимит в 200 строк (всего 547 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 547"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/telegram-bot-settings.tsx",
+      "line": 173,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "<div className=\"w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0\">"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/telegram-bot-settings.tsx",
+      "line": 260,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "className=\"font-bold bg-amber-600 hover:bg-amber-700 text-white gap-1.5\""
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/app/admin/settings/telegram-bot-settings.tsx",
+      "line": 337,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "<span className=\"px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white font-mono font-extrabold\">NEW</span>"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/network/network-router.ts",
+      "line": 453,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "category: proxy.category as any"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/network/network-router.ts",
+      "line": 519,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (primaryErr: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 139,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "where: { role: role as any, tenantId },"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 146,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "role: role as any,"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 156,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "where: { role: role as any },"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 218,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "const launchOptions: any = {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 361,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (navErr: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/ephemeral-sandbox-visual-loop.ts",
+      "line": 427,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (e: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 70,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "function cleanJsonText(raw: string): any {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 139,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (e: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 204,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "function gatherHandoffPayload(): { diff: string; modifiedFiles: string[]; preAuditLints: any[] } {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 229,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "let preAuditLints: any[] = [];"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 315,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "let parsed: any = null;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 350,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "const blockersCount = parsed.findings?.filter((f: any) => f.severity === 'BLOCKER').length || 0;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/maker-checker-ai.ts",
+      "line": 351,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "const majorsCount = parsed.findings?.filter((f: any) => f.severity === 'MAJOR').length || 0;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/multi-model-jury.ts",
+      "line": 69,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "function cleanJsonText(raw: string): any {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/multi-model-jury.ts",
+      "line": 284,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "let parsed: any = null;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/mutation-testing-redteam.ts",
+      "line": 164,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "if (runResult.error && (runResult.error as any).code === 'ETIMEDOUT') {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/mutation-testing-redteam.ts",
+      "line": 173,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (e: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 47,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "Earlier, you audited the codebase and issued a FAIL verdict (Score: 2/10) with 3 BLOCKERS (components > 200 lines) and 16 Code Hygiene violations (untyped any, eslint-disable comments, non-semantic inline color tokens)."
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 53,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "1. Does Phase 1 completely resolve all 6 'as any' casts, all 9 'eslint-disable' comments, and the non-semantic token?"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 53,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "1. Does Phase 1 completely resolve all 6 'as any' casts, all 9 'eslint-disable' comments, and the non-semantic token?"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 86,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "let reviewResult: any = null;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 136,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (e: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 144,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (e: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "scripts/verify-spec-maker-checker.ts",
+      "line": 173,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "- **Majors Resolved (any casts & eslint-disable):** ${reviewResult.findingsAssessed?.majorsResolved ? '✅ YES' : '❌ NO'}"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/components/landing/LandingModals.tsx",
+      "line": 53,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "const handleSelectServiceFromCatalog = (srv: any, catId: string, netId: string) => {"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/components/landing/order-engine/variants/PlanCheckoutInputs.tsx",
+      "line": 292,
+      "message": "Компонент превышает лимит в 200 строк (всего 292 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 292"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/components/landing/order-engine/wizard-steps/MobileCheckoutInputs.tsx",
+      "line": 342,
+      "message": "Компонент превышает лимит в 200 строк (всего 342 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 342"
+    }
+  ],
+  "summary": {
+    "blockers": 0,
+    "majors": 38,
+    "minors": 6,
+    "passed": false
+  },
+  "gitDiffSnippet": "diff --git a/.agents/AGENTS.md b/.agents/AGENTS.md\nindex c324652f..6ebc72e3 100644\n--- a/.agents/AGENTS.md\n+++ b/.agents/AGENTS.md\n@@ -25,11 +25,17 @@\n   4. **Прямое подтверждение пользователя:** Запрещено переключать боевой трафик до явного сообщения пользователя («Одобряю», «Выкатывай»).\n   5. **Мгновенное переключение & Резервный откат (5s Instant Rollback):** Переключение на проверенную версию с сохранением предыдущего контейнера как `smmplan_backup`.\n \n-## 3. Test-Driven & Self-Correction Protocol\n-- Перед объявлением задачи завершенной **ОБЯЗАТЕЛЬНО** запустить сборку и проверку типов:\n-  `npx tsc --noEmit`\n-  А также прогнать юнит-тесты:\n-  `npx vitest run` (или соответствующую команду для тестов).\n+## 3. 📐 Mandatory SDD-TDD Protocol (Docs First → Tests Second → Code Last)\n+- **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** писать продуктовый код без предварительно созданной спецификации в `docs/specs/` и написанных падающих тестов (Red Phase).\n+- **Трехуровневая классификация рисков (Risk-Tiering):**\n+  1. **Tier 1: Critical (Деньги, Заказы, Баланс, Миграции БД, Очереди BullMQ, Безопасность):**\n+     * Полный цикл: Спецификация `docs/specs/SPEC-*.md` $\\to$ Согласование пользователем $\\to$ Написание тестов в `src/__tests__/` (Red Phase — тесты обязаны упасть) $\\to$ Написание минимального кода (Green Phase) $\\to$ `tsc --noEmit` & аудит секретов.\n+  2. **Tier 2: Standard (Новые экраны админки, Server Actions, API роуты, сложные формы):**\n+     * Light-SDD: Спецификация контрактов и DTO в `docs/specs/` $\\to$ Согласование $\\to$ Тесты контракта $\\to$ Реализация.\n+  3. **Tier 3: Cosmetic (Стили Tailwind, тексты, замена иконок):**\n+     * Прямая реализация с последующим визуальным аудитом в браузере (Puppeteer/Headless Chrome) без избыточного оверхеда.\n+- **Критерий завершения:** Все тесты переведены в **PASS (GREEN)**, сборка типов `npx tsc --noEmit` (0 ошибок), полный прогон сьюта `npx vitest run`.\n+\n ## 3.5. 🛡️ ZERO-REGRESSION & IMPACT RADIUS (ПРАВИЛО ПРЕДОТВРАЩЕНИЯ РЕГРЕССИЙ «НЕ НАВРЕДИ»)\n - **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** править изолированный модуль без картирования радиуса поражения (Impact Radius) и мозгового штурма на 3 шага вперед.\n - Перед правкой агент ОБЯЗАН:\n@@ -166,3 +172,21 @@\n - ❌ **No Information Disclosure:** Запрещено раскрывать внутренние пути (`/dev`, `/test`, `/operator`, `/client-demo`) в публичном `robots.txt` (использовать `X-Robots-Tag: noindex, nofollow`).\n - ✅ **Symmetric Cookie Sanitation:** Сброс сессионных кук ОБЯЗАН содержать полный набор атрибутов: `Secure; HttpOnly; SameSite=Lax; MaxAge=0; Expires=0; Path=/`.\n - ✅ **Granular RBAC Enforcement:** Все серверные операции сотрудников обязаны проходить через `requireStaffPermission()` с проверкой прав по секциям (`view`/`edit`).\n+\n+---\n+\n+## 16. OmniSMM Architectural Skills Suite (ARCH-SKILLS-2026 — CRITICAL CONTRACT)\n+- ⚠️ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** вносить архитектурные, инфраструктурные или структурные изменения в платформу без предварительной сверки с профильным архитектурным скиллом и\n... [diff truncated]"
+}

@@ -62,6 +62,35 @@
 > 2. **Согласование с пользователем (Human Approval Gate):** Агент обязан предоставить понятный план и варианты решения и **ждать явного одобрения пользователя** («Делай», «Согласовано»).
 > 3. **Строгий запрет самовольных действий:** ❌ **ЗАПРЕЩЕНО** самовольно перенастраивать DNS, поднимать/гасить сторонние шлюзы, менять проксирование или вносить изменения за рамками согласованного скоупа.
 
+## 0.10. 🏛️ MANDATORY ARCHITECTURAL SKILLS SUITE GATE (ARCH-SKILLS-2026 — CRITICAL CONTRACT)
+> ⚠️ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО вносить архитектурные, инфраструктурные или структурные изменения в платформу без сверки с профильным архитектурным скиллом из единого реестра [`.agents/skills/INDEX.md`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/INDEX.md).**
+> 
+> Перед изменением кода агент **ОБЯЗАН** активировать соответствующий скилл и соблюдать его Decision Tree, Hard Invariants и Pre-Mortem чеклист:
+> 1. **Слои и компоненты:** [`arch-boundary-guard`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/arch-boundary-guard/SKILL.md) — чистота Clean Architecture, разделение DTO/Domain/DB, запрет `"use server"` в `page.tsx`, лимит компонентов $\le 200$ строк.
+> 2. **Агрегаты и бизнес-правила:** [`ddd-aggregate-invariants`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/ddd-aggregate-invariants/SKILL.md) — «1 транзакция = 1 агрегат», Drip-Feed Floor ($\lfloor Q/N \rfloor \ge \text{minQty}$), Shadow Catalog buffer в Redis.
+> 3. **Архитектурные решения:** [`adr-architect`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/adr-architect/SKILL.md) — стандарт MADR 3.0, фиксация контекста/последствий, предотвращение «архитектурной амнезии».
+> 4. **Деньги, баланс, гонки:** [`concurrency-acid-guard`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/concurrency-acid-guard/SKILL.md) — TOCTOU, Row-Level Locking, Ledger-First, ExactMath (копейки BigInt), детекция Transaction Escape (`db` vs `tx`), `idempotencyKey`.
+> 5. **Миграции и DDL БД:** [`db-evolution-zero-downtime`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/db-evolution-zero-downtime/SKILL.md) — Expand/Contract pattern, `CREATE INDEX CONCURRENTLY`, лимиты `lock_timeout`.
+> 6. **Очереди и события:** [`event-driven-reliability`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/event-driven-reliability/SKILL.md) — Transactional Outbox (защита от Dual-Write), идемпотентные консьюмеры BullMQ, DLQ.
+> 7. **Внешние API и сбои:** [`resilience-bulkhead-circuit`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/resilience-bulkhead-circuit/SKILL.md) — Circuit Breaker (Redis), Per-Tenant/Per-Provider Bulkhead, обязательные таймауты `AbortSignal.timeout()`.
+> 8. **Мульти-тенантность:** [`multi-tenant-isolation-arch`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/multi-tenant-isolation-arch/SKILL.md) — изоляция OmniSMM (SMMplan / SMMflux), tenant-aware кэши, барьер ст. 54.1 НК РФ.
+> 9. **API и DTO:** [`api-contract-evolver`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/api-contract-evolver/SKILL.md) — Contract-First (Zod), Zero Breaking Changes, RFC 8594 Sunset/Deprecation.
+> 10. **Анализ влияния:** [`impact-blast-radius`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/impact-blast-radius/SKILL.md) — картирование зависимостей через `grep_search`, моделирование отказа на 3 шага вперед.
+> 11. **Производительность:** [`nfr-performance-budget`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/nfr-performance-budget/SKILL.md) — P95/P99 latency budgets, детекция N+1 в Prisma, Keyset пагинация, connection pool limits.
+
+## 0.11. 📐 MANDATORY SPEC-DRIVEN & TEST-DRIVEN PIPELINE (SDD-TDD 2026 — CRITICAL GATE)
+> ⚠️ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать продуктовый код без предварительно созданной спецификации в `docs/specs/` и написанных падающих тестов (Red Phase).**
+> 
+> **Трехуровневая классификация рисков (Risk-Tiering):**
+> 1. **Tier 1 (Critical):** Финансы (`WalletOps`, баланс, леджер), заказы, Drip-Feed, миграции БД, очереди BullMQ, аутентификация/секреты, платежные вебхуки.
+>    - **Строгий протокол:** Создание `docs/specs/SPEC-YYYY-MM-DD-<slug>.md` $\to$ Согласование пользователем $\to$ Написание тестов в `src/__tests__/` (Red Phase — тесты обязаны упасть) $\to$ Реализация минимального кода (Green Phase) $\to$ `tsc --noEmit` & аудит секретов.
+> 2. **Tier 2 (Standard):** Новые страницы админки, Server Actions, API роуты, сложные формы и фильтры каталога.
+>    - **Light-SDD:** Файл спецификации в `docs/specs/` (Zod DTOs + Edge Cases) $\to$ Согласование пользователем $\to$ Тесты контракта $\to$ Реализация.
+> 3. **Tier 3 (Cosmetic):** Стили Tailwind, тексты, замена иконок, верстка существующих компонентов.
+>    - Прямая реализация с визуальным аудитом в браузере (Puppeteer MCP) без избыточного оверхеда спек.
+
+
+
 ### При каждом старте сессии в этом проекте:
 
 1. **Прочитай файл-якорь** → `d:\SMM_plan_2\CURRENT_STATE.md`

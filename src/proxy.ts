@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { decryptSessionToken } from '@/lib/session-edge';
+import { 
+  decryptSessionToken, 
+  readSessionTokenFromCookies, 
+  SESSION_COOKIE_NAME, 
+  LEGACY_SESSION_COOKIE_NAME 
+} from '@/lib/session-edge';
 import { ROUTES } from '@/lib/routes';
 import { resolveTenantFromHostEdge, normalizeTenantId, resolveContourFromHost, type ContourId } from '@/lib/tenant-resolver-edge';
+
+function clearSessionCookiesOnResponse(response: NextResponse) {
+  const cookieOptions = {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge: 0,
+  };
+  response.cookies.set(SESSION_COOKIE_NAME, '', cookieOptions);
+  response.cookies.set(LEGACY_SESSION_COOKIE_NAME, '', cookieOptions);
+}
 
 // Map of legacy routes to new static routes
 const legacyRedirects: Record<string, string> = {
@@ -238,6 +255,80 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden: Invalid X-Forwarded-Host header' }, { status: 403 });
   }
 
+  // 0.5. Echelon DDoS Shield & Anomaly Inspection (SPEC-2026-09-11)
+  const isExcludedFromShield = 
+    pathname.startsWith('/api/webhooks/') ||
+    pathname.startsWith('/_next/') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/api/v1/internal-sync' || // honeypot itself
+    pathname === '/api/security/challenge';
+
+  if (!isExcludedFromShield && process.env.DDOS_SHIELD_ENABLED !== 'false') {
+    const hasSession = Boolean(readSessionTokenFromCookies(request.cookies));
+
+    // Authorized users with valid session bypass DDoS challenge
+    if (!hasSession) {
+      const { computeHeaderFingerprint, checkClientHintsAnomaly, isWhitelistedGoodBot } = await import('@/lib/security/ddos-shield/fingerprint');
+      const isBotWhitelisted = isWhitelistedGoodBot(request.headers);
+
+      if (!isBotWhitelisted) {
+        const fingerprint = computeHeaderFingerprint(request.headers);
+        const { isBlacklistedDdosTarget } = await import('@/lib/security/ddos-shield/honeypot-service');
+        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+
+        // 1. Blacklist check (Honeypot trap hit)
+        const isBlocked = await isBlacklistedDdosTarget(clientIp, fingerprint);
+        if (isBlocked) {
+          return new NextResponse('Access Blocked by Anti-DDoS Perimeter', { status: 403, headers: { 'Retry-After': '86400' } });
+        }
+
+        // 2. Gatekeeper token check
+        const gatekeeperCookie = request.cookies.get('__Host-gatekeeper')?.value || request.cookies.get('gatekeeper')?.value;
+        let hasValidGatekeeper = false;
+        if (gatekeeperCookie) {
+          const { verifyGatekeeperToken } = await import('@/lib/security/ddos-shield/pow-engine');
+          const shieldSecret = process.env.JWT_SIGNING_KEY || process.env.JWT_SECRET || 'omnismm-ddos-shield-fallback-secret-2026';
+          const payload = verifyGatekeeperToken(gatekeeperCookie, shieldSecret);
+          if (payload) {
+            hasValidGatekeeper = true;
+          }
+        }
+
+        if (!hasValidGatekeeper) {
+          const anomaly = checkClientHintsAnomaly(request.headers);
+          const { checkFingerprintPoolLimit } = await import('@/lib/security/ddos-shield/token-bucket-pool');
+          const poolStatus = await checkFingerprintPoolLimit(fingerprint, 'smmplan', 120, 60);
+
+          if (anomaly.isAnomalous || !poolStatus.isAllowed) {
+            const acceptHeader = request.headers.get('accept') || '';
+            const isHtmlRequest = acceptHeader.includes('text/html') && request.method === 'GET';
+
+            if (isHtmlRequest) {
+              const { renderPowChallengeHtml } = await import('@/lib/security/ddos-shield/challenge-page');
+              return new NextResponse(renderPowChallengeHtml(), {
+                status: 429,
+                headers: {
+                  'Content-Type': 'text/html; charset=utf-8',
+                  'Retry-After': '5',
+                },
+              });
+            }
+
+            return NextResponse.json(
+              { error: 'Too Many Requests - Security verification required' },
+              { status: 429, headers: { 'Retry-After': '60' } }
+            );
+          }
+        }
+      }
+    }
+  }
+
+  const initialIncomingHost = (hostHeader?.split(',')[0]?.trim() || fwdHost || '');
+  const isLocalhost = isInternalHost(initialIncomingHost) || initialIncomingHost.includes('localhost') || initialIncomingHost.includes('127.0.0.1') || initialIncomingHost.includes('0.0.0.0');
+
   let host = (fwdHost && !isInternalHost(fwdHost))
     ? fwdHost
     : (hostHeader?.split(',')[0]?.trim() || '');
@@ -268,7 +359,6 @@ export async function proxy(request: NextRequest) {
     const targetUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://smmflux.ru');
     return NextResponse.redirect(targetUrl, 302);
   }
-  const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
 
   const fromQuery = normalizeTenantId(request.nextUrl.searchParams.get('tenant'));
   const fromCookie = normalizeTenantId(request.cookies.get('x_tenant')?.value);
@@ -283,7 +373,7 @@ export async function proxy(request: NextRequest) {
   const isTailscaleHost = cleanHost.endsWith('.ts.net') || cleanHost.includes('tailscale');
   let isAllowedQueryTenant = true;
   if (fromQuery && activeContour !== 'test' && process.env.NODE_ENV === 'production' && !isLocalhost && !isTailscaleHost) {
-    const sessionToken = request.cookies.get('session_token')?.value;
+    const sessionToken = readSessionTokenFromCookies(request.cookies);
     if (!sessionToken) {
       isAllowedQueryTenant = false;
     } else {
@@ -300,7 +390,7 @@ export async function proxy(request: NextRequest) {
     isExplicitTenant = true;
   }
   // 2. Global Site Switcher for Admin/Operator panels
-  else if (fromAdminCookie && (pathname.startsWith('/admin') || pathname.startsWith('/operator')) && request.cookies.has('session_token')) {
+  else if (fromAdminCookie && (pathname.startsWith('/admin') || pathname.startsWith('/operator')) && Boolean(readSessionTokenFromCookies(request.cookies))) {
     finalTenantId = fromAdminCookie;
   }
   // 3. Dedicated Domain Resolution (test.smmplan.pro -> smmplan, flux.smmplan.pro -> flux) - ABSOLUTE PRIORITY OVER STALE COOKIES
@@ -368,13 +458,7 @@ export async function proxy(request: NextRequest) {
         sameSite: 'lax',
         maxAge: 60 * 5, // 5 minutes
       });
-      res.cookies.set('session_token', '', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-      });
+      clearSessionCookiesOnResponse(res);
       return applyStickyCookie(res);
     }
   }
@@ -424,20 +508,14 @@ export async function proxy(request: NextRequest) {
   // 4. Auth Route Protection & N-10.5 Strict Redirection
   const protectedPaths = ['/admin', '/dashboard', '/operator'];
   if (protectedPaths.some(p => pathname.startsWith(p))) {
-    const sessionToken = request.cookies.get('session_token')?.value;
+    const sessionToken = readSessionTokenFromCookies(request.cookies);
     const isRSC = request.headers.has('rsc') || request.headers.has('next-action');
     if (!sessionToken) {
       if (isRSC) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const res = NextResponse.redirect(resolveRedirectUrl(ROUTES.AUTH.LOGIN), 307);
-      res.cookies.set('session_token', '', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-      });
+      clearSessionCookiesOnResponse(res);
       return applyStickyCookie(res);
     }
 
@@ -453,20 +531,14 @@ export async function proxy(request: NextRequest) {
     // Enforce contour matching in JWT (tokens issued in test contour cannot be used in prod contour)
     const currentContour = resolveContourFromHost(host);
     const tokenContour = (payload?.contour as ContourId) || (normalizeTenantId(payload?.tenantId) === 'flux' ? 'flux' : 'test');
-    const isContourMismatch = tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
+    const isContourMismatch = !isLocalhost && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
 
     if (!payload || isTenantMismatch || isContourMismatch) {
       if (isRSC) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const response = NextResponse.redirect(resolveRedirectUrl(ROUTES.AUTH.LOGIN), 307);
-      response.cookies.set('session_token', '', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-      });
+      clearSessionCookiesOnResponse(response);
       return applyStickyCookie(response);
     }
 
@@ -505,6 +577,11 @@ export async function proxy(request: NextRequest) {
   const scriptSrcDirective = `'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
   const styleSrcDirective = `'self' 'unsafe-inline' https://fonts.googleapis.com`;
 
+  const incomingProto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol || '';
+  const isHttps = incomingProto.includes('https');
+  const isDirectIpOrLocal = /^(localhost|127\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|26\.\d+\.\d+\.\d+|0\.0\.0\.0)(:\d+)?$/i.test(rawIncomingHost);
+  const shouldUpgradeInsecure = isHttps && !isDirectIpOrLocal;
+
   const cspHeader = `
     default-src 'self';
     script-src ${scriptSrcDirective};
@@ -518,7 +595,7 @@ export async function proxy(request: NextRequest) {
     frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot;
     connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot;
     report-uri /api/telemetry/csp-report;
-    upgrade-insecure-requests;
+    ${shouldUpgradeInsecure ? 'upgrade-insecure-requests;' : ''}
   `.replace(/\s{2,}/g, ' ').trim();
 
   requestHeaders.set('Content-Security-Policy', cspHeader);
@@ -542,7 +619,9 @@ export async function proxy(request: NextRequest) {
   response.headers.set('x-tenant-id', finalTenantId);
   response.headers.set('x-nonce', nonce);
   response.headers.set('Content-Security-Policy', cspHeader);
-  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  if (shouldUpgradeInsecure) {
+    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  }
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');

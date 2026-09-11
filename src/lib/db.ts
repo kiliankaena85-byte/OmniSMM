@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import { createTenantEnforcerExtension } from './prisma-tenant-enforcer';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -101,7 +102,11 @@ function createPrismaClient(): PrismaClient {
     },
   }) as unknown as PrismaClient;
 
-  return guarded;
+  const tenantGuarded = (guarded as unknown as {
+    $extends: (extension: unknown) => PrismaClient;
+  }).$extends(createTenantEnforcerExtension()) as unknown as PrismaClient;
+
+  return tenantGuarded;
 }
 
 export const db = globalForPrisma.prisma ?? createPrismaClient();

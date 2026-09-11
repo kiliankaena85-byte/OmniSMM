@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { verifySession } from '@/lib/session';
+import { verifySession, clearSessionCookies } from '@/lib/session';
 import { verifyPassword } from '@/lib/auth/password';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
@@ -66,9 +66,9 @@ export async function deleteAccountAction(prevState: unknown, formData: FormData
       reason: 'User requested self-service deletion (GDPR Art. 17 / 152-FZ)'
     });
 
-    // Outside the transaction, clear the session_token cookie and set explicit_logout cookie
+    // Outside the transaction, clear the session cookies and set explicit_logout cookie
     const cookieStore = await cookies();
-    cookieStore.delete('session_token');
+    clearSessionCookies(cookieStore);
     cookieStore.set('explicit_logout', 'true', {
       path: '/',
       httpOnly: true,

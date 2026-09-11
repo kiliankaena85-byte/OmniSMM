@@ -16,10 +16,9 @@ import { runSerializableTransaction } from '@/lib/transactions';
 
 const log = logger.child({ component: 'PasswordRegister' });
 
-const schema = z.object({
-  email: z.string().email("Введите корректный email"),
-  password: passwordPolicySchema,
-});
+import { passwordRegisterSchema } from '@/lib/validators/auth-schemas';
+
+const schema = passwordRegisterSchema;
 
 /** @public Public user registration action */
 export async function registerWithPasswordAction(prevState: unknown, formData: FormData) {
@@ -50,7 +49,9 @@ export async function registerWithPasswordAction(prevState: unknown, formData: F
       rawTenantId = reqHeaders.get("x-tenant-id");
       const cookieStore = await cookies();
       refCode = cookieStore.get("ref")?.value;
-    } catch {}
+    } catch {
+      // audit-ignore: expected fallback when invoked outside Next.js request context (e.g. unit tests or background scripts)
+    }
 
     const tenantId = normalizeTenantId(rawTenantId) || "smmplan";
     const clientIp = await getClientIp().catch(() => '127.0.0.1');

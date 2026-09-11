@@ -1,0 +1,11 @@
+id: no-prisma-in-client
+language: typescript
+message: "КАТЕГОРИЧЕСКАЯ ОШИБКА (Security/Build): Импорт базы данных Prisma в клиентском компоненте 'use client'!"
+severity: error
+rule:
+  all:
+    - inside:
+        pattern: |
+          'use client'
+          $$$
+    - pattern: import $$$ from '@/lib/db'

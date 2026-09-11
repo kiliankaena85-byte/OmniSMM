@@ -199,6 +199,7 @@ export async function getLedgerAction(params: Partial<LedgerParams>): Promise<Le
         // Resolve any payments matching gatewayId (e.g. YooKassa UUID) or internal payment ID
         const matchingPayments = await db.payment.findMany({
           where: {
+            ...(activeTenantId && activeTenantId !== 'all' ? { tenantId: activeTenantId } : {}),
             OR: [
               { gatewayId: { contains: searchTrim, mode: 'insensitive' as const } },
               { id: { contains: searchTrim, mode: 'insensitive' as const } }
@@ -217,7 +218,7 @@ export async function getLedgerAction(params: Partial<LedgerParams>): Promise<Le
             extraIdempotencyKeys.push(`gateway-basket-charge-${pid}`);
           }
           const linkedOrders = await db.order.findMany({
-            where: { paymentId: { in: pIds } },
+            where: { paymentId: { in: pIds }, ...(activeTenantId && activeTenantId !== 'all' ? { tenantId: activeTenantId } : {}) },
             select: { id: true },
             take: 50
           });
@@ -296,7 +297,10 @@ export async function getLedgerAction(params: Partial<LedgerParams>): Promise<Le
       const paymentGatewayMap = new Map<string, string>();
       if (candidatePaymentIds.length > 0) {
         const foundPayments = await db.payment.findMany({
-          where: { id: { in: Array.from(new Set(candidatePaymentIds)) } },
+          where: { 
+            id: { in: Array.from(new Set(candidatePaymentIds)) },
+            ...(activeTenantId && activeTenantId !== 'all' ? { tenantId: activeTenantId } : {})
+          },
           select: { id: true, gatewayId: true }
         });
         for (const fp of foundPayments) {

@@ -10,7 +10,7 @@ import { getBaseUrlSync } from "@/utils/get-base-url";
 import { headers } from 'next/headers';
 import { getClientIp } from '@/utils/ip';
 import { RateLimitService } from '@/services/core/rate-limit.service';
-import { SettingsManager } from '@/lib/settings';
+import { SettingsManager, SettingsProvider } from '@/lib/settings';
 import { WalletOps, WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError } from '@/services/financial/wallet-ops';
 import { runSerializableTransaction } from '@/lib/transactions';
 import crypto from 'crypto';
@@ -38,7 +38,7 @@ const structuredMassOrderSchema = z.object({
   expectedTotalRub: z.number().optional(),
 });
 
-const parseMassOrderText = async (text: string) => {
+const parseMassOrderText = async (text: string, tenantId?: string) => {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   if (lines.length > 500) {
     throw new Error('Превышен максимальный размер пакета массового заказа (максимум 500 строк)');
@@ -58,15 +58,12 @@ const parseMassOrderText = async (text: string) => {
     const parts = line.split('|').map(p => p.trim());
     
     if (parts.length < 3) {
-      errors.push({ line: i + 1, text: line, error: 'Формат должен быть: ID услуги | Ссылка | Количество' });
+      errors.push({ line: i + 1, text: line, error: 'Неверный формат. Ожидается: ID_Услуги | Ссылка | Количество' });
       continue;
     }
 
-    const serviceIdStr = parts[0];
-    const link = parts[1];
-    const qtyStr = parts[2];
-
-    const numericId = parseInt(serviceIdStr, 10);
+    const [idStr, link, qtyStr] = parts;
+    const numericId = parseInt(idStr, 10);
     const quantity = parseInt(qtyStr, 10);
 
     if (isNaN(numericId) || isNaN(quantity) || quantity <= 0) {
@@ -80,7 +77,7 @@ const parseMassOrderText = async (text: string) => {
   if (orders.length > 0) {
     const numericIds = orders.map(o => o.numericId);
     const services = await db.service.findMany({
-      where: { numericId: { in: numericIds }, isActive: true },
+      where: { numericId: { in: numericIds }, isActive: true, ...(tenantId ? { tenantId } : {}) },
       include: { 
         category: { 
           include: { network: true } 
@@ -118,43 +115,63 @@ const parseMassOrderText = async (text: string) => {
         
         const analyzer = new IntelligenceLinkAnalyzer();
         const analysis = await analyzer.analyze(order.link.trim());
-        const detectedLinkType = analysis?.type || 'generic_link';
-        const resolvedTargetType = service.targetType || inferTargetTypeFromCategory(service.category?.name);
-        const serviceTargetType = normalizeServiceTargetType(resolvedTargetType);
-
-        if (!isLinkServiceCompatible(detectedLinkType, serviceTargetType)) {
-          const errorMsg = getCompatibilityError(detectedLinkType, serviceTargetType, service.name);
-          errors.push({ line: i + 1, text: `${order.numericId} | ${order.link} | ${order.quantity}`, error: errorMsg });
+        
+        if (analysis.warnings?.includes('platform_not_supported')) {
+          errors.push({ 
+            line: i + 1, 
+            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
+            error: `Некорректный формат ссылки: неподдерживаемый формат` 
+          });
           continue;
         }
 
-        const normalizedLink = mutateLink(order.link, platformSlug, resolvedTargetType);
-        const validator = getLinkValidator(platformSlug, resolvedTargetType);
-        const linkResult = validator.safeParse(normalizedLink);
-
-        if (!linkResult.success) {
-          errors.push({ line: i + 1, text: `${order.numericId} | ${order.link} | ${order.quantity}`, error: linkResult.error.errors[0].message });
-        } else {
-          order.link = normalizedLink;
-          order.serviceId = service.id;
-          order.providerId = service.providerId;
-          order.providerServiceId = service.externalId;
+        const networkMismatch = platformSlug && analysis.platform && analysis.platform.toUpperCase() !== platformSlug;
+        if (networkMismatch) {
+          errors.push({ 
+            line: i + 1, 
+            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
+            error: `Ссылка не соответствует выбранной соцсети: указана ссылка на ${analysis.platform}, а услуга предназначена для ${platformSlug}` 
+          });
+          continue;
         }
-      } catch (e: unknown) {
-        errors.push({ line: i + 1, text: `${order.numericId} | ${order.link} | ${order.quantity}`, error: (e instanceof Error ? e.message : String(e)) || 'Ошибка валидации ссылки' });
+
+        const rawTargetType = (service as { targetType?: string | null }).targetType 
+          || inferTargetTypeFromCategory(service.category?.name || '') 
+          || 'ANY';
+        const serviceTargetType = normalizeServiceTargetType(rawTargetType);
+        
+        if (!isLinkServiceCompatible(analysis.type, serviceTargetType)) {
+          const compatError = getCompatibilityError(analysis.type, serviceTargetType, service.category?.name || '');
+          errors.push({ 
+            line: i + 1, 
+            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
+            error: compatError 
+          });
+          continue;
+        }
+
+        order.link = analysis.canonicalUrl;
+      } catch (err: unknown) {
+        console.warn(`[MassOrder] Link analyzer error on line ${i + 1}:`, err);
       }
+
+      order.serviceId = service.id;
+      order.providerId = service.providerId;
+      order.providerServiceId = service.externalId;
     }
   }
 
-  return { orders: orders.filter(o => o.serviceId), errors };
+  const validOrders = orders.filter(o => o.serviceId !== '');
+  return { orders: validOrders, errors };
 };
 
 export const massOrderCalculateAction = async (input: { text: string }) => {
   return createSafeAction(z.object({ text: z.string() }), input, async (data: { text: string }) => {
     const session = await verifySession();
     const userId = session?.userId;
+    const tenantId = (await SettingsProvider.getTenantId()) || 'smmplan';
     
-    const { orders, errors } = await parseMassOrderText(data.text);
+    const { orders, errors } = await parseMassOrderText(data.text, tenantId);
     if (orders.length === 0) {
       throw new Error(errors[0]?.error || 'Нет валидных строк для заказа');
     }
@@ -168,7 +185,7 @@ export const massOrderCalculateAction = async (input: { text: string }) => {
       user = await db.user.findUnique({ where: { id: userId } });
     }
     const serviceIds = orders.map(o => o.serviceId);
-    const services = await db.service.findMany({ where: { id: { in: serviceIds } } });
+    const services = await db.service.findMany({ where: { id: { in: serviceIds }, tenantId } });
     const serviceMap = new Map(services.map(s => [s.id, s]));
 
     for (const order of orders) {
@@ -244,7 +261,7 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
     // 0.5 Idempotency check
     if (idempotencyKey) {
       const existingOrder = await db.order.findFirst({
-        where: { idempotencyKey: `${idempotencyKey}_order_0`, userId: user.id },
+        where: { idempotencyKey: `${idempotencyKey}_order_0`, userId: user.id, tenantId: user.tenantId },
         include: { payment: true }
       });
       if (existingOrder && existingOrder.payment) {
@@ -260,7 +277,7 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
     const consentIp = await getClientIp();
     const consentUserAgent = reqHeaders.get("user-agent") || "Unknown";
 
-    const { orders } = await parseMassOrderText(text);
+    const { orders } = await parseMassOrderText(text, user.tenantId);
     if (orders.length === 0) throw new Error("Нет валидных строк для заказа");
 
     let totalCents = 0;
@@ -272,7 +289,7 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
 
     // W4-4 FIX: Preload services to avoid N+1 queries in loop
     const serviceIds = orders.map(o => o.serviceId);
-    const services = await db.service.findMany({ where: { id: { in: serviceIds } } });
+    const services = await db.service.findMany({ where: { id: { in: serviceIds }, tenantId: user.tenantId } });
     const serviceMap = new Map(services.map(s => [s.id, s]));
 
     for (let idx = 0; idx < orders.length; idx++) {
@@ -409,7 +426,7 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
     if (isBalancePayment) {
       const { ordersQueue } = await import('@/lib/queue-manager');
       const createdOrders = await db.order.findMany({
-        where: { paymentId: result.paymentId },
+        where: { paymentId: result.paymentId, tenantId: user.tenantId },
         select: { id: true, numericId: true }
       });
       for (const ord of createdOrders) {
@@ -461,7 +478,7 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
         data: { status: 'CANCELED' }
       });
       await db.order.updateMany({
-        where: { paymentId: result.paymentId },
+        where: { paymentId: result.paymentId, tenantId: user.tenantId },
         data: { status: 'ERROR', error: (gatewayErr instanceof Error ? gatewayErr.message : String(gatewayErr)) || 'Ошибка генерации платежа' }
       });
       
@@ -535,7 +552,7 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
     // 0.5 Idempotency check
     if (idempotencyKey) {
       const existingOrder = await db.order.findFirst({
-        where: { idempotencyKey: `${idempotencyKey}_order_0`, userId: user.id },
+        where: { idempotencyKey: `${idempotencyKey}_order_0`, userId: user.id, tenantId: user.tenantId },
         include: { payment: true }
       });
       if (existingOrder && existingOrder.payment) {
@@ -568,7 +585,7 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
 
     const serviceIds = rawOrders.map(o => o.serviceId);
     const services = await db.service.findMany({ 
-      where: { id: { in: serviceIds } },
+      where: { id: { in: serviceIds }, tenantId: user.tenantId },
       include: { category: { include: { network: true } } }
     });
     const serviceMap = new Map(services.map(s => [s.id, s]));
@@ -724,7 +741,7 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
     if (isBalancePayment) {
       const { ordersQueue } = await import('@/lib/queue-manager');
       const createdOrders = await db.order.findMany({
-        where: { paymentId: result.paymentId },
+        where: { paymentId: result.paymentId, tenantId: user.tenantId },
         select: { id: true, numericId: true }
       });
       for (const ord of createdOrders) {
@@ -776,7 +793,7 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
         data: { status: 'CANCELED' }
       });
       await db.order.updateMany({
-        where: { paymentId: result.paymentId },
+        where: { paymentId: result.paymentId, tenantId: user.tenantId },
         data: { status: 'ERROR', error: (gatewayErr instanceof Error ? gatewayErr.message : String(gatewayErr)) || 'Ошибка генерации платежа' }
       });
       

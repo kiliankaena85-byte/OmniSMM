@@ -422,7 +422,11 @@ class AdminOrderService {
       // R1-003 Fix: Roll back promo code uses if it was never paid
       if (order.status === 'AWAITING_PAYMENT' && order.promoCodeId) {
         await tx.promoCode.updateMany({
-          where: { id: order.promoCodeId, uses: { gt: 0 } },
+          where: {
+            id: order.promoCodeId,
+            uses: { gt: 0 },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { uses: { decrement: 1 } }
         });
       }

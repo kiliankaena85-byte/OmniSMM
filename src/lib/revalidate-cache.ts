@@ -25,7 +25,8 @@ export async function triggerCacheRevalidation(tags: string[]): Promise<boolean>
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${secret}`
       },
-      body: JSON.stringify({ tags })
+      body: JSON.stringify({ tags }),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {

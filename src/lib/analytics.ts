@@ -24,10 +24,13 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
             headers: { 'Content-Type': 'application/json' },
             body: payload,
             keepalive: true,
-          }).catch(() => {});
+            signal: AbortSignal.timeout(3000),
+          }).catch(() => {
+            // audit-ignore: telemetry failure is non-blocking
+          });
         }
       } catch {
-        // Telemetry is non-blocking
+        // audit-ignore: Telemetry is non-blocking
       }
 
       // 2. Check if Yandex Metrika is available
@@ -35,8 +38,11 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
         window.ym(96000000, "reachGoal", eventName, params);
       }
       
-      // 3. Check if Google Analytics (gtag) is available
-      if (window.gtag) {
+      // 3. 152-FZ Compliance (Cross-border data transfer guard):
+      // Google Analytics (window.gtag) sends data to foreign jurisdiction servers.
+      // Strictly require explicit Opt-In consent before dispatching events to Google.
+      const hasForeignAnalyticsConsent = typeof localStorage !== "undefined" && localStorage.getItem("consent_foreign_analytics") === "true";
+      if (window.gtag && hasForeignAnalyticsConsent) {
         window.gtag("event", eventName, params);
       }
 

@@ -318,7 +318,12 @@ class AdminTicketService {
 
     // Fetch 3 most recent historical closed tickets for Intercom Model
     const historicalTickets = await db.ticket.findMany({
-      where: { userId: ticket.user.id, status: 'CLOSED', id: { not: ticket.id } },
+      where: {
+        userId: ticket.user.id,
+        status: 'CLOSED',
+        id: { not: ticket.id },
+        ...(ticket.tenantId ? { tenantId: ticket.tenantId } : {})
+      },
       orderBy: { updatedAt: 'desc' },
       take: 3,
       include: {

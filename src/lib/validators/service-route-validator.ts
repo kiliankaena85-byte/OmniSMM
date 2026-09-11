@@ -8,6 +8,7 @@ export interface ValidateRouteParams {
   providerId: string;
   providerServiceId: string;
   isPrimary?: boolean;
+  tenantId?: string;
 }
 
 export class ServiceRouteValidationError extends Error {
@@ -23,7 +24,7 @@ export class ServiceRouteValidationError extends Error {
  * Enforces zero-defect data mapping for provider routing.
  */
 export async function assertValidServiceRoute(params: ValidateRouteParams): Promise<{ valid: boolean; serviceName: string }> {
-  const { serviceId, providerId, providerServiceId } = params;
+  const { serviceId, providerId, providerServiceId, tenantId } = params;
 
   if (!providerServiceId || !providerServiceId.trim()) {
     throw new ServiceRouteValidationError('ID услуги у провайдера (providerServiceId) не может быть пустым', 'EMPTY_PROVIDER_SERVICE_ID');
@@ -31,9 +32,13 @@ export async function assertValidServiceRoute(params: ValidateRouteParams): Prom
 
   const cleanProviderServiceId = providerServiceId.trim();
 
-  // 1. Fetch target service
-  const service = await db.service.findUnique({
-    where: { id: serviceId },
+  // 1. Fetch target service with tenant scoping
+  const fetchFn = (tenantId && db.service.findFirst) ? db.service.findFirst : (db.service.findFirst || db.service.findUnique);
+  const service = await fetchFn({
+    where: {
+      id: serviceId,
+      ...(tenantId ? { tenantId } : {}),
+    },
     select: {
       id: true,
       name: true,

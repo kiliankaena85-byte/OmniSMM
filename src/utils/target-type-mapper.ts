@@ -183,6 +183,26 @@ export function inferTargetTypeFromName(name: string | null | undefined): Target
 }
 
 /**
+ * Resolves the true TargetType for a service, correcting legacy or corrupted
+ * database targetType values when service name unambiguously indicates the target.
+ */
+export function resolveServiceTargetType(service: { name: string; targetType?: string | null }): string {
+  const inferred = inferTargetTypeFromName(service.name);
+  if (
+    (!service.targetType || service.targetType === 'POST' || service.targetType === 'CUSTOM') &&
+    (inferred === TargetTypeEnum.CHANNEL ||
+      inferred === TargetTypeEnum.CHANNEL_POSTS ||
+      inferred === TargetTypeEnum.POLL ||
+      inferred === TargetTypeEnum.VIDEO ||
+      inferred === TargetTypeEnum.STORY ||
+      inferred === TargetTypeEnum.BOT)
+  ) {
+    return inferred;
+  }
+  return service.targetType || inferred;
+}
+
+/**
  * Checks whether a detected URL link target type is compatible with a Service target type.
  */
 export function isTargetTypeCompatible(

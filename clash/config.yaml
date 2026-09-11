@@ -4910,6 +4910,19 @@ rule-providers:
     interval: 86400
     path: ./ruleset/whitelist.yaml
 rules:
+  - DOMAIN,panel.smmtoolbox.ru,DIRECT
+  - DOMAIN-SUFFIX,smmtoolbox.ru,DIRECT
+  - DOMAIN,primelike.happydesk.ru,DIRECT
+  - DOMAIN-SUFFIX,happydesk.ru,DIRECT
+  - DOMAIN-SUFFIX,ru,DIRECT
+  - DOMAIN-SUFFIX,su,DIRECT
+  - DOMAIN-SUFFIX,xn--p1ai,DIRECT
+  - DOMAIN-SUFFIX,xn--80aswg,DIRECT
+  - DOMAIN-SUFFIX,xn--80asehdb,DIRECT
+  - DOMAIN-KEYWORD,smmtoolbox,DIRECT
+  - DOMAIN-KEYWORD,happydesk,DIRECT
+  - GEOSITE,category-ru,DIRECT
+  - GEOIP,RU,DIRECT,no-resolve
   - DOMAIN-SUFFIX, 2ip.ru, Quattro VPN
   - RULE-SET, Quattro-whitelist, DIRECT
   - MATCH, Quattro VPN

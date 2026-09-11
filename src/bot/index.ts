@@ -1303,7 +1303,7 @@ async function handleLinkInput(ctx: BotContext, rawInput: string) {
 
     // SMART CATEGORY FILTER: Filter out incompatible categories (e.g. post likes for channel links)
     const { isLinkServiceCompatible, normalizeServiceTargetType } = await import('@/constants/link-service-compatibility');
-    const { inferTargetTypeFromName } = await import('@/utils/target-type-mapper');
+    const { resolveServiceTargetType } = await import('@/utils/target-type-mapper');
 
     const detectedType = analysis.type || 'generic_link';
     const compatibleCategories: Array<{ id: string; name: string }> = [];
@@ -1311,7 +1311,7 @@ async function handleLinkInput(ctx: BotContext, rawInput: string) {
     for (const c of categories) {
       const svcs = await BotCatalogService.getVisibleServices(c.id, botTenantId);
       const hasCompatibleService = svcs.some((s: { targetType?: string | null; name: string }) => {
-        const rawTarget = s.targetType || inferTargetTypeFromName(s.name);
+        const rawTarget = resolveServiceTargetType(s);
         const normalized = normalizeServiceTargetType(rawTarget);
         return isLinkServiceCompatible(detectedType, normalized);
       });

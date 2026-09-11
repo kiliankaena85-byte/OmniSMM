@@ -6,7 +6,7 @@ import { settingsService } from '@/services/admin/settings.service';
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies } from '@/lib/session';
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2 MB
@@ -15,7 +15,7 @@ const MAX_FAVICON_SIZE = 500 * 1024; // 500 KB
 export async function POST(req: NextRequest) {
   try {
     // 1. Authentication & RBAC Check
-    const token = req.cookies.get('session_token')?.value;
+    const token = readSessionTokenFromCookies(req.cookies);
     if (!token) return new NextResponse('Unauthorized', { status: 401 });
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });

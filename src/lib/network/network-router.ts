@@ -13,6 +13,7 @@ import type {
 } from '@/types/provider-proxy';
 import { assertSafeOutboundUrl } from '@/lib/security/ssrf-guard';
 import { createProxyDispatcher, buildProxyConfig } from '@/lib/http/proxy-fetch';
+import { logger } from '@/lib/logger';
 
 /**
  * Hardcoded security invariants: Russian banks, fiscalization and local services
@@ -27,6 +28,10 @@ export const IMMUTABLE_DIRECT_PATTERNS = [
   'smtp.yandex.ru',
   'smtp.mail.ru',
   'vexboost.ru',
+  'panel.smmtoolbox.ru',
+  'smmtoolbox.ru',
+  'primelike.happydesk.ru',
+  'happydesk.ru',
   'localhost',
   '127.0.0.1'
 ];
@@ -87,6 +92,42 @@ export const DEFAULT_ROUTING_CONFIG: NetworkRoutingConfig = {
       comment: 'Почтовый шлюз Яндекс 465',
       isEnabled: true,
       priority: 40
+    },
+    {
+      id: 'rule-smmtoolbox',
+      type: 'DOMAIN-SUFFIX',
+      payload: 'smmtoolbox.ru',
+      target: 'DIRECT',
+      comment: 'SMMToolbox панель (строго прямой доступ РФ)',
+      isEnabled: true,
+      priority: 42
+    },
+    {
+      id: 'rule-happydesk',
+      type: 'DOMAIN-SUFFIX',
+      payload: 'happydesk.ru',
+      target: 'DIRECT',
+      comment: 'HappyDesk тикеты и виджеты (строго прямой доступ РФ)',
+      isEnabled: true,
+      priority: 45
+    },
+    {
+      id: 'rule-domestic-ru',
+      type: 'DOMAIN-SUFFIX',
+      payload: 'ru',
+      target: 'DIRECT',
+      comment: 'Все российские сервисы зоны .ru напрямую',
+      isEnabled: true,
+      priority: 50
+    },
+    {
+      id: 'rule-domestic-rf',
+      type: 'DOMAIN-SUFFIX',
+      payload: 'xn--p1ai',
+      target: 'DIRECT',
+      comment: 'Все сервисы зоны .рф напрямую',
+      isEnabled: true,
+      priority: 51
     },
     // 2. AI Services (Google Gemini) - requires proxy in restricted regions
     {
@@ -508,7 +549,7 @@ export class UniversalNetworkRouter {
           : await ProxyPoolService.getHealthyProxy(context?.providerId);
 
         if (backupProxy && backupProxy.id !== route.proxyConfig.id) {
-          console.log(`[NetworkRouter] Multi-Proxy Failover to: ${backupProxy.host}:${backupProxy.port}`);
+          logger.info(`[NetworkRouter] Multi-Proxy Failover to: ${backupProxy.host}:${backupProxy.port}`);
           const backupDisp = await createProxyDispatcher(backupProxy);
           const { fetch: undiciFetch } = await import('undici');
 
@@ -521,13 +562,16 @@ export class UniversalNetworkRouter {
           }) as unknown as Response;
         }
       } catch (failoverErr) {
-        console.warn('[NetworkRouter] Failover attempt also failed:', failoverErr);
+        logger.warn('[NetworkRouter] Failover attempt also failed:', { error: String(failoverErr) });
       }
 
       // If non-restricted service, last resort fallback to direct
       if (context?.service !== 'AI_GEMINI') {
-        console.warn('[NetworkRouter] Proxies exhausted, falling back to direct connection');
-        return fetch(url, init);
+        logger.warn('[NetworkRouter] Proxies exhausted, falling back to direct connection');
+        return fetch(url, {
+          ...init,
+          signal: init?.signal || AbortSignal.timeout(10000),
+        });
       }
 
       throw primaryErr;

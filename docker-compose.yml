@@ -5,6 +5,7 @@ services:
     image: postgres:15-alpine
     container_name: smmplan_lite_db
     restart: always
+    mem_limit: 128m
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -29,7 +30,8 @@ services:
     image: redis:7-alpine
     container_name: smmplan_lite_redis
     restart: always
-    command: redis-server --requirepass ${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!} --save 60 1 --loglevel warning --maxmemory 1024mb --maxmemory-policy volatile-lru
+    mem_limit: 64m
+    command: redis-server --requirepass ${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!} --save 60 1 --loglevel warning --maxmemory 64mb --maxmemory-policy volatile-lru
     volumes:
       - lite_redis_data:/data
     ports:
@@ -50,6 +52,7 @@ services:
     image: metacubex/mihomo:latest
     container_name: smmplan_clash
     restart: always
+    mem_limit: 64m
     # TUN mode requires NET_ADMIN + /dev/net/tun
     cap_add:
       - NET_ADMIN
@@ -81,10 +84,12 @@ services:
       target: bot-runner
     container_name: smmplan_bot
     restart: always
+    mem_limit: 128m
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=96
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
       - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
       - BOT_TENANT_ID=smmplan
@@ -115,10 +120,12 @@ services:
       target: worker-runner
     container_name: smmplan_lite_worker
     restart: always
+    mem_limit: 128m
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=96
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
       - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
       - CLASH_PROXY_URL=http://clash:7890
@@ -148,12 +155,14 @@ services:
       target: runner
     container_name: smmplan_web
     restart: always
+    mem_limit: 384m
     # Load all secrets from .env (local dev keys, API tokens, etc.)
     # DATABASE_URL and REDIS_URL are overridden below to use Docker service names
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=256
       # Override to use Docker internal service DNS (not localhost)
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
       - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379

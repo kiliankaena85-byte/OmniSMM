@@ -1,6 +1,29 @@
 import { jwtVerify } from 'jose';
 import { normalizeTenantId, type ContourId } from '@/lib/tenant-resolver-edge';
 
+export const LEGACY_SESSION_COOKIE_NAME = 'session_token';
+
+export function resolveSessionCookieName(isProduction: boolean = process.env.NODE_ENV === 'production'): string {
+  return isProduction ? '__Host-session_token' : LEGACY_SESSION_COOKIE_NAME;
+}
+
+export const SESSION_COOKIE_NAME = resolveSessionCookieName();
+
+/**
+ * Universal Dual-Read helper for session tokens.
+ * Works seamlessly with Next.js RequestCookies (Request.cookies) and ReadonlyRequestCookies (cookies()).
+ */
+export function readSessionTokenFromCookies(cookieStoreOrRequest: {
+  get: (name: string) => { value: string } | undefined;
+}): string | undefined {
+  // 1. First priority: Hardened __Host- prefix cookie
+  const hardenedToken = cookieStoreOrRequest.get('__Host-session_token')?.value;
+  if (hardenedToken) return hardenedToken;
+
+  // 2. Second priority: Legacy cookie for seamless session persistence during migration
+  return cookieStoreOrRequest.get(LEGACY_SESSION_COOKIE_NAME)?.value;
+}
+
 let cachedEncodedKey: Uint8Array | null = null;
 let cachedPreviousKeys: Uint8Array[] | null = null;
 

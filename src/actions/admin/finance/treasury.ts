@@ -80,6 +80,7 @@ export async function getTreasuryFinancialHealthAction(
       const currentQuarterStart = new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3, 1);
       const quarterPayments = await db.payment.findMany({
         where: {
+          tenantId,
           status: 'SUCCEEDED',
           createdAt: { gte: currentQuarterStart },
         },

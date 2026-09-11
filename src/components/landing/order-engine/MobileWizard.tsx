@@ -1,6 +1,5 @@
 import React from "react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
-import { Loader2 } from "lucide-react";
 
 // Wizard Steps
 import { MobileWizardStepper } from "./wizard-steps/MobileWizardStepper";
@@ -38,14 +37,6 @@ export function MobileWizard({
 }: MobileWizardProps) {
 
   const wizard = useMobileWizard(engine);
-
-  if (!wizard.mounted) {
-    return (
-      <div className="w-full flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="w-full flex flex-col gap-2 p-2 sm:p-4 bg-content1 md:hidden">

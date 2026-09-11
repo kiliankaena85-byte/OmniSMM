@@ -1,7 +1,12 @@
 import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { decryptSessionToken } from '@/lib/session-edge';
+import { 
+  decryptSessionToken, 
+  readSessionTokenFromCookies, 
+  SESSION_COOKIE_NAME, 
+  LEGACY_SESSION_COOKIE_NAME 
+} from '@/lib/session-edge';
 
 async function deleteSessionFromDB(token?: string) {
   if (token) {
@@ -12,10 +17,12 @@ async function deleteSessionFromDB(token?: string) {
         try {
           const { redis } = await import('@/lib/redis');
           await redis.set(`blacklist:session:${payload.sessionId}`, '1', 'EX', 86400);
-        } catch {}
+        } catch {
+          // audit-ignore: redis session blacklisting is secondary to DB session deletion
+        }
       }
     } catch {
-      // ignore validation errors on logout
+      // audit-ignore: ignore validation errors on logout
     }
   }
 }
@@ -31,10 +38,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
-  const token = cookieStore.get('session_token')?.value;
+  const token = readSessionTokenFromCookies(cookieStore);
   await deleteSessionFromDB(token);
   
-  cookieStore.delete('session_token');
+  cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(LEGACY_SESSION_COOKIE_NAME);
 
   const reqHeaders = await headers();
   const hostHeader = reqHeaders.get('host');

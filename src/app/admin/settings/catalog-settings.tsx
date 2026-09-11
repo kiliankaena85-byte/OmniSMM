@@ -12,7 +12,7 @@ import { useActionState, useEffect, useState } from 'react';
 import { Loader2, Calculator, TrendingUp, Coins, Sparkles, HelpCircle, RefreshCw, CheckCircle2, RotateCcw } from 'lucide-react';
 import { applyBeautifulRounding } from '@/lib/financial-constants';
 import { formatPricePerUnit, formatRubles } from '@/utils/format-price';
-import { SystemSettings } from '@prisma/client';
+import type { SystemSettings } from '@prisma/client';
 
 interface CatalogSettingsProps {
   settings: SystemSettings;

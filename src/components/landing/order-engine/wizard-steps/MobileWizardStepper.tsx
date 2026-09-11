@@ -66,7 +66,7 @@ export function MobileWizardStepper({
                 if (clickable) setActiveStep(step);
               }}
               className={`
-                flex flex-col items-center gap-1 py-1.5 px-0.5 rounded-xl transition-all text-center
+                flex flex-col items-center justify-center gap-1 min-h-[44px] py-1 px-0.5 rounded-xl transition-all text-center
                 ${clickable ? 'cursor-pointer active:scale-95' : 'cursor-default opacity-50'}
                 ${isActive ? 'bg-primary/10 text-primary font-black' : isCompleted ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}
               `}
@@ -84,7 +84,7 @@ export function MobileWizardStepper({
               >
                 {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : step}
               </div>
-              <span className="text-[10px] tracking-tight truncate max-w-full leading-none">
+              <span className="text-[10px] leading-none tracking-tight truncate max-w-full">
                 {label}
               </span>
             </button>

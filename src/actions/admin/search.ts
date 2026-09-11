@@ -39,11 +39,15 @@ export async function globalOmniSearch(query: string): Promise<SearchHit[]> {
 
   const hits: SearchHit[] = [];
   const qLower = query.toLowerCase();
+  const tenantFilter = user.tenantId ? { tenantId: user.tenantId } : {};
 
   // 1. Search Users by Email (only if permitted)
   if (canSearchClients && (qLower.includes('@') || qLower.length > 3)) {
     const users = await db.user.findMany({
-      where: { email: { contains: qLower, mode: 'insensitive' } },
+      where: {
+        email: { contains: qLower, mode: 'insensitive' },
+        ...tenantFilter
+      },
       take: 5,
     });
     users.forEach((u) =>
@@ -63,6 +67,7 @@ export async function globalOmniSearch(query: string): Promise<SearchHit[]> {
     const orders = await db.order.findMany({
       where: {
         OR: [{ numericId: numId }, { externalId: query.trim() }],
+        ...tenantFilter
       },
       take: 5,
       include: { user: true, service: { include: { category: true } } },
@@ -82,7 +87,10 @@ export async function globalOmniSearch(query: string): Promise<SearchHit[]> {
   // 3. Search Services by Name (only if permitted)
   if (canSearchCatalog && isNaN(numId) && qLower.length > 2) {
     const services = await db.service.findMany({
-      where: { name: { contains: qLower, mode: 'insensitive' } },
+      where: {
+        name: { contains: qLower, mode: 'insensitive' },
+        ...tenantFilter
+      },
       take: 5,
       include: { category: true },
     });

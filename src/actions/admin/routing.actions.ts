@@ -56,14 +56,16 @@ export async function previewHotSwap(serviceId: string, newRouteId: string) {
     const recentOrders = await db.order.count({
       where: { 
         serviceId, 
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } 
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        ...(service.tenantId ? { tenantId: service.tenantId } : {})
       }
     });
 
     const existingActiveOrders = await db.order.count({
       where: {
         serviceId,
-        status: { in: ['AWAITING_PAYMENT', 'PENDING', 'IN_PROGRESS'] }
+        status: { in: ['AWAITING_PAYMENT', 'PENDING', 'IN_PROGRESS'] },
+        ...(service.tenantId ? { tenantId: service.tenantId } : {})
       }
     });
 
@@ -340,11 +342,17 @@ export async function deleteServiceRoute(routeId: string) {
         throw new Error("Нельзя удалить Primary маршрут. Сначала назначьте другой маршрут основным.");
       }
 
+      const routeService = await tx.service.findUnique({
+        where: { id: route.serviceId },
+        select: { tenantId: true }
+      });
+
       const activeOrders = await tx.order.count({
         where: {
           serviceId: route.serviceId,
           providerId: route.providerId,
-          status: { in: ['AWAITING_PAYMENT', 'PENDING', 'IN_PROGRESS'] }
+          status: { in: ['AWAITING_PAYMENT', 'PENDING', 'IN_PROGRESS'] },
+          ...(routeService?.tenantId ? { tenantId: routeService.tenantId } : {})
         }
       });
 
@@ -394,7 +402,8 @@ export async function getProviderComparisonData(serviceId: string) {
       where: {
         serviceId,
         providerId: { in: providerIds },
-        createdAt: { gte: last7Days }
+        createdAt: { gte: last7Days },
+        ...(service.tenantId ? { tenantId: service.tenantId } : {})
       },
       select: {
         providerId: true,

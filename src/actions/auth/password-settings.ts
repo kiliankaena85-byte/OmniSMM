@@ -127,9 +127,10 @@ export async function changePasswordAction(formData: FormData) {
     });
 
     // Create a new session for the current device (and clear canResetPassword flag)
-    const { sessionToken, expiresAt } = await import('@/lib/session').then(m => m.createSession(session.userId, false));
+    const { createSession, SESSION_COOKIE_NAME } = await import('@/lib/session');
+    const { sessionToken, expiresAt } = await createSession(session.userId, false);
     const cookieStore = await import('next/headers').then(m => m.cookies());
-    cookieStore.set('session_token', sessionToken, {
+    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       expires: expiresAt,

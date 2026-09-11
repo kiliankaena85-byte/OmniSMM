@@ -23,7 +23,8 @@ export async function forceSyncMyPaymentsAction(): Promise<boolean> {
         userId: session.userId,
         status: 'PENDING',
         gateway: 'yookassa',
-        gatewayId: { not: null }
+        gatewayId: { not: null },
+        ...(session.tenantId ? { tenantId: session.tenantId } : {})
       },
       take: 5 // Ограничим чтобы не повесить API ЮKassa
     });
@@ -44,7 +45,8 @@ export async function forceSyncMyPaymentsAction(): Promise<boolean> {
       try {
         const resp = await fetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
           method: 'GET',
-          headers: { 'Authorization': authHeader }
+          headers: { 'Authorization': authHeader },
+          signal: AbortSignal.timeout(5000),
         });
 
         if (resp.ok) {

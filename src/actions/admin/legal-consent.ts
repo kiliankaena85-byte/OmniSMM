@@ -17,7 +17,7 @@ const LEGAL_DOCUMENT_TEXT = `Регламент финансовой ответ�
 4. Все действия в системе фиксируются в электронном журнале аудита с сохранением цифрового отпечатка, IP-адреса, временных меток в часовом поясе Europe/Moscow и связки с тикетами/заказами.
 5. Нарушение порядка компенсаций является основанием для применения мер дисциплинарного взыскания и взыскания материального ущерба согласно ТК РФ.`;
 
-export const LEGAL_DOCUMENT_HASH = crypto.createHash('sha256').update(LEGAL_DOCUMENT_TEXT).digest('hex');
+const LEGAL_DOCUMENT_HASH = crypto.createHash('sha256').update(LEGAL_DOCUMENT_TEXT).digest('hex');
 
 export async function getEmployeeConsentStatusAction() {
   return requireStaffPermission('tickets', 'view', async (user) => {

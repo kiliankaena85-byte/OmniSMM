@@ -91,6 +91,7 @@ export async function getMonthShiftsAction(year: number, month: number) {
     const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
     const endOfMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
     const daysInMonth = new Date(year, month, 0).getDate();
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
 
     const staffUsers = await db.user.findMany({
       where: {
@@ -98,6 +99,7 @@ export async function getMonthShiftsAction(year: number, month: number) {
           { role: { in: ['SUPPORT', 'MANAGER', 'ADMIN', 'OWNER'] } },
           { staffRoleId: { not: null } },
         ],
+        ...tenantFilter
       },
       orderBy: [{ role: 'asc' }, { email: 'asc' }],
     });
@@ -289,7 +291,7 @@ export async function assignShiftAction(input: z.infer<typeof assignShiftSchema>
  * Evaluates substitute availability and reciprocal shift candidates for a given shift.
  */
 export async function getAvailableSubstitutesAction(shiftId: string) {
-  return requireStaffPermission('staff', 'view', async () => {
+  return requireStaffPermission('staff', 'view', async (admin) => {
     const shift = await db.staffShift.findUnique({
       where: { id: shiftId },
       include: { user: true },
@@ -304,6 +306,7 @@ export async function getAvailableSubstitutesAction(shiftId: string) {
     const month = targetDate.getUTCMonth() + 1;
     const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
     const endOfMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
 
     // Fetch all other staff members
     const staffUsers = await db.user.findMany({
@@ -313,6 +316,7 @@ export async function getAvailableSubstitutesAction(shiftId: string) {
           { role: { in: ['SUPPORT', 'MANAGER', 'ADMIN', 'OWNER'] } },
           { staffRoleId: { not: null } },
         ],
+        ...tenantFilter
       },
       orderBy: [{ role: 'asc' }, { email: 'asc' }],
     });
@@ -709,6 +713,7 @@ export async function getMonthlyPayrollAction(year: number, month: number) {
   return requireStaffPermission('staff', 'view', async (admin) => {
     const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
     const endOfMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
 
     const staffUsers = await db.user.findMany({
       where: {
@@ -716,6 +721,7 @@ export async function getMonthlyPayrollAction(year: number, month: number) {
           { role: { in: ['SUPPORT', 'MANAGER', 'ADMIN', 'OWNER'] } },
           { staffRoleId: { not: null } },
         ],
+        ...tenantFilter
       },
       orderBy: [{ role: 'asc' }, { email: 'asc' }],
     });

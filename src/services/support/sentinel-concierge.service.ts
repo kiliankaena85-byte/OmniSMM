@@ -73,9 +73,10 @@ export class SentinelConciergeService {
                 text: msg,
                 parse_mode: 'HTML',
               }),
+              signal: AbortSignal.timeout(5000),
             });
           } catch {
-            // Ignore telegram network failures in test/headless mode
+            // audit-ignore: ignore telegram network failures in test/headless mode
           }
         }
       }

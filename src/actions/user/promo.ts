@@ -46,10 +46,16 @@ export async function activatePromoCodeAction(code: string): Promise<{ success: 
             return { success: false, error: "Этот промокод не содержит денежного бонуса" };
           }
 
+          const user = await tx.user?.findUnique?.({ where: { id: session.userId }, select: { tenantId: true } });
+          const tenantId = user?.tenantId || (session as any)?.tenantId || 'smmplan';
+
           // Check if user already used this promo code (using DB-level idempotency key)
           const idempotencyKey = `promo-${cleanCode}-${session.userId}`;
           const alreadyUsed = await tx.ledgerEntry.findFirst({
-            where: { idempotencyKey }
+            where: {
+              idempotencyKey,
+              tenantId
+            }
           });
 
           if (alreadyUsed) {
@@ -71,7 +77,7 @@ export async function activatePromoCodeAction(code: string): Promise<{ success: 
 
           // Activate voucher -> Add to balance via WalletOps
           const reason = `Активация ваучера: ${cleanCode}`;
-          await WalletOps.credit(tx, session.userId, promo.amount, reason, { idempotencyKey });
+          await WalletOps.credit(tx, session.userId, promo.amount, reason, { idempotencyKey, tenantId });
 
           return { success: true, amount: promo.amount };
         }, { isolationLevel: 'Serializable' });

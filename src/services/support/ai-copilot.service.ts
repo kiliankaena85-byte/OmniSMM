@@ -59,7 +59,7 @@ export class AiSupportCoPilotService {
       let recentOrders: Array<{ id: string; serviceName: string; status: string; chargeRub: number; quantity: number; remains: number; createdAt: string }> = [];
       if (ticket.user?.id) {
         const orders = await db.order.findMany({
-          where: { userId: ticket.user.id },
+          where: { userId: ticket.user.id, tenantId },
           orderBy: { createdAt: 'desc' },
           take: 5,
           select: {

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PromoCode, PromoCodeUsage } from '@prisma/client';
+import type { PromoCode, PromoCodeUsage } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
 import { togglePromoCode, deletePromoCode } from '@/actions/admin/marketing';
 import { useTransition, useState } from 'react';

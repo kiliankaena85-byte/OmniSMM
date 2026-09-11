@@ -53,7 +53,7 @@ export async function fetchPaginatedExternalServices(
 
             // 1. Fetch imported map for "alreadyImported" status
             const existingServices = await db.service.findMany({
-                where: { providerId, externalId: { not: null } },
+                where: { providerId, externalId: { not: null }, tenantId: activeTenantId },
                 select: { id: true, externalId: true }
             });
             const existingMap = new Map(existingServices.map((s: {id: string; externalId: string | null}) => [s.externalId!, s.id]));

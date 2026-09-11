@@ -15,7 +15,7 @@ export async function transferReferralBalanceAction() {
   await db.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: session.userId },
-      select: { referralBalance: true, balance: true, isActive: true, isDeleted: true }
+      select: { referralBalance: true, balance: true, isActive: true, isDeleted: true, tenantId: true }
     });
 
     if (!user) throw new Error("Учетная запись не найдена");
@@ -30,7 +30,8 @@ export async function transferReferralBalanceAction() {
     const updated = await tx.user.updateMany({
       where: { 
         id: session.userId,
-        referralBalance: { gte: transferAmount }
+        referralBalance: { gte: transferAmount },
+        ...(user.tenantId ? { tenantId: user.tenantId } : {})
       },
       data: {
         referralBalance: { decrement: transferAmount }

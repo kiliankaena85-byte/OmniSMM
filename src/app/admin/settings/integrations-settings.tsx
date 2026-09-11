@@ -39,7 +39,7 @@ import {
   Send,
   ExternalLink
 } from 'lucide-react';
-import { SystemSettings } from '@prisma/client';
+import type { SystemSettings } from '@prisma/client';
 import {
   Dialog,
   DialogContent,

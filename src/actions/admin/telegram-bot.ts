@@ -81,7 +81,9 @@ async function getTenantId(explicitTenantId?: string): Promise<string> {
     const reqHeaders = await getHeaders();
     const headerTenant = reqHeaders.get('x-tenant-id');
     if (headerTenant) return (normalizeTenantId(headerTenant) as string) || 'smmplan';
-  } catch {}
+  } catch {
+    // audit-ignore: expected fallback when called outside request context
+  }
   return 'smmplan';
 }
 
@@ -97,7 +99,7 @@ async function getBotToken(targetTenantId?: string): Promise<string | null> {
       }
     }
   } catch {
-    // Silent fail — token retrieval from vault is best-effort
+    // audit-ignore: token retrieval from vault is best-effort fallback
   }
   let token = process.env.TELEGRAM_BOT_TOKEN;
   if (token && token !== 'dummy_token' && tenantId === 'smmplan') return token;
@@ -114,8 +116,9 @@ async function safeTelegramFetch(url: string, init?: RequestInit): Promise<Respo
     throw new Error(`SSRF blocked: hostname ${parsedUrl.hostname} not in allowlist`);
   }
   const dispatcher = getTelegramDispatcher();
+  const signal = init?.signal || AbortSignal.timeout(10000);
   // @ts-expect-error Node.js undici dispatcher support
-  return fetch(url, { ...init, dispatcher, cache: 'no-store' });
+  return fetch(url, { ...init, signal, dispatcher, cache: 'no-store' });
 }
 
 // ==============================================================
@@ -846,9 +849,9 @@ export async function getTelegramStatsAction(
         where: { tenantId, date: { gte: new Date(today.getTime() - 7 * 86400000) } },
         orderBy: { date: 'asc' },
       }),
-      db.user.count({ where: { telegramId: { not: null } } }),
-      db.ticket.count({ where: { source: 'TELEGRAM' } }),
-      db.order.count(),
+      db.user.count({ where: { telegramId: { not: null }, tenantId } }),
+      db.ticket.count({ where: { source: 'TELEGRAM', tenantId } }),
+      db.order.count({ where: { tenantId } }),
       db.telegramButton.count({ where: { tenantId, isVisible: true } }),
       db.telegramTemplate.count({ where: { tenantId, isActive: true } }),
       db.telegramErrorLog.count({ where: { tenantId, isResolved: false } }),
@@ -1352,9 +1355,11 @@ export async function getTicketFeedbackStatsAction(): Promise<{
   stats?: TicketFeedbackStats;
   error?: string;
 }> {
-  return requireStaffPermission('settings', 'view', async () => {
+  return requireStaffPermission('settings', 'view', async (admin) => {
     try {
+      const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
       const feedbacks = await db.ticketFeedback.findMany({
+        where: tenantFilter,
         select: {
           score: true,
           reasons: true,
@@ -1426,11 +1431,15 @@ export async function getTicketFeedbackListAction(params?: {
   page?: number;
   error?: string;
 }> {
-  return requireStaffPermission('settings', 'view', async () => {
+  return requireStaffPermission('settings', 'view', async (admin) => {
     try {
       const page = Math.max(1, params?.page || 1);
       const pageSize = Math.min(50, Math.max(5, params?.pageSize || 15));
       const where: Record<string, unknown> = {};
+
+      if (admin.tenantId) {
+        where.tenantId = admin.tenantId;
+      }
 
       if (params?.score && params.score >= 1 && params.score <= 5) {
         where.score = params.score;

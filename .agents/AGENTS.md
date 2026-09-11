@@ -25,11 +25,17 @@
   4. **Прямое подтверждение пользователя:** Запрещено переключать боевой трафик до явного сообщения пользователя («Одобряю», «Выкатывай»).
   5. **Мгновенное переключение & Резервный откат (5s Instant Rollback):** Переключение на проверенную версию с сохранением предыдущего контейнера как `smmplan_backup`.
 
-## 3. Test-Driven & Self-Correction Protocol
-- Перед объявлением задачи завершенной **ОБЯЗАТЕЛЬНО** запустить сборку и проверку типов:
-  `npx tsc --noEmit`
-  А также прогнать юнит-тесты:
-  `npx vitest run` (или соответствующую команду для тестов).
+## 3. 📐 Mandatory SDD-TDD Protocol (Docs First → Tests Second → Code Last)
+- **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** писать продуктовый код без предварительно созданной спецификации в `docs/specs/` и написанных падающих тестов (Red Phase).
+- **Трехуровневая классификация рисков (Risk-Tiering):**
+  1. **Tier 1: Critical (Деньги, Заказы, Баланс, Миграции БД, Очереди BullMQ, Безопасность):**
+     * Полный цикл: Спецификация `docs/specs/SPEC-*.md` $\to$ Согласование пользователем $\to$ Написание тестов в `src/__tests__/` (Red Phase — тесты обязаны упасть) $\to$ Написание минимального кода (Green Phase) $\to$ `tsc --noEmit` & аудит секретов.
+  2. **Tier 2: Standard (Новые экраны админки, Server Actions, API роуты, сложные формы):**
+     * Light-SDD: Спецификация контрактов и DTO в `docs/specs/` $\to$ Согласование $\to$ Тесты контракта $\to$ Реализация.
+  3. **Tier 3: Cosmetic (Стили Tailwind, тексты, замена иконок):**
+     * Прямая реализация с последующим визуальным аудитом в браузере (Puppeteer/Headless Chrome) без избыточного оверхеда.
+- **Критерий завершения:** Все тесты переведены в **PASS (GREEN)**, сборка типов `npx tsc --noEmit` (0 ошибок), полный прогон сьюта `npx vitest run`.
+
 ## 3.5. 🛡️ ZERO-REGRESSION & IMPACT RADIUS (ПРАВИЛО ПРЕДОТВРАЩЕНИЯ РЕГРЕССИЙ «НЕ НАВРЕДИ»)
 - **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** править изолированный модуль без картирования радиуса поражения (Impact Radius) и мозгового штурма на 3 шага вперед.
 - Перед правкой агент ОБЯЗАН:
@@ -166,3 +172,21 @@
 - ❌ **No Information Disclosure:** Запрещено раскрывать внутренние пути (`/dev`, `/test`, `/operator`, `/client-demo`) в публичном `robots.txt` (использовать `X-Robots-Tag: noindex, nofollow`).
 - ✅ **Symmetric Cookie Sanitation:** Сброс сессионных кук ОБЯЗАН содержать полный набор атрибутов: `Secure; HttpOnly; SameSite=Lax; MaxAge=0; Expires=0; Path=/`.
 - ✅ **Granular RBAC Enforcement:** Все серверные операции сотрудников обязаны проходить через `requireStaffPermission()` с проверкой прав по секциям (`view`/`edit`).
+
+---
+
+## 16. OmniSMM Architectural Skills Suite (ARCH-SKILLS-2026 — CRITICAL CONTRACT)
+- ⚠️ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** вносить архитектурные, инфраструктурные или структурные изменения в платформу без предварительной сверки с профильным архитектурным скиллом из единого реестра [`.agents/skills/INDEX.md`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/INDEX.md).
+- **ОБЯЗАТЕЛЬНАЯ АКТИВАЦИЯ СКИЛЛОВ ПО ДОМЕНАМ:**
+  1. **Слои, границы, размер компонентов:** [`arch-boundary-guard`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/arch-boundary-guard/SKILL.md) — Hexagonal Clean Architecture, разделение DTO/Domain/DB, запрет `"use server"` в `page.tsx`, лимит компонентов $\le 200$ строк.
+  2. **Агрегаты и бизнес-правила:** [`ddd-aggregate-invariants`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/ddd-aggregate-invariants/SKILL.md) — закон «1 транзакция = 1 агрегат», Drip-Feed Floor ($\lfloor Q/N \rfloor \ge \text{minQty}$), Shadow Catalog buffer в Redis.
+  3. **Архитектурные решения:** [`adr-architect`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/adr-architect/SKILL.md) — стандарт MADR 3.0, фиксация контекста/последствий, предотвращение амнезии.
+  4. **Деньги, баланс, гонки:** [`concurrency-acid-guard`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/concurrency-acid-guard/SKILL.md) — TOCTOU, Row-Level Locking, Ledger-First, ExactMath (копейки BigInt), детекция Transaction Escape (`db` vs `tx`), `idempotencyKey`.
+  5. **Миграции и DDL БД:** [`db-evolution-zero-downtime`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/db-evolution-zero-downtime/SKILL.md) — Expand/Contract pattern, `CREATE INDEX CONCURRENTLY`, лимиты `lock_timeout`.
+  6. **Очереди и события:** [`event-driven-reliability`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/event-driven-reliability/SKILL.md) — Transactional Outbox (защита от Dual-Write), идемпотентные консьюмеры BullMQ, DLQ.
+  7. **Внешние API и сбои:** [`resilience-bulkhead-circuit`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/resilience-bulkhead-circuit/SKILL.md) — Circuit Breaker (Redis), Per-Tenant/Per-Provider Bulkhead, обязательные таймауты `AbortSignal.timeout()`.
+  8. **Мульти-тенантность:** [`multi-tenant-isolation-arch`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/multi-tenant-isolation-arch/SKILL.md) — изоляция OmniSMM (SMMplan / SMMflux), tenant-aware кэши, барьер ст. 54.1 НК РФ.
+  9. **API и DTO:** [`api-contract-evolver`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/api-contract-evolver/SKILL.md) — Contract-First (Zod), Zero Breaking Changes, RFC 8594 Sunset/Deprecation.
+  10. **Анализ влияния:** [`impact-blast-radius`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/impact-blast-radius/SKILL.md) — картирование зависимостей через `grep_search`, моделирование отказа на 3 шага вперед.
+  11. **Производительность:** [`nfr-performance-budget`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/nfr-performance-budget/SKILL.md) — P95/P99 latency budgets, детекция N+1 в Prisma, Keyset пагинация, connection pool limits.
+

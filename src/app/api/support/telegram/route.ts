@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
   const contactSettings = await SettingsProvider.getContactAndLegalSettings();
   let botUsername = contactSettings.TELEGRAM_SUPPORT_BOT;
-  if (tenantId === 'flux' || tenantId === 'lovable') {
+  if (tenantId === 'flux') {
     botUsername = process.env.FLUX_TELEGRAM_BOT || 'SMMplansapport_bot';
   } else if (!botUsername || botUsername === 'smmplan_support_bot') {
     botUsername = process.env.TELEGRAM_BOT_USERNAME || process.env.TELEGRAM_SUPPORT_BOT || 'SMMplansapport_bot';

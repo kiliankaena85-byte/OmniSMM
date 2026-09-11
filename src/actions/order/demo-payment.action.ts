@@ -38,9 +38,15 @@ export async function createDemoPaymentAction({
     throw new Error('Демо-платежи доступны только в тестовом режиме');
   }
 
+  const reqHeaders = await headers();
+  const tenantId = reqHeaders.get('x-tenant-id') || 'smmplan';
+
   // Find or create demo user
   let demoUser = await db.user.findFirst({
-    where: { email: email.trim().toLowerCase() }
+    where: {
+      email: email.trim().toLowerCase(),
+      tenantId
+    }
   });
 
   if (!demoUser) {
@@ -48,7 +54,8 @@ export async function createDemoPaymentAction({
       data: {
         email: email.trim().toLowerCase(),
         balance: BigInt(0),
-        role: "USER"
+        role: "USER",
+        tenantId
       }
     });
   }

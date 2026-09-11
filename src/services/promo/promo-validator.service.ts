@@ -26,7 +26,8 @@ export class PromoValidatorService {
   static async validateCode(
     code: string,
     userId: string,
-    orderAmountCents?: bigint | number
+    orderAmountCents?: bigint | number,
+    tenantId?: string
   ): Promise<PromoValidationResult> {
     const cleanCode = code.trim().toUpperCase();
     if (!cleanCode || cleanCode.length < 3 || cleanCode.length > 32) {
@@ -61,7 +62,10 @@ export class PromoValidatorService {
 
     // Check single-use per user
     const alreadyUsed = await db.ledgerEntry.findFirst({
-      where: { idempotencyKey: `promo-${cleanCode}-${userId}` },
+      where: {
+        idempotencyKey: `promo-${cleanCode}-${userId}`,
+        ...(tenantId ? { tenantId } : {})
+      },
     });
 
     if (alreadyUsed) {

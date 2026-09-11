@@ -2,13 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { assertValidServiceRoute, ServiceRouteValidationError } from '@/lib/validators/service-route-validator';
 import { db } from '@/lib/db';
 
-vi.mock('@/lib/db', () => ({
-  db: {
-    service: {
-      findUnique: vi.fn(),
+vi.mock('@/lib/db', () => {
+  const fn = vi.fn();
+  return {
+    db: {
+      service: {
+        findUnique: fn,
+        findFirst: fn,
+      },
     },
-  },
-}));
+  };
+});
 
 describe('ServiceRouteValidator Invariant Guard', () => {
   beforeEach(() => {

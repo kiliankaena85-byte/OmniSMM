@@ -3,7 +3,7 @@ import { WalletOps } from '../financial/wallet-ops';
 
 export const adminMarketingService = {
   // ── PromoCodes ──
-  async listPromoCodes() {
+  async listPromoCodes(_tenantId?: string) {
     const promoCodes = await db.promoCode.findMany({
       include: { usages: true },
       orderBy: { createdAt: 'desc' },
@@ -121,10 +121,13 @@ export const adminMarketingService = {
     }));
   },
 
-  async listTopReferrers() {
+  async listTopReferrers(tenantId?: string) {
     // Find users with the highest referral balance or most referrals
     return db.user.findMany({
-      where: { referralBalance: { gt: 0 } },
+      where: {
+        referralBalance: { gt: 0 },
+        ...(tenantId ? { tenantId } : {})
+      },
       orderBy: { referralBalance: 'desc' },
       take: 50,
       select: {
@@ -154,7 +157,11 @@ export const adminMarketingService = {
 
       // Deduct from referral atomically
       const updated = await tx.user.updateMany({
-        where: { id: userId, referralBalance: { gte: amountToPayCents } },
+        where: {
+          id: userId,
+          referralBalance: { gte: amountToPayCents },
+          ...(user.tenantId ? { tenantId: user.tenantId } : {})
+        },
         data: { referralBalance: { decrement: amountToPayCents } },
       });
 

@@ -1,5 +1,5 @@
 import { db } from '../src/lib/db';
-import { VaultService } from '../src/lib/vault';
+import { encrypt } from '../src/lib/crypto/encryption';
 import { UniversalProvider } from '../src/services/providers/universal.provider';
 
 async function main() {
@@ -19,7 +19,7 @@ async function main() {
   }
 
   // Encrypt the env API Key
-  const encryptedKey = VaultService.encrypt(envApiKey);
+  const encryptedKey = encrypt(envApiKey);
 
   // Update in DB
   await db.provider.update({

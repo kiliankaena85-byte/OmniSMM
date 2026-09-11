@@ -1,0 +1,8 @@
+id: no-float-financial-arithmetic
+language: typescript
+message: "ФИНАНСОВЫЙ ИНВАРИАНТ (ExactMath): Запрещены операции с плавающей точкой в финансовых модулях! Используйте BigInt копейки и ExactMath."
+severity: error
+rule:
+  any:
+    - pattern: $AMOUNT * $PRICE
+    - pattern: $AMOUNT / $DIVISOR

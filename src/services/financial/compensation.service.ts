@@ -78,6 +78,7 @@ export class CompensationService {
       // Query ledger entries starting with refund_${order.id}_ to find all refunds related to the order and sum them
       const refunds = await db.ledgerEntry.findMany({
         where: {
+          tenantId: order.tenantId || 'smmplan',
           OR: [
             { idempotencyKey: { startsWith: `refund_${order.id}_` } },
             { idempotencyKey: { endsWith: `_order_${order.id}` } },
@@ -96,7 +97,10 @@ export class CompensationService {
 
       // Update the order in the database
       await db.order.updateMany({
-        where: { id: order.id },
+        where: {
+          id: order.id,
+          tenantId: order.tenantId || 'smmplan'
+        },
         data: {
           actualProviderCost,
           realMarginDelta

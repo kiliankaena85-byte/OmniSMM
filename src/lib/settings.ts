@@ -85,15 +85,15 @@ export class SettingsProvider {
           return await db.systemSettings.upsert({
             where: { id: cleanTenant },
             update: {},
-            create: { id: cleanTenant, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+            create: { id: cleanTenant, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: cleanTenant === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
           });
         }
 
-        const defaultName = (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'SMMflux' : 'SMMplan';
-        const defaultEmail = (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'support@smmflux.ru' : 'support@smmplan.pro';
-        const defaultPrivacyEmail = (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
-        const defaultBot = (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'smmflux_support_bot' : 'smmplan_support_bot';
-        const defaultChannel = (cleanTenant === 'flux' || cleanTenant === 'lovable') ? 'smmflux_support' : 'smmplan_support';
+        const defaultName = cleanTenant === 'flux' ? 'SMMflux' : 'SMMplan';
+        const defaultEmail = cleanTenant === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro';
+        const defaultPrivacyEmail = cleanTenant === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
+        const defaultBot = cleanTenant === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot';
+        const defaultChannel = cleanTenant === 'flux' ? 'smmflux_support' : 'smmplan_support';
 
         return await db.systemSettings.upsert({
           where: { id: cleanTenant },
@@ -162,7 +162,7 @@ export class SettingsProvider {
         return await db.systemSettings.upsert({
           where: { id: targetTenantId },
           update: {},
-          create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: normalizedSlug === 'flux' || normalizedSlug === 'lovable' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+          create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: normalizedSlug === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
         });
       }
       try {
@@ -183,7 +183,7 @@ export class SettingsProvider {
             settings = await db.systemSettings.upsert({
               where: { id: targetTenantId },
               update: {},
-              create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: SettingsProvider.isTestEnvironment(), siteName: normalizedSlug === 'flux' || normalizedSlug === 'lovable' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+              create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: SettingsProvider.isTestEnvironment(), siteName: normalizedSlug === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
             });
           }
 
@@ -195,11 +195,11 @@ export class SettingsProvider {
     } catch (dbErr: unknown) {
       const dbErrMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
       console.warn(`[SettingsProvider] Failed to fetch system settings for ${normalizedSlug} from DB, using fallback:`, dbErrMsg);
-      const defaultName = (normalizedSlug === 'flux' || normalizedSlug === 'lovable') ? 'SMMflux' : 'SMMplan';
-      const defaultEmail = (normalizedSlug === 'flux' || normalizedSlug === 'lovable') ? 'support@smmflux.ru' : 'support@smmplan.pro';
-      const defaultPrivacyEmail = (normalizedSlug === 'flux' || normalizedSlug === 'lovable') ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
-      const defaultBot = (normalizedSlug === 'flux' || normalizedSlug === 'lovable') ? 'smmflux_support_bot' : 'smmplan_support_bot';
-      const defaultChannel = (normalizedSlug === 'flux' || normalizedSlug === 'lovable') ? 'smmflux_support' : 'smmplan_support';
+      const defaultName = (normalizedSlug === 'flux') ? 'SMMflux' : 'SMMplan';
+      const defaultEmail = (normalizedSlug === 'flux') ? 'support@smmflux.ru' : 'support@smmplan.pro';
+      const defaultPrivacyEmail = (normalizedSlug === 'flux') ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
+      const defaultBot = (normalizedSlug === 'flux') ? 'smmflux_support_bot' : 'smmplan_support_bot';
+      const defaultChannel = (normalizedSlug === 'flux') ? 'smmflux_support' : 'smmplan_support';
 
       return {
         id: targetTenantId,
@@ -368,7 +368,7 @@ export class SettingsProvider {
     const activeTenantId = tenantId || await this.getTenantId();
     const settings = await this.get(activeTenantId);
     
-    const isFlux = activeTenantId === 'flux' || activeTenantId === 'lovable';
+    const isFlux = activeTenantId === 'flux';
     const defaultSiteName = isFlux ? 'SMMflux' : 'SMMplan';
     const defaultDomain = isFlux ? 'smmflux.ru' : 'smmplan.pro';
 
@@ -465,7 +465,9 @@ export class SettingsProvider {
     try {
       const { redis } = await import('./redis');
       await redis.set(`settings:${activeTenantId}:isTestMode`, String(enable));
-    } catch {}
+    } catch {
+      // audit-ignore: Redis cache update is secondary to DB persistence
+    }
     try {
       revalidateTag('settings', 'default');
     } catch (cacheErr) {
@@ -484,7 +486,9 @@ export class SettingsProvider {
     try {
       const { redis } = await import('./redis');
       await redis.set(`settings:${activeTenantId}:maintenanceMode`, String(enable));
-    } catch {}
+    } catch {
+      // audit-ignore: Redis cache update is secondary to DB persistence
+    }
     try {
       revalidateTag('settings', 'default');
     } catch (cacheErr) {

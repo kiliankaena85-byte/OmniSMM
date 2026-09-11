@@ -22,6 +22,15 @@ export function useMobileWizard(engine: OrderEngine) {
 
   const scrollToStep = useCallback((step: 1 | 2 | 3 | 4) => {
     if (typeof window === 'undefined') return;
+    // CRITICAL: Mobile only guard! On desktop (>768px) MobileWizard must NEVER hijack page scroll
+    if (window.innerWidth >= 768) return;
+
+    // Typing Guard: Do not scroll if user is actively typing in an input or textarea
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      return;
+    }
+
     const refMap: Record<number, React.RefObject<HTMLDivElement | null>> = {
       1: step1Ref,
       2: step2Ref,
@@ -33,11 +42,14 @@ export function useMobileWizard(engine: OrderEngine) {
       // Offset for sticky header (64px) + comfortable breathing room (16px) = 80px
       const headerOffset = 80;
       const elementTop = ref.current.getBoundingClientRect().top;
-      const targetScrollY = window.pageYOffset + elementTop - headerOffset;
-      window.scrollTo({
-        top: Math.max(0, targetScrollY),
-        behavior: 'smooth',
-      });
+      // Only scroll if element is not already visible in viewport
+      if (elementTop < 0 || elementTop > window.innerHeight - 100) {
+        const targetScrollY = window.pageYOffset + elementTop - headerOffset;
+        window.scrollTo({
+          top: Math.max(0, targetScrollY),
+          behavior: 'smooth',
+        });
+      }
     }
   }, []);
 
@@ -45,21 +57,11 @@ export function useMobileWizard(engine: OrderEngine) {
     userManuallyBrowsingRef.current = true;
     setActiveStepRaw(step);
 
-    // Smooth scroll to the new step with dual timing (immediate + post Framer-motion unfold)
-    setTimeout(() => scrollToStep(step), 100);
-    setTimeout(() => scrollToStep(step), 280);
+    // Smooth scroll to the new step on mobile only, single clean timer
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => scrollToStep(step), 120);
+    }
   }, [scrollToStep]);
-
-  // Dual-phase scroll when activeStepRaw changes from any trigger
-  useEffect(() => {
-    if (!mounted) return;
-    const t1 = setTimeout(() => scrollToStep(activeStepRaw), 120);
-    const t2 = setTimeout(() => scrollToStep(activeStepRaw), 300);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [activeStepRaw, mounted, scrollToStep]);
 
 
   // Single effect to synchronize browser history outside of React render/setState updaters (B3)
@@ -154,9 +156,14 @@ export function useMobileWizard(engine: OrderEngine) {
       if (isUrlValid && url !== lastResolvedUrl) {
         setLastResolvedUrl(url);
         if (activeStepRaw === 1) {
-          userManuallyBrowsingRef.current = true;
-          if (selectedService) setActiveStep(4);
-          else setActiveStep(2);
+          // Typing Guard: do NOT auto-advance or scroll while user is actively typing in input/textarea
+          const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+          const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+          if (!isTyping) {
+            userManuallyBrowsingRef.current = true;
+            if (selectedService) setActiveStep(4);
+            else setActiveStep(2);
+          }
         }
       }
     }
@@ -174,7 +181,12 @@ export function useMobileWizard(engine: OrderEngine) {
 
     if (selectedService && selectedService.id !== prevSelectedServiceIdRef.current) {
       prevSelectedServiceIdRef.current = selectedService.id;
-      setActiveStep(4);
+      // On mobile viewports (<768px), scroll to step 4; on desktop, update state without scroll hijack
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setActiveStep(4);
+      } else {
+        setActiveStepRaw(4);
+      }
     } else if (!selectedService) {
       prevSelectedServiceIdRef.current = null;
     }

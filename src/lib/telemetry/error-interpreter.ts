@@ -184,7 +184,7 @@ export class ErrorInterpreter {
 
     if (tenantId) {
       const norm = tenantId.toLowerCase().trim();
-      if (norm === 'flux' || norm === 'smmflux' || norm === 'lovable') {
+      if (norm === 'flux' || norm === 'smmflux') {
         tenantLabel = 'SMMflux (smmflux.ru)';
       } else if (norm === 'smmplan') {
         tenantLabel = 'SMMplan (smmplan.pro)';

@@ -68,7 +68,8 @@ export async function createTopUpPaymentAction(
         gateway,
         status: 'PENDING',
         createdAt: { gte: twoMinutesAgo },
-        checkoutUrl: { not: null }
+        checkoutUrl: { not: null },
+        ...(dbUser.tenantId ? { tenantId: dbUser.tenantId } : {})
       },
       orderBy: { createdAt: 'desc' }
     });

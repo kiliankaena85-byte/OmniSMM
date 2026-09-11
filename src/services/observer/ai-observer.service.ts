@@ -6,6 +6,7 @@ import { LedgerReconciliationService } from '@/services/financial/ledger-reconci
 import { stormDetectorService } from '@/services/admin/storm-detector.service';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
 import { AiObserverSanitizer, type RawObserverPayload } from './ai-observer-sanitizer';
+import { logger } from '@/lib/logger';
 
 export interface ExecutiveDigestResult {
   success: boolean;
@@ -243,7 +244,7 @@ export class AiObserverService {
     // 1. Check Master Kill-Switch
     const isKilled = await this.isKillswitchActive();
     if (isKilled && !forceRun) {
-      console.log('[AiObserverService] Execution skipped: Master Kill-Switch is ACTIVE.');
+      logger.info('[AiObserverService] Execution skipped: Master Kill-Switch is ACTIVE.');
       return {
         success: false,
         isKillswitchActive: true,

@@ -10,7 +10,7 @@ import { upsertTemplate, deleteTemplate } from '@/actions/support/template';
 import { toast } from 'sonner';
 import { useState, useTransition } from 'react';
 import { Loader2, Plus, Edit2, Trash2, Tag, Zap, Activity, HelpCircle, AlertTriangle, Eye, Copy, Check } from 'lucide-react';
-import { SupportTemplate } from '@prisma/client';
+import type { SupportTemplate } from '@prisma/client';
 import {
   Dialog,
   DialogContent,

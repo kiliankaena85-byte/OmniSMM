@@ -171,5 +171,8 @@ export async function safeFetch(url: string, init?: RequestInit): Promise<Respon
     throw new Error(`SSRF blocked: ${check.reason} for URL ${url}`);
   }
 
-  return fetch(url, init);
+  return fetch(url, {
+    ...init,
+    signal: init?.signal || AbortSignal.timeout(10000),
+  });
 }

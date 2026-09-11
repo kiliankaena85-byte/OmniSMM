@@ -31,6 +31,7 @@ import { paymentService } from '@/services/financial/payment.service';
 import { db } from '@/lib/db';
 import { MutexManager } from '@/lib/redis-lock';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
+import { logger } from '@/lib/logger';
 
 const MAX_BODY_SIZE = 1024 * 64; // 64KB
 
@@ -119,29 +120,6 @@ export async function POST(req: NextRequest) {
     const gatewayId = rawBody.object?.id;
     const metadataTenantId = rawBody.object?.metadata?.tenantId as string | undefined;
 
-    // --- ANTI-REPLAY GUARD (NIST SP 800-63B / PCI DSS v4.0.1) ---
-    const webhookEventId = (rawBody as Record<string, unknown>).id as string | undefined || 
-      (gatewayId ? `yoo:${rawBody.event || 'evt'}:${gatewayId}:${rawBody.object?.status || 'status'}` : undefined);
-    
-    if (webhookEventId) {
-      try {
-        const { redis } = await import('@/lib/redis');
-        const replayKey = `webhook:yoo:event:${webhookEventId}`;
-        const isNew = await redis.set(replayKey, '1', 'EX', 86400, 'NX');
-        if (!isNew) {
-          console.log(`[YooKassa Webhook] Idempotent duplicate event bypassed: ${webhookEventId}`);
-          return NextResponse.json({ success: true, duplicate: true });
-        }
-      } catch (redisErr) {
-        if (process.env.NODE_ENV === 'production') {
-          console.error('[YooKassa Webhook] Fail-Closed: Redis Anti-Replay Guard unreachable:', redisErr);
-          return NextResponse.json({ error: 'Anti-Replay Guard service unavailable' }, { status: 503 });
-        }
-        // Dev/test fallback
-        console.warn('[YooKassa Webhook] Dev/test mode: Redis unreachable, proceeding with DB lock.');
-      }
-    }
-
     // Zero-Trust Database Resolution: determine tenant strictly from DB payment record first
     let webhookTenantId: string | undefined;
     if (internalPaymentId || gatewayId) {
@@ -217,6 +195,30 @@ export async function POST(req: NextRequest) {
           details: { gateway: 'yookassa', webhookTime, gatewayId: rawBody.object?.id },
         });
         return NextResponse.json({ error: 'Stale webhook rejected' }, { status: 400 });
+      }
+    }
+
+    // --- ANTI-REPLAY GUARD (NIST SP 800-63B / PCI DSS v4.0.1) ---
+    // Executed ONLY after authenticating signature and freshness
+    const webhookEventId = (rawBody as Record<string, unknown>).id as string | undefined || 
+      (gatewayId ? `yoo:${rawBody.event || 'evt'}:${gatewayId}:${rawBody.object?.status || 'status'}` : undefined);
+    
+    if (webhookEventId) {
+      try {
+        const { redis } = await import('@/lib/redis');
+        const replayKey = `webhook:yoo:event:${webhookEventId}`;
+        const isNew = await redis.set(replayKey, '1', 'EX', 86400, 'NX');
+        if (!isNew) {
+          logger.info('[YooKassa Webhook] Idempotent duplicate event bypassed', { webhookEventId });
+          return NextResponse.json({ success: true, duplicate: true });
+        }
+      } catch (redisErr) {
+        if (process.env.NODE_ENV === 'production') {
+          console.error('[YooKassa Webhook] Fail-Closed: Redis Anti-Replay Guard unreachable:', redisErr);
+          return NextResponse.json({ error: 'Anti-Replay Guard service unavailable' }, { status: 503 });
+        }
+        // Dev/test fallback
+        console.warn('[YooKassa Webhook] Dev/test mode: Redis unreachable, proceeding with DB lock.');
       }
     }
 

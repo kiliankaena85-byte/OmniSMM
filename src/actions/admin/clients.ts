@@ -459,13 +459,16 @@ export async function supportGoodwillCreditAction(formData: FormData) {
 
 /** Get client ledger entries and comprehensive financial summary */
 export async function getClientLedgerAction(userId: string, filterType = 'ALL') {
-  return requireStaffPermission('clients', 'view', async () => {
+  return requireStaffPermission('clients', 'view', async (admin) => {
     if (!userId) {
       return { success: false as const, error: 'Не указан ID клиента' };
     }
 
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+
     const where: Prisma.LedgerEntryWhereInput = {
       userId,
+      ...tenantFilter,
     };
 
     if (filterType === 'TOPUP') {
@@ -511,7 +514,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
       }),
       db.ledgerEntry.groupBy({
         by: ['transactionType'],
-        where: { userId },
+        where: { userId, ...tenantFilter },
         _sum: { amount: true },
       })
     ]);
@@ -519,7 +522,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
     // Fetch admin emails if needed
     const adminIds = Array.from(new Set(entries.map(e => e.adminId).filter(Boolean))) as string[];
     const admins = adminIds.length > 0 ? await db.user.findMany({
-      where: { id: { in: adminIds } },
+      where: { id: { in: adminIds }, ...tenantFilter },
       select: { id: true, email: true }
     }) : [];
     const adminMap = new Map(admins.map(a => [a.id, a.email]));

@@ -299,7 +299,7 @@ class OrderService {
         if (!wasAwaitingPayment) {
           const refundKey = `refund-client-cancel-${order.id}`;
           const existingLedger = await tx.ledgerEntry.findFirst({
-             where: { idempotencyKey: refundKey }
+             where: { idempotencyKey: refundKey, tenantId: order.tenantId }
           });
 
           if (!existingLedger) {
@@ -358,6 +358,7 @@ class OrderService {
 
       // 2. Run Atomic Transaction
       return await runSerializableTransaction(async (tx) => {
+        // tenant-isolation-ignore: Provider webhook updates order status by externalId across tenants
         const order = await tx.order.findFirst({
           where: { externalId },
           include: { user: true }
@@ -420,13 +421,13 @@ class OrderService {
           
           // Check if ledger entry with this key already exists
           const existingLedger = await tx.ledgerEntry.findFirst({
-             where: { idempotencyKey: refundKey }
+             where: { idempotencyKey: refundKey, tenantId: order.tenantId }
           });
 
           if (!existingLedger) {
             await WalletOps.refund(tx, order.userId, Number(refundCents),
               `Системный возврат за заказ #${order.numericId} (Статус: ${internalStatus}, Остаток: ${remains})`,
-              { idempotencyKey: refundKey }
+              { idempotencyKey: refundKey, tenantId: order.tenantId }
             );
           }
         }
@@ -469,7 +470,7 @@ class OrderService {
         // Full Refund
         const refundKey = `refund-dlq-${order.id}`;
         const existingLedger = await tx.ledgerEntry.findFirst({
-           where: { idempotencyKey: refundKey }
+           where: { idempotencyKey: refundKey, tenantId: order.tenantId }
         });
 
         if (!existingLedger && order.charge > 0) {
@@ -479,7 +480,7 @@ class OrderService {
 
           await WalletOps.refund(tx, order.userId, Number(order.charge),
             finalReason,
-            { idempotencyKey: refundKey }
+            { idempotencyKey: refundKey, tenantId: order.tenantId }
           );
         }
 
@@ -555,7 +556,7 @@ class OrderService {
         // 3. Full refund via LedgerEntry (idempotent — prevents double-spend)
         const refundKey = `refund-failfast-${order.id}`;
         const existingLedger = await tx.ledgerEntry.findFirst({
-          where: { idempotencyKey: refundKey }
+          where: { idempotencyKey: refundKey, tenantId: order.tenantId }
         });
 
         if (!existingLedger && order.charge > 0) {
@@ -564,7 +565,7 @@ class OrderService {
             order.userId,
             Number(order.charge),
             `Авто-возврат (Fail-Fast): Заказ #${order.numericId} отменен из-за ошибки провайдера. Причина: ${reason}`,
-            { idempotencyKey: refundKey }
+            { idempotencyKey: refundKey, tenantId: order.tenantId }
           );
         }
 

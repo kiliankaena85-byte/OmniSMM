@@ -360,16 +360,9 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     let user = await db.user.findFirst({
       where: { 
         email: email.toLowerCase(),
-        tenantId: tenantId === 'flux' ? { in: ['lovable', 'flux'] } : tenantId
+        tenantId
       }
     });
-
-    if (user && user.tenantId === 'lovable') {
-      user = await db.user.update({
-        where: { id: user.id },
-        data: { tenantId: 'flux' }
-      });
-    }
 
     if (user) {
       if (user.isDeleted === true || user.isActive === false) {
@@ -826,7 +819,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
         })).catch(e => console.error('[Checkout] Failed to cancel payment:', e)),
         
         Promise.resolve(db.order.updateMany({
-          where: { paymentId: result.paymentId },
+          where: { paymentId: result.paymentId, tenantId },
           data: { status: 'ERROR', error: (gatewayErr instanceof Error ? gatewayErr.message : String(gatewayErr)) || 'Ошибка генерации платежа' }
         })).catch(e => console.error('[Checkout] Failed to error orders:', e))
       ];
@@ -919,7 +912,8 @@ async function checkYookassaStatusSync(gatewayId: string): Promise<boolean> {
     const authHeader = 'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64');
     const resp = await fetch(`https://api.yookassa.ru/v3/payments/${gatewayId}`, {
       method: 'GET',
-      headers: { 'Authorization': authHeader }
+      headers: { 'Authorization': authHeader },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!resp.ok) return false;

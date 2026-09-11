@@ -85,10 +85,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
   
   // SSR Pre-fetch default category services to eliminate client waterfall latency
   let targetCategoryId = initialCategoryId;
+  let targetNetworkId = initialNetworkId;
   if (!targetCategoryId && catalog.length > 0) {
     const defaultNet = catalog.find(n => n.slug === 'telegram') || catalog[0];
     const defaultCat = defaultNet?.categories.find(c => c.name.toLowerCase().includes('подписчики')) || defaultNet?.categories[0];
     targetCategoryId = defaultCat?.id;
+    targetNetworkId = defaultNet?.id;
   }
   const initialServices = targetCategoryId ? await getServicesByCategoryAction(targetCategoryId, tenantId) : [];
 
@@ -143,7 +145,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
       </section>
 
       {/* Interactive App */}
-      <main id="main-content" tabIndex={-1} className="outline-none">
+      <div id="main-content" tabIndex={-1} className="outline-none">
         {tenantId === "flux" ? (
           <div className="min-h-screen bg-background text-foreground font-sans flex flex-col relative overflow-x-clip">
             {/* ── SMMFLUX VIBRANT HERO BACKGROUND (Full Bleed - GPU Optimized Static Layer) ── */}
@@ -202,15 +204,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
             initialEmail={userEmail} 
             contactSettings={settings} 
             initialServiceId={initialServiceId} 
-            initialCategoryId={initialCategoryId}
-            initialNetworkId={initialNetworkId}
+            initialCategoryId={targetCategoryId}
+            initialNetworkId={targetNetworkId}
             userBalanceCents={userBalanceCents}
             tenantId={tenantId}
             initialServices={initialServices}
             initialFlow={initialFlow}
           />
         )}
-      </main>
+      </div>
     </>
   );
 }

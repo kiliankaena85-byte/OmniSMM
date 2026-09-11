@@ -20,6 +20,7 @@ interface TelegramIncomingContext {
 
 import { db } from '@/lib/db';
 import { ticketService } from '@/services/support/ticket.service';
+import { logger } from '@/lib/logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -32,7 +33,7 @@ class SupportBotService {
         fs.mkdirSync(this.UPLOAD_DIR_BASE, { recursive: true });
       }
     } catch (err) {
-      console.warn('[SupportBotService] Warning: Could not create upload directory on init:', err);
+      logger.warn('Could not create upload directory on init', { err });
     }
   }
 
@@ -142,6 +143,7 @@ class SupportBotService {
     try {
       const envPath = path.resolve(process.cwd(), '.env');
       if (fs.existsSync(envPath)) {
+        // audit-ignore: .env is a small static configuration file (< 5KB)
         const content = fs.readFileSync(envPath, 'utf8');
         for (const line of content.split('\n')) {
           const trimmed = line.trim();
@@ -168,7 +170,7 @@ class SupportBotService {
   private async tgCall(method: string, body: Record<string, unknown>): Promise<{ ok: boolean; result?: { message_id: number } }> {
     const token = this.getBotToken();
     if (!token || token === 'dummy_token') {
-      console.warn(`[SupportBot] tgCall ${method} skipped: TELEGRAM_BOT_TOKEN not set`);
+      logger.warn(`[SupportBot] tgCall ${method} skipped: TELEGRAM_BOT_TOKEN not set`);
       throw new Error('TELEGRAM_BOT_TOKEN not set');
     }
     const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -179,7 +181,7 @@ class SupportBotService {
     });
     const json = await res.json() as { ok: boolean; result?: { message_id: number }; description?: string };
     if (!json.ok) {
-      console.error(`[SupportBot] Telegram API [${method}] Error:`, json.description);
+      logger.error(`[SupportBot] Telegram API [${method}] Error`, { description: json.description });
       throw new Error(`Telegram API [${method}]: ${json.description ?? 'unknown error'}`);
     }
     return json;
@@ -192,10 +194,10 @@ class SupportBotService {
   async sendSupportReply(telegramId: string, text: string, replyToTgMsgId?: string, mediaUrl?: string, mediaType?: string): Promise<string | null> {
     const token = this.getBotToken();
     if (!token || token === 'dummy_token') {
-      console.warn('[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set');
+      logger.warn('[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set');
       return null;
     }
-    console.log(`[SupportBot] sendSupportReply → chat=${telegramId}, text="${text.slice(0, 40)}"`);
+    logger.info('[SupportBot] sendSupportReply', { chat: telegramId, text: text.slice(0, 40) });
     try {
       const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const safeText = escapeHtml(text);
@@ -221,7 +223,7 @@ class SupportBotService {
           messageId = msg?.message_id ?? null;
         } catch (mediaErr: unknown) {
           const errMsg = mediaErr instanceof Error ? mediaErr.message : String(mediaErr);
-          console.warn('[SupportBot] Media send failed, fallback text:', errMsg);
+          logger.warn('[SupportBot] Media send failed, fallback text', { error: errMsg });
           const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption });
           messageId = res.result?.message_id ?? null;
         }
@@ -232,17 +234,17 @@ class SupportBotService {
           messageId = res.result?.message_id ?? null;
         } catch (htmlErr: unknown) {
           const errMsg = htmlErr instanceof Error ? htmlErr.message : String(htmlErr);
-          console.warn('[SupportBot] HTML send failed, retrying plain:', errMsg);
+          logger.warn('[SupportBot] HTML send failed, retrying plain', { error: errMsg });
           const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption });
           messageId = res.result?.message_id ?? null;
         }
       }
 
-      console.log(`[SupportBot] sendSupportReply OK, messageId=${messageId}`);
+      logger.info('[SupportBot] sendSupportReply OK', { messageId });
       return messageId ? String(messageId) : null;
         } catch (e: unknown) {
       const err = e as Error;
-      console.error('[SupportBot] Failed to send to telegram:', err.message);
+      logger.error('[SupportBot] Failed to send to telegram', { error: err.message });
       if (err.message?.includes('message to reply not found') && replyToTgMsgId) {
         return this.sendSupportReply(telegramId, text, undefined, mediaUrl, mediaType);
       }
@@ -348,11 +350,13 @@ class SupportBotService {
           await ctx.reply('⚠️ Прием медиафайлов временно ограничен (сработал антиспам). Опишите проблему текстом.');
           return null;
        }
-    } catch (err) { console.warn('[SupportBot] Notification failed:', err); }
+    } catch (err) { logger.warn('[SupportBot] Notification failed', { error: err }); }
 
     try {
       const fileLink = await ctx.telegram.getFileLink(fileId);
-      const response = await fetch(fileLink.toString());
+      const response = await fetch(fileLink.toString(), {
+        signal: AbortSignal.timeout(15000), // Детерминированный таймаут 15с на скачивание файла
+      });
       if (!response.ok) throw new Error('Failed to fetch file');
       
       const buffer = Buffer.from(await response.arrayBuffer());
@@ -369,7 +373,7 @@ class SupportBotService {
       // Store relative path exactly as the API expects
       return `tickets/${ticketId}/${fileName}`;
     } catch (e) {
-      console.error('[SupportBot] File download error:', e);
+      logger.error('[SupportBot] File download error', { error: e });
       await ctx.reply('❌ Ошибка при скачивании файла сервером.');
       return null;
     }

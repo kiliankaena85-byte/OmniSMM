@@ -4,14 +4,14 @@ import { db } from '@/lib/db';
 import { jwtVerify } from 'jose';
 import { Prisma } from '@prisma/client';
 
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies } from '@/lib/session';
 
 export async function GET(req: NextRequest) {
   // Auth errors → 401
   let userId: string;
   try {
     // Auth check via cookie
-    const token = req.cookies.get('session_token')?.value;
+    const token = readSessionTokenFromCookies(req.cookies);
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });
@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
     let ticket;
 
     if (isStaff) {
-      ticket = await db.ticket.findUnique({ where: { id: ticketId } });
+      ticket = await db.ticket.findFirst({ where: { id: ticketId, tenantId: user.tenantId } });
       if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     } else {
       ticket = await db.ticket.findFirst({
-        where: { id: ticketId, userId: userId }
+        where: { id: ticketId, userId: userId, tenantId: user.tenantId }
       });
       if (!ticket) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies } from '@/lib/session';
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -14,7 +14,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth check
-    const token = req.cookies.get('session_token')?.value;
+    const token = readSessionTokenFromCookies(req.cookies);
     if (!token) return new NextResponse('Unauthorized', { status: 401 });
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });

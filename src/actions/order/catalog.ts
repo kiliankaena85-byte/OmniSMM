@@ -306,9 +306,12 @@ export async function getPublicCatalogAction(rawTenantId: string = 'smmplan') {
     import('@/lib/notifications').then(({ sendAdminAlert }) => {
       try {
         sendAdminAlert(`🚨 Hero catalog fetch failed (tenant=${tenantId}): ${errMsg}`, 'CRITICAL');
-      // eslint-disable-next-line no-empty
-      } catch {}
-    }).catch(() => {});
+      } catch {
+        // audit-ignore: secondary alert failure must not mask primary catalog error
+      }
+    }).catch(() => {
+      // audit-ignore: dynamic import failure for notifications
+    });
 
     return { success: false, error: "Failed to load catalog" };
   }

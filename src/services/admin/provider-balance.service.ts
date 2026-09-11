@@ -381,6 +381,7 @@ export class ProviderBalanceService {
 
     let burnRate24hRub = 0;
     try {
+      // tenant-isolation-ignore: Global platform balance and provider burn rate summary
       const aggregate = await db.order.aggregate({
         _sum: { providerCost: true },
         where: {

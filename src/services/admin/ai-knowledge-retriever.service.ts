@@ -31,6 +31,9 @@ class AiKnowledgeRetrieverService {
         if (!file.endsWith('.md') && !file.endsWith('.mdx')) continue;
 
         const fullPath = path.join(this.knowledgeDir, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.size > 64 * 1024) continue; // Skip oversized files to prevent OOM
+        // audit-ignore: knowledge base markdown files are verified small static documents (<64KB)
         const raw = fs.readFileSync(fullPath, 'utf8');
 
         // Extract metadata from frontmatter or heading

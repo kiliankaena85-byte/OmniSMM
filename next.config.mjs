@@ -42,6 +42,12 @@ function buildAllowedOrigins() {
     '127.0.0.1:3001',
     '0.0.0.0:3000',
     'host.docker.internal:3000',
+    '192.168.*',
+    '192.168.*:3000',
+    '10.*',
+    '10.*:3000',
+    '26.*',
+    '26.*:3000',
   ];
 
   const envOrigins = [];
@@ -135,10 +141,6 @@ const nextConfig = {
         source: '/:path*',
         headers: [
           {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru; style-src 'self' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot; connect-src 'self' https://api.telegram.org https://static.cloudflareinsights.com https://cloudflareinsights.com https://challenges.cloudflare.com https://yookassa.ru https://api.yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
-          },
-          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
@@ -149,10 +151,6 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), payment=(self "https://yookassa.ru" "https://auth.robokassa.ru")',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
             key: 'X-XSS-Protection',

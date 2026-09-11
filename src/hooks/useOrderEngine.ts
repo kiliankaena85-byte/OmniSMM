@@ -94,13 +94,13 @@ export function useOrderEngine(
     }));
   }, [initialCatalog]);
 
-  // Clean initialization: only preselect if explicitly provided via props/deep-link
+  // Clean initialization: preselect from props or fallback to deterministic default network/category
   const defaultNet = initialNetworkId 
     ? (sortedInitialCatalog.find(n => n.id === initialNetworkId) || null)
-    : null;
+    : (sortedInitialCatalog.find(n => n.slug === 'telegram') || sortedInitialCatalog[0] || null);
   const defaultCat = defaultNet && initialCategoryId 
     ? (defaultNet.categories.find(c => c.id === initialCategoryId) || null)
-    : null;
+    : (defaultNet?.categories.find(c => c.name.toLowerCase().includes('подписчики')) || defaultNet?.categories[0] || null);
 
   const [url, setUrl] = useState("");
   const [networkId, setNetworkId] = useState(defaultNet?.id || "");

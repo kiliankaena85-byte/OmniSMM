@@ -18,7 +18,7 @@ import { db } from '@/lib/db';
 import { sseBroadcaster } from '@/lib/sse-broadcaster';
 import { jwtVerify } from 'jose';
 
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies } from '@/lib/session';
 
 // Max SSE connections per ticket to prevent resource exhaustion (VQ2)
 const MAX_CONNECTIONS_PER_TICKET = 10;
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   // 1. Authentication via httpOnly cookie
   let userId: string;
   try {
-    const token = req.cookies.get('session_token')?.value;
+    const token = readSessionTokenFromCookies(req.cookies);
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -53,13 +53,13 @@ export async function GET(req: NextRequest) {
   const isStaff = ['ADMIN', 'SUPPORT', 'OWNER'].includes(user.role);
 
   if (isStaff) {
-    const ticket = await db.ticket.findUnique({ where: { id: ticketId } });
+    const ticket = await db.ticket.findFirst({ where: { id: ticketId, tenantId: user.tenantId } });
     if (!ticket) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
   } else {
     const ticket = await db.ticket.findFirst({
-      where: { id: ticketId, userId }
+      where: { id: ticketId, userId, tenantId: user.tenantId }
     });
     if (!ticket) {
       return new Response('Forbidden', { status: 403 });

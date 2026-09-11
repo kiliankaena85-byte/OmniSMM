@@ -25,14 +25,16 @@ export async function previewServiceAiEnrichAction(raw: RawServiceToEnrich) {
  * Server Action: Пакетное обновление и стандартизация услуг в базе через Gemini 3 Flash.
  */
 export async function batchEnrichExistingServicesAction(serviceIds: string[]) {
-  return requireStaffPermission('catalog', 'edit', async () => {
+  return requireStaffPermission('catalog', 'edit', async (admin) => {
     try {
       if (!serviceIds || serviceIds.length === 0) {
         return { success: false, error: "Не выбраны услуги для обработки" };
       }
 
+      const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+
       const services = await db.service.findMany({
-        where: { id: { in: serviceIds } },
+        where: { id: { in: serviceIds }, ...tenantFilter },
         include: { category: { include: { network: true } } }
       });
 

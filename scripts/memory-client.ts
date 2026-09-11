@@ -315,36 +315,82 @@ export class SmmplanMemoryClient {
     if (!fs.existsSync(this.offlineCacheFile)) return [];
     try {
       const cache = JSON.parse(fs.readFileSync(this.offlineCacheFile, 'utf-8'));
-      const q = query.toLowerCase();
-      const matched = (cache.decisions || []).filter(
-        (d: ArchitecturalDecisionEntry) =>
-          d.title.toLowerCase().includes(q) ||
-          d.decision.toLowerCase().includes(q) ||
-          d.context.toLowerCase().includes(q)
-      );
+      const q = query.toLowerCase().trim();
+      const words = q.split(/\s+/).filter((w) => w.length >= 3);
 
-      return matched.map((m: ArchitecturalDecisionEntry) => ({
+      const scored: Array<{ entry: ArchitecturalDecisionEntry; score: number }> = [];
+
+      for (const d of cache.decisions || []) {
+        if (!d || typeof d !== 'object' || !d.title) continue;
+
+        const title = (d.title || '').toLowerCase();
+        const decision = (d.decision || '').toLowerCase();
+        const context = (d.context || '').toLowerCase();
+        const tags = (Array.isArray(d.tags) ? d.tags.join(' ') : '').toLowerCase();
+        const fullText = `${title} ${decision} ${context} ${tags}`;
+
+        let score = 0;
+
+        // Точное совпадение всей фразы
+        if (fullText.includes(q)) {
+          score += 1.0;
+        }
+
+        // Совпадение отдельных ключевых слов
+        for (const word of words) {
+          if (title.includes(word)) score += 0.4;
+          if (tags.includes(word)) score += 0.3;
+          if (decision.includes(word)) score += 0.2;
+          if (context.includes(word)) score += 0.1;
+        }
+
+        if (score > 0) {
+          scored.push({ entry: d, score: Math.min(score, 1.0) });
+        }
+      }
+
+      scored.sort((a, b) => b.score - a.score);
+
+      return scored.slice(0, 5).map(({ entry: m, score }) => ({
         title: m.title,
-        content: `${m.context}\n\nDecision: ${m.decision}\nRationale: ${m.rationale}`,
+        content: `${m.context}\n\nDecision: ${m.decision}\nRationale: ${m.rationale || ''}`,
         collection: 'offline_cache',
-        score: 0.8,
+        score: Math.round(score * 100) / 100,
+        metadata: { tags: m.tags },
       }));
-    } catch {
+    } catch (e) {
+      console.error('[MemoryClient] Error searching offline cache:', e);
       return [];
     }
   }
 }
 
-// CLI Testing
+// CLI Interface
 if (process.argv[1]?.includes('memory-client.ts')) {
-  async function test() {
+  async function cli() {
     const client = new SmmplanMemoryClient();
+    const command = process.argv[2];
+    const arg = process.argv[3];
+
+    if (command === 'searchContext' || command === 'search') {
+      const query = arg || 'баланс пользователя WalletOps';
+      console.log(`🔍 [MemoryClient] Searching context for: "${query}"...`);
+      const results = await client.searchContext(query);
+      console.log(`Found ${results.length} results:`);
+      results.forEach((r, i) => {
+        console.log(`\n[${i + 1}] ${r.title} (score: ${r.score})`);
+        console.log(`    ${r.content.replace(/\n/g, '\n    ')}`);
+      });
+      return;
+    }
+
     console.log('🧪 Testing Memory Client v3.0...');
-    const results = await client.searchContext('баланс пользователя WalletOps');
+    const results = await client.searchContext(arg || 'баланс пользователя WalletOps');
     console.log(`Found ${results.length} results.`);
     results.forEach((r, i) => {
       console.log(`[${i + 1}] ${r.title} (score: ${r.score})`);
     });
   }
-  test().catch(console.error);
+  cli().catch(console.error);
 }
+

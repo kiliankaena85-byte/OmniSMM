@@ -84,11 +84,13 @@ export class ReferralValidatorService {
     // 3. IP Clustering Heuristic
     if (context?.ip && context.ip !== '127.0.0.1') {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const tenantId = context?.tenantId || inviter.tenantId;
       const recentIpReferrals = await db.user.count({
         where: {
           referredById: inviterId,
           createdAt: { gte: oneDayAgo },
           tosAcceptedIp: context.ip,
+          ...(tenantId ? { tenantId } : {})
         },
       });
 

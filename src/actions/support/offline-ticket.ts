@@ -135,6 +135,7 @@ export async function createOfflineTicketAction(input: OfflineTicketInput) {
       const recentOrder = await db.order.findFirst({
         where: {
           userId: finalUserId,
+          tenantId,
           createdAt: { gte: fifteenMinutesAgo }
         },
         orderBy: { createdAt: 'desc' },

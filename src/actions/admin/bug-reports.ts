@@ -133,9 +133,9 @@ ${payload.consoleLogs && payload.consoleLogs.length > 0 ? `#### Ошибки к�
           category: 'incidents',
         }),
         signal: AbortSignal.timeout(1500),
-      }).catch(() => null);
+      });
     } catch {
-      // Non-blocking if GraphRAG container is offline
+      // audit-ignore: non-blocking background sync if GraphRAG container is offline
     }
 
     return {

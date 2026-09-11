@@ -363,7 +363,10 @@ export async function bulkRestartOrdersAction(orderIds: string[]) {
     const targetIds = orderIds.slice(0, BATCH_LIMIT);
 
     const orders = await db.order.findMany({
-      where: { id: { in: targetIds } }
+      where: {
+        id: { in: targetIds },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      }
     });
 
     let restartedCount = 0;
@@ -590,7 +593,10 @@ export async function manualRerouteOrder(orderId: string, newRouteId: string, ac
 export async function getOrderDetailsAction(orderId: string) {
   return requireStaffPermission('orders', 'view', async (admin) => {
     const order = await db.order.findFirst({
-      where: { id: orderId },
+      where: {
+        id: orderId,
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       include: {
         user: { select: { email: true } },
         provider: { select: { name: true } },
@@ -652,7 +658,10 @@ export async function getOrderDetailsAction(orderId: string) {
 export async function sendReorderOfferAction(orderId: string, customNote?: string) {
   return requireStaffPermission('orders', 'edit', async (admin) => {
     const order = await db.order.findFirst({
-      where: { id: orderId },
+      where: {
+        id: orderId,
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       include: {
         user: { select: { id: true, email: true, balance: true } },
         service: { select: { id: true, name: true } }
@@ -669,7 +678,11 @@ export async function sendReorderOfferAction(orderId: string, customNote?: strin
 
     // Find or create active support ticket with customer
     let ticket = await db.ticket.findFirst({
-      where: { userId: order.userId, status: { in: ['OPEN', 'PENDING'] } },
+      where: {
+        userId: order.userId,
+        status: { in: ['OPEN', 'PENDING'] },
+        ...(order.tenantId ? { tenantId: order.tenantId } : (admin.tenantId ? { tenantId: admin.tenantId } : {}))
+      },
       orderBy: { createdAt: 'desc' }
     });
 

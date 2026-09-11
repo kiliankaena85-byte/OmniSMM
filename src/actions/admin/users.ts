@@ -14,7 +14,7 @@ import { requireStaffPermission } from '@/lib/server/rbac';
 import { getClientIp } from '@/utils/ip';
 import { z } from 'zod';
 
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, SESSION_COOKIE_NAME } from '@/lib/session';
 import { SupportBalancePolicyService } from '@/services/financial/support-balance-policy.service';
 import { sendAdminAlert } from '@/lib/notifications';
 
@@ -36,7 +36,7 @@ export async function updateBalanceAction(formData: FormData) {
     }
 
     // 2. Staff-Targeting Guard: Non-OWNER staff cannot adjust balance of other staff members
-    const targetUser = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true, balance: true } });
+    const targetUser = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true, balance: true, tenantId: true } });
     if (!targetUser) {
       return { success: false as const, error: 'Пользователь не найден' };
     }
@@ -87,7 +87,10 @@ export async function updateBalanceAction(formData: FormData) {
         return { success: true as const, message: 'Операция уже выполнена (защита от двойного клика)' };
       }
       const existingLedger = await db.ledgerEntry.findFirst({
-        where: { idempotencyKey: clientKey }
+        where: {
+          idempotencyKey: clientKey,
+          ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
+        }
       });
       if (existingLedger) {
         return { success: true as const, message: 'Операция уже выполнена (защита от двойного клика)' };
@@ -157,7 +160,11 @@ export async function updateBalanceAction(formData: FormData) {
     // If policyCheck was executed, create a SupportFinancialAction record
     if (policyCheck && policyCheck.allowed) {
       const ledgerEntry = await db.ledgerEntry.findFirst({
-        where: { adminId: admin.id, userId: userId },
+        where: {
+          adminId: admin.id,
+          userId: userId,
+          ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
+        },
         orderBy: { createdAt: 'desc' }
       });
 
@@ -525,7 +532,7 @@ export async function loginAsAction(formData: FormData) {
       .setExpirationTime('1h')
       .sign(getEncodedKey());
 
-    (await cookies()).set('session_token', sessionToken, {
+    (await cookies()).set(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       expires: expiresAt,

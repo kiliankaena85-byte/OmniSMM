@@ -87,7 +87,7 @@ export const WalletOps = {
     // 2. Idempotency pre-check
     if (idempotencyKey) {
       const existing = await tx.ledgerEntry.findFirst({
-        where: { idempotencyKey },
+        where: { idempotencyKey, tenantId: resolvedTenantId },
       });
       
       if (existing) {
@@ -146,7 +146,7 @@ export const WalletOps = {
         (error as { code: string }).code === 'P2002'
       ) {
         const existing = await tx.ledgerEntry.findFirst({
-          where: { idempotencyKey },
+          where: { idempotencyKey, tenantId: resolvedTenantId },
         });
         if (existing) {
           const userCurrent = await tx.user.findUnique({ where: { id: userId }, select: { balance: true } });
@@ -193,7 +193,7 @@ export const WalletOps = {
 
     if (idempotencyKey) {
       const existing = await tx.ledgerEntry.findFirst({
-        where: { idempotencyKey },
+        where: { idempotencyKey, tenantId: resolvedTenantId },
       });
       if (existing) {
         return { success: true, balance: null, cached: true, entry: existing };
@@ -231,7 +231,7 @@ export const WalletOps = {
       ) {
         // Bug #1 fixed: use tx.* instead of db.* to stay within transaction isolation boundary
         const existing = await tx.ledgerEntry.findFirst({
-          where: { idempotencyKey },
+          where: { idempotencyKey, tenantId: resolvedTenantId },
         });
         if (existing) {
           const updatedUser = await tx.user.findUnique({ where: { id: userId }, select: { balance: true } });
@@ -268,25 +268,6 @@ export const WalletOps = {
 
     const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride } = opts || {};
 
-    if (tenantId) {
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { id: true, tenantId: true }
-      });
-      if (!user || user.tenantId !== tenantId) {
-        throw new WalletUserNotFoundError(userId);
-      }
-    }
-
-    if (idempotencyKey) {
-      const existing = await tx.ledgerEntry.findFirst({
-        where: { idempotencyKey },
-      });
-      if (existing) {
-        return { success: true, balance: null, cached: true, entry: existing };
-      }
-    }
-
     // Fetch user tenantId for ledger entry (also validates user existence)
     const userRecord = await tx.user.findUnique({
       where: { id: userId },
@@ -294,12 +275,27 @@ export const WalletOps = {
     });
     if (!userRecord) throw new WalletUserNotFoundError(userId);
 
+    if (tenantId && userRecord.tenantId !== tenantId) {
+      throw new WalletUserNotFoundError(userId);
+    }
+
+    const resolvedTenantId = tenantId || userRecord.tenantId || 'smmplan';
+
+    if (idempotencyKey) {
+      const existing = await tx.ledgerEntry.findFirst({
+        where: { idempotencyKey, tenantId: resolvedTenantId },
+      });
+      if (existing) {
+        return { success: true, balance: null, cached: true, entry: existing };
+      }
+    }
+
     // Bug fixed: create ledger entry FIRST, then update balance
     // (matches immutable ledger pattern — if ledger.create fails, balance stays unchanged)
     const entry = await tx.ledgerEntry.create({
       data: {
         userId,
-        tenantId: tenantId || userRecord.tenantId || 'smmplan',
+        tenantId: resolvedTenantId,
         adminId,
         amount: rawCents,
         reason,
@@ -335,25 +331,6 @@ export const WalletOps = {
 
     const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride } = opts || {};
 
-    if (tenantId) {
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { id: true, tenantId: true }
-      });
-      if (!user || user.tenantId !== tenantId) {
-        throw new WalletUserNotFoundError(userId);
-      }
-    }
-
-    if (idempotencyKey) {
-      const existing = await tx.ledgerEntry.findFirst({
-        where: { idempotencyKey },
-      });
-      if (existing) {
-        return { success: true, balance: null, cached: true, entry: existing };
-      }
-    }
-
     // Fetch user for tenant and totalSpent calculation
     const existingUser = await tx.user.findUnique({
       where: { id: userId },
@@ -361,11 +338,24 @@ export const WalletOps = {
     });
     if (!existingUser) throw new WalletUserNotFoundError(userId);
 
+    if (tenantId && existingUser.tenantId !== tenantId) {
+      throw new WalletUserNotFoundError(userId);
+    }
+
+    const resolvedTenantId = tenantId || existingUser.tenantId || 'smmplan';
+
+    if (idempotencyKey) {
+      const existing = await tx.ledgerEntry.findFirst({
+        where: { idempotencyKey, tenantId: resolvedTenantId },
+      });
+      if (existing) {
+        return { success: true, balance: null, cached: true, entry: existing };
+      }
+    }
+
     // Calculate safe totalSpent (down to 0 if order was paid via external gateway without prior balance charge)
     const currentTotalSpent = existingUser.totalSpent ?? BigInt(0);
     const newTotalSpent = currentTotalSpent > rawCents ? currentTotalSpent - rawCents : BigInt(0);
-
-    const resolvedTenantId = tenantId || existingUser.tenantId || 'smmplan';
 
     // LEDGER-FIRST INVARIANT: Create LedgerEntry BEFORE updating User.balance.
     // If ledger.create fails, the balance is never touched — preserving financial integrity.
@@ -457,7 +447,11 @@ export const WalletOps = {
     const absAmount = rawCents < BigInt(0) ? -rawCents : rawCents;
 
     const updated = await tx.user.updateMany({
-      where: { id: userId, quarantineBalance: { gte: absAmount } },
+      where: { 
+        id: userId, 
+        quarantineBalance: { gte: absAmount },
+        ...(opts?.tenantId ? { tenantId: opts.tenantId } : {})
+      },
       data: { quarantineBalance: { decrement: absAmount } }
     });
 

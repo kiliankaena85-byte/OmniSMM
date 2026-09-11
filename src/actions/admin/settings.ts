@@ -630,7 +630,10 @@ export async function testTelegramBotConnectionAction() {
 
     try {
       const startTime = Date.now();
-      const res = await fetch(`https://api.telegram.org/bot${token}/getMe`, { cache: 'no-store' });
+      const res = await fetch(`https://api.telegram.org/bot${token}/getMe`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
       const pingMs = Date.now() - startTime;
       const data = await res.json();
       if (data.ok && data.result) {
@@ -761,7 +764,9 @@ export async function disconnectTelegramBotAction(tenantId?: string) {
       revalidateTag(`settings-${activeTenantId}`);
       revalidatePath('/admin/settings');
       revalidatePath('/', 'layout');
-    } catch {}
+    } catch (revalErr) {
+      console.warn('[settings] Cache revalidation error after unbind bot:', revalErr);
+    }
 
     return { success: true, message: `Telegram-бот успешно отвязан от бренда ${activeTenantId}` };
   });

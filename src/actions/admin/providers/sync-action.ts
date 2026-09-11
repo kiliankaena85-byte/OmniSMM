@@ -161,8 +161,9 @@ export async function rejectQuarantinedService(serviceId: string) {
 /** Bulk approve all quarantined */
 export async function approveAllQuarantined() {
   return requireStaffPermission('catalog', 'edit', async (admin) => {
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
     const quarantined = await db.service.findMany({
-      where: { isQuarantined: true },
+      where: { isQuarantined: true, ...tenantFilter },
       select: { id: true, rate: true, pendingRate: true, markup: true, providerCurrency: true },
     });
 

@@ -98,7 +98,7 @@ export async function GET(
               log.info(`[ActivePull] YooKassa reports payment ${paymentId} as canceled.`);
               // Update local status to match gateway
               await db.payment.updateMany({
-                where: { id: payment.id, status: 'PENDING' },
+                where: { id: payment.id, tenantId: payment.tenantId, status: 'PENDING' },
                 data: { status: 'CANCELED' }
               });
 

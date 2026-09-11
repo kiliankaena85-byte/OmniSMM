@@ -38,7 +38,10 @@ export async function batchToggleServicesAction(
     }
 
     await db.service.updateMany({
-      where: { id: { in: ids.data } },
+      where: {
+        id: { in: ids.data },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       data: { isActive },
     });
 
@@ -88,7 +91,10 @@ export async function batchSetMarkupAction(
     // We can't use updateMany with calculated fields in Prisma easily,
     // so we iterate or use a raw query. For 500 items, iteration is safe.
     const services = await db.service.findMany({
-      where: { id: { in: ids.data } },
+      where: {
+        id: { in: ids.data },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       select: { id: true, name: true, rate: true, providerCurrency: true }
     });
 
@@ -139,7 +145,7 @@ export async function previewBatchMarkupAction(
   serviceIds: string[],
   newMarkup: number
 ) {
-  return requireStaffPermission('catalog', 'view', async () => {
+  return requireStaffPermission('catalog', 'view', async (admin) => {
     const ids = batchIdsSchema.safeParse(serviceIds);
     if (!ids.success) return { success: false as const, error: 'Invalid service IDs' };
 
@@ -152,7 +158,10 @@ export async function previewBatchMarkupAction(
     const usdToRub = await SettingsProvider.getExchangeRateUSD();
 
     const services = await db.service.findMany({
-      where: { id: { in: ids.data } },
+      where: {
+        id: { in: ids.data },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       select: { id: true, name: true, rate: true, markup: true, pricePer1000Cents: true, providerCurrency: true },
       take: 10
     });
@@ -299,7 +308,10 @@ export async function batchReassignServicesCategoryAction(
 
     // Update all matching services inside db query
     const updateResult = await db.service.updateMany({
-      where: { id: { in: ids.data } },
+      where: {
+        id: { in: ids.data },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       data: { categoryId: targetCategoryId },
     });
 
@@ -337,7 +349,10 @@ export async function batchResetMarkupAction(
     const usdToRub = await SettingsProvider.getExchangeRateUSD();
 
     const services = await db.service.findMany({
-      where: { id: { in: ids.data } },
+      where: {
+        id: { in: ids.data },
+        ...(admin.tenantId ? { tenantId: admin.tenantId } : {})
+      },
       select: { id: true, name: true, rate: true, providerCurrency: true }
     });
 

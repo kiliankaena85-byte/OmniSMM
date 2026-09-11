@@ -116,7 +116,7 @@ export async function ensureCategoryForActivityType(
 ): Promise<string> {
   // 1. Look for an existing category with this activityType in the network
   const existing = await db.category.findFirst({
-    where: { networkId, activityType },
+    where: { networkId, activityType, tenantId: { in: [tenantId, 'all'] } },
     select: { id: true },
   });
   if (existing) return existing.id;
@@ -130,7 +130,7 @@ export async function ensureCategoryForActivityType(
   // 3. Handle slug collision
   let finalSlug = baseSlug;
   let attempts = 0;
-  while (await db.category.findFirst({ where: { slug: finalSlug } })) {
+  while (await db.category.findFirst({ where: { slug: finalSlug, tenantId: { in: [tenantId, 'all'] } } })) {
     attempts++;
     finalSlug = `${baseSlug}-${attempts}`;
     if (attempts > 20) {
@@ -732,6 +732,7 @@ class AdminCatalogService {
     await this.refreshShadowCatalog(providerId);
 
     // 2. Fetch our curated services
+    // tenant-isolation-ignore: Global provider sync across all services
     const ourServices = await db.service.findMany({
       where: { providerId }
     });
@@ -1081,6 +1082,7 @@ class AdminCatalogService {
     for (let i = 0; i < zombieIds.length; i += ZOMBIE_BATCH_SIZE) {
       const batchIds = zombieIds.slice(i, i + ZOMBIE_BATCH_SIZE);
       
+      // tenant-isolation-ignore: Provider sync disables zombie services globally
       await db.service.updateMany({
         where: { id: { in: batchIds } },
         data: {
@@ -1266,7 +1268,10 @@ class AdminCatalogService {
       Object.values(categoryIdMap).forEach(id => uniqueCategoryIds.add(id));
     }
     const categoriesDb = await db.category.findMany({
-      where: { id: { in: Array.from(uniqueCategoryIds) } },
+      where: {
+        id: { in: Array.from(uniqueCategoryIds) },
+        ...(targetTenantId === 'both' ? { tenantId: { in: ['smmplan', 'flux', 'all'] } } : { tenantId: { in: [targetTenantId, 'all'] } })
+      },
       select: { id: true, name: true }
     });
     const categoryNameMap = new Map(categoriesDb.map(c => [c.id, c.name]));
@@ -1513,7 +1518,8 @@ class AdminCatalogService {
        const createdServices = await db.service.findMany({
          where: {
            providerId: providerDbRecord.id,
-           externalId: { in: servicesToCreate.map(s => s.externalId) }
+           externalId: { in: servicesToCreate.map(s => s.externalId) },
+           tenantId: { in: tenantsToImport }
          },
          select: { id: true, rate: true }
        });
@@ -1577,6 +1583,7 @@ class AdminCatalogService {
     const serviceIds = Array.from(oldRates.keys());
     if (serviceIds.length === 0) return anomalies;
 
+    // tenant-isolation-ignore: Global provider price anomaly detection across batch service IDs
     const services = await db.service.findMany({
       where: { id: { in: serviceIds } },
       select: { id: true, name: true, rate: true, providerCurrency: true, isQuarantined: true }
@@ -1776,6 +1783,7 @@ class AdminCatalogService {
     const { CBRRateService } = await import('@/services/system/cbr-rate.service');
     const liveCrossRates = await CBRRateService.getLiveCrossRates();
 
+    // tenant-isolation-ignore: System daemon synchronizing exchange rates across all services
     const allServices = await db.service.findMany({
       select: { id: true, name: true, rate: true, markup: true, isActive: true, providerCurrency: true, tenantId: true }
     });

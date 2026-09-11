@@ -1,0 +1,10 @@
+id: server-action-typed-return
+language: typescript
+message: "СТАНДАРТ SERVER ACTIONS: Запрещен неперехваченный throw new Error! Возвращайте типизированный объект { success: false, error: '...' }."
+severity: warning
+rule:
+  inside:
+    pattern: |
+      "use server"
+      $$$
+  pattern: throw new Error($$$)

@@ -67,12 +67,17 @@ export async function getTransactionsListAction(
   params: Partial<LedgerParams>
 ): Promise<LedgerPageResult | { success: false; error: string }> {
   try {
-    const result = await requireOperatorPermission<LedgerPageResult>('orders', 'view', async () => {
+    const result = await requireOperatorPermission<LedgerPageResult>('orders', 'view', async (user) => {
       const p = ledgerParamsSchema.parse(params);
+      const isGlobal = user?.role === 'OWNER';
+      const tenantId = isGlobal ? undefined : (user?.tenantId || 'smmplan');
       const periodStart = getPeriodStart(p.period);
       const searchTrim = p.search?.trim();
 
       const andConditions: Prisma.LedgerEntryWhereInput[] = [];
+      if (tenantId) {
+        andConditions.push({ tenantId });
+      }
 
       if (p.status !== 'ALL') {
         andConditions.push({ status: p.status });
@@ -135,6 +140,7 @@ export async function getTransactionsListAction(
         // Resolve any payments matching gatewayId (e.g. YooKassa UUID) or internal payment ID
         const matchingPayments = await db.payment.findMany({
           where: {
+            ...(tenantId ? { tenantId } : {}),
             OR: [
               { gatewayId: { contains: searchTrim, mode: 'insensitive' as const } },
               { id: { contains: searchTrim, mode: 'insensitive' as const } }
@@ -153,7 +159,7 @@ export async function getTransactionsListAction(
             extraIdempotencyKeys.push(`gateway-basket-charge-${pid}`);
           }
           const linkedOrders = await db.order.findMany({
-            where: { paymentId: { in: pIds } },
+            where: { paymentId: { in: pIds }, ...(tenantId ? { tenantId } : {}) },
             select: { id: true },
             take: 50
           });
@@ -207,7 +213,7 @@ export async function getTransactionsListAction(
       // Enrich with user email
       const uIds = Array.from(new Set(page.map((e) => e.userId)));
       const users = await db.user.findMany({
-        where: { id: { in: uIds } },
+        where: { id: { in: uIds }, ...(tenantId ? { tenantId } : {}) },
         select: { id: true, email: true },
       });
       const emailMap = new Map(users.map((u) => [u.id, u.email]));
@@ -226,7 +232,7 @@ export async function getTransactionsListAction(
       const paymentGatewayMap = new Map<string, string>();
       if (candidatePaymentIds.length > 0) {
         const foundPayments = await db.payment.findMany({
-          where: { id: { in: Array.from(new Set(candidatePaymentIds)) } },
+          where: { id: { in: Array.from(new Set(candidatePaymentIds)) }, ...(tenantId ? { tenantId } : {}) },
           select: { id: true, gatewayId: true }
         });
         for (const fp of foundPayments) {

@@ -12,11 +12,18 @@ import { getClientIp } from '@/utils/ip';
 
 const log = logger.child({ component: 'PasswordLogin' });
 
-const schema = z.object({
-  email: z.string().email("Введите корректный email"),
-  password: z.string().min(1, "Введите пароль"),
-  twoFactorCode: z.string().optional(),
-});
+let dummyHashCache: string | null = null;
+async function getTimingSafeDummyHash(): Promise<string> {
+  if (!dummyHashCache) {
+    const { hashPassword } = await import('@/lib/auth/password');
+    dummyHashCache = await hashPassword('timing-attack-protection-dummy-seed');
+  }
+  return dummyHashCache;
+}
+
+import { passwordLoginSchema } from '@/lib/validators/auth-schemas';
+
+const schema = passwordLoginSchema;
 
 /** @public Public user login action */
 export async function loginWithPasswordAction(prevState: unknown, formData: FormData) {
@@ -67,7 +74,9 @@ export async function loginWithPasswordAction(prevState: unknown, formData: Form
     try {
       const reqHeaders = await headers();
       rawTenantId = reqHeaders.get("x-tenant-id");
-    } catch {}
+    } catch {
+      // audit-ignore: expected fallback when invoked in tests or without request context
+    }
     const tenantId = normalizeTenantId(rawTenantId) || "smmplan";
     
     let user = await db.user.findFirst({
@@ -91,6 +100,7 @@ export async function loginWithPasswordAction(prevState: unknown, formData: Form
 
     // Fallback: Global Admin/Owner login across any tenant
     if (!user) {
+      // tenant-isolation-ignore: Global Admin/Owner login fallback across tenants
       user = await db.user.findFirst({
         where: {
           email: cleanEmail,
@@ -113,7 +123,15 @@ export async function loginWithPasswordAction(prevState: unknown, formData: Form
     }
 
     if (!user) {
-      // Anti-Enumeration: return standard error so attackers don't know if email exists
+      // Anti-Enumeration & Timing Attack Mitigation: run dummy hash verification
+      // so response time is constant regardless of whether the email exists in DB
+      try {
+        const dummyHash = await getTimingSafeDummyHash();
+        await verifyPassword(password, dummyHash);
+      } catch {
+        // Suppress timing verification internal errors
+      }
+
       log.warn('Password login: User not found', { email: cleanEmail, tenantId });
       await SecurityAuditLogger.log({
         event: 'LOGIN_FAILED',

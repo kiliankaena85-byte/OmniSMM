@@ -15,19 +15,21 @@ export interface FinancialSummary {
  * Aggregates client financial metrics strictly from approved ledger entries.
  * Returns all values in cents as standard numbers for ease of JSON serialization.
  */
-export async function getClientFinancialSummary(userId: string): Promise<FinancialSummary> {
+export async function getClientFinancialSummary(userId: string, tenantId?: string): Promise<FinancialSummary> {
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { balance: true }
+    select: { balance: true, tenantId: true }
   });
 
   const currentBalanceCents = user ? Number(user.balance) : 0;
+  const effectiveTenantId = tenantId || user?.tenantId;
 
   // Retrieve all approved ledger entries
   const entries = await db.ledgerEntry.findMany({
     where: {
       userId,
       status: 'APPROVED',
+      ...(effectiveTenantId ? { tenantId: effectiveTenantId } : {})
     },
     select: {
       amount: true,

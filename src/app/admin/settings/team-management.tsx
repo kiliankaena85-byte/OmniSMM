@@ -43,7 +43,7 @@ import {
   DollarSign, Users, Package,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
-import { StaffRole, StaffPermission } from '@prisma/client';
+import type { StaffRole, StaffPermission } from '@prisma/client';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

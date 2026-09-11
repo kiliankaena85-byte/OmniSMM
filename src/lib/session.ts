@@ -1,8 +1,25 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies, headers } from 'next/headers';
 import { db } from './db';
-import { getEncodedKey, decryptSessionToken } from './session-edge';
-export { getEncodedKey, decryptSessionToken };
+import { 
+  getEncodedKey, 
+  decryptSessionToken, 
+  SESSION_COOKIE_NAME, 
+  LEGACY_SESSION_COOKIE_NAME, 
+  readSessionTokenFromCookies 
+} from './session-edge';
+export { 
+  getEncodedKey, 
+  decryptSessionToken, 
+  SESSION_COOKIE_NAME, 
+  LEGACY_SESSION_COOKIE_NAME, 
+  readSessionTokenFromCookies 
+};
+
+export function clearSessionCookies(cookieStore: { delete: (name: string) => void }) {
+  cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(LEGACY_SESSION_COOKIE_NAME);
+}
 
 import { getClientIp, isInternalOrPrivateIp } from '@/utils/ip';
 import { normalizeTenantId, resolveContourFromHost, type ContourId } from '@/lib/tenant-resolver-edge';
@@ -62,7 +79,7 @@ export async function createSession(userId: string, canResetPassword: boolean = 
     
   try {
     const cookieStore = await cookies();
-    cookieStore.set('session_token', sessionToken, {
+    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       expires: expiresAt,
@@ -82,7 +99,7 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
   let sessionToken: string | undefined;
   try {
     const cookieStore = await cookies();
-    sessionToken = cookieStore.get('session_token')?.value;
+    sessionToken = readSessionTokenFromCookies(cookieStore);
   } catch {
     // If called outside Next.js request scope (e.g. background tasks or CLI)
     return null;
@@ -107,7 +124,9 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
       if (isRevoked) {
         return null;
       }
-    } catch {}
+    } catch {
+      // audit-ignore: graceful degradation if Redis is temporarily unreachable
+    }
 
     const session = await db.session.findUnique({
       where: { id: sessionId },
@@ -140,21 +159,27 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
       console.warn(`[verifySession] null because: user tenant "${user.tenantId}" does not match request tenant "${currentTenantId}"`);
       try {
         const cookieStore = await cookies();
-        cookieStore.delete('session_token');
-      } catch {}
+        clearSessionCookies(cookieStore);
+      } catch {
+        // audit-ignore: cookies() may throw in non-request contexts
+      }
       return null;
     }
 
     // F-7.3 Strict Contour Isolation:
     // Regular users and operators cannot cross-use tokens between test and prod environments
     const tokenContour = (payload.contour as ContourId) || (userTenantId === 'flux' ? 'flux' : 'test');
-    const isStrictMismatch = user.role !== 'OWNER' && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
+    const cleanHost = host.split(':')[0].toLowerCase().trim();
+    const isLocalDev = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1') || cleanHost === '0.0.0.0' || cleanHost === 'web' || cleanHost.includes('host.docker.internal');
+    const isStrictMismatch = !isLocalDev && user.role !== 'OWNER' && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
     if (isStrictMismatch) {
       console.warn(`[verifySession] Contour mismatch: token was issued for "${tokenContour}", request is on "${currentContour}"`);
       try {
         const cookieStore = await cookies();
-        cookieStore.delete('session_token');
-      } catch {}
+        clearSessionCookies(cookieStore);
+      } catch {
+        // audit-ignore: cookies() may throw in non-request contexts
+      }
       return null;
     }
 
@@ -188,8 +213,10 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
         await db.session.deleteMany({ where: { id: sessionId } }).catch(() => {});
         try {
           const cookieStore = await cookies();
-          cookieStore.delete('session_token');
-        } catch {}
+          clearSessionCookies(cookieStore);
+        } catch {
+          // audit-ignore: cookies() may throw in non-request contexts
+        }
         return null;
       }
 
@@ -246,8 +273,10 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
         await db.session.deleteMany({ where: { id: sessionId } }).catch(() => {});
         try {
           const cookieStore = await cookies();
-          cookieStore.delete('session_token');
-        } catch {}
+          clearSessionCookies(cookieStore);
+        } catch {
+          // audit-ignore: cookies() may throw in non-request contexts
+        }
         return null;
       }
     }

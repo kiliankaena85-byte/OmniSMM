@@ -26,7 +26,7 @@ import {
   Shield,
   Activity
 } from 'lucide-react';
-import { SystemSettings } from '@prisma/client';
+import type { SystemSettings } from '@prisma/client';
 import {
   Dialog,
   DialogContent,

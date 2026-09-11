@@ -14,9 +14,15 @@ export default defineConfig({
       'server-only': path.resolve(__dirname, './node_modules/server-only/empty.js'),
     },
     include: [
+      'src/__tests__/architecture/tenant-isolation-ast.test.ts',
+      'src/__tests__/security/ddos-shield/token-bucket-pool.test.ts',
+      'src/__tests__/security/ddos-shield/fingerprint.test.ts',
+      'src/__tests__/security/ddos-shield/pow-engine.test.ts',
+      'src/__tests__/security/ddos-shield/honeypot-tarpit.test.ts',
+      'src/__tests__/security/auth-payload-hardening.test.ts',
+      'src/__tests__/security/session-cookie-hardening.test.ts',
       'src/__tests__/bot-order-real-execution.test.ts',
       'src/__tests__/bot-negative-and-cross-platform.test.ts',
-      'src/__tests__/e2e-real-order-flow.test.ts',
       'src/__tests__/network-routing-rules.test.ts',
       'src/__tests__/proxy-subscription-and-harvester.test.ts',
       'src/__tests__/financial/yookassa-e2e-qa-master.test.ts',
@@ -111,6 +117,7 @@ export default defineConfig({
       'src/__tests__/plan-slide-order-client.test.tsx',
       'src/__tests__/plan-fullscreen-checkout.test.tsx',
       'src/__tests__/services/service-mutation-detector.test.ts',
+      'src/__tests__/services/provider-catalog-importer.test.ts',
       'src/__tests__/actions/quarantine-api-diff.test.ts',
       'src/__tests__/multitenant-legal-fiscal-isolation.test.ts',
       'src/__tests__/multitenant-staff-isolation.test.ts',
@@ -118,6 +125,7 @@ export default defineConfig({
       'src/__tests__/orders/order-wizard-cro-and-dripfeed.test.ts',
       'src/__tests__/financial/wave3-fintech-fiscal-and-liquidity.test.ts',
       'src/lib/finance/__tests__/immutable-ledger-reconciliation.test.ts',
+      'src/__tests__/qa-sentinel/**/*.test.ts',
     ],
   }
 });

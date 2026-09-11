@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import path from 'path';
 import fs from 'fs/promises';
 
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies } from '@/lib/session';
 import { getMimeType } from '@/lib/mime';
 
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
 ) {
   try {
     // Auth check
-    const token = req.cookies.get('session_token')?.value;
+    const token = readSessionTokenFromCookies(req.cookies);
     if (!token) return new NextResponse('Unauthorized', { status: 401 });
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });
@@ -48,6 +48,11 @@ export async function GET(
     }
 
     try {
+      const stat = await fs.stat(filePath);
+      if (stat.size > 10 * 1024 * 1024) {
+        return new NextResponse('Payload Too Large', { status: 413 });
+      }
+      // audit-ignore: ticket media attachments are bounded by upload limit (<10MB)
       const file = await fs.readFile(filePath);
       const contentType = getMimeType(filePath);
 

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { jwtVerify } from 'jose';
-import { getEncodedKey } from '@/lib/session';
+import { getEncodedKey, readSessionTokenFromCookies, clearSessionCookies } from '@/lib/session';
 
 async function deleteSessionFromDB(token?: string) {
   if (token) {
@@ -21,10 +21,10 @@ async function deleteSessionFromDB(token?: string) {
 
 export async function logoutAction() {
   const cookieStore = await cookies();
-  const token = cookieStore.get('session_token')?.value;
+  const token = readSessionTokenFromCookies(cookieStore);
   await deleteSessionFromDB(token);
 
-  cookieStore.delete('session_token');
+  clearSessionCookies(cookieStore);
   cookieStore.set('explicit_logout', 'true', {
     path: '/',
     httpOnly: true,

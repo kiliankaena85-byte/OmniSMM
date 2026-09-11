@@ -25,15 +25,17 @@ export type DriftCandidate = {
  * over the last 30 days.
  */
 export async function getDriftCandidatesAction(): Promise<{ success: true; data: DriftCandidate[] } | { success: false; error: string }> {
-  return requireStaffPermission('catalog', 'view', async () => {
+  return requireStaffPermission('catalog', 'view', async (admin) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
 
     const services = await db.service.findMany({
       where: {
         isActive: true,
         isQuarantined: false,
         providerId: { not: null },
-        rate: { gt: 0 }
+        rate: { gt: 0 },
+        ...tenantFilter
       },
       select: {
         id: true,

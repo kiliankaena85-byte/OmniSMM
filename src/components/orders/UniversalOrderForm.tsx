@@ -534,7 +534,7 @@ export function UniversalOrderForm({
                             <SelectValue placeholder="Выберите способ оплаты">
                                {(value: string) => {
                                   if (value === 'yookassa') return 'Банковская карта (РФ) / СБП';
-                                  if (value === 'cryptobot') return 'Криптовалюта (CryptoBot)';
+                                  if (value === 'cryptobot') return 'CryptoBot (USDT / TON)';
                                   if (value === 'balance') return `Баланс (${formatCents(userBalanceCents)} ₽)`;
                                   return value;
                                }}
@@ -542,7 +542,7 @@ export function UniversalOrderForm({
                          </SelectTrigger>
                          <SelectContent>
                             <SelectItem value="yookassa">Банковская карта (РФ) / СБП</SelectItem>
-                            <SelectItem value="cryptobot">Криптовалюта (CryptoBot)</SelectItem>
+                            <SelectItem value="cryptobot">CryptoBot (USDT / TON)</SelectItem>
                             {userBalanceCents >= engine.stats.totalCents && (
                               <SelectItem value="balance">Баланс ({formatCents(userBalanceCents)} ₽)</SelectItem>
                             )}

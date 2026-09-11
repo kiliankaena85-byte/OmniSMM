@@ -5,9 +5,12 @@ import { redis } from '@/lib/redis';
 
 class SettingsService {
   // ── User Management ──
-  async listUsers(search?: string) {
+  async listUsers(search?: string, tenantId?: string) {
     return db.user.findMany({
-      where: search ? { email: { contains: search, mode: 'insensitive' } } : undefined,
+      where: {
+        ...(search ? { email: { contains: search, mode: 'insensitive' } } : {}),
+        ...(tenantId ? { tenantId } : {})
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
       select: {
@@ -22,9 +25,12 @@ class SettingsService {
     });
   }
 
-  async listStaffUsers() {
+  async listStaffUsers(tenantId?: string) {
     return db.user.findMany({
-      where: { role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'] } },
+      where: { 
+        role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'] },
+        ...(tenantId ? { tenantId } : {})
+      },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -87,7 +93,7 @@ class SettingsService {
     const activeTenantId = tenantId || await SettingsProvider.getTenantId();
     let settings = await db.systemSettings.findUnique({ where: { id: activeTenantId } });
     if (!settings) {
-      const defaultName = (activeTenantId === 'flux' || activeTenantId === 'lovable') ? 'SMMflux' : 'SMMplan';
+      const defaultName = (activeTenantId === 'flux') ? 'SMMflux' : 'SMMplan';
       settings = await db.systemSettings.create({
         data: { id: activeTenantId, taxRate: 6.0, opexMonthly: 0, maintenanceMode: false, siteName: defaultName, siteDescription: '' }
       });

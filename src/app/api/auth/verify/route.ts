@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
-import { createSession } from "@/lib/session";
+import { createSession, SESSION_COOKIE_NAME } from "@/lib/session";
 import crypto from "crypto";
 import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
 import { sanitizeRedirectUrl } from '@/lib/security/redirect-guard';
@@ -46,7 +46,9 @@ export async function GET(request: Request) {
     if (currentCount > 10) {
       return NextResponse.redirect(new URL(`${loginBase}error=TooManyRequests`, baseUrl));
     }
-  } catch {}
+  } catch {
+    // audit-ignore: fail-open on rate limiting if Redis is temporarily offline
+  }
 
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -123,7 +125,7 @@ export async function GET(request: Request) {
     expires: new Date(0),
   });
 
-  response.cookies.set('session_token', sessionToken, {
+  response.cookies.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     expires: expiresAt,
@@ -135,7 +137,9 @@ export async function GET(request: Request) {
     try {
       const { redis } = await import('@/lib/redis');
       await redis.set(`staff:${user.id}:active_tenant`, user.tenantId || 'smmplan', 'EX', 86400 * 30);
-    } catch {}
+    } catch {
+      // audit-ignore: redis staff active tenant cache is secondary to DB and cookie persistence
+    }
   }
 
   response.cookies.set('x_tenant', user.tenantId || 'smmplan', {

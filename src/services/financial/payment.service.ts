@@ -154,7 +154,7 @@ export class PaymentService {
           }
 
           const updated = await tx.payment.updateMany({
-            where: { id: currentPayment.id, status: 'PENDING' },
+            where: { id: currentPayment.id, tenantId: currentPayment.tenantId, status: 'PENDING' },
             data: { status: 'SUCCEEDED', gatewayId, receiptId: receiptId || undefined }
           });
           if (updated.count === 0) {
@@ -238,13 +238,22 @@ export class PaymentService {
         }
 
         // --- NEW BASKET LOGIC (Deposit-Driven 1:N Orders) ---
+        const basketTenantId = currentPayment?.tenantId;
         const basketOrders = await tx.order.findMany({ 
-          where: { paymentId: processedPaymentId, status: 'AWAITING_PAYMENT' },
+          where: { 
+            paymentId: processedPaymentId, 
+            status: 'AWAITING_PAYMENT',
+            ...(basketTenantId ? { tenantId: basketTenantId } : {})
+          },
           include: { user: { select: { email: true } }, service: { select: { name: true } } }
         });
         if (basketOrders.length > 0) {
            await tx.order.updateMany({
-              where: { paymentId: processedPaymentId, status: 'AWAITING_PAYMENT' },
+              where: { 
+                paymentId: processedPaymentId, 
+                status: 'AWAITING_PAYMENT',
+                ...(basketTenantId ? { tenantId: basketTenantId } : {})
+              },
               data: { status: 'PENDING' }
            });
            
@@ -377,6 +386,7 @@ export class PaymentService {
         const updatedPayment = await tx.payment.updateMany({
           where: { 
             id: paymentId,
+            tenantId: payment.tenantId,
             status: 'PENDING'
           },
           data: { 
@@ -427,12 +437,12 @@ export class PaymentService {
 
         // --- NEW BASKET LOGIC (TEST MODE) ---
         const basketOrders = await tx.order.findMany({ 
-          where: { paymentId: paymentId, status: 'AWAITING_PAYMENT' },
+          where: { paymentId: paymentId, tenantId: payment.tenantId, status: 'AWAITING_PAYMENT' },
           include: { user: { select: { email: true } }, service: { select: { name: true } } }
         });
         if (basketOrders.length > 0) {
            await tx.order.updateMany({
-              where: { paymentId: paymentId, status: 'AWAITING_PAYMENT' },
+              where: { paymentId: paymentId, tenantId: payment.tenantId, status: 'AWAITING_PAYMENT' },
               data: { status: 'PENDING' }
            });
            
