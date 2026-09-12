@@ -37,7 +37,7 @@ export interface GlobalLiquiditySummary {
 export class ProviderBalanceService {
   private readonly CACHE_TTL_SECONDS = 60;
   private readonly ERROR_CACHE_TTL_SECONDS = 15;
-  private readonly TIMEOUT_MS = 3000;
+  private readonly TIMEOUT_MS = 5000;
 
   /**
    * Retrieves current balance for a specific provider with 60-second Redis caching
@@ -87,7 +87,7 @@ export class ProviderBalanceService {
 
       let timeoutId: NodeJS.Timeout | undefined;
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('ETIMEDOUT: Connection timed out after 5000ms')), this.TIMEOUT_MS);
+        timeoutId = setTimeout(() => reject(new Error(`ETIMEDOUT: Connection timed out after ${this.TIMEOUT_MS}ms`)), this.TIMEOUT_MS);
       });
 
       let balanceData: { balance: string; currency?: string };

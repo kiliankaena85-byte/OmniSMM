@@ -2,9 +2,10 @@
 import { HeroUIProvider } from '@heroui/system';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children, nonce }: { children: React.ReactNode; nonce?: string }) {
   return (
     <NextThemesProvider 
+      nonce={nonce}
       attribute="class" 
       defaultTheme="light" 
       enableSystem={false}

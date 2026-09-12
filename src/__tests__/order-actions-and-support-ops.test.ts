@@ -75,11 +75,15 @@ describe('Order Management & Support Actions — Comprehensive E2E Suite', () =>
   });
 
   afterAll(async () => {
-    // Cleanup persistent test fixtures created by findFirst+create pattern
+    // Cleanup persistent test fixtures created by findFirst+create pattern in proper FK order
+    await db.order.deleteMany({ where: { user: { email: 'e2e-order-support@smmplan.pro' } } }).catch(() => {});
+    await db.order.deleteMany({ where: { serviceId: testServiceId } }).catch(() => {});
     await db.order.deleteMany({ where: { userId: testUserId } }).catch(() => {});
     await db.service.deleteMany({ where: { id: testServiceId } }).catch(() => {});
     await db.category.deleteMany({ where: { name: 'E2E Order Test Category' } }).catch(() => {});
     await db.provider.deleteMany({ where: { name: 'E2E_Mock_Provider' } }).catch(() => {});
+    await db.ledgerEntry.deleteMany({ where: { user: { email: 'e2e-order-support@smmplan.pro' } } }).catch(() => {});
+    await db.ledgerEntry.deleteMany({ where: { userId: testUserId } }).catch(() => {});
     await db.user.deleteMany({ where: { email: 'e2e-order-support@smmplan.pro' } }).catch(() => {});
   });
 

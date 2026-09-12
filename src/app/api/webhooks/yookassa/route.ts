@@ -67,7 +67,7 @@ function rubToKopecks(value: unknown): bigint {
 export async function POST(req: NextRequest) {
   try {
     const { getClientIp } = await import('@/utils/ip');
-    const rawIp = await getClientIp();
+    const rawIp = await getClientIp(req);
     const ip = rawIp.replace(/^::ffff:/, '');
 
     const { SettingsProvider } = await import('@/lib/settings');

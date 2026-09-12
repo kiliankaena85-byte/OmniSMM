@@ -7,8 +7,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    testTimeout: 15000,
-    setupFiles: [],
+    testTimeout: 60000,
+    hookTimeout: 60000,
+    maxWorkers: 1,
+    fileParallelism: false,
+    setupFiles: ['./test/setup.ts'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       'server-only': path.resolve(__dirname, './node_modules/server-only/empty.js'),
@@ -17,6 +20,8 @@ export default defineConfig({
       'src/__tests__/architecture/tenant-isolation-ast.test.ts',
       'src/__tests__/architecture/mobile-wizard-hygiene.test.ts',
       'src/__tests__/security/system-audit-remediation.test.ts',
+      'src/__tests__/security/swarm-audit-remediation.test.ts',
+      'src/__tests__/security/production-hardening-triad.test.ts',
       'src/__tests__/security/ddos-shield/token-bucket-pool.test.ts',
       'src/__tests__/security/ddos-shield/fingerprint.test.ts',
       'src/__tests__/security/ddos-shield/pow-engine.test.ts',

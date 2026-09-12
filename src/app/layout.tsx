@@ -150,6 +150,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? (settings.contactSupportEmail || 'support@smmflux.ru')
     : (settings.contactSupportEmail || 'support@smmplan.pro');
 
+  const nonce = reqHeaders.get('x-nonce') || undefined;
   const host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
   const isTestDomain = host.includes('test.') || host.includes('flux.') || host.includes('localhost') || host.includes('127.0.0.1') || host.includes('.ts.net') || host.includes('tailscale');
 
@@ -197,6 +198,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <script
               type="application/ld+json"
               nonce={nonce}
+              suppressHydrationWarning
               dangerouslySetInnerHTML={{ __html: JSON.stringify([
                 {
                   "@context": "https://schema.org",
@@ -235,7 +237,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg z-[9999] font-semibold outline-none focus:ring-2 focus:ring-primary transition-all">
           Перейти к основному контенту
         </a>
-        <Providers>
+        <Providers nonce={nonce}>
           <NetworkAwareProvider>
              <MaintenanceGuardian
                {...(isMaintenanceModeForDomain && !isStaff ? { m: true } : {})}

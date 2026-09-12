@@ -2,8 +2,10 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/services/financial/payment.service';
 import { db } from '@/lib/db';
-import { timingSafeEqual } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
+import { MutexManager } from '@/lib/redis-lock';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
+import { logger } from '@/lib/logger';
 
 const MAX_BODY_SIZE = 1024 * 64; // 64KB
 
@@ -101,9 +103,7 @@ export async function POST(req: NextRequest) {
     // 3. Re-calculate SHA-256 signature for verification
     // Robokassa signature formula for webhook (ResultURL): OutSum:InvId:MerchantPassword2:shp_paymentId=paymentId
     const sigStr = `${outSum}:${invId || '0'}:${password}:shp_paymentId=${shp_paymentId}`;
-    const crypto = (await import('crypto')).default;
-    const expectedSig = crypto
-      .createHash('sha256')
+    const expectedSig = createHash('sha256')
       .update(sigStr)
       .digest('hex')
       .toLowerCase();
@@ -127,53 +127,80 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
 
-    // 4. Fetch the payment record in our DB
-    const payment = await db.payment.findUnique({
-      where: { id: shp_paymentId }
-    });
-
-    if (!payment) {
-      console.error(`[Robokassa Webhook] Payment not found for shp_paymentId: ${shp_paymentId}`);
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+    // --- ANTI-REPLAY GUARD (NIST SP 800-63B / PCI DSS v4.0.1) ---
+    const replayKey = `webhook:robo:event:${shp_paymentId}:${invId || '0'}:${outSum}`;
+    try {
+      const { redis } = await import('@/lib/redis');
+      const isNew = await redis.set(replayKey, '1', 'EX', 86400, 'NX');
+      if (!isNew) {
+        logger.info('[Robokassa Webhook] Idempotent duplicate event bypassed', { shp_paymentId });
+        return new NextResponse(`OK${invId || '0'}`, { status: 200, headers: { 'Content-Type': 'text/plain' } });
+      }
+    } catch (redisErr) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[Robokassa Webhook] Fail-Closed: Redis Anti-Replay Guard unreachable:', redisErr);
+        return NextResponse.json({ error: 'Anti-Replay Guard service unavailable' }, { status: 503 });
+      }
+      console.warn('[Robokassa Webhook] Dev/test mode: Redis unreachable, proceeding with DB lock.');
     }
 
-    if (payment.status === 'SUCCEEDED') {
-      console.info(`[Robokassa Webhook] Payment ${shp_paymentId} already processed (idempotency hit)`);
-      return new NextResponse(`OK${invId || '0'}`, { status: 200, headers: { 'Content-Type': 'text/plain' } });
-    }
+    // 4. Atomic processing with MutexManager distributed lock
+    try {
+      const result = await MutexManager.withLock(`webhook_payment_robo_${shp_paymentId}`, 15000, 10000, async () => {
+        // Fetch the payment record in our DB
+        const payment = await db.payment.findUnique({
+          where: { id: shp_paymentId }
+        });
 
-    // Convert outSum to kopecks (bigint)
-    const amountMatch = /^(\d+)(?:\.(\d{1,2}))?$/.exec(outSum.trim());
-    if (!amountMatch) {
-      console.error(`[Robokassa Webhook] Invalid outSum format: ${outSum}`);
-      return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
-    }
-    const intCents = BigInt(amountMatch[1]) * BigInt(100);
-    const decCents = BigInt((amountMatch[2] || '00').padEnd(2, '0').slice(0, 2));
-    const amountCents = intCents + decCents;
+        if (!payment) {
+          console.error(`[Robokassa Webhook] Payment not found for shp_paymentId: ${shp_paymentId}`);
+          return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+        }
 
-    if (payment.amount > amountCents) {
-      console.error(`[Robokassa Webhook] Amount underpayment exploit attempt: expected ${payment.amount}, got ${amountCents}`);
-      return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
-    }
+        if (payment.status === 'SUCCEEDED') {
+          console.info(`[Robokassa Webhook] Payment ${shp_paymentId} already processed (idempotency hit)`);
+          return new NextResponse(`OK${invId || '0'}`, { status: 200, headers: { 'Content-Type': 'text/plain' } });
+        }
 
-    // 5. Confirm the payment atomically
-    const success = await paymentService.confirmPayment(
-      payment.gatewayId || `robo_${shp_paymentId}`,
-      amountCents,
-      payment.userId,
-      isTestMode,
-      'robokassa',
-      shp_paymentId,
-      payment.orderId ? 'order' : 'deposit'
-    );
+        // Convert outSum to kopecks (bigint)
+        const amountMatch = /^(\d+)(?:\.(\d{1,2}))?$/.exec(outSum.trim());
+        if (!amountMatch) {
+          console.error(`[Robokassa Webhook] Invalid outSum format: ${outSum}`);
+          return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
+        }
+        const intCents = BigInt(amountMatch[1]) * BigInt(100);
+        const decCents = BigInt((amountMatch[2] || '00').padEnd(2, '0').slice(0, 2));
+        const amountCents = intCents + decCents;
 
-    if (success) {
-      console.info(`[Robokassa Webhook] Payment ${shp_paymentId} confirmed successfully.`);
-      // Robokassa ResultURL expects text "OK" followed by InvId to confirm receipt
-      return new NextResponse(`OK${invId || '0'}`, { status: 200, headers: { 'Content-Type': 'text/plain' } });
-    } else {
-      return NextResponse.json({ error: 'Confirm failed' }, { status: 400 });
+        if (payment.amount > amountCents) {
+          console.error(`[Robokassa Webhook] Amount underpayment exploit attempt: expected ${payment.amount}, got ${amountCents}`);
+          return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
+        }
+
+        // 5. Confirm the payment atomically
+        const success = await paymentService.confirmPayment(
+          payment.gatewayId || `robo_${shp_paymentId}`,
+          amountCents,
+          payment.userId,
+          isTestMode,
+          'robokassa',
+          shp_paymentId,
+          payment.orderId ? 'order' : 'deposit'
+        );
+
+        if (success) {
+          console.info(`[Robokassa Webhook] Payment ${shp_paymentId} confirmed successfully.`);
+          // Robokassa ResultURL expects text "OK" followed by InvId to confirm receipt
+          return new NextResponse(`OK${invId || '0'}`, { status: 200, headers: { 'Content-Type': 'text/plain' } });
+        } else {
+          return NextResponse.json({ error: 'Confirm failed' }, { status: 400 });
+        }
+      });
+
+      return result;
+    } catch (lockError) {
+      console.error(`[Robokassa Webhook] Failed to acquire lock for payment ${shp_paymentId}:`, lockError);
+      return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
     }
   } catch (error: unknown) {
     console.error('[Robokassa Webhook] Error:', (error instanceof Error ? error.message : String(error)));

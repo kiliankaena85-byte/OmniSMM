@@ -10,6 +10,18 @@ describe('User Authentication & Dashboard Login/Logout Flow', () => {
   const testPassword = 'Password123!@#Safe';
 
   it('1. User registers with valid password and can log in immediately', async () => {
+    // 0. Ensure an existing OWNER so newly registered user is assigned role USER
+    await db.user.upsert({
+      where: { email_tenantId: { email: 'root-owner@smmplan.pro', tenantId: 'smmplan' } },
+      update: {},
+      create: {
+        email: 'root-owner@smmplan.pro',
+        role: 'OWNER',
+        tenantId: 'smmplan',
+        isActive: true,
+      }
+    });
+
     // 1. Register
     const regData = new FormData();
     regData.append('email', testEmail);

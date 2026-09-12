@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
     return await runWithTenant(ctx.tenantSlug, async () => {
       // Ищем все категории тенанта
       const categories = await db.category.findMany({
+        where: { tenantId: ctx.tenantId },
         orderBy: { sort: 'asc' },
         include: { network: true },
       });

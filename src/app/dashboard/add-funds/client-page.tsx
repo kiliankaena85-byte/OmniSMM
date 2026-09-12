@@ -316,6 +316,7 @@ export default function AddFundsForm() {
               ref={inputRef}
               type="number"
               id="top-up-amount"
+              suppressHydrationWarning
               value={amount || ''}
               onChange={(e) => {
                 const val = Number(e.target.value);

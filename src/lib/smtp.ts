@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
+import net from 'net';
+import tls from 'tls';
 import { SettingsProvider } from '@/lib/settings';
 import { Resend } from 'resend';
 import { logger } from '@/lib/logger';
@@ -14,6 +16,100 @@ if (dns.setDefaultResultOrder) {
 }
 
 const log = logger.child({ component: 'SMTP' });
+
+export interface SmtpProbeResult {
+  success: boolean;
+  host: string;
+  port: number;
+  durationMs: number;
+  secure: boolean;
+  error?: string;
+}
+
+/**
+ * Directly probes SMTP host:port via socket without any intermediate proxy (SEC-003).
+ * On port 465 (SMTPS), performs direct TLS handshake.
+ * On port 587/25, tests raw TCP connection.
+ */
+export async function verifyDirectSmtpConnection(
+  host: string = 'smtp.yandex.ru',
+  port: number = 465,
+  timeoutMs: number = 5000
+): Promise<SmtpProbeResult> {
+  const startTime = Date.now();
+  const isTls = port === 465;
+
+  return new Promise<SmtpProbeResult>((resolve) => {
+    let settled = false;
+
+    const onFinish = (success: boolean, error?: string) => {
+      if (settled) return;
+      settled = true;
+      resolve({
+        success,
+        host,
+        port,
+        durationMs: Date.now() - startTime,
+        secure: isTls,
+        error,
+      });
+    };
+
+    const timer = setTimeout(() => {
+      onFinish(false, `Connection timed out after ${timeoutMs}ms`);
+    }, timeoutMs);
+
+    try {
+      if (isTls) {
+        const socket = tls.connect(
+          {
+            host,
+            port,
+            servername: host,
+            rejectUnauthorized: true,
+            timeout: timeoutMs,
+          },
+          () => {
+            clearTimeout(timer);
+            socket.end();
+            onFinish(true);
+          }
+        );
+
+        socket.on('error', (err) => {
+          clearTimeout(timer);
+          onFinish(false, err.message);
+        });
+
+        socket.on('timeout', () => {
+          clearTimeout(timer);
+          socket.destroy();
+          onFinish(false, 'TLS Handshake timeout');
+        });
+      } else {
+        const socket = net.createConnection({ host, port, timeout: timeoutMs }, () => {
+          clearTimeout(timer);
+          socket.end();
+          onFinish(true);
+        });
+
+        socket.on('error', (err) => {
+          clearTimeout(timer);
+          onFinish(false, err.message);
+        });
+
+        socket.on('timeout', () => {
+          clearTimeout(timer);
+          socket.destroy();
+          onFinish(false, 'TCP Connection timeout');
+        });
+      }
+    } catch (err: any) {
+      clearTimeout(timer);
+      onFinish(false, err?.message || String(err));
+    }
+  });
+}
 
 async function getEmailContext(tenantId?: string | null) {
   const normTenant = normalizeTenantId(tenantId);

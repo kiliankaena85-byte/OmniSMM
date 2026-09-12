@@ -2,9 +2,13 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { z } from 'zod';
+import { ProxyAgent } from 'undici';
 
 dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
+const PROXY_URL = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || 'http://127.0.0.1:7897';
+const proxyAgent = new ProxyAgent(PROXY_URL);
 
 const rawKeys = [
   process.env.OPENROUTER_API_KEY,
@@ -58,13 +62,13 @@ interface SwarmAgent {
 
 const SWARM_AGENTS: SwarmAgent[] = [
   {
-    name: 'DevSecOps Sentinel (120B)',
+    name: 'DevSecOps Sentinel',
     role: 'SECURITY',
     emoji: '🛡️',
     models: [
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'nvidia/nemotron-3.5-lightning:free'
+      'nex-agi/nex-n2.5-mini:free',
+      'nvidia/nemotron-3.5-lightning:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ],
     systemPrompt: `You are the Principal DevSecOps Security Auditor for SMMplan (Next.js 16, PostgreSQL/Prisma).
 Analyze the code for OWASP Top 10 vulnerabilities.
@@ -87,9 +91,9 @@ Output format: Return ONLY valid JSON:
     role: 'FINOPS_QA',
     emoji: '🧪',
     models: [
+      'nex-agi/nex-n2.5-mini:free',
       'nvidia/nemotron-3.5-lightning:free',
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'nex-agi/nex-n2.5-mini:free'
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ],
     systemPrompt: `You are the Principal QA Automation and FinOps Logician for SMMplan.
 Analyze the code for mathematical invariants, race conditions, edge cases, and multi-tenant integrity.
@@ -113,8 +117,8 @@ Output format: Return ONLY valid JSON matching:
     emoji: '🎨',
     models: [
       'nex-agi/nex-n2.5-mini:free',
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'nex-agi/nex-n2.5-pro:free'
+      'nvidia/nemotron-3.5-lightning:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ],
     systemPrompt: `You are the Lead UI/UX and Design System Architect for SMMplan (Tailwind CSS 4.0, HeroUI v3).
 Analyze the code for UI/UX defects, styling standards, and accessibility.
@@ -137,9 +141,9 @@ Output format: Return ONLY valid JSON matching:
     role: 'ARBITER',
     emoji: '⚡',
     models: [
-      'nex-agi/nex-n2.5-pro:free',
+      'nex-agi/nex-n2.5-mini:free',
       'nvidia/nemotron-3.5-lightning:free',
-      'nex-agi/nex-n2.5-mini:free'
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
     ],
     systemPrompt: `You are the Fast Review Arbiter and Clean Architecture Specialist for SMMplan.
 Analyze the code for code hygiene, clean TypeScript types, dead code, component line limits (<= 200 lines), and missing error handlers.
@@ -189,8 +193,8 @@ function extractJson(raw: string): any {
 
 // 3. OpenRouter API Caller with Auto-Rotation & Retries
 async function callOpenRouter(agent: SwarmAgent, payload: string): Promise<SwarmAuditResult> {
-  const timeoutMs = 25000;
-  const maxAttempts = Math.max(3, OPENROUTER_KEYS.length);
+  const timeoutMs = 45000;
+  const maxAttempts = 1;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -219,11 +223,12 @@ async function callOpenRouter(agent: SwarmAgent, payload: string): Promise<Swarm
         },
         body: JSON.stringify(body),
         signal: controller.signal,
+        // @ts-ignore
+        dispatcher: proxyAgent,
       });
 
-      clearTimeout(timeout);
-
       if (!res.ok) {
+        clearTimeout(timeout);
         const errText = await res.text();
         if (res.status === 429 || res.status >= 500) {
           lastError = new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
@@ -234,6 +239,8 @@ async function callOpenRouter(agent: SwarmAgent, payload: string): Promise<Swarm
       }
 
       const data = await res.json();
+      clearTimeout(timeout);
+
       const content = data.choices?.[0]?.message?.content;
       if (!content) throw new Error('Empty response from model');
 
@@ -275,14 +282,14 @@ async function callOpenRouter(agent: SwarmAgent, payload: string): Promise<Swarm
     } catch (err: any) {
       clearTimeout(timeout);
       lastError = err;
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 600));
     }
   }
 
   return {
     expertRole: agent.name,
     passed: true,
-    summary: `⚠️ Аудит пропущен (${lastError?.message || 'Все ключи исчерпали попытки'})`,
+    summary: `⚠️ Аудит пропущен (${lastError?.message || 'Таймаут или ошибка OpenRouter'})`,
     findings: [],
   };
 }
@@ -423,48 +430,40 @@ async function main() {
 
     allDomainResults.push({ domain, results: domainResults });
     console.log(`✔ Домен ${domain.key} завершён.`);
-  }
 
-  // Save report to .planning/audit
-  const outDir = path.resolve(process.cwd(), '.planning', 'audit');
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    // Incremental write to report
+    const outDir = path.resolve(process.cwd(), '.planning', 'audit');
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    const reportPath = path.resolve(outDir, 'FULL_PROJECT_SWARM_REPORT.md');
 
-  const reportPath = path.resolve(outDir, 'FULL_PROJECT_SWARM_REPORT.md');
-  let md = '# 🚀 SMMplan Full Project Multi-Agent Swarm Audit Report\n\n';
-  md += `**Дата проверки:** ${new Date().toISOString()}\n\n`;
-
-  let totalFindings = 0;
-  let totalCritical = 0;
-
-  for (const { domain, results } of allDomainResults) {
-    md += `## 📦 Домен: ${domain.name} (${domain.key})\n\n`;
-    md += `*${domain.description}*\n\n`;
-
-    for (const r of results) {
-      md += `### ${r.expertRole}\n\n`;
-      md += `**Статус:** ${r.passed ? '✅ PASS' : '❌ DEFECTS FOUND'}\n`;
-      md += `**Резюме:** ${r.summary}\n\n`;
+    let domainMd = `## 📦 Домен: ${domain.name} (${domain.key})\n\n*${domain.description}*\n\n`;
+    for (const r of domainResults) {
+      domainMd += `### ${r.expertRole}\n\n`;
+      domainMd += `**Статус:** ${r.passed ? '✅ PASS' : '❌ DEFECTS FOUND'}\n`;
+      domainMd += `**Резюме:** ${r.summary}\n\n`;
 
       if (r.findings.length > 0) {
-        md += '| Серьезность | Правило | Файл | Строка | Суть | Рекомендация |\n';
-        md += '|---|---|---|---|---|---|\n';
+        domainMd += '| Серьезность | Правило | Файл | Строка | Суть | Рекомендация |\n';
+        domainMd += '|---|---|---|---|---|---|\n';
         for (const f of r.findings) {
-          totalFindings++;
-          if (f.severity === 'CRITICAL' || f.severity === 'HIGH') totalCritical++;
-          md += `| **${f.severity}** | ${f.ruleId || '-'} | \`${f.file}\` | ${f.line || '-'} | ${f.title} | ${f.recommendation} |\n`;
+          domainMd += `| **${f.severity}** | ${f.ruleId || '-'} | \`${f.file}\` | ${f.line || '-'} | ${f.title} | ${f.recommendation} |\n`;
         }
-        md += '\n';
+        domainMd += '\n';
       }
     }
-    md += '\n---\n\n';
+    domainMd += '\n---\n\n';
+
+    if (!fs.existsSync(reportPath)) {
+      const header = `# 🚀 SMMplan Full Project Multi-Agent Swarm Audit Report\n\n**Дата проверки:** ${new Date().toISOString()}\n\n`;
+      fs.writeFileSync(reportPath, header + domainMd, 'utf8');
+    } else {
+      fs.appendFileSync(reportPath, domainMd, 'utf8');
+    }
+    console.log(`💾 Результаты по домену ${domain.key} сохранены в FULL_PROJECT_SWARM_REPORT.md`);
   }
 
-  console.log(`Writing report (${md.length} chars) to ${reportPath}`);
-  fs.writeFileSync(reportPath, md, 'utf8');
-
   console.log('\n===============================================================');
-  console.log(`📄 Итоговый подробный отчёт сохранён в: .planning/audit/FULL_PROJECT_SWARM_REPORT.md`);
-  console.log(`📊 Всего замечаний: ${totalFindings} (Критических: ${totalCritical})`);
+  console.log(`📄 Полный отчёт обновлен в: .planning/audit/FULL_PROJECT_SWARM_REPORT.md`);
   console.log('===============================================================');
 }
 

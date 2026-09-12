@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { db } from "@/lib/db";
 import { orderService } from "@/services/core/order.service";
 import { WalletOps } from "@/services/financial/wallet-ops";
@@ -11,17 +11,105 @@ describe("Bot Real Order Execution Flow", () => {
   afterAll(async () => {
     if (createdOrderId) {
       await db.order.deleteMany({ where: { id: createdOrderId } }).catch(() => {});
-      try {
-        const { default: Redis } = await import("ioredis");
-        const redis = new Redis(process.env.REDIS_URL || "redis://127.0.0.1:6379");
-        const keys = await redis.keys(`*${createdOrderId}*`);
-        if (keys.length > 0) await redis.del(...keys);
-        await redis.del("bullmq:ordersQueue:delayed", "bullmq:ordersQueue:wait", "bullmq:ordersQueue:failed");
-        await redis.quit();
-      } catch {}
     }
   });
+
+  let testNetworkId: string;
+  let testSubsCatId: string;
+  let testViewsCatId: string;
+  let testSubsServiceId: string;
+  let testS5ServiceId: string;
+
+  beforeAll(async () => {
+    let network = await db.network.findFirst({
+      where: { slug: 'telegram', tenantId: 'smmplan' }
+    });
+    if (!network) {
+      network = await db.network.create({
+        data: {
+          name: 'Telegram',
+          slug: 'telegram',
+          tenantId: 'smmplan',
+          isActive: true,
+          sort: 0,
+        }
+      });
+    }
+    testNetworkId = network.id;
+
+    let catSubs = await db.category.findFirst({
+      where: { name: { contains: 'Подписчик' }, networkId: network.id }
+    });
+    if (!catSubs) {
+      catSubs = await db.category.create({
+        data: {
+          name: 'Подписчики',
+          slug: `telegram-subs-${Date.now()}`,
+          networkId: network.id,
+          tenantId: 'smmplan',
+          sort: 0,
+        }
+      });
+    }
+    testSubsCatId = catSubs.id;
+
+    let catViews = await db.category.findFirst({
+      where: { name: { contains: 'Просмотр' }, networkId: network.id }
+    });
+    if (!catViews) {
+      catViews = await db.category.create({
+        data: {
+          name: 'Просмотры',
+          slug: `telegram-views-${Date.now()}`,
+          networkId: network.id,
+          tenantId: 'smmplan',
+          sort: 1,
+        }
+      });
+    }
+    testViewsCatId = catViews.id;
+
+    let sSubs = await db.service.findFirst({
+      where: { name: { contains: 'Подписчики' }, categoryId: testSubsCatId, isActive: true }
+    });
+    if (!sSubs) {
+      sSubs = await db.service.create({
+        data: {
+          name: 'Telegram Подписчики',
+          targetType: 'CHANNEL',
+          categoryId: testSubsCatId,
+          rate: 0.5,
+          minQty: 10,
+          maxQty: 10000,
+          tenantId: 'smmplan',
+          isActive: true
+        }
+      });
+    }
+    testSubsServiceId = sSubs.id;
+
+    let s5 = await db.service.findFirst({
+      where: { name: { contains: '5 последних постов' }, categoryId: testViewsCatId, isActive: true }
+    });
+    if (!s5) {
+      s5 = await db.service.create({
+        data: {
+          name: 'Telegram Просмотры на 5 последних постов',
+          targetType: 'CHANNEL_POSTS',
+          categoryId: testViewsCatId,
+          rate: 0.5,
+          minQty: 10,
+          maxQty: 10000,
+          tenantId: 'smmplan',
+          isActive: true
+        }
+      });
+    }
+    testS5ServiceId = s5.id;
+  });
+
   it("verifies link compatibility for telegram channel and channel-posts services", async () => {
+    const { resolveServiceTargetType } = await import("@/utils/target-type-mapper");
     const link = "https://t.me/smmMarket69";
     const analyzer = new IntelligenceLinkAnalyzer();
     const analysis = await analyzer.analyze(link);
@@ -29,8 +117,8 @@ describe("Bot Real Order Execution Flow", () => {
     expect(analysis?.platform).toBe("TELEGRAM");
 
     // Service: 5 последних постов
-    const s5 = await db.service.findFirst({
-      where: { name: { contains: "5 последних постов" }, isActive: true }
+    const s5 = await db.service.findUnique({
+      where: { id: testS5ServiceId }
     });
     expect(s5).toBeDefined();
     expect(["CHANNEL_POSTS", "POST"]).toContain(s5?.targetType);
@@ -38,11 +126,12 @@ describe("Bot Real Order Execution Flow", () => {
     expect(isLinkServiceCompatible(expectedLinkType, normalizeServiceTargetType(s5?.targetType))).toBe(true);
 
     // Service: Подписчики
-    const sSubs = await db.service.findFirst({
-      where: { name: "Telegram Подписчики", isActive: true }
+    const sSubs = await db.service.findUnique({
+      where: { id: testSubsServiceId }
     });
     expect(sSubs).toBeDefined();
-    expect(isLinkServiceCompatible("channel", normalizeServiceTargetType(sSubs?.targetType))).toBe(true);
+    const resolvedSubsTarget = resolveServiceTargetType(sSubs!);
+    expect(isLinkServiceCompatible("channel", normalizeServiceTargetType(resolvedSubsTarget))).toBe(true);
   });
 
   it("successfully creates a real bot order without SYSTEM_HALT or LINK_SERVICE_MISMATCH", async () => {
@@ -76,24 +165,9 @@ describe("Bot Real Order Execution Flow", () => {
       });
     }
 
-    const service = await db.service.findFirst({
-      where: { 
-        isActive: true, 
-        tenantId: tgUser!.tenantId, 
-        category: { network: { slug: 'telegram' } },
-        OR: [
-          { targetType: 'CHANNEL' },
-          { name: { contains: 'Подписчики' } }
-        ]
-      }
-    }) || await db.service.findFirst({
-      where: { isActive: true, tenantId: tgUser!.tenantId }
-    });
-    expect(service).toBeDefined();
-
     const testLink = "https://t.me/smmMarket69";
     const res = await orderService.createOrder(tgUser!.id, {
-      serviceId: service!.id,
+      serviceId: testSubsServiceId,
       link: testLink,
       quantity: 100,
       charge: 500, // 5.00 RUB in cents
@@ -120,7 +194,7 @@ describe("Bot Real Order Execution Flow", () => {
   it("verifies that category filtering selects only compatible categories for a channel link", async () => {
     const { BotCatalogService } = await import("@/bot/services/bot-catalog.service");
     const { isLinkServiceCompatible, normalizeServiceTargetType } = await import("@/constants/link-service-compatibility");
-    const { inferTargetTypeFromName } = await import("@/utils/target-type-mapper");
+    const { resolveServiceTargetType } = await import("@/utils/target-type-mapper");
 
     const network = await BotCatalogService.findNetworkByPlatform("TELEGRAM", "smmplan");
     expect(network).toBeDefined();
@@ -134,8 +208,8 @@ describe("Bot Real Order Execution Flow", () => {
     for (const c of allCategories) {
       const svcs = await BotCatalogService.getVisibleServices(c.id, "smmplan");
       const hasCompatible = svcs.some((s: { targetType?: string | null; name: string }) => {
-        const rawTarget = s.targetType || inferTargetTypeFromName(s.name);
-        return isLinkServiceCompatible(detectedType, normalizeServiceTargetType(rawTarget));
+        const resolvedTarget = resolveServiceTargetType(s);
+        return isLinkServiceCompatible(detectedType, normalizeServiceTargetType(resolvedTarget));
       });
       if (hasCompatible) {
         compatibleCategories.push(c);

@@ -6,6 +6,15 @@ import { triggerCacheRevalidation } from '../../lib/revalidate-cache';
 
 const log = logger.child({ component: 'CatalogProcessor' });
 
+async function safeTriggerCacheRevalidation(tags: string[]): Promise<void> {
+  try {
+    await triggerCacheRevalidation(tags);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn(`[CatalogProcessor] Non-critical cache revalidation failed: ${msg}`);
+  }
+}
+
 /**
  * Catalog Processor
  * Executes massive, memory-heavy database operations asynchronously
@@ -31,7 +40,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
         log.info(`[CatalogProcessor] Starting background price sync with rate ${effectiveRate}...`);
         await adminCatalogService.syncDenormalizedPrices(effectiveRate);
         log.info(`[CatalogProcessor] Price sync completed successfully.`);
-        await triggerCacheRevalidation(['catalog', 'services']);
+        await safeTriggerCacheRevalidation(['catalog', 'services']);
         break;
       }
 
@@ -205,7 +214,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
             const errMsg = postSyncErr instanceof Error ? postSyncErr.message : String(postSyncErr);
             log.error(`[CatalogProcessor] applyPostSyncRules failed: ${errMsg}`);
           }
-          await triggerCacheRevalidation(['catalog', 'services']);
+          await safeTriggerCacheRevalidation(['catalog', 'services']);
         } catch (syncErr: unknown) {
           const errMsg = syncErr instanceof Error ? syncErr.message : String(syncErr);
           log.warn(`[CatalogProcessor] Skipping catalog sync for provider ${providerId} due to provider API error: ${errMsg}`);
@@ -237,7 +246,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
           admin
         );
         log.info(`[CatalogProcessor] Bulk markup completed. Updated ${result.updatedCount} services.`);
-        await triggerCacheRevalidation(['catalog', 'services']);
+        await safeTriggerCacheRevalidation(['catalog', 'services']);
         break;
       }
 

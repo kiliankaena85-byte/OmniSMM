@@ -77,7 +77,7 @@ export function scanDraftReply(
         violations.push({
           rule: 'UNVERIFIED_FINANCIAL_CLAIM',
           detail: `AI указал сумму "${digits}", но реальный баланс из БД: ${balanceFromDb} ₽`,
-          severity: 'WARN',
+          severity: 'BLOCK',
         });
       }
     }

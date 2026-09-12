@@ -107,6 +107,21 @@ vi.mock('ioredis', () => {
     });
     expire = vi.fn().mockResolvedValue(1);
     ping = vi.fn().mockResolvedValue('PONG');
+    zremrangebyscore = vi.fn().mockResolvedValue(0);
+    zcard = vi.fn().mockResolvedValue(0);
+    zadd = vi.fn().mockResolvedValue(1);
+    pipeline = vi.fn().mockReturnValue({
+      zremrangebyscore: vi.fn().mockReturnThis(),
+      zcard: vi.fn().mockReturnThis(),
+      zadd: vi.fn().mockReturnThis(),
+      expire: vi.fn().mockReturnThis(),
+      exec: vi.fn().mockResolvedValue([[null, 0], [null, 0], [null, 1], [null, 1]]),
+    });
+    multi = vi.fn().mockReturnValue({
+      exec: vi.fn().mockResolvedValue([]),
+    });
+    publish = vi.fn().mockResolvedValue(1);
+    subscribe = vi.fn().mockResolvedValue(undefined);
   }
   return {
     Redis: MockRedis,
@@ -394,7 +409,78 @@ beforeEach(async () => {
         'pricing-hardening',
         'pricing-order-and-marketing',
         'pricing-invariants',
-        'sync-provider-catalog'
+        'sync-provider-catalog',
+        'bot-order-real-execution',
+        'bot-negative-and-cross-platform',
+        'user-login-and-logout-resilience',
+        'order-actions-and-support-ops',
+        'balance-autoflush-resilience',
+        'yookassa',
+        'financial-security-audit',
+        'production-hardening',
+        'logout-and-proxy',
+        'ddos-shield',
+        'safe-svg',
+        'dark-mode',
+        'table-density',
+        'mobile-',
+        'dom-inspector',
+        'qa-sentinel',
+        'transaction-classifier',
+        'sensitive-data-filter',
+        'security-alert-escaping',
+        'insecure-secret-startup-guard',
+        'session-cookie-hardening',
+        'auth-payload-hardening',
+        'actionable-error',
+        'admin-nav-active',
+        'maintenance-screens',
+        'ai-response-sanitizer',
+        'zero-start-detector',
+        'pending-check-resolution',
+        'order-wizard-',
+        'category-slug-and-icon-hygiene',
+        'empty-categories-cleanup',
+        'order-token-and-typo-guard',
+        'service-route-validator',
+        'service-mutation-detector',
+        'services-mutation',
+        'admin-user-sorting',
+        'client-ledger-and-notes',
+        'settings-cluster-navigation',
+        'redis-tls-production-check',
+        'db-purge-production-guard',
+        'csp-style-nonce',
+        'jwt-staff-role-exclusion',
+        'telegram-bot-security-invariants',
+        'auth-verify-rate-limit',
+        'wallet-ops-safety-cap',
+        'logout-security-and-blacklist',
+        'b2b-vault-encryption',
+        'server-only-and-url-bounds',
+        'swarm-100-percent-hardening',
+        'auditor-findings-remediation',
+        'telegram-proxy-agent',
+        'dashboard-bugs-fix-verification',
+        'direct-emergency-alert',
+        'watchdog-daemon',
+        'tickets-layout-viewport',
+        'plan-slide-order-client',
+        'plan-fullscreen-checkout',
+        'quarantine-api-diff',
+        'multitenant-legal-fiscal-isolation',
+        'multitenant-staff-isolation',
+        'transactional-bulkhead-dlq',
+        'wave3-fintech-fiscal',
+        'immutable-ledger-reconciliation',
+        'storefront-keys-action',
+        'storefront',
+        'multi-channel-alert-cascade',
+        'smart-alert-deduplication',
+        'multitenant-alerts',
+        'proxy-tenant-override-auth',
+        'mobile-trust-header',
+        'llm-prompt-sanitizer'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
         shouldReset = false;

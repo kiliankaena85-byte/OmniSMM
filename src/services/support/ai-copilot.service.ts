@@ -21,6 +21,23 @@ export class AiSupportCoPilotService {
    */
   static async generateDraft(ticketId: string, staffUserId?: string): Promise<CoPilotDraftResult> {
     try {
+      // 0. Authorization check: if staffUserId is provided, verify operator role
+      if (staffUserId) {
+        const staff = await db.user.findUnique({
+          where: { id: staffUserId },
+          select: { role: true, tenantId: true }
+        });
+        if (!staff || (staff.role !== 'ADMIN' && staff.role !== 'SUPPORT' && staff.role !== 'OWNER')) {
+          return {
+            success: false,
+            draftText: '',
+            confidence: 'FALLBACK',
+            source: 'DETERMINISTIC_FALLBACK',
+            error: 'Доступ запрещён: недостаточно прав оператора',
+          };
+        }
+      }
+
       // 1. Fetch ticket and context
       const ticket = await db.ticket.findUnique({
         where: { id: ticketId },

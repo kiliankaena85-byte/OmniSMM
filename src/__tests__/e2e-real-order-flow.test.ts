@@ -71,7 +71,6 @@ describe("Variant 2: Real End-to-End Order Flow (Mobile & Desktop)", () => {
     }
     await redis.del("bullmq:ordersQueue:delayed", "bullmq:ordersQueue:wait", "bullmq:ordersQueue:failed");
     await browser?.close();
-    await redis?.quit();
   }, 20000);
 
   it("executes real order on Mobile Viewport (390x844 iPhone 12)", async () => {

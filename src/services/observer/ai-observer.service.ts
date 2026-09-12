@@ -24,13 +24,15 @@ export class AiObserverService {
 
   /**
    * Checks whether the Master Kill-Switch is active.
+   * Fail-Closed: returns true if Redis read fails to prevent unmonitored LLM generation.
    */
   static async isKillswitchActive(): Promise<boolean> {
     try {
       const cached = await redis.get(this.REDIS_KILLSWITCH_KEY);
       return cached === '1';
-    } catch {
-      return false; // Default to active (not killed)
+    } catch (err) {
+      logger.error('[AiObserverService] Redis read error for killswitch (failing closed):', err);
+      return true; // Fail-Closed: disable generation when Redis is unavailable
     }
   }
 

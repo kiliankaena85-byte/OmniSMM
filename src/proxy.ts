@@ -216,6 +216,39 @@ function getActiveServerContour(): ContourId {
   return 'prod';
 }
 
+/**
+ * Builds W3C Level 3 CSP header with Strict-Dynamic Nonce (SEC-002 / OWASP ASVS 4.0.3 / PCI DSS 4.0).
+ * Strictly excludes 'unsafe-inline' and 'unsafe-eval' from script-src!
+ */
+export function buildCspHeader(nonce: string, isHttps: boolean, rawIncomingHost: string): string {
+  const isDirectIpOrLocal = /^(localhost|127\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|26\.\d+\.\d+\.\d+|0\.0\.0\.0)(:\d+)?$/i.test(rawIncomingHost);
+  const shouldUpgradeInsecure = isHttps && !isDirectIpOrLocal;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Strict-Dynamic Nonce Migration (SEC-002):
+  // In production: Strictly NO 'unsafe-inline' and NO 'unsafe-eval'!
+  // In development: Allow 'unsafe-eval' solely for React 19 DevTools callstack reconstruction.
+  const devEval = isDev ? " 'unsafe-eval'" : '';
+  const scriptSrcDirective = `'self' 'nonce-${nonce}' 'strict-dynamic'${devEval} 'sha256-wVBvCaOMJQL3BzklAV+hEw47mOS7LEEOsvxoGI+Kdg4=' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
+  const styleSrcDirective = `'self' 'unsafe-inline' https://fonts.googleapis.com`;
+
+  return `
+    default-src 'self';
+    script-src ${scriptSrcDirective};
+    style-src ${styleSrcDirective};
+    img-src 'self' blob: data: https:;
+    font-src 'self' data: https://fonts.gstatic.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self' https://yookassa.ru https://auth.robokassa.ru;
+    frame-ancestors 'self';
+    frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot;
+    connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot;
+    report-uri /api/telemetry/csp-report;
+    ${shouldUpgradeInsecure ? 'upgrade-insecure-requests;' : ''}
+  `.replace(/\s{2,}/g, ' ').trim();
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -583,34 +616,15 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('x-host', rawIncomingHost);
   requestHeaders.set('x-forwarded-host', rawIncomingHost);
 
-  // Generate cryptographic Nonce for strict-dynamic CSP (V-05)
+  // Generate cryptographic Nonce for strict-dynamic CSP (V-05 / SEC-002)
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   requestHeaders.set('x-nonce', nonce);
 
-  // Content Security Policy (PCI DSS 4.0 / OWASP ASVS 4.0.3)
-  const scriptSrcDirective = `'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
-  const styleSrcDirective = `'self' 'unsafe-inline' https://fonts.googleapis.com`;
-
   const incomingProto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol || '';
   const isHttps = incomingProto.includes('https');
+  const cspHeader = buildCspHeader(nonce, isHttps, rawIncomingHost);
   const isDirectIpOrLocal = /^(localhost|127\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|26\.\d+\.\d+\.\d+|0\.0\.0\.0)(:\d+)?$/i.test(rawIncomingHost);
   const shouldUpgradeInsecure = isHttps && !isDirectIpOrLocal;
-
-  const cspHeader = `
-    default-src 'self';
-    script-src ${scriptSrcDirective};
-    style-src ${styleSrcDirective};
-    img-src 'self' blob: data: https:;
-    font-src 'self' data: https://fonts.gstatic.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self' https://yookassa.ru https://auth.robokassa.ru;
-    frame-ancestors 'self';
-    frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot;
-    connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot;
-    report-uri /api/telemetry/csp-report;
-    ${shouldUpgradeInsecure ? 'upgrade-insecure-requests;' : ''}
-  `.replace(/\s{2,}/g, ' ').trim();
 
   requestHeaders.set('Content-Security-Policy', cspHeader);
 

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
+import { db } from "@/lib/db";
 import { IntelligenceLinkAnalyzer } from "@/services/analyzer/link-analyzer";
 import {
   isLinkServiceCompatible,
@@ -12,6 +13,106 @@ import { BotCatalogService } from "@/bot/services/bot-catalog.service";
 
 describe("Variant 3: Negative & Cross-Platform Bot Ordering Tests", () => {
   const analyzer = new IntelligenceLinkAnalyzer();
+
+  beforeAll(async () => {
+    // 1. Telegram
+    let tgNet = await db.network.findFirst({ where: { slug: 'telegram', tenantId: 'smmplan' } });
+    if (!tgNet) {
+      tgNet = await db.network.create({
+        data: { name: 'Telegram', slug: 'telegram', tenantId: 'smmplan', isActive: true, sort: 0 }
+      });
+    }
+    let catTgSubs = await db.category.findFirst({ where: { name: 'Подписчики', networkId: tgNet.id } });
+    if (!catTgSubs) {
+      catTgSubs = await db.category.create({
+        data: { name: 'Подписчики', slug: `tg-subs-${Date.now()}`, networkId: tgNet.id, tenantId: 'smmplan', sort: 0 }
+      });
+    }
+    let sTgSubs = await db.service.findFirst({ where: { categoryId: catTgSubs.id, isActive: true } });
+    if (!sTgSubs) {
+      await db.service.create({
+        data: { name: 'Telegram Подписчики', targetType: 'CHANNEL', categoryId: catTgSubs.id, rate: 0.5, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+
+    let catTgViews = await db.category.findFirst({ where: { name: 'Просмотры', networkId: tgNet.id } });
+    if (!catTgViews) {
+      catTgViews = await db.category.create({
+        data: { name: 'Просмотры', slug: `tg-views-${Date.now()}`, networkId: tgNet.id, tenantId: 'smmplan', sort: 1 }
+      });
+    }
+    let sTgViews = await db.service.findFirst({ where: { categoryId: catTgViews.id, targetType: 'POST', isActive: true } });
+    if (!sTgViews) {
+      await db.service.create({
+        data: { name: 'Telegram Просмотры на пост', targetType: 'POST', categoryId: catTgViews.id, rate: 0.1, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+
+    // 2. VK
+    let vkNet = await db.network.findFirst({ where: { slug: 'vk', tenantId: 'smmplan' } });
+    if (!vkNet) {
+      vkNet = await db.network.create({
+        data: { name: 'ВКонтакте', slug: 'vk', tenantId: 'smmplan', isActive: true, sort: 1 }
+      });
+    }
+    let catVkSubs = await db.category.findFirst({ where: { name: 'Подписчики в группу', networkId: vkNet.id } });
+    if (!catVkSubs) {
+      catVkSubs = await db.category.create({
+        data: { name: 'Подписчики в группу', slug: `vk-subs-${Date.now()}`, networkId: vkNet.id, tenantId: 'smmplan', sort: 0 }
+      });
+    }
+    let sVkSubs = await db.service.findFirst({ where: { categoryId: catVkSubs.id, isActive: true } });
+    if (!sVkSubs) {
+      await db.service.create({
+        data: { name: 'VK Подписчики в группу', targetType: 'CHANNEL', categoryId: catVkSubs.id, rate: 0.5, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+
+    let catVkLikes = await db.category.findFirst({ where: { name: 'Лайки на запись', networkId: vkNet.id } });
+    if (!catVkLikes) {
+      catVkLikes = await db.category.create({
+        data: { name: 'Лайки на запись', slug: `vk-likes-${Date.now()}`, networkId: vkNet.id, tenantId: 'smmplan', sort: 1 }
+      });
+    }
+    let sVkLikes = await db.service.findFirst({ where: { categoryId: catVkLikes.id, isActive: true } });
+    if (!sVkLikes) {
+      await db.service.create({
+        data: { name: 'VK Лайки на стену', targetType: 'POST', categoryId: catVkLikes.id, rate: 0.2, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+
+    // 3. YouTube
+    let ytNet = await db.network.findFirst({ where: { slug: 'youtube', tenantId: 'smmplan' } });
+    if (!ytNet) {
+      ytNet = await db.network.create({
+        data: { name: 'YouTube', slug: 'youtube', tenantId: 'smmplan', isActive: true, sort: 2 }
+      });
+    }
+    let catYtViews = await db.category.findFirst({ where: { name: 'Просмотры видео', networkId: ytNet.id } });
+    if (!catYtViews) {
+      catYtViews = await db.category.create({
+        data: { name: 'Просмотры видео', slug: `yt-views-${Date.now()}`, networkId: ytNet.id, tenantId: 'smmplan', sort: 0 }
+      });
+    }
+    let sYtViews = await db.service.findFirst({ where: { categoryId: catYtViews.id, isActive: true } });
+    if (!sYtViews) {
+      await db.service.create({
+        data: { name: 'YouTube Просмотры видео', targetType: 'VIDEO', categoryId: catYtViews.id, rate: 0.5, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+    let catYtSubs = await db.category.findFirst({ where: { name: 'Подписчики на канал', networkId: ytNet.id } });
+    if (!catYtSubs) {
+      catYtSubs = await db.category.create({
+        data: { name: 'Подписчики на канал', slug: `yt-subs-${Date.now()}`, networkId: ytNet.id, tenantId: 'smmplan', sort: 1 }
+      });
+    }
+    let sYtSubs = await db.service.findFirst({ where: { categoryId: catYtSubs.id, isActive: true } });
+    if (!sYtSubs) {
+      await db.service.create({
+        data: { name: 'YouTube Подписчики на канал', targetType: 'CHANNEL', categoryId: catYtSubs.id, rate: 1.5, minQty: 10, maxQty: 10000, tenantId: 'smmplan', isActive: true, isQuarantined: false }
+      });
+    }
+  });
 
   describe("1. Telegram Post Negative Scenarios (https://t.me/smmMarket69/123)", () => {
     const postLink = "https://t.me/smmMarket69/123";

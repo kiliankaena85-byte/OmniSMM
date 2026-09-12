@@ -34,12 +34,28 @@ describe('YooKassa Signed Webhook & Payment Acceptance Verification', () => {
       }
     });
 
-    const service = await db.service.findFirst({ where: { isActive: true } });
+    let service = await db.service.findFirst({ where: { isActive: true } });
+    if (!service) {
+      const category = (await db.category.findFirst()) || (await db.category.create({
+        data: { name: 'Test Category', slug: `test-cat-${Date.now()}`, tenantId: 'smmplan' }
+      }));
+      service = await db.service.create({
+        data: {
+          name: 'Test Service',
+          categoryId: category.id,
+          rate: 0.25,
+          minQty: 10,
+          maxQty: 10000,
+          tenantId: 'smmplan',
+          isActive: true
+        }
+      });
+    }
 
     const order = await db.order.create({
       data: {
         userId: user.id,
-        serviceId: service?.id || 'dummy_service',
+        serviceId: service.id,
         providerId: service?.providerId || null,
         providerServiceId: service?.externalId || '1',
         charge: BigInt(2500),

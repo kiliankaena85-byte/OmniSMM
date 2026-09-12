@@ -121,12 +121,15 @@ describe.sequential('Zombie Eraser & Pricing Auto-recalculation / Quarantine Tes
     vi.restoreAllMocks();
     // Cleanup all test-created DB records to prevent ghost data in catalog
     try {
+      if (provider?.id) {
+        await db.service.deleteMany({ where: { providerId: provider.id } }).catch(() => {});
+      }
       if (serviceA?.id) await db.service.deleteMany({ where: { id: serviceA.id } }).catch(() => {});
       if (serviceB?.id) await db.service.deleteMany({ where: { id: serviceB.id } }).catch(() => {});
+      await db.service.deleteMany({ where: { category: { network: { slug: { startsWith: 'tg-sync-' } } } } }).catch(() => {});
       if (category?.id) await db.category.deleteMany({ where: { id: category.id } }).catch(() => {});
+      await db.category.deleteMany({ where: { network: { slug: { startsWith: 'tg-sync-' } } } }).catch(() => {});
       if (provider?.id) {
-        // Delete the network created with the provider's timestamp slug
-        await db.network.deleteMany({ where: { slug: { startsWith: 'tg-sync-' }, categories: { none: {} } } }).catch(() => {});
         await db.network.deleteMany({ where: { slug: { startsWith: 'tg-sync-' } } }).catch(() => {});
         await db.provider.deleteMany({ where: { id: provider.id } }).catch(() => {});
       }

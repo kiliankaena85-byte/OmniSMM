@@ -45,21 +45,26 @@ export const jitteredBackoff = (attemptsMade: number, delay: number): number => 
 };
 
 export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<QueueOptions['defaultJobOptions']>) => {
-  const isBuild = process.env.NEXT_PHASE === 'phase-production-build' || !!process.env.CI;
+  const isBuildOrTest = process.env.NEXT_PHASE === 'phase-production-build' || !!process.env.CI || process.env.NODE_ENV === 'test';
   
-  // Dummy object to prevent Redis connection during Vercel/Next build step
-  if (isBuild) {
-    return new Proxy({}, {
+  // Dummy object to prevent Redis connection during Vercel/Next build step and unit tests
+  if (isBuildOrTest) {
+    const targetObj: any = {
+      add: async (jobName?: string, data?: any, opts?: any) => ({ id: opts?.jobId || 'mock-id', name: jobName, data }),
+      close: async () => {},
+      disconnect: async () => {},
+      getJobs: async () => [],
+      getJob: async () => null,
+      count: async () => 0,
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 }
+      }
+    };
+    return new Proxy(targetObj, {
+      has: (target, prop) => prop in target || typeof prop === 'string',
       get: (target, prop) => {
-        if (prop === 'add') return async () => ({ id: 'mock-id' });
-        if (prop === 'close') return async () => {};
-        if (prop === 'disconnect') return async () => {};
-        if (prop === 'defaultJobOptions') {
-          return {
-            attempts: 3,
-            backoff: { type: 'exponential', delay: 5000 }
-          };
-        }
+        if (prop in target) return target[prop];
         return async () => {};
       }
     }) as unknown as Queue<PayloadType, unknown, string>;
