@@ -19,6 +19,9 @@ const ProviderProxyManager = dynamicImport(() => import('./provider-proxy-manage
 const SupportTemplatesSettings = dynamicImport(() => import('./support-templates').then(m => m.SupportTemplatesSettings), {
   loading: () => <div className="p-8 text-center text-xs text-muted-foreground animate-pulse">Загрузка шаблонов ответов...</div>
 });
+const StorefrontKeysSettings = dynamicImport(() => import('./storefront-keys/storefront-keys-settings').then(m => m.StorefrontKeysSettings), {
+  loading: () => <div className="p-8 text-center text-xs text-muted-foreground animate-pulse">Загрузка ключей витрин...</div>
+});
 import { AuditLogsTab } from '@/components/admin/settings/audit-logs-tab';
 import Link from 'next/link';
 import { enforceSectionAccess } from '@/lib/server/rbac';
@@ -28,7 +31,7 @@ import { OnboardingReadinessBar } from '@/components/admin/settings/onboarding-r
 import { SettingsSearchCommand } from '@/components/admin/settings/settings-search-command';
 import { SettingsClusterTabs } from '@/components/admin/settings/settings-cluster-tabs';
 import { resolveSettingsNavigation } from '@/components/admin/settings/settings-navigation-config';
-import { AdminAuditLog, StaffRole, StaffPermission, SupportTemplate, SystemSettings, Provider } from '@prisma/client';
+import { AdminAuditLog, StaffRole, StaffPermission, SupportTemplate, SystemSettings, Provider, StorefrontKey } from '@prisma/client';
 
 import { cookies } from 'next/headers';
 import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
@@ -63,6 +66,16 @@ export default async function AdminSettingsPage({
   let staffRoles: (StaffRole & { permissions: StaffPermission[] })[] = [];
   let templates: SupportTemplate[] = [];
   let providers: Provider[] = [];
+  let storefrontKeys: Array<{
+    id: string;
+    tenantId: string;
+    type: 'PUBLISHABLE' | 'SECRET';
+    keyPrefix: string;
+    name: string | null;
+    isActive: boolean;
+    lastUsedAt: string | null;
+    createdAt: string;
+  }> = [];
 
   try {
     const settingsPromise = settingsService.getSystemSettings(activeTenantId);
@@ -85,6 +98,25 @@ export default async function AdminSettingsPage({
       ]);
       settings = s;
       providers = pList;
+    } else if (activeTab === 'storefront') {
+      const [s, kList] = await Promise.all([
+        settingsPromise,
+        db.storefrontKey.findMany({
+          where: { tenantId: activeTenantId },
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+      settings = s;
+      storefrontKeys = kList.map((k: StorefrontKey) => ({
+        id: k.id,
+        tenantId: k.tenantId,
+        type: k.type as 'PUBLISHABLE' | 'SECRET',
+        keyPrefix: k.keyPrefix,
+        name: k.name,
+        isActive: k.isActive,
+        lastUsedAt: k.lastUsedAt ? k.lastUsedAt.toISOString() : null,
+        createdAt: k.createdAt.toISOString(),
+      }));
     } else if (activeTab === 'templates') {
       const [s, tList] = await Promise.all([
         settingsPromise,
@@ -184,6 +216,13 @@ export default async function AdminSettingsPage({
         {activeTab === 'proxy' && (
           <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
             <ProviderProxyManager providers={providers} />
+          </div>
+        )}
+
+        {/* ── TAB 2.9: STOREFRONT KEYS ── */}
+        {activeTab === 'storefront' && (
+          <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
+            <StorefrontKeysSettings initialKeys={storefrontKeys} tenantId={activeTenantId} />
           </div>
         )}
 

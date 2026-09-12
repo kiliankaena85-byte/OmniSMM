@@ -574,7 +574,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('x-nonce', nonce);
 
   // Content Security Policy (PCI DSS 4.0 / OWASP ASVS 4.0.3)
-  const scriptSrcDirective = `'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
+  const scriptSrcDirective = `'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
   const styleSrcDirective = `'self' 'unsafe-inline' https://fonts.googleapis.com`;
 
   const incomingProto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol || '';

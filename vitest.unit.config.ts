@@ -126,6 +126,8 @@ export default defineConfig({
       'src/__tests__/financial/wave3-fintech-fiscal-and-liquidity.test.ts',
       'src/lib/finance/__tests__/immutable-ledger-reconciliation.test.ts',
       'src/__tests__/qa-sentinel/**/*.test.ts',
+      'src/__tests__/actions/storefront-keys-action.test.ts',
+      'src/__tests__/storefront/**/*.test.ts',
     ],
   }
 });

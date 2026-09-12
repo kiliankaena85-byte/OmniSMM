@@ -1,4 +1,13 @@
 # CURRENT_STATE.md
+- [x] Реализация Headless Storefront Gateway (Storefront API v1) и Панели управления ключами в админке (100% COMPLETE & VERIFIED):
+  - **Спецификации SDD-TDD:** `docs/specs/SPEC-2026-09-11-headless-storefront-gateway.md` и `docs/specs/SPEC-2026-09-12-admin-storefront-keys.md`.
+  - **База данных и модель StorefrontKey (`prisma/schema.prisma`):** Поддержка `PUBLISHABLE` (`pk_live_*`) и `SECRET` (`sk_live_*`) ключей с безопасным хранением SHA-256 хэшей (`keyHash`) и быстрым O(1) поиском.
+  - **REST API Эндпоинты (`/api/storefront/v1/*`):** `/config`, `/catalog`, `/orders`, `/orders/:id` с автоматической изоляцией `runWithTenant`, BOLA/IDOR иммунитетом и нулевой утечкой данных поставщиков (Zero Vendor Leaks).
+  - **RFC 9331 Rate Limiting:** 120 req/min для секретных серверных ключей, 60 req/min для публичных клиентских ключей.
+  - **Server Actions & RBAC (`src/actions/admin/storefront-keys.ts`):** `listStorefrontKeysAction`, `generateStorefrontKeyAction`, `revokeStorefrontKeyAction` с защитой `requireStaffPermission('settings', 'view' | 'edit')` и аудитом `auditAdminAwaitable`.
+  - **UI Панели управления (`/admin/settings?tab=storefront`):** Модульные компоненты (`storefront-keys-settings.tsx`, `storefront-key-row.tsx`, `storefront-key-create-modal.tsx`), безопасный однократный показ полного токена при генерации, отзыв и мониторинг активности.
+  - **Верификация:** `npx vitest run -c vitest.unit.config.ts` (9/9 PASS, 100%), `npx tsc --noEmit` (0 ошибок компиляции), `node scripts/check-bundle-secrets.mjs` (0 утечек секретов).
+
 - [x] Ремедиация устойчивости к HighLoad, ликвидация блокеров продакшена и Blue-Green Stage аудит (100% COMPLETE & VERIFIED — BGS-2026):
   - **Ликвидация вызовов `fetch()` без таймаутов (INV-PROD-03):** 12 критических интеграционных и системных вызовов (`checkout.ts`, `sync-payment.ts`, `order-status`, `sentinel-concierge`, `analytics`, `network-router`, `notifications`, `revalidate-cache`, `challenge-page`, `ssrf-guard`) снабжены детерминированным `AbortSignal.timeout(1500..10000ms)` для предотвращения зависания сетевых сокетов при сбоях внешних провайдеров.
   - **Ликвидация тихого проглатывания ошибок (INV-PROD-09):** Все 11 пустых блоков `catch {}` в `session.ts`, `settings.ts`, `password-register.ts`, `catalog.ts`, `bug-reports.ts`, `auth/logout`, `auth/verify`, `orders/events` аннотированы структурированными комментариями `// audit-ignore:` с явным обоснованием неблокирующей логики.

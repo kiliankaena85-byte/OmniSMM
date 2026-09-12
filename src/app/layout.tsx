@@ -191,10 +191,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           const canonicalHost = getTenantHost(tenantId, rawHost);
           const isLocal = canonicalHost.includes('localhost') || canonicalHost.includes('127.0.0.1');
           const siteBaseUrl = `${isLocal ? 'http' : 'https'}://${canonicalHost}`;
+          const nonce = reqHeaders.get('x-nonce') || undefined;
 
           return (
             <script
               type="application/ld+json"
+              nonce={nonce}
               dangerouslySetInnerHTML={{ __html: JSON.stringify([
                 {
                   "@context": "https://schema.org",

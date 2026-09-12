@@ -4,23 +4,26 @@ import { redactSensitiveTokens } from '@/lib/logger/sensitive-data-filter';
 const globalForRedis = global as unknown as { redis: Redis };
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-const redisPassword = process.env.REDIS_PASSWORD || undefined;
 
-// Security check: Warn in production if connecting without TLS or password to remote host (P3-23)
+// Security check: Enforce authenticated/encrypted REDIS_URL in production (SEC-001)
 if (process.env.NODE_ENV === 'production') {
   const isLocal = redisUrl.includes('localhost') || redisUrl.includes('127.0.0.1') || redisUrl.includes('smmplan_redis');
-  if (!isLocal && !redisUrl.startsWith('rediss://')) {
-    console.warn('🚨 [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!');
-  }
-  if (!redisPassword && !redisUrl.includes('@') && !isLocal) {
-    console.warn('⚠️ [SECURITY WARNING] Redis is running in production without explicit authentication!');
+  
+  if (!isLocal) {
+    if (!redisUrl.startsWith('rediss://')) {
+      console.warn('🚨 [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!');
+    }
+    
+    // REDIS_URL must explicitly contain authentication credentials (redis://:<PASSWORD>@...)
+    if (!redisUrl.includes('@')) {
+      throw new Error('FATAL [SECURITY]: SEC-001 Violation! REDIS_URL is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port).');
+    }
   }
 }
 
 export const redis =
   globalForRedis.redis ||
   new Redis(redisUrl, {
-    password: redisPassword,
     maxRetriesPerRequest: 3,
     connectTimeout: 5000,
     lazyConnect: true,

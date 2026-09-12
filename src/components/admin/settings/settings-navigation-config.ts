@@ -10,7 +10,8 @@ import {
   Server, 
   Users, 
   MessageSquare, 
-  History 
+  History,
+  KeyRound 
 } from 'lucide-react';
 
 export type SettingsMasterCluster = 'showcase' | 'integrations' | 'security';
@@ -50,6 +51,7 @@ export const SETTINGS_CLUSTERS: SettingsClusterConfig[] = [
       { id: 'integrations', label: 'Кассы и Шлюзы', icon: LinkIcon, description: 'ЮKassa, Robokassa, CryptoBot, Gemini AI, Email' },
       { id: 'telegram', label: 'Telegram Бот', icon: Bot, description: 'Токен, вебхуки, авто-ответчик, рассылки' },
       { id: 'proxy', label: 'Прокси провайдеров', icon: Server, description: 'SOCKS5/HTTP прокси и ротация' },
+      { id: 'storefront', label: 'Ключи витрин (API)', icon: KeyRound, description: 'Ключи Storefront API v1 для внешних витрин и инвесторов' },
     ],
   },
   {
