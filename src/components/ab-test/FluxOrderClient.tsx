@@ -756,14 +756,18 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                   <input
                     ref={quantityRef}
                     name="quantity"
-                    type="number"
-                    min={selectedService.minQty || 100}
-                    max={selectedService.maxQty || 10000}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
                     onFocus={(e) => {
-                      const target = e.target;
-                      setTimeout(() => target.select(), 0);
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
+                    }}
+                    onClick={(e) => {
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {

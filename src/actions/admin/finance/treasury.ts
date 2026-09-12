@@ -44,50 +44,45 @@ export async function getTreasuryFinancialHealthAction(
         bankSource = 'MANUAL_ENTRY';
       }
 
-      // 2. Calculate sum of real User.balance vs User.bonusBalance
-      const users = await db.user.findMany({
+      // 2. Calculate sum of real User.balance vs User.bonusBalance via SQL aggregate
+      const userAggregates = await db.user.aggregate({
         where: { tenantId },
-        select: { balance: true, bonusBalance: true },
+        _sum: {
+          balance: true,
+          bonusBalance: true,
+        },
       });
 
-      let totalWithdrawableDepositsCents = BigInt(0);
-      let totalBonusBalancesCents = BigInt(0);
-
-      for (const u of users) {
-        totalWithdrawableDepositsCents += BigInt(u.balance || 0);
-        totalBonusBalancesCents += BigInt(u.bonusBalance || 0);
-      }
+      const totalWithdrawableDepositsCents = userAggregates._sum.balance ?? BigInt(0);
+      const totalBonusBalancesCents = userAggregates._sum.bonusBalance ?? BigInt(0);
 
       const totalWithdrawableDepositsRub = Number(totalWithdrawableDepositsCents) / 100;
       const totalBonusBalancesRub = Number(totalBonusBalancesCents) / 100;
 
-      // 3. Active orders cost in progress
-      const activeOrders = await db.order.findMany({
+      // 3. Active orders cost in progress via SQL aggregate
+      const orderAggregates = await db.order.aggregate({
         where: {
           tenantId,
           status: { in: ['PENDING', 'IN_PROGRESS'] },
         },
-        select: { providerCost: true },
+        _sum: { providerCost: true },
       });
 
-      const activeOrdersCostCents = activeOrders.reduce(
-        (sum, o) => sum + BigInt(o.providerCost || 0),
-        BigInt(0)
-      );
+      const activeOrdersCostCents = orderAggregates._sum.providerCost ?? BigInt(0);
       const activeOrdersCostRub = Number(activeOrdersCostCents) / 100;
 
-      // 4. Current Quarter Inflow from payments
+      // 4. Current Quarter Inflow from payments via SQL aggregate
       const currentQuarterStart = new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3, 1);
-      const quarterPayments = await db.payment.findMany({
+      const paymentAggregates = await db.payment.aggregate({
         where: {
           tenantId,
           status: 'SUCCEEDED',
           createdAt: { gte: currentQuarterStart },
         },
-        select: { amount: true },
+        _sum: { amount: true },
       });
 
-      const quarterInflowCents = quarterPayments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+      const quarterInflowCents = paymentAggregates._sum.amount ?? BigInt(0);
       const quarterInflowRub = Number(quarterInflowCents) / 100;
 
       // 5. Provider USD balances default estimate

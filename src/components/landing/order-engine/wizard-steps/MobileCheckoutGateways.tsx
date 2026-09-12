@@ -69,7 +69,15 @@ export function MobileCheckoutGateways({
         </span>
       </div>
 
-      <div className={`grid gap-1.5 ${gateways.length === 1 ? "grid-cols-1" : gateways.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-" + gateways.length}`}>
+      <div className={`grid gap-1.5 ${
+        gateways.length === 1
+          ? "grid-cols-1"
+          : gateways.length === 2
+          ? "grid-cols-2"
+          : gateways.length === 3
+          ? "grid-cols-2 sm:grid-cols-3"
+          : "grid-cols-2 sm:grid-cols-4"
+      }`}>
         {gateways.map((gateway) => {
           const isSelected = selectedGateway === gateway.id;
           return (

@@ -8,11 +8,19 @@
  * 3. Telegram Alerts explicitly label the tenant/storefront where an incident occurred.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { normalizeTenantId, getTenantHost, getTenantSiteName } from '@/lib/seo-helpers';
 import { ErrorInterpreter } from '@/lib/telemetry/error-interpreter';
 
 describe('📢 Multi-Tenant Alerts & Customer Branding Architecture', () => {
+  beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('APP_URL', 'https://smmplan.pro');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
   describe('1. Platform Engine vs Tenant Identity', () => {
     it('verifies platform engine name is strictly OmniSMM 1.0', () => {
       const PLATFORM_ENGINE_NAME = 'OmniSMM 1.0';

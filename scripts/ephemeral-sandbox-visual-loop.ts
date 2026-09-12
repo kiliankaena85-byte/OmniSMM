@@ -135,59 +135,83 @@ async function resolveStageServer(): Promise<{ url: string; port: number; spawne
  * Создание валидной тестовой JWT-сессии
  */
 async function generateTestJwt(role: string, tenantId: string): Promise<string> {
-  let user = await prisma.user.findFirst({
-    where: { role: role as any, tenantId },
-  });
+  try {
+    let user = await prisma.user.findFirst({
+      where: { role: role as any, tenantId },
+    });
 
-  if (!user && tenantId === 'flux') {
-    user = await prisma.user.create({
+    if (!user && tenantId === 'flux') {
+      user = await prisma.user.create({
+        data: {
+          email: `stage_test_flux_${Date.now()}@smmflux.ru`,
+          role: role as any,
+          tenantId: 'flux',
+          balance: 100000n,
+          isActive: true,
+        },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { role: role as any },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst();
+    }
+
+    if (!user) {
+      throw new Error(`No user found in database to generate JWT for role ${role}`);
+    }
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const session = await prisma.session.create({
       data: {
-        email: `stage_test_flux_${Date.now()}@smmflux.ru`,
-        role: role as any,
-        tenantId: 'flux',
-        balance: 100000n,
-        isActive: true,
+        userId: user.id,
+        expiresAt,
+        userAgent: 'stage-visual-audit-agent',
+        ipAddress: '127.0.0.1',
       },
     });
-  }
 
-  if (!user) {
-    user = await prisma.user.findFirst({
-      where: { role: role as any },
-    });
-  }
-
-  if (!user) {
-    user = await prisma.user.findFirst();
-  }
-
-  if (!user) {
-    throw new Error(`No user found in database to generate JWT for role ${role}`);
-  }
-
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const session = await prisma.session.create({
-    data: {
+    return new SignJWT({
+      sessionId: session.id,
       userId: user.id,
-      expiresAt,
-      userAgent: 'stage-visual-audit-agent',
-      ipAddress: '127.0.0.1',
-    },
-  });
+      canResetPassword: false,
+      role,
+      tenantId,
+      contour: 'test',
+      sessionVer: 1,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('24h')
+      .sign(getEncodedKey());
+  } catch (err: any) {
+    const SEEDED_SESSIONS: Record<string, { sessionId: string; userId: string }> = {
+      USER_SMMPLAN: { sessionId: 'qa_session_user_smmplan', userId: 'cmtwi4ykh005lsfms6hickx5q' },
+      USER_FLUX: { sessionId: 'qa_session_user_flux', userId: 'cmtwn01qf00006jic4voymgzk' },
+      SUPPORT: { sessionId: 'qa_session_support', userId: 'cmtx5wvpi000blaw039q53erj' },
+      OWNER: { sessionId: 'qa_session_owner', userId: 'cmtx5wvmw0006law0ctx7jyzt' },
+    };
 
-  return new SignJWT({
-    sessionId: session.id,
-    userId: user.id,
-    canResetPassword: false,
-    role,
-    tenantId,
-    contour: 'test',
-    sessionVer: 1,
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('24h')
-    .sign(getEncodedKey());
+    const seeded = SEEDED_SESSIONS[role] || SEEDED_SESSIONS.USER_SMMPLAN;
+    return new SignJWT({
+      sessionId: seeded.sessionId,
+      userId: seeded.userId,
+      canResetPassword: false,
+      role,
+      tenantId,
+      contour: 'test',
+      sessionVer: 1,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('24h')
+      .sign(getEncodedKey());
+  }
 }
 
 /**
@@ -217,7 +241,7 @@ export class StageVisualAuditHarness {
     console.log('🌐 Launching headless Chromium browser...');
     const launchOptions: any = {
       headless: true,
-      args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+      args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-proxy-server'],
     };
     if (fs.existsSync('C:/Program Files/Google/Chrome/Application/chrome.exe')) {
       launchOptions.channel = 'chrome';

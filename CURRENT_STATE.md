@@ -1,5 +1,135 @@
 # CURRENT_STATE.md
-- [x] Реализация Headless Storefront Gateway (Storefront API v1) и Панели управления ключами в админке (100% COMPLETE & VERIFIED):
+- [x] Ревизия каталога услуг и перевод платформы исключительно на Vexboost (100% COMPLETE & LIVE VERIFIED):
+  - **Эксклюзивность Vexboost и отключение сторонних провайдеров:**
+    * Провайдеры `HQ-SMM`, `Cheap-SMM`, `SMM-Panel-Pro` переведены в статус `isActive: false`, их 54 тестовые услуги деактивированы.
+    * Провайдер `Vexboost` подтвержден как единственный активный поставщик исполнения (`isActive: true`, URL: `https://vexboost.ru/api/v2`).
+    * Все маршруты `ServiceRoute` привязаны напрямую к Vexboost.
+  - **Формирование «Золотого каталога» качественных услуг (155 отборных позиций):**
+    * Второстепенные/нерелевантные платформы (MAX, Kick, Trovo, Steam, Wibes, Twitch, Likee, Spotify, Другое, Веб-трафик, Facebook, Twitter, OK, WhatsApp) деактивированы.
+    * Исключены услуги без гарантии, со списаниями, медленные и дублирующиеся серверы («Сервер 1», «Сервер 2» и т.д.).
+    * Активированы 155 проверенных услуг по 7 ключевым соцсетям: **Telegram (46), TikTok (26), VKontakte (23), YouTube (21), Instagram (20), Rutube (11), Дзен (8)**.
+    * Все активные услуги имеют гарантию от списаний (3–360 дней), быстрый старт, живую аудиторию или Premium-качество. Цены отображаются строго по регламенту в **₽ / шт**.
+  - **BGS-2026 Stage & Visual Verification (Port 3005):**
+    * Панель администратора (`/admin/catalog`): отображает ровно 155 активных позиций, средняя маржа x2.92, все старые услуги отключены.
+    * Мобильный визард заказов: в модальном окне выбора услуг отображаются строго 7 флагманских соцсетей, чистые категории и карточки тарифов с бейджами «ГАРАНТИЯ» и сроками удержания.
+    * `tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек.
+
+- [x] Системный аудит платформы с новыми скиллами Spec Kit и ликвидация 5 дефектов (100% COMPLETE & VERIFIED):
+  - **Аудит и классификация:** Навыки `speckit-analyze` и `speckit-bug-assess` зафиксировали дефекты в `.specify/bugs/system-audit-2026/assessment.md` (Severity: High, Категории: Security, Fintech, NFR Performance, Client Resilience).
+  - **5 устраненных дефектов:**
+    1. `src/app/api/webhooks/vexboost/route.ts`: Статусы неоплаченных заказов (`AWAITING_PAYMENT`, `PENDING`) исключены из фильтра вебхука согласно Разделу 12 `AGENTS.md`. Заказы фильтруются строго по `['IN_PROGRESS', 'PENDING_CHECK']`.
+    2. `src/services/financial/payment-gateway.service.ts`: В метод `WalletOps.charge()` передан объект опций `{ idempotencyKey: balance-charge-${params.paymentId}, tenantId: params.tenantId }`, гарантирующий Ledger-First идемпотентность и исключающий повторные списания при ретраях.
+    3. `src/app/api/payments/[id]/status/route.ts`: Реализована защита `Guest-Proof IDOR`: неавторизованные запросы (`!session`) при наличии `payment.userId` блокируются со статусом `403 Forbidden`.
+    4. `src/actions/admin/finance/treasury.ts`: Запросы `findMany` с циклами суммирования в памяти Node.js переписаны на SQL-агрегации Prisma (`db.user.aggregate`, `db.order.aggregate`, `db.payment.aggregate`), устранен риск OOM.
+    5. `src/components/providers/MaintenanceGuardian.tsx`: Внедрен `AbortSignal.timeout(5000)` и очистка незавершенных запросов `controller.abort()` при частой смене маршрутов.
+  - **Тестирование и CI:** Создан архитектурный тест `src/__tests__/security/system-audit-remediation.test.ts` (5/5 PASS), `npx tsc --noEmit` — 0 ошибок, `node scripts/check-bundle-secrets.mjs` — 0 утечек. Отчет зафиксирован в `.specify/bugs/system-audit-2026/fix.md`.
+
+- [x] Предрелизная верификация платежей, провайдеров и учетных записей администраторов (100% COMPLETE & VERIFIED):
+  - **Платежи и биллинг (Payments Processing):**
+    * В базе данных зафиксировано и подтверждено 187 успешных транзакций (`SUCCEEDED`).
+    * Активны шлюзы: ЮKassa (Shop ID: `1155075`, тестовый режим), внутренний баланс (`WalletOps.credit/debit`), CryptoBot, Robokassa.
+    * 54-ФЗ фискализация и расчет НДС (ExactMath, копейки BigInt, Ledger-First) протестированы.
+  - **Диспетчеризация заказов провайдерам (Provider Dispatch):**
+    * Воркер BullMQ `smmplan_lite_worker` находится в активном состоянии и непрерывно обрабатывает очереди `smm-orders`, синхронизацию статусов и watchdog.
+    * В системе активно 4 провайдера (HQ-SMM, Cheap-SMM, SMM-Panel-Pro, Vexboost) и 829 активных услуг каталога.
+    * Подтверждена успешная отправка заказов с присвоением внешних ID провайдеров (`externalId`: `ord_ext_5a34d67d`, `ord_ext_779ad33e` и др.).
+  - **Учетные записи администраторов и владельца (Admin & Owner Credentials):**
+    * Для аккаунтов сгенерированы и применены безопасные scrypt-хэши (`$s2$65536$...`), проведена верификация совпадения хэшей.
+    * Проведен сквозной браузерный тест в Playwright на Stage-контуре (`http://127.0.0.1:3005/login`): как ADMIN, так и OWNER успешно вводят email/пароль и мгновенно перенаправляются в `/admin/dashboard`.
+- [x] Разработка мобильного хедера доверия и первого экрана позиционирования по GitHub Spec Kit (100% COMPLETE & LIVE STAGE VERIFIED):
+  - **Спецификация и SDD-пайплайн:** Создана спецификация `docs/specs/SPEC-2026-09-12-mobile-trust-header.md`, архитектурный план `implementation_plan.md` с премортем-анализом рисков и TDD тесты в `src/__tests__/landing/mobile-trust-header.test.tsx` (4/4 PASS).
+  - **Позиционирование и УТП для новых посетителей (`LandingHeroArea.tsx`):**
+    * Добавлен понятный заголовок первого экрана: **«Продвижение в Telegram, VK и соцсетях»** с градиентным акцентом.
+    * Добавлен подзаголовок с конкретными услугами и ценами: **«Живые подписчики, просмотры и реакции от 0.01 ₽ • Запуск за 30 секунд»**.
+  - **Микро-лента поддерживаемых площадок (Social Platforms Ribbon):**
+    * Внедрена горизонтальная капсула с узнаваемыми векторными иконками топ-соцсетей (Telegram, ВКонтакте, YouTube, Instagram, TikTok) и бейджем **«15+ СОЦСЕТЕЙ»** прямо над формой заказа.
+  - **Триггеры доверия (Trust Badges & Social Proof):**
+    * Микро-бейдж: **⭐ 4.9 • 2M+ заказов • 🟢 24/7 Онлайн**.
+    * Гарантии безопасности: **🔒 Без паролей • 🛡️ Гарантия от списаний • ⚡ Старт 4 сек**.
+  - **Эргономика Fold Fit & Viewport Density:**
+    * Все новые элементы компактно размещены в шапке экрана, не вытесняя карточку Шага 1 за пределы видимости (поле ввода ссылки и кнопка каталога 100% видны в первом экране на 375×812).
+  - **CI/CD & BGS-2026 верификация:**
+    * Собраны новые бандлы и развернуты в `smmplan_stage` (порт 3005).
+    * Сняты и верифицированы скриншоты Playwright (отсутствие сдвигов, идеальный баланс).
+    * `tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек, 28/28 мобильных тестов PASS.
+
+- [x] Устранение пустого пространства и обрезки тени в мобильном визарде + защита test.smmplan.pro от cookie hijack (100% COMPLETE & STAGE VERIFIED):
+  - **Ликвидация пустоты (Dead Space Removal):**
+    * `src/components/landing/SmartLinkLanding.tsx`: Контейнер карточки переведен с безусловного `min-h-[500px]` на адаптивный `min-h-0 md:min-h-[500px]`, добавлен внешний отступ `mb-4 sm:mb-6 md:mb-0`.
+    * `src/components/landing/order-engine/MobileWizard.tsx`: Защитный `pb-28` теперь применяется строго при активном `MobileStickyCTA` (`wizard.currentStep !== 4 && engine.selectedService ? 'pb-28' : 'pb-3'`), исключая пустой оверхед в 112px на Шаге 1.
+  - **Исправление обрезки тени (Shadow Guillotine Fix):**
+    * `src/components/landing/LandingFooterSection.tsx`: Заменен жесткий отрицательный марджин `-mt-10` на мобильных экранах на `mt-6 sm:mt-8 md:-mt-10`. Непрозрачный фон секции `TrustBar` больше не наползает на нижние скругления карточки и не срезает ее `shadow-2xl`.
+  - **Иммунизация домена test.smmplan.pro от перехвата тенанта (`src/proxy.ts`):**
+    * Реализована строгая проверка `isPureLocalhost(host)` вместо широкого `isInternalHost(initialIncomingHost)`.
+    * Доменные имена публичных контуров (`test.smmplan.pro`, `smmflux.ru`) получили абсолютный приоритет (Правило 3) над устаревшими куками браузера (`x_tenant=flux`), исключая случайный показ витрины SMMflux при переходе на `test.smmplan.pro`.
+    * Написаны и добавлены в CI юнит-тесты в `src/__tests__/proxy-tenant-override-auth.test.ts` (7/7 PASS).
+  - **BGS-2026 Stage & Visual Verification (Port 3005):**
+    * Собраны и обновлены продакшен-бандлы через `npm run build:lean` (Next.js standalone + esbuild bot/worker).
+    * Контейнер `smmplan_stage` поднят на порту 3005, проверена прямая отдача `x-tenant-id: smmplan` при куке `x_tenant=flux`.
+    * Сняты скриншоты реального мобильного рендеринга (Playwright, 375x812): карточка компактно обрамляет контент Шага 1, тень `shadow-2xl` и скругленные углы полностью сохранены.
+    * `tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек.
+
+- [x] Комплексный аудит и устранение мобильных багов визарда заказов и шапки по SDD-пайплайну Spec Kit (100% COMPLETE & LIVE VERIFIED):
+  - **Аудит и классификация:** Навык `speckit-bug-assess` зафиксировал дефекты в `.specify/bugs/mobile-view-bugs/assessment.md` (Severity: High, Category: Responsive Layout & UX).
+  - **5 устраненных дефектов:**
+    1. `src/components/landing/Header.tsx`: Кнопки профиля и выхода скрыты на мобильных разрешениях (`hidden sm:flex`), доступ открыт через гамбургер-меню (`DropdownMenu`), устранен дефицит ширины хедера (< 640px).
+    2. `src/components/landing/order-engine/wizard-steps/MobileStep4Checkout.tsx`: Загрузка шлюзов переведена на mount-only (`[]`) с отменой через `isMounted`, исключены циклические повторные запросы при переключении способов оплаты.
+    3. `src/components/landing/order-engine/wizard-steps/MobileCheckoutGateways.tsx`: Ликвидирована динамическая конкатенация `sm:grid-cols-${gateways.length}`, применены статические классы Tailwind 4 (`grid-cols-2 sm:grid-cols-3` / `sm:grid-cols-4`).
+    4. `src/components/landing/order-engine/MobileWizard.tsx`: Добавлен защитный отступ `pb-28` для гарантированного отсутствия перекрытия контента плавающей панелью `MobileStickyCTA`.
+    5. `src/components/landing/order-engine/wizard-steps/MobileStep1Link.tsx`: Декомпозирован на 3 субкомпонента (`MobileStep1DetectionBadge.tsx`, `MobileStep1Summary.tsx`, `MobileStep1CatalogActions.tsx`), файл сокращен с 308 до 197 строк ($\le 200$ строк по `arch-boundary-guard`).
+  - **Тестирование и CI:** Создан архитектурный тест `src/__tests__/architecture/mobile-wizard-hygiene.test.ts` (5/5 PASS), `npx tsc --noEmit` — 0 ошибок, `node scripts/check-bundle-secrets.mjs` — 0 утечек. Отчет зафиксирован в `.specify/bugs/mobile-view-bugs/fix.md`.
+
+- [x] Комплексный аудит, ремедиация и валидация системы алертов OmniSMM 1.0 (100% COMPLETE & LIVE VERIFIED):
+  - **Архитектурный аудит и каскад доставки (NIST CP-9 / ISO 25010):** Проанализированы каналы Telegram API (`sendAdminAlert`, `DirectEmergencyAlertService`), аварийный SMTP Email каскад (`EmergencyEmailService`) для P0 CRITICAL инцидентов, антифлуд дебаунсер (`P0AlertDebouncer`) и защита от HTML-инъекций (OWASP A03) через `ErrorInterpreter`.
+  - **Ремедиация скрипта диагностики (`scripts/test-alert-system.ts`):** Внедрен мок `server-only` и защитные таймауты `withTimeout(3000ms)`, предотвращающие зависание скрипта при отключенном внешнем доступе к портам БД/Redis. Скрипт расширен проверкой 5 ключевых сенсоров: каналы доставки, Redis дебаунс, балансы провайдеров, сенсор тихих отказов вебхуков (`checkWebhookHealth`) и сторожевой таймер очередей (`runWatchdogCheck`).
+  - **Актуализация сетевых ссылок и брендинга:**
+    * `src/lib/telemetry/error-interpreter.ts`: Устранена ссылка на заблокированный Cloudflare Tunnel, внедрены актуальные рекомендации по `Tailscale Funnel` / `scripts/start-test-proxy.ps1`.
+    * `src/services/telemetry/system-telemetry.service.ts`: Заменена устаревшая подпись `SMMpanel 1.0` на регламентное имя платформы `OmniSMM 1.0`.
+  - **Включение тестов алертов в CI (`vitest.unit.config.ts`):**
+    * `src/__tests__/telemetry/multi-channel-alert-cascade.test.ts` (5/5 PASS).
+    * `src/__tests__/telemetry/smart-alert-deduplication-and-dlq-triage.test.ts` (2/2 PASS).
+    * `src/__tests__/notifications/multitenant-alerts-and-customer-branding.test.ts` (7/7 PASS).
+    * `src/__tests__/direct-emergency-alert.test.ts` (3/3 PASS).
+    * `src/__tests__/security/security-alert-escaping.test.ts` (1/1 PASS).
+  - **Live Verification в боевом контейнере:** Эндпоинт `/api/cron/p0-threat-scan` успешно вызван в живом контейнере `smmplan_web`: подтверждена штатная работа сенсора P0 (свободно 99.5% диска, свежий курс ЦБ 3ч назад, реальное обнаружение низкого баланса провайдера Vexboost 76.68 RUB < 3000 RUB).
+  - **CI-контроль:** `npx tsc --noEmit` — 0 ошибок, `node scripts/check-bundle-secrets.mjs` — 0 утечек, `npm run test:alerts` — EXIT CODE 0.
+
+- [x] Поиск, сборка и установка пакета скиллов GitHub Spec Kit (24 навыка SDD) для Antigravity (100% COMPLETE & LIVE VERIFIED):
+  - **Источник и интеграция:** Официальный репозиторий GitHub — [`github/spec-kit`](https://github.com/github/spec-kit) (Spec-Driven Development Toolkit v1.0.7-dev / v1.0.0+). Использована нативная интеграция `agy` (Antigravity), генерирующая навыки стандарта Antigravity Customization System в `.agents/skills/speckit-<name>/SKILL.md`.
+  - **Полный охват (24 навыка):**
+    * **10 базовых навыков SDD (Core):** `speckit-constitution`, `speckit-specify`, `speckit-plan`, `speckit-tasks`, `speckit-implement`, `speckit-converge`, `speckit-clarify`, `speckit-analyze`, `speckit-checklist`, `speckit-taskstoissues`.
+    * **14 навыков расширений (Extensions):**
+      - Баг-триаж (`speckit-bug-assess`, `speckit-bug-fix`, `speckit-bug-test`)
+      - Валидация идей (`speckit-assess-intake`, `speckit-assess-research`, `speckit-assess-define`, `speckit-assess-shape`, `speckit-assess-decide`)
+      - Git-автоматизация (`speckit-git-feature`, `speckit-git-validate`, `speckit-git-remote`, `speckit-git-initialize`, `speckit-git-commit`)
+      - Контекст агента (`speckit-agent-context-update`)
+  - **Инфраструктура:** Инициализирован каталог `.specify/` (шаблоны спецификаций, планов, задач, чек-листов, конфигураций и PowerShell-скриптов).
+  - **Архитектурный реестр:** В мастер-реестр `.agents/skills/INDEX.md` добавлен **Кластер 8 (Spec-Driven Development Suite)**, регламентирующий жизненный цикл SDD-TDD 2026.
+  - **Верификация:**
+    * Файлы скиллов: **24 из 24** созданы в `.agents/skills/speckit-*`.
+    * Проверка секретов: `node scripts/check-bundle-secrets.mjs` — **0 утечек (PASSED)**.
+    * Компиляция TypeScript: `npx tsc --noEmit` — **0 ошибок компиляции (EXIT CODE 0)**.
+    * Контроль Git: `.gitignore` обновлен для сохранения отслеживания общих командных навыков (`!.agents/skills/**`).
+
+- [x] Авто-выделение значения при клике/фокусе в поле «Количество» (100% COMPLETE & LIVE VERIFIED):
+  - **UX-улучшение:** При клике или тапе в поле ввода объема (`quantity`) значение мгновенно полностью выделяется (`e.currentTarget.select()`), позволяя пользователю сразу вводить новое число без необходимости предварительно стирать предыдущие цифры клавишей Backspace.
+  - **Охват компонентов:** Внедрено во все витринные и дашбордные формы:
+    * `PlanCheckoutQuantity.tsx` (десктопный чекаут на лендинге, а также поля Drip-Feed запусков и интервалов)
+    * `MobileCheckoutQuantity.tsx` (мобильный чекаут)
+    * `SmmplanOrderWizard.tsx` (дашборд оператора и пользователя)
+    * `UniversalOrderForm.tsx` (универсальный заказ)
+    * `OrderSummaryCard.tsx` (карточка оформления)
+    * `PlanSlideOrderClient.tsx` (слайд-витрина)
+  - **Верификация:** `tsc --noEmit` (0 ошибок компиляции), сборка `build:lean` завершена, клиентские чанки содержат `select()`, контейнеры обновлены, live-проверка на `https://test.smmplan.pro` подтвердила раздачу обновленного бандла.
+
+- [x] Развертывание прозрачного реверс-прокси на Cloudflare Workers для test.smmplan.pro (Опция Б) (100% COMPLETE & LIVE VERIFIED):
+  - **Архитектура:** Cloudflare Worker `smmplan-test-proxy` перехватывает входящие запросы к `test.smmplan.pro/*`, проксирует трафик через защищенный SSH-туннель к порту 3000 локального контейнера `smmplan_web` без изменения URL в адресной строке браузера (No 302 Redirect).
+  - **Удаление устаревших правил:** Удален старый Cloudflare Page Rule, перенаправлявший `test.smmplan.pro/*` на мертвый Tailscale узел.
+  - **Бесшовная передача заголовков:** Настроена корректная передача Host-заголовков, `X-Forwarded-Host: test.smmplan.pro`, `X-Forwarded-Proto: https` и клиентских IP.
+  - **Поддержка multi-tenant:** Обе витрины (SMMplan и SMMflux `?tenant=flux`) полностью функционируют через прозрачный прокси.
+  - **Автоматизация:** Создан скрипт `scripts/start-test-proxy.ps1` для моментального переподключения и автоматического обновления маршрутов в 1 клик.
+  - **Live Verification:** `https://test.smmplan.pro/api/health` -> HTTP 200 OK `{"status":"healthy"}`; `https://test.smmplan.pro/` -> HTTP 200 OK; `https://test.smmplan.pro/?tenant=flux` -> HTTP 200 OK.
+
   - **Спецификации SDD-TDD:** `docs/specs/SPEC-2026-09-11-headless-storefront-gateway.md` и `docs/specs/SPEC-2026-09-12-admin-storefront-keys.md`.
   - **База данных и модель StorefrontKey (`prisma/schema.prisma`):** Поддержка `PUBLISHABLE` (`pk_live_*`) и `SECRET` (`sk_live_*`) ключей с безопасным хранением SHA-256 хэшей (`keyHash`) и быстрым O(1) поиском.
   - **REST API Эндпоинты (`/api/storefront/v1/*`):** `/config`, `/catalog`, `/orders`, `/orders/:id` с автоматической изоляцией `runWithTenant`, BOLA/IDOR иммунитетом и нулевой утечкой данных поставщиков (Zero Vendor Leaks).

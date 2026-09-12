@@ -226,7 +226,7 @@ async function main() {
   console.log(`🌐 Запуск браузерного движка Headless Chromium...`);
   const launchOptions: any = {
     headless: !process.argv.includes('--headless=false'),
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-proxy-server'],
   };
 
   // Попытка использовать системный Chrome или Edge

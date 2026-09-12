@@ -63,12 +63,25 @@ export function PlanCheckoutQuantity({
 
         <input
           ref={quantityInputRef}
-          type="number"
-          min={effectiveMinQty}
-          max={maxQty}
-          value={quantity}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={quantity || ''}
+          onFocus={(e) => {
+            const target = e.currentTarget;
+            setTimeout(() => {
+              target.focus();
+              target.select();
+            }, 10);
+          }}
+          onClick={(e) => {
+            e.currentTarget.focus();
+            e.currentTarget.select();
+          }}
           onChange={(e) => {
-            setQuantity(parseInt(e.target.value) || 0);
+            const clean = e.target.value.replace(/\D/g, '');
+            const parsed = clean ? parseInt(clean, 10) : 0;
+            setQuantity(parsed);
             setLocalError(null);
           }}
           className="flex-1 h-12 px-3.5 rounded-2xl bg-background border border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-black text-base text-foreground font-mono text-center transition-all"
@@ -117,6 +130,11 @@ export function PlanCheckoutQuantity({
                   min={2}
                   max={100}
                   value={runs}
+                  onFocus={(e) => {
+                    const target = e.currentTarget;
+                    setTimeout(() => target.select(), 0);
+                  }}
+                  onClick={(e) => e.currentTarget.select()}
                   onChange={(e) => {
                     const r = Math.max(2, parseInt(e.target.value) || 2);
                     setRuns(r);
@@ -136,6 +154,11 @@ export function PlanCheckoutQuantity({
                   min={10}
                   max={1440}
                   value={dripInterval}
+                  onFocus={(e) => {
+                    const target = e.currentTarget;
+                    setTimeout(() => target.select(), 0);
+                  }}
+                  onClick={(e) => e.currentTarget.select()}
                   onChange={(e) => setDripInterval(Math.max(10, parseInt(e.target.value) || 60))}
                   className="w-full h-10 px-3 rounded-xl bg-background border border-border font-mono text-xs font-bold"
                 />

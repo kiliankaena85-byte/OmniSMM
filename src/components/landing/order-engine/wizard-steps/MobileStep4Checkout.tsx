@@ -44,18 +44,25 @@ export function MobileStep4Checkout({
   const [availableGateways, setAvailableGateways] = useState<{ yookassa: boolean; robokassa: boolean; cryptobot: boolean } | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     import("@/actions/order/checkout").then(({ getAvailableGatewaysAction }) => {
       getAvailableGatewaysAction().then((res) => {
-        if (res.success && res.data) {
+        if (isMounted && res.success && res.data) {
           setAvailableGateways(res.data);
-          if (selectedGateway !== 'balance' && !res.data[selectedGateway as keyof typeof res.data]) {
-            const first = (["yookassa", "robokassa", "cryptobot"] as const).find((g) => res.data?.[g]);
-            if (first) setSelectedGateway(first);
-          }
+          setSelectedGateway((current) => {
+            if (current !== 'balance' && !res.data[current as keyof typeof res.data]) {
+              const first = (["yookassa", "robokassa", "cryptobot"] as const).find((g) => res.data?.[g]);
+              return first || current;
+            }
+            return current;
+          });
         }
       });
     });
-  }, [selectedGateway]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const {
     url,

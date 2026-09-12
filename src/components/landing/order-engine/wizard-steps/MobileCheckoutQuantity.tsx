@@ -53,17 +53,24 @@ export function MobileCheckoutQuantity({
 
           <input
             id="quantity-input"
-            type="number"
+            type="text"
             inputMode="numeric"
-            value={quantity}
-            min={minQty}
-            max={maxQty}
+            pattern="[0-9]*"
+            value={quantity || ''}
             onFocus={(e) => {
-              const target = e.target;
-              setTimeout(() => target.select(), 0);
+              const target = e.currentTarget;
+              setTimeout(() => {
+                target.focus();
+                target.select();
+              }, 10);
+            }}
+            onClick={(e) => {
+              e.currentTarget.focus();
+              e.currentTarget.select();
             }}
             onChange={e => {
-              let val = Number(e.target.value);
+              const clean = e.target.value.replace(/\D/g, '');
+              let val = clean ? parseInt(clean, 10) : 0;
               if (maxQty && val > maxQty) val = maxQty;
               setQuantity(val);
             }}

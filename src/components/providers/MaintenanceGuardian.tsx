@@ -37,10 +37,16 @@ export function MaintenanceGuardian({
   useEffect(() => {
     if (isExcluded) return;
 
+    let isMounted = true;
+    const controller = new AbortController();
+
     const checkStatus = async () => {
       try {
-        const res = await fetch('/api/maintenance-status');
-        if (res.ok) {
+        const timeoutSignal = AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined;
+        const res = await fetch('/api/maintenance-status', {
+          signal: timeoutSignal || controller.signal,
+        });
+        if (res.ok && isMounted) {
           const data = await res.json();
           // Block if maintenance is active and user is NOT staff
           const active = data.isMaintenanceMode && !data.isStaff;
@@ -51,8 +57,10 @@ export function MaintenanceGuardian({
             setSupportEmail(data.supportEmail);
           }
         }
-      } catch (err) {
-        console.warn('[MaintenanceGuardian] Failed to fetch maintenance status:', err);
+      } catch (err: unknown) {
+        if ((err as Error)?.name !== 'AbortError') {
+          console.warn('[MaintenanceGuardian] Failed to fetch maintenance status:', err);
+        }
       }
     };
 
@@ -61,7 +69,11 @@ export function MaintenanceGuardian({
 
     // Poll every 60 seconds for idle tabs
     const interval = setInterval(checkStatus, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearInterval(interval);
+    };
   }, [pathname, isExcluded]);
 
   if (!isExcluded && isMaintenance) {

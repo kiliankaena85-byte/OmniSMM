@@ -39,7 +39,7 @@ pin.html
 .antigravity/evidence/
 .gemini/
 .agent/
-.agents/
+.agents/*
 # Skills are shared team knowledge — tracked by git
 !.agents/skills/
 !.agents/skills/**
@@ -128,7 +128,7 @@ pin.html
 .antigravity/evidence/
 .gemini/
 .agent/
-.agents/
+.agents/*
 # Skills are shared team knowledge — tracked by git
 !.agents/skills/
 !.agents/skills/**

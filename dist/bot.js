@@ -33656,7 +33656,7 @@ var redis_exports = {};
 __export2(redis_exports, {
   redis: () => redis
 });
-var import_ioredis, globalForRedis, redisUrl, redisPassword, redis;
+var import_ioredis, globalForRedis, redisUrl, redis;
 var init_redis = __esm({
   "src/lib/redis.ts"() {
     "use strict";
@@ -33664,18 +33664,18 @@ var init_redis = __esm({
     init_sensitive_data_filter();
     globalForRedis = global;
     redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-    redisPassword = process.env.REDIS_PASSWORD || void 0;
     if (process.env.NODE_ENV === "production") {
       const isLocal = redisUrl.includes("localhost") || redisUrl.includes("127.0.0.1") || redisUrl.includes("smmplan_redis");
-      if (!isLocal && !redisUrl.startsWith("rediss://")) {
-        console.warn("\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!");
-      }
-      if (!redisPassword && !redisUrl.includes("@") && !isLocal) {
-        console.warn("\u26A0\uFE0F [SECURITY WARNING] Redis is running in production without explicit authentication!");
+      if (!isLocal) {
+        if (!redisUrl.startsWith("rediss://")) {
+          console.warn("\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!");
+        }
+        if (!redisUrl.includes("@")) {
+          throw new Error("FATAL [SECURITY]: SEC-001 Violation! REDIS_URL is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port).");
+        }
       }
     }
     redis = globalForRedis.redis || new import_ioredis.Redis(redisUrl, {
-      password: redisPassword,
       maxRetriesPerRequest: 3,
       connectTimeout: 5e3,
       lazyConnect: true,
@@ -70388,10 +70388,10 @@ var init_queue_manager = __esm({
     getRedisConnection = () => {
       if (redisConnection) return redisConnection;
       const redisUrl2 = process.env.CONTOUR === "test" && process.env.REDIS_URL_TEST ? process.env.REDIS_URL_TEST : process.env.REDIS_URL || "redis://127.0.0.1:6379";
-      const redisPassword2 = process.env.REDIS_PASSWORD || void 0;
+      const redisPassword = process.env.REDIS_PASSWORD || void 0;
       const dbIndex = process.env.REDIS_DB_INDEX ? parseInt(process.env.REDIS_DB_INDEX, 10) : process.env.CONTOUR === "test" ? 1 : 0;
       redisConnection = new import_ioredis2.Redis(redisUrl2, {
-        password: redisPassword2,
+        password: redisPassword,
         db: isNaN(dbIndex) ? 0 : dbIndex,
         maxRetriesPerRequest: null,
         // Specific required for BullMQ
@@ -97809,13 +97809,13 @@ var init_error_interpreter = __esm({
             technicalDetails: text
           };
         }
-        if (text.includes("502 Bad Gateway") || text.includes("Cloudflare Tunnel") || text.includes("tunnel connection reset")) {
+        if (text.includes("502 Bad Gateway") || text.includes("Tailscale") || text.includes("Cloudflare Tunnel") || text.includes("tunnel connection reset")) {
           return {
             category: "NETWORK",
-            title: "\u0421\u0431\u043E\u0439 \u0441\u0435\u0442\u0435\u0432\u043E\u0433\u043E \u0442\u0443\u043D\u043D\u0435\u043B\u044F Cloudflare",
-            whatHappened: "\u0412\u043D\u0435\u0448\u043D\u0438\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C Cloudflare \u043F\u043E\u0442\u0435\u0440\u044F\u043B \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435 \u0441 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u043C \u043F\u043E\u0440\u0442\u043E\u043C 3000.",
+            title: "\u0421\u0431\u043E\u0439 \u0441\u0435\u0442\u0435\u0432\u043E\u0433\u043E \u0442\u0443\u043D\u043D\u0435\u043B\u044F / \u043F\u0440\u043E\u043A\u0441\u0438 test.smmplan.pro",
+            whatHappened: "\u0412\u043D\u0435\u0448\u043D\u0438\u0439 \u0442\u0443\u043D\u043D\u0435\u043B\u044C \u0438\u043B\u0438 \u043F\u0440\u043E\u0437\u0440\u0430\u0447\u043D\u044B\u0439 \u043F\u0440\u043E\u043A\u0441\u0438 \u043F\u043E\u0442\u0435\u0440\u044F\u043B \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435 \u0441 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u043C \u043F\u043E\u0440\u0442\u043E\u043C 3000 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u044B.",
             impactOnUsers: "\u0421\u0430\u0439\u0442 test.smmplan.pro \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0438\u0437 \u0432\u043D\u0435\u0448\u043D\u0435\u0439 \u0441\u0435\u0442\u0438.",
-            actionPlan: "\u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u0435 \u0441\u043A\u0440\u0438\u043F\u0442 \u0441\u0435\u0442\u0435\u0432\u043E\u0433\u043E \u0442\u0443\u043D\u043D\u0435\u043B\u044F: powershell scripts/start-tunnel.ps1.",
+            actionPlan: "\u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u0435 \u0441\u043A\u0440\u0438\u043F\u0442 \u043F\u0440\u043E\u043A\u0441\u0438: powershell scripts/start-test-proxy.ps1 \u0438\u043B\u0438 \u043F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0441\u0442\u0430\u0442\u0443\u0441 Tailscale.",
             severity: "CRITICAL",
             technicalDetails: text
           };

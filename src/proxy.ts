@@ -82,6 +82,12 @@ const ALLOWED_TUNNEL_SUFFIXES = [
   '.ngrok-free.app',
   '.ngrok.app',
   '.ngrok.io',
+  '.lhr.life',
+  '.serveo.net',
+  '.pinggy-free.link',
+  '.pinggy.link',
+  '.free.pinggy.net',
+  '.pinggy.net',
 ];
 
 const ALLOWED_CONTOUR_DOMAINS = new Set([
@@ -111,6 +117,15 @@ export const INTERNAL_HOSTS = new Set([
   'tunnel',
   'smmplan_tunnel'
 ]);
+export function isPureLocalhost(h: string | null | undefined): boolean {
+  if (!h) return false;
+  let clean = h.split(',')[0].trim().toLowerCase();
+  if (clean.startsWith('[') && clean.includes(']')) {
+    clean = clean.slice(1, clean.indexOf(']'));
+  }
+  clean = clean.split(':')[0];
+  return clean === 'localhost' || clean === '127.0.0.1' || clean === '0.0.0.0' || clean.endsWith('.local');
+}
 
 export function isInternalHost(h: string | null | undefined): boolean {
   if (!h) return false;
@@ -326,12 +341,11 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const initialIncomingHost = (hostHeader?.split(',')[0]?.trim() || fwdHost || '');
-  const isLocalhost = isInternalHost(initialIncomingHost) || initialIncomingHost.includes('localhost') || initialIncomingHost.includes('127.0.0.1') || initialIncomingHost.includes('0.0.0.0');
-
   let host = (fwdHost && !isInternalHost(fwdHost))
     ? fwdHost
     : (hostHeader?.split(',')[0]?.trim() || '');
+
+  const isLocalhost = isPureLocalhost(host);
 
   if (isInternalHost(host) || !host) {
     host = process.env.APP_URL ? new URL(process.env.APP_URL).host : 'test.smmplan.pro';
@@ -394,11 +408,11 @@ export async function proxy(request: NextRequest) {
     finalTenantId = fromAdminCookie;
   }
   // 3. Dedicated Domain Resolution (test.smmplan.pro -> smmplan, flux.smmplan.pro -> flux) - ABSOLUTE PRIORITY OVER STALE COOKIES
-  else if (fromHost && !isLocalhost) {
+  else if (fromHost && !isLocalhost && !isTailscaleHost) {
     finalTenantId = fromHost;
   }
-  // 4. Local Development Cookie Fallback (only on localhost:3000 / 127.0.0.1)
-  else if (isLocalhost && fromCookie) {
+  // 4. Local Development / Generic Tunnel Node Cookie Fallback (only on localhost:3000 / 127.0.0.1 or Tailscale)
+  else if ((isLocalhost || isTailscaleHost) && fromCookie) {
     finalTenantId = fromCookie;
     isExplicitTenant = true;
   }

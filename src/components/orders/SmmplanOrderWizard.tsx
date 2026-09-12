@@ -1437,13 +1437,22 @@ function SmmplanOrderWizardInner({
 
                 <div className="flex items-center gap-2">
                   <input
-                    type="number"
-                    min={selectedService.minQty}
-                    max={selectedService.maxQty}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={quantity || ''}
+                    onFocus={(e) => {
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
+                    }}
+                    onClick={(e) => {
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
+                    }}
                     onChange={e => {
-                      const val = parseInt(e.target.value, 10);
-                      setQuantity(isNaN(val) ? 0 : val);
+                      const raw = e.target.value.replace(/\D/g, '');
+                      const val = raw ? parseInt(raw, 10) : 0;
+                      setQuantity(val);
                       if (errors.quantity) setErrors(prev => ({ ...prev, quantity: undefined }));
                     }}
                     className={`w-full px-4 py-3 text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${

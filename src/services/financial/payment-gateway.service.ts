@@ -581,7 +581,10 @@ class BalanceGateway extends BasePaymentGateway {
     // Perform atomic deduction inside the transaction to prevent race condition double-spending
     const updatedOrderIds: string[] = await db.$transaction(async (tx) => {
       // Atomic WalletOps deduction (already handles totalSpent increment securely)
-      await WalletOps.charge(tx, params.userId, amountCents, params.description);
+      await WalletOps.charge(tx, params.userId, amountCents, params.description, {
+        idempotencyKey: `balance-charge-${params.paymentId}`,
+        tenantId: params.tenantId,
+      });
 
       await tx.payment.update({
           where: { id: params.paymentId },

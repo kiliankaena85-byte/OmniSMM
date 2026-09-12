@@ -29,10 +29,9 @@ export async function GET(
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
     }
 
-    // 3. IDOR Check: Ensure the payment belongs to the current user (if logged in)
-    // For guest checkouts, knowledge of the secure CUID `paymentId` acts as the bearer token
+    // 3. Guest-Proof IDOR Check: If payment belongs to a user, strictly require matching session or staff
     const isStaff = Boolean(session?.role && ['ADMIN', 'OWNER', 'MANAGER', 'SUPPORT'].includes(session.role));
-    if (session && session.userId && payment.userId !== session.userId && !isStaff) {
+    if (payment.userId && (!session || payment.userId !== session.userId) && !isStaff) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

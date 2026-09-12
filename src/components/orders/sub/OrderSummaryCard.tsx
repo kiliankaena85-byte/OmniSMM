@@ -376,15 +376,22 @@ export function OrderSummaryCard({
                 <Minus className="w-5 h-5" />
               </button>
               <input
-                type="number"
-                value={quantity}
-                onChange={e => setQuantity(parseInt(e.target.value) || 0)}
-                min={selectedService.minQty}
+                type="text"
+                value={quantity || ''}
+                onChange={e => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  setQuantity(raw ? parseInt(raw, 10) : 0);
+                }}
                 aria-label="Количество"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 onFocus={(e) => {
-                  const target = e.target;
-                  setTimeout(() => target.select(), 0);
+                  const target = e.currentTarget;
+                  setTimeout(() => target.select(), 10);
+                }}
+                onClick={(e) => {
+                  const target = e.currentTarget;
+                  setTimeout(() => target.select(), 10);
                 }}
                 className={`${inputCls} h-12 text-center font-black text-slate-900 tabular-nums font-mono text-lg focus-visible:ring-2 focus-visible:ring-sky-500/50 focus-visible:outline-none placeholder:font-normal`}
               />

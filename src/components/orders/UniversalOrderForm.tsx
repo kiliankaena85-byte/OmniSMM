@@ -432,21 +432,27 @@ export function UniversalOrderForm({
                                    -100
                                 </button>
                                 
-                                <input
-                                   type="number"
-                                   min={task.availableServices.find(s => s.id === task.serviceId)?.minQty || 10}
-                                   value={task.quantity || ''}
-                                   onChange={(e) => {
-                                      const val = parseInt(e.target.value) || 0;
-                                      const svc = task.availableServices.find(s => s.id === task.serviceId);
-                                      engine.setTaskConfig(task.id, task.serviceId, val, svc?.pricePerUnitRub || 0);
-                                   }}
-                                   onFocus={(e) => {
-                                     const target = e.target;
-                                     setTimeout(() => target.select(), 0);
-                                   }}
-                                   className="flex-1 h-12 px-4 bg-background border border-border/80 hover:border-primary rounded-2xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-sm text-center tabular-nums"
-                                />
+                                 <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={task.quantity || ''}
+                                    onChange={(e) => {
+                                       const raw = e.target.value.replace(/\D/g, '');
+                                       const val = raw ? parseInt(raw, 10) : 0;
+                                       const svc = task.availableServices.find(s => s.id === task.serviceId);
+                                       engine.setTaskConfig(task.id, task.serviceId, val, svc?.pricePerUnitRub || 0);
+                                    }}
+                                    onFocus={(e) => {
+                                      const target = e.currentTarget;
+                                      setTimeout(() => target.select(), 10);
+                                    }}
+                                    onClick={(e) => {
+                                      const target = e.currentTarget;
+                                      setTimeout(() => target.select(), 10);
+                                    }}
+                                    className="flex-1 h-12 px-4 bg-background border border-border/80 hover:border-primary rounded-2xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-sm text-center tabular-nums"
+                                 />
 
                                 <button
                                    type="button"

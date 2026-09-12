@@ -1,4 +1,4 @@
-﻿/**
+/**
  * deploy-test-proxy-worker.ts
  * Deploys a transparent Cloudflare Worker reverse-proxy for test.smmplan.pro
  */
@@ -26,7 +26,8 @@ export default {
     for (const [k, v] of request.headers.entries()) {
       if (!HOP_BY_HOP.has(k.toLowerCase())) upstreamHeaders.set(k, v);
     }
-    upstreamHeaders.set('host', 'test.smmplan.pro');
+    const originHost = new URL(ORIGIN).host;
+    upstreamHeaders.set('host', originHost);
     upstreamHeaders.set('x-forwarded-host', 'test.smmplan.pro');
     upstreamHeaders.set('x-forwarded-proto', 'https');
     upstreamHeaders.set('x-real-ip', request.headers.get('cf-connecting-ip') || '');

@@ -30,7 +30,7 @@ export function LandingFooterSection({
 }: LandingFooterSectionProps) {
   return (
     <>
-      <div className="relative z-10 -mt-10 bg-background">
+      <div className="relative z-10 mt-6 sm:mt-8 md:-mt-10 bg-background">
         {seoHubContent && (
           <div className="w-full max-w-[98%] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-10">
             {seoHubContent}

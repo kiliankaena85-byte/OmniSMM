@@ -291,7 +291,7 @@ export class SystemTelemetryService {
         `📊 <b>Метрики:</b> ${alert.details}`,
         `💡 <b>Действие:</b> <i>${alert.suggestedAction}</i>`,
         '',
-        `<i>Система мониторинга SMMpanel 1.0 • ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}</i>`,
+        `<i>Система мониторинга OmniSMM 1.0 • ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}</i>`,
       ].join('\n');
 
       sendAdminAlert(msg, alert.severity);

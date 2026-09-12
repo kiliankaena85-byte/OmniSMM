@@ -111,18 +111,19 @@ export class ErrorInterpreter {
       };
     }
 
-    // 4. Cloudflare Tunnel & Edge Network
+    // 4. Tailscale Funnel / Edge Network Proxy
     if (
       text.includes('502 Bad Gateway') ||
+      text.includes('Tailscale') ||
       text.includes('Cloudflare Tunnel') ||
       text.includes('tunnel connection reset')
     ) {
       return {
         category: 'NETWORK',
-        title: 'Сбой сетевого туннеля Cloudflare',
-        whatHappened: 'Внешний туннель Cloudflare потерял соединение с локальным портом 3000.',
+        title: 'Сбой сетевого туннеля / прокси test.smmplan.pro',
+        whatHappened: 'Внешний туннель или прозрачный прокси потерял соединение с локальным портом 3000 платформы.',
         impactOnUsers: 'Сайт test.smmplan.pro временно не открывается из внешней сети.',
-        actionPlan: 'Перезапустите скрипт сетевого туннеля: powershell scripts/start-tunnel.ps1.',
+        actionPlan: 'Перезапустите скрипт прокси: powershell scripts/start-test-proxy.ps1 или проверьте статус Tailscale.',
         severity: 'CRITICAL',
         technicalDetails: text,
       };

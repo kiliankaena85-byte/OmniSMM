@@ -129,7 +129,7 @@ export const SOCIAL_LINK_MATRIX: Record<string, {
     hostAliases: ['t.me', 'telegram.me', 'telegram.dog'],
     defaultCategory: {
       categoryName: 'Telegram',
-      placeholder: 'Например: t.me/channel_name или t.me/channel/1234',
+      placeholder: 't.me/channel или t.me/channel/123',
       hint: 'Ссылка на канал, группу или пост в Telegram',
       badge: 'Telegram',
       examples: ['https://t.me/channel_name', 'https://t.me/channel_name/1234'],

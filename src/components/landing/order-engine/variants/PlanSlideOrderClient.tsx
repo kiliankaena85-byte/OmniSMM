@@ -1008,11 +1008,19 @@ function PlanSlideOrderClientInner({
                   <input
                     ref={quantityRef}
                     name="quantity"
-                    type="number"
-                    min={selectedService.minQty || 100}
-                    max={selectedService.maxQty || 1000000}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onFocus={(e) => {
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
+                    }}
+                    onClick={(e) => {
+                      const target = e.currentTarget;
+                      setTimeout(() => target.select(), 10);
+                    }}
+                    onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
                     className="w-full h-11 px-3.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none font-bold text-base text-foreground font-mono"
                     placeholder={`Минимум ${selectedService.minQty || 100}`}
                   />

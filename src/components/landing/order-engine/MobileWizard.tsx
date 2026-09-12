@@ -39,7 +39,7 @@ export function MobileWizard({
   const wizard = useMobileWizard(engine);
 
   return (
-    <div className="w-full flex flex-col gap-2 p-2 sm:p-4 bg-content1 md:hidden">
+    <div className={`w-full flex flex-col gap-2 p-2 sm:p-4 ${wizard.currentStep !== 4 && engine.selectedService ? 'pb-28' : 'pb-3'} bg-content1 md:hidden`}>
       <MobileWizardStepper 
         currentStep={wizard.currentStep} 
         setActiveStep={wizard.setActiveStep}

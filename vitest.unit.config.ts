@@ -15,6 +15,8 @@ export default defineConfig({
     },
     include: [
       'src/__tests__/architecture/tenant-isolation-ast.test.ts',
+      'src/__tests__/architecture/mobile-wizard-hygiene.test.ts',
+      'src/__tests__/security/system-audit-remediation.test.ts',
       'src/__tests__/security/ddos-shield/token-bucket-pool.test.ts',
       'src/__tests__/security/ddos-shield/fingerprint.test.ts',
       'src/__tests__/security/ddos-shield/pow-engine.test.ts',
@@ -128,6 +130,11 @@ export default defineConfig({
       'src/__tests__/qa-sentinel/**/*.test.ts',
       'src/__tests__/actions/storefront-keys-action.test.ts',
       'src/__tests__/storefront/**/*.test.ts',
+      'src/__tests__/telemetry/multi-channel-alert-cascade.test.ts',
+      'src/__tests__/telemetry/smart-alert-deduplication-and-dlq-triage.test.ts',
+      'src/__tests__/notifications/multitenant-alerts-and-customer-branding.test.ts',
+      'src/__tests__/proxy-tenant-override-auth.test.ts',
+      'src/__tests__/landing/mobile-trust-header.test.tsx',
     ],
   }
 });

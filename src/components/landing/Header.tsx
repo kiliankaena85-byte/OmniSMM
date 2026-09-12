@@ -87,7 +87,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
 
         <div className="flex items-center gap-3">
           {initialEmail ? (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:flex items-center gap-2 sm:gap-3">
               <span className="hidden lg:inline text-xs font-semibold text-muted-foreground">
                 Вы вошли как: <span className="text-foreground font-bold">{initialEmail}</span>
               </span>

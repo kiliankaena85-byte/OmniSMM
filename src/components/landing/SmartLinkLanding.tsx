@@ -123,10 +123,11 @@ export function SmartLinkLanding({
                 onOpenGuide={() => setIsGuideOpen(true)}
                 customHeroTitle={customHeroTitle}
                 customHeroSubtitle={customHeroSubtitle}
+                tenantId={tenantId}
               />
 
-              <div className="w-full max-w-[98%] xl:max-w-[1600px] mx-auto bg-content1 shadow-2xl ring-1 ring-border/20 rounded-2xl md:rounded-[2.5rem] px-1 py-3 sm:p-6 lg:p-8 relative">
-              <div className="min-h-[500px] transition-all duration-300">
+              <div className="w-full max-w-[98%] xl:max-w-[1600px] mx-auto bg-content1 shadow-2xl ring-1 ring-border/20 rounded-2xl md:rounded-[2.5rem] px-1 py-3 sm:p-6 lg:p-8 mb-4 sm:mb-6 md:mb-0 relative">
+                <div className="min-h-0 md:min-h-[500px] transition-all duration-300">
                 <LandingCatalogContent
                   engine={engine}
                   orchestrator={orchestrator}

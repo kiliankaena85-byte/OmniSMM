@@ -1,8 +1,11 @@
 import React from "react";
-import { Link2, AlertCircle, ChevronDown, ClipboardPaste, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ClipboardPaste, Link2, Sparkles } from "lucide-react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { DynamicPayloadWarnings } from "../DynamicPayloadWarnings";
 import { getSocialLinkConfig } from "@/utils/social-link-placeholder";
+import { MobileStep1DetectionBadge } from "./MobileStep1DetectionBadge";
+import { MobileStep1Summary } from "./MobileStep1Summary";
+import { MobileStep1CatalogActions } from "./MobileStep1CatalogActions";
 
 interface MobileStep1LinkProps {
   engine: OrderEngine;
@@ -52,54 +55,17 @@ export function MobileStep1Link({
     }
   };
 
-  const step1LinkConfig = React.useMemo(() => {
-    return getSocialLinkConfig(
-      activeNetwork?.slug || platform,
-      null,
-      null,
-      null
-    );
-  }, [activeNetwork?.slug, platform]);
+  const step1LinkConfig = React.useMemo(() => (
+    getSocialLinkConfig(activeNetwork?.slug || platform, null, null, null)
+  ), [activeNetwork?.slug, platform]);
 
   if (currentStep !== 1) {
-    if (url.trim().length >= 5) {
-      return (
-        <div ref={step1Ref} className="scroll-mt-20">
-          <button
-            type="button"
-            onClick={() => setActiveStep(1)}
-            className="w-full text-left p-3 bg-content2 hover:bg-content3 border border-border/40 rounded-2xl flex items-center justify-between transition-all cursor-pointer active:scale-[0.99]"
-          >
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] text-muted-foreground uppercase font-extrabold tracking-wider">1. Ссылка на канал / пост</span>
-              <span className="text-xs font-bold text-foreground truncate font-mono">
-                {url}
-              </span>
-            </div>
-            <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 rotate-90" />
-          </button>
-        </div>
-      );
-    }
     return (
-      <div ref={step1Ref} className="scroll-mt-20">
-        <button
-          type="button"
-          onClick={() => setActiveStep(1)}
-          className="w-full text-left p-3 bg-primary/5 hover:bg-primary/10 border border-dashed border-primary/40 rounded-2xl flex items-center justify-between transition-all cursor-pointer active:scale-[0.99]"
-        >
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-[10px] text-primary uppercase font-extrabold tracking-wider">1. Ссылка на канал / пост</span>
-            <span className="text-xs font-bold text-foreground truncate flex items-center gap-1.5">
-              <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span>Укажите ссылку для заказа</span>
-            </span>
-          </div>
-          <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg shrink-0">
-            Ввести →
-          </span>
-        </button>
-      </div>
+      <MobileStep1Summary
+        url={url}
+        setActiveStep={setActiveStep}
+        step1Ref={step1Ref}
+      />
     );
   }
 
@@ -119,7 +85,6 @@ export function MobileStep1Link({
               : "google-border-shimmer opacity-100"
           }`}
         />
-        
         <div
           className={`absolute inset-0 rounded-2xl transition-all duration-300 pointer-events-none blur-md ${
             validationErrors?.link || localUrlError
@@ -129,7 +94,6 @@ export function MobileStep1Link({
               : "google-border-shimmer opacity-20 group-hover:opacity-35"
           }`}
         />
-        
         <div className="relative flex items-center w-full bg-content1 rounded-2xl p-0.5 z-10">
           <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
           <input
@@ -170,15 +134,9 @@ export function MobileStep1Link({
               className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-2 sm:px-3.5 min-h-[44px] min-w-[44px] rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-primary"
             >
               {isPasted ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Вставлено!</span>
-                </>
+                <><CheckCircle2 className="w-4 h-4" /><span className="hidden sm:inline">Вставлено!</span></>
               ) : (
-                <>
-                  <ClipboardPaste className="w-4 h-4" />
-                  <span className="hidden sm:inline">Вставить</span>
-                </>
+                <><ClipboardPaste className="w-4 h-4" /><span className="hidden sm:inline">Вставить</span></>
               )}
             </button>
           ) : (
@@ -199,52 +157,7 @@ export function MobileStep1Link({
       </div>
 
       {/* Smart Detection Live Badge */}
-      {url.trim().length >= 5 && (
-        <div className="p-2.5 rounded-2xl bg-content2/80 border border-border/50 text-xs flex items-center justify-between gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-          {engine.isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground text-[11px] font-medium">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
-              <span>Определяем соцсеть и тип ссылки...</span>
-            </div>
-          ) : engine.platform ? (
-            (() => {
-              const upperType = engine.detectedType ? String(engine.detectedType).toUpperCase() : '';
-              return (
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="px-2 py-0.5 rounded-lg bg-primary/15 text-primary text-[10px] font-black uppercase tracking-wider shrink-0">
-                      {engine.platform}
-                    </span>
-                    <span className="text-[11px] font-bold text-foreground truncate flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-                      <span>
-                        {upperType === 'POST' || upperType === 'PRIVATE_POST' || upperType === 'PHOTO'
-                          ? "Публикация / Пост"
-                          : upperType === 'CHANNEL' || upperType === 'CHAT' || upperType === 'GROUP'
-                          ? "Канал / Сообщество"
-                          : upperType === 'PROFILE' || upperType === 'USER' || upperType === 'ACCOUNT'
-                          ? "Профиль / Пользователь"
-                          : upperType === 'VIDEO' || upperType === 'REEL' || upperType === 'REELS' || upperType === 'CLIP'
-                          ? "Видео / Reels"
-                          : "Объект проверен"}
-                      </span>
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-success shrink-0">
-                    ✓ Ссылка подходит
-                  </span>
-                </div>
-              );
-            })()
-          ) : (
-            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-              <AlertCircle className="w-3.5 h-3.5 text-warning shrink-0" />
-              <span>Проверьте формат ссылки (например, https://t.me/...)</span>
-            </div>
-          )}
-        </div>
-      )}
-
+      <MobileStep1DetectionBadge engine={engine} url={url} />
 
       {validationErrors?.link && (
         <p id="mobile-step1-url-error" role="alert" aria-live="assertive" className="text-[11px] font-bold text-danger pl-1 animate-pulse">
@@ -274,34 +187,11 @@ export function MobileStep1Link({
         </div>
       )}
 
-      <div className="flex flex-col gap-2 pt-1.5">
-        <div className="flex justify-between items-center px-1">
-          <button
-            type="button"
-            onClick={onOpenGuide}
-            aria-label="Где взять ссылку для заказа? Гайд по ссылкам"
-            className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all min-h-[44px] px-2 -ml-2"
-          >
-            <span>❓</span>
-            <span className="underline">Где взять ссылку?</span>
-          </button>
-        </div>
-        
-        <button
-          type="button"
-          onClick={() => {
-            if (onOpenCatalog) {
-              onOpenCatalog();
-            } else {
-              setActiveStep(2);
-            }
-          }}
-          className="text-xs font-bold text-primary hover:underline h-11 min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 w-full border border-dashed border-primary/30 rounded-xl bg-primary/5 active:scale-95 transition-all cursor-pointer"
-        >
-          <span>📂</span>
-          <span>Или выбрать услугу вручную из каталога →</span>
-        </button>
-      </div>
+      <MobileStep1CatalogActions
+        onOpenGuide={onOpenGuide}
+        onOpenCatalog={onOpenCatalog}
+        setActiveStep={setActiveStep}
+      />
     </div>
   );
 }

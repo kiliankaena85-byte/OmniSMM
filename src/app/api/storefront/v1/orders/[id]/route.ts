@@ -6,9 +6,10 @@ import { runWithTenant } from '@/lib/tenant-context';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await props.params;
     const ctx = await resolveStorefrontContext(req);
     
     if (!ctx) {
