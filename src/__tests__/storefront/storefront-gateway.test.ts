@@ -45,8 +45,8 @@ describe('Storefront Gateway API v1', () => {
           slug: 'tenant-1',
           name: 'Tenant One',
           isActive: true,
-        } as any
-      });
+        }
+      } as any);
 
       vi.mocked(db.storefrontKey.update).mockResolvedValueOnce({} as any);
 

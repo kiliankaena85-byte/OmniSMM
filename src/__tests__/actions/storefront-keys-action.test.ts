@@ -56,7 +56,9 @@ describe('Admin Storefront Keys Server Actions', () => {
       const result = await listStorefrontKeysAction('smmplan');
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(1);
+      if (result.success && 'data' in result && result.data) {
+        expect(result.data).toHaveLength(1);
+      }
       expect(db.storefrontKey.findMany).toHaveBeenCalledWith({
         where: { tenantId: 'smmplan' },
         orderBy: { createdAt: 'desc' },
@@ -85,8 +87,10 @@ describe('Admin Storefront Keys Server Actions', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.data?.token).toMatch(/^sk_live_/);
-      expect(result.data?.key.id).toBe('new_key_id');
+      if (result.success && 'data' in result && result.data) {
+        expect(result.data.token).toMatch(/^sk_live_/);
+        expect(result.data.key.id).toBe('new_key_id');
+      }
       expect(db.storefrontKey.create).toHaveBeenCalled();
     });
 
