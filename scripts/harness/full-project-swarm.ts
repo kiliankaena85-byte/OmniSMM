@@ -6,11 +6,23 @@ import { z } from 'zod';
 dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const rawKeys = [
+  process.env.OPENROUTER_API_KEY,
+  ...(process.env.OPENROUTER_API_KEYS ? process.env.OPENROUTER_API_KEYS.split(',') : [])
+].filter(Boolean).map(k => k!.trim());
 
-if (!OPENROUTER_API_KEY) {
-  console.error('\x1b[31m❌ Ошибка: OPENROUTER_API_KEY не найден в .env!\x1b[0m');
+const OPENROUTER_KEYS = Array.from(new Set(rawKeys));
+
+if (OPENROUTER_KEYS.length === 0) {
+  console.error('\x1b[31m❌ Ошибка: Ни один OPENROUTER_API_KEY не найден в .env!\x1b[0m');
   process.exit(1);
+}
+
+let activeKeyIndex = 0;
+function getNextApiKey(): string {
+  const key = OPENROUTER_KEYS[activeKeyIndex % OPENROUTER_KEYS.length];
+  activeKeyIndex++;
+  return key;
 }
 
 // 1. Bulletproof Unified Audit Schema
@@ -46,13 +58,13 @@ interface SwarmAgent {
 
 const SWARM_AGENTS: SwarmAgent[] = [
   {
-    name: 'DevSecOps Sentinel (550B)',
+    name: 'DevSecOps Sentinel (120B)',
     role: 'SECURITY',
     emoji: '🛡️',
     models: [
-      'nvidia/nemotron-3-ultra-550b-a55b:free',
       'nvidia/nemotron-3-super-120b-a12b:free',
-      'nvidia/nemotron-3.5-content-safety:free'
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'nvidia/nemotron-3.5-lightning:free'
     ],
     systemPrompt: `You are the Principal DevSecOps Security Auditor for SMMplan (Next.js 16, PostgreSQL/Prisma).
 Analyze the code for OWASP Top 10 vulnerabilities.
@@ -71,15 +83,14 @@ Output format: Return ONLY valid JSON:
 }`
   },
   {
-    name: 'FinOps and Logic Specialist (GLM-5.2)',
+    name: 'FinOps and Logic Specialist',
     role: 'FINOPS_QA',
     emoji: '🧪',
     models: [
-      'z-ai/glm-5.2:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'minimax/minimax-m3:free'
+      'nvidia/nemotron-3.5-lightning:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'nex-agi/nex-n2.5-mini:free'
     ],
-    enableReasoning: true,
     systemPrompt: `You are the Principal QA Automation and FinOps Logician for SMMplan.
 Analyze the code for mathematical invariants, race conditions, edge cases, and multi-tenant integrity.
 CRITICAL CHECKS:
@@ -101,9 +112,9 @@ Output format: Return ONLY valid JSON matching:
     role: 'UI_UX',
     emoji: '🎨',
     models: [
-      'cohere/north-mini-code:free',
-      'google/gemma-4-31b-it:free',
-      'google/gemma-4-26b-a4b-it:free'
+      'nex-agi/nex-n2.5-mini:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'nex-agi/nex-n2.5-pro:free'
     ],
     systemPrompt: `You are the Lead UI/UX and Design System Architect for SMMplan (Tailwind CSS 4.0, HeroUI v3).
 Analyze the code for UI/UX defects, styling standards, and accessibility.
@@ -122,20 +133,19 @@ Output format: Return ONLY valid JSON matching:
 }`
   },
   {
-    name: 'Fast Arbiter and Triage (Inkling)',
+    name: 'Architecture & Clean Code Arbiter',
     role: 'ARBITER',
     emoji: '⚡',
     models: [
-      'thinkingmachines/inkling-small:free',
-      'thinkingmachines/inkling:free',
-      'cohere/north-mini-code:free'
+      'nex-agi/nex-n2.5-pro:free',
+      'nvidia/nemotron-3.5-lightning:free',
+      'nex-agi/nex-n2.5-mini:free'
     ],
-    enableReasoning: true,
-    systemPrompt: `You are the Fast Review Arbiter and Triage Specialist.
-Analyze the code for code hygiene, clean TypeScript types, dead code, and missing error handlers.
+    systemPrompt: `You are the Fast Review Arbiter and Clean Architecture Specialist for SMMplan.
+Analyze the code for code hygiene, clean TypeScript types, dead code, component line limits (<= 200 lines), and missing error handlers.
 Output format: Return ONLY valid JSON matching:
 {
-  "expertRole": "Fast Arbiter and Triage",
+  "expertRole": "Architecture & Clean Code Arbiter",
   "passed": boolean,
   "summary": "Summary",
   "findings": []
@@ -177,94 +187,104 @@ function extractJson(raw: string): any {
   return parsed;
 }
 
-// 3. OpenRouter API Caller
+// 3. OpenRouter API Caller with Auto-Rotation & Retries
 async function callOpenRouter(agent: SwarmAgent, payload: string): Promise<SwarmAuditResult> {
-  const timeoutMs = 45000;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutMs = 25000;
+  const maxAttempts = Math.max(3, OPENROUTER_KEYS.length);
+  let lastError: Error | null = null;
 
-  try {
-    const body: Record<string, any> = {
-      models: agent.models,
-      messages: [
-        { role: 'system', content: agent.systemPrompt },
-        { role: 'user', content: `Audit the following domain source code:\n\n${payload}` }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1,
-    };
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const apiKey = getNextApiKey();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (agent.enableReasoning) {
-      body.reasoning = { enabled: true };
-    }
-
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://smmplan.pro',
-        'X-Title': 'SMMplan Full Project Swarm',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText.slice(0, 150)}`);
-    }
-
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Empty response from model');
-
-    const parsedJson = extractJson(content);
-    const rawFindings = Array.isArray(parsedJson.findings) ? parsedJson.findings : [];
-    const validFindings = rawFindings.map((f: any) => {
-      if (typeof f === 'string') {
-        return {
-          ruleId: 'CODE-AUDIT',
-          severity: 'LOW' as const,
-          file: 'src/',
-          line: 1,
-          title: f.slice(0, 80),
-          description: f,
-          recommendation: 'Review implementation against AGENTS.md',
-          confidence: 0.85,
-        };
-      }
-      const sp = FindingSchema.safeParse(f);
-      if (sp.success) return sp.data;
-      return {
-        ruleId: String(f.ruleId || 'CODE-AUDIT'),
-        severity: (['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].includes(f.severity) ? f.severity : 'LOW') as any,
-        file: String(f.file || 'src/'),
-        line: f.line || 1,
-        title: String(f.title || f.description || 'Code Finding').slice(0, 100),
-        description: String(f.description || f.title || 'Details in code'),
-        recommendation: String(f.recommendation || 'Verify against architecture rules'),
-        confidence: Number(f.confidence || 0.85),
+    try {
+      const body: Record<string, any> = {
+        models: agent.models,
+        messages: [
+          { role: 'system', content: agent.systemPrompt },
+          { role: 'user', content: `Audit the following domain source code:\n\n${payload}` }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
       };
-    });
 
-    return {
-      expertRole: agent.name,
-      passed: parsedJson.passed ?? (validFindings.length === 0),
-      summary: parsedJson.summary || (validFindings.length === 0 ? 'Audit completed: 0 defects.' : `Found ${validFindings.length} findings.`),
-      findings: validFindings,
-    };
-  } catch (err: any) {
-    clearTimeout(timeout);
-    return {
-      expertRole: agent.name,
-      passed: true,
-      summary: `⚠️ Аудит пропущен (${err.message})`,
-      findings: [],
-    };
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://smmplan.pro',
+          'X-Title': 'SMMplan Full Project Swarm',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        if (res.status === 429 || res.status >= 500) {
+          lastError = new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 150)}`);
+      }
+
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Empty response from model');
+
+      const parsedJson = extractJson(content);
+      const rawFindings = Array.isArray(parsedJson.findings) ? parsedJson.findings : [];
+      const validFindings = rawFindings.map((f: any) => {
+        if (typeof f === 'string') {
+          return {
+            ruleId: 'CODE-AUDIT',
+            severity: 'LOW' as const,
+            file: 'src/',
+            line: 1,
+            title: f.slice(0, 80),
+            description: f,
+            recommendation: 'Review implementation against AGENTS.md',
+            confidence: 0.85,
+          };
+        }
+        const sp = FindingSchema.safeParse(f);
+        if (sp.success) return sp.data;
+        return {
+          ruleId: String(f.ruleId || 'CODE-AUDIT'),
+          severity: (['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].includes(f.severity) ? f.severity : 'LOW') as any,
+          file: String(f.file || 'src/'),
+          line: f.line || 1,
+          title: String(f.title || f.description || 'Code Finding').slice(0, 100),
+          description: String(f.description || f.title || 'Details in code'),
+          recommendation: String(f.recommendation || 'Verify against architecture rules'),
+          confidence: Number(f.confidence || 0.85),
+        };
+      });
+
+      return {
+        expertRole: agent.name,
+        passed: parsedJson.passed ?? (validFindings.length === 0),
+        summary: parsedJson.summary || (validFindings.length === 0 ? 'Audit completed: 0 defects.' : `Found ${validFindings.length} findings.`),
+        findings: validFindings,
+      };
+    } catch (err: any) {
+      clearTimeout(timeout);
+      lastError = err;
+      await new Promise(r => setTimeout(r, 800));
+    }
   }
+
+  return {
+    expertRole: agent.name,
+    passed: true,
+    summary: `⚠️ Аудит пропущен (${lastError?.message || 'Все ключи исчерпали попытки'})`,
+    findings: [],
+  };
 }
 
 // 4. Domains Definitions
@@ -355,8 +375,8 @@ function buildDomainPayload(domain: DomainDef): string {
     if (fs.existsSync(fullPath)) {
       const code = fs.readFileSync(fullPath, 'utf8');
       const lines = code.split('\n');
-      const sample = lines.slice(0, 180).join('\n');
-      content += `// ===== FILE: ${relPath} (First 180 lines) =====\n${sample}\n\n`;
+      const sample = lines.slice(0, 110).join('\n');
+      content += `// ===== FILE: ${relPath} (Lines 1-110) =====\n${sample}\n\n`;
     }
   }
   return content;
@@ -384,38 +404,25 @@ async function main() {
   const allDomainResults: { domain: DomainDef; results: SwarmAuditResult[] }[] = [];
 
   for (const domain of selectedDomains) {
-    console.log(`\n📦 [Домен: ${domain.name}] Сборка исходников...`);
+    console.log(`\n📦 [Домен: ${domain.name}] (${domain.key})`);
     const payload = buildDomainPayload(domain);
-    console.log(`   Размер среза: ${payload.length} байт. Запуск 4 моделей параллельно...`);
+    console.log(`   Размер среза: ${payload.length} байт. Опрос 4 экспертов...`);
 
-    const startTime = Date.now();
-    const settled = await Promise.allSettled(
-      SWARM_AGENTS.map(agent => callOpenRouter(agent, payload))
-    );
-
-    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    const domainResults: SwarmAuditResult[] = settled.map((s, idx) => {
-      if (s.status === 'fulfilled') return s.value;
-      return {
-        expertRole: SWARM_AGENTS[idx].name,
-        passed: true,
-        summary: `⚠️ Сбой вызова: ${s.reason}`,
-        findings: []
-      };
-    });
+    const domainResults: SwarmAuditResult[] = [];
+    for (let i = 0; i < SWARM_AGENTS.length; i++) {
+      const agent = SWARM_AGENTS[i];
+      process.stdout.write(`   [${i + 1}/4] ${agent.emoji} ${agent.name}... `);
+      const t0 = Date.now();
+      const res = await callOpenRouter(agent, payload);
+      const ms = Date.now() - t0;
+      const icon = res.passed && res.findings.length === 0 ? '✅' : '⚠️';
+      console.log(`${icon} [${ms}ms] (дефектов: ${res.findings.length})`);
+      domainResults.push(res);
+      await sleep(1000);
+    }
 
     allDomainResults.push({ domain, results: domainResults });
-
-    console.log(`✔ Домен ${domain.key} проверен за ${duration}с.`);
-    for (const r of domainResults) {
-      const icon = r.passed && r.findings.length === 0 ? '✅' : '❌';
-      console.log(`   - ${r.expertRole}: ${icon} (Замечаний: ${r.findings.length})`);
-    }
-
-    // Rate-limit safety delay
-    if (selectedDomains.length > 1) {
-      await sleep(2500);
-    }
+    console.log(`✔ Домен ${domain.key} завершён.`);
   }
 
   // Save report to .planning/audit

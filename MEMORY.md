@@ -42,6 +42,22 @@ if (input.userId === admin.id) return { success: false, error: 'Запрещен
 **Что случилось:** При попытке устранить сбой внешнего доступа агент самовольно вернул Cloudflare Tunnel и включил Cloudflare Proxy (`proxied: true`), из-за чего трафик пошел через заблокированные в РФ IP-адреса Cloudflare (ТСПУ).
 **Правило:** КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО вносить любые изменения в конфигурации, сеть, DNS или код без предварительного аудита через Fullstack-аналитика (с моделированием блокировок в РФ и радиуса поражения) и прямого явного согласования с пользователем.
 
+### 🔴 УРОК 7 — HTML5 Input Selection Limitation
+**Что случилось:** В `<input type="number">` вызов `.select()` и свойства `selectionStart`/`selectionEnd` заблокированы на уровне спецификации браузеров WHATWG (вызывают DOMException или игнорируются). При клике на поле старое количество не выделялось, вынуждая пользователя стирать цифры вручную.
+**Правило:** Для числового ввода с авто-выделением при фокусе использовать строго:
+```tsx
+type="text"
+inputMode="numeric"
+pattern="[0-9]*"
+onFocus={(e) => { const t = e.target; setTimeout(() => t.select(), 10); }}
+onClick={(e) => { const t = e.target as HTMLInputElement; setTimeout(() => t.select(), 10); }}
+onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
+```
+
+### 🔴 УРОК 8 — Docker Healthcheck IPv6 / IPv4 Binding
+**Что случилось:** В контейнерах на базе Alpine Linux утилита `wget` резолвит `localhost` в IPv6 адрес `::1`, в то время как процесс Node.js Next.js слушает порт IPv4 `0.0.0.0:3000`. Это вызывало ложное падение healthcheck (`wget: can't connect to remote host: Connection refused`) и статус `unhealthy`.
+**Правило:** Во всех Dockerfile и docker-compose healthcheck директивах всегда указывать явный IPv4 адрес: `http://127.0.0.1:3000/api/health`, а не `localhost`.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)

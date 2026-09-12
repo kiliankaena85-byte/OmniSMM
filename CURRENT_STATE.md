@@ -1,4 +1,19 @@
 # CURRENT_STATE.md
+- [x] Авто-выделение количества, автономный Docker-туннель и внедрение 4 архитектурных скиллов (100% COMPLETE & VERIFIED):
+  - **Мгновенное выделение цифры в поле «Количество» при фокусе/клике:**
+    * В `PlanCheckoutQuantity.tsx`, `MobileCheckoutQuantity.tsx`, `SmmplanOrderWizard.tsx`, `UniversalOrderForm.tsx`, `OrderSummaryCard.tsx`, `PlanSlideOrderClient.tsx`, `FluxOrderClient.tsx` тип поля заменен с `number` на `text` с атрибутами `inputMode="numeric"` и `pattern="[0-9]*"`.
+    * Добавлены обработчики `onFocus` и `onClick` с таймером `setTimeout(() => target.select(), 10)` и регулярной очисткой нецифровых символов `replace(/\D/g, '')`. Пользователь сразу вводит свое число без необходимости вручную стирать цифры.
+    * Визуально и функционально верифицировано через Playwright (`scratch/test-selection.js`, `isSelectedAll: true`).
+  - **Автономный Docker-сервис туннеля и HTTP 302 редирект для доступности в РФ:**
+    * В `docker-compose.yml` добавлен сервис `smmplan_tunnel` (`image: node:20-alpine`, `restart: always`, проксирует на `web:3000`). Туннель поднимается автономно вместе с системой при перезагрузке ПК.
+    * Скрипт `scripts/tunnel-daemon.mjs` настроен на мгновенное переключение Cloudflare Worker на HTTP 302 редирект на актуальный адрес туннеля (`https://test.smmplan.pro` -> туннель), полностью обходя блокировки Cloudflare и ошибки SSL 525 на ТСПУ в РФ.
+  - **Внедрение 4 актуальных архитектурных скиллов (Architectural Skills Suite):**
+    * `owasp-asvs-sentinel`: Пентест-иммунитет OWASP Top 10:2025 / ASVS v4.0.3 L2, Guest-Proof IDOR, Timing-Safe HMAC, RFC 9331 RateLimit, Strict-Dynamic Nonce.
+    * `payment-gateway-fuzzer`: Фаззинг шлюзов (ЮKassa, Robokassa, CryptoBot), гонки вебхуков, защита от Double-Crediting, P2002 дедупликация, BigInt ExactMath.
+    * `postgres-query-doctor`: Профилирование PostgreSQL и Prisma 5, Keyset-пагинация, искоренение N+1, Tenant-First составные индексы, connection_limit.
+    * `compliance-54fz-auditor`: 54-ФЗ комплаенс, НДС 2026 (22% и лимит УСН 20 млн ₽), реквизиты ФФД 1.2 (advance vs service), разделение касс по ст. 54.1 НК РФ.
+    * Все скиллы зарегистрированы в `.agents/skills/INDEX.md`.
+
 - [x] Ревизия каталога услуг и перевод платформы исключительно на Vexboost (100% COMPLETE & LIVE VERIFIED):
   - **Эксклюзивность Vexboost и отключение сторонних провайдеров:**
     * Провайдеры `HQ-SMM`, `Cheap-SMM`, `SMM-Panel-Pro` переведены в статус `isActive: false`, их 54 тестовые услуги деактивированы.
