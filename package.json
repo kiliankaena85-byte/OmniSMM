@@ -41,6 +41,7 @@
     "layout:heal": "tsx scripts/ui/layout-healer.ts",
     "layout:fix": "tsx scripts/ui/layout-healer.ts --fix",
     "layout:mcp": "tsx scripts/ui/layout-mcp-server.ts",
+    "mcp:pipeline": "tsx scripts/mcp/mcp-pipeline-orchestrator.ts",
     "postinstall": "prisma generate",
     "test": "dotenv -e .env.test -- vitest run",
     "test:ci": "dotenv -e .env.test -- vitest run --coverage",
