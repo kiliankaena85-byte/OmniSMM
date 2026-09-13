@@ -480,7 +480,8 @@ beforeEach(async () => {
         'multitenant-alerts',
         'proxy-tenant-override-auth',
         'mobile-trust-header',
-        'llm-prompt-sanitizer'
+        'llm-prompt-sanitizer',
+        'client-dashboard-master'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
         shouldReset = false;

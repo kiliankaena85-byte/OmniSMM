@@ -454,7 +454,7 @@ export default function TelegramCard({
                     type="text"
                     readOnly
                     value={deepLink}
-                    className="flex-1 min-w-0 bg-muted/40 border border-border rounded-xl px-3.5 py-2 font-mono text-xs text-foreground truncate select-all outline-none"
+                    className="flex-1 min-w-0 bg-muted/40 border border-border rounded-xl px-3.5 py-2 font-mono text-base sm:text-xs text-foreground truncate select-all outline-none"
                   />
                   <button
                     type="button"

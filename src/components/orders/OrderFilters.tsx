@@ -133,7 +133,7 @@ export function OrderFilters({
               placeholder="Поиск по ID или названию тарифа..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 md:h-9 pl-9 pr-4 bg-muted border border-border/60 rounded-xl text-xs font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
+              className="w-full h-11 md:h-9 pl-9 pr-4 bg-muted border border-border/60 rounded-xl text-base sm:text-xs font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
             />
           </div>
 
@@ -144,7 +144,7 @@ export function OrderFilters({
               onValueChange={(val) => handleApplyFilters({ status: val ?? 'ALL' })}
             >
               <SelectTrigger 
-                className="h-11 bg-muted border border-border/60 rounded-xl px-3 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 w-full"
+                className="h-11 bg-muted border border-border/60 rounded-xl px-3 text-base sm:text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 w-full"
                 aria-label="Фильтр по статусу"
               >
                 <SelectValue placeholder="Все статусы">
@@ -178,7 +178,7 @@ export function OrderFilters({
             onValueChange={(val) => handleApplyFilters({ network: val ?? 'ALL' })}
           >
             <SelectTrigger 
-              className="h-11 md:h-9 bg-muted border border-border/60 rounded-xl px-3 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 min-w-[130px]"
+              className="h-11 md:h-9 bg-muted border border-border/60 rounded-xl px-3 text-base sm:text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 min-w-[130px]"
               aria-label="Фильтр по соцсети"
             >
               <SelectValue placeholder="Все соцсети">

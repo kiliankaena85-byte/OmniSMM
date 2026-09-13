@@ -455,7 +455,7 @@ export default function AddFundsForm() {
                   value={b2bCompanyName}
                   onChange={(e) => setB2bCompanyName(e.target.value)}
                   placeholder='ООО "Диджитал Агентство" или ИП Иванов И.И.'
-                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-sm bg-background text-foreground outline-none focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm bg-background text-foreground outline-none focus:border-primary"
                 />
               </div>
 
@@ -466,7 +466,7 @@ export default function AddFundsForm() {
                   value={b2bInn}
                   onChange={(e) => setB2bInn(e.target.value.replace(/\D/g, '').slice(0, 12))}
                   placeholder="7701234567"
-                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
                 />
               </div>
 
@@ -477,7 +477,7 @@ export default function AddFundsForm() {
                   value={b2bKpp}
                   onChange={(e) => setB2bKpp(e.target.value.replace(/\D/g, '').slice(0, 9))}
                   placeholder="770101001"
-                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
                 />
               </div>
 
@@ -488,7 +488,7 @@ export default function AddFundsForm() {
                   value={b2bLegalAddress}
                   onChange={(e) => setB2bLegalAddress(e.target.value)}
                   placeholder="г. Москва, ул. Ленина, д. 1"
-                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-sm bg-background text-foreground outline-none focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm bg-background text-foreground outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -619,7 +619,7 @@ export default function AddFundsForm() {
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
             placeholder="PROMO-2026"
-            className="w-full sm:flex-1 border border-border rounded-2xl px-4 py-3 text-sm font-mono font-bold uppercase text-foreground bg-background outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+            className="w-full sm:flex-1 border border-border rounded-2xl px-4 py-3 text-base sm:text-sm font-mono font-bold uppercase text-foreground bg-background outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
           <button
             type="button"

@@ -132,7 +132,7 @@ export default function B2bWebhookCard({ initialData }: B2bWebhookCardProps) {
             placeholder="https://api.yourcompany.com/v1/smmplan-webhook"
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
-            className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
+            className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
           />
           <p className="text-[11px] text-muted-foreground mt-1">
             Все события (изменение статусов заказов, выполнение, отмена) будут отправляться методом POST на этот URL.
@@ -150,7 +150,7 @@ export default function B2bWebhookCard({ initialData }: B2bWebhookCardProps) {
               type="text"
               readOnly
               value={webhookSecret || 'Секретный ключ еще не сгенерирован'}
-              className="flex-1 min-w-0 bg-muted/40 border border-border rounded-xl px-4 py-2.5 font-mono text-xs text-foreground truncate select-all outline-none"
+              className="flex-1 min-w-0 bg-muted/40 border border-border rounded-xl px-4 py-2.5 font-mono text-base sm:text-xs text-foreground truncate select-all outline-none"
             />
             {webhookSecret && (
               <button

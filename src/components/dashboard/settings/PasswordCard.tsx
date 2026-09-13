@@ -117,7 +117,7 @@ export default function PasswordCard({
                   placeholder="••••••••"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                  className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
                 />
                 <button
                   type="button"
@@ -144,7 +144,7 @@ export default function PasswordCard({
                   placeholder="Минимум 8 символов"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                  className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
                 />
                 {!hasPassword && (
                   <button
@@ -170,7 +170,7 @@ export default function PasswordCard({
                 placeholder="Повторите новый пароль"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
               />
             </div>
           </div>

@@ -97,7 +97,7 @@ export default function CompanyRequisitesCard({ initialData }: CompanyRequisites
               placeholder="ООО «Вектор» или ИП Иванов И.И."
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
+              className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
             />
           </div>
 
@@ -112,7 +112,7 @@ export default function CompanyRequisitesCard({ initialData }: CompanyRequisites
               placeholder="7701234567"
               value={inn}
               onChange={(e) => setInn(e.target.value.replace(/\D/g, ''))}
-              className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
+              className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
             />
           </div>
 
@@ -127,7 +127,7 @@ export default function CompanyRequisitesCard({ initialData }: CompanyRequisites
               placeholder="770101001"
               value={kpp}
               onChange={(e) => setKpp(e.target.value.replace(/\D/g, ''))}
-              className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
+              className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function CompanyRequisitesCard({ initialData }: CompanyRequisites
               placeholder="1027700132195"
               value={ogrn}
               onChange={(e) => setOgrn(e.target.value.replace(/\D/g, ''))}
-              className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
+              className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-mono"
             />
           </div>
 
@@ -156,7 +156,7 @@ export default function CompanyRequisitesCard({ initialData }: CompanyRequisites
               placeholder="127000, г. Москва, ул. Тверская, д. 1, оф. 10"
               value={legalAddress}
               onChange={(e) => setLegalAddress(e.target.value)}
-              className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 resize-none"
+              className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 bg-background/50 hover:bg-background/80 transition-all duration-200 resize-none"
             />
           </div>
         </div>

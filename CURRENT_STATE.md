@@ -1,4 +1,21 @@
 # CURRENT_STATE.md
+- [x] Мастер-оркестрация и сквозная верификация 4 волн (Wave 1-4) платформы OmniSMM 1.0 — (100% COMPLETE & VERIFIED):
+  * 🌊 **Волна 1: Личный кабинет клиента (20 из 20 проверок 100% 🟢 PASS):**
+    - 5 экранов (`/dashboard`, `/dashboard/orders`, `/dashboard/finance`, `/dashboard/referrals`, `/dashboard/settings`) протестированы в Chromium на 4 вьюпортах (Desktop 1920x1080, Laptop 1366x768, iPhone SE 375x667, iPhone 16 Pro 390x844).
+    - **Zero Horizontal Scroll:** Дельта переполнения строго 0px на всех устройствах.
+    - **iOS Safari Auto-Zoom Safe:** Все мобильные инпуты приведены к $\ge 16\text{px}$ (`text-base sm:text-sm`).
+    - Официальный отчет: `docs/audits/CLIENT_DASHBOARD_AUDIT_REPORT.md` (20 доказательных скриншотов).
+  * ⚖️ **Волна 2: Каталог и Юридический контур (ст. 54.1 НК РФ, 152-ФЗ, 54-ФЗ):**
+    - `scripts/harness/legal-compliance-audit-2026.ts` (5/5 🟢 СООТВЕТСТВУЕТ).
+    - `src/__tests__/multitenant-legal-fiscal-isolation.test.ts` (9/9 PASS — 100%).
+  * 💳 **Волна 3: Финансовое ядро и платежные вебхуки (ЮKassa, Robokassa, CryptoBot, WalletOps):**
+    - 15 тестовых сьютов и 142 теста: `src/__tests__/financial/` (142/142 PASS — 100%).
+    - Двойной контроль возвратов (Dual-Custody), защита от двойных списаний, идемпотентность, 54-ФЗ чеки.
+  * 🚀 **Волна 4: Production Pre-Flight & Hardening:**
+    - Строгая типизация: `npx tsc --noEmit` (0 ошибок).
+    - Аудит секретов бандла: `node scripts/check-bundle-secrets.mjs` (0 утечек).
+    - CI-тесты скиллов: `layout-overflow-sentry.test.ts` (10/10 PASS — 100%).
+
 - [x] Синтез UI-скиллов по утвержденной спецификации (Claude, Gemini, Cursor, Vercel, GitHub) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-unified-layout-skills-synthesis.md`.
   * 🏛️ **Двухуровневые стандарты верстки (Dual-Tier L1 CORE.md <= 25 строк + L2 Deep SKILL.md):**

@@ -157,7 +157,7 @@ export default function DeleteAccountCard({ hasPassword }: DeleteAccountCardProp
                   placeholder="УДАЛИТЬ"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-destructive focus:ring-2 focus:ring-destructive/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-bold tracking-wider"
+                  className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 outline-none focus:border-destructive focus:ring-2 focus:ring-destructive/20 bg-background/50 hover:bg-background/80 transition-all duration-200 font-bold tracking-wider"
                 />
               </div>
 
@@ -175,7 +175,7 @@ export default function DeleteAccountCard({ hasPassword }: DeleteAccountCardProp
                       placeholder="Ваш текущий пароль"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-destructive focus:ring-2 focus:ring-destructive/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                      className="w-full text-base sm:text-sm border border-border/80 rounded-xl px-4 py-2.5 pr-10 outline-none focus:border-destructive focus:ring-2 focus:ring-destructive/20 bg-background/50 hover:bg-background/80 transition-all duration-200"
                     />
                     <button
                       type="button"

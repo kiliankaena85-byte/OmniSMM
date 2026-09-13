@@ -380,7 +380,7 @@ export async function proxy(request: NextRequest) {
 
   const isLocalhost = isPureLocalhost(host);
 
-  if (isInternalHost(host) || !host) {
+  if (!isLocalhost && (isInternalHost(host) || !host)) {
     host = process.env.APP_URL ? new URL(process.env.APP_URL).host : 'test.smmplan.pro';
   }
   if (host.includes('0.0.0.0')) {
