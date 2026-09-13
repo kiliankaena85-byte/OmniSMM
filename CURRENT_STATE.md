@@ -1,4 +1,15 @@
 # CURRENT_STATE.md
+- [x] Системный синтез лучших практик верстки (Claude, Gemini, Cursor, Vercel, GitHub) и унификация UI-скиллов (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана системная спецификация `docs/specs/SPEC-2026-09-13-unified-layout-skills-synthesis.md` и обновлен стандарт `docs/standards/RESPONSIVE_LAYOUT_STANDARD_2026.md`.
+  * 🏛️ **Унификация UI-скиллов (Dual-Tier L1/L2):** 
+    - `mobile-first-responsive-architect`: добавлен ультра-компактный L1 `CORE.md` ($\le 25$ строк) и норматив WCAG 2.2 AA Touch Target $\ge 44\text{px}$.
+    - `viewport-responsive-density`: переработан в стандарт High-Density Data Grid & Dashboard Architecture с формулами колонок и сплит-панелями.
+    - `client-hydration-perf-guard`: трансформирован в стандарт React 19 Hydration & Zero CLS с резервированием геометрии скелетонов Suspense.
+  * 🩺 **Модернизация Auto-Healer & MCP:** 
+    - В `scripts/ui/layout-healer.ts` добавлены правила авто-лечения `INJECT_PB_SAFE` (Dynamic Island / Safe Area) и `BUTTON_TYPE_ATTRIBUTE` (`type="button"` на интерактивных кнопках).
+    - В `scripts/ui/layout-mcp-server.ts` инструмент `layout_dom_probe` подключен к реальному браузерному движку Playwright Chromium с измерением геометрии до 1 пикселя.
+  * 🧪 **Автоматизированная верификация:** `src/__tests__/skills/layout-overflow-sentry.test.ts` (10/10 PASS — 100%), `src/__tests__/mcp/mcp-pipeline.test.ts` (5/5 PASS — 100%), `npm run layout:audit` (🟢 CLEAN — 0 High, 0 Medium), `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Экосистема и пайплайн Model Context Protocol (MCP Ecosystem 2026.1) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана спецификация `docs/specs/SPEC-2026-09-13-mcp-ecosystem-pipeline.md`.
   * 🧠 **Мозговой штурм экспертной коллегии:** Сформирован протокол консилиума 5 архитектурных ролей `docs/architecture/MCP_OPENROUTER_BRAINSTORM_2026.md`.

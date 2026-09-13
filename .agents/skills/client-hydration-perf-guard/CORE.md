@@ -1,21 +1,6 @@
-# client-hydration-perf-guard (L1 Core Invariants)
-> **Статус:** CRITICAL GATE | **Бюджет:** < 450 токенов | **Слой:** L1 Fast Core
-
-## 🛑 HARD INVARIANTS (КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО)
-1. **Zero Hydration Mismatch:** Запрещен рендеринг локализованных дат (`toLocaleDateString()`) на сервере без `suppressHydrationWarning` или клиентского хука `useMounted()`.
-2. **Lazy Heavy Components:** Графики (Recharts), тяжелые редакторы и модалки обязаны импортироваться динамически через `next/dynamic` с `{ ssr: false, loading: () => <Skeleton /> }`.
-3. **First Load JS Budget:** Объем клиентского JS на страницу не должен превышать 150 КБ. Запрещен импорт монолитных пакетов (`lodash`, `moment`).
-4. **Safe SVG Icons Only:** Все кастомные SVG обязаны рендериться как изолированные React-компоненты без `dangerouslySetInnerHTML`.
-5. **No Window References in SSR:** Обращения к `window`, `document`, `localStorage` допустимы только внутри `useEffect` или обработчиков событий.
-
-## ⚡ FAST RULES & FORMULAS
-- Динамический график: `const Chart = dynamic(() => import('./chart'), { ssr: false, loading: () => <ChartSkeleton /> });`.
-- Безопасная дата: `<time dateTime={isoDate} suppressHydrationWarning>{formattedDate}</time>`.
-
-## 🔍 PRE-MORTEM QUICK CHECK
-- [ ] Защищен ли рендеринг дат от Hydration Mismatch?
-- [ ] Обернуты ли графики в `next/dynamic` с `ssr: false`?
-- [ ] Нет ли прямых вызовов `window` при первой отрисовке?
-
----
-*Для полного руководства см. [SKILL.md](./SKILL.md) (L2 Deep).*\n
+# CORE: client-hydration-perf-guard (React 19 & Zero CLS Guard)
+1. **Zero CLS (< 0.05):** Все изображения, видео и скелетоны `Suspense` обязаны иметь фиксированное геометрическое резервирование (`aspect-*`, `min-h-*`), исключая сдвиги макета при рендере.
+2. **Strict HTML5 Nesting:** Категорический запрет `<button>` в `<button>`, `<p>` в `<p>`, `<a>` в `<a>`. Использовать паттерн `asChild` (Radix/HeroUI) для вложенных триггеров.
+3. **SSR Date/Time Isolation:** Динамические даты и часовые пояса обязаны содержать атрибут `suppressHydrationWarning` или рендериться строго после монтирования (`mounted`).
+4. **SVG Collision Guard:** Все `clipPath`, `linearGradient` и маски в SVG обязаны иметь уникальные префиксированные ID, предотвращая конфликт стилей при гидратации.
+5. **Fail-Closed Boundaries:** Каждая критическая секция оборачивается в `<ErrorBoundary>` с изолированным fallback-UI.

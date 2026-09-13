@@ -93,6 +93,19 @@
 
 Платформа оснащена CLI и MCP-инструментами:
 - **`npm run layout:audit`**: статический и AST-аудит компонентов на дефекты верстки и вложенности.
-- **`npm run layout:fix`**: автоматическое исправление (Auto-Healer) с инъекцией `shrink-0`, `min-w-0`, `w-full max-w-full` и коррекцией шрифтов инпутов.
+- **`npm run layout:fix`**: автоматическое исправление (Auto-Healer) с инъекцией `shrink-0`, `min-w-0`, `w-full max-w-full`, `pb-safe`, `type="button"` и коррекцией шрифтов инпутов.
 - **`npm run layout:fix -- --dry-run`**: предварительный просмотр изменений без модификации файлов.
-- **`npm run layout:mcp`**: запуск Model Context Protocol сервера для автономных ИИ-агентов.
+- **`npm run layout:mcp`**: запуск Model Context Protocol сервера с живым Playwright Chromium DOM-пробингом.
+
+---
+
+## 6. Синтез лучших практик индустрии (Claude, Gemini, Cursor, Vercel, GitHub)
+
+| Вектор / Источник | Ключевая концепция | Архитектурная реализация в OmniSMM 1.0 |
+|---|---|---|
+| **Anthropic (Claude)** | Defensive CSS & Fail-Closed Boundaries | Защита от распирания контейнеров: связки `truncate min-w-0`, `break-words`, `shrink-0`, `isolation: isolate`. |
+| **Google DeepMind (Gemini)** | Touch Ergonomics & Zero-Slop Design | Сенсорная область $\ge 44 \times 44\text{px}$ (WCAG 2.2 AA), расстояние $\ge 8\text{px}$, bespoke дизайн без шаблонных ИИ-клише. |
+| **Cursor (.cursorrules)** | Predictable Tailwind Stream & Anti-Bleed | Канонический порядок классов, строгий запрет `w-screen`, авто-лечение дефектов через Codemod AST. |
+| **Vercel (Next.js 16)** | Zero CLS & Hybrid Responsive Modals | Резервирование геометрии скелетонов `Suspense` (`aspect-*`, `min-h-*`), шторка (Drawer) на мобилке, диалог на десктопе. |
+| **GitHub (Primer DS)** | High-Density Data Grid & Viewport 100% Fit | Вписывание таблиц в видимый экран 1366px без скролла, лимит 7–9 емких колонок, вынос деталей в popovers. |
+

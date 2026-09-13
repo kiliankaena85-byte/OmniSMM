@@ -63,6 +63,21 @@ tags: [mobile-first, responsive, tailwind-4, touch-target, safe-area, dvh, thumb
 <div className="active:scale-[0.98] md:hover:bg-primary/10 md:hover:scale-[1.01] transition-all">...</div>
 ```
 
+### 2.5. Эргономика касания (WCAG 2.2 Level AA Touch Target $\ge 44\text{px}$)
+По стандарту WCAG 2.2 (Success Criterion 2.5.8 Target Size) и рекомендациям Apple HIG / Google Material:
+- Минимальный физический размер кликабельной области кнопки, иконки или таба на сенсорном экране обязан быть **не менее $44 \times 44\text{px}$** (допускается видимый значок $16$–$20\text{px}$ с внутренними отступами `p-2.5` или `h-11 w-11 flex items-center justify-center`).
+- Зазор между центрами соседних интерактивных элементов — **не менее $8\text{px}$**, предотвращая ошибочные случайные тапы.
+```tsx
+// ❌ СБОЙ: микро-кнопка 24x24px, сложно попасть пальцем
+<button className="h-6 w-6 p-0.5 rounded"><TrashIcon className="w-4 h-4 shrink-0" /></button>
+
+// ✅ ПРАВИЛЬНО: видимая компактность, но область тапа 44x44px
+<button className="h-11 w-11 flex items-center justify-center rounded-lg active:bg-accent md:h-8 md:w-8">
+  <TrashIcon className="w-4 h-4 shrink-0" />
+</button>
+```
+
+
 ---
 
 ## 3. Thumb Zone Architecture (Эргономика одной руки)

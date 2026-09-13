@@ -171,7 +171,67 @@ export async function handleMcpRequest(request: any): Promise<any> {
       }
 
       if (toolName === 'layout_dom_probe') {
-        // DOM probe stub / Playwright integration
+        const url = args.url || 'http://127.0.0.1:3000';
+        const width = Number(args.width) || 375;
+        const height = Number(args.height) || 667;
+
+        const liveProbeResult = {
+          status: 'success',
+          viewport: { width, height },
+          url,
+          scrollWidth: width,
+          clientWidth: width,
+          horizontalScroll: false,
+          culprits: [] as any[],
+          squashedIconsCount: 0,
+          error: null as string | null
+        };
+
+        try {
+          const { chromium } = await import('playwright');
+          const browser = await chromium.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+          });
+          const page = await browser.newPage({
+            viewport: { width, height }
+          });
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 7000 });
+          await page.waitForTimeout(300);
+
+          const probeData = await page.evaluate((vw) => {
+            const scrollWidth = document.documentElement.scrollWidth;
+            const clientWidth = document.documentElement.clientWidth;
+            const culprits: { tag: string; className: string; overflowPx: number }[] = [];
+            document.querySelectorAll('*').forEach((el) => {
+              const rect = el.getBoundingClientRect();
+              if (rect.right > vw + 1) {
+                culprits.push({
+                  tag: el.tagName.toLowerCase(),
+                  className: (el.className || '').toString().slice(0, 80),
+                  overflowPx: Math.round(rect.right - vw)
+                });
+              }
+            });
+            let squashed = 0;
+            document.querySelectorAll('svg').forEach((svg) => {
+              const rect = svg.getBoundingClientRect();
+              if (rect.width > 0 && rect.width < 12) squashed++;
+            });
+            return { scrollWidth, clientWidth, culprits: culprits.slice(0, 10), squashed };
+          }, width);
+
+          await browser.close();
+
+          liveProbeResult.scrollWidth = probeData.scrollWidth;
+          liveProbeResult.clientWidth = probeData.clientWidth;
+          liveProbeResult.horizontalScroll = probeData.scrollWidth > width;
+          liveProbeResult.culprits = probeData.culprits;
+          liveProbeResult.squashedIconsCount = probeData.squashed;
+        } catch (err: any) {
+          liveProbeResult.error = `Live probe fallback: ${err.message}`;
+        }
+
         return {
           jsonrpc: '2.0',
           id,
@@ -179,17 +239,7 @@ export async function handleMcpRequest(request: any): Promise<any> {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify(
-                  {
-                    status: 'success',
-                    viewport: { width: args.width || 375, height: args.height || 667 },
-                    url: args.url || 'http://127.0.0.1:3000',
-                    horizontalScroll: false,
-                    culprits: []
-                  },
-                  null,
-                  2
-                )
+                text: JSON.stringify(liveProbeResult, null, 2)
               }
             ]
           }

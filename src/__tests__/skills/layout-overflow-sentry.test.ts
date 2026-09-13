@@ -19,10 +19,21 @@ describe('Skill Contract: layout-overflow-sentry', () => {
     expect(fs.existsSync(standardFile)).toBe(true);
   });
 
-  it('1.2 should strictly satisfy L1 CORE.md token/line budget (<= 25 lines)', () => {
-    const coreContent = fs.readFileSync(coreFile, 'utf8');
-    const lines = coreContent.split('\n').filter(l => l.trim().length > 0);
-    expect(lines.length).toBeLessThanOrEqual(25);
+  it('1.2 should strictly satisfy L1 CORE.md token/line budget (<= 25 lines) across all UI skills', () => {
+    const uiSkills = [
+      'layout-overflow-sentry',
+      'mobile-first-responsive-architect',
+      'viewport-responsive-density',
+      'client-hydration-perf-guard'
+    ];
+
+    for (const skillName of uiSkills) {
+      const corePath = path.resolve(process.cwd(), '.agents/skills', skillName, 'CORE.md');
+      expect(fs.existsSync(corePath), `CORE.md must exist for ${skillName}`).toBe(true);
+      const coreContent = fs.readFileSync(corePath, 'utf8');
+      const lines = coreContent.split('\n').filter(l => l.trim().length > 0);
+      expect(lines.length, `Line budget for ${skillName} must be <= 25`).toBeLessThanOrEqual(25);
+    }
   });
 
   it('1.3 should contain core layout invariants in SKILL.md', () => {
@@ -82,6 +93,9 @@ export function SyntheticLayoutTest() {
       <Zap className="w-5 h-5 text-primary" />
       <span className="truncate">Title</span>
       <input type="text" className="text-xs px-2" />
+      <div className="fixed inset-x-0 bottom-0 bg-background border-t">
+        <button onClick={() => console.log('click')}>Action</button>
+      </div>
     </div>
   );
 }
@@ -90,13 +104,15 @@ export function SyntheticLayoutTest() {
 
     // Run heal on synthetic file
     const healResult = healLayoutFiles({ dryRun: false, scope: testFile });
-    expect(healResult.fixesApplied).toBeGreaterThanOrEqual(3);
+    expect(healResult.fixesApplied).toBeGreaterThanOrEqual(5);
 
     const healedContent = fs.readFileSync(testFile, 'utf8');
     expect(healedContent).toContain('shrink-0');
     expect(healedContent).toContain('w-full max-w-full');
     expect(healedContent).toContain('min-w-0');
     expect(healedContent).toContain('text-base sm:text-xs');
+    expect(healedContent).toContain('safe-area-inset-bottom');
+    expect(healedContent).toContain('type="button"');
 
     // Clean up
     fs.unlinkSync(testFile);
@@ -124,7 +140,7 @@ export function SyntheticLayoutTest() {
     expect(toolsRes.result.tools.map((t: any) => t.name)).toContain('layout_dom_probe');
   });
 
-  it('3.2 should handle MCP tools/call for layout_audit and layout_autofix', async () => {
+  it('3.2 should handle MCP tools/call for layout_audit, layout_autofix, and layout_dom_probe', async () => {
     const callAudit = await handleMcpRequest({
       jsonrpc: '2.0',
       id: 3,
@@ -151,5 +167,19 @@ export function SyntheticLayoutTest() {
     const parsedHeal = JSON.parse(callHeal.result.content[0].text);
     expect(parsedHeal.status).toBe('success');
     expect(parsedHeal.dryRun).toBe(true);
+
+    const callProbe = await handleMcpRequest({
+      jsonrpc: '2.0',
+      id: 5,
+      method: 'tools/call',
+      params: {
+        name: 'layout_dom_probe',
+        arguments: { width: 390, height: 844 }
+      }
+    });
+    expect(callProbe.result.content[0].type).toBe('text');
+    const parsedProbe = JSON.parse(callProbe.result.content[0].text);
+    expect(parsedProbe.status).toBe('success');
+    expect(parsedProbe.viewport.width).toBe(390);
   });
 });

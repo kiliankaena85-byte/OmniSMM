@@ -17,7 +17,7 @@ import { COMPONENT_DIRS } from './layout-sentry';
 export interface AppliedFix {
   file: string;
   line: number;
-  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL';
+  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL' | 'INJECT_PB_SAFE' | 'BUTTON_TYPE_ATTRIBUTE';
   before: string;
   after: string;
 }
@@ -142,6 +142,36 @@ export function healLayoutFiles(options: HealOptions = {}): HealResult {
             file: relPath,
             line: lineNum,
             type: 'TABLE_W_FULL',
+            before: origLine.trim(),
+            after: line.trim()
+          });
+          isFileDirty = true;
+        }
+
+        // 6. Inject pb-safe / safe-area padding into fixed bottom panels
+        if (/\bclassName="[^"]*fixed\b[^"]*bottom-0[^"]*"/.test(line)) {
+          if (!line.includes('pb-') && !line.includes('safe-area')) {
+            line = line.replace(/className="([^"]*)"/, (match, classList) => {
+              return `className="${classList} pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-0"`;
+            });
+            appliedFixes.push({
+              file: relPath,
+              line: lineNum,
+              type: 'INJECT_PB_SAFE',
+              before: origLine.trim(),
+              after: line.trim()
+            });
+            isFileDirty = true;
+          }
+        }
+
+        // 7. Explicit button type="button" on interactive buttons with onClick without type
+        if (/<button\s+[^>]*onClick=[^>]*>/.test(line) && !line.includes('type=') && !line.includes('asChild')) {
+          line = line.replace(/<button\s+/, '<button type="button" ');
+          appliedFixes.push({
+            file: relPath,
+            line: lineNum,
+            type: 'BUTTON_TYPE_ATTRIBUTE',
             before: origLine.trim(),
             after: line.trim()
           });
