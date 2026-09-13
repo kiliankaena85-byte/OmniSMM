@@ -58,6 +58,10 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 **Что случилось:** В контейнерах на базе Alpine Linux утилита `wget` резолвит `localhost` в IPv6 адрес `::1`, в то время как процесс Node.js Next.js слушает порт IPv4 `0.0.0.0:3000`. Это вызывало ложное падение healthcheck (`wget: can't connect to remote host: Connection refused`) и статус `unhealthy`.
 **Правило:** Во всех Dockerfile и docker-compose healthcheck директивах всегда указывать явный IPv4 адрес: `http://127.0.0.1:3000/api/health`, а не `localhost`.
 
+### 🔴 УРОК 9 — Prisma Schema @default и баг Short-Circuit в определении TargetType (2026-09-13)
+**Что случилось:** В `prisma/schema.prisma` поле `Service.targetType` имело `@default("POST")`. В коде хука `useOrderEngine.ts` фильтрация проверялась конструкцией `s.targetType || inferTargetTypeFromName(s.name)`. Поскольку строка `"POST"` истинна (truthy), правая часть `inferTargetTypeFromName` никогда не вычислялась, и все услуги (даже «Подписчики в Telegram канал») получали тип `"POST"`. При вводе ссылки на канал (`detectedType = "channel"`) проверка матрицы `isLinkServiceCompatible("channel", "POST")` возвращала `false`, и каталог становился абсолютно пустым (0 услуг).
+**Правило:** Категорически запрещено использовать `s.targetType || ...` для определения типа услуги. Всегда использовать `resolveServiceTargetType(service)` из `@/utils/target-type-mapper`, которая корректно переопределяет дефолтные типы (`"POST"`, `"CUSTOM"`) на основе семантического анализа названия услуги.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)

@@ -209,6 +209,11 @@
 - ✅ **Drip-Feed Floor Invariant:** При активации Drip-Feed ($N$ запусков) или Smart Drip ($D$ дней) нижняя граница допустимого количества (`min`) и текущее значение в UI **ОБЯЗАНЫ автоматически масштабироваться** минимум до $\text{service.minQty} \times N$. Степперы и валидаторы форм обязаны запрещать декремент ниже этого значения.
 - ✅ **Fail-Closed Backend Check:** `checkoutAction` обязан строго валидировать `Math.floor(totalQuantity / runs) >= service.minQty` и отклонять невалидные запросы с понятной ошибкой до списания средств.
 
+### Каталог, таксономия и валидация типов услуг (TargetType Resolution Invariant)
+- ❌ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** писать проверки вида `s.targetType || inferTargetTypeFromName(s.name)` или `selectedService.targetType || inferTargetTypeFromCategory(...)`.
+- В схеме Prisma `Service.targetType` имеет `@default("POST")`, поэтому поле всегда является truthy-строкой, и правая часть `||` никогда не выполняется (short-circuit баг). Это приводит к блокировке услуг каналов (`LinkType.CHANNEL` не совместим с `POST`), делая каталог пустым при вводе ссылок `t.me/*`.
+- ✅ **ОБЯЗАТЕЛЬНО** использовать `resolveServiceTargetType(service)` из `@/utils/target-type-mapper`. Функция безопасно переопределяет дефолтный `"POST"` или `"CUSTOM"` на реальный семантический тип (`CHANNEL`, `VIDEO`, `POLL`, `STORY`, `BOT`) на основе анализа названия услуги.
+
 ### Таблицы и компоновка данных (No Horizontal Scroll & Zero Column Clipping Rule)
 - ❌ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** допускать появление горизонтального скролла в таблицах данных и административных интерфейсах.
 - ❌ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** обрезать столбцы или скрывать правые колонки (действия, цены, статусы) за пределами видимой области экрана.

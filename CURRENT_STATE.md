@@ -1,4 +1,11 @@
 # CURRENT_STATE.md
+- [x] Устранение бага отображения услуг Telegram при вводе ссылок на каналы (`resolveServiceTargetType`) — (100% COMPLETE & VERIFIED):
+  * 🎯 **Корневая причина:** Поле `Service.targetType` в Prisma имеет `@default("POST")`. Конструкция `s.targetType || inferTargetTypeFromName(s.name)` из-за truthy-значения строки `"POST"` никогда не вызывала вывод типа по названию. В результате все услуги каналов отсекались матрицей `isLinkServiceCompatible('channel', 'POST') = false`.
+  * 🛠️ **Исправление (`useOrderEngine.ts`):** В 4 местах (кэш-фильтр, фетч-фильтр, валидатор чекаута, плашка совместимости) заменено на `resolveServiceTargetType(s)`, которая семантически извлекает истинный тип (`CHANNEL`, `VIDEO`, `POLL` и т.д.) по названию услуги.
+  * 🧪 **Верификация:**
+    - TypeScript check (`tsc --noEmit`): 0 ошибок.
+    - Атомарный коммит `aa009c42` и push в `origin/main`.
+    - Сборка и деплой Docker контейнера `smmplan_web` (HTTP 200).
 - [x] Внедрение точечного скролла валидации (Targeted Validation Scroll) и полное устранение подпрыгиваний экрана — (100% COMPLETE & VERIFIED):
   * 🎯 **Точечный фокус на ошибках заполнения:**
     - Скролл срабатывает СТРОГО при ошибках валидации («Забыл ссылку» $\to$ скролл к инпуту ссылки; «Забыл email» $\to$ скролл к полю email; «Забыл чекбокс» $\to$ скролл к блоку оферты с шейк-анимацией).

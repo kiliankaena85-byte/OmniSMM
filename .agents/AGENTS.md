@@ -95,6 +95,11 @@
 - ❌ **ЗАПРЕЩЕНО** добавлять навязчивые чипсы пресетов количества (`[100, 500, 1000]`). Поле объема использует чистый прямой ввод и степпер `–` / `+`.
 - **CRITICAL Drip-Feed Floor Invariant**: При оформлении Drip-Feed ($N$ запусков) или Smart Drip ($D$ дней) объем на один запуск $\lfloor \text{quantity} / \text{runs} \rfloor$ **НЕ МОЖЕТ быть меньше** `service.minQty`. Минимальный общий объем заказа в UI и на бэкенде **СТРОГО** $\ge \text{service.minQty} \times N$. При переключении Drip-Feed степпер и значение объема обязаны автоматически масштабироваться до этого минимума.
 
+## 4.1. Catalog TargetType Semantic Resolution (Zero False-Incompatibility)
+- ❌ **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО** определять или фильтровать тип услуги через `s.targetType || inferTargetTypeFromName(s.name)`.
+- Поскольку в `prisma/schema.prisma` поле `Service.targetType` имеет `@default("POST")`, оно всегда truthy, блокируя вызов функции инференса по названию. В результате ссылки на каналы (`t.me/*`) не получают услуг из-за несовместимости `LinkType.CHANNEL` с `ServiceTargetType.POST`.
+- ✅ **ОБЯЗАТЕЛЬНО** использовать `resolveServiceTargetType(service)` из `@/utils/target-type-mapper` во всех фильтрах каталога, валидациях чекаута и плашках совместимости.
+
 ---
 
 ## 5. Multi-Tenant & SEO Verification

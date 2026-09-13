@@ -109,3 +109,17 @@ await checkoutAction({
 - `src/components/orders/wizard/QuantityDripStep.tsx` (~150 строк)
 - `src/components/orders/wizard/PaymentGatewayStep.tsx` (~130 строк)
 - `src/components/orders/wizard/StickySummaryBar.tsx` (~90 строк)
+
+### 2.8. INV-8: Семантическое разрешение TargetType (Zero False-Incompatibility)
+В схеме БД поле `Service.targetType` по умолчанию равно `"POST"`.
+Запрещено доверять `service.targetType` напрямую или использовать fallback через логическое ИЛИ:
+```tsx
+// ❌ БАГ: "POST" truthy, inferTargetTypeFromName никогда не вызовется!
+const target = s.targetType || inferTargetTypeFromName(s.name);
+
+// ✅ ПРАВИЛЬНО: умное разрешение дефолтов
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
+const target = resolveServiceTargetType(s);
+const isCompatible = isLinkServiceCompatible(detectedLinkType, target);
+```
+При любой фильтрации каталога по типу ссылки (`channel`, `post`, `profile`) или проверке совместимости в чекауте обязательно использовать `resolveServiceTargetType(service)`.
