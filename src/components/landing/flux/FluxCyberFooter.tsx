@@ -20,15 +20,6 @@ export function FluxCyberFooter({
   brandName?: string;
 }) {
   const supportEmail = contactSettings?.SUPPORT_EMAIL || "support@smmflux.ru";
-  const inn = contactSettings?.LEGAL_INN && contactSettings.LEGAL_INN !== "Укажите ИНН" && contactSettings.LEGAL_INN !== "000000000000"
-    ? contactSettings.LEGAL_INN
-    : "695006320024";
-  const ogrnip = contactSettings?.LEGAL_OGRNIP && contactSettings.LEGAL_OGRNIP !== "Укажите ОГРНИП" && contactSettings.LEGAL_OGRNIP !== "300000000000000"
-    ? contactSettings.LEGAL_OGRNIP
-    : "";
-  const address = contactSettings?.LEGAL_ADDRESS && !contactSettings.LEGAL_ADDRESS.includes("укажите") && contactSettings.LEGAL_ADDRESS !== "г. Москва"
-    ? contactSettings.LEGAL_ADDRESS
-    : "Российская Федерация, Тверская область, г. Тверь";
 
   return (
     <footer className="w-full bg-[#0a0d18] text-foreground pt-14 md:pt-20 pb-10 md:pb-14 border-t border-purple-500/20 relative overflow-hidden mt-auto shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
@@ -169,8 +160,8 @@ export function FluxCyberFooter({
       <div className="max-w-7xl mx-auto px-4 md:px-8 border-t border-neutral-800/80 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-neutral-400 relative z-10">
         <div className="flex flex-col gap-1">
           <p className="font-bold text-neutral-200">© {new Date().getFullYear()} {brandName}. Все права защищены.</p>
-          <p className="text-xs text-foreground/70 font-medium">
-            {contactSettings?.COMPANY_NAME || "ИП Соколов Артём Андреевич"} (ИНН: {inn})
+          <p className="text-xs text-neutral-400 font-medium">
+            Информационно-техническая платформа
           </p>
         </div>
         

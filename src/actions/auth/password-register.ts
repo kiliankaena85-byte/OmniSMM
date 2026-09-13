@@ -30,10 +30,20 @@ export async function registerWithPasswordAction(prevState: unknown, formData: F
     return { error: parsed.error.errors[0].message, success: false };
   }
 
-  const { email, password } = parsed.data;
+  const { email, password, captchaToken } = parsed.data;
   const cleanEmail = email.toLowerCase().trim();
 
   try {
+    const { verifySmartCaptchaToken } = await import('@/services/security/smartcaptcha.service');
+    const clientIp = await getClientIp().catch(() => '127.0.0.1');
+
+    // SmartCaptcha Validation (Fail-closed in production if enabled)
+    const captchaResult = await verifySmartCaptchaToken(captchaToken, clientIp);
+    if (!captchaResult.success) {
+      log.warn('Password registration blocked by SmartCaptcha', { ip: clientIp, email: cleanEmail });
+      return { error: captchaResult.error || 'Проверка капчи не пройдена', success: false };
+    }
+
     // 1. IP-level registration limit (Max 3 registrations per 24 hours per IP to prevent spam/abuse)
     const isIpAllowed = await RateLimitService.check('auth:register:ip', 3, 86400);
     if (!isIpAllowed) {
@@ -54,7 +64,6 @@ export async function registerWithPasswordAction(prevState: unknown, formData: F
     }
 
     const tenantId = normalizeTenantId(rawTenantId) || "smmplan";
-    const clientIp = await getClientIp().catch(() => '127.0.0.1');
     const passwordHash = await hashPassword(password);
 
     // 2. Transaction for atomic user creation with automatic retry on serialization conflicts

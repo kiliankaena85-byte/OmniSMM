@@ -74,25 +74,30 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
   // Live Preview States (Tenant-Aware Defaults)
   const defaultSiteName = tenantId === 'flux' ? 'SMMflux' : 'SMMplan';
   const defaultEmail = tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro';
+  const defaultPrivacyEmail = tenantId === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
 
   const [maintenance, setMaintenance] = useState<boolean>(Boolean(settings.maintenanceMode));
   const [siteName, setSiteName] = useState<string>(settings.siteName || defaultSiteName);
   const [siteDescription, setSiteDescription] = useState<string>(settings.siteDescription || '');
   const [supportEmail, setSupportEmail] = useState<string>(settings.contactSupportEmail || defaultEmail);
+  const [privacyEmail, setPrivacyEmail] = useState<string>(settings.contactPrivacyEmail || defaultPrivacyEmail);
   const [telegramBot, setTelegramBot] = useState<string>(settings.contactTelegramBot || '');
-  const [companyName, setCompanyName] = useState<string>(settings.legalCompanyName || 'ИП Иванов И. И.');
-  const [companyInn, setCompanyInn] = useState<string>(settings.legalCompanyInn || '770000000000');
-  const [companyOgrnip, setCompanyOgrnip] = useState<string>(settings.legalCompanyOgrnip || '300000000000000');
+  const [companyName, setCompanyName] = useState<string>(settings.legalCompanyName || defaultSiteName);
+  const [companyInn, setCompanyInn] = useState<string>(settings.legalCompanyInn || '');
+  const [companyOgrnip, setCompanyOgrnip] = useState<string>(settings.legalCompanyOgrnip || '');
+  const [companyAddress, setCompanyAddress] = useState<string>(settings.legalCompanyAddress || '');
 
   useEffect(() => {
     setMaintenance(Boolean(settings.maintenanceMode));
     setSiteName(settings.siteName || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan'));
     setSiteDescription(settings.siteDescription || '');
     setSupportEmail(settings.contactSupportEmail || (tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro'));
+    setPrivacyEmail(settings.contactPrivacyEmail || (tenantId === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro'));
     setTelegramBot(settings.contactTelegramBot || '');
-    setCompanyName(settings.legalCompanyName || 'ИП Иванов И. И.');
-    setCompanyInn(settings.legalCompanyInn || '770000000000');
-    setCompanyOgrnip(settings.legalCompanyOgrnip || '300000000000000');
+    setCompanyName(settings.legalCompanyName || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan'));
+    setCompanyInn(settings.legalCompanyInn || '');
+    setCompanyOgrnip(settings.legalCompanyOgrnip || '');
+    setCompanyAddress(settings.legalCompanyAddress || '');
   }, [settings, tenantId]);
 
   // Handle explicit bot disconnect
@@ -704,7 +709,19 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
               name="contactSupportEmail"
               value={supportEmail}
               onChange={(e) => setSupportEmail(e.target.value)}
-              placeholder="support@smmplan.pro"
+              placeholder={defaultEmail}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Email по защите персональных данных (152-ФЗ)
+            </Label>
+            <Input
+              name="contactPrivacyEmail"
+              value={privacyEmail}
+              onChange={(e) => setPrivacyEmail(e.target.value)}
+              placeholder={defaultPrivacyEmail}
             />
           </div>
 
@@ -712,8 +729,8 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Telegram Канал новостей (@канал)</Label>
             <Input
               name="contactTelegramChannel"
-              defaultValue={settings.contactTelegramChannel || 'smmplan_news'}
-              placeholder="smmplan_news"
+              defaultValue={settings.contactTelegramChannel || (tenantId === 'flux' ? 'smmflux_news' : 'smmplan_news')}
+              placeholder={tenantId === 'flux' ? 'smmflux_news' : 'smmplan_news'}
             />
           </div>
 
@@ -723,7 +740,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
               name="legalCompanyName"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="ИП Иванов И. И."
+              placeholder={defaultSiteName}
             />
           </div>
 
@@ -733,7 +750,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
               name="legalCompanyInn"
               value={companyInn}
               onChange={(e) => setCompanyInn(e.target.value)}
-              placeholder="770000000000"
+              placeholder="Укажите ИНН"
               className={formState?.errors?.legalCompanyInn ? 'border-destructive focus-visible:ring-destructive' : ''}
             />
             {formState?.errors?.legalCompanyInn && (
@@ -741,15 +758,31 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
             )}
           </div>
 
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">ОГРН / ОГРНИП</Label>
             <Input
               name="legalCompanyOgrnip"
               value={companyOgrnip}
               onChange={(e) => setCompanyOgrnip(e.target.value)}
-              placeholder="300000000000000"
+              placeholder="Укажите ОГРНИП"
               className={formState?.errors?.legalCompanyOgrnip ? 'border-destructive focus-visible:ring-destructive' : ''}
             />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+              <span>Юридический адрес / Город</span>
+              <span className="text-[10px] text-muted-foreground font-normal lowercase">(необязательно для ИП по 152-ФЗ)</span>
+            </Label>
+            <Input
+              name="legalCompanyAddress"
+              value={companyAddress}
+              onChange={(e) => setCompanyAddress(e.target.value)}
+              placeholder="г. Москва (оставьте пустым для скрытия домашнего адреса ИП)"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              🛡️ Защита PII: если поле пустое, строка «Адрес» полностью исключается из договора-оферты.
+            </p>
           </div>
         </div>
 
@@ -758,17 +791,29 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-primary" />
             <span className="text-xs font-black uppercase tracking-wider text-foreground">
-              Предпросмотр подвала сайта (Как это видят клиенты)
+              Brand-First предпросмотр (Безопасность реквизитов оператора)
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-card border border-border/80 text-xs text-muted-foreground space-y-1.5 font-medium">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
-              <span className="font-bold text-foreground">© 2026 {siteName || 'SMMplan'}. Все права защищены.</span>
-              <span className="text-primary font-bold">Поддержка: {supportEmail || 'support@smmplan.pro'} | @{telegramBot}</span>
+          <div className="space-y-2.5">
+            <div className="p-3.5 rounded-xl bg-card border border-border/80 text-xs text-muted-foreground space-y-1 font-medium">
+              <div className="text-[11px] font-bold text-primary uppercase tracking-wider">1. Публичный подвал (Футер на главной):</div>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-border/40">
+                <span className="font-bold text-foreground">© 2026 {siteName || defaultSiteName}. Все права защищены.</span>
+                <span className="text-foreground/70">Информационно-техническая платформа</span>
+              </div>
             </div>
-            <div className="text-[11px] text-muted-foreground/80 pt-1">
-              Реквизиты: {companyName || 'ИП Иванов И. И.'} | ИНН: {companyInn || '770000000000'} | ОГРНИП: {companyOgrnip || '300000000000000'}
+
+            <div className="p-3.5 rounded-xl bg-card border border-border/80 text-xs text-muted-foreground space-y-1.5 font-medium">
+              <div className="text-[11px] font-bold text-primary uppercase tracking-wider">2. Реквизиты в договоре-оферте (/legal/terms):</div>
+              <div className="text-[11px] text-foreground/80 font-mono grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1.5 border-t border-border/40">
+                <div>Исполнитель: <strong>{companyName || defaultSiteName}</strong></div>
+                <div>ИНН: <strong>{companyInn || '—'}</strong></div>
+                <div>ОГРНИП: <strong>{companyOgrnip || '—'}</strong></div>
+                <div>Адрес: <strong>{companyAddress || '<скрыт по 152-ФЗ>'}</strong></div>
+                <div>Поддержка: <strong>{supportEmail || defaultEmail}</strong></div>
+                <div>ПДн (152-ФЗ): <strong>{privacyEmail || defaultPrivacyEmail}</strong></div>
+              </div>
             </div>
           </div>
         </div>

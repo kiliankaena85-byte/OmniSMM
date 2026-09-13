@@ -31,9 +31,9 @@ export const TENANT_CONFIG: Record<string, TenantConfig> = {
     domain: 'smmplan.pro',
     url: 'https://smmplan.pro',
     legal: {
-      name: 'ИП Соколов А. А.',
-      inn: '772401001012',
-      ogrn: '321774600123456',
+      name: 'SMMplan',
+      inn: '',
+      ogrn: '',
       email: 'support@smmplan.pro'
     }
   },
@@ -44,10 +44,10 @@ export const TENANT_CONFIG: Record<string, TenantConfig> = {
     domain: 'smmflux.ru',
     url: 'https://smmflux.ru',
     legal: {
-      name: 'ИП Соколов А. А.',
-      inn: '772401001012',
-      ogrn: '321774600123456',
-      email: 'support@smmplan.pro' // Единый контактный ящик домена
+      name: 'SMMflux',
+      inn: '',
+      ogrn: '',
+      email: 'support@smmflux.ru'
     }
   }
 };

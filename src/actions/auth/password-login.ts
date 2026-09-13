@@ -35,12 +35,20 @@ export async function loginWithPasswordAction(prevState: unknown, formData: Form
     return { error: parsed.error.errors[0].message, success: false };
   }
 
-  const { email, password, twoFactorCode } = parsed.data;
+  const { email, password, twoFactorCode, captchaToken } = parsed.data;
   const cleanEmail = email.toLowerCase().trim();
 
   try {
     const { SecurityAuditLogger } = await import('@/lib/security/audit-logger');
+    const { verifySmartCaptchaToken } = await import('@/services/security/smartcaptcha.service');
     const ipAddress = await getClientIp();
+
+    // SmartCaptcha Validation (Fail-closed in production if enabled)
+    const captchaResult = await verifySmartCaptchaToken(captchaToken, ipAddress);
+    if (!captchaResult.success) {
+      log.warn('Password login blocked by SmartCaptcha', { ip: ipAddress, email: cleanEmail });
+      return { error: captchaResult.error || 'Проверка капчи не пройдена', success: false };
+    }
 
     // 1. IP-level Rate Limit (Max 20 attempts per hour, 5 attempts per minute)
     const isIpAllowed = await RateLimitService.check('auth:password:ip', 20, 3600, true);

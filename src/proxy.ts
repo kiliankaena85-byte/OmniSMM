@@ -229,7 +229,7 @@ export function buildCspHeader(nonce: string, isHttps: boolean, rawIncomingHost:
   // In production: Strictly NO 'unsafe-inline' and NO 'unsafe-eval'!
   // In development: Allow 'unsafe-eval' solely for React 19 DevTools callstack reconstruction.
   const devEval = isDev ? " 'unsafe-eval'" : '';
-  const scriptSrcDirective = `'self' 'nonce-${nonce}' 'strict-dynamic'${devEval} 'sha256-wVBvCaOMJQL3BzklAV+hEw47mOS7LEEOsvxoGI+Kdg4=' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru`;
+  const scriptSrcDirective = `'self' 'nonce-${nonce}' 'strict-dynamic'${devEval} 'sha256-wVBvCaOMJQL3BzklAV+hEw47mOS7LEEOsvxoGI+Kdg4=' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://yookassa.ru https://auth.robokassa.ru https://mc.yandex.ru https://smartcaptcha.yandexcloud.net`;
   const styleSrcDirective = `'self' 'unsafe-inline' https://fonts.googleapis.com`;
 
   return `
@@ -240,10 +240,10 @@ export function buildCspHeader(nonce: string, isHttps: boolean, rawIncomingHost:
     font-src 'self' data: https://fonts.gstatic.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self' https://yookassa.ru https://auth.robokassa.ru;
+    form-action 'self' https://yookassa.ru https://auth.robokassa.ru https://*.yoomoney.ru;
     frame-ancestors 'self';
-    frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot;
-    connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot;
+    frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot https://smartcaptcha.yandexcloud.net https://*.sberbank.ru https://*.nspk.ru https://*.tinkoff.ru https://*.vtb.ru https://*.yoomoney.ru;
+    connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot https://mc.yandex.ru https://smartcaptcha.yandexcloud.net https://*.sberbank.ru https://*.nspk.ru https://*.tinkoff.ru https://*.vtb.ru;
     report-uri /api/telemetry/csp-report;
     ${shouldUpgradeInsecure ? 'upgrade-insecure-requests;' : ''}
   `.replace(/\s{2,}/g, ' ').trim();

@@ -360,9 +360,6 @@ export function PreLaunchHoldingScreen({
 
           <div className="flex flex-col sm:flex-row items-center gap-2 text-center md:text-right">
             <div>© {new Date().getFullYear()} {siteName}. Все права защищены.</div>
-            <div className="text-[11px] text-muted-foreground/80 font-medium">
-              ИП Соколов Артём Андреевич (ИНН: 695006320024)
-            </div>
           </div>
         </div>
       </footer>

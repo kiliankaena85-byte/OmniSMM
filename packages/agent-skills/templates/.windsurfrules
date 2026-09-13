@@ -1,0 +1,6 @@
+# OmniSMM Windsurf Rules Integration
+# Primary AI Developer Contract
+- Read AGENTS.md before planning or executing any task.
+- Verify changes against .agents/skills/INDEX.md.
+- Follow Clean Architecture: domain models and DB operations must never leak into client components.
+- Zero-Defect BGS-2026: isolate changes and test before touching production.

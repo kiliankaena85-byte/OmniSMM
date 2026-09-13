@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ExactMath } from '@/lib/financial/exact-math';
 import { IntelligenceLinkAnalyzer } from '@/services/analyzer/link-analyzer';
 import { IntelligencePlatform } from '@/services/analyzer/link-rules';
@@ -38,6 +38,51 @@ describe('🏛️ Client Dashboard Comprehensive Master Suite (8 Tabs & Financia
       expect(smmplanUser.tenantId).toBe('smmplan');
       expect(fluxUser.tenantId).toBe('flux');
       expect(smmplanUser.tenantId).not.toBe(fluxUser.tenantId);
+    });
+
+    it('1.4 calculates client loyalty tier and cashback thresholds correctly', async () => {
+      const { getLoyaltyInfo } = await import('@/lib/loyalty');
+      
+      const bronze = getLoyaltyInfo(BigInt(100000)); // 1 000 RUB
+      expect(bronze.tier).toBe('BRONZE');
+      expect(bronze.cashbackPercent).toBe(1);
+      expect(bronze.nextTierName).toBe('Silver');
+      expect(bronze.remainingToNextTierRub).toBe(4000);
+
+      const silver = getLoyaltyInfo(BigInt(1000000)); // 10 000 RUB
+      expect(silver.tier).toBe('SILVER');
+      expect(silver.cashbackPercent).toBe(3);
+      expect(silver.nextTierName).toBe('Gold');
+
+      const gold = getLoyaltyInfo(BigInt(3000000)); // 30 000 RUB
+      expect(gold.tier).toBe('GOLD');
+      expect(gold.cashbackPercent).toBe(5);
+      expect(gold.discountPercent).toBe(5);
+      expect(gold.nextTierName).toBeNull();
+      expect(gold.progressPercent).toBe(100);
+    });
+
+    it('1.5 validates canonical 7 social networks in launchpad (including Rutube & Dzen, excluding Twitch)', async () => {
+      const { TOP_LAUNCHPAD_NETWORKS } = await import('@/lib/loyalty');
+      expect(TOP_LAUNCHPAD_NETWORKS).toHaveLength(7);
+      const slugs = TOP_LAUNCHPAD_NETWORKS.map(n => n.slug);
+      expect(slugs).toContain('telegram');
+      expect(slugs).toContain('vk');
+      expect(slugs).toContain('instagram');
+      expect(slugs).toContain('youtube');
+      expect(slugs).toContain('tiktok');
+      expect(slugs).toContain('rutube');
+      expect(slugs).toContain('dzen');
+      expect(slugs).not.toContain('twitch');
+    });
+
+    it('1.6 computes order progress percentage deterministically for status rendering', async () => {
+      const { getOrderProgressPercent } = await import('@/lib/loyalty');
+      expect(getOrderProgressPercent('COMPLETED')).toBe(100);
+      expect(getOrderProgressPercent('IN_PROGRESS')).toBe(65);
+      expect(getOrderProgressPercent('PROVISIONING')).toBe(25);
+      expect(getOrderProgressPercent('PENDING')).toBe(10);
+      expect(getOrderProgressPercent('CANCELED')).toBe(0);
     });
   });
 

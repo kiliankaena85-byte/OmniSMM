@@ -26,31 +26,30 @@ export async function getLegalDocumentAction(slug: string) {
     const isFlux = resolvedTenantId === 'flux';
 
     const settings = await SettingsProvider.getContactAndLegalSettings(resolvedTenantId);
-    const defaultCompanyName = isFlux 
-      ? 'Индивидуальный предприниматель (SMMflux)' 
-      : 'Индивидуальный предприниматель Соколов Артём Андреевич';
-    const defaultCompanyInn = isFlux ? '780000000000' : '695006320024';
-    const defaultCompanyOgrnip = isFlux ? '320000000000000' : '320695200000000';
-    const defaultCompanyAddress = isFlux 
-      ? 'Российская Федерация, г. Санкт-Петербург' 
-      : 'Российская Федерация, Тверская область, г. Тверь';
-
+    const defaultCompanyName = isFlux ? 'SMMflux' : 'SMMplan';
     const companyName = settings.COMPANY_NAME || defaultCompanyName;
-    const inn = settings.COMPANY_INN || defaultCompanyInn;
-    const ogrnip = settings.COMPANY_OGRNIP || defaultCompanyOgrnip;
-    const address = settings.COMPANY_ADDRESS || defaultCompanyAddress;
+    const inn = settings.COMPANY_INN || '';
+    const ogrnip = settings.COMPANY_OGRNIP || '';
+    const address = settings.COMPANY_ADDRESS || '';
     const email = isFlux ? (settings.SUPPORT_EMAIL || 'support@smmflux.ru') : (settings.SUPPORT_EMAIL || 'support@smmplan.pro');
     const privacyEmail = isFlux ? (settings.PRIVACY_EMAIL || 'privacy@smmflux.ru') : (settings.PRIVACY_EMAIL || 'privacy@smmplan.pro');
     const siteName = isFlux ? 'SMMflux' : (settings.SITE_NAME || 'SMMplan');
     const telegramBot = settings.TELEGRAM_SUPPORT_BOT 
       ? (settings.TELEGRAM_SUPPORT_BOT.startsWith('@') ? settings.TELEGRAM_SUPPORT_BOT : `@${settings.TELEGRAM_SUPPORT_BOT}`) 
-      : (isFlux ? '@smmflux_support_bot' : '@SMMplansapport_bot');
+      : (isFlux ? '@smmflux_support_bot' : '@smmplan_support_bot');
 
     let finalHtml = post.contentHtml || "";
+
+    // Zero-Home-Address Disclosure Invariant (152-ФЗ / ст. 9 ЗоЗПП):
+    if (!address.trim()) {
+      finalHtml = finalHtml.replace(/<p><strong>Адрес:<\/strong>\s*\{\{COMPANY_ADDRESS\}\}<\/p>\s*/g, '');
+      finalHtml = finalHtml.replace(/<p><strong>Адрес:<\/strong>[\s\S]*?<\/p>/g, '');
+    }
+
     finalHtml = finalHtml
       .replace(/{{COMPANY_NAME}}/g, companyName)
-      .replace(/{{COMPANY_INN}}/g, inn)
-      .replace(/{{COMPANY_OGRNIP}}/g, ogrnip)
+      .replace(/{{COMPANY_INN}}/g, inn || '—')
+      .replace(/{{COMPANY_OGRNIP}}/g, ogrnip || '—')
       .replace(/{{COMPANY_ADDRESS}}/g, address)
       .replace(/{{SUPPORT_EMAIL}}/g, email)
       .replace(/{{PRIVACY_EMAIL}}/g, privacyEmail)

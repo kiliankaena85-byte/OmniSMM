@@ -132,21 +132,21 @@ describe('Multi-Tenant Legal & Fiscal Isolation Suite (54-ФЗ / 176-ФЗ / 425-
           TELEGRAM_SUPPORT_CHANNEL: '@smmplan_channel',
           WHATSAPP: '',
           VK: '',
-          COMPANY_NAME: 'ИП Соколов Артём Андреевич',
-          COMPANY_INN: '695006320024',
-          COMPANY_OGRNIP: '320695200000000',
-          COMPANY_ADDRESS: 'г. Тверь',
-          LEGAL_INN: '695006320024',
-          LEGAL_OGRNIP: '320695200000000',
-          LEGAL_ADDRESS: 'г. Тверь',
+          COMPANY_NAME: 'ИП Иванов И. И.',
+          COMPANY_INN: '770123456703',
+          COMPANY_OGRNIP: '320774600000025',
+          COMPANY_ADDRESS: 'г. Москва',
+          LEGAL_INN: '770123456703',
+          LEGAL_OGRNIP: '320774600000025',
+          LEGAL_ADDRESS: 'г. Москва',
         };
       });
 
       const planLegal = await SettingsProvider.getContactAndLegalSettings('smmplan');
       const fluxLegal = await SettingsProvider.getContactAndLegalSettings('flux');
 
-      expect(planLegal.COMPANY_NAME).toBe('ИП Соколов Артём Андреевич');
-      expect(planLegal.COMPANY_INN).toBe('695006320024');
+      expect(planLegal.COMPANY_NAME).toBe('ИП Иванов И. И.');
+      expect(planLegal.COMPANY_INN).toBe('770123456703');
 
       expect(fluxLegal.COMPANY_NAME).toBe('ИП Смирнов Дмитрий Сергеевич');
       expect(fluxLegal.COMPANY_INN).toBe('780212345678');
@@ -173,12 +173,12 @@ describe('Multi-Tenant Legal & Fiscal Isolation Suite (54-ФЗ / 176-ФЗ / 425-
     it('validates 12-digit Sole Proprietor INN with dual 11th & 12th checksum weights', async () => {
       const { validateInn } = await import('@/utils/tax-validators');
 
-      // Real valid 12-digit INN: 695006320024 (ИП Соколов)
-      // Check digit 11 = 2, Check digit 12 = 4
-      expect(validateInn('695006320024').valid).toBe(true);
+      // Valid 12-digit synthetic test INN: 770123456703
+      // Check digit 11 = 0, Check digit 12 = 3
+      expect(validateInn('770123456703').valid).toBe(true);
 
       // Invalid 12-digit INN
-      expect(validateInn('695006320025').valid).toBe(false);
+      expect(validateInn('770123456704').valid).toBe(false);
     });
 
     it('validates 15-digit OGRNIP with modulo 13 checksum algorithm', async () => {
@@ -220,7 +220,7 @@ describe('Multi-Tenant Legal & Fiscal Isolation Suite (54-ФЗ / 176-ФЗ / 425-
       const { validateCrossTenantLegalIndependence } = await import('@/utils/tax-validators');
 
       // Different tenants with distinct legal entities: OK
-      const tenantPlan = { tenantId: 'smmplan', inn: '695006320024', ogrnip: '315774600000016' };
+      const tenantPlan = { tenantId: 'smmplan', inn: '772401001012', ogrnip: '315774600000016' };
       const tenantFlux = { tenantId: 'flux', inn: '770123456789', ogrnip: '320774600000025' };
       expect(validateCrossTenantLegalIndependence(tenantPlan, tenantFlux).independent).toBe(true);
 
@@ -228,7 +228,7 @@ describe('Multi-Tenant Legal & Fiscal Isolation Suite (54-ФЗ / 176-ФЗ / 425-
       expect(validateCrossTenantLegalIndependence(tenantPlan, tenantPlan).independent).toBe(true);
 
       // Artificial business fragmentation (ст. 54.1 НК РФ): different tenants with identical INN
-      const illicitCopy = { tenantId: 'flux', inn: '695006320024', ogrnip: '320774600000025' };
+      const illicitCopy = { tenantId: 'flux', inn: '772401001012', ogrnip: '320774600000025' };
       const resultInn = validateCrossTenantLegalIndependence(tenantPlan, illicitCopy);
       expect(resultInn.independent).toBe(false);
       expect(resultInn.violationReason).toContain('ст. 54.1 НК РФ');

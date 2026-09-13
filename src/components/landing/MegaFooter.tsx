@@ -33,15 +33,6 @@ export function MegaFooter({
   }
 
   const supportEmail = contactSettings?.SUPPORT_EMAIL || "support@smmplan.pro";
-  const inn = contactSettings?.LEGAL_INN && contactSettings.LEGAL_INN !== "Укажите ИНН" && contactSettings.LEGAL_INN !== "000000000000"
-    ? contactSettings.LEGAL_INN
-    : "695006320024";
-  const ogrnip = contactSettings?.LEGAL_OGRNIP && contactSettings.LEGAL_OGRNIP !== "Укажите ОГРНИП" && contactSettings.LEGAL_OGRNIP !== "300000000000000"
-    ? contactSettings.LEGAL_OGRNIP
-    : "";
-  const address = contactSettings?.LEGAL_ADDRESS && !contactSettings.LEGAL_ADDRESS.includes("укажите") && contactSettings.LEGAL_ADDRESS !== "г. Москва"
-    ? contactSettings.LEGAL_ADDRESS
-    : "Российская Федерация, Тверская область, г. Тверь";
 
   return (
     <footer className="bg-card/90 dark:bg-card/40 text-foreground pt-12 md:pt-20 pb-8 md:pb-12 border-t border-border/80 relative overflow-hidden mt-auto shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
@@ -143,7 +134,7 @@ export function MegaFooter({
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold text-foreground">© {new Date().getFullYear()} {brandName}. Все права защищены.</p>
           <p className="text-xs text-foreground/70 font-medium">
-            {contactSettings?.COMPANY_NAME || "ИП Соколов Артём Андреевич"} (ИНН: {inn})
+            Информационно-техническая платформа
           </p>
         </div>
       </div>

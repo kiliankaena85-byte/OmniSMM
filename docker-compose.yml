@@ -174,7 +174,7 @@ services:
     volumes:
       - lite_uploads_data:/app/private/uploads
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     dns:
       - 77.88.8.8
       - 8.8.8.8
@@ -215,7 +215,7 @@ services:
     environment:
       - NODE_ENV=production
       - TUNNEL_TARGET=web:3000
-      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-cfut_EFnUoQN8CInbcwzNchPSrx0oWPReaNK8jtlvqENH1dec0681}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
     command: sh -c "apk add --no-cache openssh-client && node scripts/tunnel-daemon.mjs"
     dns:
       - 77.88.8.8

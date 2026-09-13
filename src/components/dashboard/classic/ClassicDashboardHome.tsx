@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShoppingCart, 
   Wallet, 
   Users, 
-  TrendingUp, 
   ArrowRight, 
   Clock, 
   Copy, 
@@ -14,13 +13,17 @@ import {
   Sparkles, 
   Zap, 
   RotateCcw,
-  ArrowUpRight
+  ArrowUpRight,
+  ExternalLink,
+  Award,
+  Activity
 } from 'lucide-react';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { formatBalance } from '@/lib/utils';
 import { PaymentAutoSync } from '@/components/orders/PaymentAutoSync';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useUserBalance } from '@/hooks/use-user-balance';
+import { formatBalance } from '@/lib/utils';
+import { getLoyaltyInfo, getOrderProgressPercent, TOP_LAUNCHPAD_NETWORKS } from '@/lib/loyalty';
+
 
 const STATUS_LABEL: Record<string, string> = {
   COMPLETED:       'Выполнен',
@@ -44,31 +47,31 @@ const STATUS_COLOR: Record<string, string> = {
   CANCELED:        'text-muted-foreground bg-muted border border-border',
 };
 
-const TOP_LAUNCHPAD = [
-  { slug: 'telegram', name: 'Telegram', desc: 'Подписчики, Просмотры, Реакции', bg: 'hover:border-sky-500/40 hover:shadow-sky-500/10' },
-  { slug: 'vk', name: 'ВКонтакте', desc: 'Подписчики, Лайки, Просмотры', bg: 'hover:border-blue-500/40 hover:shadow-blue-500/10' },
-  { slug: 'instagram', name: 'Instagram', desc: 'Фолловеры, Лайки, Reels', bg: 'hover:border-pink-500/40 hover:shadow-pink-500/10' },
-  { slug: 'youtube', name: 'YouTube', desc: 'Просмотры с удержанием, Shorts', bg: 'hover:border-red-500/40 hover:shadow-red-500/10' },
-  { slug: 'tiktok', name: 'TikTok', desc: 'Просмотры, Лайки, Подписчики', bg: 'hover:border-neutral-500/40 hover:shadow-neutral-500/10' },
-  { slug: 'twitch', name: 'Twitch', desc: 'Зрители на стрим, Фолловеры', bg: 'hover:border-purple-500/40 hover:shadow-purple-500/10' },
-];
-
-
+/**
+ * ExactMath Invariant: User financial attributes in integer kopecks (cents).
+ * All money handling uses BigInt kopecks representation with Banker's Rounding.
+ */
 export interface ClassicDashboardUser {
   id?: string;
   email?: string | null;
-  balance?: number | bigint;
-  balanceCents?: number | bigint;
-  totalSpent?: number | bigint;
+  /** Primary balance in BigInt kopecks */
+  balance?: bigint;
+  /** Kopecks serialized across Server/Client boundary */
+  balanceCents?: bigint | number;
+  /** Cumulative spent volume in BigInt kopecks */
+  totalSpent?: bigint | number;
   referralCode?: string | null;
-  referralBalance?: number | bigint;
+  referralBalance?: bigint | number;
 }
 
+/**
+ * ExactMath Invariant: Order charge in BigInt kopecks.
+ */
 export interface ClassicDashboardOrder {
   id: string;
   numericId: number;
   status: string;
-  charge: number | bigint;
+  charge: bigint | number;
   quantity: number;
   link?: string;
   serviceId?: string;
@@ -101,7 +104,20 @@ export function ClassicDashboardHome({
   initialCatalog?: Array<{ id: string; name: string; slug: string; [key: string]: unknown }>;
 }) {
   const [copiedLink, setCopiedLink] = useState(false);
-  const { balance: liveBalance } = useUserBalance(user.balanceCents ?? user.balance);
+  const rawBalance = user.balance ?? (user.balanceCents !== undefined ? BigInt(user.balanceCents) : BigInt(0));
+  const { balance: liveBalance } = useUserBalance(rawBalance);
+  const [greeting, setGreeting] = useState('Добро пожаловать');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) setGreeting('Доброе утро');
+    else if (hour >= 12 && hour < 18) setGreeting('Добрый день');
+    else if (hour >= 18 && hour < 23) setGreeting('Добрый вечер');
+    else setGreeting('Доброй ночи');
+  }, []);
+
+  const totalSpentKopecks = typeof user.totalSpent === 'bigint' ? user.totalSpent : BigInt(user.totalSpent ?? 0);
+  const loyalty = getLoyaltyInfo(totalSpentKopecks);
 
   const handleCopyReferral = () => {
     if (!user.referralCode) return;
@@ -116,19 +132,23 @@ export function ClassicDashboardHome({
       {hasPendingPayments && <PaymentAutoSync />}
 
       {/* ══════════ HERO GREETING BANNER ══════════ */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/90 to-primary/5 border border-border/80 p-6 sm:p-8 shadow-xl shadow-primary/5">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-border/80 p-6 sm:p-8 shadow-xl shadow-primary/5">
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-primary/10 text-primary border border-primary/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Личный кабинет SMMplan</span>
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>155 тарифов онлайн • Мгновенный запуск</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-              Добро пожаловать 👋
+              {greeting}, {user.email?.split('@')[0] || 'клиент'}! 👋
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-              {user.email} • Оптовые тарифы от 1 штуки без посредников
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium flex items-center gap-2 flex-wrap">
+              <span>Личный кабинет SMMplan</span>
+              <span>•</span>
+              <span className="text-foreground/80 font-semibold">{user.email}</span>
+              <span>•</span>
+              <span>Оптовые тарифы от 1 шт. без посредников</span>
             </p>
           </div>
 
@@ -138,7 +158,7 @@ export function ClassicDashboardHome({
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               <Zap className="w-4 h-4" />
-              <span>Создать заказ</span>
+              <span>Новый заказ</span>
             </Link>
             <Link
               href="/dashboard/add-funds"
@@ -153,62 +173,88 @@ export function ClassicDashboardHome({
 
       {/* ══════════ BENTO KPI CARDS ══════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Баланс */}
-        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between space-y-4">
+        {/* Карточка 1: Финансовый кошелёк */}
+        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-              Текущий баланс
+              Доступный баланс
             </span>
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <Wallet className="w-4 h-4" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                +{loyalty.cashbackPercent}% кэшбэк
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <Wallet className="w-4 h-4" />
+              </div>
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-500 to-pink-500 dark:from-sky-400 dark:via-indigo-400 dark:to-pink-400">
+            <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-600 to-violet-700 dark:from-sky-400 dark:via-indigo-400 dark:to-pink-400">
               {liveBalance}
             </div>
             <span className="text-[11px] text-muted-foreground font-medium block mt-0.5">
-              Доступно для моментального списания
+              Моментальное авто-списание за заказы
             </span>
           </div>
           <Link
             href="/dashboard/add-funds"
-            className="w-full py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center gap-1.5 text-xs font-extrabold transition-all duration-200"
+            aria-label="Пополнить баланс"
+            className="w-full min-h-[44px] py-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
-            + Пополнить счет <ArrowRight className="w-3.5 h-3.5" />
+            <span>+ Пополнить счет</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* Всего потрачено */}
+        {/* Карточка 2: Оборот & Лояльность */}
         <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-border transition-all duration-300 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-              Всего потрачено
+              Оборот & Статус
             </span>
-            <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-4 h-4" />
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${loyalty.badgeColor}`}>
+                {loyalty.tierName}
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
+                <Award className="w-4 h-4" />
+              </div>
             </div>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-foreground">
-                {(Number(user.totalSpent ?? 0) / 100).toLocaleString('ru-RU', { maximumFractionDigits: 0 })}
+                {formatBalance(totalSpentKopecks)}
               </span>
               <span className="text-sm font-bold text-muted-foreground">₽</span>
             </div>
-            <span className="text-[11px] text-muted-foreground font-medium block mt-0.5">
-              Суммарный объем за все время
-            </span>
+            
+            {/* Микро-прогресс лояльности */}
+            <div className="mt-2 space-y-1">
+              <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-primary to-indigo-500 h-1.5 rounded-full transition-all duration-500" 
+                  style={{ width: `${loyalty.progressPercent}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium block">
+                {loyalty.nextTierName 
+                  ? `Еще ${loyalty.remainingToNextTierRub.toLocaleString('ru-RU')} ₽ до ${loyalty.nextTierName}`
+                  : 'Максимальный Gold уровень'}
+              </span>
+            </div>
           </div>
           <Link
             href="/dashboard/transactions"
-            className="w-full py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-1.5 text-xs font-extrabold transition-all duration-200"
+            aria-label="Перейти в историю транзакций"
+            className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
-            История транзакций <ArrowRight className="w-3.5 h-3.5" />
+            <span>История транзакций</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* В работе */}
+        {/* Карточка 3: Заказы в работе */}
         <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-sky-500/40 transition-all duration-300 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
@@ -218,38 +264,49 @@ export function ClassicDashboardHome({
               {activeOrders > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
               )}
-              <Clock className="w-4 h-4" />
+              <Activity className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight flex items-center gap-2">
               <span>{activeOrders}</span>
-              {activeOrders > 0 && (
-                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                  Активно
+              {activeOrders > 0 ? (
+                <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2.5 py-0.5 rounded-full animate-pulse">
+                  Исполняются
+                </span>
+              ) : (
+                <span className="text-xs font-bold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                  Все закрыты
                 </span>
               )}
             </div>
             <span className="text-[11px] text-muted-foreground font-medium block mt-0.5">
-              {activeOrders > 0 ? 'Выполняются в фоновом режиме' : 'Нет активных задач прямо сейчас'}
+              {activeOrders > 0 ? 'Фоновый мониторинг выполнения' : 'Нет активных задач прямо сейчас'}
             </span>
           </div>
           <Link
             href="/dashboard/orders"
-            className="w-full py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-1.5 text-xs font-extrabold transition-all duration-200"
+            aria-label="Перейти в мои заказы"
+            className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
-            Мои заказы <ArrowRight className="w-3.5 h-3.5" />
+            <span>Мои заказы</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* Партнерка */}
+        {/* Карточка 4: Реферальная сеть */}
         <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
-              Рефералы
+              Партнёрка
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                10% доход
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
           </div>
           <div>
@@ -257,20 +314,21 @@ export function ClassicDashboardHome({
               <span>{referralCount}</span>
               <span className="text-xs font-bold text-muted-foreground">партнёров</span>
             </div>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="mt-2">
               <button
                 type="button"
                 onClick={handleCopyReferral}
-                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                aria-label="Скопировать реферальную ссылку"
+                className="w-full min-h-[44px] px-3 py-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary flex items-center justify-center gap-2 text-xs font-bold transition-all duration-200 active:scale-[0.98]"
               >
                 {copiedLink ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-500" />
+                    <Check className="w-4 h-4 text-emerald-500" />
                     <span>Скопировано!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-4 h-4" />
                     <span>Скопировать реф-ссылку</span>
                   </>
                 )}
@@ -279,65 +337,71 @@ export function ClassicDashboardHome({
           </div>
           <Link
             href="/dashboard/referrals"
-            className="w-full py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-1.5 text-xs font-extrabold transition-all duration-200"
+            aria-label="Перейти в партнёрский кабинет"
+            className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
-            Партнёрка <ArrowRight className="w-3.5 h-3.5" />
+            <span>Партнёрка</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
 
       {/* ══════════ QUICK LAUNCHPAD (БЫСТРЫЙ ЗАКАЗ ПО СОЦСЕТЯМ) ══════════ */}
-      {(() => {
-        const activeNetworksCount = initialCatalog.length > 0 ? initialCatalog.length : TOP_LAUNCHPAD.length;
-        const n = activeNetworksCount;
-        const pluralWord = (n % 10 === 1 && n % 100 !== 11) ? 'соцсеть' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'соцсети' : 'соцсетей';
-        return (
-          <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h2 className="text-base sm:text-lg font-black text-foreground tracking-tight">
-                  Быстрый заказ по соцсетям
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Выберите соцсеть для мгновенного перехода в визард
-                </p>
-              </div>
-              <Link
-                href="/dashboard/new-order"
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 shrink-0 self-start sm:self-auto"
-              >
-                <span>Все {n} {pluralWord}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-foreground tracking-tight flex items-center gap-2">
+              <span>Быстрый запуск по соцсетям</span>
+              <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                7 сетей
+              </span>
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Прямые шлюзы к 155 тарифам Vexboost с моментальным переходом в визард
+            </p>
+          </div>
+          <Link
+            href="/dashboard/new-order"
+            className="min-h-[44px] px-3.5 py-2 text-xs font-bold text-primary hover:underline flex items-center gap-1.5 shrink-0 self-start sm:self-auto rounded-xl hover:bg-primary/5 transition-colors"
+          >
+            <span>Полный каталог услуг</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-              {TOP_LAUNCHPAD.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={`/dashboard/new-order?network=${item.slug}`}
-                  className={`group bg-card/90 backdrop-blur-md border border-border/70 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:-translate-y-1 hover:shadow-xl transition-all duration-200 ${item.bg}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-secondary/80 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
-                      <SocialIcon slug={item.slug} className="w-6 h-6" />
-                    </div>
-                    <ArrowUpRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-sm text-foreground group-hover:text-primary transition-colors">
-                      {item.name}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground font-medium line-clamp-1 mt-0.5">
-                      {item.desc}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        );
-      })()}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          {TOP_LAUNCHPAD_NETWORKS.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/dashboard/new-order?network=${item.slug}`}
+              className={`group bg-card/90 backdrop-blur-md border border-border/70 rounded-2xl p-3.5 flex flex-col justify-between space-y-3 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 ${item.glow}`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-secondary/80 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
+                  <SocialIcon slug={item.slug} className="w-6 h-6" />
+                </div>
+                <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border ${item.badgeColor}`}>
+                  {item.badge}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-sm text-foreground group-hover:text-primary transition-colors">
+                    {item.name}
+                  </span>
+                  <ArrowUpRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                </div>
+                <div className="text-[10px] text-muted-foreground font-medium line-clamp-1">
+                  {item.desc}
+                </div>
+                <div className="text-[11px] font-black text-primary font-mono tracking-tight pt-1">
+                  {item.priceFrom.includes('/ шт') ? item.priceFrom : `${item.priceFrom} / шт`}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* ══════════ RECENT ORDERS FEED ══════════ */}
       <section className="space-y-4">
@@ -347,15 +411,16 @@ export function ClassicDashboardHome({
               Последние заказы
             </h2>
             <p className="text-xs text-muted-foreground">
-              История активности и статусы выполнения в реальном времени
+              История активности, статус выполнения и прогресс в реальном времени
             </p>
           </div>
           {orders.length > 0 && (
             <Link
               href="/dashboard/orders"
-              className="text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3.5 py-1.5 rounded-xl transition-all duration-200 flex items-center gap-1.5"
+              className="min-h-[44px] text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2"
             >
-              Все заказы <ArrowRight className="w-3.5 h-3.5" />
+              <span>Все заказы</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           )}
         </div>
@@ -365,52 +430,85 @@ export function ClassicDashboardHome({
             {orders.map((order) => {
               const color = STATUS_COLOR[order.status] || STATUS_COLOR.CANCELED;
               const label = STATUS_LABEL[order.status] || order.status;
+              const progress = getOrderProgressPercent(order.status);
               return (
                 <div
                   key={order.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:px-6 hover:bg-secondary/40 transition-colors duration-200 group"
+                  className="flex flex-col gap-3 p-4 sm:px-6 hover:bg-secondary/40 transition-colors duration-200 group"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-secondary/80 border border-border/60 flex items-center justify-center p-2 shrink-0 group-hover:scale-105 transition-transform">
-                      <SocialIcon slug={order.service?.category?.network?.slug || 'telegram'} className="w-5 h-5" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-secondary/80 border border-border/60 flex items-center justify-center p-2 shrink-0 group-hover:scale-105 transition-transform">
+                        <SocialIcon slug={order.service?.category?.network?.slug || 'telegram'} className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-[11px] font-extrabold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
+                            #{order.numericId}
+                          </span>
+                          <h3 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                            {order.service?.name || 'Услуга продвижения'}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                          <span className="font-semibold text-foreground">{order.quantity.toLocaleString('ru-RU')} шт.</span>
+                          <span>•</span>
+                          {order.link ? (
+                            <a 
+                              href={order.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center gap-1.5 hover:text-primary hover:underline truncate max-w-[200px] sm:max-w-[300px] min-h-[36px] sm:min-h-0 py-1"
+                              title={order.link}
+                            >
+                              <span className="truncate">{order.link}</span>
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground/60">Без ссылки</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0 space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] font-extrabold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
-                          #{order.numericId}
+
+                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                      <div className="text-right">
+                        <div className="text-sm font-black text-foreground font-mono tabular-nums">
+                          {formatBalance(BigInt(order.charge ?? 0))}
+                        </div>
+                        <span className={`inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase tracking-wider ${color}`}>
+                          {label}
                         </span>
-                        <h3 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                          {order.service?.name || 'Услуга продвижения'}
-                        </h3>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="font-semibold text-foreground">{order.quantity.toLocaleString('ru-RU')} шт.</span>
-                        <span>•</span>
-                        <span className="truncate max-w-[200px] sm:max-w-[300px]">{order.link}</span>
-                      </div>
+
+                      <Link
+                        // FIX(REPEAT): контракт reorder* — единственный, который читает /dashboard/new-order
+                        href={`/dashboard/new-order?reorderServiceId=${order.serviceId || ''}&reorderCategoryId=${order.service?.categoryId || ''}&reorderLink=${encodeURIComponent(order.link || '')}&reorderQty=${order.quantity}`}
+                        title="Повторить этот заказ"
+                        aria-label={`Повторить заказ #${order.numericId}`}
+                        className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border/60 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </Link>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
-                    <div className="text-right">
-                      <div className="text-sm font-black text-foreground font-mono tabular-nums">
-                        {(Number(order.charge) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽
-                      </div>
-                      <span className={`inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase tracking-wider ${color}`}>
-                        {label}
-                      </span>
-                    </div>
-
-                    <Link
-                      // FIX(REPEAT): контракт reorder* — единственный, который читает
-                      // /dashboard/new-order. Раньше serviceId=&link=&quantity= игнорировались
-                      // визардом, кнопка открывала пустую форму.
-                      href={`/dashboard/new-order?reorderServiceId=${order.serviceId || ''}&reorderCategoryId=${order.service?.categoryId || ''}&reorderLink=${encodeURIComponent(order.link || '')}&reorderQty=${order.quantity}`}
-                      title="Повторить этот заказ"
-                      className="p-2.5 rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border/60 transition-all duration-200"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </Link>
+                  {/* Линейный прогресс-бар выполнения */}
+                  <div className="w-full bg-secondary/60 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                        order.status === 'COMPLETED'
+                          ? 'bg-emerald-500'
+                          : order.status === 'IN_PROGRESS'
+                          ? 'bg-sky-500 animate-pulse'
+                          : order.status === 'PROVISIONING'
+                          ? 'bg-indigo-500'
+                          : order.status === 'PENDING'
+                          ? 'bg-amber-500'
+                          : 'bg-muted-foreground/30'
+                      }`}
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
                 </div>
               );
@@ -429,9 +527,10 @@ export function ClassicDashboardHome({
             </div>
             <Link
               href="/dashboard/new-order"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-200"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-200 min-h-[44px]"
             >
-              Создать первый заказ <ArrowRight className="w-4 h-4" />
+              <span>Создать первый заказ</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         )}
@@ -453,13 +552,14 @@ export function ClassicDashboardHome({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 max-w-md w-full sm:w-auto">
-            <div className="font-mono text-xs font-bold bg-secondary/80 px-4 py-2.5 rounded-2xl text-foreground truncate border border-border/80 flex-1 select-all">
+          <div className="flex items-center gap-3 max-w-md w-full sm:w-auto">
+            <div className="min-h-[44px] flex items-center font-mono text-xs font-bold bg-secondary/80 px-4 py-3 rounded-2xl text-foreground truncate border border-border/80 flex-1 select-all">
               {`${origin}/r/${user.referralCode}`}
             </div>
             <button
               onClick={handleCopyReferral}
-              className="px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+              aria-label="Скопировать реферальную ссылку"
+              className="min-h-[44px] px-5 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm flex items-center gap-2 shrink-0 shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
             >
               {copiedLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
               <span>{copiedLink ? 'Скопировано' : 'Копировать'}</span>

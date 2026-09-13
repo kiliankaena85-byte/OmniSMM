@@ -11,11 +11,14 @@ import { rateLimit } from "@/lib/security/rate-limit";
 import { getClientIp } from "@/utils/ip";
 import { normalizeTenantId } from "@/lib/tenant-resolver-edge";
 
+import { verifySmartCaptchaToken } from "@/services/security/smartcaptcha.service";
+
 const log = logger.child({ component: 'MagicLink' });
 
 const schema = z.object({
   email: z.string().email("Введите корректный email"),
   redirectTo: z.string().optional(),
+  captchaToken: z.string().optional(),
 });
 
 /** @public Public magic link request action */
@@ -30,9 +33,17 @@ export async function requestMagicLink(prevState: unknown, formData: FormData) {
 
   const cleanEmail = parsed.data.email.toLowerCase();
   const redirectTo = parsed.data.redirectTo;
+  const captchaToken = parsed.data.captchaToken;
 
   try {
     const clientIp = await getClientIp().catch(() => '127.0.0.1');
+
+    // SmartCaptcha Validation (Fail-closed in production if enabled)
+    const captchaResult = await verifySmartCaptchaToken(captchaToken, clientIp);
+    if (!captchaResult.success) {
+      log.warn('Magic link request blocked by SmartCaptcha', { ip: clientIp, email: cleanEmail });
+      return { error: captchaResult.error || "Проверка капчи не пройдена", success: false };
+    }
     const headerStore = await headers();
     const userAgent = headerStore.get('user-agent') || 'Unknown';
 

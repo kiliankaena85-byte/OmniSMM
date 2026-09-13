@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '@/lib/db';
 import { settingsService } from '@/services/admin/settings.service';
 import { SettingsProvider } from '@/lib/settings';
@@ -54,10 +54,10 @@ describe('Multi-Tenant Settings, Bot Disconnect & Legal Isolation', () => {
         contactTelegramChannel: '@smmflux_news',
         contactSupportEmail: 'support@smmflux.ru',
         contactPrivacyEmail: 'privacy@smmflux.ru',
-        legalCompanyName: 'ИП Соколов А. А.',
-        legalCompanyInn: '695006320024',
-        legalCompanyOgrnip: '320695200000000',
-        legalCompanyAddress: 'г. Тверь, пр-т Победы, д. 2',
+        legalCompanyName: 'ИП Новиков Н. Н.',
+        legalCompanyInn: '770123456789',
+        legalCompanyOgrnip: '320774600000025',
+        legalCompanyAddress: 'г. Казань, ул. Мира, д. 5',
       },
       create: {
         id: 'flux',
@@ -66,10 +66,10 @@ describe('Multi-Tenant Settings, Bot Disconnect & Legal Isolation', () => {
         contactTelegramChannel: '@smmflux_news',
         contactSupportEmail: 'support@smmflux.ru',
         contactPrivacyEmail: 'privacy@smmflux.ru',
-        legalCompanyName: 'ИП Соколов А. А.',
-        legalCompanyInn: '695006320024',
-        legalCompanyOgrnip: '320695200000000',
-        legalCompanyAddress: 'г. Тверь, пр-т Победы, д. 2',
+        legalCompanyName: 'ИП Новиков Н. Н.',
+        legalCompanyInn: '770123456789',
+        legalCompanyOgrnip: '320774600000025',
+        legalCompanyAddress: 'г. Казань, ул. Мира, д. 5',
       }
     });
   });
@@ -105,26 +105,26 @@ describe('Multi-Tenant Settings, Bot Disconnect & Legal Isolation', () => {
     expect(planLegal.COMPANY_INN).toBe('7701234567');
     expect(planLegal.COMPANY_ADDRESS).toBe('г. Москва, ул. Ленина, д. 1');
 
-    expect(fluxLegal.COMPANY_NAME).toBe('ИП Соколов А. А.');
-    expect(fluxLegal.COMPANY_INN).toBe('695006320024');
-    expect(fluxLegal.COMPANY_ADDRESS).toBe('г. Тверь, пр-т Победы, д. 2');
+    expect(fluxLegal.COMPANY_NAME).toBe('ИП Новиков Н. Н.');
+    expect(fluxLegal.COMPANY_INN).toBe('770123456789');
+    expect(fluxLegal.COMPANY_ADDRESS).toBe('г. Казань, ул. Мира, д. 5');
   });
 
   it('3. should support identical/duplicated legal entities across tenants without collision', async () => {
     // Operator decides to unify legal entity to the same IP for both brands
     await settingsService.updateSystemSettings({
-      legalCompanyName: 'ИП Соколов А. А.',
-      legalCompanyInn: '695006320024',
-      legalCompanyOgrnip: '320695200000000',
-      legalCompanyAddress: 'г. Тверь, пр-т Победы, д. 2',
+      legalCompanyName: 'ИП Новиков Н. Н.',
+      legalCompanyInn: '770123456789',
+      legalCompanyOgrnip: '320774600000025',
+      legalCompanyAddress: 'г. Казань, ул. Мира, д. 5',
     }, 'smmplan');
 
     const planLegal = await SettingsProvider.getContactAndLegalSettings('smmplan');
     const fluxLegal = await SettingsProvider.getContactAndLegalSettings('flux');
 
     // Both now have the same legal details
-    expect(planLegal.COMPANY_INN).toBe('695006320024');
-    expect(fluxLegal.COMPANY_INN).toBe('695006320024');
+    expect(planLegal.COMPANY_INN).toBe('770123456789');
+    expect(fluxLegal.COMPANY_INN).toBe('770123456789');
 
     // But brand names and contact emails remain strictly isolated
     expect(planLegal.SITE_NAME).toBe('SMMplan Pro');

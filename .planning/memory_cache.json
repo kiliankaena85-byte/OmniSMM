@@ -322,6 +322,20 @@
       ],
       "importance": 0.9,
       "decayRate": 0
+    },
+    {
+      "title": "SmmplanOrderWizard Monolith Decomposition",
+      "context": "SmmplanOrderWizard was 1739 lines monolithic component violating component size limits and maintainability standards",
+      "decision": "Decomposed SmmplanOrderWizard into 161-line orchestrator and 11 focused submodules in src/components/orders/wizard/ each <= 200 lines, with useSmmplanOrderWizard hook, strict types, helpers, and preserved hardening contract tokens",
+      "rationale": "Full compliance with omnismm-checkout-integrity-guard, flash-component-decomposer and swarm-100-percent-hardening tests",
+      "tags": [
+        "architecture",
+        "orders",
+        "wizard",
+        "decomposition",
+        "exactmath",
+        "hardening"
+      ]
     }
   ]
 }

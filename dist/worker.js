@@ -6009,14 +6009,14 @@ var require_utils2 = __commonJS({
     }
     exports2.parseURL = parseURL;
     function resolveTLSProfile(options) {
-      let tls3 = options === null || options === void 0 ? void 0 : options.tls;
-      if (typeof tls3 === "string")
-        tls3 = { profile: tls3 };
-      const profile = TLSProfiles_1.default[tls3 === null || tls3 === void 0 ? void 0 : tls3.profile];
+      let tls4 = options === null || options === void 0 ? void 0 : options.tls;
+      if (typeof tls4 === "string")
+        tls4 = { profile: tls4 };
+      const profile = TLSProfiles_1.default[tls4 === null || tls4 === void 0 ? void 0 : tls4.profile];
       if (profile) {
-        tls3 = Object.assign({}, profile, tls3);
-        delete tls3.profile;
-        options = Object.assign({}, options, { tls: tls3 });
+        tls4 = Object.assign({}, profile, tls4);
+        delete tls4.profile;
+        options = Object.assign({}, options, { tls: tls4 });
       }
       return options;
     }
@@ -42146,21 +42146,26 @@ var init_queue_manager = __esm({
       return Math.round(jitter);
     };
     createQueue = (name, defaultOptions2) => {
-      const isBuild = process.env.NEXT_PHASE === "phase-production-build" || !!process.env.CI;
-      if (isBuild) {
-        return new Proxy({}, {
+      const isBuildOrTest = process.env.NEXT_PHASE === "phase-production-build" || !!process.env.CI || process.env.NODE_ENV === "test";
+      if (isBuildOrTest) {
+        const targetObj = {
+          add: async (jobName, data, opts) => ({ id: opts?.jobId || "mock-id", name: jobName, data }),
+          close: async () => {
+          },
+          disconnect: async () => {
+          },
+          getJobs: async () => [],
+          getJob: async () => null,
+          count: async () => 0,
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: { type: "exponential", delay: 5e3 }
+          }
+        };
+        return new Proxy(targetObj, {
+          has: (target, prop) => prop in target || typeof prop === "string",
           get: (target, prop) => {
-            if (prop === "add") return async () => ({ id: "mock-id" });
-            if (prop === "close") return async () => {
-            };
-            if (prop === "disconnect") return async () => {
-            };
-            if (prop === "defaultJobOptions") {
-              return {
-                attempts: 3,
-                backoff: { type: "exponential", delay: 5e3 }
-              };
-            }
+            if (prop in target) return target[prop];
             return async () => {
             };
           }
@@ -52323,7 +52328,7 @@ var require_fetch = __commonJS({
     var { PassThrough } = require("stream");
     var Cookies = require_cookies4();
     var packageData = require_package2();
-    var net6 = require("net");
+    var net7 = require("net");
     var errors = require_errors3();
     var MAX_REDIRECTS = 5;
     module2.exports = function(url, options) {
@@ -52426,7 +52431,7 @@ var require_fetch = __commonJS({
       if (options.tls) {
         Object.assign(reqOptions, options.tls);
       }
-      if (parsed.protocol === "https:" && parsed.hostname && parsed.hostname !== reqOptions.host && !net6.isIP(parsed.hostname) && !reqOptions.servername) {
+      if (parsed.protocol === "https:" && parsed.hostname && parsed.hostname !== reqOptions.host && !net7.isIP(parsed.hostname) && !reqOptions.servername) {
         reqOptions.servername = parsed.hostname;
       }
       try {
@@ -52574,7 +52579,7 @@ var require_shared = __commonJS({
     var nmfetch = require_fetch();
     var errors = require_errors3();
     var dns5 = require("dns");
-    var net6 = require("net");
+    var net7 = require("net");
     var os3 = require("os");
     var DNS_TTL = 5 * 60 * 1e3;
     var CACHE_CLEANUP_INTERVAL = 30 * 1e3;
@@ -52642,7 +52647,7 @@ var require_shared = __commonJS({
       if (!options.host && options.servername) {
         options.host = options.servername;
       }
-      if (!options.host || net6.isIP(options.host)) {
+      if (!options.host || net7.isIP(options.host)) {
         const value = {
           addresses: [options.host],
           servername: options.servername || false
@@ -58348,8 +58353,8 @@ var require_dkim = __commonJS({
 var require_http_proxy_client = __commonJS({
   "node_modules/nodemailer/lib/smtp-connection/http-proxy-client.js"(exports2, module2) {
     "use strict";
-    var net6 = require("net");
-    var tls3 = require("tls");
+    var net7 = require("net");
+    var tls4 = require("tls");
     var urllib = require_url();
     var errors = require_errors3();
     function httpProxyClient(proxyUrl, destinationPort, destinationHost, tlsOptions, callback) {
@@ -58366,9 +58371,9 @@ var require_http_proxy_client = __commonJS({
       let connect4;
       if (proxy.protocol === "https:") {
         connectOptions.rejectUnauthorized = tlsOptions.rejectUnauthorized !== false;
-        connect4 = tls3.connect.bind(tls3);
+        connect4 = tls4.connect.bind(tls4);
       } else {
-        connect4 = net6.connect.bind(net6);
+        connect4 = net7.connect.bind(net7);
       }
       let socket;
       let finished = false;
@@ -58726,7 +58731,7 @@ var require_mailer = __commonJS({
     var urllib = require_url();
     var packageData = require_package2();
     var MailMessage = require_mail_message();
-    var net6 = require("net");
+    var net7 = require("net");
     var dns5 = require("dns");
     var crypto9 = require("crypto");
     var Mail = class extends EventEmitter {
@@ -59039,7 +59044,7 @@ var require_mailer = __commonJS({
                   });
                 });
               };
-              if (net6.isIP(proxy.hostname)) {
+              if (net7.isIP(proxy.hostname)) {
                 return connect4(proxy.hostname);
               }
               return dns5.resolve(proxy.hostname, (err2, address) => {
@@ -59195,8 +59200,8 @@ var require_smtp_connection = __commonJS({
     "use strict";
     var packageInfo = require_package2();
     var { EventEmitter } = require("events");
-    var net6 = require("net");
-    var tls3 = require("tls");
+    var net7 = require("net");
+    var tls4 = require("tls");
     var os3 = require("os");
     var crypto9 = require("crypto");
     var DataStream = require_data_stream();
@@ -59225,7 +59230,7 @@ var require_smtp_connection = __commonJS({
         this.alreadySecured = !!this.options.secured;
         this.port = Number(this.options.port) || (this.secureConnection ? 465 : 587);
         this.host = this.options.host || "localhost";
-        this.servername = this.options.servername ? this.options.servername : !net6.isIP(this.host) ? this.host : false;
+        this.servername = this.options.servername ? this.options.servername : !net7.isIP(this.host) ? this.host : false;
         this.allowInternalNetworkInterfaces = this.options.allowInternalNetworkInterfaces || false;
         if (typeof this.options.secure === "undefined" && this.port === 465) {
           this.secureConnection = true;
@@ -59384,7 +59389,7 @@ var require_smtp_connection = __commonJS({
       _connectToHost(opts, secure) {
         this._connectionAttemptId++;
         const currentAttemptId = this._connectionAttemptId;
-        const connectFn = secure ? tls3.connect : net6.connect;
+        const connectFn = secure ? tls4.connect : net7.connect;
         try {
           this._socket = connectFn(opts, () => {
             if (this._connectionAttemptId !== currentAttemptId) {
@@ -59918,7 +59923,7 @@ var require_smtp_connection = __commonJS({
         };
         this.upgrading = true;
         try {
-          this._socket = tls3.connect(opts, () => {
+          this._socket = tls4.connect(opts, () => {
             this.secure = true;
             this.upgrading = false;
             this._socket.on("data", this._onSocketData);
@@ -67570,7 +67575,7 @@ var require_helpers2 = __commonJS({
     var constants_1 = require_constants3();
     var stream = require("stream");
     var ip_address_1 = require_ip_address();
-    var net6 = require("net");
+    var net7 = require("net");
     function validateSocksClientOptions(options, acceptedCommands = ["connect", "bind", "associate"]) {
       if (!constants_1.SocksCommand[options.command]) {
         throw new util_1.SocksClientError(constants_1.ERRORS.InvalidSocksCommand, options);
@@ -67653,10 +67658,10 @@ var require_helpers2 = __commonJS({
     }
     exports2.int32ToIpv4 = int32ToIpv4;
     function ipToBuffer(ip) {
-      if (net6.isIPv4(ip)) {
+      if (net7.isIPv4(ip)) {
         const address = new ip_address_1.Address4(ip);
         return Buffer.from(address.toArray());
-      } else if (net6.isIPv6(ip)) {
+      } else if (net7.isIPv6(ip)) {
         const address = new ip_address_1.Address6(ip);
         return Buffer.from(address.canonicalForm().split(":").map((segment) => segment.padStart(4, "0")).join(""), "hex");
       } else {
@@ -67749,7 +67754,7 @@ var require_socksclient = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.SocksClientError = exports2.SocksClient = void 0;
     var events_1 = require("events");
-    var net6 = require("net");
+    var net7 = require("net");
     var smart_buffer_1 = require_smartbuffer();
     var constants_1 = require_constants3();
     var helpers_1 = require_helpers2();
@@ -67872,10 +67877,10 @@ var require_socksclient = __commonJS({
         const buff = new smart_buffer_1.SmartBuffer();
         buff.writeUInt16BE(0);
         buff.writeUInt8(options.frameNumber || 0);
-        if (net6.isIPv4(options.remoteHost.host)) {
+        if (net7.isIPv4(options.remoteHost.host)) {
           buff.writeUInt8(constants_1.Socks5HostType.IPv4);
           buff.writeUInt32BE((0, helpers_1.ipv4ToInt32)(options.remoteHost.host));
-        } else if (net6.isIPv6(options.remoteHost.host)) {
+        } else if (net7.isIPv6(options.remoteHost.host)) {
           buff.writeUInt8(constants_1.Socks5HostType.IPv6);
           buff.writeBuffer((0, helpers_1.ipToBuffer)(options.remoteHost.host));
         } else {
@@ -67938,7 +67943,7 @@ var require_socksclient = __commonJS({
         if (existingSocket) {
           this.socket = existingSocket;
         } else {
-          this.socket = new net6.Socket();
+          this.socket = new net7.Socket();
         }
         this.socket.once("close", this.onClose);
         this.socket.once("error", this.onError);
@@ -68069,7 +68074,7 @@ var require_socksclient = __commonJS({
         buff.writeUInt8(4);
         buff.writeUInt8(constants_1.SocksCommand[this.options.command]);
         buff.writeUInt16BE(this.options.destination.port);
-        if (net6.isIPv4(this.options.destination.host)) {
+        if (net7.isIPv4(this.options.destination.host)) {
           buff.writeBuffer((0, helpers_1.ipToBuffer)(this.options.destination.host));
           buff.writeStringNT(userId);
         } else {
@@ -68247,10 +68252,10 @@ var require_socksclient = __commonJS({
         buff.writeUInt8(5);
         buff.writeUInt8(constants_1.SocksCommand[this.options.command]);
         buff.writeUInt8(0);
-        if (net6.isIPv4(this.options.destination.host)) {
+        if (net7.isIPv4(this.options.destination.host)) {
           buff.writeUInt8(constants_1.Socks5HostType.IPv4);
           buff.writeBuffer((0, helpers_1.ipToBuffer)(this.options.destination.host));
-        } else if (net6.isIPv6(this.options.destination.host)) {
+        } else if (net7.isIPv6(this.options.destination.host)) {
           buff.writeUInt8(constants_1.Socks5HostType.IPv6);
           buff.writeBuffer((0, helpers_1.ipToBuffer)(this.options.destination.host));
         } else {
@@ -69710,7 +69715,7 @@ var require_util3 = __commonJS({
     var { kDestroyed, kBodyUsed, kListeners, kBody } = require_symbols2();
     var { IncomingMessage } = require("node:http");
     var stream = require("node:stream");
-    var net6 = require("node:net");
+    var net7 = require("node:net");
     var { stringify } = require("node:querystring");
     var { EventEmitter: EE } = require("node:events");
     var timers = require_timers();
@@ -69859,7 +69864,7 @@ var require_util3 = __commonJS({
       }
       assert2(typeof host === "string");
       const servername = getHostname(host);
-      if (net6.isIP(servername)) {
+      if (net7.isIP(servername)) {
         return "";
       }
       return servername;
@@ -71522,11 +71527,11 @@ var require_dispatcher_base = __commonJS({
 var require_connect = __commonJS({
   "node_modules/undici/lib/core/connect.js"(exports2, module2) {
     "use strict";
-    var net6 = require("node:net");
+    var net7 = require("node:net");
     var assert2 = require("node:assert");
     var util2 = require_util3();
     var { InvalidArgumentError } = require_errors4();
-    var tls3;
+    var tls4;
     var SessionCache = class WeakSessionCache {
       constructor(maxCachedSessions) {
         this._maxCachedSessions = maxCachedSessions;
@@ -71578,15 +71583,15 @@ var require_connect = __commonJS({
       return function connect4({ hostname, host, protocol, port, servername, localAddress, httpSocket }, callback) {
         let socket;
         if (protocol === "https:") {
-          if (!tls3) {
-            tls3 = require("node:tls");
+          if (!tls4) {
+            tls4 = require("node:tls");
           }
           servername = servername || options.servername || util2.getServerName(host) || null;
           const sessionKey = servername || hostname;
           assert2(sessionKey);
           const session2 = customSession || sessionCache.get(sessionKey) || null;
           port = port || 443;
-          socket = tls3.connect({
+          socket = tls4.connect({
             highWaterMark: 16384,
             // TLS in node can't have bigger HWM anyway...
             ...options,
@@ -71605,7 +71610,7 @@ var require_connect = __commonJS({
         } else {
           assert2(!httpSocket, "httpSocket can only be sent on TLS update");
           port = port || 80;
-          socket = net6.connect({
+          socket = net7.connect({
             highWaterMark: 64 * 1024,
             // Same as nodejs fs streams.
             ...options,
@@ -77282,7 +77287,7 @@ var require_client = __commonJS({
   "node_modules/undici/lib/dispatcher/client.js"(exports2, module2) {
     "use strict";
     var assert2 = require("node:assert");
-    var net6 = require("node:net");
+    var net7 = require("node:net");
     var http3 = require("node:http");
     var util2 = require_util3();
     var { ClientStats } = require_stats();
@@ -77370,7 +77375,7 @@ var require_client = __commonJS({
         keepAliveTimeoutThreshold,
         socketPath,
         pipelining,
-        tls: tls3,
+        tls: tls4,
         strictContentLength,
         maxCachedSessions,
         connect: connect5,
@@ -77437,7 +77442,7 @@ var require_client = __commonJS({
         if (maxRequestsPerClient != null && (!Number.isInteger(maxRequestsPerClient) || maxRequestsPerClient < 0)) {
           throw new InvalidArgumentError("maxRequestsPerClient must be a positive number");
         }
-        if (localAddress != null && (typeof localAddress !== "string" || net6.isIP(localAddress) === 0)) {
+        if (localAddress != null && (typeof localAddress !== "string" || net7.isIP(localAddress) === 0)) {
           throw new InvalidArgumentError("localAddress must be valid string IP address");
         }
         if (maxResponseSize != null && (!Number.isInteger(maxResponseSize) || maxResponseSize < -1)) {
@@ -77467,7 +77472,7 @@ var require_client = __commonJS({
         super({ webSocket });
         if (typeof connect5 !== "function") {
           connect5 = buildConnector({
-            ...tls3,
+            ...tls4,
             maxCachedSessions,
             allowH2,
             useH2c,
@@ -77617,7 +77622,7 @@ var require_client = __commonJS({
         const idx = hostname.indexOf("]");
         assert2(idx !== -1);
         const ip = hostname.substring(1, idx);
-        assert2(net6.isIPv6(ip));
+        assert2(net7.isIPv6(ip));
         hostname = ip;
       }
       client[kConnecting] = true;
@@ -78086,7 +78091,7 @@ var require_pool = __commonJS({
         factory = defaultFactory,
         connect: connect4,
         connectTimeout,
-        tls: tls3,
+        tls: tls4,
         maxCachedSessions,
         socketPath,
         autoSelectFamily,
@@ -78106,7 +78111,7 @@ var require_pool = __commonJS({
         }
         if (typeof connect4 !== "function") {
           connect4 = buildConnector({
-            ...tls3,
+            ...tls4,
             maxCachedSessions,
             allowH2,
             socketPath,
@@ -78197,14 +78202,14 @@ var require_balanced_pool = __commonJS({
       return new Pool(origin, opts);
     }
     var BalancedPool = class extends PoolBase {
-      constructor(upstreams = [], { factory = defaultFactory, connect: connect4, tls: tls3, ...opts } = {}) {
+      constructor(upstreams = [], { factory = defaultFactory, connect: connect4, tls: tls4, ...opts } = {}) {
         if (typeof factory !== "function") {
           throw new InvalidArgumentError("factory must be a function.");
         }
         super(opts);
         if (connect4 && typeof connect4 !== "function") connect4 = { ...connect4 };
-        if (tls3 && typeof tls3 !== "function") tls3 = { ...tls3 };
-        this[kOptions] = { ...util2.deepClone(opts), connect: connect4, tls: tls3 };
+        if (tls4 && typeof tls4 !== "function") tls4 = { ...tls4 };
+        this[kOptions] = { ...util2.deepClone(opts), connect: connect4, tls: tls4 };
         this[kOptions].interceptors = opts.interceptors ? { ...opts.interceptors } : void 0;
         this[kIndex] = -1;
         this[kCurrentWeight] = 0;
@@ -78339,7 +78344,7 @@ var require_round_robin_pool = __commonJS({
         factory = defaultFactory,
         connect: connect4,
         connectTimeout,
-        tls: tls3,
+        tls: tls4,
         maxCachedSessions,
         socketPath,
         autoSelectFamily,
@@ -78359,7 +78364,7 @@ var require_round_robin_pool = __commonJS({
         }
         if (typeof connect4 !== "function") {
           connect4 = buildConnector({
-            ...tls3,
+            ...tls4,
             maxCachedSessions,
             allowH2,
             socketPath,
@@ -78562,10 +78567,10 @@ var require_socks5_utils = __commonJS({
   "node_modules/undici/lib/core/socks5-utils.js"(exports2, module2) {
     "use strict";
     var { Buffer: Buffer2 } = require("node:buffer");
-    var net6 = require("node:net");
+    var net7 = require("node:net");
     var { InvalidArgumentError } = require_errors4();
     function parseAddress(address) {
-      if (net6.isIPv4(address)) {
+      if (net7.isIPv4(address)) {
         const parts = address.split(".").map(Number);
         return {
           type: 1,
@@ -78573,7 +78578,7 @@ var require_socks5_utils = __commonJS({
           buffer: Buffer2.from(parts)
         };
       }
-      if (net6.isIPv6(address)) {
+      if (net7.isIPv6(address)) {
         return {
           type: 4,
           // IPv6
@@ -78596,7 +78601,7 @@ var require_socks5_utils = __commonJS({
       if (address.includes(".")) {
         const lastColonIndex = address.lastIndexOf(":");
         const ipv4Part = address.slice(lastColonIndex + 1);
-        if (net6.isIPv4(ipv4Part)) {
+        if (net7.isIPv4(ipv4Part)) {
           const octets = ipv4Part.split(".").map(Number);
           const high = (octets[0] << 8 | octets[1]).toString(16);
           const low = (octets[2] << 8 | octets[3]).toString(16);
@@ -79056,7 +79061,7 @@ var require_socks5_proxy_agent = __commonJS({
   "node_modules/undici/lib/dispatcher/socks5-proxy-agent.js"(exports2, module2) {
     "use strict";
     var { URL: URL7 } = require("node:url");
-    var tls3;
+    var tls4;
     var DispatcherBase = require_dispatcher_base();
     var { InvalidArgumentError } = require_errors4();
     var { Socks5Client, STATES } = require_socks5_client();
@@ -79196,11 +79201,11 @@ var require_socks5_proxy_agent = __commonJS({
                   const socket = await this.createSocks5Connection(targetHost, targetPort);
                   let finalSocket = socket;
                   if (url.protocol === "https:") {
-                    if (!tls3) {
-                      tls3 = require("node:tls");
+                    if (!tls4) {
+                      tls4 = require("node:tls");
                     }
                     debug4("upgrading to TLS");
-                    finalSocket = tls3.connect({
+                    finalSocket = tls4.connect({
                       ...this[kRequestTls],
                       socket,
                       servername: this[kRequestTls]?.servername || targetHost
@@ -102971,9 +102976,28 @@ var init_tenant_resolver_edge = __esm({
 // src/lib/redis.ts
 var redis_exports = {};
 __export2(redis_exports, {
-  redis: () => redis
+  redis: () => redis,
+  validateRedisUrl: () => validateRedisUrl
 });
-var import_ioredis2, globalForRedis, redisUrl, redis;
+function validateRedisUrl(url, env = process.env.NODE_ENV || "development") {
+  if (env === "production") {
+    if (!url.includes("@")) {
+      return {
+        valid: false,
+        error: "FATAL [SECURITY]: SEC-001 Violation! Redis is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port or rediss://...)."
+      };
+    }
+    const isLocal = url.includes("localhost") || url.includes("127.0.0.1") || url.includes("0.0.0.0") || url.includes("@redis:") || url.includes("//redis:") || url.includes("smmplan_redis") || url.includes("host.docker.internal");
+    if (!isLocal && !url.startsWith("rediss://")) {
+      return {
+        valid: true,
+        warning: "\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!"
+      };
+    }
+  }
+  return { valid: true };
+}
+var import_ioredis2, globalForRedis, redisUrl, redisCheck, redis;
 var init_redis = __esm({
   "src/lib/redis.ts"() {
     "use strict";
@@ -102981,23 +103005,22 @@ var init_redis = __esm({
     init_sensitive_data_filter();
     globalForRedis = global;
     redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-    if (process.env.NODE_ENV === "production") {
-      const isLocal = redisUrl.includes("localhost") || redisUrl.includes("127.0.0.1") || redisUrl.includes("smmplan_redis");
-      if (!isLocal) {
-        if (!redisUrl.startsWith("rediss://")) {
-          console.warn("\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!");
-        }
-        if (!redisUrl.includes("@")) {
-          throw new Error("FATAL [SECURITY]: SEC-001 Violation! REDIS_URL is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port).");
-        }
-      }
+    redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV);
+    if (!redisCheck.valid) {
+      throw new Error(redisCheck.error);
+    }
+    if (redisCheck.warning) {
+      console.warn(redisCheck.warning);
     }
     redis = globalForRedis.redis || new import_ioredis2.Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: process.env.NODE_ENV === "test" ? null : 3,
       connectTimeout: 5e3,
       lazyConnect: true,
       retryStrategy: (times) => {
-        if (times > 3) return null;
+        if (process.env.NODE_ENV === "test") {
+          return Math.min(times * 50, 500);
+        }
+        if (times > 5) return null;
         return Math.min(times * 50, 2e3);
       }
     });
@@ -125909,8 +125932,76 @@ __export2(smtp_exports, {
   sendOrderCompletedMail: () => sendOrderCompletedMail,
   sendOrderPaidMail: () => sendOrderPaidMail,
   sendTicketCreatedMail: () => sendTicketCreatedMail,
-  sendWelcomeLetter: () => sendWelcomeLetter
+  sendWelcomeLetter: () => sendWelcomeLetter,
+  verifyDirectSmtpConnection: () => verifyDirectSmtpConnection
 });
+async function verifyDirectSmtpConnection(host = "smtp.yandex.ru", port = 465, timeoutMs = 5e3) {
+  const startTime = Date.now();
+  const isTls = port === 465;
+  return new Promise((resolve) => {
+    let settled = false;
+    const onFinish = (success, error) => {
+      if (settled) return;
+      settled = true;
+      resolve({
+        success,
+        host,
+        port,
+        durationMs: Date.now() - startTime,
+        secure: isTls,
+        error
+      });
+    };
+    const timer = setTimeout(() => {
+      onFinish(false, `Connection timed out after ${timeoutMs}ms`);
+    }, timeoutMs);
+    try {
+      if (isTls) {
+        const socket = import_tls.default.connect(
+          {
+            host,
+            port,
+            servername: host,
+            rejectUnauthorized: true,
+            timeout: timeoutMs
+          },
+          () => {
+            clearTimeout(timer);
+            socket.end();
+            onFinish(true);
+          }
+        );
+        socket.on("error", (err) => {
+          clearTimeout(timer);
+          onFinish(false, err.message);
+        });
+        socket.on("timeout", () => {
+          clearTimeout(timer);
+          socket.destroy();
+          onFinish(false, "TLS Handshake timeout");
+        });
+      } else {
+        const socket = import_net.default.createConnection({ host, port, timeout: timeoutMs }, () => {
+          clearTimeout(timer);
+          socket.end();
+          onFinish(true);
+        });
+        socket.on("error", (err) => {
+          clearTimeout(timer);
+          onFinish(false, err.message);
+        });
+        socket.on("timeout", () => {
+          clearTimeout(timer);
+          socket.destroy();
+          onFinish(false, "TCP Connection timeout");
+        });
+      }
+    } catch (err) {
+      clearTimeout(timer);
+      onFinish(false, err?.message || String(err));
+    }
+  });
+}
 async function getEmailContext(tenantId) {
   const normTenant = normalizeTenantId2(tenantId);
   const companyName = getTenantSiteName(normTenant);
@@ -126198,12 +126289,14 @@ async function sendTicketCreatedMail(email, ticketId, ticketSubject, tenantId) {
   `;
   return sendMail(email, `[\u0422\u0438\u043A\u0435\u0442 #${shortId}] ${ticketSubject}`, htmlContent, replyTo, tenantId);
 }
-var import_nodemailer2, import_dns, log5;
+var import_nodemailer2, import_dns, import_net, import_tls, log5;
 var init_smtp = __esm({
   "src/lib/smtp.ts"() {
     "use strict";
     import_nodemailer2 = __toESM(require_nodemailer());
     import_dns = __toESM(require("dns"));
+    import_net = __toESM(require("net"));
+    import_tls = __toESM(require("tls"));
     init_settings();
     init_dist6();
     init_logger();
@@ -127783,7 +127876,7 @@ var init_provider_balance_service = __esm({
       constructor() {
         this.CACHE_TTL_SECONDS = 60;
         this.ERROR_CACHE_TTL_SECONDS = 15;
-        this.TIMEOUT_MS = 3e3;
+        this.TIMEOUT_MS = 5e3;
       }
       /**
        * Retrieves current balance for a specific provider with 60-second Redis caching
@@ -127827,7 +127920,7 @@ var init_provider_balance_service = __esm({
           const instance = await providerService.getProviderInstance(provider);
           let timeoutId;
           const timeoutPromise = new Promise((_, reject) => {
-            timeoutId = setTimeout(() => reject(new Error("ETIMEDOUT: Connection timed out after 5000ms")), this.TIMEOUT_MS);
+            timeoutId = setTimeout(() => reject(new Error(`ETIMEDOUT: Connection timed out after ${this.TIMEOUT_MS}ms`)), this.TIMEOUT_MS);
           });
           let balanceData;
           try {
@@ -139100,7 +139193,10 @@ var init_payment_gateway_service = __esm({
         const remoteId = `internal_${Date.now()}`;
         const { ordersQueue: ordersQueue2 } = await Promise.resolve().then(() => (init_queue_manager(), queue_manager_exports));
         const updatedOrderIds = await db.$transaction(async (tx) => {
-          await WalletOps.charge(tx, params.userId, amountCents, params.description);
+          await WalletOps.charge(tx, params.userId, amountCents, params.description, {
+            idempotencyKey: `balance-charge-${params.paymentId}`,
+            tenantId: params.tenantId
+          });
           await tx.payment.update({
             where: { id: params.paymentId },
             data: { status: "SUCCEEDED", gatewayId: remoteId }
@@ -160927,6 +161023,14 @@ async function triggerCacheRevalidation(tags) {
 
 // src/workers/processors/catalog.processor.ts
 var log20 = logger.child({ component: "CatalogProcessor" });
+async function safeTriggerCacheRevalidation(tags) {
+  try {
+    await triggerCacheRevalidation(tags);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log20.warn(`[CatalogProcessor] Non-critical cache revalidation failed: ${msg}`);
+  }
+}
 async function catalogProcessor(job) {
   let payload;
   try {
@@ -160946,7 +161050,7 @@ async function catalogProcessor(job) {
         log20.info(`[CatalogProcessor] Starting background price sync with rate ${effectiveRate}...`);
         await adminCatalogService.syncDenormalizedPrices(effectiveRate);
         log20.info(`[CatalogProcessor] Price sync completed successfully.`);
-        await triggerCacheRevalidation(["catalog", "services"]);
+        await safeTriggerCacheRevalidation(["catalog", "services"]);
         break;
       }
       case "RECONCILE_PRICES": {
@@ -161084,7 +161188,7 @@ async function catalogProcessor(job) {
             const errMsg = postSyncErr instanceof Error ? postSyncErr.message : String(postSyncErr);
             log20.error(`[CatalogProcessor] applyPostSyncRules failed: ${errMsg}`);
           }
-          await triggerCacheRevalidation(["catalog", "services"]);
+          await safeTriggerCacheRevalidation(["catalog", "services"]);
         } catch (syncErr) {
           const errMsg = syncErr instanceof Error ? syncErr.message : String(syncErr);
           log20.warn(`[CatalogProcessor] Skipping catalog sync for provider ${providerId} due to provider API error: ${errMsg}`);
@@ -161111,7 +161215,7 @@ async function catalogProcessor(job) {
           admin
         );
         log20.info(`[CatalogProcessor] Bulk markup completed. Updated ${result.updatedCount} services.`);
-        await triggerCacheRevalidation(["catalog", "services"]);
+        await safeTriggerCacheRevalidation(["catalog", "services"]);
         break;
       }
       case "SYNC_CBR_RATE": {
@@ -162224,13 +162328,15 @@ var AiObserverService = class {
   }
   /**
    * Checks whether the Master Kill-Switch is active.
+   * Fail-Closed: returns true if Redis read fails to prevent unmonitored LLM generation.
    */
   static async isKillswitchActive() {
     try {
       const cached = await redis.get(this.REDIS_KILLSWITCH_KEY);
       return cached === "1";
-    } catch {
-      return false;
+    } catch (err) {
+      logger.error("[AiObserverService] Redis read error for killswitch (failing closed):", err);
+      return true;
     }
   }
   /**

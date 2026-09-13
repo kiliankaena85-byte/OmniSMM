@@ -3,17 +3,22 @@
  * Verifies SEC-001, SEC-002, and SEC-003 against live environment.
  */
 import Module from 'module';
+require.cache[require.resolve('server-only')] = {
+  id: require.resolve('server-only'),
+  filename: require.resolve('server-only'),
+  loaded: true,
+  exports: {}
+} as any;
 const originalRequire = (Module.prototype as any).require;
 (Module.prototype as any).require = function (id: string) {
   if (id === 'server-only') return {};
   return originalRequire.apply(this, arguments);
 };
 
-import { validateRedisUrl } from '../src/lib/redis';
-import { buildCspHeader } from '../src/proxy';
-import { verifyDirectSmtpConnection } from '../src/lib/smtp';
-
 async function main() {
+  const { validateRedisUrl } = await import('../src/lib/redis');
+  const { buildCspHeader } = await import('../src/proxy');
+  const { verifyDirectSmtpConnection } = await import('../src/lib/smtp');
   console.log('=================================================================');
   console.log('🛡️  OMNISMM 1.0 — PRODUCTION HARDENING AUDIT (PROD-SEC-2026)');
   console.log('=================================================================\n');
