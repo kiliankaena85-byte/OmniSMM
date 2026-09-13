@@ -323,6 +323,11 @@ export default function AddFundsForm() {
                 setAmount(val);
                 setError(null);
               }}
+              onBlur={() => {
+                if (!amount || amount < 10) {
+                  setAmount(method === 'b2b' ? 3000 : 500);
+                }
+              }}
               min={10}
               max={10000000}
               placeholder="Введите сумму"

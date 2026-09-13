@@ -119,8 +119,8 @@ export function LandingCatalogContent({
         </div>
       )}
 
-      <div id="catalog-section" className="w-full bg-content1 rounded-3xl overflow-visible md:overflow-hidden mt-2 md:mt-6">
-        <div className="w-full flex flex-col will-change-transform">
+      <div id="catalog-section" className="w-full bg-content1 rounded-3xl overflow-x-hidden overflow-y-visible md:overflow-hidden mt-2 md:mt-6">
+        <div className="w-full flex flex-col">
           <MobileWizard 
             engine={engine} 
             handleCheckout={handleCheckout} 

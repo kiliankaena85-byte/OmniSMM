@@ -762,12 +762,9 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
                     onFocus={(e) => {
-                      const target = e.currentTarget;
-                      setTimeout(() => target.select(), 10);
-                    }}
-                    onClick={(e) => {
-                      const target = e.currentTarget;
-                      setTimeout(() => target.select(), 10);
+                      if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+                        e.currentTarget.select();
+                      }
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {

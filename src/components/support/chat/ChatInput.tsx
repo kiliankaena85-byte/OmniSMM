@@ -724,7 +724,7 @@ export function ChatInput({
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); setFile(null); }}
-                className="absolute -top-2 -right-2 w-5 h-5 bg-foreground text-background rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-sm cursor-pointer"
+                className="absolute -top-2 -right-2 w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-sm cursor-pointer"
                 aria-label="Удалить файл"
               >
                 ✕
@@ -739,7 +739,7 @@ export function ChatInput({
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             placeholder={isStaff ? "Введите ответ или выберите шаблон (напишите /)..." : "Опишите вашу проблему..."}
-            className="w-full bg-transparent px-4 pt-3 pb-2 max-h-[280px] min-h-[56px] resize-none outline-none text-sm text-foreground placeholder:text-muted-foreground/70 leading-relaxed font-sans scrollbar-thin"
+            className="w-full bg-transparent px-4 pt-3 pb-2 max-h-[280px] min-h-[56px] resize-none outline-none text-base md:text-sm text-foreground placeholder:text-muted-foreground/70 leading-relaxed font-sans scrollbar-thin"
             rows={1}
           />
 
@@ -810,7 +810,7 @@ export function ChatInput({
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-xs text-foreground">Заказ #{order.numericId || order.id.slice(0, 8)}</span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
                                   order.status === 'COMPLETED' ? 'bg-success/15 text-success-text' :
                                   order.status === 'IN_PROGRESS' ? 'bg-primary/15 text-primary' :
                                   order.status === 'PENDING' ? 'bg-warning/15 text-warning-text' :

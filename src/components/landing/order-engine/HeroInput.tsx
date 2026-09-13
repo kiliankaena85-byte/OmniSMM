@@ -31,7 +31,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
     if (trimmedUrl.length === 0) {
       toast.error("Пожалуйста, введите ссылку для продолжения.", { position: "top-center" });
       const inputEl = document.getElementById("landing-url");
-      inputEl?.focus();
+      inputEl?.focus({ preventScroll: true });
       return;
     }
 
@@ -40,7 +40,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
       setUrl("");
       toast.success("Email сохранен для чекаута! Теперь укажите ссылку на объект продвижения.", { position: "top-center" });
       const inputEl = document.getElementById("landing-url");
-      inputEl?.focus();
+      inputEl?.focus({ preventScroll: true });
       return;
     }
 
@@ -146,7 +146,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
             <div
               onClick={() => {
                 const inputEl = document.getElementById("landing-url");
-                inputEl?.focus();
+                inputEl?.focus({ preventScroll: true });
               }}
               className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-300 cursor-pointer ${
                 !url 
@@ -160,7 +160,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
                 {!url ? '1' : '✓'}
               </div>
               <div className="text-left">
-                <p className="text-[9px] font-extrabold uppercase tracking-wider opacity-60">Шаг 1</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Шаг 1</p>
                 <p className="text-xs sm:text-sm font-black whitespace-nowrap">Укажите ссылку</p>
               </div>
               <div className="ml-auto text-muted-foreground/60 shrink-0">
@@ -188,7 +188,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
                 {url && selectedService ? '✓' : '2'}
               </div>
               <div className="text-left">
-                <p className="text-[9px] font-extrabold uppercase tracking-wider opacity-60">Шаг 2</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Шаг 2</p>
                 <p className="text-xs sm:text-sm font-black whitespace-nowrap">Выберите тариф</p>
               </div>
               <div className="ml-auto text-muted-foreground/60 shrink-0">
@@ -212,7 +212,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
                 3
               </div>
               <div className="text-left">
-                <p className="text-[9px] font-extrabold uppercase tracking-wider opacity-60">Шаг 3</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Шаг 3</p>
                 <p className="text-xs sm:text-sm font-black whitespace-nowrap">Быстрая оплата</p>
               </div>
               <div className="ml-auto text-muted-foreground/60 shrink-0">

@@ -65,12 +65,12 @@ export function MobileCheckoutOrderSummary({
           </>
         ) : (
           <>
-            <Zap className="w-4 h-4 fill-current" />
-            <span>
+            <Zap className="w-4 h-4 fill-current shrink-0" />
+            <span className="truncate">
               {selectedGateway === 'balance'
                 ? `Оплатить с баланса — ${totalPriceFormatted} ₽`
                 : selectedGateway === 'yookassa'
-                ? `Оплатить через СБП / Картой — ${totalPriceFormatted} ₽`
+                ? `Оплатить СБП / Картой — ${totalPriceFormatted} ₽`
                 : selectedGateway === 'cryptobot'
                 ? `Оплатить в CryptoBot — ${totalPriceFormatted} ₽`
                 : `Оплатить картой — ${totalPriceFormatted} ₽`}

@@ -94,7 +94,7 @@ export function InlineCheckoutForm({
       {/* Header section with title and close button */}
       <div className="flex items-center justify-between pb-6 border-b border-border/40 mb-6">
         <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-[9px] font-black text-primary uppercase tracking-wider mb-1">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-[10px] font-black text-primary uppercase tracking-wider mb-1">
             Оформление заказа
           </span>
           <h3 className="text-lg md:text-xl font-black text-foreground">

@@ -54,6 +54,7 @@ export function PlanCheckoutQuantity({
       <div className="flex items-center gap-2">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => handleStepQuantity(-100)}
           className="w-12 h-12 rounded-2xl bg-muted/70 hover:bg-muted text-foreground font-bold text-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer shrink-0"
           title="Уменьшить на 100"
@@ -68,15 +69,9 @@ export function PlanCheckoutQuantity({
           pattern="[0-9]*"
           value={quantity || ''}
           onFocus={(e) => {
-            const target = e.currentTarget;
-            setTimeout(() => {
-              target.focus();
-              target.select();
-            }, 10);
-          }}
-          onClick={(e) => {
-            e.currentTarget.focus();
-            e.currentTarget.select();
+            if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+              e.currentTarget.select();
+            }
           }}
           onChange={(e) => {
             const clean = e.target.value.replace(/\D/g, '');
@@ -89,6 +84,7 @@ export function PlanCheckoutQuantity({
 
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => handleStepQuantity(100)}
           className="w-12 h-12 rounded-2xl bg-muted/70 hover:bg-muted text-foreground font-bold text-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer shrink-0"
           title="Увеличить на 100"

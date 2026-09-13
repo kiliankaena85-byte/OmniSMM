@@ -41882,6 +41882,65 @@ var init_sensitive_data_filter = __esm({
   }
 });
 
+// src/lib/redis.ts
+var redis_exports = {};
+__export2(redis_exports, {
+  redis: () => redis,
+  validateRedisUrl: () => validateRedisUrl
+});
+function validateRedisUrl(url, env = process.env.NODE_ENV || "development", explicitPassword) {
+  if (env === "production") {
+    const hasAuth = url.includes("@") || Boolean(explicitPassword || process.env.REDIS_PASSWORD);
+    if (!hasAuth) {
+      return {
+        valid: false,
+        error: "FATAL [SECURITY]: SEC-001 Violation! Redis is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port or rediss://...)."
+      };
+    }
+    const isLocal = url.includes("localhost") || url.includes("127.0.0.1") || url.includes("0.0.0.0") || url.includes("@redis:") || url.includes("//redis:") || url.includes("smmplan_redis") || url.includes("host.docker.internal");
+    if (!isLocal && !url.startsWith("rediss://")) {
+      return {
+        valid: true,
+        warning: "\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!"
+      };
+    }
+  }
+  return { valid: true };
+}
+var import_ioredis, globalForRedis, redisUrl, redisCheck, redis;
+var init_redis = __esm({
+  "src/lib/redis.ts"() {
+    "use strict";
+    import_ioredis = __toESM(require_built3());
+    init_sensitive_data_filter();
+    globalForRedis = global;
+    redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+    redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV);
+    if (!redisCheck.valid) {
+      throw new Error(redisCheck.error);
+    }
+    if (redisCheck.warning) {
+      console.warn(redisCheck.warning);
+    }
+    redis = globalForRedis.redis || new import_ioredis.Redis(redisUrl, {
+      maxRetriesPerRequest: process.env.NODE_ENV === "test" ? null : 3,
+      connectTimeout: 5e3,
+      lazyConnect: true,
+      retryStrategy: (times) => {
+        if (process.env.NODE_ENV === "test") {
+          return Math.min(times * 50, 500);
+        }
+        if (times > 5) return null;
+        return Math.min(times * 50, 2e3);
+      }
+    });
+    if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
+    redis.on("error", (err) => {
+      console.error("[REDIS] Connection error:", redactSensitiveTokens(err.message));
+    });
+  }
+});
+
 // src/lib/queue-manager.ts
 var queue_manager_exports = {};
 __export2(queue_manager_exports, {
@@ -42108,13 +42167,14 @@ async function ensureGeoAvailabilityCron() {
     }
   );
 }
-var import_bullmq, import_ioredis, redisConnection, getQueuePrefix, getRedisConnection, jitteredBackoff, createQueue, ordersQueue, syncQueue, catalogQueue, dlqQueue, cleanupQueue, telegramQueue, etaQueue, paymentSyncQueue, refillQueue, criticalQueue, defaultQueue, bulkQueue, queuePayment, queueOrder, queueSync, paymentGatewayQueue, articlePublishQueue, aiObserverQueue, aiEconomicOptimizerQueue, geoAvailabilityQueue, closeQueues;
+var import_bullmq, import_ioredis2, redisConnection, getQueuePrefix, getRedisConnection, jitteredBackoff, createQueue, ordersQueue, syncQueue, catalogQueue, dlqQueue, cleanupQueue, telegramQueue, etaQueue, paymentSyncQueue, refillQueue, criticalQueue, defaultQueue, bulkQueue, queuePayment, queueOrder, queueSync, paymentGatewayQueue, articlePublishQueue, aiObserverQueue, aiEconomicOptimizerQueue, geoAvailabilityQueue, closeQueues;
 var init_queue_manager = __esm({
   "src/lib/queue-manager.ts"() {
     "use strict";
     import_bullmq = __toESM(require_cjs());
-    import_ioredis = __toESM(require_built3());
+    import_ioredis2 = __toESM(require_built3());
     init_sensitive_data_filter();
+    init_redis();
     redisConnection = null;
     getQueuePrefix = () => {
       if (process.env.REDIS_KEY_PREFIX) return process.env.REDIS_KEY_PREFIX;
@@ -42127,7 +42187,14 @@ var init_queue_manager = __esm({
       const redisUrl2 = process.env.CONTOUR === "test" && process.env.REDIS_URL_TEST ? process.env.REDIS_URL_TEST : process.env.REDIS_URL || "redis://127.0.0.1:6379";
       const redisPassword = process.env.REDIS_PASSWORD || void 0;
       const dbIndex = process.env.REDIS_DB_INDEX ? parseInt(process.env.REDIS_DB_INDEX, 10) : process.env.CONTOUR === "test" ? 1 : 0;
-      redisConnection = new import_ioredis.Redis(redisUrl2, {
+      const check = validateRedisUrl(redisUrl2, process.env.NODE_ENV, redisPassword);
+      if (!check.valid) {
+        throw new Error(check.error);
+      }
+      if (check.warning) {
+        console.warn(check.warning);
+      }
+      redisConnection = new import_ioredis2.Redis(redisUrl2, {
         password: redisPassword,
         db: isNaN(dbIndex) ? 0 : dbIndex,
         maxRetriesPerRequest: null,
@@ -102970,64 +103037,6 @@ var init_tenant_resolver_edge = __esm({
   "src/lib/tenant-resolver-edge.ts"() {
     "use strict";
     VALID_TENANTS = /* @__PURE__ */ new Set(["smmplan", "flux"]);
-  }
-});
-
-// src/lib/redis.ts
-var redis_exports = {};
-__export2(redis_exports, {
-  redis: () => redis,
-  validateRedisUrl: () => validateRedisUrl
-});
-function validateRedisUrl(url, env = process.env.NODE_ENV || "development") {
-  if (env === "production") {
-    if (!url.includes("@")) {
-      return {
-        valid: false,
-        error: "FATAL [SECURITY]: SEC-001 Violation! Redis is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port or rediss://...)."
-      };
-    }
-    const isLocal = url.includes("localhost") || url.includes("127.0.0.1") || url.includes("0.0.0.0") || url.includes("@redis:") || url.includes("//redis:") || url.includes("smmplan_redis") || url.includes("host.docker.internal");
-    if (!isLocal && !url.startsWith("rediss://")) {
-      return {
-        valid: true,
-        warning: "\u{1F6A8} [SECURITY WARNING] Redis in production is not using TLS (rediss://). Transit encryption recommended!"
-      };
-    }
-  }
-  return { valid: true };
-}
-var import_ioredis2, globalForRedis, redisUrl, redisCheck, redis;
-var init_redis = __esm({
-  "src/lib/redis.ts"() {
-    "use strict";
-    import_ioredis2 = __toESM(require_built3());
-    init_sensitive_data_filter();
-    globalForRedis = global;
-    redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-    redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV);
-    if (!redisCheck.valid) {
-      throw new Error(redisCheck.error);
-    }
-    if (redisCheck.warning) {
-      console.warn(redisCheck.warning);
-    }
-    redis = globalForRedis.redis || new import_ioredis2.Redis(redisUrl, {
-      maxRetriesPerRequest: process.env.NODE_ENV === "test" ? null : 3,
-      connectTimeout: 5e3,
-      lazyConnect: true,
-      retryStrategy: (times) => {
-        if (process.env.NODE_ENV === "test") {
-          return Math.min(times * 50, 500);
-        }
-        if (times > 5) return null;
-        return Math.min(times * 50, 2e3);
-      }
-    });
-    if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
-    redis.on("error", (err) => {
-      console.error("[REDIS] Connection error:", redactSensitiveTokens(err.message));
-    });
   }
 });
 

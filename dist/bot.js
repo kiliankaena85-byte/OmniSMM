@@ -33657,9 +33657,10 @@ __export2(redis_exports, {
   redis: () => redis,
   validateRedisUrl: () => validateRedisUrl
 });
-function validateRedisUrl(url, env = process.env.NODE_ENV || "development") {
+function validateRedisUrl(url, env = process.env.NODE_ENV || "development", explicitPassword) {
   if (env === "production") {
-    if (!url.includes("@")) {
+    const hasAuth = url.includes("@") || Boolean(explicitPassword || process.env.REDIS_PASSWORD);
+    if (!hasAuth) {
       return {
         valid: false,
         error: "FATAL [SECURITY]: SEC-001 Violation! Redis is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port or rediss://...)."
@@ -70396,6 +70397,7 @@ var init_queue_manager = __esm({
     import_bullmq = __toESM(require_cjs());
     import_ioredis2 = __toESM(require_built3());
     init_sensitive_data_filter();
+    init_redis();
     redisConnection = null;
     getQueuePrefix = () => {
       if (process.env.REDIS_KEY_PREFIX) return process.env.REDIS_KEY_PREFIX;
@@ -70408,6 +70410,13 @@ var init_queue_manager = __esm({
       const redisUrl2 = process.env.CONTOUR === "test" && process.env.REDIS_URL_TEST ? process.env.REDIS_URL_TEST : process.env.REDIS_URL || "redis://127.0.0.1:6379";
       const redisPassword = process.env.REDIS_PASSWORD || void 0;
       const dbIndex = process.env.REDIS_DB_INDEX ? parseInt(process.env.REDIS_DB_INDEX, 10) : process.env.CONTOUR === "test" ? 1 : 0;
+      const check = validateRedisUrl(redisUrl2, process.env.NODE_ENV, redisPassword);
+      if (!check.valid) {
+        throw new Error(check.error);
+      }
+      if (check.warning) {
+        console.warn(check.warning);
+      }
       redisConnection = new import_ioredis2.Redis(redisUrl2, {
         password: redisPassword,
         db: isNaN(dbIndex) ? 0 : dbIndex,

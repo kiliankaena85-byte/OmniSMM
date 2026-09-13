@@ -40,7 +40,7 @@ export function MobileCheckoutLinkField({
             <button
               type="button"
               onClick={() => setActiveStep(1)}
-              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer min-h-[44px] min-w-[44px] px-2"
             >
               <Pencil className="w-3 h-3 shrink-0" />
               <span>Изменить</span>

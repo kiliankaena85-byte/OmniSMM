@@ -28,6 +28,7 @@ import { inferTargetTypeFromName } from "@/utils/target-type";
 import { FluxNetwork, FluxCategory, FluxService } from "@/types/flux";
 import { FluxCyberLinkDrawer } from "@/components/orders/flux/FluxCyberLinkDrawer";
 import { toast } from "sonner";
+import { safeFocus } from "@/utils/scroll-helpers";
 
 type Step = 'network' | 'category' | 'service' | 'checkout';
 
@@ -388,8 +389,7 @@ function FluxDashboardOrderWizardInner({
       setErrorMessage("Пожалуйста, укажите ссылку для продвижения");
       setErrorField("link");
       setShakeKey(Date.now());
-      linkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      linkRef.current?.focus();
+      safeFocus(linkRef.current, true);
       return;
     }
 
@@ -399,8 +399,7 @@ function FluxDashboardOrderWizardInner({
       setErrorMessage(`Минимальное количество: ${minQty} шт.`);
       setErrorField("quantity");
       setShakeKey(Date.now());
-      quantityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      quantityRef.current?.focus();
+      safeFocus(quantityRef.current, true);
       return;
     }
 
@@ -408,8 +407,7 @@ function FluxDashboardOrderWizardInner({
       setErrorMessage(`Максимальное количество: ${maxQty} шт.`);
       setErrorField("quantity");
       setShakeKey(Date.now());
-      quantityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      quantityRef.current?.focus();
+      safeFocus(quantityRef.current, true);
       return;
     }
 
@@ -418,8 +416,7 @@ function FluxDashboardOrderWizardInner({
         setErrorMessage(selectedService.customDataLabel || "Пожалуйста, заполните параметры заказа");
         setErrorField("customData");
         setShakeKey(Date.now());
-        customDataRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        customDataRef.current?.focus();
+        safeFocus(customDataRef.current, true);
         return;
       }
     }
@@ -429,7 +426,7 @@ function FluxDashboardOrderWizardInner({
       setErrorMessage("Необходимо подтвердить требования к заказу");
       setErrorField("requirement");
       setShakeKey(Date.now());
-      requirementRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      safeFocus(requirementRef.current, true);
       return;
     }
 
@@ -437,8 +434,7 @@ function FluxDashboardOrderWizardInner({
       setErrorMessage("Укажите корректный адрес электронной почты");
       setErrorField("email");
       setShakeKey(Date.now());
-      emailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      emailRef.current?.focus();
+      safeFocus(emailRef.current, true);
       return;
     }
 
@@ -448,8 +444,7 @@ function FluxDashboardOrderWizardInner({
         setErrorMessage(dripCheck.error || "Ошибка параметров Drip-Feed");
         setErrorField("quantity");
         setShakeKey(Date.now());
-        quantityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        quantityRef.current?.focus();
+        safeFocus(quantityRef.current, true);
         return;
       }
       if (!validateDripFeedDuration(dripRuns, dripInterval)) {

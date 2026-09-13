@@ -11,7 +11,7 @@ import { SmartCaptchaWidget } from '@/components/auth/SmartCaptchaWidget';
 
 const inputCls =
   'w-full rounded-2xl border border-border bg-card text-foreground px-4 py-3.5 ' +
-  'text-sm font-semibold outline-none placeholder:text-muted-foreground ' +
+  'text-base md:text-sm font-semibold outline-none placeholder:text-muted-foreground ' +
   'focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-200 shadow-sm';
 
 export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
@@ -138,7 +138,7 @@ export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
         <button
           type="button"
           onClick={() => setActiveTab('password')}
-          className={`flex-1 py-2 px-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+          className={`flex-1 py-2.5 px-2 text-xs font-bold transition-all duration-200 cursor-pointer min-h-[40px] flex items-center justify-center ${
             isFlux ? 'rounded-full' : 'rounded-xl'
           } ${
             activeTab === 'password'
@@ -151,7 +151,7 @@ export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
         <button
           type="button"
           onClick={() => setActiveTab('magic')}
-          className={`flex-1 py-2 px-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+          className={`flex-1 py-2.5 px-2 text-xs font-bold transition-all duration-200 cursor-pointer min-h-[40px] flex items-center justify-center ${
             isFlux ? 'rounded-full' : 'rounded-xl'
           } ${
             activeTab === 'magic'
@@ -164,7 +164,7 @@ export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
         <button
           type="button"
           onClick={() => setActiveTab('register')}
-          className={`flex-1 py-2 px-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+          className={`flex-1 py-2.5 px-2 text-xs font-bold transition-all duration-200 cursor-pointer min-h-[40px] flex items-center justify-center ${
             isFlux ? 'rounded-full' : 'rounded-xl'
           } ${
             activeTab === 'register'
@@ -219,7 +219,7 @@ export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
                 aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -383,7 +383,7 @@ export function LoginForm({ isFlux = false }: { isFlux?: boolean }) {
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
                 aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

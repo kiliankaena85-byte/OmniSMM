@@ -95,37 +95,50 @@ function startTunnel() {
       console.log(`\n[Tunnel] 🌟 Detected active tunnel URL: ${currentTunnelUrl}`);
       updateCloudflareWorker(currentTunnelUrl);
 
-      // Start keep-alive heartbeats every 35 seconds
+function killSsh(child) {
+  if (!child) return;
+  try {
+    if (process.platform === 'win32' && child.pid) {
+      spawn('taskkill', ['/F', '/T', '/PID', String(child.pid)]);
+    } else {
+      child.kill('SIGKILL');
+    }
+  } catch (_) {
+    try { child.kill(); } catch (_) {}
+  }
+}
+
+      // Start keep-alive heartbeats every 15 seconds
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       heartbeatInterval = setInterval(async () => {
         try {
           const res = await fetch(`${currentTunnelUrl}/api/health`, {
             headers: { 'x-pinggy-no-screen': 'true' },
-            signal: AbortSignal.timeout(15000)
+            signal: AbortSignal.timeout(10000)
           });
           if (res.ok) {
             consecutiveFailures = 0;
             console.log(`[Heartbeat] 💓 Ping OK: ${new Date().toLocaleTimeString()} (200 OK)`);
           } else if (res.status === 503) {
             console.log(`[Heartbeat] 🚨 Provider returned 503 (tunnel revoked). Force restarting SSH...`);
-            ssh.kill('SIGKILL');
+            killSsh(ssh);
           } else {
             consecutiveFailures++;
             console.log(`[Heartbeat] ⚠️ Ping returned status: ${res.status} (fail count: ${consecutiveFailures})`);
-            if (consecutiveFailures >= 3) {
+            if (consecutiveFailures >= 2) {
               console.log(`[Heartbeat] 🚨 Tunnel dead (${consecutiveFailures} consecutive non-200). Force restarting SSH...`);
-              ssh.kill('SIGKILL');
+              killSsh(ssh);
             }
           }
         } catch(e) {
           consecutiveFailures++;
           console.log(`[Heartbeat] ⚠️ Ping error: ${e.message} (fail count: ${consecutiveFailures})`);
-          if (consecutiveFailures >= 3) {
+          if (consecutiveFailures >= 2) {
             console.log(`[Heartbeat] 🚨 Tunnel unreachable (${consecutiveFailures} consecutive errors). Force restarting SSH...`);
-            ssh.kill('SIGKILL');
+            killSsh(ssh);
           }
         }
-      }, 35000);
+      }, 15000);
     }
   });
 

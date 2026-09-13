@@ -43,6 +43,7 @@ export function MobileCheckoutQuantity({
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleStepQuantity(-100)}
             disabled={quantity <= minQty}
             aria-label="Уменьшить количество на 100"
@@ -58,15 +59,11 @@ export function MobileCheckoutQuantity({
             pattern="[0-9]*"
             value={quantity || ''}
             onFocus={(e) => {
-              const target = e.currentTarget;
-              setTimeout(() => {
-                target.focus();
-                target.select();
-              }, 10);
-            }}
-            onClick={(e) => {
-              e.currentTarget.focus();
-              e.currentTarget.select();
+              // Only auto-select on desktop devices with fine pointer (mouse)
+              // to prevent mobile viewport jump and WebKit scroll-to-top glitch
+              if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+                e.currentTarget.select();
+              }
             }}
             onChange={e => {
               const clean = e.target.value.replace(/\D/g, '');
@@ -88,6 +85,7 @@ export function MobileCheckoutQuantity({
 
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleStepQuantity(100)}
             disabled={quantity >= maxQty}
             aria-label="Увеличить количество на 100"

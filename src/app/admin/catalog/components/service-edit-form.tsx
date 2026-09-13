@@ -521,7 +521,7 @@ export function ServiceEditForm({
                   {name || 'Название услуги'}
                 </div>
                 {previewBadge && (
-                  <span className="shrink-0 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/15 text-primary border border-primary/25">
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/15 text-primary border border-primary/25">
                     {previewBadge}
                   </span>
                 )}

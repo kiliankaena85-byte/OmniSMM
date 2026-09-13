@@ -18,14 +18,25 @@ export interface CanonicalNetworkDefinition {
 export const CANONICAL_NETWORKS: CanonicalNetworkDefinition[] = [
   { code: 'TELEGRAM', name: 'Telegram', slug: 'telegram', sortOrder: 10, keywords: ['telegram', 'тг', 'телеграм', 'телеграмм', 'tg'] },
   { code: 'INSTAGRAM', name: 'Instagram', slug: 'instagram', sortOrder: 20, keywords: ['instagram', 'инстаграм', 'инста', 'ig', 'insta'] },
-  { code: 'VK', name: 'ВКонтакте', slug: 'vk', sortOrder: 30, keywords: ['vk', 'vkontakte', 'вконтакте', 'вк'] },
+  { code: 'VK', name: 'ВКонтакте', slug: 'vk', sortOrder: 30, keywords: ['vkontakte', 'вконтакте', 'vk', 'вк'] },
   { code: 'YOUTUBE', name: 'YouTube', slug: 'youtube', sortOrder: 40, keywords: ['youtube', 'ютуб', 'ютубе', 'yt'] },
   { code: 'TIKTOK', name: 'TikTok', slug: 'tiktok', sortOrder: 50, keywords: ['tiktok', 'тикток', 'тик-ток', 'tt'] },
   { code: 'TWITCH', name: 'Twitch', slug: 'twitch', sortOrder: 60, keywords: ['twitch', 'твич'] },
   { code: 'DISCORD', name: 'Discord', slug: 'discord', sortOrder: 70, keywords: ['discord', 'дискорд'] },
   { code: 'TWITTER', name: 'Twitter (X)', slug: 'twitter', sortOrder: 80, keywords: ['twitter', 'твиттер', 'x.com'] },
   { code: 'RUTUBE', name: 'Rutube', slug: 'rutube', sortOrder: 90, keywords: ['rutube', 'рутуб'] },
-  { code: 'DZEN', name: 'Дзен', slug: 'dzen', sortOrder: 100, keywords: ['dzen', 'дзен', 'yandex dzen'] },
+  { code: 'DZEN', name: 'Дзен', slug: 'dzen', sortOrder: 100, keywords: ['dzen', 'дзен', 'yandex dzen', 'yandex zen'] },
+  { code: 'FACEBOOK', name: 'Facebook', slug: 'facebook', sortOrder: 110, keywords: ['facebook', 'fb', 'фейсбук'] },
+  { code: 'KICK', name: 'Kick', slug: 'kick', sortOrder: 120, keywords: ['kick.com', 'kick', 'кик'] },
+  { code: 'WEBSITE', name: 'Веб-трафик', slug: 'website', sortOrder: 130, keywords: ['website', 'traffic', 'трафик', 'веб-трафик', 'organic traffic'] },
+  { code: 'SPOTIFY', name: 'Spotify', slug: 'spotify', sortOrder: 140, keywords: ['spotify', 'спотифай'] },
+  { code: 'LIKEE', name: 'Likee', slug: 'likee', sortOrder: 150, keywords: ['likee', 'лайкии'] },
+  { code: 'WHATSAPP', name: 'WhatsApp', slug: 'whatsapp', sortOrder: 160, keywords: ['whatsapp', 'ватсап', 'вацап'] },
+  { code: 'MAX', name: 'MAX', slug: 'max', sortOrder: 170, keywords: ['max'] },
+  { code: 'STEAM', name: 'Steam', slug: 'steam', sortOrder: 180, keywords: ['steam', 'стим'] },
+  { code: 'OK', name: 'OK', slug: 'ok', sortOrder: 190, keywords: ['одноклассники', 'ok.ru', 'ок'] },
+  { code: 'TROVO', name: 'Trovo', slug: 'trovo', sortOrder: 200, keywords: ['trovo', 'трово'] },
+  { code: 'WIBES', name: 'Wibes', slug: 'wibes', sortOrder: 210, keywords: ['wibes', 'вайбс'] },
   { code: 'OTHER', name: 'Другое', slug: 'other', sortOrder: 999, keywords: [] },
 ];
 
@@ -45,7 +56,7 @@ export const CANONICAL_CATEGORIES: CanonicalCategoryDefinition[] = [
     name: 'Подписчики',
     sortOrder: 10,
     targetType: 'CHANNEL',
-    keywords: ['subscriber', 'member', 'follow', 'participant', 'reader', 'подписчик', 'участник', 'фолловер', 'читател']
+    keywords: ['subscriber', 'member', 'follow', 'participant', 'reader', 'подписчик', 'участник', 'фолловер', 'читател', 'друзья']
   },
   {
     code: 'LIKES',
@@ -59,14 +70,14 @@ export const CANONICAL_CATEGORIES: CanonicalCategoryDefinition[] = [
     name: 'Просмотры',
     sortOrder: 30,
     targetType: 'POST',
-    keywords: ['view', 'eye', 'watch', 'просмотр', 'гляделок', 'глаз', 'охват', 'показ', 'impressions']
+    keywords: ['view', 'eye', 'watch', 'просмотр', 'гляделок', 'глаз', 'охват', 'показ', 'impressions', 'дочитыван', 'прослушиван', 'сохранен']
   },
   {
     code: 'REACTIONS',
     name: 'Реакции',
     sortOrder: 40,
     targetType: 'POST',
-    keywords: ['reaction', 'emoji', 'реакци', 'эмодзи', 'смайл']
+    keywords: ['reaction', 'emoji', 'реакци', 'эмодзи', 'смайл', 'звезды', 'звезд', 'stars']
   },
   {
     code: 'COMMENTS',
@@ -95,6 +106,20 @@ export const CANONICAL_CATEGORIES: CanonicalCategoryDefinition[] = [
     sortOrder: 80,
     targetType: 'CHANNEL',
     keywords: ['boost', 'буст', 'level', 'уровень', 'голос в канал']
+  },
+  {
+    code: 'BOTS',
+    name: 'Боты и Рефералы',
+    sortOrder: 85,
+    targetType: 'BOT',
+    keywords: ['запуск бота', 'старты бота', 'старт бота', 'рефералы для ботов', 'рефералы', 'активность ботов', 'чат - боты', 'чат-боты', 'bot', 'бот']
+  },
+  {
+    code: 'TRAFFIC',
+    name: 'Трафик',
+    sortOrder: 88,
+    targetType: 'CUSTOM',
+    keywords: ['traffic', 'трафик', 'organic traffic', 'посещения', 'переходы']
   },
   {
     code: 'STREAMS',

@@ -4,6 +4,7 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { Button } from "@/components/ui/button";
+import { safeFocus } from "@/utils/scroll-helpers";
 
 interface MobileStickyCTAProps {
   engine: OrderEngine;
@@ -49,8 +50,8 @@ export function MobileStickyCTA({
                   setActiveStep(1);
                   setTimeout(() => {
                     const urlInput = document.getElementById("standard-url-input");
-                    if (urlInput) urlInput.focus();
-                  }, 200);
+                    if (urlInput instanceof HTMLInputElement) safeFocus(urlInput, true);
+                  }, 120);
                   return;
                 }
                 if (!categoryId) {

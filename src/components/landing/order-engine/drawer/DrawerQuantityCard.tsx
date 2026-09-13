@@ -114,8 +114,9 @@ export function DrawerQuantityCard({
             onBlur={handleInputBlur}
             disabled={isCustomComments}
             onFocus={(e) => {
-              const target = e.target;
-              setTimeout(() => target.select(), 0);
+              if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+                e.currentTarget.select();
+              }
             }}
             placeholder={String(min)}
             className={`w-full h-11 sm:h-12 px-3 rounded-xl border border-border/80 bg-background text-lg sm:text-xl font-black tabular-nums font-mono text-foreground text-center focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-2xs ${

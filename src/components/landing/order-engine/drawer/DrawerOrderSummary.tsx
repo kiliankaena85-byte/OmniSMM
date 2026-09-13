@@ -103,7 +103,7 @@ export function DrawerOrderSummary({
                 ? "https://vk.com/..."
                 : "Вставьте ссылку на канал, группу или публикацию"
             }
-            className="w-full h-10 px-3 rounded-lg bg-card border border-border/80 focus:border-primary outline-none text-xs font-mono text-foreground font-bold"
+            className="w-full h-10 px-3 rounded-lg bg-card border border-border/80 focus:border-primary outline-none text-base sm:text-xs font-mono text-foreground font-bold"
           />
         </div>
       ) : (

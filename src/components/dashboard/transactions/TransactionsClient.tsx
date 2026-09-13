@@ -500,8 +500,8 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           {/* Date Selector */}
           <select
             value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value as "ALL" | "TODAY" | "WEEK" | "MONTH")}
-            className="h-11 w-full sm:w-auto bg-content2 border border-border/60 rounded-xl px-3 py-2 text-sm font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none"
+            onChange={(e) => setDateFilter(e.target.value as "ALL" | "TODAY" | "WEEK" | "MONTH")}
+            className="h-11 w-full sm:w-auto bg-content2 border border-border/60 rounded-xl px-3 py-2 text-base sm:text-sm font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none"
             aria-label="Фильтр по дате"
           >
             <option value="ALL">За всё время</option>
@@ -522,7 +522,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
               placeholder="Поиск по ID или причине..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 bg-muted border border-border/60 rounded-xl text-sm font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              className="w-full h-11 pl-10 pr-4 bg-muted border border-border/60 rounded-xl text-base sm:text-sm font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
             />
           </div>
 

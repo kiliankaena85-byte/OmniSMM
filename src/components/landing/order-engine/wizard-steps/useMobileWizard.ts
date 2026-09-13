@@ -25,9 +25,12 @@ export function useMobileWizard(engine: OrderEngine) {
     // CRITICAL: Mobile only guard! On desktop (>768px) MobileWizard must NEVER hijack page scroll
     if (window.innerWidth >= 768) return;
 
-    // Typing Guard: Do not scroll if user is actively typing in an input or textarea
+    // Typing Guard: Do not scroll if user is actively interacting with an input, textarea or button in wizard
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      return;
+    }
+    if (activeEl && activeEl.closest('#catalog-section') && (activeEl.tagName === 'BUTTON' || activeEl.tagName === 'INPUT')) {
       return;
     }
 
@@ -54,14 +57,13 @@ export function useMobileWizard(engine: OrderEngine) {
   }, []);
 
   const setActiveStep = useCallback((step: 1 | 2 | 3 | 4) => {
+    // Idempotent Step Guard: Never re-trigger step update if already on the target step
+    if (step === prevStepRef.current) return;
+
     userManuallyBrowsingRef.current = true;
     setActiveStepRaw(step);
-
-    // Smooth scroll to the new step on mobile only, single clean timer
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setTimeout(() => scrollToStep(step), 120);
-    }
-  }, [scrollToStep]);
+    // Note: Targeted validation scroll is used for missing inputs; regular browsing does not hijack scroll.
+  }, []);
 
 
   // Single effect to synchronize browser history outside of React render/setState updaters (B3)
@@ -114,14 +116,6 @@ export function useMobileWizard(engine: OrderEngine) {
     isLoading,
     validationErrors,
   } = engine;
-
-  // Once services finish loading for step 3, ensure tariffs remain comfortably in view
-  useEffect(() => {
-    if (mounted && activeStepRaw === 3 && services?.length > 0 && !isLoading) {
-      const timer = setTimeout(() => scrollToStep(3), 150);
-      return () => clearTimeout(timer);
-    }
-  }, [mounted, activeStepRaw, services?.length, isLoading, scrollToStep]);
 
   // CRITICAL INVARIANT:
   // 1. If auth_resume=1 or hash is #step-4 or selectedService is already set -> Step 4
@@ -224,7 +218,7 @@ export function useMobileWizard(engine: OrderEngine) {
     isFocused, setIsFocused,
     localUrlError, setLocalUrlError,
     mounted,
-    currentStep, setActiveStep,
+    currentStep, setActiveStep, scrollToStep,
     step1Ref, step2Ref, step3Ref, step4Ref,
     catalogHint, setCatalogHint,
     proceedFromStep1,

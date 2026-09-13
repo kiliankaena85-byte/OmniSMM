@@ -100,17 +100,33 @@ export function MobileStep4Checkout({
   const totalCents = engine.pricing?.totalCents || Math.round(parseFloat(totalPriceFormatted || "0") * 100);
 
   const onOrderClick = () => {
+    if (!url || url.trim().length < 3) {
+      setLocalError("Пожалуйста, укажите ссылку для продвижения");
+      setActiveStep(1);
+      setTimeout(() => {
+        const urlInput = document.getElementById("standard-url-input");
+        if (urlInput) safeFocus(urlInput, true);
+      }, 120);
+      return;
+    }
+
     if (!agreedToTerms) {
       setLocalError("Пожалуйста, примите условия оферты и политики конфиденциальности");
       setShakeKey(prev => prev + 1);
+      if (engine.setTermsHasError) engine.setTermsHasError(true);
+      const checkboxEl = document.getElementById("standard-legal-checkbox");
+      if (checkboxEl) {
+        safeFocus(checkboxEl, true);
+      }
       return;
     }
 
     if (!email || !email.includes("@")) {
       setLocalError("Укажите корректный email для отправки чека и доступа к заказу");
       setShakeKey(prev => prev + 1);
-      if (emailInputRef?.current) {
-        safeFocus(emailInputRef.current);
+      const emailEl = emailInputRef?.current || document.getElementById("email-input");
+      if (emailEl) {
+        safeFocus(emailEl, true);
       }
       return;
     }

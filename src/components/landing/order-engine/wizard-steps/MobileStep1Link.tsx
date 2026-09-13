@@ -159,14 +159,9 @@ export function MobileStep1Link({
       {/* Smart Detection Live Badge */}
       <MobileStep1DetectionBadge engine={engine} url={url} />
 
-      {validationErrors?.link && (
+      {(validationErrors?.link || localUrlError) && (
         <p id="mobile-step1-url-error" role="alert" aria-live="assertive" className="text-[11px] font-bold text-danger pl-1 animate-pulse">
-          {validationErrors.link}
-        </p>
-      )}
-      {localUrlError && (
-        <p id="mobile-step1-url-error" role="alert" aria-live="assertive" className="text-[11px] font-bold text-danger pl-1 animate-pulse">
-          {localUrlError}
+          {validationErrors?.link || localUrlError}
         </p>
       )}
 

@@ -163,7 +163,7 @@ export function MobileStep2Category({
               <button
                 type="button"
                 onClick={() => setShowAllCategories(!showAllCategories)}
-                className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                className="text-[11px] font-bold text-muted-foreground md:hover:text-primary active:opacity-70 transition-colors cursor-pointer min-h-[44px] px-3 flex items-center"
               >
                 {showAllCategories ? "Скрыть другие категории" : `Показать все категории ${engine.activeNetwork?.name || ''} (${allNetworkCategories.length})`}
               </button>

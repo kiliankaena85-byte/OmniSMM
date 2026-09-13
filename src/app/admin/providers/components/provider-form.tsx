@@ -36,7 +36,7 @@ interface ProviderFormProps {
 // Input classes reused across all form controls
 const inputCls =
   'block w-full rounded-lg border border-border bg-background text-foreground ' +
-  'text-sm p-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 ' +
+  'text-base md:text-sm p-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 ' +
   'placeholder:text-muted-foreground transition-all duration-200';
 
 const labelCls = 'block text-sm font-medium text-foreground mb-1';

@@ -119,7 +119,7 @@ export function MobileStep3Service({
                 <button
                   type="button"
                   onClick={() => setShowAllTariffs(!showAllTariffs)}
-                  className="py-2 px-3 rounded-xl bg-content2 hover:bg-content3 text-[11px] font-extrabold text-primary border border-border/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 mt-1"
+                  className="py-2 px-3 min-h-[44px] rounded-xl bg-content2 hover:bg-content3 text-[11px] font-extrabold text-primary border border-border/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] mt-1"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>{showAllTariffs ? "Показать только рекомендуемые (3 тарифа)" : `Показать все ${services.length} тарифов ▾`}</span>

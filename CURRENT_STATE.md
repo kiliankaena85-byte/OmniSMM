@@ -1,4 +1,32 @@
 # CURRENT_STATE.md
+- [x] Внедрение точечного скролла валидации (Targeted Validation Scroll) и полное устранение подпрыгиваний экрана — (100% COMPLETE & VERIFIED):
+  * 🎯 **Точечный фокус на ошибках заполнения:**
+    - Скролл срабатывает СТРОГО при ошибках валидации («Забыл ссылку» $\to$ скролл к инпуту ссылки; «Забыл email» $\to$ скролл к полю email; «Забыл чекбокс» $\to$ скролл к блоку оферты с шейк-анимацией).
+    - Полностью отключены фоновые принудительные скроллы при обычном листании шагов визарда (`setActiveStep`) и при подгрузке услуг в `useMobileWizard.ts`. Пользователь полностью контролирует скролл пальцем.
+  * 🛡️ **Физическое устранение подпрыгивания (`scroll-helpers.ts`):**
+    - Устранен `scrollIntoView({ block: 'center' })`, конфликтовавший с высотой выезжающей экранной клавиатуры iOS/Android.
+    - Внедрен математический расчет безопасного отступа под хедер (TargetY = element.offsetTop - 85px), оставляющий нижнюю часть экрана свободной для клавиатуры.
+    - В `safeFocus` разделены по таймингу скролл и активация фокуса для предотвращения конфликта двух одновременных CSS/JS анимаций.
+  * 🧪 **Верификация:**
+    - `vitest run src/__tests__/mobile-wizard-smoke.test.tsx src/__tests__/plan-slide-order-client.test.tsx` (22/22 PASS).
+    - `tsc --noEmit` (0 ошибок).
+
+  * 📱 **Mobile Touch & Focus Geometry:**
+    - В `MobileCheckoutQuantity.tsx` устранен агрессивный `onFocus`/`onClick` с `target.focus()` и таймером `select()`, вызывавший сброс скролла на сенсорных устройствах.
+    - Авто-выделение текста сохранено строго для десктопа с мышью (`pointer: fine`), на тач-устройствах обеспечен нативный комфортный ввод без рывков.
+    - Для кнопок степпера `+` / `–` добавлен `onMouseDown={(e) => e.preventDefault()}` для предотвращения потери фокуса и скачков клавиатуры.
+  * 🛡️ **Зачистка изолированного GPU-слоя:**
+    - В `LandingCatalogContent.tsx` удален класс `will-change-transform`, искажавший нативный расчет координат скролла в WebKit (iOS Safari).
+  * 🔒 **Идемпотентный Guard в хуке визарда:**
+    - В `useMobileWizard.ts` добавлен `if (step === prevStepRef.current) return;` в `setActiveStep`, блокирующий повторный скролл к началу шага 4 при нахождении пользователя на этом шаге.
+    - Расширен Typing Guard в `scrollToStep` для активных элементов `#catalog-section`.
+  * 🧪 **Верификация и кросс-модульная синхронизация:**
+    - Аналогичные антипаттерны `select()` в таймере синхронно устранены в `PlanSlideOrderClient.tsx`, `FluxOrderClient.tsx`, `DrawerQuantityCard.tsx`.
+    - `npx tsc --noEmit` (0 ошибок).
+    - `vitest run src/__tests__/orders/order-wizard-cro-and-dripfeed.test.ts` (8/8 PASS).
+    - `vitest run src/__tests__/mobile-wizard-smoke.test.tsx` (16/16 PASS).
+    - `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Архивация и публикация на GitHub архитектурного комплекта скиллов OmniSMM (`omnismm-skills.zip`) — (100% COMPLETE & VERIFIED):
   * 📦 **Пакет скиллов (75 скиллов + мастер-реестр `INDEX.md`):**
     - Упакованы все 75 архитектурных, инженерных, финансовых и SDD-скиллов платформы в компактный архив `omnismm-skills.zip` (639 КБ, 160 файлов).

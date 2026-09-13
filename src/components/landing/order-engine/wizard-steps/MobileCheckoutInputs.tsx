@@ -100,7 +100,7 @@ export function MobileCheckoutInputs({
           <button
             type="button"
             onClick={() => setShowPromo(true)}
-            className="text-xs font-extrabold text-primary uppercase tracking-wider pl-1 hover:underline flex items-center gap-1 transition-all h-10 cursor-pointer"
+            className="text-xs font-extrabold text-primary uppercase tracking-wider pl-1 hover:underline flex items-center gap-1 transition-all h-11 min-h-[44px] cursor-pointer"
           >
             + Есть промокод?
           </button>

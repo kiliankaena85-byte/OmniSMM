@@ -435,7 +435,9 @@ function PlanSlideOrderClientInner({
 
   useEffect(() => {
     if (step === 'checkout' && quantityRef.current) {
-      setTimeout(() => quantityRef.current?.focus(), 300);
+      if (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(pointer: fine)").matches) {
+        quantityRef.current?.focus({ preventScroll: true });
+      }
     }
   }, [step]);
 
@@ -1013,12 +1015,9 @@ function PlanSlideOrderClientInner({
                     pattern="[0-9]*"
                     value={quantity}
                     onFocus={(e) => {
-                      const target = e.currentTarget;
-                      setTimeout(() => target.select(), 10);
-                    }}
-                    onClick={(e) => {
-                      const target = e.currentTarget;
-                      setTimeout(() => target.select(), 10);
+                      if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
+                        e.currentTarget.select();
+                      }
                     }}
                     onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
                     className="w-full h-11 px-3.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none font-bold text-base text-foreground font-mono"

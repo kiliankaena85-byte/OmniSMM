@@ -98,11 +98,11 @@ export function MobileCheckoutGateways({
                   ? "opacity-60 cursor-not-allowed border-border/30 bg-content2/50 text-muted-foreground"
                   : isSelected
                   ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-sm"
-                  : "border-border/50 bg-content2 hover:bg-content3 hover:border-border text-muted-foreground"
+                  : "border-border/50 bg-content2 md:hover:bg-content3 md:hover:border-border text-muted-foreground"
               }`}
             >
               {gateway.badge && (
-                <span className={`absolute top-1 right-1 text-[8px] font-black uppercase tracking-wider px-1 py-0.2 rounded ${
+                <span className={`absolute top-1 right-1 text-[8px] font-black uppercase tracking-wider px-1 py-0.5 rounded ${
                   gateway.id === 'balance' && isBalanceSufficient
                     ? "bg-success text-success-foreground"
                     : gateway.disabled
@@ -118,7 +118,7 @@ export function MobileCheckoutGateways({
                   {gateway.name}
                 </span>
               </div>
-              <span className="text-[9px] font-medium text-muted-foreground">
+              <span className="text-[10px] font-medium text-muted-foreground">
                 {gateway.subtitle}
               </span>
             </button>
