@@ -49,7 +49,7 @@ export function WizardStepCategory({
           <div className="flex items-center gap-2 min-w-0">
             {selectedNetwork && <SocialIcon slug={selectedNetwork.slug || selectedNetwork.name} className="w-6 h-6 shrink-0" />}
             <div className="min-w-0">
-              <h2 className="text-xl font-bold text-foreground truncate">Шаг 2: Категория ({selectedNetwork?.name})</h2>
+              <h2 className="text-xl font-bold text-foreground truncate min-w-0">Шаг 2: Категория ({selectedNetwork?.name})</h2>
               <p className="text-muted-foreground text-xs">Выберите направление услуги</p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export function WizardStepCategory({
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <div className="text-sm font-semibold text-foreground truncate">{cat.name}</div>
+                      <div className="text-sm font-semibold text-foreground truncate min-w-0">{cat.name}</div>
                       {showAllCategories && isMatchedByFilter && (
                         <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md shrink-0 border border-emerald-500/20">
                           Подходит

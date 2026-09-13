@@ -200,7 +200,7 @@ export function CheckoutAuthModal({
             <div className="flex items-start justify-between gap-3 relative">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
-                  <Lock className="w-5 h-5" />
+                  <Lock className="w-5 h-5 shrink-0" />
                 </div>
                 <div>
                   <h3 className="text-base font-black text-foreground">

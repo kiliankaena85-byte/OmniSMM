@@ -111,7 +111,7 @@ export function DrawerOrderSummary({
           <div className="flex items-center gap-2 min-w-0">
             <Link2 className="w-4 h-4 text-primary shrink-0" />
             <p 
-              className="text-xs sm:text-sm font-bold text-foreground truncate font-mono"
+              className="text-xs sm:text-sm font-bold text-foreground truncate font-mono min-w-0"
               title={url}
             >
               {url}

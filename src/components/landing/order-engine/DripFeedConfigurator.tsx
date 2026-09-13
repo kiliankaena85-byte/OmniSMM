@@ -67,7 +67,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col">
           <p className="text-xs sm:text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
-            <Activity className="w-4 h-4 text-primary" /> Плавное продвижение (Drip-Feed)
+            <Activity className="w-4 h-4 text-primary shrink-0" /> Плавное продвижение (Drip-Feed)
           </p>
           <p className="text-xs text-muted-foreground mt-1 leading-snug font-medium">
             Распределите выполнение заказа на части, чтобы имитировать естественный рост
@@ -151,7 +151,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                       onClick={() => handleSetSmartDays(engine.smartDripDays - 1)}
                       className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border text-foreground hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-4 h-4 shrink-0" />
                     </button>
                     <div className="flex flex-col items-center">
                       <span className="text-base font-black tabular-nums">{engine.smartDripDays}</span>
@@ -162,7 +162,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                       onClick={() => handleSetSmartDays(engine.smartDripDays + 1)}
                       className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border text-foreground hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 shrink-0" />
                     </button>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed text-center px-2">
@@ -189,7 +189,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                         onClick={() => handleSetRuns(engine.runs - 1)}
                         className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border hover:border-primary active:scale-95 transition-all"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3 h-3 shrink-0" />
                       </button>
                       <span className="text-sm font-black tabular-nums">{engine.runs}</span>
                       <button
@@ -197,7 +197,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                         onClick={() => handleSetRuns(engine.runs + 1)}
                         className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border hover:border-primary active:scale-95 transition-all"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 shrink-0" />
                       </button>
                     </div>
                   </div>
@@ -212,7 +212,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                         onClick={() => engine.setDripInterval(Math.max(5, engine.dripInterval - 5))}
                         className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border hover:border-primary active:scale-95 transition-all"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3 h-3 shrink-0" />
                       </button>
                       <span className="text-sm font-black tabular-nums">{engine.dripInterval}</span>
                       <button
@@ -220,7 +220,7 @@ export function DripFeedConfigurator({ engine }: { engine: OrderEngine }) {
                         onClick={() => engine.setDripInterval(Math.min(2880, engine.dripInterval + 5))}
                         className="w-11 h-11 flex items-center justify-center rounded-lg bg-background border border-border hover:border-primary active:scale-95 transition-all"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 shrink-0" />
                       </button>
                     </div>
                   </div>

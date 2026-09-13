@@ -76,7 +76,7 @@ export default function PasswordCard({
     <div className="bg-card border border-border rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-sm">
       <div className="px-5 py-4 border-b border-border flex items-center gap-2.5 bg-muted/20">
         <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-          <KeyRound className="w-4 h-4" />
+          <KeyRound className="w-4 h-4 shrink-0" />
         </div>
         <div>
           <h2 className="font-semibold text-foreground text-sm">

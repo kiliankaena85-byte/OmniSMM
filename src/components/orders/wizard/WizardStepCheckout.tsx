@@ -43,8 +43,8 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         <div className="flex items-center gap-3 min-w-0">
           {selectedNetwork && <SocialIcon slug={selectedNetwork.slug || selectedNetwork.name} className="w-8 h-8 shrink-0" />}
           <div className="min-w-0 flex-1">
-            <span className="text-xs font-semibold text-muted-foreground block truncate">{selectedNetwork?.name} / {selectedCategory?.name}</span>
-            <h3 className="text-sm sm:text-base font-bold text-foreground truncate">{selectedService.name}</h3>
+            <span className="text-xs font-semibold text-muted-foreground block truncate min-w-0">{selectedNetwork?.name} / {selectedCategory?.name}</span>
+            <h3 className="text-sm sm:text-base font-bold text-foreground truncate min-w-0">{selectedService.name}</h3>
             <span className="text-xs text-primary font-semibold block mt-0.5">{formatEtaSpeedBadge(selectedService)}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
 
       {selectedService.customDataType && selectedService.customDataType !== 'NONE' && (
         <div className="space-y-2">
-          <label className="text-sm font-bold text-foreground flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-primary" /> {selectedService.customDataLabel || 'Параметры заказа'} <span className="text-destructive">*</span></label>
+          <label className="text-sm font-bold text-foreground flex items-center gap-1.5 shrink-0"><Sparkles className="w-4 h-4 text-primary" /> {selectedService.customDataLabel || 'Параметры заказа'} <span className="text-destructive">*</span></label>
           {selectedService.customDataType === 'TEXTAREA' ? (
             <textarea rows={3} value={customData} onChange={e => { setCustomData(e.target.value); if (errors.customData) setErrors(prev => ({ ...prev, customData: undefined })); }} placeholder="Каждый комментарий с новой строки..." className={`w-full px-4 py-3 text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.customData ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
           ) : (
@@ -90,7 +90,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
 
       {(selectedService.clientRequirement || selectedService.clientConfirmation || selectedService.requireWarning) && (
         <div className={`p-4 rounded-2xl border transition-all ${isRequirementsConfirmed ? 'bg-green-500/10 border-green-500/30' : errors.requirement ? 'bg-destructive/10 border-destructive/40 animate-shake' : 'bg-amber-500/10 border-amber-500/30'}`}>
-          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider mb-1"><Sparkles className="w-4 h-4" /> Чек-лист для старта</div>
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider mb-1 shrink-0"><Sparkles className="w-4 h-4" /> Чек-лист для старта</div>
           <p className="text-xs text-muted-foreground mb-3">{selectedService.clientRequirement || selectedService.warningMessage || 'Перед началом убедитесь, что объект доступен для всех.'}</p>
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={isRequirementsConfirmed} onChange={(e) => { setIsRequirementsConfirmed(e.target.checked); if (errors.requirement) setErrors(prev => ({ ...prev, requirement: undefined })); }} className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary" />
@@ -152,7 +152,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
           </div>
         </div>
         <button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-8 py-4 bg-primary text-primary-foreground font-black text-base rounded-2xl shadow-lg shadow-primary/25 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
-          {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Обработка заказа...</span></> : <><Zap className="w-5 h-5 fill-current" /><span>Оплатить и запустить заказ</span></>}
+          {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin shrink-0" /><span>Обработка заказа...</span></> : <><Zap className="w-5 h-5 fill-current" /><span>Оплатить и запустить заказ</span></>}
         </button>
       </div>
     </form>

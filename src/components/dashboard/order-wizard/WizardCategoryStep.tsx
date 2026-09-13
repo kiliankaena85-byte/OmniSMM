@@ -27,7 +27,7 @@ export function WizardCategoryStep({
           onClick={onBack}
           className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> Назад к выбору соцсети
+          <ChevronLeft className="w-4 h-4 shrink-0" /> Назад к выбору соцсети
         </button>
         <span className="text-xs font-extrabold text-primary bg-primary/10 px-3 py-1 rounded-full">
           {networkName}
@@ -51,10 +51,10 @@ export function WizardCategoryStep({
                 }`}
               >
                 <div className="w-9 h-9 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/40 text-primary">
-                  <Layers className="w-4 h-4" />
+                  <Layers className="w-4 h-4 shrink-0" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="font-bold text-xs block truncate">{cat.name}</span>
+                  <span className="font-bold text-xs block truncate min-w-0">{cat.name}</span>
                   <span className="text-[10px] text-muted-foreground font-medium block">
                     Доступно для заказа
                   </span>

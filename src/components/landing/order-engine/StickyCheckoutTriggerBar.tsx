@@ -86,12 +86,12 @@ export function StickyCheckoutTriggerBar({
             <SocialIcon slug={networkSlug} size={20} colored />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-foreground truncate max-w-[250px] leading-tight">
+            <p className="text-xs font-black text-foreground truncate max-w-[250px] leading-tight min-w-0">
               {selectedService.name}
             </p>
             <div className="flex items-center gap-1.5 mt-0.5 opacity-90">
               <Link2 className="w-3 h-3 text-primary shrink-0" />
-              <p className="text-[10px] font-bold text-muted-foreground truncate max-w-[150px]">
+              <p className="text-[10px] font-bold text-muted-foreground truncate max-w-[150px] min-w-0">
                 {url || "Ссылка не указана"}
               </p>
             </div>

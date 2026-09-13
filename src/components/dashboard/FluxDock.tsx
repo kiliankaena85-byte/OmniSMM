@@ -45,7 +45,7 @@ export function FluxDock({ email, className }: { email?: string; className?: str
           <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold uppercase shrink-0">
             {(email || '').substring(0, 2)}
           </div>
-          <span className="text-xs text-muted-foreground font-semibold max-w-[100px] truncate">{email}</span>
+          <span className="text-xs text-muted-foreground font-semibold max-w-[100px] truncate min-w-0">{email}</span>
         </div>
         <button
           type="button"

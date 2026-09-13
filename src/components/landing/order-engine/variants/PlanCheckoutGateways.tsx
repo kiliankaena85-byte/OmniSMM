@@ -82,10 +82,10 @@ export function PlanCheckoutGateways({
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                 isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
               }`}>
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5 shrink-0" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-extrabold text-xs sm:text-sm text-foreground truncate">
+                <p className="font-extrabold text-xs sm:text-sm text-foreground truncate min-w-0">
                   {opt.name}
                 </p>
                 <p className="text-[11px] text-muted-foreground line-clamp-1">
@@ -94,7 +94,7 @@ export function PlanCheckoutGateways({
               </div>
               {isSelected && (
                 <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-[3]" />
+                  <Check className="w-3 h-3 stroke-[3] shrink-0" />
                 </div>
               )}
             </button>

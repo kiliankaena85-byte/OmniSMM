@@ -79,7 +79,7 @@ export function PlatformLinkGuideDrawer({
         <div className="flex items-center justify-between pb-4 border-b border-border/30">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <BookOpen className="w-5 h-5 text-primary" />
+              <BookOpen className="w-5 h-5 text-primary shrink-0" />
             </div>
             <div>
               <h3 className="text-base font-extrabold text-foreground tracking-tight">Как скопировать ссылку?</h3>
@@ -152,7 +152,7 @@ export function PlatformLinkGuideDrawer({
                 className="w-12 h-11 rounded-xl p-0 flex items-center justify-center border-border/50 hover:bg-content2 transition-colors active:scale-95"
                 title="Предыдущий шаг"
               >
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                <ChevronLeft className="w-5 h-5 text-muted-foreground shrink-0" />
               </Button>
               
               <Button
@@ -161,7 +161,7 @@ export function PlatformLinkGuideDrawer({
                 className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-black text-xs transition-all active:scale-95 shadow-md shadow-primary/10 flex items-center justify-center gap-1.5"
               >
                 <span>Следующий способ</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 shrink-0" />
               </Button>
             </div>
           </div>
@@ -189,7 +189,7 @@ export function PlatformLinkGuideDrawer({
             {/* Visual Footer */}
             <div className="flex items-center justify-between pt-2 border-t border-border/20 text-[9px] text-muted-foreground/60 font-mono">
               <span className="flex items-center gap-1">
-                <Copy className="w-3 h-3" /> Copy
+                <Copy className="w-3 h-3 shrink-0" /> Copy
               </span>
               <span>smmplan.pro</span>
             </div>

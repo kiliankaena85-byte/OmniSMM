@@ -76,7 +76,7 @@ export function InCardAccordionCheckout({
       <div className="p-3 rounded-2xl bg-card border border-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <LinkIcon className="w-4 h-4 text-primary shrink-0" />
-          <span className="text-xs font-medium text-muted-foreground truncate">
+          <span className="text-xs font-medium text-muted-foreground truncate min-w-0">
             {url || "Ссылка на профиль / публикацию"}
           </span>
         </div>

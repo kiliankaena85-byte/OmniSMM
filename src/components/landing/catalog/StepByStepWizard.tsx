@@ -183,9 +183,9 @@ export function StepByStepWizard({
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-tr ${platform.color} text-white shadow-sm shrink-0 group-hover:scale-105 transition-transform`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-5 h-5 shrink-0" />
                       </div>
-                      <div className="truncate">
+                      <div className="truncate min-w-0">
                         <div className="font-extrabold text-foreground text-sm sm:text-base tracking-tight">
                           {platform.name}
                         </div>
@@ -223,7 +223,7 @@ export function StepByStepWizard({
                   className="flex items-center gap-1.5 min-h-[44px] px-3 text-xs font-bold text-muted-foreground hover:text-foreground"
                   onClick={() => setCurrentStep(1)}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
                   Назад
                 </button>
               </div>
@@ -288,7 +288,7 @@ export function StepByStepWizard({
                   className="flex items-center gap-1.5 min-h-[44px] px-3 text-xs font-bold text-muted-foreground hover:text-foreground"
                   onClick={() => setCurrentStep(2)}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
                   Назад
                 </button>
               </div>
@@ -372,7 +372,7 @@ export function StepByStepWizard({
                   className="flex items-center gap-1.5 min-h-[44px] px-3 text-xs font-bold text-muted-foreground hover:text-foreground"
                   onClick={() => setCurrentStep(3)}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
                   Назад к тарифам
                 </button>
               </div>
@@ -466,7 +466,7 @@ export function StepByStepWizard({
                         onClick={() => setPaymentMethod('balance')}
                       >
                         <div className="flex items-center gap-2">
-                          <Wallet className="w-4 h-4 text-emerald-500" />
+                          <Wallet className="w-4 h-4 text-emerald-500 shrink-0" />
                           <span className="font-bold text-xs">Мой баланс</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block mt-0.5">
@@ -486,7 +486,7 @@ export function StepByStepWizard({
                         onClick={() => setPaymentMethod('sbp')}
                       >
                         <div className="flex items-center gap-2">
-                          <QrCode className="w-4 h-4 text-primary" />
+                          <QrCode className="w-4 h-4 text-primary shrink-0" />
                           <span className="font-bold text-xs">СБП / QR</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block mt-0.5">0% комиссии</span>
@@ -504,7 +504,7 @@ export function StepByStepWizard({
                         onClick={() => setPaymentMethod('card')}
                       >
                         <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-primary" />
+                          <CreditCard className="w-4 h-4 text-primary shrink-0" />
                           <span className="font-bold text-xs">Карта РФ</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block mt-0.5">МИР / Visa / MC</span>
@@ -522,7 +522,7 @@ export function StepByStepWizard({
                         onClick={() => setPaymentMethod('crypto')}
                       >
                         <div className="flex items-center gap-2">
-                          <Wallet className="w-4 h-4 text-primary" />
+                          <Wallet className="w-4 h-4 text-primary shrink-0" />
                           <span className="font-bold text-xs">Crypto</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block mt-0.5">USDT / TON / BTC</span>

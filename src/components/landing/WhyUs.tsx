@@ -32,7 +32,7 @@ export function WhyUs({ companyName = "SMMplan" }: { companyName?: string }) {
           <div className="relative z-10 flex flex-col justify-between md:h-full">
             <div>
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform dark:bg-primary/10">
-                <Sparkles className="w-6 h-6" strokeWidth={1.5} />
+                <Sparkles className="w-6 h-6 shrink-0" strokeWidth={1.5} />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">AI-подбор услуг</h3>
               <p className="text-muted-foreground font-medium leading-relaxed max-w-md">
@@ -47,7 +47,7 @@ export function WhyUs({ companyName = "SMMplan" }: { companyName?: string }) {
         <div className="md:col-span-1 bg-content1 rounded-[2rem] p-5 md:p-8 relative overflow-hidden group border border-border/50 dark:border-border/40 ring-1 ring-black/5 hover:shadow-2xl hover:shadow-success/10 transition-all duration-300 min-h-[240px]">
           <div className="relative z-10 flex flex-col md:h-full">
             <div className="w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center mb-6 text-success group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-6 h-6" strokeWidth={1.5} />
+              <ShieldCheck className="w-6 h-6 shrink-0" strokeWidth={1.5} />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-3">Прозрачные условия</h3>
             <p className="text-muted-foreground font-medium leading-relaxed text-sm">
@@ -61,7 +61,7 @@ export function WhyUs({ companyName = "SMMplan" }: { companyName?: string }) {
           <div className="relative z-10 flex flex-col md:h-full justify-between">
             <div>
               <div className="w-12 h-12 bg-danger/10 rounded-2xl flex items-center justify-center mb-6 text-danger group-hover:scale-110 transition-transform">
-                <Diamond className="w-6 h-6" strokeWidth={1.5} />
+                <Diamond className="w-6 h-6 shrink-0" strokeWidth={1.5} />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Персональные скидки</h3>
               <p className="text-muted-foreground font-medium leading-relaxed text-sm">
@@ -83,7 +83,7 @@ export function WhyUs({ companyName = "SMMplan" }: { companyName?: string }) {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-primary-foreground/15 dark:bg-primary/15 rounded-xl flex items-center justify-center text-primary-foreground dark:text-primary group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-5 h-5" strokeWidth={1.5} />
+                  <Sparkles className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                 </div>
                 <span className="text-xs font-bold text-primary-foreground dark:text-primary uppercase tracking-widest">Технологии & Надежность</span>
               </div>

@@ -54,7 +54,7 @@ export function FluxDashboardShell({
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-black text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity">
             <TenantLogo tenantId="flux" className="w-9 h-9" iconClassName="w-4 h-4" />
-            <span className="truncate tracking-tight font-black">SMMflux</span>
+            <span className="truncate tracking-tight font-black min-w-0">SMMflux</span>
           </Link>
 
           {/* Navigation Links */}
@@ -98,7 +98,7 @@ export function FluxDashboardShell({
             href="/dashboard/finance"
             className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
           >
-            <Wallet className="w-4 h-4" />
+            <Wallet className="w-4 h-4 shrink-0" />
             <span className="hidden xs:inline">+ Пополнить</span>
           </Link>
 
@@ -121,7 +121,7 @@ export function FluxDashboardShell({
               <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold uppercase group-hover:scale-105 transition-transform">
                 {user.email.substring(0, 2)}
               </div>
-              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground max-w-[120px] truncate transition-colors">
+              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground max-w-[120px] truncate transition-colors min-w-0">
                 {user.email}
               </span>
             </Link>
@@ -168,7 +168,7 @@ export function FluxDashboardShell({
               }`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5 shrink-0" />
                 {hasUnread && (
                   <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white font-black text-[9px] flex items-center justify-center animate-pulse shadow-sm shadow-rose-500/50">
                     {unreadCount}

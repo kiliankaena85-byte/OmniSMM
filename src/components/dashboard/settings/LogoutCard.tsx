@@ -26,7 +26,7 @@ export default function LogoutCard({ tenantId = 'smmplan' }: { tenantId?: string
       <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-muted/20">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 shrink-0" />
           </div>
           <div>
             <h2 className="font-semibold text-foreground text-sm">

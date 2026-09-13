@@ -630,7 +630,7 @@ function FluxDashboardOrderWizardInner({
               {/* Quick Link Input */}
               <div className="bg-card/85 backdrop-blur-md border border-border/40 rounded-[2rem] p-5 sm:p-6 shadow-sm">
                 <h3 className="text-sm font-black text-foreground mb-3 flex items-center gap-2">
-                  <SparklesIcon className="w-4 h-4 text-primary" /> Вставьте ссылку для быстрого определения:
+                  <SparklesIcon className="w-4 h-4 text-primary shrink-0" /> Вставьте ссылку для быстрого определения:
                 </h3>
                 <div className="relative flex items-center">
                   <LinkIcon className="text-muted-foreground w-5 h-5 absolute left-4 pointer-events-none" />
@@ -759,10 +759,10 @@ function FluxDashboardOrderWizardInner({
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <Layers className="w-4 h-4" />
+                            <Layers className="w-4 h-4 shrink-0" />
                           </div>
                           <div className="min-w-0">
-                            <span className="font-bold text-foreground text-sm block truncate group-hover:text-primary transition-colors">
+                            <span className="font-bold text-foreground text-sm block truncate group-hover:text-primary transition-colors min-w-0">
                               {cat.name}
                             </span>
                             {typeof cat.serviceCount === 'number' && cat.serviceCount > 0 && (
@@ -980,7 +980,7 @@ function FluxDashboardOrderWizardInner({
                     <div className="p-4 bg-muted/40 rounded-2xl border border-border/40 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
-                          <SparklesIcon className="w-4 h-4 text-primary" />
+                          <SparklesIcon className="w-4 h-4 text-primary shrink-0" />
                           Запускать частями (Drip-Feed)
                         </span>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -1108,7 +1108,7 @@ function FluxDashboardOrderWizardInner({
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <Wallet className="w-4 h-4 text-emerald-500" />
+                          <Wallet className="w-4 h-4 text-emerald-500 shrink-0" />
                           <div>
                             <span className="font-bold text-xs block">С баланса</span>
                             <span className="text-[10px] text-muted-foreground font-mono">{userBalanceRub} ₽</span>

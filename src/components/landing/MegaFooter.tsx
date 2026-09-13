@@ -123,7 +123,7 @@ export function MegaFooter({
               href={`mailto:${supportEmail}`}
               className="inline-flex items-center justify-center h-11 px-6 rounded-xl bg-muted/80 hover:bg-muted text-foreground font-bold text-sm border border-border/80 transition-all w-full sm:w-auto gap-2"
             >
-              <Mail className="w-4 h-4 text-foreground/70" /> Email
+              <Mail className="w-4 h-4 text-foreground/70 shrink-0" /> Email
             </a>
           </div>
         </div>

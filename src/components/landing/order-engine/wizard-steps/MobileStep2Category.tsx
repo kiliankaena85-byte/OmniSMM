@@ -200,7 +200,7 @@ export function MobileStep2Category({
           >
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="text-[10px] text-muted-foreground uppercase font-extrabold tracking-wider">2. Категория</span>
-              <span className="text-xs font-bold text-foreground truncate">
+              <span className="text-xs font-bold text-foreground truncate min-w-0">
                 {selectedCategoryName}
               </span>
             </div>

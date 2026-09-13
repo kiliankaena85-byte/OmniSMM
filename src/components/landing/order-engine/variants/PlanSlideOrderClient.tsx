@@ -468,7 +468,7 @@ function PlanSlideOrderClientInner({
             className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors mr-1.5 flex-shrink-0 cursor-pointer"
             title="Назад"
           >
-            <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
           </button>
 
           <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
@@ -480,7 +480,7 @@ function PlanSlideOrderClientInner({
               />
             )}
             <LinkIcon className="text-muted-foreground w-3.5 h-3.5 flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-semibold text-foreground truncate">
+            <span className="text-xs sm:text-sm font-semibold text-foreground truncate min-w-0">
               {link || (activeNetwork?.name ? `${activeNetwork.name} (из каталога)` : "Без ссылки")}
             </span>
           </div>
@@ -536,7 +536,7 @@ function PlanSlideOrderClientInner({
                 } p-1.5 sm:p-2 flex items-center gap-2`}
               >
                 <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center flex-shrink-0 ml-1">
-                  <LinkIcon className="text-muted-foreground w-5 h-5" />
+                  <LinkIcon className="text-muted-foreground w-5 h-5 shrink-0" />
                 </div>
                 
                 <input
@@ -784,7 +784,7 @@ function PlanSlideOrderClientInner({
                         <CategoryIcon name={cat.name} size={20} />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-foreground text-sm sm:text-base truncate">
+                        <h4 className="font-bold text-foreground text-sm sm:text-base truncate min-w-0">
                           {cleanCategoryName(cat.name)}
                         </h4>
                         {cat.serviceCount !== undefined && cat.serviceCount > 0 && (

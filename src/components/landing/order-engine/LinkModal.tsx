@@ -157,7 +157,7 @@ export function LinkModal({
             disabled={url.trim().length === 0}
             className="h-13 px-7 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm sm:text-base shadow-lg transition-all flex items-center gap-2"
           >
-            Продолжить <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            Продолжить <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
           </Button>
         </div>
       </motion.div>

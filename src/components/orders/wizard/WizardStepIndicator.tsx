@@ -51,7 +51,7 @@ export function WizardStepIndicator({
             }`}>
               {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.num}
             </span>
-            <span className="hidden md:inline truncate">{s.label}</span>
+            <span className="hidden md:inline truncate min-w-0">{s.label}</span>
           </button>
         );
       })}

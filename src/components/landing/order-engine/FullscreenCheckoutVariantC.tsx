@@ -108,7 +108,7 @@ export function FullscreenCheckoutVariantC({
               className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-content2 border border-border/80 flex items-center justify-center text-foreground transition-all cursor-pointer active:scale-95 shadow-2xs group"
               title="Назад"
             >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform shrink-0" />
             </button>
             <span className="text-sm font-bold text-foreground hidden sm:inline-block">
               Вернуться к тарифам

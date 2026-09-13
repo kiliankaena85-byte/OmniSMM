@@ -112,7 +112,7 @@ export function FluxOrdersKanban({
                   href={order.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[11px] text-primary hover:underline font-bold truncate max-w-[190px] inline-flex items-center gap-1"
+                  className="text-[11px] text-primary hover:underline font-bold truncate max-w-[190px] inline-flex items-center gap-1 min-w-0"
                   title={order.link}
                 >
                   {order.link}
@@ -225,7 +225,7 @@ export function FluxOrdersKanban({
         {order.error && (
           <div className="p-2 bg-destructive/10 border border-destructive/20 text-destructive text-[9px] font-semibold rounded-xl flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{order.error}</span>
+            <span className="truncate min-w-0">{order.error}</span>
           </div>
         )}
       </div>

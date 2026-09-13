@@ -39,7 +39,7 @@ export function PlanCheckoutHeader({
           onClick={onBackClick}
           className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl hover:bg-muted text-foreground text-xs sm:text-sm font-extrabold transition-all cursor-pointer active:scale-95 shadow-xs"
         >
-          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
           <span>Назад к тарифам</span>
         </button>
 
@@ -47,7 +47,7 @@ export function PlanCheckoutHeader({
           {activeNetwork?.icon && (
             <img src={activeNetwork.icon} alt="" className="w-5 h-5 object-contain shrink-0" />
           )}
-          <span className="font-extrabold text-xs sm:text-sm text-foreground truncate">
+          <span className="font-extrabold text-xs sm:text-sm text-foreground truncate min-w-0">
             {activeNetwork?.name || 'Каталог'} {activeCategory ? `• ${activeCategory.name}` : ''}
           </span>
         </div>
@@ -67,7 +67,7 @@ export function PlanCheckoutHeader({
       <div className="mb-5 pb-5 border-b border-border/60 flex flex-col sm:flex-row justify-between items-start gap-3">
         <div className="min-w-0 flex-1">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider mb-2">
-            <Sparkles className="w-3 h-3" />
+            <Sparkles className="w-3 h-3 shrink-0" />
             Выбранный тариф
           </span>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground leading-tight tracking-tight">
@@ -114,10 +114,10 @@ export function PlanCheckoutHeader({
 
         <div className="p-3 rounded-2xl bg-muted/30 border border-border/50 col-span-2 sm:col-span-1">
           <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5 flex items-center gap-1">
-            <Clock className="w-3 h-3 text-emerald-500" />
+            <Clock className="w-3 h-3 text-emerald-500 shrink-0" />
             Старт / Скорость
           </p>
-          <p className="font-bold text-xs sm:text-sm text-foreground truncate">
+          <p className="font-bold text-xs sm:text-sm text-foreground truncate min-w-0">
             {formatEtaSpeedBadge(selectedService)}
           </p>
         </div>

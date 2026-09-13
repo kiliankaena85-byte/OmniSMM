@@ -141,12 +141,12 @@ export function MobileCatalogModal({
             className="p-2 -ml-2 rounded-xl hover:bg-muted active:scale-95 transition-all h-11 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             aria-label="Назад"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-5 h-5 text-foreground shrink-0" />
           </button>
         ) : null}
         
         <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-foreground text-base truncate">
+          <h2 className="font-bold text-foreground text-base truncate min-w-0">
             {currentStep === 1
               ? "Каталог услуг"
               : currentStep === 2
@@ -240,7 +240,7 @@ export function MobileCatalogModal({
                   <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <CategoryIcon name={cat.name} size={16} />
                   </div>
-                  <span className="text-xs font-bold text-foreground truncate">
+                  <span className="text-xs font-bold text-foreground truncate min-w-0">
                     {cleanCategoryName(cat.name)}
                   </span>
                 </button>

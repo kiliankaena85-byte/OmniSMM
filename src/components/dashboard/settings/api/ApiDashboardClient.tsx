@@ -28,7 +28,7 @@ export function ApiDashboardClient({ hasKey }: ApiDashboardClientProps) {
             activeTab === 'key' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Key className="w-4 h-4 text-primary" />
+          <Key className="w-4 h-4 text-primary shrink-0" />
           <span>API-Ключ</span>
         </button>
         <button
@@ -37,7 +37,7 @@ export function ApiDashboardClient({ hasKey }: ApiDashboardClientProps) {
             activeTab === 'docs' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <BookOpen className="w-4 h-4 text-primary" />
+          <BookOpen className="w-4 h-4 text-primary shrink-0" />
           <span>Документация</span>
         </button>
       </div>

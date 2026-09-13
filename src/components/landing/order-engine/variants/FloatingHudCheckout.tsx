@@ -128,7 +128,7 @@ export function FloatingHudCheckout({
                     <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-primary/15 text-primary border border-primary/20 shrink-0">
                       #{selectedService.numericId}
                     </span>
-                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate min-w-0">
                       {selectedService.name}
                     </h4>
                   </div>
@@ -142,10 +142,10 @@ export function FloatingHudCheckout({
               <button
                 type="button"
                 onClick={() => setShowLinkModal(true)}
-                className="h-10 px-3 rounded-xl bg-content2 hover:bg-content3 border border-border text-xs font-bold text-foreground flex items-center gap-1.5 cursor-pointer max-w-[140px] sm:max-w-[200px] truncate"
+                className="h-10 px-3 rounded-xl bg-content2 hover:bg-content3 border border-border text-xs font-bold text-foreground flex items-center gap-1.5 cursor-pointer max-w-[140px] sm:max-w-[200px] truncate min-w-0"
               >
                 <LinkIcon className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="truncate">{url || "Укажите ссылку"}</span>
+                <span className="truncate min-w-0">{url || "Укажите ссылку"}</span>
               </button>
 
               {/* Total Price & Action Button */}

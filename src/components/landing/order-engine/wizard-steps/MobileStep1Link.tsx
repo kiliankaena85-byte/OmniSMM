@@ -136,7 +136,7 @@ export function MobileStep1Link({
               {isPasted ? (
                 <><CheckCircle2 className="w-4 h-4" /><span className="hidden sm:inline">Вставлено!</span></>
               ) : (
-                <><ClipboardPaste className="w-4 h-4" /><span className="hidden sm:inline">Вставить</span></>
+                <><ClipboardPaste className="w-4 h-4 shrink-0" /><span className="hidden sm:inline">Вставить</span></>
               )}
             </button>
           ) : (

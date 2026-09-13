@@ -25,7 +25,7 @@ export function CheckoutDripFeed({
     <div className="p-4 bg-muted/40 rounded-2xl border border-border/50 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-foreground flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" /> Запускать частями (Drip-Feed)
+          <Sparkles className="w-4 h-4 text-primary shrink-0" /> Запускать частями (Drip-Feed)
         </span>
         <label className="relative inline-flex items-center cursor-pointer">
           <input

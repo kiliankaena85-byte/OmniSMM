@@ -25,7 +25,7 @@ export function MobileStep1DetectionBadge({ engine, url }: MobileStep1DetectionB
             <span className="px-2 py-0.5 rounded-lg bg-primary/15 text-primary text-[10px] font-black uppercase tracking-wider shrink-0">
               {engine.platform}
             </span>
-            <span className="text-[11px] font-bold text-foreground truncate flex items-center gap-1">
+            <span className="text-[11px] font-bold text-foreground truncate flex items-center gap-1 min-w-0">
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
               <span>
                 {upperType === "POST" || upperType === "PRIVATE_POST" || upperType === "PHOTO"

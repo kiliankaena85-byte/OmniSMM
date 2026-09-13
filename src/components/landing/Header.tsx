@@ -136,7 +136,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
                 aria-label="Открыть меню навигации"
                 className="flex items-center justify-center p-2.5 rounded-full bg-default-100 hover:bg-default-200 text-muted-foreground hover:text-foreground border border-default-200 cursor-pointer active:scale-95 transition-all min-h-[44px] min-w-[44px] outline-none"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5 shrink-0" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl bg-card border-border shadow-xl">
                 {initialEmail && (
@@ -175,7 +175,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
                       disabled={isLoggingOut}
                       className="flex items-center gap-2 w-full py-2 px-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-left"
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogOut className="w-4 h-4 shrink-0" />
                       <span>Выйти из аккаунта</span>
                     </button>
                   </DropdownMenuItem>

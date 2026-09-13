@@ -82,17 +82,17 @@ export function LandingHeroArea({
         {/* Ключевые гарантии безопасности */}
         <div className="flex items-center justify-center gap-2.5 mt-2 text-[10px] sm:text-[11px] font-semibold text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Lock className="w-3 h-3 text-primary" />
+            <Lock className="w-3 h-3 text-primary shrink-0" />
             Без паролей
           </span>
           <span>•</span>
           <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-success" />
+            <ShieldCheck className="w-3 h-3 text-success shrink-0" />
             Гарантия
           </span>
           <span>•</span>
           <span className="flex items-center gap-1">
-            <Zap className="w-3 h-3 text-amber-500" />
+            <Zap className="w-3 h-3 text-amber-500 shrink-0" />
             Старт 4 сек
           </span>
         </div>

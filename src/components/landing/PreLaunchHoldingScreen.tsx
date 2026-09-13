@@ -88,8 +88,8 @@ export function PreLaunchHoldingScreen({
       {/* ── Ambient Background Lighting ── */}
       <div className="absolute top-0 inset-x-0 h-[600px] pointer-events-none overflow-hidden select-none z-0">
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[450px] rounded-full bg-gradient-to-b from-primary/20 via-blue-600/10 to-transparent blur-[120px] pointer-events-none" />
-        <div className="absolute top-[20%] left-[10%] w-[350px] h-[350px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
-        <div className="absolute top-[15%] right-[10%] w-[400px] h-[400px] rounded-full bg-cyan-500/10 blur-[110px] pointer-events-none" />
+        <div className="absolute top-[20%] left-[10%] w-[350px] max-w-full h-[350px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
+        <div className="absolute top-[15%] right-[10%] w-[400px] max-w-full h-[400px] rounded-full bg-cyan-500/10 blur-[110px] pointer-events-none" />
       </div>
 
       {/* ── Header ── */}
@@ -129,7 +129,7 @@ export function PreLaunchHoldingScreen({
           transition={{ duration: 0.4 }}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-bold mb-6 shadow-inner backdrop-blur-md"
         >
-          <Flame className="w-4 h-4 text-amber-500 animate-pulse" />
+          <Flame className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
           <span>Скоро официальное открытие • Релиз в 2026 году</span>
         </motion.div>
 
@@ -193,7 +193,7 @@ export function PreLaunchHoldingScreen({
               <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
                 <div className="flex flex-col gap-1 text-center sm:text-left">
                   <h3 className="text-base sm:text-lg font-extrabold text-foreground flex items-center justify-center sm:justify-start gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-400" />
+                    <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
                     Получите доступ в числе первых
                   </h3>
                   <p className="text-xs text-muted-foreground">
@@ -277,7 +277,7 @@ export function PreLaunchHoldingScreen({
                   rel="noopener noreferrer"
                   className="mt-2 min-h-[40px] px-5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary font-bold text-xs flex items-center gap-2 transition-all"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="w-4 h-4 shrink-0" />
                   Подписаться на канал обновлений в Telegram
                 </a>
               </motion.div>
@@ -290,7 +290,7 @@ export function PreLaunchHoldingScreen({
           
           <div className="bg-card/40 border border-border/40 rounded-2xl p-5 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 group">
             <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Zap className="w-5 h-5" />
+              <Zap className="w-5 h-5 shrink-0" />
             </div>
             <h4 className="font-bold text-sm text-foreground mb-1">Честные цены</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -300,7 +300,7 @@ export function PreLaunchHoldingScreen({
 
           <div className="bg-card/40 border border-border/40 rounded-2xl p-5 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 group">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5 shrink-0" />
             </div>
             <h4 className="font-bold text-sm text-foreground mb-1">Интеллектуальный подбор</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -310,7 +310,7 @@ export function PreLaunchHoldingScreen({
 
           <div className="bg-card/40 border border-border/40 rounded-2xl p-5 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 group">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Sliders className="w-5 h-5" />
+              <Sliders className="w-5 h-5 shrink-0" />
             </div>
             <h4 className="font-bold text-sm text-foreground mb-1">Гибкие настройки</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -320,7 +320,7 @@ export function PreLaunchHoldingScreen({
 
           <div className="bg-card/40 border border-border/40 rounded-2xl p-5 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 group">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-5 h-5" />
+              <MessageSquare className="w-5 h-5 shrink-0" />
             </div>
             <h4 className="font-bold text-sm text-foreground mb-1">Поддержка в Telegram</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">

@@ -261,7 +261,7 @@ export function MobileOrderList({ orders, user }: { orders: MobileOrderItem[], u
                       <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5 block">Услуга</label>
                       <div className="text-sm font-semibold">{selectedOrder?.service?.name}</div>
                       <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-                        <LayoutDashboard className="w-3 h-3" />
+                        <LayoutDashboard className="w-3 h-3 shrink-0" />
                         {selectedOrder?.service?.category?.name || 'Без категории'}
                       </div>
                     </div>

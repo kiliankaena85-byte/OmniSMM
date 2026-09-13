@@ -79,7 +79,7 @@ export function MobileStep3Service({
           ) : services.length === 0 ? (
             <div className="text-center py-6 px-4 bg-primary/5 rounded-2xl border border-primary/20 space-y-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
-                <Lightbulb className="w-5 h-5" />
+                <Lightbulb className="w-5 h-5 shrink-0" />
               </div>
               <div>
                 <p className="text-xs font-bold text-foreground">
@@ -157,7 +157,7 @@ export function MobileStep3Service({
           >
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="text-[10px] text-muted-foreground uppercase font-extrabold tracking-wider">3. Выбранный тариф</span>
-              <span className="text-xs font-bold text-foreground truncate">
+              <span className="text-xs font-bold text-foreground truncate min-w-0">
                 {selectedService.name}
               </span>
             </div>

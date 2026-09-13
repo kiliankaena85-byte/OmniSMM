@@ -87,7 +87,7 @@ export function RetryPaymentModal({ orderId, charge, balance, trigger }: RetryPa
               size="default" 
               className="w-full sm:w-auto h-11 px-4 rounded-xl text-sm font-semibold bg-warning hover:bg-warning/90 text-primary-foreground transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
-              <Wallet className="w-3 h-3" /> Оплатить / Проверить
+              <Wallet className="w-3 h-3 shrink-0" /> Оплатить / Проверить
             </Button>
           )
         }

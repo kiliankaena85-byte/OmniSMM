@@ -127,7 +127,7 @@ export function FluxCyberLinkDrawer({
             <div className="flex items-center justify-between border-b border-purple-500/20 pb-4 sticky top-0 bg-[#080b14]/95 backdrop-blur-md z-20">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600/30 via-pink-600/20 to-purple-800/30 border border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.3)] text-purple-300 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-transform">
-                  <Zap className="w-6 h-6 animate-pulse" />
+                  <Zap className="w-6 h-6 animate-pulse shrink-0" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -198,7 +198,7 @@ export function FluxCyberLinkDrawer({
                   {/* 🏷️ EXPLICIT DEMO BADGE */}
                   <div className="flex items-center justify-between px-2 py-1 mb-1.5 rounded-xl bg-purple-950/80 border border-purple-500/30 text-[9px] text-purple-200">
                     <span className="font-bold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-pink-400" />
+                      <Sparkles className="w-3 h-3 text-pink-400 shrink-0" />
                       НАГЛЯДНЫЙ ДЕМО-ОБРАЗЕЦ
                     </span>
                     <span className="text-[8px] font-mono text-purple-400">Шаблон</span>
@@ -398,7 +398,7 @@ export function FluxCyberLinkDrawer({
             <div className="p-4 sm:p-5 rounded-3xl bg-neutral-900/90 border border-purple-500/40 space-y-3 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <label className="text-xs font-black text-white flex items-center gap-1.5 tracking-wide">
-                  <ScanLine className="w-4 h-4 text-purple-400" />
+                  <ScanLine className="w-4 h-4 text-purple-400 shrink-0" />
                   <span>Проверьте ссылку на ваш пост:</span>
                 </label>
 
@@ -449,7 +449,7 @@ export function FluxCyberLinkDrawer({
             {/* ── DRAWER FOOTER ── */}
             <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between sticky bottom-0 bg-[#080b14] z-20">
               <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono hidden sm:flex">
-                <ShieldCheck className="w-4 h-4 text-purple-400" />
+                <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
                 <span>SMMFLUX AI Engine • Защита от ошибочных ссылок</span>
               </div>
 

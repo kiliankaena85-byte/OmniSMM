@@ -105,7 +105,7 @@ export function DrawerPaymentSelector({
                 <p className="text-sm font-black text-foreground leading-tight">
                   {method.name}
                 </p>
-                <p className="text-xs text-muted-foreground font-semibold mt-0.5 truncate leading-tight">
+                <p className="text-xs text-muted-foreground font-semibold mt-0.5 truncate leading-tight min-w-0">
                   {method.description}
                 </p>
               </div>

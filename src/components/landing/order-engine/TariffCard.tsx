@@ -105,13 +105,13 @@ export function TariffCard({ service, isSelected, onSelect, compact, brandStyle 
           <div className={`flex items-center gap-2.5 text-[11px] font-medium flex-wrap mt-1 ${mutedColorClass}`}>
             {service.startTime && (
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-primary/70" />
+                <Clock className="w-3 h-3 text-primary/70 shrink-0" />
                 {service.startTime}
               </span>
             )}
             {(service.speedDisplay || service.speed) && (
               <span className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-amber-500/80" />
+                <Zap className="w-3 h-3 text-amber-500/80 shrink-0" />
                 {service.speedDisplay || service.speed}
               </span>
             )}

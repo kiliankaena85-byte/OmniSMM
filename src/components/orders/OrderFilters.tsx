@@ -126,8 +126,8 @@ export function OrderFilters({
         <div className="flex flex-wrap items-center gap-3 flex-1">
           
           {/* Smart Search */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative flex-1 min-w-[200px] max-w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder="Поиск по ID или названию тарифа..."
@@ -215,7 +215,7 @@ export function OrderFilters({
               className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center bg-content2 border border-border/60 hover:bg-content3 text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               title="Сбросить все фильтры"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4 shrink-0" />
             </button>
           )}
         </div>
@@ -235,7 +235,7 @@ export function OrderFilters({
               className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-xl border border-border bg-content1 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
               title="Предыдущая страница"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 shrink-0" />
             </button>
 
             {Array.from({ length: totalPages }).map((_, idx) => {
@@ -269,7 +269,7 @@ export function OrderFilters({
               className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-xl border border-border bg-content1 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
               title="Следующая страница"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>

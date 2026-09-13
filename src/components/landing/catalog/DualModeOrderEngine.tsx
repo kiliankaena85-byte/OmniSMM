@@ -29,7 +29,7 @@ export function DualModeOrderEngine() {
           type="button"
           className="w-full sm:w-auto px-6 py-3 min-h-[44px] rounded-2xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm shadow-sm shadow-primary/20 hover:opacity-95 active:scale-98 transition-all shrink-0 flex items-center justify-center gap-2"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 shrink-0" />
           <span>Подобрать тариф</span>
         </button>
       </div>

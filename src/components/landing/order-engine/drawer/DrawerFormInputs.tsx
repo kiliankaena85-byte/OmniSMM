@@ -173,7 +173,7 @@ export function DrawerFormInputs({
             onClick={() => setShowPromo(true)}
             className="w-full h-12 border border-dashed border-border/90 hover:border-primary/70 bg-background hover:bg-primary/5 text-xs font-black uppercase tracking-wider text-foreground hover:text-primary rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] shadow-2xs cursor-pointer"
           >
-            <Ticket className="w-4 h-4 text-primary" />
+            <Ticket className="w-4 h-4 text-primary shrink-0" />
             <span>У меня есть промокод</span>
           </button>
         ) : (

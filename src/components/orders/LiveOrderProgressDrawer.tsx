@@ -46,25 +46,25 @@ export function LiveOrderProgressDrawer({
           <div className="text-[11px] font-mono text-muted-foreground uppercase">
             Заказ #{orderId.slice(-6)}
           </div>
-          <h4 className="text-sm font-semibold text-foreground truncate max-w-[280px]">
+          <h4 className="text-sm font-semibold text-foreground truncate max-w-[280px] min-w-0">
             {serviceName}
           </h4>
         </div>
         {isSentinelControlled && (
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-            <Sparkles className="w-3 h-3" /> Sentinel AI
+            <Sparkles className="w-3 h-3 shrink-0" /> Sentinel AI
           </span>
         )}
       </div>
 
       {/* Target Link */}
-      <div className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+      <div className="text-xs text-muted-foreground flex items-center gap-1.5 truncate min-w-0">
         <span>Цель:</span>
         <a 
           href={targetLink.startsWith('http') ? targetLink : `https://${targetLink}`} 
           target="_blank" 
           rel="noreferrer"
-          className="text-primary hover:underline truncate flex items-center gap-1"
+          className="text-primary hover:underline truncate flex items-center gap-1 min-w-0"
         >
           {targetLink} <ExternalLink className="w-3 h-3 shrink-0" />
         </a>

@@ -140,7 +140,7 @@ export function FluxCyberFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-neutral-100 font-bold text-sm shadow-[0_4px_20px_rgba(168,85,247,0.35)] hover:shadow-[0_6px_25px_rgba(236,72,153,0.45)] hover:-translate-y-0.5 transition-all w-full sm:w-auto active:scale-95"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 shrink-0" />
               Поддержка в Telegram
             </a>
             
@@ -148,7 +148,7 @@ export function FluxCyberFooter({
               href={`mailto:${supportEmail}`}
               className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 font-bold text-sm border border-purple-500/25 hover:border-purple-500/50 transition-all w-full sm:w-auto"
             >
-              <Mail className="w-4 h-4 text-purple-300" />
+              <Mail className="w-4 h-4 text-purple-300 shrink-0" />
               Email
             </a>
           </div>

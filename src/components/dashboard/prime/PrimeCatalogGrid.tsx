@@ -156,7 +156,7 @@ export function PrimeCatalogGrid() {
           <div
             className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${activePlatformData.color} text-white flex items-center justify-center shadow-lg shadow-primary/20 shrink-0`}
           >
-            <Icon className="w-6 h-6" />
+            <Icon className="w-6 h-6 shrink-0" />
           </div>
           <div>
             <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
@@ -173,7 +173,7 @@ export function PrimeCatalogGrid() {
           className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl shadow-sm shadow-primary/20 hover:opacity-95 transition-all"
         >
           <span>Заказать сразу</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4 shrink-0" />
         </Link>
       </div>
 
@@ -191,7 +191,7 @@ export function PrimeCatalogGrid() {
                 </h3>
                 {cat.isHot && (
                   <span className="flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 shrink-0">
-                    <Flame className="w-3 h-3" />
+                    <Flame className="w-3 h-3 shrink-0" />
                     Хит
                   </span>
                 )}

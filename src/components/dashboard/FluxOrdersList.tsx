@@ -125,7 +125,7 @@ export function FluxOrdersList({
             </div>
 
             {/* Column 2: Link target & amount */}
-            <div className="flex-1 min-w-[180px] space-y-1">
+            <div className="flex-1 min-w-[180px] max-w-full space-y-1">
               <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground block">Целевая ссылка</span>
               <div className="flex items-center gap-2">
                 {order.link ? (
@@ -186,7 +186,7 @@ export function FluxOrdersList({
               </div>
 
               {order.error && (
-                <p className="text-[9px] text-destructive font-semibold flex items-center gap-0.5 truncate" title={order.error}>
+                <p className="text-[9px] text-destructive font-semibold flex items-center gap-0.5 truncate min-w-0" title={order.error}>
                   <AlertCircle className="w-3 h-3 shrink-0" /> {order.error}
                 </p>
               )}

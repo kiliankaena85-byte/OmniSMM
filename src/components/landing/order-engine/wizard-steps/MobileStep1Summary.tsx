@@ -18,7 +18,7 @@ export function MobileStep1Summary({ url, setActiveStep, step1Ref }: MobileStep1
         >
           <div className="flex flex-col gap-0.5 min-w-0">
             <span className="text-[10px] text-muted-foreground uppercase font-extrabold tracking-wider">1. Ссылка на канал / пост</span>
-            <span className="text-xs font-bold text-foreground truncate font-mono">
+            <span className="text-xs font-bold text-foreground truncate font-mono min-w-0">
               {url}
             </span>
           </div>
@@ -37,7 +37,7 @@ export function MobileStep1Summary({ url, setActiveStep, step1Ref }: MobileStep1
       >
         <div className="flex flex-col gap-0.5 min-w-0">
           <span className="text-[10px] text-primary uppercase font-extrabold tracking-wider">1. Ссылка на канал / пост</span>
-          <span className="text-xs font-bold text-foreground truncate flex items-center gap-1.5">
+          <span className="text-xs font-bold text-foreground truncate flex items-center gap-1.5 min-w-0">
             <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
             <span>Укажите ссылку для заказа</span>
           </span>

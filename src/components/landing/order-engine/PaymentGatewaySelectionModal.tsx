@@ -187,7 +187,7 @@ export function PaymentGatewaySelectionModal({
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${color} transition-transform duration-200 group-hover:scale-105`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-5 h-5 shrink-0" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-extrabold text-foreground tracking-tight leading-tight flex items-center gap-2">

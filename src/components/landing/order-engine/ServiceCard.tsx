@@ -53,7 +53,7 @@ export const ServiceCard = memo(function ServiceCard({
       
       {/* Constraints and execution indicators */}
       <div className={`mt-3 flex items-center justify-between text-[11px] ${isSelected ? "opacity-90" : "text-muted-foreground"}`}>
-        <div className="flex items-center gap-1.5 truncate text-[10px]">
+        <div className="flex items-center gap-1.5 truncate text-[10px] min-w-0">
           {service.startTime && <span>⏱ {service.startTime}</span>}
           {service.speedDisplay && <span>• ⚡ {service.speedDisplay}</span>}
         </div>

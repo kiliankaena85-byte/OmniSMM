@@ -32,10 +32,10 @@ export function MobileStickyCTA({
         >
           <div className="max-w-lg mx-auto flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider truncate">
+              <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider truncate min-w-0">
                 {selectedService.name}
               </p>
-              <p className="text-xs font-black text-foreground truncate">
+              <p className="text-xs font-black text-foreground truncate min-w-0">
                 {quantity.toLocaleString()} шт {isCalculating ? '' : `— ${totalPriceFormatted} ₽`}
               </p>
             </div>

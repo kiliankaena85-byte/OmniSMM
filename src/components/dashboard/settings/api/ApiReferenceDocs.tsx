@@ -73,7 +73,7 @@ export function ApiReferenceDocs({ userApiKey }: ApiReferenceDocsProps) {
         <div className="space-y-5">
           <div>
             <h4 className="font-extrabold text-foreground text-sm flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-primary" />
+              <Terminal className="w-4 h-4 text-primary shrink-0" />
               <span>Описание метода</span>
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed mt-1">

@@ -37,7 +37,7 @@ export function WizardNetworkStep({
           <span>Ссылка на канал / видео / пост</span>
           {detectedPlatform !== IntelligencePlatform.OTHER && (
             <span className="text-[10px] text-primary font-mono flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
-              <Sparkles className="w-3 h-3" /> Автоопределение: {detectedPlatform}
+              <Sparkles className="w-3 h-3 shrink-0" /> Автоопределение: {detectedPlatform}
             </span>
           )}
         </label>
@@ -78,7 +78,7 @@ export function WizardNetworkStep({
                 <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-border/40 shadow-xs">
                   <SocialIcon slug={net.slug} size={22} />
                 </div>
-                <span className="font-extrabold text-xs truncate max-w-full">{net.name}</span>
+                <span className="font-extrabold text-xs truncate max-w-full min-w-0">{net.name}</span>
               </button>
             );
           })}

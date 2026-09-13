@@ -157,14 +157,14 @@ export function ClassicDashboardHome({
               href="/dashboard/new-order"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-4 h-4 shrink-0" />
               <span>Новый заказ</span>
             </Link>
             <Link
               href="/dashboard/add-funds"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
-              <Wallet className="w-4 h-4 text-primary" />
+              <Wallet className="w-4 h-4 text-primary shrink-0" />
               <span>Пополнить</span>
             </Link>
           </div>
@@ -184,7 +184,7 @@ export function ClassicDashboardHome({
                 +{loyalty.cashbackPercent}% кэшбэк
               </span>
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                <Wallet className="w-4 h-4" />
+                <Wallet className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
@@ -202,7 +202,7 @@ export function ClassicDashboardHome({
             className="w-full min-h-[44px] py-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
             <span>+ Пополнить счет</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </div>
 
@@ -217,7 +217,7 @@ export function ClassicDashboardHome({
                 {loyalty.tierName}
               </span>
               <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
-                <Award className="w-4 h-4" />
+                <Award className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
@@ -250,7 +250,7 @@ export function ClassicDashboardHome({
             className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
             <span>История транзакций</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </div>
 
@@ -264,7 +264,7 @@ export function ClassicDashboardHome({
               {activeOrders > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
               )}
-              <Activity className="w-4 h-4" />
+              <Activity className="w-4 h-4 shrink-0" />
             </div>
           </div>
           <div>
@@ -290,7 +290,7 @@ export function ClassicDashboardHome({
             className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
             <span>Мои заказы</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </div>
 
@@ -305,7 +305,7 @@ export function ClassicDashboardHome({
                 10% доход
               </span>
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                <Users className="w-4 h-4" />
+                <Users className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
@@ -323,7 +323,7 @@ export function ClassicDashboardHome({
               >
                 {copiedLink ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-500" />
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span>Скопировано!</span>
                   </>
                 ) : (
@@ -341,7 +341,7 @@ export function ClassicDashboardHome({
             className="w-full min-h-[44px] py-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center justify-center gap-2 text-xs font-extrabold transition-all duration-200"
           >
             <span>Партнёрка</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </div>
       </div>
@@ -365,7 +365,7 @@ export function ClassicDashboardHome({
             className="min-h-[44px] px-3.5 py-2 text-xs font-bold text-primary hover:underline flex items-center gap-1.5 shrink-0 self-start sm:self-auto rounded-xl hover:bg-primary/5 transition-colors"
           >
             <span>Полный каталог услуг</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </div>
 
@@ -378,7 +378,7 @@ export function ClassicDashboardHome({
             >
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-secondary/80 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
-                  <SocialIcon slug={item.slug} className="w-6 h-6" />
+                  <SocialIcon slug={item.slug} className="w-6 h-6 shrink-0" />
                 </div>
                 <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border ${item.badgeColor}`}>
                   {item.badge}
@@ -389,7 +389,7 @@ export function ClassicDashboardHome({
                   <span className="font-extrabold text-sm text-foreground group-hover:text-primary transition-colors">
                     {item.name}
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                  <ArrowUpRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
                 </div>
                 <div className="text-[10px] text-muted-foreground font-medium line-clamp-1">
                   {item.desc}
@@ -420,7 +420,7 @@ export function ClassicDashboardHome({
               className="min-h-[44px] text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2"
             >
               <span>Все заказы</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </Link>
           )}
         </div>
@@ -439,14 +439,14 @@ export function ClassicDashboardHome({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div className="w-10 h-10 rounded-2xl bg-secondary/80 border border-border/60 flex items-center justify-center p-2 shrink-0 group-hover:scale-105 transition-transform">
-                        <SocialIcon slug={order.service?.category?.network?.slug || 'telegram'} className="w-5 h-5" />
+                        <SocialIcon slug={order.service?.category?.network?.slug || 'telegram'} className="w-5 h-5 shrink-0" />
                       </div>
                       <div className="min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-[11px] font-extrabold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                             #{order.numericId}
                           </span>
-                          <h3 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          <h3 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors min-w-0">
                             {order.service?.name || 'Услуга продвижения'}
                           </h3>
                         </div>
@@ -458,10 +458,10 @@ export function ClassicDashboardHome({
                               href={order.link} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="inline-flex items-center gap-1.5 hover:text-primary hover:underline truncate max-w-[200px] sm:max-w-[300px] min-h-[36px] sm:min-h-0 py-1"
+                              className="inline-flex items-center gap-1.5 hover:text-primary hover:underline truncate max-w-[200px] sm:max-w-[300px] min-h-[36px] sm:min-h-0 py-1 min-w-0"
                               title={order.link}
                             >
-                              <span className="truncate">{order.link}</span>
+                              <span className="truncate min-w-0">{order.link}</span>
                               <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
                             </a>
                           ) : (
@@ -488,7 +488,7 @@ export function ClassicDashboardHome({
                         aria-label={`Повторить заказ #${order.numericId}`}
                         className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border/60 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm"
                       >
-                        <RotateCcw className="w-4 h-4" />
+                        <RotateCcw className="w-4 h-4 shrink-0" />
                       </Link>
                     </div>
                   </div>
@@ -530,7 +530,7 @@ export function ClassicDashboardHome({
               className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-200 min-h-[44px]"
             >
               <span>Создать первый заказ</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </Link>
           </div>
         )}
@@ -553,7 +553,7 @@ export function ClassicDashboardHome({
           </div>
 
           <div className="flex items-center gap-3 max-w-md w-full sm:w-auto">
-            <div className="min-h-[44px] flex items-center font-mono text-xs font-bold bg-secondary/80 px-4 py-3 rounded-2xl text-foreground truncate border border-border/80 flex-1 select-all">
+            <div className="min-h-[44px] flex items-center font-mono text-xs font-bold bg-secondary/80 px-4 py-3 rounded-2xl text-foreground truncate border border-border/80 flex-1 select-all min-w-0">
               {`${origin}/r/${user.referralCode}`}
             </div>
             <button
@@ -561,7 +561,7 @@ export function ClassicDashboardHome({
               aria-label="Скопировать реферальную ссылку"
               className="min-h-[44px] px-5 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm flex items-center gap-2 shrink-0 shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
             >
-              {copiedLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+              {copiedLink ? <Check className="w-4 h-4 text-emerald-300 shrink-0" /> : <Copy className="w-4 h-4" />}
               <span>{copiedLink ? 'Скопировано' : 'Копировать'}</span>
             </button>
           </div>

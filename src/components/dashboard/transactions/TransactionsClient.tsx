@@ -176,7 +176,7 @@ function MobileTransactionList({
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[9px] text-muted-foreground uppercase font-bold">ID:</span>
-                  <span className="text-[10px] text-foreground select-all font-semibold max-w-[120px] truncate" title={item.id}>
+                  <span className="text-[10px] text-foreground select-all font-semibold max-w-[120px] truncate min-w-0" title={item.id}>
                     {item.id}
                   </span>
                   <button
@@ -185,7 +185,7 @@ function MobileTransactionList({
                     title="Скопировать Transaction ID"
                   >
                     {copiedId === `id-mob-${item.id}` ? (
-                      <Check className="w-3 h-3 text-success animate-in zoom-in" />
+                      <Check className="w-3 h-3 text-success animate-in zoom-in shrink-0" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
@@ -218,7 +218,7 @@ function MobileTransactionList({
                 <div className="mt-0.5">
                   {item.idempotencyKey ? (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-foreground select-all max-w-[180px] truncate" title={item.idempotencyKey}>
+                      <span className="text-[10px] text-foreground select-all max-w-[180px] truncate min-w-0" title={item.idempotencyKey}>
                         {item.idempotencyKey}
                       </span>
                       <button
@@ -227,7 +227,7 @@ function MobileTransactionList({
                         title="Скопировать Idempotency Key"
                       >
                         {copiedId === `idmp-mob-${item.id}` ? (
-                          <Check className="w-3 h-3 text-success" />
+                          <Check className="w-3 h-3 text-success shrink-0" />
                         ) : (
                           <Copy className="w-3 h-3" />
                         )}
@@ -382,7 +382,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] uppercase font-extrabold text-muted-foreground tracking-wider">Всего зачислено</span>
             <div className="w-8 h-8 rounded-lg bg-success/10 text-success flex items-center justify-center">
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-4 h-4 shrink-0" />
             </div>
           </div>
           <p className="text-2xl font-black text-foreground tabular-nums">
@@ -397,7 +397,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] uppercase font-extrabold text-muted-foreground tracking-wider">Всего потрачено</span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
-              <ArrowDownRight className="w-4 h-4" />
+              <ArrowDownRight className="w-4 h-4 shrink-0" />
             </div>
           </div>
           <p className="text-2xl font-black text-foreground tabular-nums">
@@ -412,7 +412,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] uppercase font-extrabold text-muted-foreground tracking-wider">Возвращено</span>
             <div className="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-600 flex items-center justify-center">
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4 shrink-0" />
             </div>
           </div>
           <p className="text-2xl font-black text-foreground tabular-nums">
@@ -427,7 +427,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] uppercase font-extrabold text-muted-foreground tracking-wider">Итог движения</span>
             <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Briefcase className="w-4 h-4" />
+              <Briefcase className="w-4 h-4 shrink-0" />
             </div>
           </div>
           <p className={`text-2xl font-black tabular-nums ${stats.balanceDiff >= 0 ? 'text-success' : 'text-destructive'}`}>
@@ -516,7 +516,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           
           {/* Search bar */}
           <div className="relative flex-1 md:w-60 min-w-[200px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder="Поиск по ID или причине..."
@@ -532,7 +532,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
             className="h-11 px-4 flex items-center justify-center gap-2 bg-content2 border border-border/60 hover:bg-content3 rounded-xl text-sm font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-sm"
             title="Распечатать финансовый отчет"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Печать</span>
           </button>
 
@@ -690,7 +690,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         {/* Transaction CUID with Clipboard action */}
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-foreground select-all font-semibold max-w-[80px] truncate" title={item.id}>
+                            <span className="text-[10px] text-foreground select-all font-semibold max-w-[80px] truncate min-w-0" title={item.id}>
                               {item.id}
                             </span>
                             <button
@@ -721,7 +721,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         <td className="py-3 px-4 whitespace-nowrap">
                           {item.idempotencyKey ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-muted-foreground select-all max-w-[90px] truncate" title={item.idempotencyKey}>
+                              <span className="text-[10px] text-muted-foreground select-all max-w-[90px] truncate min-w-0" title={item.idempotencyKey}>
                                 {item.idempotencyKey}
                               </span>
                               <button

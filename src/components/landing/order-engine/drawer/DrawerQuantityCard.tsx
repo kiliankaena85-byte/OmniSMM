@@ -99,7 +99,7 @@ export function DrawerQuantityCard({
           className="w-11 h-11 sm:w-12 sm:h-12 bg-background hover:bg-content2 border border-border/80 text-foreground rounded-xl flex items-center justify-center transition-all disabled:opacity-40 disabled:pointer-events-none active:scale-90 cursor-pointer shadow-2xs group shrink-0"
           title="Уменьшить"
         >
-          <Minus className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform" />
+          <Minus className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform shrink-0" />
         </button>
 
         <div className="flex-1 relative">
@@ -136,7 +136,7 @@ export function DrawerQuantityCard({
           className="w-11 h-11 sm:w-12 sm:h-12 bg-background hover:bg-content2 border border-border/80 text-foreground rounded-xl flex items-center justify-center transition-all disabled:opacity-40 disabled:pointer-events-none active:scale-90 cursor-pointer shadow-2xs group shrink-0"
           title="Увеличить"
         >
-          <Plus className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform" />
+          <Plus className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform shrink-0" />
         </button>
       </div>
 

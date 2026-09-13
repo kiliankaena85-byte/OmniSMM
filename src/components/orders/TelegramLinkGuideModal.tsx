@@ -98,7 +98,7 @@ export function TelegramLinkGuideModal({
         <div className="flex items-center justify-between border-b border-border/60 pb-4 sticky top-0 bg-card/90 backdrop-blur-md z-20">
           <div className="flex items-center gap-3">
             <span className="p-3 rounded-2xl shrink-0 bg-primary/10 text-primary border border-primary/20">
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-5 h-5 shrink-0" />
             </span>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -170,7 +170,7 @@ export function TelegramLinkGuideModal({
               {/* 🏷️ EXPLICIT DEMO BADGE */}
               <div className="flex items-center justify-between px-2 py-1 mb-1.5 rounded-xl bg-blue-950/80 border border-blue-500/30 text-[9px] text-blue-200">
                 <span className="font-bold flex items-center gap-1">
-                  <Info className="w-3 h-3 text-blue-400" />
+                  <Info className="w-3 h-3 text-blue-400 shrink-0" />
                   НАГЛЯДНЫЙ ДЕМО-ОБРАЗЕЦ
                 </span>
                 <span className="text-[8px] font-mono text-blue-400">Шаблон</span>
@@ -298,7 +298,7 @@ export function TelegramLinkGuideModal({
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-primary" />
+                <Layers className="w-4 h-4 text-primary shrink-0" />
                 Как найти ссылку в вашем Telegram:
               </span>
               <span className="text-[10px] font-mono px-3 py-1 rounded-full bg-secondary text-foreground font-bold border border-border/50 shadow-sm">
@@ -443,7 +443,7 @@ export function TelegramLinkGuideModal({
         {/* ── FOOTER ── */}
         <div className="pt-3 border-t border-border flex items-center justify-between sticky bottom-0 bg-card/90 backdrop-blur-md z-20">
           <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium hidden sm:flex">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>SMMPLAN ENGINE • Автоматическая маршрутизация заказов</span>
           </div>
 

@@ -73,7 +73,7 @@ export function LegalDocumentModal({ slug, onClose }: LegalDocumentModalProps) {
           <div className="flex items-center justify-between pb-3 border-b border-border shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                <FileText className="w-5 h-5 text-primary" />
+                <FileText className="w-5 h-5 text-primary shrink-0" />
               </div>
               <h3 className="text-base font-black text-foreground line-clamp-1">
                 {loading ? "Загрузка..." : documentData?.title || "Документ"}

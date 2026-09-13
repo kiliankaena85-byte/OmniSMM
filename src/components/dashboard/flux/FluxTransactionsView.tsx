@@ -164,7 +164,7 @@ export function FluxTransactionsView({
             className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-2xl bg-card border border-border/80 text-foreground font-bold text-sm hover:bg-muted/50 transition-all cursor-pointer shadow-sm"
             title="Распечатать или сохранить выписку в PDF"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Печать выписки</span>
           </button>
 
@@ -172,7 +172,7 @@ export function FluxTransactionsView({
             href="/dashboard/add-funds"
             className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl bg-primary text-primary-foreground font-black text-sm shadow-md hover:opacity-90 active:scale-95 transition-all"
           >
-            <Wallet className="w-4 h-4" />
+            <Wallet className="w-4 h-4 shrink-0" />
             <span>Пополнить</span>
           </Link>
         </div>
@@ -325,7 +325,7 @@ export function FluxTransactionsView({
                 {/* Left: Icon & Description */}
                 <div className="flex items-start gap-4 min-w-0">
                   <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${iconBg}`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5 shrink-0" />
                   </div>
 
                   <div className="space-y-1.5 min-w-0">
@@ -346,14 +346,14 @@ export function FluxTransactionsView({
                           title="Посмотреть этот заказ"
                         >
                           <span>Заказ #{tx.orderNumericId}</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <ExternalLink className="w-3 h-3 shrink-0" />
                         </Link>
                       )}
 
                       {/* 54-FZ Receipt indicator for deposits */}
                       {isCredit && !isRefund && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                          <ShieldCheck className="w-3 h-3" />
+                          <ShieldCheck className="w-3 h-3 shrink-0" />
                           Чек 54-ФЗ
                         </span>
                       )}

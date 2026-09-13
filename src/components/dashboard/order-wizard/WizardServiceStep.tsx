@@ -39,7 +39,7 @@ export function WizardServiceStep({
           onClick={onBack}
           className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> Назад к выбору категории
+          <ChevronLeft className="w-4 h-4 shrink-0" /> Назад к выбору категории
         </button>
         <span className="text-xs font-extrabold text-primary bg-primary/10 px-3 py-1 rounded-full">
           {categoryName}
@@ -83,11 +83,11 @@ export function WizardServiceStep({
 
                 <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/10 text-[10px] font-semibold">
                   <span className="inline-flex items-center gap-1 bg-muted px-2.5 py-0.5 rounded-lg text-muted-foreground">
-                    <Zap className="w-3 h-3 text-amber-500" /> {speedInfo}
+                    <Zap className="w-3 h-3 text-amber-500 shrink-0" /> {speedInfo}
                   </span>
                   {srv.isRefillEnabled ? (
                     <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-lg border border-emerald-500/20">
-                      <ShieldCheck className="w-3 h-3" /> Автодокрутка
+                      <ShieldCheck className="w-3 h-3 shrink-0" /> Автодокрутка
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 bg-muted px-2.5 py-0.5 rounded-lg text-muted-foreground">

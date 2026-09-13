@@ -48,7 +48,7 @@ export function MobileCheckoutQuantity({
             aria-label="Уменьшить количество на 100"
             className="w-11 h-11 rounded-xl bg-content2 hover:bg-content3 disabled:opacity-40 border border-border/50 flex items-center justify-center text-foreground font-black shrink-0 active:scale-95 transition-all cursor-pointer"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-4 h-4 shrink-0" />
           </button>
 
           <input
@@ -93,7 +93,7 @@ export function MobileCheckoutQuantity({
             aria-label="Увеличить количество на 100"
             className="w-11 h-11 rounded-xl bg-content2 hover:bg-content3 disabled:opacity-40 border border-border/50 flex items-center justify-center text-foreground font-black shrink-0 active:scale-95 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
           </button>
         </div>
 
@@ -113,7 +113,7 @@ export function MobileCheckoutQuantity({
             className="w-full h-11 px-4 flex items-center justify-between text-xs font-extrabold text-foreground uppercase tracking-wider hover:bg-content2/80 active:scale-[0.99] transition-all cursor-pointer"
           >
             <span className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-primary" />
+              <Sliders className="w-4 h-4 text-primary shrink-0" />
               <span>Дополнительные параметры</span>
             </span>
             <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${showAdvancedParams ? 'rotate-180' : ''}`} />

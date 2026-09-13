@@ -158,7 +158,7 @@ export default function TelegramCard({
       <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/20">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4 shrink-0" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -170,7 +170,7 @@ export default function TelegramCard({
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg border border-amber-500/20 text-amber-600 dark:text-amber-400 bg-amber-500/10 uppercase">
-                  <AlertCircle className="w-3 h-3" />
+                  <AlertCircle className="w-3 h-3 shrink-0" />
                   Не привязано
                 </span>
               )}
@@ -196,7 +196,7 @@ export default function TelegramCard({
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Бот</span>
-                <ExternalLink className="w-3 h-3 opacity-60" />
+                <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
               </a>
             </div>
           ) : (
@@ -274,7 +274,7 @@ export default function TelegramCard({
         {/* Notification Switches Section */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-primary" />
+            <Bell className="w-4 h-4 text-primary shrink-0" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Тумблеры Telegram-уведомлений
             </h3>
@@ -411,7 +411,7 @@ export default function TelegramCard({
             {/* Header */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Send className="w-5 h-5" />
+                <Send className="w-5 h-5 shrink-0" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-foreground">Привязка Telegram в 1 клик</h3>
@@ -423,7 +423,7 @@ export default function TelegramCard({
             <div className="flex flex-col items-center justify-center p-4 bg-background border border-border/80 rounded-2xl space-y-3">
               {isLoadingDeepLink ? (
                 <div className="w-44 h-44 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                  <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                  <RefreshCw className="w-6 h-6 animate-spin text-primary shrink-0" />
                   <span className="text-xs font-semibold">Генерация токена...</span>
                 </div>
               ) : deepLink ? (
@@ -437,7 +437,7 @@ export default function TelegramCard({
                 </>
               ) : (
                 <div className="w-44 h-44 flex flex-col items-center justify-center gap-2 text-destructive">
-                  <AlertCircle className="w-6 h-6" />
+                  <AlertCircle className="w-6 h-6 shrink-0" />
                   <span className="text-xs font-semibold">Не удалось загрузить ссылку</span>
                 </div>
               )}
@@ -481,7 +481,7 @@ export default function TelegramCard({
                 rel="noopener noreferrer"
                 className="flex-1 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs py-3 px-4 rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px]"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 shrink-0" />
                 <span>Открыть Telegram-бот</span>
               </a>
 

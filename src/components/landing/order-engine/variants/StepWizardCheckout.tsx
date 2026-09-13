@@ -119,7 +119,7 @@ export function StepWizardCheckout({
                 <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
                   ID {selectedService.numericId}
                 </span>
-                <span className="text-xs sm:text-sm font-black text-foreground truncate max-w-[240px] sm:max-w-[420px]">
+                <span className="text-xs sm:text-sm font-black text-foreground truncate max-w-[240px] sm:max-w-[420px] min-w-0">
                   {selectedService.name}
                 </span>
               </div>
@@ -297,7 +297,7 @@ export function StepWizardCheckout({
                       </motion.div>
                     ) : (
                       <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-muted/40 border border-border/80">
-                        <span className="text-sm font-bold text-foreground font-mono truncate">{email}</span>
+                        <span className="text-sm font-bold text-foreground font-mono truncate min-w-0">{email}</span>
                         <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1 shrink-0 ml-2">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Указан
                         </span>
@@ -311,7 +311,7 @@ export function StepWizardCheckout({
                   <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium">Услуга:</span>
-                      <span className="font-bold text-foreground truncate max-w-[240px] sm:max-w-[280px]">{selectedService.name}</span>
+                      <span className="font-bold text-foreground truncate max-w-[240px] sm:max-w-[280px] min-w-0">{selectedService.name}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium">Количество:</span>
@@ -320,7 +320,7 @@ export function StepWizardCheckout({
                     {url && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium">Цель:</span>
-                        <span className="font-mono text-primary truncate max-w-[220px] sm:max-w-[260px]">{url}</span>
+                        <span className="font-mono text-primary truncate max-w-[220px] sm:max-w-[260px] min-w-0">{url}</span>
                       </div>
                     )}
                   </div>
@@ -366,7 +366,7 @@ export function StepWizardCheckout({
                     onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
                     className="min-h-[44px] h-11 px-3 sm:px-4 rounded-xl bg-content2 hover:bg-content3 border border-border text-foreground font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4 shrink-0" />
                     <span className="hidden xs:inline">Назад</span>
                   </button>
                 )}
@@ -384,7 +384,7 @@ export function StepWizardCheckout({
                     className="min-h-[44px] h-11 px-4 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
                   >
                     <span>Далее: {steps[step].title}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </button>
                 ) : (
                   <button

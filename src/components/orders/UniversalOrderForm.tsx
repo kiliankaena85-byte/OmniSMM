@@ -249,17 +249,17 @@ export function UniversalOrderForm({
                             {index + 1}
                           </div>
                        )}
-                       <div className="truncate">
-                          <div className="font-semibold text-sm text-foreground truncate flex items-center gap-2">
+                       <div className="truncate min-w-0">
+                          <div className="font-semibold text-sm text-foreground truncate flex items-center gap-2 min-w-0">
                              <SocialIcon slug={task.platform} size={14} className="shrink-0" />
-                             <span className="truncate">{task.cleanTitle}</span>
+                             <span className="truncate min-w-0">{task.cleanTitle}</span>
                           </div>
                           <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1 flex items-center flex-wrap gap-x-1.5 gap-y-0.5">
                              {isConfigured ? (
                                 <>
                                    <span className="text-success font-bold">Настроено</span>
                                    <span className="text-muted-foreground/30">•</span>
-                                   <span className="text-foreground/80 truncate max-w-[150px] sm:max-w-[250px]">
+                                   <span className="text-foreground/80 truncate max-w-[150px] sm:max-w-[250px] min-w-0">
                                      {task.availableServices.find(s => s.id === task.serviceId)?.name || 'Тариф настроен'}
                                    </span>
                                    <span className="text-muted-foreground/30">•</span>
@@ -482,7 +482,7 @@ export function UniversalOrderForm({
                                    }}
                                    className="h-11 w-full bg-secondary/80 text-secondary-foreground font-extrabold text-xs rounded-xl hover:bg-secondary transition-all flex items-center justify-center gap-2 active:scale-98 shadow-sm cursor-pointer"
                                 >
-                                   <Copy className="w-4 h-4" />
+                                   <Copy className="w-4 h-4 shrink-0" />
                                    Применить ко всем ссылкам {platformName}
                                 </button>
                              )}

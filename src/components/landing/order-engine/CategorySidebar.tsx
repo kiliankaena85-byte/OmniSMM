@@ -82,7 +82,7 @@ export function CategorySidebar({ engine }: { engine: OrderEngine }) {
             <CategoryIcon name={cat.name} icon={(cat as { icon?: string | null }).icon} className={categoryId === cat.id ? "text-primary" : "text-muted-foreground"} />
             <span>{cleanCategoryName(cat.name)}</span>
           </div>
-          {categoryId === cat.id && <ChevronRight className="hidden lg:block w-5 h-5 opacity-100 translate-x-0" />}
+          {categoryId === cat.id && <ChevronRight className="hidden lg:block w-5 h-5 opacity-100 translate-x-0 shrink-0" />}
         </button>
       ))}
     </div>

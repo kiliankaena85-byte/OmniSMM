@@ -373,7 +373,7 @@ export function OrderSummaryCard({
                 aria-label={`Уменьшить количество до ${Math.max(selectedService.minQty, quantity - 100)}`}
                 className="min-w-[44px] min-h-[44px] p-3 bg-background border border-border rounded-xl hover:bg-muted transition-all duration-200 shrink-0 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
               >
-                <Minus className="w-5 h-5" />
+                <Minus className="w-5 h-5 shrink-0" />
               </button>
               <input
                 type="text"
@@ -401,7 +401,7 @@ export function OrderSummaryCard({
                 aria-label={`Увеличить количество до ${quantity + 100}`}
                 className="min-w-[44px] min-h-[44px] p-3 bg-background border border-border rounded-xl hover:bg-muted transition-all duration-200 shrink-0 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-5 h-5 shrink-0" />
               </button>
             </div>
             <div className="text-[10px] text-muted-foreground mt-1 tabular-nums">
@@ -559,7 +559,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => setGateway('yookassa')}
-                className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 min-w-[100px] max-w-full flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
                   gateway === 'yookassa'
                     ? 'border-primary bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted'
@@ -570,7 +570,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => setGateway('balance')}
-                className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 min-w-[100px] max-w-full flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
                   gateway === 'balance'
                     ? 'border-success/30 bg-success/10 text-success-text shadow-sm ring-1 ring-success/20'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted'
@@ -581,7 +581,7 @@ export function OrderSummaryCard({
               <button
                 type="button"
                 onClick={() => setGateway('cryptobot')}
-                className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 min-w-[100px] max-w-full flex items-center justify-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-all duration-200 ${
                   gateway === 'cryptobot'
                     ? 'border-warning/30 bg-warning/10 text-warning-text shadow-sm ring-1 ring-warning/20'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted'

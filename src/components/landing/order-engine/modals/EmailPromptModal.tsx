@@ -55,7 +55,7 @@ export function EmailPromptModal({
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5" />
+                  <Mail className="w-5 h-5 shrink-0" />
                 </div>
                 <div>
                   <h3 className="text-base font-black text-foreground">
@@ -113,7 +113,7 @@ export function EmailPromptModal({
               >
                 <ShieldCheck className="w-4.5 h-4.5" />
                 <span>Подтвердить и оплатить</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </form>
           </motion.div>

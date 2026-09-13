@@ -77,7 +77,7 @@ export function FluxDashboardHome({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-primary" />
+                  <Wallet className="w-5 h-5 text-primary shrink-0" />
                 </div>
                 <span className="font-bold text-foreground text-base">Ваш баланс</span>
               </div>
@@ -104,12 +104,12 @@ export function FluxDashboardHome({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <RefreshCw className="w-5 h-5 text-primary animate-spin-slow" />
+                  <RefreshCw className="w-5 h-5 text-primary animate-spin-slow shrink-0" />
                 </div>
                 <span className="font-bold text-foreground text-base">Активные заказы</span>
               </div>
               <Link href="/dashboard/orders" className="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
-                Все <ArrowRight className="w-3 h-3" />
+                Все <ArrowRight className="w-3 h-3 shrink-0" />
               </Link>
             </div>
 
@@ -147,7 +147,7 @@ export function FluxDashboardHome({
                           {label}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-foreground text-sm truncate">{order.service.name}</div>
+                          <div className="font-bold text-foreground text-sm truncate min-w-0">{order.service.name}</div>
                           <div className="text-xs text-muted-foreground font-medium">{order.quantity.toLocaleString('ru-RU')} шт.</div>
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export function FluxDashboardHome({
               title={!isRefLinkAvailable ? "Код скоро появится" : undefined}
               className="w-full sm:w-auto px-5 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-success shrink-0" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? "Ссылка скопирована!" : !isRefLinkAvailable ? "Код скоро появится" : "Скопировать ссылку"}</span>
             </button>
           </div>

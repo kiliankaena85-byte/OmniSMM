@@ -136,7 +136,7 @@ export default function DeleteAccountCard({ hasPassword }: DeleteAccountCardProp
             {/* Modal Header */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5" />
+                <AlertTriangle className="w-5 h-5 shrink-0" />
               </div>
               <div>
                 <h3 className="text-base font-black text-foreground">Подтвердите удаление</h3>
