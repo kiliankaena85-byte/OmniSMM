@@ -1,4 +1,4 @@
-﻿import { enforceSectionAccess } from '@/lib/server/rbac';
+import { enforceSectionAccess } from '@/lib/server/rbac';
 import { listRolesWithPermissionsAction } from '@/actions/admin/roles';
 import { RBAC_SECTIONS } from '@/lib/rbac-sections';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
@@ -6,7 +6,7 @@ import { SYSTEM_TABS } from '@/components/admin/navigation-data';
 import { RolesClient } from './roles-client';
 
 export const metadata = {
-  title: 'Роли и матрица прав | SMMpanel 1.0',
+  title: 'Роли и матрица прав | OmniSMM 1.0',
 };
 
 export default async function RolesManagementPage() {

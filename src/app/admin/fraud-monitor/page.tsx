@@ -2,7 +2,7 @@ import { AntiFraudMonitorClient } from './fraud-monitor-client';
 import { enforceSectionAccess } from '@/lib/server/rbac';
 
 export const metadata = {
-  title: 'Anti-Fraud Monitor | SMMpanel 1.0',
+  title: 'Anti-Fraud Monitor | OmniSMM 1.0',
 };
 
 export default async function AntiFraudMonitorPage() {

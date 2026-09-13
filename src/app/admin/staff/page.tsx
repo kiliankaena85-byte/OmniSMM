@@ -25,11 +25,11 @@ export default async function AdminStaffPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider mb-1">
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="w-3.5 h-3.5 shrink-0" />
             Команда и контроль смен
           </div>
           <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-primary" />
+            <Users className="w-6 h-6 text-primary shrink-0" />
             Сотрудники & График активности
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
