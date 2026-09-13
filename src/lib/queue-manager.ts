@@ -1,6 +1,7 @@
 import { Queue, QueueOptions } from 'bullmq';
 import { Redis } from 'ioredis';
 import { redactSensitiveTokens } from '@/lib/logger/sensitive-data-filter';
+import { validateRedisUrl } from '@/lib/redis';
 
 // Singleton Redis connection pattern
 let redisConnection: Redis | null = null;
@@ -22,6 +23,15 @@ export const getRedisConnection = (): Redis => {
   const dbIndex = process.env.REDIS_DB_INDEX
     ? parseInt(process.env.REDIS_DB_INDEX, 10)
     : (process.env.CONTOUR === 'test' ? 1 : 0);
+
+  // Enforce SEC-001 Hardening for BullMQ queue connections
+  const check = validateRedisUrl(redisUrl, process.env.NODE_ENV, redisPassword);
+  if (!check.valid) {
+    throw new Error(check.error);
+  }
+  if (check.warning) {
+    console.warn(check.warning);
+  }
   
   redisConnection = new Redis(redisUrl, {
     password: redisPassword,

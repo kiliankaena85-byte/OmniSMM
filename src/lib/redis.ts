@@ -19,11 +19,13 @@ export interface RedisValidationResult {
  */
 export function validateRedisUrl(
   url: string,
-  env: string = process.env.NODE_ENV || 'development'
+  env: string = process.env.NODE_ENV || 'development',
+  explicitPassword?: string
 ): RedisValidationResult {
   if (env === 'production') {
-    // In production, ALL Redis URLs must explicitly contain authentication credentials
-    if (!url.includes('@')) {
+    // In production, ALL Redis connections must explicitly contain authentication credentials
+    const hasAuth = url.includes('@') || Boolean(explicitPassword || process.env.REDIS_PASSWORD);
+    if (!hasAuth) {
       return {
         valid: false,
         error: 'FATAL [SECURITY]: SEC-001 Violation! Redis is running in production without explicit authentication in the connection string (e.g. redis://:<STRONG_PASSWORD>@host:port or rediss://...).',

@@ -1,4 +1,20 @@
 # CURRENT_STATE.md
+- [x] Обязательный харденинг безопасности перед продакшеном (PROD-SEC-2026 Gate) — (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-production-hardening-triad.md`.
+  * 🛡️ **[SEC-001] Redis Authentication & Transit Encryption:**
+    - В `src/lib/redis.ts` расширена валидация `validateRedisUrl()` с поддержкой `explicitPassword` и `process.env.REDIS_PASSWORD`.
+    - В `src/lib/queue-manager.ts` вызов `validateRedisUrl()` интегрирован в синглтон BullMQ `getRedisConnection()`. Неавторизованные соединения блокируются с ошибкой `FATAL [SECURITY]: SEC-001 Violation!`.
+  * 🔒 **[SEC-002] Content-Security-Policy (Strict-Dynamic Nonce Migration):**
+    - В `src/proxy.ts` подтверждено полное искоренение `'unsafe-inline'` и `'unsafe-eval'` из директивы `script-src` для продакшена с обязательным пробросом криптографического `x-nonce` и `'strict-dynamic'`.
+    - В `nginx/default.conf` удален конфликтующий статический заголовок CSP с `'unsafe-inline'` и `frame-src 'none'`, управление CSP делегировано Edge Proxy Next.js.
+  * ✉️ **[SEC-003] Production Direct SMTP Verification:**
+    - Проверено прямое TLS-подключение к доверенным почтовым шлюзам по порту 465 без прокси: `smtp.yandex.ru:465` (170ms) и `smtp.mail.ru:465` (38ms).
+    - Безопасный fallback отправки Magic Link в консоль сервера подтвержден тестами.
+  * 🧪 **Автоматизированная верификация:**
+    - `src/__tests__/security/production-hardening-triad.test.ts` (11/11 PASS — 100%).
+    - `scripts/verify-production-hardening.ts` (100% PASS для SEC-001, SEC-002, SEC-003).
+    - `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 5: Аналитика, Маркетинг, Экономика & Настройки) — (100% COMPLETE & VERIFIED):
   * 📋 **Сквозной Playwright-аудит 6 экранов:** Аналитика & Воронка (`/admin/analytics`), Маркетинг & Промокоды (`/admin/marketing`), AI Ценовая оптимизация (`/admin/economics/recommendations`), Системные настройки (`/admin/settings`), Политики баланса (`/admin/settings/balance-policies`), База знаний & Блог (`/admin/knowledge`).
   * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
