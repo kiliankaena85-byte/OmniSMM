@@ -75,7 +75,7 @@ export default async function AdminKnowledgePage() {
           <div className="flex justify-between items-start mb-2">
             <span className="text-muted-foreground text-[10px] font-black uppercase tracking-wider">Всего просмотров</span>
             <span className="text-warning text-xs font-bold bg-warning/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <Eye className="w-3 h-3" /> Views
+              <Eye className="w-3 h-3 shrink-0" /> Views
             </span>
           </div>
           <div className="text-2xl font-black text-foreground tabular-nums">
@@ -88,7 +88,7 @@ export default async function AdminKnowledgePage() {
       <div className="bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden">
         {articles.length === 0 ? (
           <div className="h-48 flex flex-col items-center justify-center text-center p-8">
-            <BookOpen className="w-12 h-12 text-muted-foreground/40 mb-3" />
+            <BookOpen className="w-12 h-12 text-muted-foreground/40 mb-3 shrink-0" />
             <h3 className="font-bold text-foreground text-lg mb-1">Статьи отсутствуют</h3>
             <p className="text-sm text-muted-foreground max-w-sm">
               Вы еще не опубликовали ни одной статьи. Нажмите кнопку «Создать статью» выше, чтобы начать!

@@ -5,7 +5,7 @@ import { RecommendationsClient } from './recommendations-client';
 import { Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: 'AI Ценовая Оптимизация — SMMpanel 1.0',
+  title: 'AI Ценовая Оптимизация — OmniSMM 1.0',
   description: 'Автоматический аудит маржинальности и рекомендации по ценам',
 };
 
@@ -84,7 +84,7 @@ export default async function AdminAiRecommendationsPage(props: {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 shrink-0" />
             AI Pricing Intelligence Engine
           </div>
           <h1 className="text-2xl font-bold text-foreground mt-1">

@@ -62,7 +62,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             href="/api/admin/export?type=profitability"
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-foreground bg-background border border-border shadow-sm rounded-lg hover:bg-muted/50 hover:text-primary transition-colors"
           >
-            <Download className="w-4 h-4" /> Отчет бухгалтерии (CSV)
+            <Download className="w-4 h-4 shrink-0" /> Отчет бухгалтерии (CSV)
           </a>
         )}
       />
@@ -79,7 +79,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             }`}
           >
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" /> 24 Часа
+              <Clock className="w-4 h-4 shrink-0" /> 24 Часа
             </div>
           </Link>
           <Link
@@ -91,7 +91,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             }`}
           >
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" /> 7 Дней
+              <Clock className="w-4 h-4 shrink-0" /> 7 Дней
             </div>
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         <Card className="border-border/50 shadow-sm rounded-2xl">
           <CardHeader className="pb-2 border-b border-slate-50">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-foreground flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-primary" /> Воронка конверсии
+              <TrendingDown className="w-4 h-4 text-primary shrink-0" /> Воронка конверсии
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-8 pb-12 flex flex-col items-center justify-center gap-1">

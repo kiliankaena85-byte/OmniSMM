@@ -1,4 +1,11 @@
 # CURRENT_STATE.md
+- [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 5: Аналитика, Маркетинг, Экономика & Настройки) — (100% COMPLETE & VERIFIED):
+  * 📋 **Сквозной Playwright-аудит 6 экранов:** Аналитика & Воронка (`/admin/analytics`), Маркетинг & Промокоды (`/admin/marketing`), AI Ценовая оптимизация (`/admin/economics/recommendations`), Системные настройки (`/admin/settings`), Политики баланса (`/admin/settings/balance-policies`), База знаний & Блог (`/admin/knowledge`).
+  * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
+  * 🎯 **Результаты:** 18 из 18 проверок завершены с вердиктом **🟢 PASS (100%)**, дельта переполнения **0px**, сплющенных иконок **0**, ошибок консоли **0**, HTTP статус **200 OK**.
+  * 🏷️ **Брендинг & Иконки:** Приведено к стандарту OmniSMM 1.0 (`economics/recommendations/page.tsx`), добавлены защитные классы `shrink-0` ко всем иконкам в `analytics/page.tsx`, `economics/recommendations/page.tsx` и `knowledge/page.tsx`.
+  * 📸 **Скриншоты и отчет:** Снято 18 доказательных скриншотов в `.planning/admin_visuals_phase5/`, официальный отчет зафиксирован в `docs/audits/ADMIN_PHASE5_ANALYTICS_SETTINGS_REPORT.md`.
+
 - [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 4: Пользователи, Саппорт, RBAC & Мульти-тенантность) — (100% COMPLETE & VERIFIED):
   * 📋 **Сквозной Playwright-аудит 6 экранов:** Сотрудники & График смен (`/admin/staff`), Матрица ролей и гранулярный RBAC (`/admin/settings/roles`), Рабочий стол тикетов саппорта (`/admin/tickets`), Бренды и Мульти-арендаторы OmniSMM (`/admin/tenants`), Anti-Fraud Monitor (`/admin/fraud-monitor`), Контент и CMS (`/admin/cms`).
   * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
