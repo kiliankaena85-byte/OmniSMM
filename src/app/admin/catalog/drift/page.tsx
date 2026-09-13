@@ -2,7 +2,7 @@ import { getDriftCandidatesAction } from '@/actions/admin/catalog/price-drift';
 import { DriftClient } from './drift-client';
 
 export const metadata = {
-  title: 'Price Drift Monitor | Smmplan Admin',
+  title: 'Price Drift Monitor | OmniSMM 1.0',
 };
 
 export default async function DriftPage() {

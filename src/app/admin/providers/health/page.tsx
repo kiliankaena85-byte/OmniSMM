@@ -21,7 +21,7 @@ export default function ProviderHealthMonitorPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Activity className="w-7 h-7 text-primary" />
+            <Activity className="w-7 h-7 text-primary shrink-0" />
             Provider Health Monitor & Circuit Breakers
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -32,7 +32,7 @@ export default function ProviderHealthMonitorPage() {
           onClick={() => toast.info('Метрики провайдеров обновлены')}
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-all duration-200"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-4 h-4 shrink-0" />
           Обновить статус
         </button>
       </div>
@@ -42,7 +42,7 @@ export default function ProviderHealthMonitorPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium uppercase tracking-wider">Провайдеры ONLINE</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-foreground">8 / 8</div>
           <p className="text-xs text-emerald-500 font-medium">100% услуг доступны</p>
@@ -51,7 +51,7 @@ export default function ProviderHealthMonitorPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium uppercase tracking-wider">Avg Response Time</span>
-            <Zap className="w-4 h-4 text-amber-500" />
+            <Zap className="w-4 h-4 text-amber-500 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-foreground">245 ms</div>
           <p className="text-xs text-muted-foreground">Быстрый отклик API</p>
@@ -60,7 +60,7 @@ export default function ProviderHealthMonitorPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium uppercase tracking-wider">Circuit Breakers</span>
-            <Server className="w-4 h-4 text-primary" />
+            <Server className="w-4 h-4 text-primary shrink-0" />
           </div>
           <div className="text-2xl font-bold text-foreground">0 OPEN</div>
           <p className="text-xs text-muted-foreground">Все цепи в состоянии CLOSED</p>
@@ -69,7 +69,7 @@ export default function ProviderHealthMonitorPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-medium uppercase tracking-wider">Ошибки (1 час)</span>
-            <AlertTriangle className="w-4 h-4 text-emerald-500" />
+            <AlertTriangle className="w-4 h-4 text-emerald-500 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-foreground">0</div>
           <p className="text-xs text-muted-foreground">Отказов интеграции нет</p>
@@ -80,7 +80,7 @@ export default function ProviderHealthMonitorPage() {
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Server className="w-4 h-4 text-primary" />
+            <Server className="w-4 h-4 text-primary shrink-0" />
             Состояние цепей изоляции (Circuit Breaker State)
           </h2>
           <span className="text-xs text-muted-foreground">Порог срабатывания: 5 ошибок / 60 сек</span>

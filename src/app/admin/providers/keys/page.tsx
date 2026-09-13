@@ -15,7 +15,7 @@ export default function ProviderKeysManagementPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <Key className="w-7 h-7 text-primary" />
+          <Key className="w-7 h-7 text-primary shrink-0" />
           Управление API-ключами провайдеров (Vault Security)
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -24,7 +24,7 @@ export default function ProviderKeysManagementPage() {
       </div>
 
       <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-start gap-3">
-        <Shield className="w-5 h-5 text-primary mt-0.5" />
+        <Shield className="w-5 h-5 text-primary mt-0.5 shrink-0" />
         <div className="text-sm text-foreground space-y-1">
           <div className="font-semibold">Сквозное шифрование секретов (Encryption at Rest)</div>
           <p className="text-muted-foreground text-xs">
@@ -44,7 +44,7 @@ export default function ProviderKeysManagementPage() {
               onClick={() => handleRotate(name)}
               className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-all"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-3.5 h-3.5 shrink-0" />
               Обновить ключ
             </button>
           </div>
