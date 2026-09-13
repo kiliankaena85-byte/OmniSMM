@@ -1,4 +1,12 @@
 # CURRENT_STATE.md
+- [x] Специализированный архитектурный скилл адаптивной верстки layout-overflow-sentry (v2.0 Deep Healer & MCP) — (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана спецификация `docs/specs/SPEC-2026-09-13-layout-overflow-sentry.md` и нормативный стандарт `docs/standards/RESPONSIVE_LAYOUT_STANDARD_2026.md` (RLS-2026).
+  * 🛡️ **Двухуровневый скилл:** Создан `.agents/skills/layout-overflow-sentry/` (L1 `CORE.md` $\le 25$ строк + L2 `SKILL.md`), зарегистрирован в `.agents/skills/INDEX.md` и пакете `packages/agent-skills/` (73 скилла).
+  * 🩺 **Auto-Healer Codemod Engine:** Создан `scripts/ui/layout-healer.ts` (`npm run layout:heal` / `npm run layout:fix` с поддержкой `--dry-run`, `--fix`, `--check`, `--scope`). Автоматически устраняет сплющивание (`shrink-0`), горизонтальный скролл (`w-screen` -> `w-full max-w-full`), распирание (`truncate` -> `min-w-0`), iOS Auto-Zoom (`text-xs` -> `text-base sm:text-xs`) и широкие таблицы.
+  * 🤖 **Model Context Protocol (MCP Server):** Создан `scripts/ui/layout-mcp-server.ts` (`npm run layout:mcp`) по стандарту JSON-RPC 2.0 stdio с 3 инструментами для ИИ-агентов (`layout_audit`, `layout_autofix`, `layout_dom_probe`).
+  * 🔍 **TypeScript AST Nesting Guard:** Внедрена инспекция синтаксического дерева в `scripts/ui/layout-sentry.ts` для пресечения недопустимой DOM-вложенности (`<button>` в `<button>`, `<p>` в `<p>`, `<a>` в `<a>`, модалки внутри `overflow-hidden`).
+  * 🧪 **Автоматизированная верификация:** `src/__tests__/skills/layout-overflow-sentry.test.ts` (10/10 PASS — 100%), `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек), боевой dry-run прогон по 144 файлам (224 авто-фикса подготовлено).
+
 - [x] Архитектурный скилл и движок локальных пентестов local-pentest-orchestrator (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана спецификация `docs/specs/SPEC-2026-09-13-local-pentest-orchestrator.md`.
   * 🛡️ **Двухуровневый скилл:** Создан `.agents/skills/local-pentest-orchestrator/` (L1 `CORE.md` $\le 25$ строк + L2 `SKILL.md`), зарегистрирован в `.agents/skills/INDEX.md`.
