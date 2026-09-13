@@ -37,6 +37,7 @@
     "audit:project": "tsx scripts/harness/full-project-swarm.ts",
     "audit:hexa": "tsx scripts/harness/omniaudit-hexa.ts",
     "pentest:local": "tsx scripts/security/pentest-orchestrator.ts",
+    "layout:audit": "tsx scripts/ui/layout-sentry.ts",
     "postinstall": "prisma generate",
     "test": "dotenv -e .env.test -- vitest run",
     "test:ci": "dotenv -e .env.test -- vitest run --coverage",
