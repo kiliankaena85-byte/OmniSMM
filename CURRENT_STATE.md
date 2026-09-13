@@ -1,4 +1,12 @@
 # CURRENT_STATE.md
+- [x] Развертывание и настройка официального Tailscale Funnel в Docker (`smmplan.tailbb9d28.ts.net`) — (100% COMPLETE & VERIFIED):
+  * 🌐 **Постоянный публичный HTTPS-доступ (Let's Encrypt):**
+    - Развернут контейнер `tailscale/tailscale:latest` внутри Docker-сети `smm_default` без необходимости прав администратора Windows или UAC.
+    - Авторизована нода `smmplan` в тейлнете `tailbb9d28.ts.net` (`a9040000911@gmail.com`).
+    - Настроен фоновый прокси `tailscale serve --https=443 http://web:3000` и активирован глобальный публичный `tailscale funnel 443 on`.
+    - Выпущен официальный доверенный Let's Encrypt TLS-сертификат (`smmplan.tailbb9d28.ts.net.crt`).
+    - Сервис и том `smm_tailscale_data` добавлены в `docker-compose.yml`, сохраняя сессию и сертификаты при любых перезапусках.
+    - **Постоянный публичный URL платформы:** `https://smmplan.tailbb9d28.ts.net` (HTTP 200 OK).
 - [x] Устранение бага отображения услуг Telegram при вводе ссылок на каналы (`resolveServiceTargetType`) — (100% COMPLETE & VERIFIED):
   * 🎯 **Корневая причина:** Поле `Service.targetType` в Prisma имеет `@default("POST")`. Конструкция `s.targetType || inferTargetTypeFromName(s.name)` из-за truthy-значения строки `"POST"` никогда не вызывала вывод типа по названию. В результате все услуги каналов отсекались матрицей `isLinkServiceCompatible('channel', 'POST') = false`.
   * 🛠️ **Исправление (`useOrderEngine.ts`):** В 4 местах (кэш-фильтр, фетч-фильтр, валидатор чекаута, плашка совместимости) заменено на `resolveServiceTargetType(s)`, которая семантически извлекает истинный тип (`CHANNEL`, `VIDEO`, `POLL` и т.д.) по названию услуги.
