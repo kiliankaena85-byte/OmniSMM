@@ -5,7 +5,7 @@ import { TreasuryClient } from './treasury-client';
 import { Landmark } from 'lucide-react';
 
 export const metadata = {
-  title: 'Казначейство & Безопасный Вывод — SMMpanel 1.0',
+  title: 'Казначейство & Безопасный Вывод — OmniSMM 1.0',
   description: 'Анализ обязательств перед клиентами, налоговых резервов и расчет безопасного вывода дивидендов',
 };
 
@@ -33,8 +33,8 @@ export default async function AdminTreasuryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-            <Landmark className="w-4 h-4" />
-            SMMpanel 1.0 Финансовое Казначейство
+            <Landmark className="w-4 h-4 shrink-0" />
+            OmniSMM 1.0 Финансовое Казначейство
           </div>
           <h1 className="text-2xl font-bold text-foreground mt-1">
             Эскроу Клиентов, Налоги & Безопасный Вывод Прибыли

@@ -3,7 +3,7 @@ import { enforceSectionAccess } from '@/lib/server/rbac';
 import { verifySession } from '@/lib/session';
 
 export const metadata = {
-  title: 'Заявки на корректировку баланса | SMMpanel 1.0',
+  title: 'Заявки на корректировку баланса | OmniSMM 1.0',
 };
 
 /**

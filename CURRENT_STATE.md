@@ -1,4 +1,11 @@
 # CURRENT_STATE.md
+- [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 2: Деньги, Биллинг & Финтех) — (100% COMPLETE & VERIFIED):
+  * 📋 **Сквозной Playwright-аудит 6 финтех-экранов:** Сводный финцентр (`/admin/finance`), Казначейство & Дивиденды (`/admin/finance/treasury`), Заявки на баланс (`/admin/finance/balance-requests`), Статистика заявок (`/admin/finance/balance-requests/stats`), Все транзакции & Леджер (`/admin/transactions`), Пополнения (`/admin/refills`).
+  * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
+  * 🎯 **Результаты:** 18 из 18 проверок завершены с вердиктом **🟢 PASS (100%)**, дельта переполнения **0px**, сплющенных иконок **0**, ошибок консоли **0**, HTTP статус **200 OK**.
+  * 🏷️ **Брендинг & Иконки:** Приведено к стандарту OmniSMM 1.0 (`treasury/page.tsx`, `balance-requests/page.tsx`), добавлен `shrink-0` к иконкам `Landmark`.
+  * 📸 **Скриншоты и отчет:** Снято 18 доказательных скриншотов в `.planning/admin_visuals_phase2/`, официальный отчет зафиксирован в `docs/audits/ADMIN_PHASE2_FINTECH_REPORT.md`.
+
 - [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 1: Core Operations) — (100% COMPLETE & VERIFIED):
   * 📋 **Сквозной Playwright-аудит 6 ключевых экранов:** Главный дашборд (`/admin/dashboard`), Заказы (`/admin/orders`), Каталог (`/admin/catalog`), Провайдеры (`/admin/providers`), Финансы (`/admin/finance`), Клиенты (`/admin/clients`).
   * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
