@@ -6,8 +6,11 @@
  * 1. Squashed elements: injects "shrink-0" into SVG/Lucide icons inside flex.
  * 2. Horizontal scroll: replaces "w-screen" with "w-full max-w-full".
  * 3. Truncation overflow: adds "min-w-0" to elements with "truncate" in flex.
- * 4. iOS Auto-Zoom: upgrades mobile input "text-xs" to "text-base sm:text-xs".
+ * 4. iOS Auto-Zoom: upgrades mobile input "text-xs" / "text-sm" to "text-base sm:text-xs/sm".
  * 5. Wide table bottlenecks: replaces fixed large min-w on tables with "w-full".
+ * 6. Bottom insets: injects safe-area padding into fixed bottom panels.
+ * 7. Implicit button types: adds type="button" to interactive buttons.
+ * 8. Touch targets: ensures >= 44x44px minimum tap size on micro buttons (WCAG 2.2 AA).
  */
 
 import fs from 'fs';
@@ -17,7 +20,7 @@ import { COMPONENT_DIRS } from './layout-sentry';
 export interface AppliedFix {
   file: string;
   line: number;
-  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL' | 'INJECT_PB_SAFE' | 'BUTTON_TYPE_ATTRIBUTE';
+  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL' | 'INJECT_PB_SAFE' | 'BUTTON_TYPE_ATTRIBUTE' | 'ENSURE_TOUCH_TARGET_MIN';
   before: string;
   after: string;
 }
@@ -120,10 +123,11 @@ export function healLayoutFiles(options: HealOptions = {}): HealResult {
           }
         }
 
-        // 4. Upgrade mobile input font sizes (< 16px) to text-base sm:text-xs to stop iOS auto-zoom
-        if (/<(?:input|textarea)\s+[^>]*className="[^"]*text-(?:xs|\[1[0-3]px\])[^"]*"/.test(line)) {
-          if (!line.includes('sm:text-') && !line.includes('md:text-')) {
-            line = line.replace(/\btext-(?:xs|\[1[0-3]px\])\b/g, 'text-base sm:text-xs');
+        // 4. Upgrade mobile input font sizes (< 16px) to text-base sm:text-* to stop iOS auto-zoom
+        if (/<(?:input|textarea|select)\s+[^>]*className="[^"]*text-(?:xs|sm|\[1[0-4]px\])[^"]*"/.test(line)) {
+          if (!line.includes('sm:text-') && !line.includes('md:text-') && !line.includes('text-base')) {
+            const isSm = line.includes('text-sm');
+            line = line.replace(/\btext-(?:xs|sm|\[1[0-4]px\])\b/, isSm ? 'text-base sm:text-sm' : 'text-base sm:text-xs');
             appliedFixes.push({
               file: relPath,
               line: lineNum,
@@ -176,6 +180,23 @@ export function healLayoutFiles(options: HealOptions = {}): HealResult {
             after: line.trim()
           });
           isFileDirty = true;
+        }
+
+        // 8. Ensure touch target minimum size (>= 44px) on micro interactive buttons (WCAG 2.2 AA)
+        if (/<button\s+[^>]*className="[^"]*(?:\bp-1\b|\bh-[4-7]\s+w-[4-7]\b|\bw-[4-7]\s+h-[4-7]\b)[^"]*"/.test(line)) {
+          if (!line.includes('min-w-[44px]') && !line.includes('min-h-[44px]') && !line.includes('h-1') && !line.includes('w-1')) {
+            line = line.replace(/className="([^"]*)"/, (match, classList) => {
+              return `className="${classList} min-w-[44px] min-h-[44px] inline-flex items-center justify-center"`;
+            });
+            appliedFixes.push({
+              file: relPath,
+              line: lineNum,
+              type: 'ENSURE_TOUCH_TARGET_MIN',
+              before: origLine.trim(),
+              after: line.trim()
+            });
+            isFileDirty = true;
+          }
         }
 
         lines[i] = line;

@@ -182,8 +182,14 @@ export async function handleMcpRequest(request: any): Promise<any> {
           scrollWidth: width,
           clientWidth: width,
           horizontalScroll: false,
+          overflowDeltaPx: 0,
           culprits: [] as any[],
           squashedIconsCount: 0,
+          smallTouchTargetsCount: 0,
+          smallTouchTargets: [] as string[],
+          iosZoomSafe: true,
+          unsafeInputs: [] as string[],
+          consoleErrors: [] as string[],
           error: null as string | null
         };
 
@@ -194,14 +200,26 @@ export async function handleMcpRequest(request: any): Promise<any> {
             args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
           });
           const page = await browser.newPage({
-            viewport: { width, height }
+            viewport: { width, height },
+            hasTouch: width <= 768
           });
-          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 7000 });
-          await page.waitForTimeout(300);
+
+          page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+              liveProbeResult.consoleErrors.push(msg.text());
+            }
+          });
+
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+          await page.waitForTimeout(500);
 
           const probeData = await page.evaluate((vw) => {
-            const scrollWidth = document.documentElement.scrollWidth;
-            const clientWidth = document.documentElement.clientWidth;
+            const docEl = document.documentElement;
+            const body = document.body;
+            const scrollWidth = Math.max(docEl.scrollWidth, body ? body.scrollWidth : 0);
+            const clientWidth = docEl.clientWidth;
+            const overflowDeltaPx = Math.max(0, scrollWidth - clientWidth);
+
             const culprits: { tag: string; className: string; overflowPx: number }[] = [];
             document.querySelectorAll('*').forEach((el) => {
               const rect = el.getBoundingClientRect();
@@ -213,21 +231,57 @@ export async function handleMcpRequest(request: any): Promise<any> {
                 });
               }
             });
+
             let squashed = 0;
             document.querySelectorAll('svg').forEach((svg) => {
               const rect = svg.getBoundingClientRect();
               if (rect.width > 0 && rect.width < 12) squashed++;
             });
-            return { scrollWidth, clientWidth, culprits: culprits.slice(0, 10), squashed };
+
+            // Touch target audit (< 40px)
+            const smallTargets: string[] = [];
+            document.querySelectorAll('button, a, [role="button"], input[type="checkbox"]').forEach((el) => {
+              const rect = el.getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0 && (rect.width < 40 || rect.height < 40)) {
+                smallTargets.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().slice(0, 30)} (${Math.round(rect.width)}x${Math.round(rect.height)}px)`);
+              }
+            });
+
+            // iOS zoom audit (< 15.5px)
+            const unsafeInps: string[] = [];
+            document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), textarea, select').forEach((inp) => {
+              const style = window.getComputedStyle(inp);
+              const fs = parseFloat(style.fontSize) || 0;
+              if (fs > 0 && fs < 15.5) {
+                unsafeInps.push(`${inp.tagName.toLowerCase()}#${inp.id || 'no-id'} (fs=${Math.round(fs)}px)`);
+              }
+            });
+
+            return {
+              scrollWidth,
+              clientWidth,
+              overflowDeltaPx,
+              culprits: culprits.slice(0, 10),
+              squashed,
+              smallTouchTargetsCount: smallTargets.length,
+              smallTouchTargets: smallTargets.slice(0, 5),
+              iosZoomSafe: unsafeInps.length === 0,
+              unsafeInputs: unsafeInps.slice(0, 5)
+            };
           }, width);
 
           await browser.close();
 
           liveProbeResult.scrollWidth = probeData.scrollWidth;
           liveProbeResult.clientWidth = probeData.clientWidth;
+          liveProbeResult.overflowDeltaPx = probeData.overflowDeltaPx;
           liveProbeResult.horizontalScroll = probeData.scrollWidth > width;
           liveProbeResult.culprits = probeData.culprits;
           liveProbeResult.squashedIconsCount = probeData.squashed;
+          liveProbeResult.smallTouchTargetsCount = probeData.smallTouchTargetsCount;
+          liveProbeResult.smallTouchTargets = probeData.smallTouchTargets;
+          liveProbeResult.iosZoomSafe = probeData.iosZoomSafe;
+          liveProbeResult.unsafeInputs = probeData.unsafeInputs;
         } catch (err: any) {
           liveProbeResult.error = `Live probe fallback: ${err.message}`;
         }

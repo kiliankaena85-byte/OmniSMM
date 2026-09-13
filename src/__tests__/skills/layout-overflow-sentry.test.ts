@@ -24,7 +24,8 @@ describe('Skill Contract: layout-overflow-sentry', () => {
       'layout-overflow-sentry',
       'mobile-first-responsive-architect',
       'viewport-responsive-density',
-      'client-hydration-perf-guard'
+      'client-hydration-perf-guard',
+      'react-19-next-16-ui-engine'
     ];
 
     for (const skillName of uiSkills) {
@@ -93,6 +94,7 @@ export function SyntheticLayoutTest() {
       <Zap className="w-5 h-5 text-primary" />
       <span className="truncate">Title</span>
       <input type="text" className="text-xs px-2" />
+      <button className="p-1 rounded-lg">Mini</button>
       <div className="fixed inset-x-0 bottom-0 bg-background border-t">
         <button onClick={() => console.log('click')}>Action</button>
       </div>
@@ -104,13 +106,14 @@ export function SyntheticLayoutTest() {
 
     // Run heal on synthetic file
     const healResult = healLayoutFiles({ dryRun: false, scope: testFile });
-    expect(healResult.fixesApplied).toBeGreaterThanOrEqual(5);
+    expect(healResult.fixesApplied).toBeGreaterThanOrEqual(6);
 
     const healedContent = fs.readFileSync(testFile, 'utf8');
     expect(healedContent).toContain('shrink-0');
     expect(healedContent).toContain('w-full max-w-full');
     expect(healedContent).toContain('min-w-0');
     expect(healedContent).toContain('text-base sm:text-xs');
+    expect(healedContent).toContain('min-w-[44px]');
     expect(healedContent).toContain('safe-area-inset-bottom');
     expect(healedContent).toContain('type="button"');
 
@@ -181,5 +184,8 @@ export function SyntheticLayoutTest() {
     const parsedProbe = JSON.parse(callProbe.result.content[0].text);
     expect(parsedProbe.status).toBe('success');
     expect(parsedProbe.viewport.width).toBe(390);
+    expect(parsedProbe).toHaveProperty('overflowDeltaPx');
+    expect(parsedProbe).toHaveProperty('smallTouchTargetsCount');
+    expect(parsedProbe).toHaveProperty('iosZoomSafe');
   });
 });

@@ -1,4 +1,20 @@
 # CURRENT_STATE.md
+- [x] Синтез UI-скиллов по утвержденной спецификации (Claude, Gemini, Cursor, Vercel, GitHub) — (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-unified-layout-skills-synthesis.md`.
+  * 🏛️ **Двухуровневые стандарты верстки (Dual-Tier L1 CORE.md <= 25 строк + L2 Deep SKILL.md):**
+    - `layout-overflow-sentry` (L1 CORE.md + L2 SKILL.md) — 5 базовых инвариантов геометрии.
+    - `mobile-first-responsive-architect` (L1 CORE.md + L2 SKILL.md) — Thumb Zone, Touch >= 44px, Safe Area Insets.
+    - `viewport-responsive-density` (L1 CORE.md + L2 SKILL.md) — Data-Dense Dashboard, 7–9 колонок, Zero Horizontal Scroll.
+    - `client-hydration-perf-guard` (L1 CORE.md + L2 SKILL.md) — React 19 SSR, CLS < 0.05, Suspense Skeleton Geometry Reservation.
+    - `react-19-next-16-ui-engine` (L1 CORE.md + L2 SKILL.md) — Action-First runtime, useActionState, useOptimistic с 10-12s TTL таймером отката, useFormStatus.
+  * 🛠️ **Модернизация Auto-Healer (`scripts/ui/layout-healer.ts`):**
+    - Расширен до 8 автоматических типов лечения: `INJECT_SHRINK_0`, `REPLACE_W_SCREEN`, `ADD_MIN_W_0`, `FIX_IOS_INPUT_ZOOM` (включая `text-sm`), `TABLE_W_FULL`, `INJECT_PB_SAFE`, `BUTTON_TYPE_ATTRIBUTE`, `ENSURE_TOUCH_TARGET_MIN`.
+  * 🌐 **Модернизация MCP-сервера (`scripts/ui/layout-mcp-server.ts`):**
+    - Инструмент `layout_dom_probe` обогащен физическими замерами Chromium DOM Geometry: `overflowDeltaPx`, `smallTouchTargetsCount` (< 40px), `iosZoomSafe` (< 15.5px), `consoleErrors`, `culprits`.
+  * 🧪 **Автоматизированное тестирование:**
+    - `src/__tests__/skills/layout-overflow-sentry.test.ts` (10/10 PASS — 100%).
+    - `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Мобильный чекаут и тач-эргономика витрин SMMplan и SMMflux (WCAG 2.2 AA & RLS-2026) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-mobile-cro-checkout-ergonomics.md`.
   * 📱 **Playwright-аудит (12 из 12 конфигураций 100% PASS):**
