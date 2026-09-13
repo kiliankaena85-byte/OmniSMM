@@ -1,4 +1,10 @@
 # CURRENT_STATE.md
+- [x] Архитектурный скилл ui-theme-architect и CLI-харнес валидации/генерации тем theme-harness.ts (2026) — (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-ui-theme-architect-and-harness.md`.
+  * 🏛️ **Двухуровневый скилл (Dual-Tier L1/L2):** Создан `.agents/skills/ui-theme-architect/` (L1 `CORE.md` $\le 25$ строк + L2 `SKILL.md`), зарегистрирован в `.agents/skills/INDEX.md`.
+  * 🛠️ **CLI-Харнес `scripts/ui/theme-harness.ts`:** Реализованы команды `npm run theme:contrast` (расчет контраста WCAG 2.2 AA / APCA для 13 тем в `globals.css`), `npm run theme:audit` (статический сканер нелегального хардкода цветов `text-white`, `bg-black`, `#hex`) и `npm run theme:generate` (синтез Light/Dark палитр из Seed Color по стандартам Google HCT / OKLCH).
+  * 🧪 **Автоматизированная верификация:** `src/__tests__/skills/ui-theme-architect.test.ts` (7/7 PASS — 100%), `npm run theme:contrast` (13/13 PASS — 100% WCAG 2.2 AA), `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Системный синтез лучших практик верстки (Claude, Gemini, Cursor, Vercel, GitHub) и унификация UI-скиллов (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана системная спецификация `docs/specs/SPEC-2026-09-13-unified-layout-skills-synthesis.md` и обновлен стандарт `docs/standards/RESPONSIVE_LAYOUT_STANDARD_2026.md`.
   * 🏛️ **Унификация UI-скиллов (Dual-Tier L1/L2):** 
@@ -9,6 +15,7 @@
     - В `scripts/ui/layout-healer.ts` добавлены правила авто-лечения `INJECT_PB_SAFE` (Dynamic Island / Safe Area) и `BUTTON_TYPE_ATTRIBUTE` (`type="button"` на интерактивных кнопках).
     - В `scripts/ui/layout-mcp-server.ts` инструмент `layout_dom_probe` подключен к реальному браузерному движку Playwright Chromium с измерением геометрии до 1 пикселя.
   * 🧪 **Автоматизированная верификация:** `src/__tests__/skills/layout-overflow-sentry.test.ts` (10/10 PASS — 100%), `src/__tests__/mcp/mcp-pipeline.test.ts` (5/5 PASS — 100%), `npm run layout:audit` (🟢 CLEAN — 0 High, 0 Medium), `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+  * 🚢 **Продакшен релиз & Live Playwright Benchmark:** Контейнер `smmplan_web` успешно пересобран (`docker-compose up -d --build web`) на порту `:3000` в статусе `healthy`. Живой физический замер Chromium Playwright по 5 устройствам (iPhone SE 375px, iPhone 16 Pro 390px, iPad Mini 768px, Laptop 1366px, Full HD 1920px) зафиксировал **0px переполнений и 0 сжатых иконок**.
 
 - [x] Экосистема и пайплайн Model Context Protocol (MCP Ecosystem 2026.1) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана спецификация `docs/specs/SPEC-2026-09-13-mcp-ecosystem-pipeline.md`.
