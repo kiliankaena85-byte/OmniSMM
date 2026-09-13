@@ -103101,10 +103101,10 @@ var init_settings = __esm({
                 contactPrivacyEmail: defaultPrivacyEmail,
                 contactTelegramBot: defaultBot,
                 contactTelegramChannel: defaultChannel,
-                legalCompanyName: "\u0418\u041F \u0421\u043E\u043A\u043E\u043B\u043E\u0432 \u0410\u0440\u0442\u0451\u043C \u0410\u043D\u0434\u0440\u0435\u0435\u0432\u0438\u0447",
-                legalCompanyInn: "695006320024",
+                legalCompanyName: defaultName,
+                legalCompanyInn: "",
                 legalCompanyOgrnip: "",
-                legalCompanyAddress: "\u0420\u043E\u0441\u0441\u0438\u0439\u0441\u043A\u0430\u044F \u0424\u0435\u0434\u0435\u0440\u0430\u0446\u0438\u044F, \u0422\u0432\u0435\u0440\u0441\u043A\u0430\u044F \u043E\u0431\u043B\u0430\u0441\u0442\u044C, \u0433. \u0422\u0432\u0435\u0440\u044C"
+                legalCompanyAddress: ""
               }
             });
           },
@@ -103193,9 +103193,9 @@ var init_settings = __esm({
             contactTelegramBot: defaultBot,
             contactTelegramChannel: defaultChannel,
             legalCompanyName: defaultName,
-            legalCompanyInn: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0418\u041D\u041D",
-            legalCompanyOgrnip: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u041E\u0413\u0420\u041D\u0418\u041F",
-            legalCompanyAddress: "\u0433. \u041C\u043E\u0441\u043A\u0432\u0430",
+            legalCompanyInn: "",
+            legalCompanyOgrnip: "",
+            legalCompanyAddress: "",
             usnScheme: "INCOME_EXPENSES",
             welcomeMessage: "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C! \u0412\u0430\u0448 \u043F\u0435\u0440\u0441\u043E\u043D\u0430\u043B\u044C\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442 \u0433\u043E\u0442\u043E\u0432 \u043A \u0440\u0430\u0431\u043E\u0442\u0435.",
             yookassaShopId: null,
