@@ -107,6 +107,7 @@ node_modules
 *.tar.gz
 *.patch
 *.zip
+!omnismm-skills.zip
 
 # ── Analysis & report outputs ──
 *.log
