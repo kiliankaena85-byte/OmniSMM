@@ -1,4 +1,10 @@
 # CURRENT_STATE.md
+- [x] Комплексный инженерный аудит Административной панели OmniSMM 1.0 (Фаза 1: Core Operations) — (100% COMPLETE & VERIFIED):
+  * 📋 **Сквозной Playwright-аудит 6 ключевых экранов:** Главный дашборд (`/admin/dashboard`), Заказы (`/admin/orders`), Каталог (`/admin/catalog`), Провайдеры (`/admin/providers`), Финансы (`/admin/finance`), Клиенты (`/admin/clients`).
+  * 🖥️ **Замеры физической геометрии (3 целевых вьюпорта):** Laptop 1366x768 (Zero-Scroll Target), Desktop 1920x1080 (Full HD), Tablet 768x1024.
+  * 🎯 **Результаты:** 18 из 18 проверок завершены с вердиктом **🟢 PASS (100%)**, дельта переполнения **0px**, сплющенных иконок **0**, ошибок консоли **0**, HTTP статус **200 OK**.
+  * 📸 **Скриншоты и отчет:** Снято 18 доказательных скриншотов в `.planning/admin_visuals/`, официальный отчет зафиксирован в `docs/audits/ADMIN_CORE_AUDIT_REPORT.md`.
+
 - [x] Мутационное тестирование ядра и движка верстки (Mutation Testing & Adversarial Red Team) — (100% COMPLETE & VERIFIED):
   * 🎯 **Каталог мутаций (7 семантических мутантов):** Финансовая безопасность (`MUT-FIN-01` Half-Even rounding, `MUT-FIN-02` Margin bypass, `MUT-FIN-03` Zero-charge floor, `MUT-FIN-04` Partial refund) + Движок верстки (`MUT-UI-01` shrink-0, `MUT-UI-02` w-screen, `MUT-UI-03` iOS input font zoom).
   * 💀 **Результаты отстрела:** 7 из 7 мутантов успешно **УБИТЫ (KILLED)** автотестами.
