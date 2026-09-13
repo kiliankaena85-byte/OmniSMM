@@ -131,8 +131,8 @@ export function scanComponentFiles(dirs = COMPONENT_DIRS): LayoutFinding[] {
           });
         }
 
-        // 2.5 w-screen horizontal overflow hazard
-        if (/\bclassName="[^"]*\bw-screen\b[^"]*"/.test(line)) {
+        // 2.5 w-screen horizontal overflow hazard (ignoring max-w-screen-*)
+        if (/\bclassName="[^"]*(?<![\w-])w-screen(?![\w-])[^"]*"/.test(line)) {
           findings.push({
             file: relPath,
             line: lineNum,

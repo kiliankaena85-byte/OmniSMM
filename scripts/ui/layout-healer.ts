@@ -89,9 +89,9 @@ export function healLayoutFiles(options: HealOptions = {}): HealResult {
           }
         }
 
-        // 2. Replace w-screen with w-full max-w-full in classNames
-        if (/\bclassName="[^"]*\bw-screen\b[^"]*"/.test(line)) {
-          line = line.replace(/\bw-screen\b/g, 'w-full max-w-full');
+        // 2. Replace w-screen with w-full max-w-full in classNames (ignoring max-w-screen-*)
+        if (/\bclassName="[^"]*(?<![\w-])w-screen(?![\w-])[^"]*"/.test(line)) {
+          line = line.replace(/(?<![\w-])w-screen(?![\w-])/g, 'w-full max-w-full');
           appliedFixes.push({
             file: relPath,
             line: lineNum,

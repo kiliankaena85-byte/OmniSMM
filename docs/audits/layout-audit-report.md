@@ -1,13 +1,13 @@
 # 📐 Layout Overflow Sentry — Отчет проверки вёрстки
 
-**Дата проведения:** 13.09.2026, 10:21:32  
+**Дата проведения:** 13.09.2026, 10:54:43  
 **Вердикт:** **🔴 DEFECTS_DETECTED**  
 
 ---
 
 ### 📊 Статистика верстки
-- **Всего замечаний:** 153
-- **🔴 Высокий приоритет (High):** 8
+- **Всего замечаний:** 152
+- **🔴 Высокий приоритет (High):** 7
 - **🟡 Средний приоритет (Medium):** 145
 - **🟢 Низкий приоритет (Low):** 0
 
@@ -756,27 +756,22 @@
 - **Рекомендация:** Add "shrink-0" to icon to prevent element squashing on narrow viewports.
 
 
-#### #149 [HORIZONTAL_OVERFLOW] src/components/landing/SmartLinkLanding.tsx:73
-- **Код:** `<main className="flex-1 w-full max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-6 pt-1 md:pt-2 pb-10 md:pb-16 flex flex-col items-center relative z-10">`
-- **Рекомендация:** Replace "w-screen" with "w-full max-w-full" (w-screen causes horizontal scroll in Windows/Linux).
-
-
-#### #150 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:35
+#### #149 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:35
 - **Код:** `<Sparkles className="w-6 h-6" strokeWidth={1.5} />`
 - **Рекомендация:** Add "shrink-0" to icon to prevent element squashing on narrow viewports.
 
 
-#### #151 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:50
+#### #150 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:50
 - **Код:** `<ShieldCheck className="w-6 h-6" strokeWidth={1.5} />`
 - **Рекомендация:** Add "shrink-0" to icon to prevent element squashing on narrow viewports.
 
 
-#### #152 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:64
+#### #151 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:64
 - **Код:** `<Diamond className="w-6 h-6" strokeWidth={1.5} />`
 - **Рекомендация:** Add "shrink-0" to icon to prevent element squashing on narrow viewports.
 
 
-#### #153 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:86
+#### #152 [SQUASHED_ELEMENT] src/components/landing/WhyUs.tsx:86
 - **Код:** `<Sparkles className="w-5 h-5" strokeWidth={1.5} />`
 - **Рекомендация:** Add "shrink-0" to icon to prevent element squashing on narrow viewports.
 

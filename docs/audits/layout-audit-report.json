@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-09-13T07:21:32.015Z",
+  "timestamp": "2026-09-13T07:54:43.350Z",
   "filesScanned": 50,
-  "totalDefects": 153,
-  "highSeverity": 8,
+  "totalDefects": 152,
+  "highSeverity": 7,
   "mediumSeverity": 145,
   "lowSeverity": 0,
   "verdict": "DEFECTS_DETECTED",
@@ -1190,14 +1190,6 @@
       "severity": "MEDIUM",
       "snippet": "<MessageSquare className=\"w-5 h-5\" />",
       "remediation": "Add \"shrink-0\" to icon to prevent element squashing on narrow viewports."
-    },
-    {
-      "file": "src/components/landing/SmartLinkLanding.tsx",
-      "line": 73,
-      "type": "HORIZONTAL_OVERFLOW",
-      "severity": "HIGH",
-      "snippet": "<main className=\"flex-1 w-full max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-6 pt-1 md:pt-2 pb-10 md:pb-16 flex flex-col items-center relative z-10\">",
-      "remediation": "Replace \"w-screen\" with \"w-full max-w-full\" (w-screen causes horizontal scroll in Windows/Linux)."
     },
     {
       "file": "src/components/landing/WhyUs.tsx",
