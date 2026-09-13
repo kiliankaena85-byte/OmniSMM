@@ -1,4 +1,18 @@
 # CURRENT_STATE.md
+- [x] Мобильный чекаут и тач-эргономика витрин SMMplan и SMMflux (WCAG 2.2 AA & RLS-2026) — (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-mobile-cro-checkout-ergonomics.md`.
+  * 📱 **Playwright-аудит (12 из 12 конфигураций 100% PASS):**
+    - SMMplan Главная, SMMplan Шаг 4 (Чекаут), SMMflux Главная, SMMflux Чекаут на 3 мобильных вьюпортах: Android (360x800), iPhone SE (375x667), iPhone 16 Pro (390x844).
+    - **Zero Horizontal Scroll:** Строго **0px** дельта переполнения во всех 12 замерах.
+    - **iOS Safari Auto-Zoom Immunity:** Все поля ввода на мобильных устройствах приведены к размеру $\ge 16\text{px}$ (`text-base sm:text-sm`), устранен скрытый зум в Safari на iOS.
+    - **WCAG 2.2 AA Touch Targets:** Сенсорные тач-таргеты приведены к размеру $\ge 44 \times 44\text{px}$ (степперы `–`/`+`, тумблеры Drip-Feed, чек-листы).
+    - **Drip-Feed Floor Invariant:** Гарантировано $\lfloor Q/N \rfloor \ge \text{service.minQty}$ и автоматическое масштабирование суммарного объема $\ge \text{service.minQty} \times N$.
+  * 🧪 **Автоматизированное тестирование:**
+    - `src/__tests__/orders/mobile-checkout-cro-ergonomics.test.ts` (10/10 PASS — 100%).
+    - `scripts/mobile/audit-mobile-checkout-cro.ts` (12/12 PASS — 100%).
+    - `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+  * 📸 **Скриншоты и отчет:** Снято 12 доказательных скриншотов в `.planning/mobile_visuals/`, официальный отчет зафиксирован в `docs/audits/MOBILE_CHECKOUT_CRO_REPORT.md`.
+
 - [x] Обязательный харденинг безопасности перед продакшеном (PROD-SEC-2026 Gate) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-production-hardening-triad.md`.
   * 🛡️ **[SEC-001] Redis Authentication & Transit Encryption:**

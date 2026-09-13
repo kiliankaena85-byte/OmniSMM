@@ -48,7 +48,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
             <span className="text-xs text-primary font-semibold block mt-0.5">{formatEtaSpeedBadge(selectedService)}</span>
           </div>
         </div>
-        <button type="button" onClick={onBackToServices} className="text-xs font-bold text-primary hover:underline px-3 py-1.5 rounded-lg bg-primary/10 self-start sm:self-auto shrink-0">Изменить</button>
+        <button type="button" onClick={onBackToServices} className="text-xs font-bold text-primary hover:underline px-3 py-2 min-h-[44px] flex items-center justify-center rounded-lg bg-primary/10 self-start sm:self-auto shrink-0">Изменить</button>
       </div>
 
       {errors.general && (
@@ -63,13 +63,13 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
             <LinkIcon className="w-4 h-4 text-primary shrink-0" /> <span>{hint.label || 'Ссылка для заказа'}</span> <span className="text-destructive">*</span>
           </label>
           {isTgViews && (
-            <button type="button" onClick={() => setIsTgGuideOpen(true)} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/10 px-2.5 py-1 rounded-xl transition-all">
+            <button type="button" onClick={() => setIsTgGuideOpen(true)} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 bg-primary/10 px-3 py-2 min-h-[44px] rounded-xl transition-all">
               <HelpCircle className="w-3.5 h-3.5" /> <span>Как скопировать ссылку?</span>
             </button>
           )}
         </div>
         <TelegramLinkGuideModal isOpen={isTgGuideOpen} onClose={() => setIsTgGuideOpen(false)} onApplyLink={l => setLink(l)} tenantVariant="classic" />
-        <input id="order-url" name="link" type="text" value={link} onChange={e => { setLink(e.target.value); if (errors.link) setErrors(prev => ({ ...prev, link: undefined })); }} onBlur={handleBlurLink} placeholder={hint.placeholder} className={`w-full px-4 py-3 text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.link ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
+        <input id="order-url" name="link" type="text" value={link} onChange={e => { setLink(e.target.value); if (errors.link) setErrors(prev => ({ ...prev, link: undefined })); }} onBlur={handleBlurLink} placeholder={hint.placeholder} className={`w-full px-4 py-3 text-base sm:text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.link ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
         {errors.link && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.link}</p>}
         {isTgViews && <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 text-xs text-foreground flex items-start gap-2.5"><span className="text-sm shrink-0">💡</span><div className="space-y-0.5 min-w-0"><span className="font-bold text-primary block">Совет для альбомов:</span><p className="text-muted-foreground text-[11px]">{LinkGuideService.getTelegramAlbumAdvice(link)}</p></div></div>}
       </div>
@@ -78,9 +78,9 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         <div className="space-y-2">
           <label className="text-sm font-bold text-foreground flex items-center gap-1.5 shrink-0"><Sparkles className="w-4 h-4 text-primary" /> {selectedService.customDataLabel || 'Параметры заказа'} <span className="text-destructive">*</span></label>
           {selectedService.customDataType === 'TEXTAREA' ? (
-            <textarea rows={3} value={customData} onChange={e => { setCustomData(e.target.value); if (errors.customData) setErrors(prev => ({ ...prev, customData: undefined })); }} placeholder="Каждый комментарий с новой строки..." className={`w-full px-4 py-3 text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.customData ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
+            <textarea rows={3} value={customData} onChange={e => { setCustomData(e.target.value); if (errors.customData) setErrors(prev => ({ ...prev, customData: undefined })); }} placeholder="Каждый комментарий с новой строки..." className={`w-full px-4 py-3 text-base sm:text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.customData ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
           ) : (
-            <input type="text" value={customData} onChange={e => { setCustomData(e.target.value); if (errors.customData) setErrors(prev => ({ ...prev, customData: undefined })); }} placeholder="Параметр заказа..." className={`w-full px-4 py-3 text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.customData ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
+            <input type="text" value={customData} onChange={e => { setCustomData(e.target.value); if (errors.customData) setErrors(prev => ({ ...prev, customData: undefined })); }} placeholder="Параметр заказа..." className={`w-full px-4 py-3 text-base sm:text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${errors.customData ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
           )}
           {errors.customData && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.customData}</p>}
         </div>
@@ -92,9 +92,9 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         <div className={`p-4 rounded-2xl border transition-all ${isRequirementsConfirmed ? 'bg-green-500/10 border-green-500/30' : errors.requirement ? 'bg-destructive/10 border-destructive/40 animate-shake' : 'bg-amber-500/10 border-amber-500/30'}`}>
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider mb-1 shrink-0"><Sparkles className="w-4 h-4" /> Чек-лист для старта</div>
           <p className="text-xs text-muted-foreground mb-3">{selectedService.clientRequirement || selectedService.warningMessage || 'Перед началом убедитесь, что объект доступен для всех.'}</p>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input type="checkbox" checked={isRequirementsConfirmed} onChange={(e) => { setIsRequirementsConfirmed(e.target.checked); if (errors.requirement) setErrors(prev => ({ ...prev, requirement: undefined })); }} className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary" />
-            <span className={`text-xs font-bold ${isRequirementsConfirmed ? 'text-green-700 dark:text-green-400' : errors.requirement ? 'text-destructive' : 'text-foreground'}`}>{selectedService.clientConfirmation || 'Я всё проверил, можно запускать'}</span>
+          <label className="flex items-center gap-3 cursor-pointer min-h-[44px] py-1">
+            <input type="checkbox" checked={isRequirementsConfirmed} onChange={(e) => { setIsRequirementsConfirmed(e.target.checked); if (errors.requirement) setErrors(prev => ({ ...prev, requirement: undefined })); }} className="h-5 w-5 rounded border-border text-primary focus:ring-primary shrink-0" />
+            <span className={`text-xs font-bold select-none ${isRequirementsConfirmed ? 'text-green-700 dark:text-green-400' : errors.requirement ? 'text-destructive' : 'text-foreground'}`}>{selectedService.clientConfirmation || 'Я всё проверил, можно запускать'}</span>
           </label>
           {errors.requirement && <p className="text-xs font-bold text-destructive mt-2 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.requirement}</p>}
         </div>
@@ -106,10 +106,10 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
           <span className="text-xs text-muted-foreground font-medium">Лимиты: <strong>{selectedService.minQty}</strong> – <strong>{selectedService.maxQty.toLocaleString('ru-RU')}</strong> шт.</span>
         </div>
         <div className="flex items-center gap-2">
-          <input type="text" inputMode="numeric" pattern="[0-9]*" value={quantity || ''} onFocus={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onClick={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setQuantity(val ? parseInt(val, 10) : 0); if (errors.quantity) setErrors(prev => ({ ...prev, quantity: undefined })); }} className={`w-full px-4 py-3 text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
-          <div className="flex items-center gap-1 shrink-0">
-            <button type="button" onClick={() => addQuantity(-Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-10 h-10 flex items-center justify-center text-base font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">–</button>
-            <button type="button" onClick={() => addQuantity(Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-10 h-10 flex items-center justify-center text-base font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">+</button>
+          <input type="text" inputMode="numeric" pattern="[0-9]*" value={quantity || ''} onFocus={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onClick={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setQuantity(val ? parseInt(val, 10) : 0); if (errors.quantity) setErrors(prev => ({ ...prev, quantity: undefined })); }} className={`w-full px-4 py-3 text-base sm:text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
+          <div className="flex items-center gap-2 shrink-0">
+            <button type="button" aria-label="Уменьшить количество" onClick={() => addQuantity(-Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">–</button>
+            <button type="button" aria-label="Увеличить количество" onClick={() => addQuantity(Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">+</button>
           </div>
         </div>
         {errors.quantity && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.quantity}</p>}
@@ -117,19 +117,19 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
 
       <div className="space-y-2">
         <label className="text-sm font-bold text-foreground">Ваш Email (для чека и статуса) <span className="text-destructive">*</span></label>
-        <input type="email" value={email} onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: undefined, general: undefined })); }} placeholder="name@example.com" className={`w-full px-4 py-3 text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all ${errors.email ? 'border-destructive ring-2 ring-destructive/20 bg-destructive/5' : 'border-border/60'}`} />
+        <input type="email" value={email} onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: undefined, general: undefined })); }} placeholder="name@example.com" className={`w-full px-4 py-3 text-base sm:text-sm bg-background border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all ${errors.email ? 'border-destructive ring-2 ring-destructive/20 bg-destructive/5' : 'border-border/60'}`} />
         {errors.email && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.email}</p>}
       </div>
 
       <div>
         {!showPromo ? (
-          <button type="button" onClick={() => setShowPromo(true)} className="text-xs font-bold text-primary hover:underline flex items-center gap-1">+ Есть промокод?</button>
+          <button type="button" onClick={() => setShowPromo(true)} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 min-h-[44px] py-2 cursor-pointer">+ Есть промокод?</button>
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between"><label className="text-xs font-bold text-foreground">Промокод</label>{appliedPromo && <button type="button" onClick={handleRemovePromo} className="text-[11px] font-medium text-muted-foreground hover:text-destructive cursor-pointer">Удалить</button>}</div>
             <div className="flex gap-2">
-              <input type="text" value={promoCodeInput} onChange={e => setPromoCodeInput(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }} placeholder="ВВЕДИТЕ ПРОМОКОД" disabled={Boolean(appliedPromo)} className="flex-1 px-4 py-2 text-sm uppercase font-mono bg-background border border-border/60 rounded-xl text-foreground disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary/30" />
-              {!appliedPromo ? <button type="button" onClick={handleApplyPromo} disabled={!promoCodeInput.trim() || isApplyingPromo} className="px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 cursor-pointer shrink-0">{isApplyingPromo ? '...' : 'Применить'}</button> : <div className="flex items-center px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl shrink-0 select-none">✓ Активен</div>}
+              <input type="text" value={promoCodeInput} onChange={e => setPromoCodeInput(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }} placeholder="ВВЕДИТЕ ПРОМОКОД" disabled={Boolean(appliedPromo)} className="flex-1 px-4 py-2.5 text-base sm:text-sm uppercase font-mono bg-background border border-border/60 rounded-xl text-foreground disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]" />
+              {!appliedPromo ? <button type="button" onClick={handleApplyPromo} disabled={!promoCodeInput.trim() || isApplyingPromo} className="px-4 py-2.5 min-h-[44px] bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 cursor-pointer shrink-0 flex items-center justify-center">{isApplyingPromo ? '...' : 'Применить'}</button> : <div className="flex items-center px-3 py-2.5 min-h-[44px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl shrink-0 select-none">✓ Активен</div>}
             </div>
             {promoMessage && <p className={`text-xs font-semibold ${promoMessage.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>{promoMessage.text}</p>}
           </div>

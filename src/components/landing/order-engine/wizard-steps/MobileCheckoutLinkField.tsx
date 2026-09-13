@@ -79,7 +79,7 @@ export function MobileCheckoutLinkField({
             onChange={e => setUrl(e.target.value)}
             aria-describedby={validationErrors?.link ? "step4-url-error" : undefined}
             placeholder={linkConfig.placeholder}
-            className={`w-full h-11 px-4 rounded-2xl border bg-background text-sm text-foreground outline-none transition-all ${
+            className={`w-full h-11 px-4 rounded-2xl border bg-background text-base sm:text-sm text-foreground outline-none transition-all ${
               validationErrors?.link
                 ? 'border-destructive focus:border-destructive ring-2 ring-destructive/30'
                 : 'border-border focus:border-primary focus:ring-2 ring-primary/30'

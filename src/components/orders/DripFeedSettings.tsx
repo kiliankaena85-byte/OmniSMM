@@ -52,7 +52,7 @@ export function DripFeedSettings({
             value={runs}
             onChange={(e) => setRuns(Number(e.target.value))}
             aria-label="Количество запусков (Runs)"
-            className="w-full h-11 rounded-lg border border-border px-3 text-sm bg-background text-foreground"
+            className="w-full h-11 rounded-lg border border-border px-3 text-base sm:text-sm bg-background text-foreground"
           />
         </div>
         <div>
@@ -64,7 +64,7 @@ export function DripFeedSettings({
             value={interval}
             onChange={(e) => setInterval(Number(e.target.value))}
             aria-label="Интервал (в минутах)"
-            className="w-full h-11 rounded-lg border border-border px-3 text-sm bg-background text-foreground"
+            className="w-full h-11 rounded-lg border border-border px-3 text-base sm:text-sm bg-background text-foreground"
           />
         </div>
       </div>

@@ -428,7 +428,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
               else if (step === 'category') navigateTo('network');
               else if (step === 'network') navigateTo('link');
             }}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors mr-2 flex-shrink-0 cursor-pointer"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors mr-2 flex-shrink-0 cursor-pointer"
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
@@ -438,7 +438,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
           </div>
           <button 
             onClick={() => { setLink(''); setStep('link'); }}
-            className="w-8 h-8 mr-1 flex-shrink-0 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors font-bold cursor-pointer"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] mr-1 flex-shrink-0 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors font-bold cursor-pointer"
           >
             &times;
           </button>
@@ -497,7 +497,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                     }}
                   />
                   <Button 
-                    className="rounded-[1rem] sm:rounded-[1.2rem] bg-foreground text-background shadow-md mr-0.5 sm:mr-1 w-10 h-10 sm:w-11 sm:h-11 flex-shrink-0 flex items-center justify-center p-0 min-w-0 hover:bg-foreground/90 transition-all hover:-translate-y-0.5"
+                    className="rounded-[1rem] sm:rounded-[1.2rem] bg-foreground text-background shadow-md mr-0.5 sm:mr-1 w-11 h-11 min-w-[44px] min-h-[44px] flex-shrink-0 flex items-center justify-center p-0 hover:bg-foreground/90 transition-all hover:-translate-y-0.5"
                     isPending={isAnalyzing}
                     onPress={() => handleAnalyzeLink(link)}
                   >
@@ -811,7 +811,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                         value={customData}
                         onChange={(e) => setCustomData(e.target.value)}
                         placeholder="Введите каждый комментарий с новой строки..."
-                        className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'customData' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-sm font-medium outline-none shadow-sm`}
+                        className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'customData' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-base sm:text-sm font-medium outline-none shadow-sm`}
                       />
                     ) : (
                       <input
@@ -820,7 +820,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                         value={customData}
                         onChange={(e) => setCustomData(e.target.value)}
                         placeholder="Введите номер варианта ответа..."
-                        className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'customData' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-sm font-medium outline-none shadow-sm`}
+                        className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'customData' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-base sm:text-sm font-medium outline-none shadow-sm`}
                       />
                     )}
                     <AnimatePresence mode="popLayout">
@@ -848,14 +848,24 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                         <SparklesIcon className="w-4 h-4 text-primary" />
                         <span className="text-xs font-bold text-foreground uppercase tracking-wider">Запускать частями (Drip-Feed)</span>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex items-center cursor-pointer min-w-[44px] min-h-[44px] justify-center">
                         <input 
                           type="checkbox" 
                           checked={isDripFeedEnabled} 
-                          onChange={(e) => setIsDripFeedEnabled(e.target.checked)} 
+                          onChange={(e) => {
+                            const enabled = e.target.checked;
+                            setIsDripFeedEnabled(enabled);
+                            if (enabled) {
+                              const minQty = selectedService?.minQty || 100;
+                              const currentNum = typeof quantity === 'string' ? (parseInt(quantity) || 0) : quantity;
+                              if (currentNum < minQty) {
+                                setQuantity(minQty);
+                              }
+                            }
+                          }} 
                           className="sr-only peer"
                         />
-                        <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-[14px] after:left-[4px] after:bg-card after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                       </label>
                     </div>
 
@@ -869,7 +879,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                             max={100}
                             value={dripRuns}
                             onChange={(e) => setDripRuns(Math.max(2, parseInt(e.target.value) || 2))}
-                            className="w-full bg-background text-foreground px-3 py-2 rounded-xl border border-border/80 text-sm font-bold outline-none"
+                            className="w-full bg-background text-foreground px-3 py-2.5 rounded-xl border border-border/80 text-base sm:text-sm font-bold outline-none min-h-[44px]"
                           />
                         </div>
                         <div>
@@ -880,7 +890,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                             max={1440}
                             value={dripInterval}
                             onChange={(e) => setDripInterval(Math.max(1, parseInt(e.target.value) || 5))}
-                            className="w-full bg-background text-foreground px-3 py-2 rounded-xl border border-border/80 text-sm font-bold outline-none"
+                            className="w-full bg-background text-foreground px-3 py-2.5 rounded-xl border border-border/80 text-base sm:text-sm font-bold outline-none min-h-[44px]"
                           />
                         </div>
                         <p className="col-span-2 text-[11px] text-muted-foreground">
@@ -901,7 +911,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                       <button
                         type="button"
                         onClick={() => setIsTgGuideOpen(true)}
-                        className="text-[11px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-500/10 border border-purple-500/20 px-3 py-1.5 min-h-[36px] rounded-full transition-all"
+                        className="text-[11px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-500/10 border border-purple-500/20 px-3 py-2 min-h-[44px] rounded-full transition-all"
                       >
                         <HelpCircle className="w-3.5 h-3.5" />
                         <span>Как скопировать ссылку на фото?</span>
@@ -928,7 +938,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                         emailRef.current?.focus();
                       }
                     }}
-                    className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'link' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-sm sm:text-base font-medium outline-none shadow-sm`}
+                    className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'link' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-base sm:text-base font-medium outline-none shadow-sm`}
                   />
                   <AnimatePresence mode="popLayout">
                     {formState.error && formState.field === "link" && (
@@ -969,7 +979,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                     placeholder="example@mail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'email' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-sm sm:text-base font-medium outline-none shadow-sm`}
+                    className={`w-full bg-background backdrop-blur-md text-foreground placeholder:text-muted-foreground px-3 py-2.5 sm:px-4 sm:py-3 rounded-[1.25rem] sm:rounded-[1.5rem] border border-border/80 ${formState.field === 'email' ? '!border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-shake' : 'focus:ring-4 focus:ring-primary/10 focus:border-primary/40'} transition-all duration-300 text-base sm:text-base font-medium outline-none shadow-sm`}
                   />
                   <AnimatePresence mode="popLayout">
                     {formState.error && formState.field === "email" && (
@@ -997,8 +1007,8 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                     <p className="text-sm text-muted-foreground mb-4">
                       {selectedService.clientRequirement || selectedService.warningMessage || "Перед оформлением убедитесь, что объект продвижения доступен."}
                     </p>
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <div className="relative flex items-center justify-center mt-0.5">
+                    <label className="flex items-center gap-3 cursor-pointer group min-h-[44px] py-1">
+                      <div className="relative flex items-center justify-center shrink-0">
                         <input
                           type="checkbox"
                           className="peer sr-only"
@@ -1011,7 +1021,7 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                           </svg>
                         </div>
                       </div>
-                      <span className={`text-sm font-medium transition-colors ${isRequirementsConfirmed ? 'text-green-700' : showShakeError ? 'text-red-600' : 'text-foreground'}`}>
+                      <span className={`text-sm font-medium transition-colors select-none ${isRequirementsConfirmed ? 'text-green-700' : showShakeError ? 'text-red-600' : 'text-foreground'}`}>
                         {selectedService.clientConfirmation || "Я всё проверил, можно запускать"}
                       </span>
                     </label>

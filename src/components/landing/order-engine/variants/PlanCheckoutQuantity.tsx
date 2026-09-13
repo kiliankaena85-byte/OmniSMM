@@ -100,7 +100,7 @@ export function PlanCheckoutQuantity({
       {/* Drip-Feed Options */}
       {selectedService.isDripFeedEnabled && (
         <div className="mt-3 p-3.5 rounded-2xl bg-muted/30 border border-border/60">
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer min-h-[44px] py-1">
             <input
               type="checkbox"
               checked={dripFeedEnabled}
@@ -112,9 +112,9 @@ export function PlanCheckoutQuantity({
                 }
                 setLocalError(null);
               }}
-              className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
+              className="w-5 h-5 rounded text-primary focus:ring-primary cursor-pointer shrink-0"
             />
-            <span className="text-xs font-bold text-foreground">
+            <span className="text-xs font-bold text-foreground select-none">
               Постепенный запуск (Drip-Feed)
             </span>
           </label>
@@ -142,7 +142,7 @@ export function PlanCheckoutQuantity({
                       setQuantity(minQty * r);
                     }
                   }}
-                  className="w-full h-10 px-3 rounded-xl bg-background border border-border font-mono text-xs font-bold"
+                  className="w-full h-11 min-h-[44px] px-3 rounded-xl bg-background border border-border font-mono text-base sm:text-xs font-bold"
                 />
               </div>
               <div>
@@ -160,7 +160,7 @@ export function PlanCheckoutQuantity({
                   }}
                   onClick={(e) => e.currentTarget.select()}
                   onChange={(e) => setDripInterval(Math.max(10, parseInt(e.target.value) || 60))}
-                  className="w-full h-10 px-3 rounded-xl bg-background border border-border font-mono text-xs font-bold"
+                  className="w-full h-11 min-h-[44px] px-3 rounded-xl bg-background border border-border font-mono text-base sm:text-xs font-bold"
                 />
               </div>
             </div>

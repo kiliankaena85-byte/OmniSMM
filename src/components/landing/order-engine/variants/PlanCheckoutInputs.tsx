@@ -100,7 +100,7 @@ export function PlanCheckoutInputs({
                 ? 'https://instagram.com/...'
                 : 'Вставьте ссылку на канал, группу, профиль или пост')
             }
-            className="w-full h-12 px-3.5 pr-10 rounded-2xl bg-background border border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-bold text-sm text-foreground font-mono transition-all"
+            className="w-full h-12 px-3.5 pr-10 rounded-2xl bg-background border border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-bold text-base sm:text-sm text-foreground font-mono transition-all"
           />
           {url.trim().length > 0 && (
             <button
@@ -164,7 +164,7 @@ export function PlanCheckoutInputs({
             setLocalError(null);
           }}
           placeholder="example@mail.ru"
-          className="w-full h-12 px-3.5 rounded-2xl bg-background border border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-bold text-sm text-foreground transition-all"
+          className="w-full h-12 px-3.5 rounded-2xl bg-background border border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-bold text-base sm:text-sm text-foreground transition-all"
         />
         <p className="text-[11px] text-muted-foreground pl-1">
           По закону 54-ФЗ фискальный чек об оплате и ссылка на статус заказа будут отправлены на этот адрес.
