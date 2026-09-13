@@ -1,4 +1,13 @@
 # CURRENT_STATE.md
+- [x] Архитектурный скилл и движок локальных пентестов local-pentest-orchestrator (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация (SDD-TDD 2026):** Разработана спецификация `docs/specs/SPEC-2026-09-13-local-pentest-orchestrator.md`.
+  * 🛡️ **Двухуровневый скилл:** Создан `.agents/skills/local-pentest-orchestrator/` (L1 `CORE.md` $\le 25$ строк + L2 `SKILL.md`), зарегистрирован в `.agents/skills/INDEX.md`.
+  * 🚀 **Оркестрация субагентов:** 4 роли субагентов (`sast-auditor`, `dast-fuzzer`, `fintech-race-tester`, `triage-lead`).
+  * 🤖 **OpenRouter рой:** 6 моделей (Code, Content-Safety, 550B, 120B, UI, Rerank `/api/v1/rerank`).
+  * 🛠️ **CLI-движок:** `scripts/security/pentest-orchestrator.ts` (`npm run pentest:local` с флагами `--sast`, `--dast`, `--concurrency`, `--full`, `--test`).
+  * 📊 **Отчетность:** Автогенерация отчетов `docs/audits/pentest-report-latest.md` и `.json` с CVSS-скорингом.
+  * 🧪 **Автоматизированная верификация:** `src/__tests__/skills/local-pentest-orchestrator.test.ts` (6/6 PASS — 100%), боевой прогон `npm run pentest:local -- --full` (вердикт: 🟢 PASSED), `npx tsc --noEmit` (0 ошибок), `node scripts/check-bundle-secrets.mjs` (0 утечек).
+
 - [x] Юридический комплаенс, Brand-First & Deep Legal Privacy (152-ФЗ, ст. 9 ЗоЗПП, Постановление Правительства РФ № 2463) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация и Законодательная база:** Создан и зарегистрирован в `.agents/skills/INDEX.md` скилл `compliance-legal-ecommerce-ru` (L1 `CORE.md` + L2 `SKILL.md`). Реализованы инварианты: Brand-First Front, Deep Legal Containment, Zero-Home-Address Disclosure, Dynamic Tenant Isolation.
   * 🛡️ **Полная зачистка персональных данных (Zero-PII Front):** Удалены захардкоженные ФИО ИП, ИНН, ОГРНИП и домашний адрес (г. Тверь) из публичных подвалов `MegaFooter.tsx`, `FluxCyberFooter.tsx` и экрана предзапуска `PreLaunchHoldingScreen.tsx`. В публичной видимости отображается строго бренд (`SMMplan` / `SMMflux`) и информационно-технический статус.
