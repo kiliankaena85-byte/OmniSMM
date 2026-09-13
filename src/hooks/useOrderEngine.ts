@@ -18,6 +18,7 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TargetTypeEnum
 } from "@/utils/target-type";
+import { resolveServiceTargetType } from "@/utils/target-type-mapper";
 import {
   isLinkServiceCompatible,
   getCompatibilityError,
@@ -548,7 +549,10 @@ export function useOrderEngine(
       let finalSvcs = cachedSvcs;
       if (detectedType && isLinkFilled) {
         finalSvcs = cachedSvcs.filter(s =>
-          isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name))
+          // FIX: s.targetType is always "POST" by default (Prisma schema),
+          // so the || operator would never invoke inferTargetTypeFromName.
+          // resolveServiceTargetType() correctly overrides "POST" with name-inferred type.
+          isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
         );
       }
       setServices(finalSvcs);
@@ -589,7 +593,9 @@ export function useOrderEngine(
         let finalSvcs = sortedSvcs;
         if (detectedType && isLinkFilled) {
           const compatibleSvcs = sortedSvcs.filter(s =>
-            isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name))
+            // FIX: resolveServiceTargetType() overrides Prisma's default "POST" with
+            // name-inferred type (e.g., "Подписчики Telegram" → CHANNEL).
+            isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
           );
           finalSvcs = compatibleSvcs;
         }
@@ -801,7 +807,8 @@ export function useOrderEngine(
     if (selectedService && detectedType && !isLinkOverridden) {
       const activeCat2 = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
       const serviceTargetType = normalizeServiceTargetType(
-        selectedService.targetType || inferTargetTypeFromCategory(activeCat2?.name)
+        // FIX: use resolveServiceTargetType to avoid false errors when targetType = "POST" (default)
+        resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat2?.name)
       );
       if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
         errors['link'] = getCompatibilityError(detectedType, serviceTargetType, selectedService.name);
@@ -882,7 +889,8 @@ export function useOrderEngine(
     if (!selectedService || !detectedType || isLinkOverridden) return null;
     const activeCat = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
     const serviceTargetType = normalizeServiceTargetType(
-      selectedService.targetType || inferTargetTypeFromCategory(activeCat?.name)
+      // FIX: resolveServiceTargetType corrects Prisma's default "POST" using name inference
+      resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat?.name)
     );
     if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
       return getCompatibilityError(detectedType, serviceTargetType, selectedService.name);
