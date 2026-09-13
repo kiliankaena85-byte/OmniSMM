@@ -1,4 +1,10 @@
 # CURRENT_STATE.md
+- [x] Мутационное тестирование ядра и движка верстки (Mutation Testing & Adversarial Red Team) — (100% COMPLETE & VERIFIED):
+  * 🎯 **Каталог мутаций (7 семантических мутантов):** Финансовая безопасность (`MUT-FIN-01` Half-Even rounding, `MUT-FIN-02` Margin bypass, `MUT-FIN-03` Zero-charge floor, `MUT-FIN-04` Partial refund) + Движок верстки (`MUT-UI-01` shrink-0, `MUT-UI-02` w-screen, `MUT-UI-03` iOS input font zoom).
+  * 💀 **Результаты отстрела:** 7 из 7 мутантов успешно **УБИТЫ (KILLED)** автотестами.
+  * 📈 **Mutation Score:** **100%** (при нормативном пороге $\ge 85\%$).
+  * 📄 **Отчет:** Сформирован официальный отчет `.planning/MUTATION_TEST_REPORT.md`.
+
 - [x] Архитектурный скилл ui-theme-architect и CLI-харнес валидации/генерации тем theme-harness.ts (2026) — (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация (SDD-TDD 2026):** Разработана нормативная спецификация `docs/specs/SPEC-2026-09-13-ui-theme-architect-and-harness.md`.
   * 🏛️ **Двухуровневый скилл (Dual-Tier L1/L2):** Создан `.agents/skills/ui-theme-architect/` (L1 `CORE.md` $\le 25$ строк + L2 `SKILL.md`), зарегистрирован в `.agents/skills/INDEX.md`.

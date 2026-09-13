@@ -23,7 +23,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 export interface MutationDefinition {
   id: string;
-  category: 'FINANCE_EXACTMATH' | 'FINANCE_WALLETOPS' | 'SECURITY_RBAC' | 'TENANT_ISOLATION';
+  category: 'FINANCE_EXACTMATH' | 'FINANCE_WALLETOPS' | 'SECURITY_RBAC' | 'TENANT_ISOLATION' | 'UI_HEALER';
   description: string;
   targetFile: string;
   originalPattern: string | RegExp;
@@ -93,6 +93,36 @@ export const CORE_MUTATIONS: MutationDefinition[] = [
     mutatedReplacement: 'if (rem >= initQty) return BigInt(0); // MUTANT: Full refund broken',
     targetTestSuite: 'src/__tests__/financial/exact-math.test.ts',
   },
+  // 5. Layout Healer: Отключение инъекции shrink-0 (пропуск сплющивания иконок)
+  {
+    id: 'MUT-UI-01',
+    category: 'UI_HEALER',
+    description: 'Отключение исправления сплющивания: пропуск добавления shrink-0 в SVG/Lucide',
+    targetFile: 'scripts/ui/layout-healer.ts',
+    originalPattern: 'return `className="${classList} shrink-0"`;',
+    mutatedReplacement: 'return `className="${classList}"`; // MUTANT: shrink-0 injection disabled',
+    targetTestSuite: 'src/__tests__/skills/layout-overflow-sentry.test.ts',
+  },
+  // 6. Layout Healer: Отключение исправления горизонтального скролла w-screen
+  {
+    id: 'MUT-UI-02',
+    category: 'UI_HEALER',
+    description: 'Отключение устранения горизонтального скролла: сохранение w-screen вместо w-full max-w-full',
+    targetFile: 'scripts/ui/layout-healer.ts',
+    originalPattern: "line = line.replace(/(?<![\\w-])w-screen(?![\\w-])/g, 'w-full max-w-full');",
+    mutatedReplacement: "// MUTANT: w-screen replacement disabled",
+    targetTestSuite: 'src/__tests__/skills/layout-overflow-sentry.test.ts',
+  },
+  // 7. Layout Healer: Отключение защиты от iOS Auto-Zoom
+  {
+    id: 'MUT-UI-03',
+    category: 'UI_HEALER',
+    description: 'Отключение защиты от авто-зума на iPhone: сохранение мелкого шрифта text-xs в инпутах',
+    targetFile: 'scripts/ui/layout-healer.ts',
+    originalPattern: "line = line.replace(/\\btext-(?:xs|\\[1[0-3]px\\])\\b/g, 'text-base sm:text-xs');",
+    mutatedReplacement: "// MUTANT: iOS font zoom fix disabled",
+    targetTestSuite: 'src/__tests__/skills/layout-overflow-sentry.test.ts',
+  },
 ];
 
 export class MutationTestingHarness {
@@ -148,10 +178,11 @@ export class MutationTestingHarness {
       const runResult = spawnSync(npxCmd, testArgs, {
         cwd: this.projectRoot,
         encoding: 'utf-8',
-        timeout: 25000,
+        timeout: 60000,
         shell: process.platform === 'win32',
         env: {
           ...process.env,
+          DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:5433/smmplan_test?schema=public&sslmode=disable',
           PATH: `C:\\Program Files\\nodejs;${process.env.PATH}`,
           NODE_ENV: 'test',
         },

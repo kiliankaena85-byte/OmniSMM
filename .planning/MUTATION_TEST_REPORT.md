@@ -1,9 +1,9 @@
 # Mutation Testing & Adversarial Red Teaming Report
 
-**Timestamp:** 2026-09-11T15:43:32.800Z  
+**Timestamp:** 2026-09-13T09:25:28.755Z  
 **Overall Verdict:** `APPROVED`  
 **Mutation Score:** `100%` (Required threshold: $\ge 85.0\%$)  
-**Killed Mutants:** 4 / 4  
+**Killed Mutants:** 7 / 7  
 **Survived Mutants (Test Blindspots):** 0  
 
 ---
@@ -12,7 +12,7 @@
 | Метрика | Значение | Норматив | Статус |
 | :--- | :--- | :--- | :--- |
 | **Mutation Score ($MS$)** | **100%** | $\ge 85.0\%$ | 🟢 PASS |
-| **Убитые мутанты (Killed)** | 4 | Максимум | 💀 Успешно |
+| **Убитые мутанты (Killed)** | 7 | Максимум | 💀 Успешно |
 | **Выжившие мутанты (Survived)** | 0 | 0 | 🟢 0 Дыр |
 
 ---
@@ -23,7 +23,7 @@
 - **Описание:** Искажение банковского округления: замена строгого неравенства остатка (нарушение Half-Even)
 - **Целевой файл:** `src/lib/financial/exact-math.ts`
 - **Тестовый сьют:** `src/__tests__/financial/exact-math.test.ts`
-- **Время реакции тестов:** 13.57s
+- **Время реакции тестов:** 2.54s
 - **Статус:** `KILLED`
 
 ---
@@ -32,7 +32,7 @@
 - **Описание:** Удаление базисных пунктов наценки (заказ продается по себестоимости провайдера без маржи)
 - **Целевой файл:** `src/lib/financial/exact-math.ts`
 - **Тестовый сьют:** `src/__tests__/financial/exact-math.test.ts`
-- **Время реакции тестов:** 2.90s
+- **Время реакции тестов:** 2.29s
 - **Статус:** `KILLED`
 
 ---
@@ -41,7 +41,7 @@
 - **Описание:** Разрешение бесплатного/нулевого заказа (отключение защиты min 1 коп floor)
 - **Целевой файл:** `src/lib/financial/exact-math.ts`
 - **Тестовый сьют:** `src/__tests__/financial/exact-math.test.ts`
-- **Время реакции тестов:** 2.40s
+- **Время реакции тестов:** 2.32s
 - **Статус:** `KILLED`
 
 ---
@@ -51,6 +51,33 @@
 - **Целевой файл:** `src/lib/financial/exact-math.ts`
 - **Тестовый сьют:** `src/__tests__/financial/exact-math.test.ts`
 - **Время реакции тестов:** 2.58s
+- **Статус:** `KILLED`
+
+---
+
+### 5. [💀 KILLED] MUT-UI-01 (UI_HEALER)
+- **Описание:** Отключение исправления сплющивания: пропуск добавления shrink-0 в SVG/Lucide
+- **Целевой файл:** `scripts/ui/layout-healer.ts`
+- **Тестовый сьют:** `src/__tests__/skills/layout-overflow-sentry.test.ts`
+- **Время реакции тестов:** 3.01s
+- **Статус:** `KILLED`
+
+---
+
+### 6. [💀 KILLED] MUT-UI-02 (UI_HEALER)
+- **Описание:** Отключение устранения горизонтального скролла: сохранение w-screen вместо w-full max-w-full
+- **Целевой файл:** `scripts/ui/layout-healer.ts`
+- **Тестовый сьют:** `src/__tests__/skills/layout-overflow-sentry.test.ts`
+- **Время реакции тестов:** 2.27s
+- **Статус:** `KILLED`
+
+---
+
+### 7. [💀 KILLED] MUT-UI-03 (UI_HEALER)
+- **Описание:** Отключение защиты от авто-зума на iPhone: сохранение мелкого шрифта text-xs в инпутах
+- **Целевой файл:** `scripts/ui/layout-healer.ts`
+- **Тестовый сьют:** `src/__tests__/skills/layout-overflow-sentry.test.ts`
+- **Время реакции тестов:** 2.25s
 - **Статус:** `KILLED`
 
 
