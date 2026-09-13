@@ -228,9 +228,31 @@ services:
       driver: "json-file"
       options:
         max-size: "20m"
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: smmplan_tailscale
+    restart: always
+    mem_limit: 128m
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - smm_tailscale_data:/var/lib/tailscale
+    entrypoint: tailscaled
+    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock
+    depends_on:
+      web:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
         max-file: "3"
 
 volumes:
   lite_postgres_data:
   lite_redis_data:
   lite_uploads_data:
+  smm_tailscale_data:
+    external: true
