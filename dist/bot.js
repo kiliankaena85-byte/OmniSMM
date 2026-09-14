@@ -71729,15 +71729,20 @@ var init_link_analyzer = __esm({
     IntelligenceLinkAnalyzer = class {
       async analyze(rawUrl) {
         if (!rawUrl || rawUrl.trim() === "") {
-          return this.getFallbackResult(rawUrl);
+          return this.getFallbackResult(rawUrl, "EMPTY_INPUT");
         }
         const boundedRaw = rawUrl.length > 2048 ? rawUrl.slice(0, 2048) : rawUrl;
         let cleanUrl = boundedRaw.trim();
-        if (!cleanUrl.includes("/") && !cleanUrl.includes(".")) {
+        const isBareHandle = cleanUrl.startsWith("@");
+        const hasNoDomainOrDot = !cleanUrl.includes(".") && !cleanUrl.includes("/");
+        if (isBareHandle || hasNoDomainOrDot) {
           const rawHandle = cleanUrl.startsWith("@") ? cleanUrl.substring(1) : cleanUrl;
-          if (/^[a-zA-Z0-9_]+$/.test(rawHandle)) {
-            cleanUrl = `https://t.me/${rawHandle}`;
-          }
+          const hintHandle = rawHandle.trim() || "username";
+          return this.getFallbackResult(
+            cleanUrl,
+            "MISSING_DOMAIN",
+            `\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u043E\u043B\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u0441 \u0430\u0434\u0440\u0435\u0441\u043E\u043C \u0441\u0430\u0439\u0442\u0430 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: t.me/${hintHandle}, vk.com/${hintHandle} \u0438\u043B\u0438 instagram.com/${hintHandle})`
+          );
         }
         const hasSingleParam = rawUrl.toLowerCase().includes("single");
         const sanitizedUrl = this.sanitize(cleanUrl);
@@ -71794,26 +71799,13 @@ var init_link_analyzer = __esm({
             cleanUrl = cleanUrl.replace(/[?.,!;:]+$/, "");
           }
           cleanUrl = stripQueryParams(cleanUrl);
-          if (cleanUrl.startsWith("@")) {
-            const handle = cleanUrl.substring(1);
-            if (/^[a-zA-Z0-9_]+$/.test(handle)) {
-              cleanUrl = `https://t.me/${handle}`;
-            }
-          }
-          if (!cleanUrl.startsWith("http") && cleanUrl.includes(".")) {
+          if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && cleanUrl.includes(".")) {
             cleanUrl = "https://" + cleanUrl;
           }
           const urlObj = new URL(cleanUrl);
           return urlObj.toString().replace(/%40/g, "@");
         } catch (_e) {
-          const cleanUrl = url.trim().replace(/%40/g, "@");
-          if (cleanUrl.startsWith("@")) {
-            const handle = cleanUrl.substring(1);
-            if (/^[a-zA-Z0-9_]+$/.test(handle)) {
-              return `https://t.me/${handle}`;
-            }
-          }
-          return cleanUrl;
+          return url.trim().replace(/%40/g, "@");
         }
       }
       async resolve(url) {
@@ -71862,9 +71854,9 @@ var init_link_analyzer = __esm({
             };
           }
         }
-        return this.getFallbackResult(decodedUrl);
+        return this.getFallbackResult(decodedUrl, "UNSUPPORTED_PLATFORM");
       }
-      getFallbackResult(url) {
+      getFallbackResult(url, errorCode, userHint) {
         return {
           platform: "OTHER" /* OTHER */,
           type: "generic_link",
@@ -71872,7 +71864,9 @@ var init_link_analyzer = __esm({
           canonicalUrl: url,
           metadata: {},
           suggestedCategories: [],
-          warnings: ["platform_not_supported"]
+          warnings: errorCode ? [errorCode] : ["platform_not_supported"],
+          errorCode,
+          userHint
         };
       }
     };

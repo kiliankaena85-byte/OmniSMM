@@ -159,6 +159,34 @@ export function MobileStep1Link({
       {/* Smart Detection Live Badge */}
       <MobileStep1DetectionBadge engine={engine} url={url} />
 
+      {/* Option B: Guidance card when bare handle or word without domain is entered */}
+      {engine.urlHint && !validationErrors?.link && !localUrlError && (
+        <div className="flex flex-col gap-2 p-3 bg-content2/80 border border-primary/20 rounded-xl animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="flex items-start gap-2">
+            <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div className="text-xs text-foreground/90 font-medium leading-relaxed">
+              {engine.urlHint}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 pl-6">
+            <span className="text-[11px] text-muted-foreground font-semibold">Добавить адрес:</span>
+            {['t.me/', 'vk.com/', 'instagram.com/'].map((prefix) => (
+              <button
+                key={prefix}
+                type="button"
+                onClick={() => {
+                  const raw = url.replace(/^@/, '').trim();
+                  setUrl(`${prefix}${raw}`, true);
+                }}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-primary/10 hover:bg-primary/20 text-primary active:scale-95 transition-all cursor-pointer min-h-[32px]"
+              >
+                +{prefix}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {(validationErrors?.link || localUrlError) && (
         <p id="mobile-step1-url-error" role="alert" aria-live="assertive" className="text-[11px] font-bold text-danger pl-1 animate-pulse">
           {validationErrors?.link || localUrlError}

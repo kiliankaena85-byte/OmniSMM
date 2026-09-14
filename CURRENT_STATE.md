@@ -1,4 +1,24 @@
 # CURRENT_STATE.md
+- [x] Архитектурный рефакторинг URL-валидатора и движка каталога по Варианту Б (Strict Domain Requirement) & Zero-Waterfall — (100% COMPLETE & VERIFIED):
+  * 🎯 **Искоренение слепой подстановки Telegram (Вариант Б — INV-1):**
+    - В `IntelligenceLinkAnalyzer` полностью удален хардкод автоматической конвертации `@handle` и слов без доменов в `https://t.me/...`.
+    - Введен строгий инвариант: никнеймы и слова без доменов возвращают типизированную ошибку `MISSING_DOMAIN` с контекстной подсказкой: *«Укажите полную ссылку с адресом сайта (например: t.me/durov, vk.com/durov или instagram.com/durov)»*.
+    - Ссылки без схемы (`t.me/durov`, `vk.com/id1`) автоматически дополняются протоколом `https://` до проверки SSRF, устраняя ложное отклонение ссылок.
+  * ⚡ **Ликвидация асинхронного водопада каталога (Zero-Waterfall Catalog — INV-2):**
+    - В `PublicCategory` добавлен предрассчитанный массив `targetTypes: string[]` на уровне SSR/кэша Redis (`unstable_cache`).
+    - В `getCachedNetworks` и `getPublicCatalogAction` для каждой категории формируется уникальный список целевых типов активных услуг с помощью `resolveServiceTargetType`.
+    - В `useOrderEngine.ts` фильтрация категорий на Шаге 2 выполняется мгновенно в памяти браузера (0 ms задержки), гарантируя отсутствие категорий с 0 доступных услуг.
+  * 🎨 **Интерактивные чипсы подсказок (`MobileStep1Link.tsx`):**
+    - При вводе `@handle` или слова без домена под инпутом отображается карточка-подсказка с кнопками быстрой вставки домена (`+t.me/`, `+vk.com/`, `+instagram.com/`), моментально дополняющими ссылку.
+  * 🧪 **Автоматизированное TDD-тестирование & Регрессионная верификация:**
+    - Новый сьют: `src/services/analyzer/__tests__/strict-domain-validator.test.ts` (7/7 PASS — 100%).
+    - Существующие сьюты: `link-analyzer-full.test.ts` (24/24 PASS), `mobile-wizard-smoke.test.tsx` (16/16 PASS), `order-wizard-cro-and-dripfeed.test.ts` (8/8 PASS) — 100% PASS.
+    - Строгая типизация: `npx tsc --noEmit` (0 ошибок).
+    - Контроль безопасности: `check-bundle-secrets.mjs` (0 утечек).
+  * 🚀 **Сборка и перезапуск Docker-контейнера:**
+    - Локальная сборка `npm run build` выполнена на хосте за 110s.
+    - Контейнер `smmplan_web` пересобран (`docker compose up -d --build web`) в статусе `healthy`.
+    - Публичный доступ через Tailscale Funnel: `https://smmplan.tailbb9d28.ts.net` (HTTP 200 OK).
 - [x] Глобальный рефакторинг визарда заказов: устранение выкидывания с шага 4 и тупиковых категорий (100% COMPLETE & VERIFIED):
   * 🎯 **Инлайн-редактирование ссылки на Шаге 4 (`MobileCheckoutLinkField.tsx`):**
     - Полностью искоренен вызов `setActiveStep(1)` со строк 42 и 54 (ранее любое касание ссылки откатывало визард на Шаг 1).

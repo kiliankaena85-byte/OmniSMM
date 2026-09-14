@@ -11,6 +11,14 @@ interface IntelligenceLinkMetadata {
     advice?: string;
 }
 
+export type LinkAnalysisErrorCode =
+    | 'EMPTY_INPUT'
+    | 'MISSING_DOMAIN'
+    | 'UNSUPPORTED_PLATFORM'
+    | 'INVALID_OBJECT_FORMAT'
+    | 'SSRF_BLOCKED'
+    | 'RATE_LIMITED';
+
 export interface IntelligenceAnalysisResult {
     platform: IntelligencePlatform;
     type: string;
@@ -20,23 +28,32 @@ export interface IntelligenceAnalysisResult {
     suggestedCategories: string[];
     warnings: string[];
     tips?: string[];
+    errorCode?: LinkAnalysisErrorCode;
+    userHint?: string;
 }
 
 export class IntelligenceLinkAnalyzer {
     
     async analyze(rawUrl: string): Promise<IntelligenceAnalysisResult> {
         if (!rawUrl || rawUrl.trim() === '') {
-             return this.getFallbackResult(rawUrl);
+             return this.getFallbackResult(rawUrl, 'EMPTY_INPUT');
         }
         const boundedRaw = rawUrl.length > 2048 ? rawUrl.slice(0, 2048) : rawUrl;
         let cleanUrl = boundedRaw.trim();
-        // If it's a plain handle without slash or dot, e.g. "durov" or "@durov"
-        if (!cleanUrl.includes('/') && !cleanUrl.includes('.')) {
+
+        // Option B (INV-1): Detect bare handles (@username) or single words without a domain/dot
+        const isBareHandle = cleanUrl.startsWith('@');
+        const hasNoDomainOrDot = !cleanUrl.includes('.') && !cleanUrl.includes('/');
+        if (isBareHandle || hasNoDomainOrDot) {
             const rawHandle = cleanUrl.startsWith('@') ? cleanUrl.substring(1) : cleanUrl;
-            if (/^[a-zA-Z0-9_]+$/.test(rawHandle)) {
-                cleanUrl = `https://t.me/${rawHandle}`;
-            }
+            const hintHandle = rawHandle.trim() || 'username';
+            return this.getFallbackResult(
+                cleanUrl,
+                'MISSING_DOMAIN',
+                `Укажите полную ссылку с адресом сайта (например: t.me/${hintHandle}, vk.com/${hintHandle} или instagram.com/${hintHandle})`
+            );
         }
+
         const hasSingleParam = rawUrl.toLowerCase().includes('single');
         const sanitizedUrl = this.sanitize(cleanUrl);
         const expandedUrl = await this.resolve(sanitizedUrl);
@@ -106,16 +123,8 @@ export class IntelligenceLinkAnalyzer {
             // Clean up UTM parameters using our dedicated normalizer
             cleanUrl = stripQueryParams(cleanUrl);
 
-            // 2. Convert plain @username to proper URL if it starts with @
-            if (cleanUrl.startsWith('@')) {
-                const handle = cleanUrl.substring(1);
-                if (/^[a-zA-Z0-9_]+$/.test(handle)) {
-                    cleanUrl = `https://t.me/${handle}`;
-                }
-            }
-
             // Only parse full URL if it has http scheme
-            if (!cleanUrl.startsWith('http') && cleanUrl.includes('.')) {
+            if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && cleanUrl.includes('.')) {
                 cleanUrl = 'https://' + cleanUrl;
             }
 
@@ -123,14 +132,7 @@ export class IntelligenceLinkAnalyzer {
             return urlObj.toString().replace(/%40/g, '@');
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_e) {
-            const cleanUrl = url.trim().replace(/%40/g, '@');
-            if (cleanUrl.startsWith('@')) {
-                const handle = cleanUrl.substring(1);
-                if (/^[a-zA-Z0-9_]+$/.test(handle)) {
-                    return `https://t.me/${handle}`;
-                }
-            }
-            return cleanUrl;
+            return url.trim().replace(/%40/g, '@');
         }
     }
 
@@ -187,10 +189,10 @@ export class IntelligenceLinkAnalyzer {
             }
         }
 
-        return this.getFallbackResult(decodedUrl);
+        return this.getFallbackResult(decodedUrl, 'UNSUPPORTED_PLATFORM');
     }
 
-    private getFallbackResult(url: string): IntelligenceAnalysisResult {
+    private getFallbackResult(url: string, errorCode?: LinkAnalysisErrorCode, userHint?: string): IntelligenceAnalysisResult {
         return {
             platform: IntelligencePlatform.OTHER,
             type: 'generic_link',
@@ -198,7 +200,9 @@ export class IntelligenceLinkAnalyzer {
             canonicalUrl: url,
             metadata: {},
             suggestedCategories: [],
-            warnings: ['platform_not_supported']
-        }
+            warnings: errorCode ? [errorCode] : ['platform_not_supported'],
+            errorCode,
+            userHint
+        };
     }
 }

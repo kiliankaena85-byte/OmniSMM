@@ -119,6 +119,7 @@ export function useOrderEngine(
   const [isWarningConfirmed, setIsWarningConfirmed] = useState(false);
   const [warningHasError, setWarningHasError] = useState(false);
   const [termsHasError, setTermsHasError] = useState(false);
+  const [urlHint, setUrlHint] = useState<string | null>(null);
 
   // BUG-10: Restore session state on mount (url, networkId, categoryId only — no email/promo per PCI DSS)
   useEffect(() => {
@@ -401,6 +402,11 @@ export function useOrderEngine(
       try {
         const res = await analyzeUrl(url.trim());
         if (stale) return; // effect was cleaned up during fetch
+        if (res.userHint) {
+          setUrlHint(res.userHint);
+        } else {
+          setUrlHint(null);
+        }
         if (res.success && res.data) {
           const analysisData = res.data;
           setPlatform(analysisData.platform !== IntelligencePlatform.OTHER ? analysisData.platform : null);
@@ -414,43 +420,49 @@ export function useOrderEngine(
           if (activePlatformStr) {
             const matchedNet = catalog.find(n => n.slug.toLowerCase().includes(activePlatformStr) || activePlatformStr.includes(n.slug.toLowerCase()));
             if (matchedNet) {
-               if (matchedNet.id !== networkIdRef.current || !selectedServiceRef.current) {
-                  setNetworkId(matchedNet.id);
-                  const catsForNet = matchedNet.categories;
-                  let filteredCats = catsForNet;
-                  if (analysisData.suggestedCategories && analysisData.suggestedCategories.length > 0) {
-                      const f = catsForNet.filter(c => matchesSuggestedCategory(c.name, analysisData.suggestedCategories, c.analyzerTags, analysisData.type));
-                      if (f.length > 0) filteredCats = f;
-                  }
-                  if (filteredCats.length > 0) {
-                     // Smart Adaptive Flow: If link is entered and no service selected
-                     if (url.trim().length >= 5 && !selectedServiceRef.current) {
-                        // SRS Rule 1.3: Smart Auto-Select when N=1
-                        if (filteredCats.length === 1) {
-                           setCategoryId(filteredCats[0].id);
-                        } else {
-                           setCategoryId("");
-                        }
-                      } else if (selectedServiceRef.current) {
-                         const currentSvc = selectedServiceRef.current;
-                         const svcTargetType = resolveServiceTargetType(currentSvc);
-                         const isSvcCompatible = !analysisData.type || isLinkServiceCompatible(analysisData.type, svcTargetType);
-                         
-                         const isCurrentCatCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
-                         if (!isCurrentCatCompatible && !isSvcCompatible) {
+                if (matchedNet.id !== networkIdRef.current || !selectedServiceRef.current) {
+                   setNetworkId(matchedNet.id);
+                   const catsForNet = matchedNet.categories;
+                   let filteredCats = catsForNet;
+                   if (analysisData.suggestedCategories && analysisData.suggestedCategories.length > 0) {
+                       const f = catsForNet.filter(c => matchesSuggestedCategory(c.name, analysisData.suggestedCategories, c.analyzerTags, analysisData.type));
+                       if (f.length > 0) filteredCats = f;
+                   }
+                   if (filteredCats.length > 0) {
+                      // Smart Adaptive Flow: If link is entered and no service selected
+                      if (url.trim().length >= 5 && !selectedServiceRef.current) {
+                         // SRS Rule 1.3: Smart Auto-Select when N=1
+                         if (filteredCats.length === 1) {
                             setCategoryId(filteredCats[0].id);
-                            setSelectedService(null);
+                         } else {
+                            setCategoryId("");
                          }
-                      } else {
-                         const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
-                         if (!isCurrentCompatible) {
-                            setCategoryId(filteredCats[0].id);
-                            setSelectedService(null);
-                         }
-                      }
-                  }
-               }
+                       } else if (selectedServiceRef.current) {
+                          const currentSvc = selectedServiceRef.current;
+                          const svcTargetType = resolveServiceTargetType(currentSvc);
+                          const isSvcCompatible = !analysisData.type || isLinkServiceCompatible(analysisData.type, svcTargetType);
+                          
+                          const isCurrentCatCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
+                          if (!isCurrentCatCompatible && !isSvcCompatible) {
+                             setCategoryId(filteredCats[0].id);
+                             setSelectedService(null);
+                          }
+                       } else {
+                          const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
+                          if (!isCurrentCompatible) {
+                             setCategoryId(filteredCats[0].id);
+                             setSelectedService(null);
+                          }
+                       }
+                   }
+                }
             }
+          }
+        } else {
+          if (res.errorCode === 'MISSING_DOMAIN') {
+            setPlatform(null);
+            setSuggestedCategories([]);
+            setDetectedType(null);
           }
         }
       } catch (err) {
@@ -898,6 +910,12 @@ export function useOrderEngine(
 
   if (isMatchingAutodetected && (suggestedCategories.length > 0 || detectedType) && url.trim().length >= 5) {
     const filteredCats = availableCategories.filter(c => {
+      // Zero-Waterfall Invariant: If category has pre-aggregated targetTypes from SSR/cache:
+      if (detectedType && c.targetTypes && c.targetTypes.length > 0) {
+        const hasCompatible = c.targetTypes.some(tt => isLinkServiceCompatible(detectedType, tt));
+        if (!hasCompatible) return false;
+      }
+
       if (!matchesSuggestedCategory(c.name, suggestedCategories, c.analyzerTags, detectedType)) {
         return false;
       }
@@ -1011,6 +1029,7 @@ export function useOrderEngine(
     validationErrors,
     compatibilityWarning,
     urlMutatedTrigger,
+    urlHint,
     
     // Mass Mode
     isMassMode,

@@ -34,13 +34,39 @@ function isUrlSafeForFetch(urlString: string): boolean {
 /**
  * @public Safe public URL intelligence analyzer for order forms
  */
-export async function analyzeUrl(url: string): Promise<{ success: boolean; data?: IntelligenceAnalysisResult; error?: string }> {
+export async function analyzeUrl(url: string): Promise<{
+  success: boolean;
+  data?: IntelligenceAnalysisResult;
+  error?: string;
+  errorCode?: string;
+  userHint?: string;
+}> {
   try {
     if (!url || typeof url !== 'string' || url.length > 2048) {
       return { success: false, error: "URL exceeds maximum length of 2048 characters." };
     }
 
-    if (!isUrlSafeForFetch(url)) {
+    const trimmed = url.trim();
+
+    // If bare handle (@handle) or single word without domain, run analyzer directly for typed MISSING_DOMAIN and userHint
+    if (trimmed.startsWith('@') || (!trimmed.includes('.') && !trimmed.includes('/'))) {
+      const analyzer = new IntelligenceLinkAnalyzer();
+      const result = await analyzer.analyze(trimmed);
+      return {
+        success: false,
+        errorCode: result.errorCode || 'MISSING_DOMAIN',
+        userHint: result.userHint,
+        error: result.userHint || "Укажите полную ссылку с адресом сайта",
+        data: result
+      };
+    }
+
+    // Normalize protocol for safe fetch check (e.g. t.me/channel -> https://t.me/channel)
+    const normalizedUrl = (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && trimmed.includes('.'))
+      ? `https://${trimmed}`
+      : trimmed;
+
+    if (!isUrlSafeForFetch(normalizedUrl)) {
       return { success: false, error: "This URL format is not supported for analysis." };
     }
 
@@ -58,10 +84,20 @@ export async function analyzeUrl(url: string): Promise<{ success: boolean; data?
     }
 
     const analyzer = new IntelligenceLinkAnalyzer();
-    const result = await analyzer.analyze(url);
+    const result = await analyzer.analyze(normalizedUrl);
     
     if (!result) {
         return { success: false, error: "Failed to recognize link" };
+    }
+
+    if (result.errorCode) {
+      return {
+        success: false,
+        errorCode: result.errorCode,
+        userHint: result.userHint,
+        error: result.userHint || "Не удалось распознать ссылку",
+        data: result
+      };
     }
 
     analyzeCache.set(url, { data: result, expiresAt: Date.now() + 60000 });

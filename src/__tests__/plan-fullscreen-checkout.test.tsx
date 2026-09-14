@@ -119,6 +119,7 @@ describe('PlanFullscreenCheckout Component Tests', () => {
     validationErrors: {},
     compatibilityWarning: null,
     urlMutatedTrigger: false,
+    urlHint: null,
     isMassMode: false,
     massCalculation: null,
     isMassCalculating: false,

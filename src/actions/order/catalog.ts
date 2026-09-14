@@ -15,6 +15,7 @@ import { tenantVisibilityFilter, normalizeTenantId } from "@/lib/tenant-scope";
 import { sanitizeServiceDescription } from "@/lib/sanitize";
 import { logger } from "@/lib/logger";
 import { SmartAnalyzerLogic } from "@/services/providers/smart-analyzer.logic";
+import { resolveServiceTargetType } from "@/utils/target-type-mapper";
 
 /**
  * AUD-05 (3.1): shared visibility condition for storefront taxonomy.
@@ -71,6 +72,18 @@ export async function getCachedNetworks(rawTenantId: string) {
                     }
                   }
                 }
+              },
+              services: {
+                where: {
+                  isActive: true,
+                  isQuarantined: false,
+                  tenantId: tenantVisibilityFilter(tenantId),
+                  OR: [{ cooldownUntil: null }, { cooldownUntil: { lt: new Date() } }],
+                },
+                select: {
+                  targetType: true,
+                  name: true
+                }
               }
             }
           }
@@ -78,7 +91,7 @@ export async function getCachedNetworks(rawTenantId: string) {
         orderBy: { sort: 'asc' }
       });
     },
-    [`public-catalog-networks-v4-${tenantId}`],
+    [`public-catalog-networks-v5-${tenantId}`],
     { revalidate: 60, tags: ['catalog', `catalog-${tenantId}`, `networks-${tenantId}`] }
   )();
 }
@@ -219,6 +232,7 @@ export type PublicCategory = {
   requireWarning?: boolean;
   warningMessage?: string | null;
   serviceCount?: number;
+  targetTypes?: string[];
   analyzerTags?: string | null;
 };
 
@@ -258,6 +272,18 @@ export async function getPublicCatalogAction(rawTenantId: string = 'smmplan') {
                       }
                     }
                   }
+                },
+                services: {
+                  where: {
+                    isActive: true,
+                    isQuarantined: false,
+                    tenantId: tenantVisibilityFilter(tenantId),
+                    OR: [{ cooldownUntil: null }, { cooldownUntil: { lt: new Date() } }],
+                  },
+                  select: {
+                    targetType: true,
+                    name: true
+                  }
                 }
               }
             }
@@ -284,6 +310,19 @@ export async function getPublicCatalogAction(rawTenantId: string = 'smmplan') {
           const serviceCount = typeof countObj?.services === 'number'
             ? countObj.services
             : (typeof rawServiceCount === 'number' ? rawServiceCount : 0);
+
+          const rawServices = 'services' in cat && Array.isArray((cat as { services?: Array<{ targetType?: string | null; name?: string }> }).services)
+            ? (cat as { services: Array<{ targetType?: string | null; name?: string }> }).services
+            : [];
+
+          const targetTypesSet = new Set<string>();
+          for (const s of rawServices) {
+            if (s && typeof s.name === 'string') {
+              const resolved = resolveServiceTargetType({ name: s.name, targetType: s.targetType });
+              if (resolved) targetTypesSet.add(resolved);
+            }
+          }
+
           return {
             id: cat.id,
             name: cat.name,
@@ -292,6 +331,7 @@ export async function getPublicCatalogAction(rawTenantId: string = 'smmplan') {
             requireWarning: cat.requireWarning,
             warningMessage: cat.warningMessage,
             serviceCount,
+            targetTypes: Array.from(targetTypesSet),
             analyzerTags: 'analyzerTags' in cat ? (cat as { analyzerTags?: string | null }).analyzerTags : null
           };
         }).filter(cat => cat.serviceCount > 0)

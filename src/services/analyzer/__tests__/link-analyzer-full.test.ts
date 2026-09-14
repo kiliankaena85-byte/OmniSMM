@@ -69,13 +69,14 @@ describe('Full Link Analyzer Remediation Suite (L-1, L-3, L-4, L-6, L-new1..L-ne
       expect(resBot.type).toBe('bot');
     });
 
-    it('validates @username handle with regex before t.me concatenation (L-6)', async () => {
+    it('validates @username handle by requiring explicit domain (Option B INV-1)', async () => {
       const resInvalid = await analyzer.analyze('@durov<script>');
       expect(resInvalid.platform).toBe(IntelligencePlatform.OTHER);
 
       const resValid = await analyzer.analyze('@durov');
-      expect(resValid.platform).toBe(IntelligencePlatform.TELEGRAM);
-      expect(resValid.id).toBe('durov');
+      expect(resValid.platform).toBe(IntelligencePlatform.OTHER);
+      expect(resValid.errorCode).toBe('MISSING_DOMAIN');
+      expect(resValid.userHint).toContain('t.me/durov');
     });
   });
 
