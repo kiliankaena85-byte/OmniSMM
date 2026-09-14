@@ -10,16 +10,7 @@ interface Log {
 }
 
 export function RecentAuditTable({ logs }: { logs: Log[] }) {
-  const rows = logs.length === 0 ? [
-    <Table.Row key="empty">
-      <Table.Cell>
-        <span className="text-muted-foreground italic text-xs">Записей в журнале пока нет</span>
-      </Table.Cell>
-      <Table.Cell>{' '}</Table.Cell>
-      <Table.Cell>{' '}</Table.Cell>
-      <Table.Cell>{' '}</Table.Cell>
-    </Table.Row>
-  ] : logs.map((log) => (
+  const rows = logs.map((log) => (
     <Table.Row key={log.id}>
       <Table.Cell>
         <span className="text-muted-foreground font-mono text-[11px]">LOG_{log.id.slice(0,6).toUpperCase()}</span>
@@ -49,7 +40,7 @@ export function RecentAuditTable({ logs }: { logs: Log[] }) {
               <Table.Column>Сотрудник</Table.Column>
               <Table.Column>Дата и время</Table.Column>
             </Table.Header>
-            <Table.Body>
+            <Table.Body emptyContent="Записей в журнале безопасности пока нет">
               {rows}
             </Table.Body>
           </Table.Content>

@@ -1,4 +1,23 @@
 # CURRENT_STATE.md
+- [x] ⚡ [SIL-2026] Шаг 1: Атомарная проработка и аудит экрана /admin/dashboard (100% COMPLETE & VERIFIED):
+  * 🔗 **Ликвидация 404 битых ссылок в KPI-карточках и виджетах:**
+    - Ссылка «Валовый оборот» переведена с `/admin/finance/overview` на канонический `/admin/finance`.
+    - Ссылка «Чистая маржа» переведена с `/admin/finance/pricing` на канонический `/admin/finance`.
+    - Ссылка в `TopServicesWidget` переведена с `/admin/services` на канонический каталог `/admin/catalog`.
+  * 🎯 **Синхронизация фильтра проблемных заказов (`PROBLEMATIC`):**
+    - В `adminOrderService.searchOrders` фильтр `status === 'PROBLEMATIC'` расширен до `['ERROR', 'CANCELED', 'PARTIAL']` в 100% соответствии с логикой виджета `RefundMonitorWidget` и сбором статистики возвратов.
+  * 🎨 **Дизайн-токены и ликвидация Layout Shift (CLS):**
+    - В `src/app/admin/dashboard/loading.tsx` устаревшие скругления `rounded-2xl` заменены на стандартные `rounded-lg border-border/70`, а сетка приведена к точному соответствию блокам `page.tsx`.
+    - В `ProviderLiquidityWidget.tsx` скелетон и блок ошибки приведены к каноническим `rounded-lg p-5 border-border/70`.
+    - В `recent-audit-table.tsx` пустое состояние переведено на нативный `emptyContent` HeroUI вместо пустых строк-заглушек.
+  * 🧹 **Очистка мертвого кода:**
+    - Удален мертвый файл-заглушка `src/app/admin/dashboard/financial-chart.tsx`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан тестовый сьют `src/__tests__/unit/admin-dashboard-integrity.test.ts` (4/4 PASS).
+    - `dashboard-bugs-fix-verification.test.ts` (6/6 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-E]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
 - [x] 📐 Глубокий аудит и архитектурная спецификация единого движка валидации и совместимости ссылок (Tier 1 Architecture — 100% SPEC COMPLETE):
   * 🔍 **Глубокий аудит 15 файлов подсистемы ссылок:** Зафиксированы 7 критических дефектов (DEF-001 — DEF-007) и расхождения в таблицах истинности между `link-service-compatibility.ts` и `target-type-mapper.ts`. Документ аудита: `C:\Users\ZVER\.gemini\antigravity\brain\b54de4ce-2f1a-4c99-9792-af36a317d044\link_subsystem_audit.md`.
   * 📋 **ТЗ для аналитика:** Разработано и зафиксировано ТЗ из 5 пакетов работ (WP-1 — WP-5): `docs/specs/SPEC-2026-09-14-link-subsystem-unification-analyst-brief.md`.

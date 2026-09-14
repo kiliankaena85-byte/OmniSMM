@@ -111,7 +111,7 @@ class AdminOrderService {
       if (status === 'ACTIVE') {
         where.status = { in: ['PENDING', 'IN_PROGRESS'] };
       } else if (status === 'PROBLEMATIC') {
-        where.status = { in: ['ERROR', 'AWAITING_PAYMENT'] };
+        where.status = { in: ['ERROR', 'CANCELED', 'PARTIAL'] };
       } else if (status === 'COMPLETED_ALL') {
         where.status = { in: ['COMPLETED', 'PARTIAL'] };
       } else {

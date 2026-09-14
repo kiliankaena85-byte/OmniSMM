@@ -37,7 +37,7 @@ export function TopServicesWidget({ services }: Props) {
           </div>
         </div>
         <Link
-          href="/admin/services"
+          href="/admin/catalog"
           className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
         >
           <span>Каталог</span>

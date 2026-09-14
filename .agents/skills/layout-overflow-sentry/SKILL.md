@@ -213,3 +213,12 @@ npm run layout:mcp
 - **Trigger Condition:** Автоматическое обнаружение антипаттернов верстки (сжатие SVG, отсутствие min-w-0)
 - **Enforced Solution Pattern:** Автоисправление через healLayoutFiles() с добавлением семантических Tailwind-классов
 - **Verified Date:** 2026-09-14
+
+### [LESSON-2026-09-14-SIL-E] admin-dashboard-atomic-integrity-verified
+- **Trigger Condition:** Проработка главной сводки `/admin/dashboard` в цикле Self-Improving Loop (SIL-2026 Step 1).
+- **Enforced Solution Pattern:**
+  1. Все ссылки KPI-карточек обязаны указывать на канонические существующие роуты (`/admin/finance`, `/admin/catalog`), исключая псевдо-подстраницы (`/overview`, `/pricing`, `/services`).
+  2. Фильтр `status === 'PROBLEMATIC'` в сервисе заказов обязан быть согласован со статистикой виджетов мониторинга сбоев и включать `['ERROR', 'CANCELED', 'PARTIAL']`.
+  3. Скелетоны в `loading.tsx` и виджетах обязаны строго наследовать дизайн-токены рабочего экрана (`rounded-lg p-5 border-border/70`), исключая Layout Shift (CLS).
+  4. Запрещены мертвые файлы-заглушки (удален `financial-chart.tsx`).
+- **Verified Date:** 2026-09-14

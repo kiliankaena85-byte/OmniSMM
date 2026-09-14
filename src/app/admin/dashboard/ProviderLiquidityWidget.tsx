@@ -42,9 +42,9 @@ export function ProviderLiquidityWidget() {
 
   if (isLoading) {
     return (
-      <div className="bg-card text-card-foreground rounded-2xl p-6 lg:p-7 shadow-sm border border-border/60 transition-all hover:shadow-md animate-pulse flex flex-col justify-between h-[280px]">
+      <div className="bg-card text-card-foreground rounded-lg p-5 shadow-sm border border-border/70 transition-all hover:shadow-md animate-pulse flex flex-col justify-between h-[280px]">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-muted-foreground text-sm font-semibold tracking-wide">Внешняя ликвидность</span>
+          <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Ликвидность у поставщиков</span>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -55,9 +55,9 @@ export function ProviderLiquidityWidget() {
 
   if (error || !data) {
     return (
-      <div className="bg-card text-card-foreground rounded-2xl p-6 lg:p-7 shadow-sm border border-destructive/30 transition-all hover:shadow-md h-[280px] flex flex-col">
+      <div className="bg-card text-card-foreground rounded-lg p-5 shadow-sm border border-destructive/30 transition-all hover:shadow-md h-[280px] flex flex-col">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-muted-foreground text-sm font-semibold tracking-wide">Внешняя ликвидность</span>
+          <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Ликвидность у поставщиков</span>
           <AlertTriangle className="w-4 h-4 text-destructive" />
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center">
