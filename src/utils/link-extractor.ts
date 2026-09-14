@@ -7,14 +7,21 @@ export function extractLinks(text: string): string[] {
   const results: string[] = [];
 
   for (const token of tokens) {
+    // 1. Never treat email addresses as links
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(token)) {
+      continue;
+    }
+
     if (/^https?:\/\//i.test(token)) {
       results.push(token);
     } else {
       const lazyRegex = /^(?:t\.me|vk\.com|instagram\.com|tiktok\.com|youtube\.com|youtu\.be|twitch\.tv|x\.com|twitter\.com|likee\.video)\/[^\s]+/i;
       if (lazyRegex.test(token)) {
         results.push('https://' + token);
-      } else {
-        results.push(token); // Fallback: keep the raw string
+      } else if (token.startsWith('@') && token.length > 2) {
+        results.push(token); // Valid handle like @channel
+      } else if (/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\/[^\s]+/i.test(token)) {
+        results.push('https://' + token); // Domain with path like site.ru/page
       }
     }
   }

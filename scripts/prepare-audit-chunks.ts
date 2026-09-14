@@ -49,7 +49,6 @@ const DOMAINS: Record<string, DomainConfig> = {
     description: 'Аудит создания заказов, валидации лимитов, вычисления ETA и обработки в фоновых воркерах (BullMQ).',
     files: [
       'src/actions/order/checkout.ts',
-      'src/actions/order/mass.ts',
       'src/actions/order/sync-payment.ts',
       'src/workers/processors/order.processor.ts',
       'src/workers/processors/dripfeed.processor.ts',

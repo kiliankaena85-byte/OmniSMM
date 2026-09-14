@@ -57,12 +57,8 @@ export function useMobileWizard(engine: OrderEngine) {
   }, []);
 
   const setActiveStep = useCallback((step: 1 | 2 | 3 | 4) => {
-    // Idempotent Step Guard: Never re-trigger step update if already on the target step
-    if (step === prevStepRef.current) return;
-
     userManuallyBrowsingRef.current = true;
     setActiveStepRaw(step);
-    // Note: Targeted validation scroll is used for missing inputs; regular browsing does not hijack scroll.
   }, []);
 
 

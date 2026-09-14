@@ -1,3 +1,35 @@
+- [x] ⚡ [SIL-2026] Полное удаление массового заказа (Mass Order Deprecation) и стабилизация инфраструктуры тестов (100% COMPLETE & VERIFIED):
+  * 🛑 **Полное удаление "Массового заказа" из платформы:**
+    - Полностью удален компонент `UniversalOrderForm.tsx`, модалка `MassConfirmEmailModal.tsx`, хук `useMultiOrderEngine.ts`, детектор `mass-order-detector.ts` и серверный экшен `src/actions/order/mass.ts`.
+    - Дашборд (`SmmplanOrderWizard.tsx`) очищен от вкладок `WizardTab` (`activeTab`) и теперь монолитно обслуживает только одиночные заказы.
+    - В `HeroInput.tsx` и `MobileStep1Link.tsx` обновлены тост-уведомления при вставке нескольких ссылок: *"Оставлена 1 первая ссылка. Пожалуйста, оформляйте заказы по одному."*.
+    - Из `e2e/07-mass-orders-and-b2b-api.spec.ts` вырезаны сценарии массовых заказов с сохранением тестов B2B API v2.
+    - В служебных скриптах (`build-w2-orders-package.ts`, `capture-qa-bug-report.ts`, `prepare-audit-chunks.ts`, `full-project-swarm.ts`) удалены хардкодные пути к удаленному `mass.ts`.
+    - Обновлена документация базы знаний `src/data/knowledge/mass-order-guide.md`.
+  * 🛠️ **Стабилизация тестового и staging-окружения:**
+    - Исправлен асинхронный вызов `await headers()` в `src/lib/tenant-context.ts` в соответствии со стандартами Next.js 16.
+    - В `docker-compose.staging.yml` исправлена интерполяция пароля Redis (`${REDIS_PASSWORD:-staging_redis_secret}`).
+    - В `.env.test` и скриптах запуска Playwright/smoke добавлен флаг `NODE_OPTIONS="--conditions=react-server"` и актуализирован порт БД `5435`.
+  * 🧪 **Верификация:**
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Smoke/E2E сценарии подтверждены.
+- [x] ⚡ [SIL-2026] Self-Improving Loop: Устранение ложного включения массового заказа (Mass Mode) при вводе ссылки или Email (100% COMPLETE & VERIFIED):
+  * 🛑 **Устранение ложных срабатываний режима массового заказа:**
+    - Создана каноническая функция `isStructuredMassOrderText` в `src/utils/mass-order-detector.ts`, требующая строгого синтаксиса оптовых заказов (`ID_Услуги | Ссылка | Количество`, положительные целые ID и количество).
+    - В `src/hooks/useOrderEngine.ts` слабая эвристика `url.includes("\n") || url.split(/\s+/).filter(Boolean).length > 1` заменена на `useMemo(() => isStructuredMassOrderText(url), [url])`.
+    - В `src/components/landing/LandingCatalogContent.tsx` устранено условие `engine.isMassMode`, демонтировавшее каталог: `UniversalOrderForm` теперь отображается строго при явном флаге `showSmartCart === true`.
+    - В `src/components/landing/order-engine/HeroInput.tsx` переработан обработчик `onPaste`: при вставке email активируется штатный баннер сохранения email, при вставке ссылки с переносом строки (`\n`) или пробелами извлекается и нормализуется одиночный URL без переключения в режим массового заказа.
+    - В `src/utils/link-extractor.ts` добавлен фильтр, исключающий email-адреса из извлечения ссылок (предотвращено создание задач вида `Guzal_ya_1987@gmail.com ОЖИДАЕТ НАСТРОЙКИ (OTHER)`).
+    - В `src/components/landing/order-engine/wizard-steps/useMobileWizard.ts` исправлен `setActiveStep`, восстановив плавную ручную навигацию к Шагу 1.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан TDD-сьют `src/__tests__/unit/order-engine-mass-mode.test.ts` (12/12 PASS).
+    - Пройден сьют сохранения чекаута `src/__tests__/checkout-link-retention.test.ts` (4/4 PASS).
+    - Пройден сьют шапки витрины `src/__tests__/landing/mobile-trust-header.test.tsx` (4/4 PASS).
+    - Пройден сьют мобильного визарда `src/__tests__/mobile-wizard-smoke.test.tsx` (16/16 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован `[LESSON-2026-09-14-SIL-F]` в `.agents/skills/self-improving-loop/SKILL.md`.
 - [x] ⚡ [SIL-2026] CDD-TDD: Устранение ложной классификации приватности ссылок (Private IP vs Private Channel) и харденинг SSRF-шлюзов (100% COMPLETE & VERIFIED):
   * 🛡️ **Ликвидация ложных срабатываний классификатора ошибок (False Positive Semantic Drift):**
     - В `src/lib/order-error-classifier.ts` добавлен код `ERR_GATEWAY_SSRF` в категорию `GATEWAY`. Сетевые маркеры (`private ip`, `ssrf`, `blocked url`, `loopback`, `metadata`, `private network`) теперь перехватываются ДО анализа приватности ссылок.
@@ -2798,3 +2830,14 @@
      - В панель фильтров `CatalogFilters` добавлена заметная кнопка «Сбросить фильтры» с бейджем количества активных фильтров (`Активно фильтров: N`).
 
 
+4. **[RESOLVED] [UX-B2C-MASS-ORDER-CLEANUP] Удаление массового заказа с B2C-витрины (SIL-2026):**
+   - **Решение:**
+     - Режим массового заказа полностью изолирован и оставлен только для зарегистрированных пользователей в дашборде.
+     - Из `useOrderEngine.ts` (витрины), `HeroInput.tsx`, `SmartLinkLanding.tsx` и `LandingCatalogContent.tsx` удалены ветки логики `isMassMode`, `massCalculation` и UI корзины.
+     - Очищены типы и интерфейсы, удалены неиспользуемые компоненты (`MassConfirmEmailModal`).
+
+5. **[RESOLVED] [UX-B2C-MOBILE-PARITY] Реализация перехватчика Email в мобильном мастере заказа (SIL-2026):**
+   - **Решение:**
+     - Выровнен UX мобильной (`MobileStep1Link.tsx`) и десктопной (`HeroInput.tsx`) версии витрины.
+     - Добавлен блок `AnimatePresence` для обработки ошибочного ввода email вместо ссылки (Positive Path Interception).
+     - Перехвачен `onPaste` и нажатие клавиши `Enter` для email-адресов. Ошибки вида «Неверная ссылка» для email на смартфонах больше не возникают.

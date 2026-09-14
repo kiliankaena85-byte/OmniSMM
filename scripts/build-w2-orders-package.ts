@@ -7,7 +7,6 @@ const outputFile = path.join(rootDir, 'AUDIT_PACKAGE_2_W2_ORDERS.md');
 // List of items with requested path vs actual path check
 const requestedItems = [
   { requested: 'src/actions/order/catalog.ts', actual: 'src/actions/order/catalog.ts' },
-  { requested: 'src/actions/order/mass.ts', actual: 'src/actions/order/mass.ts' },
   { requested: 'src/actions/order/refill.ts', actual: 'src/actions/order/refill.ts' },
   { requested: 'src/actions/order/cancel.ts', actual: 'src/actions/order/cancel.ts' },
   { requested: 'src/actions/order/smart.ts', actual: 'src/actions/order/smart.ts' },

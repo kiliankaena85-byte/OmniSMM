@@ -276,17 +276,6 @@ export function useOrderEngine(
   const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
   const [detectedType, setDetectedType] = useState<string | null>(null);
   
-  // Mass Order states
-  const [massCalculation, setMassCalculation] = useState<{
-    totalRub: number;
-    totalCents: number;
-    validCount: number;
-    errors: { line: number; text: string; error: string }[];
-        validOrders: Array<{ priceRub?: number; serviceId: string; numericId?: number; link: string; quantity: number; providerId?: string | null; providerServiceId?: string | null; costRub?: number }>;
-  } | null>(null);
-  const [isMassCalculating, setIsMassCalculating] = useState(false);
-  const isMassMode = url.includes("\n") || url.split(/\s+/).filter(Boolean).length > 1;
-
   // Status states
   const [isLoading, setIsLoading] = useState(false);
   const [isServicesLoading, setIsServicesLoading] = useState(false);
@@ -740,45 +729,6 @@ export function useOrderEngine(
     return () => { stale = true; clearTimeout(handler); };
   }, [selectedService, quantity, promoCode, dripFeedEnabled, runs]);
 
-  // 5.5 Calculate Mass Order Price (Debounced)
-  useEffect(() => {
-    if (!isMassMode || !url.trim()) {
-      setMassCalculation(null);
-      return;
-    }
-
-    const handler = setTimeout(async () => {
-      setIsMassCalculating(true);
-      try {
-        const { massOrderCalculateAction } = await import("@/actions/order/mass");
-        const res = await massOrderCalculateAction({ text: url });
-        if (res.success) {
-          setMassCalculation(res.data);
-        } else {
-          setMassCalculation({
-            totalRub: 0,
-            totalCents: 0,
-            validCount: 0,
-            errors: [{ line: 0, text: "", error: res.error || "Ошибка парсинга" }],
-            validOrders: []
-          });
-        }
-            } catch (e: unknown) {
-        const err = e as Error;
-        setMassCalculation({
-          totalRub: 0,
-          totalCents: 0,
-          validCount: 0,
-          errors: [{ line: 0, text: "", error: err.message || "Неизвестная ошибка" }],
-          validOrders: []
-        });
-      } finally {
-        setIsMassCalculating(false);
-      }
-    }, 250);
-
-    return () => clearTimeout(handler);
-  }, [url, isMassMode]);
 
   // Form Validation
   const validate = useCallback((shouldMutate = false) => {
@@ -1038,11 +988,7 @@ export function useOrderEngine(
     urlMutatedTrigger,
     urlHint,
     
-    // Mass Mode
-    isMassMode,
-    massCalculation,
-    isMassCalculating,
-    
+
     // Methods
     validate,
     resetOrder: useCallback(() => {

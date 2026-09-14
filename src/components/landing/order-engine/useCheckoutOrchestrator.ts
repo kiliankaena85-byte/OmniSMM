@@ -1,6 +1,4 @@
 interface OrchestratorCheckoutParams {
-  isMassMode?: boolean;
-  text?: string;
   email?: string;
   expectedTotalRub?: number;
   serviceId?: string;
@@ -51,7 +49,6 @@ export function useCheckoutOrchestrator({
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkHasError, setLinkHasError] = useState(false);
   const [quantityHasError, setQuantityHasError] = useState(false);
-  const [showMassConfirmModal, setShowMassConfirmModal] = useState(false);
   const [emailHasError, setEmailHasError] = useState(false);
   const [termsHasError, setTermsHasError] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -84,35 +81,14 @@ export function useCheckoutOrchestrator({
     }
   }, [engine.agreedToTerms]);
 
-  const handleMassCheckoutConfirm = async (confirmedEmail: string) => {
-    setShowMassConfirmModal(false);
-    setPendingCheckoutParams({
-      isMassMode: true,
-      email: confirmedEmail,
-      text: engine.url,
-      expectedTotalRub: engine.massCalculation?.totalRub,
-    });
-    setShowPaymentModal(true);
-  };
-
   const handleCheckout = async (directGateway?: string | unknown, overrideEmail?: string) => {
     // Guard against React SyntheticEvent or non-string arguments
     const resolvedGateway = typeof directGateway === 'string' && directGateway.trim().length > 0 && directGateway !== '[object Object]'
       ? directGateway.trim()
       : undefined;
 
-    const { selectedService, url, quantity, customData, agreedToTerms, email: engineEmail, isMassMode, massCalculation, promoCode } = engine;
+    const { selectedService, url, quantity, customData, agreedToTerms, email: engineEmail, promoCode } = engine;
     const email = overrideEmail?.trim() || engineEmail?.trim();
-
-    if (isMassMode) {
-      if (!massCalculation || massCalculation.validCount === 0) {
-        setCheckoutError("Нет валидных заказов для оформления. Пожалуйста, исправьте ошибки.");
-        toast.error("Нет валидных заказов для оформления. Пожалуйста, исправьте ошибки.", { position: 'top-center' });
-        return;
-      }
-      setShowMassConfirmModal(true);
-      return;
-    }
 
     if (!selectedService) {
       setCheckoutError("Пожалуйста, выберите услугу.");
@@ -124,15 +100,13 @@ export function useCheckoutOrchestrator({
       return;
     }
 
-    if (!isMassMode) {
-      if (engine.isCalculating) {
-        toast.error("Идет расчет стоимости заказа. Пожалуйста, подождите...", { position: 'top-center' });
-        return;
-      }
-      if (!engine.pricing) {
-        toast.error("Не удалось рассчитать стоимость заказа. Пожалуйста, проверьте количество или попробуйте позже.", { position: 'top-center' });
-        return;
-      }
+    if (engine.isCalculating) {
+      toast.error("Идет расчет стоимости заказа. Пожалуйста, подождите...", { position: 'top-center' });
+      return;
+    }
+    if (!engine.pricing) {
+      toast.error("Не удалось рассчитать стоимость заказа. Пожалуйста, проверьте количество или попробуйте позже.", { position: 'top-center' });
+      return;
     }
 
 
@@ -510,40 +484,6 @@ export function useCheckoutOrchestrator({
     if (!pendingCheckoutParams) return;
     setIsSubmitting(true);
     try {
-      if (pendingCheckoutParams.isMassMode) {
-        const { massOrderCheckoutAction } = await import('@/actions/order/mass');
-        const res = await massOrderCheckoutAction({
-          text: pendingCheckoutParams.text || "",
-          email: pendingCheckoutParams.email || "",
-          gateway: gateway as 'yookassa' | 'cryptobot' | 'balance',
-          expectedTotalRub: pendingCheckoutParams.expectedTotalRub
-        });
-        setIsSubmitting(false);
-        setShowPaymentModal(false);
-        if (res.success) {
-          const massData = res.data as OrderCheckoutResultData | undefined;
-          if (res.data?.paymentUrl) {
-            const redirected = executePaymentRedirect(res.data.paymentUrl);
-            if (!redirected) {
-              const errorMessage = 'Ошибка: не удалось получить ссылку на оплату.';
-              window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&url=${encodeURIComponent(pendingCheckoutParams.text || '')}&paymentId=&orderId=`;
-            }
-          } else if (gateway === 'balance' || massData?.redirectUrl) {
-            toast.success('Массовый заказ успешно запущен!', {
-              description: 'Оплата произведена с вашего баланса.'
-            });
-            window.location.href = massData?.redirectUrl || '/dashboard/orders?success=1&payment=balance';
-          } else {
-            const errorMessage = 'Ошибка: не удалось получить ссылку на оплату.';
-            window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&url=${encodeURIComponent(pendingCheckoutParams.text || '')}&paymentId=&orderId=`;
-          }
-        } else {
-          const errorMessage = res.error || 'Ошибка создания заказа. Попробуйте еще раз.';
-          window.location.href = `/support/payment-error?error=${encodeURIComponent(errorMessage)}&gateway=${gateway}&email=${encodeURIComponent(pendingCheckoutParams.email || '')}&url=${encodeURIComponent(pendingCheckoutParams.text || '')}&paymentId=&orderId=`;
-        }
-        return;
-      }
-
       const { checkoutAction } = await import('@/actions/order/checkout');
       const res = await checkoutAction({
         email: pendingCheckoutParams.email || "",
@@ -681,9 +621,6 @@ export function useCheckoutOrchestrator({
     setShowLinkModal,
     linkHasError,
     setLinkHasError,
-    showMassConfirmModal,
-    setShowMassConfirmModal,
-    handleMassCheckoutConfirm,
     handleCheckout,
     quantityHasError,
     emailHasError,

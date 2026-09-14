@@ -9,12 +9,12 @@ import { analyzeUrl } from '@/actions/order/analyze-url';
 import { matchesSuggestedCategory } from '@/services/analyzer/category-matcher';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
 import { inferTargetTypeFromName } from '@/utils/target-type';
-import { WizardTab, WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
+import { WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
 import { isChannelSrv, isPostSrv, normalizeUrl } from './helpers';
 
 export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tenantId = 'smmplan' }: SmmplanOrderWizardProps) {
   const router = useRouter(); const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<WizardTab>('wizard'); const [networks, setNetworks] = useState<PublicNetwork[]>([]);
+  const [networks, setNetworks] = useState<PublicNetwork[]>([]);
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true); const [step, setStep] = useState<WizardStep>(1);
   const [selectedNetwork, setSelectedNetwork] = useState<PublicNetwork | null>(null); const [selectedCategory, setSelectedCategory] = useState<PublicCategory | null>(null);
   const [services, setServices] = useState<PublicService[]>([]); const [isLoadingServices, setIsLoadingServices] = useState(false); const [selectedService, setSelectedService] = useState<PublicService | null>(null);
@@ -192,6 +192,6 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const displayedServices = services.filter(s => (!hasMultipleSubtypes || effectiveSubtype === 'all') ? true : (effectiveSubtype === 'channel' ? isChannelSrv(s) : isPostSrv(s)));
 
   return {
-    router, activeTab, setActiveTab, networks, filteredNetworks, isLoadingCatalog, step, setStep, changeStep, selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory, services, isLoadingServices, selectedService, setSelectedService, handleSelectService, link, setLink, handleBlurLink, quantity, setQuantity, addQuantity, totalQuantity, email, setEmail, promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage, isApplyingPromo, showPromo, setShowPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway, availableGateways, isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval, customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed, isTgGuideOpen, setIsTgGuideOpen, errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey, calculatedPriceRub, isCalculatingPrice, searchNetwork, setSearchNetwork, searchCategory, setSearchCategory, detectedType, showAllCategories, setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter, formRef, errorRef, hasSmartFilter, matchedCategories, filteredCategories, channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices
+    router, networks, filteredNetworks, isLoadingCatalog, step, setStep, changeStep, selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory, services, isLoadingServices, selectedService, setSelectedService, handleSelectService, link, setLink, handleBlurLink, quantity, setQuantity, addQuantity, totalQuantity, email, setEmail, promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage, isApplyingPromo, showPromo, setShowPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway, availableGateways, isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval, customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed, isTgGuideOpen, setIsTgGuideOpen, errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey, calculatedPriceRub, isCalculatingPrice, searchNetwork, setSearchNetwork, searchCategory, setSearchCategory, detectedType, showAllCategories, setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter, formRef, errorRef, hasSmartFilter, matchedCategories, filteredCategories, channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices
   };
 }

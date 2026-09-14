@@ -17,8 +17,7 @@ describe('Mobile Trust Header & First-Screen Value Prop (SDD-2026)', () => {
     setUrl: vi.fn(),
     email: '',
     setEmail: vi.fn(),
-    isMassMode: false,
-    isMassCalculating: false,
+
     filteredCategories: [],
     categories: [],
     services: [],

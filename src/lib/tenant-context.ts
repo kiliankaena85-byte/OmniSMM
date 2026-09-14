@@ -62,18 +62,18 @@ export function getTenantBypassReason(): string | undefined {
  * 2. Next.js request headers ('x-tenant-id')
  * 3. Returns null if unresolved
  */
-export function resolveActiveTenantId(): string | null {
+export async function resolveActiveTenantId(): Promise<string | null> {
   const store = tenantStorage.getStore();
   if (store?.tenantId) {
     return store.tenantId;
   }
 
-  // Attempt reading from Next.js headers synchronously if available or cached
+  // Attempt reading from Next.js headers asynchronously if available or cached
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { headers } = require('next/headers');
     if (typeof headers === 'function') {
-      const h = headers();
+      const h = await headers();
       const tenantHeader = h.get('x-tenant-id');
       if (tenantHeader) {
         return tenantHeader;

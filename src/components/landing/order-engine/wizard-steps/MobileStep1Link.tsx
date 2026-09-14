@@ -1,5 +1,8 @@
 import React from "react";
-import { AlertCircle, CheckCircle2, ClipboardPaste, Link2, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ClipboardPaste, Link2, Sparkles, Mail } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { DynamicPayloadWarnings } from "../DynamicPayloadWarnings";
 import { getSocialLinkConfig } from "@/utils/social-link-placeholder";
@@ -36,18 +39,27 @@ export function MobileStep1Link({
   onOpenCatalog,
   step1Ref
 }: MobileStep1LinkProps) {
-  const { url, setUrl, validationErrors, selectedService, activeNetwork, platform } = engine;
+  const { url, setUrl, setEmail, validationErrors, selectedService, activeNetwork, platform } = engine;
   const [isPasted, setIsPasted] = React.useState(false);
+  const isEmailDetected = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url.trim());
 
   const handlePasteFromClipboard = async () => {
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
         const text = await navigator.clipboard.readText();
         if (text && text.trim().length > 0) {
-          setUrl(text.trim(), true);
+          const trimmed = text.trim();
+          const lines = trimmed.split(/[\r\n]+/).map(l => l.trim()).filter(Boolean);
+          const isMultiLine = lines.length > 1;
+
+          setUrl(lines[0] || trimmed, true);
           if (localUrlError) setLocalUrlError(null);
           setIsPasted(true);
           setTimeout(() => setIsPasted(false), 1500);
+
+          if (isMultiLine) {
+            toast.warning("Оставлена 1 первая ссылка. Пожалуйста, оформляйте заказы по одному.", { duration: 6000 });
+          }
         }
       }
     } catch {
@@ -76,6 +88,52 @@ export function MobileStep1Link({
           1. Введите ссылку на канал, профиль или пост
         </label>
       </div>
+
+      <AnimatePresence>
+        {isEmailDetected && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            className="mb-2 bg-primary/10 border border-primary/20 rounded-2xl p-3 flex flex-col gap-3 shadow-md relative z-30"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                <Mail className="w-5 h-5 shrink-0" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Это email-адрес</p>
+                <p className="text-xs text-muted-foreground leading-tight mt-0.5">Сохранить для связи?</p>
+              </div>
+            </div>
+            <div className="flex gap-2 w-full">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEmail(url.trim());
+                  setUrl("");
+                  if (localUrlError) setLocalUrlError(null);
+                  toast.success("Email сохранен! Теперь вставьте ссылки на продвижение.");
+                }}
+                className="flex-1 bg-primary text-primary-foreground font-bold rounded-xl h-9"
+              >
+                Да, запомнить
+              </Button>
+              <Button
+                size="sm"
+                intent="ghost"
+                onClick={() => {
+                  setUrl("");
+                  if (localUrlError) setLocalUrlError(null);
+                }}
+                className="flex-1 text-muted-foreground hover:text-foreground font-bold h-9 bg-muted/50 hover:bg-muted"
+              >
+                Нет, очистить
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className={`relative w-full group rounded-2xl transition-all duration-300 ${isFocused ? 'p-[2px] scale-[1.01]' : 'p-[1px] scale-100'}`}>
         <div
@@ -109,15 +167,31 @@ export function MobileStep1Link({
               if (localUrlError) setLocalUrlError(null);
             }}
             onPaste={e => {
+              e.preventDefault();
               const text = e.clipboardData?.getData('text');
               if (text && text.trim().length > 0) {
-                setUrl(text.trim(), true);
+                const trimmed = text.trim();
+                const lines = trimmed.split(/[\r\n]+/).map(l => l.trim()).filter(Boolean);
+                const isMultiLine = lines.length > 1;
+                
+                setUrl(lines[0] || trimmed, true);
                 if (localUrlError) setLocalUrlError(null);
+                
+                if (isMultiLine) {
+                  toast.warning("Оставлена 1 первая ссылка. Пожалуйста, оформляйте заказы по одному.", { duration: 6000 });
+                }
               }
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
+                if (isEmailDetected) {
+                  setEmail(url.trim());
+                  setUrl("");
+                  if (localUrlError) setLocalUrlError(null);
+                  toast.success("Email сохранен! Теперь вставьте ссылки на продвижение.");
+                  return;
+                }
                 proceedFromStep1();
                 (e.target as HTMLInputElement).blur();
               }

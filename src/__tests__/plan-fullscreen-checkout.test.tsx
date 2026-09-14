@@ -120,9 +120,7 @@ describe('PlanFullscreenCheckout Component Tests', () => {
     compatibilityWarning: null,
     urlMutatedTrigger: false,
     urlHint: null,
-    isMassMode: false,
-    massCalculation: null,
-    isMassCalculating: false,
+
     validate: vi.fn().mockReturnValue(true),
     resetOrder: vi.fn(),
     ...overrides

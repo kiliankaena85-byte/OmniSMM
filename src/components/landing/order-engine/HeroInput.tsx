@@ -22,7 +22,7 @@ interface HeroInputProps {
 export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasError, onOpenGuide }: HeroInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { url, setUrl, setEmail, isMassMode, isMassCalculating, categoryId, selectedService } = engine;
+  const { url, setUrl, setEmail, categoryId, selectedService } = engine;
 
   const isEmailDetected = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url.trim());
 
@@ -102,43 +102,7 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
         )}
       </AnimatePresence>
 
-      {isMassMode ? (
-        <div
-          className={`relative flex flex-col w-full bg-content1 rounded-[2rem] p-4 sm:p-5 border-2 transition-all shadow-[0_8px_30px_-10px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.08)] ${
-            linkHasError
-              ? "border-red-400 focus-within:border-red-500 focus-within:shadow-[0_12px_50px_-12px_rgba(248,113,113,0.3)]"
-              : "border-border/50 focus-within:border-primary/40 focus-within:shadow-[0_12px_50px_-12px] focus-within:shadow-primary/20"
-          }`}
-        >
-          <textarea
-            id="landing-url"
-            value={url}
-            onChange={(e) => {
-              setUrl(e.target.value);
-              if (linkHasError) setLinkHasError(false);
-            }}
-            placeholder={`ID услуги | Ссылка | Количество\nПример:\n15 | https://t.me/durov | 100\n18 | https://vk.com/wall-1_1 | 500\n\n(Каждый заказ с новой строки)`}
-            className="w-full min-h-[140px] bg-transparent border-none outline-none text-base sm:text-lg font-semibold text-foreground placeholder:text-muted-foreground px-2 sm:px-4 py-2 resize-none"
-          />
-          <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-2">
-            <div className="flex items-center gap-2 pl-2">
-              {isMassCalculating ? (
-                <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              ) : (
-                <Link2 className="w-5 h-5 text-primary" />
-              )}
-              <span className="text-sm font-bold text-muted-foreground">Режим массового заказа</span>
-            </div>
-            <Button
-              onClick={() => handleCheckout()}
-              disabled={isMassCalculating}
-              className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95"
-            >
-              {isMassCalculating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Оформить пакет"}
-            </Button>
-          </div>
-        </div>
-      ) : (
+
         <div className="flex flex-col gap-4">
           {/* Visual Step Guide Indicator (Redesigned modern interactive step cards) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-2 select-none">
@@ -259,30 +223,44 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
                 }}
                 onFocus={() => setIsFocused(true)}
                 onPaste={(e) => {
-                  const pastedText = e.clipboardData.getData("text");
-                  if (pastedText.includes('\n') || pastedText.split(/\s+/).filter(Boolean).length > 1) {
-                     e.preventDefault();
-                     setUrl(pastedText);
-                     if (linkHasError) setLinkHasError(false);
-                     toast.success("Режим Умной Корзины активирован!");
-                     return;
+                  const rawPasted = e.clipboardData.getData("text");
+                  if (!rawPasted) return;
+                  const trimmed = rawPasted.trim();
+
+                  // 1. If pasted text is an email address
+                  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                    e.preventDefault();
+                    setUrl(trimmed);
+                    if (linkHasError) setLinkHasError(false);
+                    return;
                   }
+
+
+                  // 3. Normal single link paste (strip wrapping newlines/whitespace)
+                  e.preventDefault();
+                  const lines = trimmed.split(/[\r\n]+/).map(l => l.trim()).filter(Boolean);
+                  const linkCandidate = lines[0] || trimmed;
+                  const isMultiLine = lines.length > 1;
 
                   const activeNetwork = engine.catalog.find(n => n.id === engine.networkId);
                   const platformSlug = activeNetwork?.slug || "";
                   
-                  // 1. Clean tracking parameters from pasted text
-                  let cleaned = stripQueryParams(pastedText);
+                  // Clean tracking parameters from pasted text
+                  let cleaned = stripQueryParams(linkCandidate);
                   
-                  // 2. Normalize username if applicable
+                  // Normalize username if applicable
                   if (platformSlug && (cleaned.startsWith("@") || (!cleaned.includes("/") && !cleaned.includes(".") && cleaned.trim().length > 0))) {
                     cleaned = normalizeUsername(cleaned, platformSlug);
                   }
                   
-                  e.preventDefault();
                   setUrl(cleaned);
                   if (linkHasError) setLinkHasError(false);
-                  toast.success("Ссылка очищена и нормализована!");
+                  
+                  if (isMultiLine) {
+                    toast.warning("Оставлена 1 первая ссылка. Пожалуйста, оформляйте заказы по одному.", { duration: 6000 });
+                  } else {
+                    toast.success("Ссылка успешно вставлена!");
+                  }
                 }}
                 onBlur={(e) => {
                   setTimeout(() => setIsFocused(false), 200);
@@ -330,10 +308,10 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
               <Button
                 type="button"
                 onClick={handleStartAction}
-                disabled={isMassCalculating}
+                disabled={false}
                 className="h-full rounded-full px-4 sm:px-6 md:px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm sm:text-base md:text-lg shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
               >
-                {isMassCalculating ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : "Показать тарифы →"}
+                Показать тарифы →
               </Button>
             </div>
           </div>
@@ -367,7 +345,6 @@ export function HeroInput({ engine, handleCheckout, linkHasError, setLinkHasErro
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }

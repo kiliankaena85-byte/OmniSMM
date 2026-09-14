@@ -272,7 +272,6 @@ const DOMAINS: DomainDef[] = [
     description: 'Checkout, Drip-Feed Floor Invariant, BullMQ workers, Smart Routing',
     files: [
       'src/actions/order/checkout.ts',
-      'src/actions/order/mass.ts',
       'src/workers/processors/order.processor.ts',
       'src/workers/processors/dripfeed.processor.ts',
       'src/services/routing/smart-routing.service.ts'

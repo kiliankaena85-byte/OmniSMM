@@ -12,20 +12,20 @@ describe('Automatic Prisma Tenant Enforcer (SDD-TDD 2026)', () => {
   describe('1. Tenant Context & AsyncLocalStorage', () => {
     it('should resolve active tenant inside runWithTenant', async () => {
       const result = await runWithTenant('flux', async () => {
-        return resolveActiveTenantId();
+        return await resolveActiveTenantId();
       });
       expect(result).toBe('flux');
     });
 
     it('should handle nested runWithTenant contexts cleanly', async () => {
       await runWithTenant('smmplan', async () => {
-        expect(resolveActiveTenantId()).toBe('smmplan');
+        expect(await resolveActiveTenantId()).toBe('smmplan');
 
         await runWithTenant('flux', async () => {
-          expect(resolveActiveTenantId()).toBe('flux');
+          expect(await resolveActiveTenantId()).toBe('flux');
         });
 
-        expect(resolveActiveTenantId()).toBe('smmplan');
+        expect(await resolveActiveTenantId()).toBe('smmplan');
       });
     });
 

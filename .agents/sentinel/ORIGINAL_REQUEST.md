@@ -443,4 +443,33 @@ Integrity mode: development
 
 ### Верифицируемость (Test Harness)
 - [ ] Создан воспроизводимый датасет верификационных векторов.
-- [ ] Написаны и задокументированы тесты соответствия контрактам в Vitest.
+- [ ] Написаны и задокументированы тесты соответствия контрактам в Vitest.
+
+## 2026-09-14T21:56:42Z
+
+# Teamwork Project Prompt — Draft
+
+> Status: Launched
+> Goal: Craft prompt → get user approval → delegate to teamwork_preview
+> Requested team: [none — teamwork routes from the description]
+
+Implement an explicit warning toast when a user pastes multiple links on the B2C landing page, replacing the current silent truncation behavior.
+
+Working directory: e:\SMM
+
+## Requirements
+
+### R1. Prevent Silent Data Loss
+When a user pastes text containing multiple lines or links into `HeroInput.tsx` or `MobileStep1Link.tsx`, the system currently silently discards all but the first line. Change this behavior so that if multiple lines are detected during a paste event, a clear toast notification is shown to the user informing them that only the first link was kept for quick checkout, and directing them to use their dashboard for mass orders.
+
+### R2. Adhere to SIL-2026 Zero-Regression Protocol
+Ensure that single links, emails, and bare handles continue to paste perfectly. Do not re-introduce the legacy `UniversalOrderForm` into the B2C landing page. Update any tests if necessary to ensure `vitest` passes without errors.
+
+## Acceptance Criteria
+
+### UX & Functionality
+- [ ] Pasting a multi-line string triggers a specific toast warning.
+- [ ] The first link of the pasted text is successfully set in the input field.
+- [ ] Single links, emails, and handles are processed normally without the multi-line toast.
+- [ ] `tsc --noEmit` and `vitest` pass with zero regressions.
+

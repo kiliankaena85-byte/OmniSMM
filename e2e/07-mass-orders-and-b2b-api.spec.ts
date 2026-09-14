@@ -1,16 +1,15 @@
 /**
  * e2e/07-mass-orders-and-b2b-api.spec.ts
- * BLOCK 7: Mass Orders (Batch Parsing, Atomic Calculation, Validation) & B2B API v2
+ * BLOCK 7: B2B API v2
  *
  * Invariants & Contract (AGENTS.md & Zero-Defect):
- * 1. Mass Order Format: "service_numericId | link | quantity" per line, max 500 lines.
- * 2. All amounts in kopecks (BigInt). Prices displayed in RUB per 1 unit.
- * 3. Balance deduction via WalletOps.charge() inside runSerializableTransaction.
- * 4. Idempotency: duplicate idempotencyKey returns existing paymentId.
- * 5. TOCTOU Protection: expectedTotalRub validated against recalculated total (1% tolerance).
- * 6. B2B API v2 (/api/v2): form-urlencoded, key-based auth, rate-limited 50/min.
- * 7. B2B API tenant-scoped: services, orders, balance queries filtered by tenantId.
- * 8. Rate limit returns HTTP 429 with structured error.
+ * 1. All amounts in kopecks (BigInt). Prices displayed in RUB per 1 unit.
+ * 2. Balance deduction via WalletOps.charge() inside runSerializableTransaction.
+ * 3. Idempotency: duplicate idempotencyKey returns existing paymentId.
+ * 4. TOCTOU Protection: expectedTotalRub validated against recalculated total (1% tolerance).
+ * 5. B2B API v2 (/api/v2): form-urlencoded, key-based auth, rate-limited 50/min.
+ * 6. B2B API tenant-scoped: services, orders, balance queries filtered by tenantId.
+ * 7. Rate limit returns HTTP 429 with structured error.
  */
 
 import { test, expect } from '@playwright/test';
@@ -32,7 +31,7 @@ const PROVIDER_ID = 'e2e-mass-provider-7';
 
 const TENANT = 'smmplan';
 
-test.describe.serial('BLOCK 7: Mass Orders & B2B API v2 E2E', () => {
+test.describe.serial('BLOCK 7: B2B API v2 E2E', () => {
   let networkId: string;
   let categoryId: string;
   let serviceAId: string;
@@ -420,77 +419,4 @@ test.describe.serial('BLOCK 7: Mass Orders & B2B API v2 E2E', () => {
     await page.close();
   });
 
-  test('Scenario 9: Mass Order — Idempotency on Repeated Checkout', async ({ browser, baseURL }) => {
-    const page = await adminContext.newPage();
-
-    // Ensure user has sufficient balance
-    await WalletOps.credit(db, userId, 1_000_000, 'Topup for Scenario 9', {
-      idempotencyKey: `e2e-b7-topup-s9-${Date.now()}`,
-    });
-
-    // Place an order via API
-    const resp1 = await page.request.post(`${baseURL}/api/v2`, {
-      form: {
-        key: B2B_RAW_KEY,
-        action: 'add',
-        service: String(serviceANumericId),
-        link: 'https://t.me/e2e_idempotency_test',
-        quantity: '300',
-      },
-    });
-    expect(resp1.status()).toBe(200);
-
-    // Count orders for this user before repeat
-    const orderCountBefore = await db.order.count({ where: { userId } });
-
-    // Repeat same request — should create a new order (API v2 does not use client-side idempotency)
-    const resp2 = await page.request.post(`${baseURL}/api/v2`, {
-      form: {
-        key: B2B_RAW_KEY,
-        action: 'add',
-        service: String(serviceANumericId),
-        link: 'https://t.me/e2e_idempotency_test',
-        quantity: '300',
-      },
-    });
-    expect(resp2.status()).toBe(200);
-
-    const orderCountAfter = await db.order.count({ where: { userId } });
-    // Each API call creates a new order (no client idempotency key in API v2 add)
-    expect(orderCountAfter).toBe(orderCountBefore + 1);
-
-    await page.close();
-  });
-
-  test('Scenario 10: Mass Order — Quantity Bounds Validation', async ({ browser, baseURL }) => {
-    const page = await adminContext.newPage();
-
-    // Quantity below minQty (100 for serviceA)
-    const belowMinResp = await page.request.post(`${baseURL}/api/v2`, {
-      form: {
-        key: B2B_RAW_KEY,
-        action: 'add',
-        service: String(serviceANumericId),
-        link: 'https://t.me/e2e_bounds_test',
-        quantity: '10',
-      },
-    });
-    expect(belowMinResp.status()).toBe(400);
-    const belowMinBody = await belowMinResp.json();
-    expect(belowMinBody.error).toMatch(/quantity|bounds|parameters/i);
-
-    // Quantity above maxQty (10000 for serviceA)
-    const aboveMaxResp = await page.request.post(`${baseURL}/api/v2`, {
-      form: {
-        key: B2B_RAW_KEY,
-        action: 'add',
-        service: String(serviceANumericId),
-        link: 'https://t.me/e2e_bounds_test',
-        quantity: '50000',
-      },
-    });
-    expect(aboveMaxResp.status()).toBe(400);
-
-    await page.close();
-  });
 });

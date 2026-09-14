@@ -61,7 +61,7 @@ export function SmartLinkLanding({
   const [isGuideOpen, setIsGuideOpen] = React.useState(false);
   const [activeLegalSlug, setActiveLegalSlug] = React.useState<string | null>(null);
   const [showCatalogModal, setShowCatalogModal] = React.useState(false);
-  const [showSmartCart, setShowSmartCart] = React.useState(false);
+
 
   const orchestrator = useCheckoutOrchestrator({ engine, desktopEmailInputRef, mobileEmailInputRef });
 
@@ -137,8 +137,6 @@ export function SmartLinkLanding({
                   orchestrator={orchestrator}
                   initialEmail={initialEmail}
                   unfilteredCatalog={unfilteredCatalog}
-                  showSmartCart={showSmartCart}
-                  setShowSmartCart={setShowSmartCart}
                   desktopEmailInputRef={desktopEmailInputRef}
                   mobileEmailInputRef={mobileEmailInputRef}
                   setIsGuideOpen={setIsGuideOpen}
@@ -170,7 +168,7 @@ export function SmartLinkLanding({
         setActiveLegalSlug={setActiveLegalSlug}
         showCatalogModal={showCatalogModal}
         setShowCatalogModal={setShowCatalogModal}
-        showSmartCart={showSmartCart}
+
         userBalanceCents={userBalanceCents}
       />
     </div>

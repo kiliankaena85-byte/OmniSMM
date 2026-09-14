@@ -1,14 +1,12 @@
 'use client';
 import React, { Suspense } from 'react';
 import { toast } from 'sonner';
-import { UniversalOrderForm } from '@/components/orders/UniversalOrderForm';
 import { DashboardHeroLinkInput } from '@/components/orders/DashboardHeroLinkInput';
 import { trackEvent } from '@/lib/analytics';
 import { checkoutAction } from '@/actions/order/checkout';
 import { validateDripFeedLimits } from '@/hooks/useOrderWizard';
 import { FormErrors, SmmplanOrderWizardProps } from './wizard/types';
 import { useSmmplanOrderWizard } from './wizard/useSmmplanOrderWizard';
-import { WizardHeader } from './wizard/WizardHeader';
 import { WizardStepIndicator } from './wizard/WizardStepIndicator';
 import { WizardStepNetwork } from './wizard/WizardStepNetwork';
 import { WizardStepCategory } from './wizard/WizardStepCategory';
@@ -82,15 +80,8 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-28 sm:pb-24 md:pb-0">
-      <WizardHeader activeTab={w.activeTab} setActiveTab={w.setActiveTab} />
-      {w.activeTab === 'multi' && (
-        <div className="bg-card/70 backdrop-blur-xl p-6 rounded-3xl border border-border/60 shadow-sm animate-in fade-in duration-300">
-          <UniversalOrderForm userBalanceCents={userBalanceCents} userEmail={userEmail} initialReorderData={initialReorderData} />
-        </div>
-      )}
-      {w.activeTab === 'wizard' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <DashboardHeroLinkInput
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <DashboardHeroLinkInput
             link={w.link} setLink={w.setLink} networks={w.networks} selectedNetwork={w.selectedNetwork}
             setSelectedNetwork={(net) => w.setSelectedNetwork(net)} selectedCategory={w.selectedCategory}
             selectedService={w.selectedService} step={w.step}
@@ -146,8 +137,7 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
               />
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

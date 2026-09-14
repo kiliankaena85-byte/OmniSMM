@@ -1,7 +1,6 @@
 import { RefObject } from 'react';
 import { PublicNetwork, PublicCategory, PublicService } from '@/actions/order/catalog';
 
-export type WizardTab = 'wizard' | 'multi';
 export type WizardStep = 1 | 2 | 3 | 4;
 export type PaymentGateway = 'balance' | 'yookassa' | 'cryptobot';
 export type TariffSubtypeFilter = 'all' | 'channel' | 'post' | 'auto';

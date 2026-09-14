@@ -148,4 +148,20 @@ description: Комплексный протокол непрерывного с
 - **Files Affected:** `src/hooks/useOrderEngine.ts`, `src/__tests__/checkout-link-retention.test.ts`
 - **Verified Date:** 2026-09-14
 
+### [LESSON-2026-09-14-SIL-F] order-engine-mass-mode-false-activation (CRITICAL)
+- **Trigger Condition:** При вставке ссылки, скопированной из Telegram/браузера с завершающим переносом строки (`\n`), ссылки с пробелами или email-адреса (`Guzal_ya_1987@gmail.com`) в поле URL витрины, включался режим массового заказа (`isMassMode === true`), полностью демонтируя каталог тарифов и подменяя его на `UniversalOrderForm` ("Настроено 1 из 50", `Guzal_ya_1987@gmail.com ОЖИДАЕТ НАСТРОЙКИ (OTHER)`).
+- **Root Cause:**
+  1. Слабая эвристика в `useOrderEngine.ts`: `isMassMode = url.includes("\n") || url.split(/\s+/).filter(Boolean).length > 1` ложно срабатывала на любой пробел или перенос строки.
+  2. `LandingCatalogContent.tsx` при `engine.isMassMode === true` демонтировал одиночный каталог витрины и монтировал `UniversalOrderForm`.
+  3. `HeroInput.tsx` на `onPaste` при наличии пробелов/переносов строк активировал `toast.success("Режим Умной Корзины активирован!")` и переключал инпут в текстовую область `ID услуги | Ссылка | Количество`.
+  4. `extractLinks` в `link-extractor.ts` включал email-токены в качестве ссылок с категорией `OTHER`.
+- **Enforced Solution Pattern:**
+  - Создана каноническая функция `isStructuredMassOrderText` в `@/utils/mass-order-detector`, требующая строгого синтаксиса панелей (`ID_Услуги | Ссылка | Количество`).
+  - Одиночные ссылки при вставке автоматически триммируются, очищаются от трекинга (`stripQueryParams`) и нормализуются без перехода в режим массового заказа.
+  - Email-адреса активируют баннер быстрого сохранения email и исключаются из `extractLinks`.
+  - `LandingCatalogContent` монтирует `UniversalOrderForm` строго при явном включении `showSmartCart === true`, сохраняя каталог при любых манипуляциях со ссылкой.
+- **Files Affected:** `src/utils/mass-order-detector.ts`, `src/hooks/useOrderEngine.ts`, `src/components/landing/LandingCatalogContent.tsx`, `src/components/landing/order-engine/HeroInput.tsx`, `src/utils/link-extractor.ts`, `src/__tests__/unit/order-engine-mass-mode.test.ts`
+- **Verified Date:** 2026-09-14
+
+
 

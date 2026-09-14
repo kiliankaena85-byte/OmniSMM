@@ -34,7 +34,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== 'all') {
@@ -49,7 +49,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== 'all') {
@@ -64,7 +64,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (!tenantId) {
           return query(args);
         }
@@ -89,7 +89,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           args.where.tenantId = tenantId;
@@ -101,7 +101,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.data = args.data || {};
           if (args.data.tenantId && args.data.tenantId !== tenantId) {
@@ -116,7 +116,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId && Array.isArray(args.data)) {
           for (const item of args.data) {
             if (item.tenantId && item.tenantId !== tenantId) {
@@ -132,7 +132,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           args.where.tenantId = tenantId;
@@ -144,7 +144,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           args.where.tenantId = tenantId;
@@ -156,7 +156,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           args.where.tenantId = tenantId;
@@ -168,7 +168,7 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
           args.where.tenantId = tenantId;

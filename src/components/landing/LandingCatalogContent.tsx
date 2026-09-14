@@ -4,7 +4,7 @@ import React from "react";
 import { Box } from "lucide-react";
 import { PublicNetwork } from "@/actions/order/catalog";
 import { OrderEngine } from "@/hooks/useOrderEngine";
-import { UniversalOrderForm } from "@/components/orders/UniversalOrderForm";
+
 import { PlatformSelectorFallback } from "@/components/orders/PlatformSelectorFallback";
 import { MobileWizard } from "./order-engine/MobileWizard";
 import { NetworkSelector } from "./order-engine/NetworkSelector";
@@ -19,8 +19,7 @@ export interface LandingCatalogContentProps {
   orchestrator: ReturnType<typeof useCheckoutOrchestrator>;
   initialEmail?: string;
   unfilteredCatalog: PublicNetwork[];
-  showSmartCart: boolean;
-  setShowSmartCart: (val: boolean) => void;
+
   desktopEmailInputRef: React.RefObject<HTMLInputElement | null>;
   mobileEmailInputRef: React.RefObject<HTMLInputElement | null>;
   setIsGuideOpen: (val: boolean) => void;
@@ -34,8 +33,7 @@ export function LandingCatalogContent({
   orchestrator,
   initialEmail,
   unfilteredCatalog,
-  showSmartCart,
-  setShowSmartCart,
+
   desktopEmailInputRef,
   mobileEmailInputRef,
   setIsGuideOpen,
@@ -93,20 +91,6 @@ export function LandingCatalogContent({
     );
   }
 
-  if (showSmartCart || engine.isMassMode) {
-    return (
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <UniversalOrderForm 
-          userEmail={initialEmail} 
-          initialText={engine.url}
-          onEmpty={() => {
-            setShowSmartCart(false);
-            engine.setUrl("");
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <>
