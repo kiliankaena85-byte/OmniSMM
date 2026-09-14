@@ -204,3 +204,12 @@ npm run layout:mcp
 - [ ] Все таблицы растянуты на 100% ширины без горизонтального скролла на ноутбуках 1366x768.
 - [ ] Выпадающие меню (`DropdownMenu`, `Popover`) не обрезаются границами карточек.
 - [ ] Отсутствуют ошибки DOM Nesting (`<button>` в `<button>`, `<p>` в `<p>`, `<a>` в `<a>`).
+
+---
+
+## Known Anti-Patterns & Lessons Learned
+
+### [LESSON-2026-09-14] layout-auto-heal-codemod-verified
+- **Trigger Condition:** Автоматическое обнаружение антипаттернов верстки (сжатие SVG, отсутствие min-w-0)
+- **Enforced Solution Pattern:** Автоисправление через healLayoutFiles() с добавлением семантических Tailwind-классов
+- **Verified Date:** 2026-09-14

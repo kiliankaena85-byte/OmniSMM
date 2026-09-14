@@ -1,4 +1,3 @@
-import dns from 'dns/promises';
 import { URL } from 'url';
 
 export const SHORT_LINK_HOSTS = new Set([
@@ -86,7 +85,8 @@ export function isUrlSafeForFetch(urlString: string): boolean {
   if (!urlString || typeof urlString !== 'string') return false;
   let parsedUrl: URL;
   try {
-    parsedUrl = new URL(urlString.startsWith('http') ? urlString : `https://${urlString}`);
+    const hasExplicitScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlString);
+    parsedUrl = new URL(hasExplicitScheme ? urlString : `https://${urlString}`);
   } catch {
     return false;
   }
@@ -127,6 +127,7 @@ export async function isPublicHost(hostname: string): Promise<boolean> {
   }
 
   try {
+    const dns = await import('dns/promises');
     const records = await dns.lookup(cleanHost, { all: true });
     if (!records || records.length === 0) return false;
 

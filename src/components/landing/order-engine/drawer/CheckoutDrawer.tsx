@@ -122,7 +122,7 @@ export function CheckoutDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 bottom-0 right-0 w-full sm:w-[480px] lg:w-[520px] bg-background border-l border-border shadow-2xl z-[200] flex flex-col overflow-hidden"
+            className="fixed top-0 bottom-0 right-0 w-full sm:w-[480px] lg:w-[520px] bg-background border-l border-border shadow-2xl z-[200] flex flex-col overflow-hidden pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-0"
           >
             {/* Mobile Drag Indicator Handle */}
             <div className="sm:hidden w-12 h-1 bg-border rounded-full mx-auto my-3 shrink-0" />

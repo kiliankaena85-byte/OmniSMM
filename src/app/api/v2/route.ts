@@ -9,7 +9,9 @@ import { SecurityAlertService } from '@/services/security/security-alert.service
 import { z } from 'zod';
 import { type User } from '@prisma/client';
 import { resolveTenantFromRequest, resolveContourFromHost } from '@/lib/tenant-resolver-edge';
-import { getLinkValidator, mutateLink } from '@/validators/link-mutators';
+import { unifiedLinkEngine } from '@/services/link-engine/unified-link-engine';
+import { resolveServiceTargetType } from '@/utils/target-type';
+import { isUrlSafeForFetch } from '@/lib/ssrf-guard';
 
 // Standard SMM Panel API v2 Implementation
 // https://panel.com/api/v2
@@ -239,6 +241,9 @@ function sanitizeAndValidateApiLink(rawLink: string): { isValid: boolean; saniti
     if (!parsedUrl.hostname || !parsedUrl.hostname.includes('.')) {
       return { isValid: false, sanitized: '', error: 'Invalid domain name in link' };
     }
+    if (!isUrlSafeForFetch(clean)) {
+      return { isValid: false, sanitized: '', error: 'Invalid URL format' };
+    }
   } catch {
     return { isValid: false, sanitized: '', error: 'Invalid URL format' };
   }
@@ -254,9 +259,10 @@ const addSchema = z.object({
   interval: z.coerce.number().int().positive().optional()
 });
 
-function resolvePlatformSlug(category?: { networkId?: string | null; slug?: string | null; name?: string | null } | null): string {
+function resolvePlatformSlug(category?: { networkId?: string | null; slug?: string | null; name?: string | null; network?: any } | null): string {
   if (!category) return '';
-  const text = `${category.networkId || ''} ${category.slug || ''} ${category.name || ''}`.toUpperCase();
+  const netStr = typeof category.network === 'string' ? category.network : category.network?.slug || '';
+  const text = `${netStr} ${category.networkId || ''} ${category.slug || ''} ${category.name || ''}`.toUpperCase();
   if (text.includes('TELEGRAM') || text.includes('TG')) return 'TELEGRAM';
   if (text.includes('VK') || text.includes('ВКОНТАКТЕ')) return 'VK';
   if (text.includes('INSTAGRAM') || text.includes('INSTA')) return 'INSTAGRAM';
@@ -269,7 +275,7 @@ function resolvePlatformSlug(category?: { networkId?: string | null; slug?: stri
   if (text.includes('SPOTIFY')) return 'SPOTIFY';
   if (text.includes('KICK')) return 'KICK';
   if (text.includes('MAX') || text.includes('МАКС')) return 'MAX';
-  return category.networkId || category.slug || category.name || '';
+  return netStr || category.networkId || category.slug || category.name || '';
 }
 
 async function handleAdd(user: User, formData: FormData) {
@@ -310,17 +316,25 @@ async function handleAdd(user: User, formData: FormData) {
     return NextResponse.json({ error: 'Incorrect service ID' }, { status: 400 });
   }
 
-  // W7-SEC04: Category-specific link format validator
+  // Category-specific link format validator via UnifiedLinkEngine
   const network = resolvePlatformSlug(service.category);
-  const targetType = (service as unknown as { targetType?: string }).targetType || 'CHANNEL';
+  const targetType = resolveServiceTargetType(service);
   if (network) {
     try {
-      const validator = getLinkValidator(network, targetType);
-      const categoryCheck = validator.safeParse(validatedLink);
-      if (!categoryCheck.success) {
+      const valResult = await unifiedLinkEngine.validateForService(validatedLink, {
+        id: service.id,
+        name: service.name,
+        targetType,
+        customDataType: service.customDataType,
+        category: {
+          name: service.category?.name,
+          network: { slug: network }
+        }
+      });
+      if (!valResult.isValid) {
         return NextResponse.json({ error: 'Link format is invalid for selected service category' }, { status: 400 });
       }
-      validatedLink = mutateLink(validatedLink, network, targetType);
+      validatedLink = valResult.canonicalUrl;
     } catch {
       // Fallback to sanitized URL if custom validator is unavailable
     }
@@ -455,17 +469,26 @@ async function handleAddMulti(user: User, formData: FormData) {
       }
       let validatedLink = linkValidation.sanitized;
 
+      // Category-specific link format validator via UnifiedLinkEngine
       const network = resolvePlatformSlug(service.category);
-      const targetType = (service as unknown as { targetType?: string }).targetType || 'CHANNEL';
+      const targetType = resolveServiceTargetType(service);
       if (network) {
         try {
-          const validator = getLinkValidator(network, targetType);
-          const categoryCheck = validator.safeParse(validatedLink);
-          if (!categoryCheck.success) {
+          const valResult = await unifiedLinkEngine.validateForService(validatedLink, {
+            id: service.id,
+            name: service.name,
+            targetType,
+            customDataType: service.customDataType,
+            category: {
+              name: service.category?.name,
+              network: { slug: network }
+            }
+          });
+          if (!valResult.isValid) {
             results.push({ error: 'Link format is invalid for selected service category' });
             continue;
           }
-          validatedLink = mutateLink(validatedLink, network, targetType);
+          validatedLink = valResult.canonicalUrl;
         } catch {
           // Fallback to sanitized URL if custom validator is unavailable
         }

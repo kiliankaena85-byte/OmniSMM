@@ -235,24 +235,19 @@ export const orderWizard = new Scenes.WizardScene<BotContext>(
     const service = orderData.service;
     if (!service) return ctx.scene.leave();
 
-    const platformSlug = service.category?.network?.slug?.toUpperCase() || '';
-    const { mutateLink, getLinkValidator } = await import('@/validators/link-mutators');
-    const { inferTargetTypeFromCategory } = await import('@/utils/target-type');
-    const targetType = service.targetType === 'POST'
-      ? inferTargetTypeFromCategory(service.category?.name)
-      : (service.targetType || inferTargetTypeFromCategory(service.category?.name));
-
+    const { unifiedLinkEngine } = await import('@/services/link-engine/unified-link-engine');
     let normalizedLink = link;
     let isValid = true;
     let validationErrorMsg = '';
 
     try {
-      normalizedLink = mutateLink(link, platformSlug, targetType);
-      const validator = getLinkValidator(platformSlug, targetType);
-      const linkResult = validator.safeParse(normalizedLink);
-      if (!linkResult.success) {
-        isValid = false;
-        validationErrorMsg = linkResult.error.errors[0].message;
+      const valResult = await unifiedLinkEngine.validateForService(link, service);
+      isValid = valResult.isValid;
+      if (!valResult.isValid) {
+        validationErrorMsg = valResult.error || 'неверный формат';
+        normalizedLink = valResult.canonicalUrl || link;
+      } else {
+        normalizedLink = valResult.canonicalUrl;
       }
     } catch (err: unknown) {
       isValid = false;

@@ -13,8 +13,7 @@ import { RateLimitService } from '@/services/core/rate-limit.service';
 import { SettingsManager, SettingsProvider } from '@/lib/settings';
 import { WalletOps, WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError } from '@/services/financial/wallet-ops';
 import { runSerializableTransaction } from '@/lib/transactions';
-import crypto from 'crypto';
-import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
+import { unifiedLinkEngine } from '@/services/link-engine/unified-link-engine';
 import { inferTargetTypeFromCategory } from '@/utils/target-type';
 import { AccountExistsError } from '@/utils/error-handler';
 
@@ -106,51 +105,18 @@ const parseMassOrderText = async (text: string, tenantId?: string) => {
         continue;
       }
 
-      // 2. Link Normalization and Validation
+      // 2. Link Normalization and Validation via UnifiedLinkEngine
       try {
-        const platformSlug = service.category?.network?.slug?.toUpperCase() || '';
-        const { inferTargetTypeFromCategory } = await import('@/utils/target-type');
-        const { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } = await import('@/constants/link-service-compatibility');
-        const { IntelligenceLinkAnalyzer } = await import('@/services/analyzer/link-analyzer');
-        
-        const analyzer = new IntelligenceLinkAnalyzer();
-        const analysis = await analyzer.analyze(order.link.trim());
-        
-        if (analysis.warnings?.includes('platform_not_supported')) {
-          errors.push({ 
-            line: i + 1, 
-            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
-            error: `Некорректный формат ссылки: неподдерживаемый формат` 
+        const valResult = await unifiedLinkEngine.validateForService(order.link, service);
+        if (!valResult.isValid) {
+          errors.push({
+            line: i + 1,
+            text: `${order.numericId} | ${order.link} | ${order.quantity}`,
+            error: valResult.error || 'Некорректный формат ссылки'
           });
           continue;
         }
-
-        const networkMismatch = platformSlug && analysis.platform && analysis.platform.toUpperCase() !== platformSlug;
-        if (networkMismatch) {
-          errors.push({ 
-            line: i + 1, 
-            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
-            error: `Ссылка не соответствует выбранной соцсети: указана ссылка на ${analysis.platform}, а услуга предназначена для ${platformSlug}` 
-          });
-          continue;
-        }
-
-        const rawTargetType = (service as { targetType?: string | null }).targetType 
-          || inferTargetTypeFromCategory(service.category?.name || '') 
-          || 'ANY';
-        const serviceTargetType = normalizeServiceTargetType(rawTargetType);
-        
-        if (!isLinkServiceCompatible(analysis.type, serviceTargetType)) {
-          const compatError = getCompatibilityError(analysis.type, serviceTargetType, service.category?.name || '');
-          errors.push({ 
-            line: i + 1, 
-            text: `${order.numericId} | ${order.link} | ${order.quantity}`, 
-            error: compatError 
-          });
-          continue;
-        }
-
-        order.link = analysis.canonicalUrl;
+        order.link = valResult.canonicalUrl;
       } catch (err: unknown) {
         console.warn(`[MassOrder] Link analyzer error on line ${i + 1}:`, err);
       }
@@ -600,18 +566,12 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
          throw new Error(`Количество для "${service.name}" должно быть от ${service.minQty} до ${service.maxQty}`);
        }
 
-       // Link Normalization
-       const platformSlug = service.category?.network?.slug?.toUpperCase() || '';
-       const targetType = service.targetType === 'POST'
-         ? inferTargetTypeFromCategory(service.category?.name)
-         : (service.targetType || inferTargetTypeFromCategory(service.category?.name));
-       const normalizedLink = mutateLink(order.link, platformSlug, targetType);
-       const validator = getLinkValidator(platformSlug, targetType);
-       const linkResult = validator.safeParse(normalizedLink);
-
-       if (!linkResult.success) {
-         throw new Error(`Ошибка в ссылке ${order.link}: ${linkResult.error.errors[0].message}`);
+       // Link Normalization and Validation via UnifiedLinkEngine
+       const valResult = await unifiedLinkEngine.validateForService(order.link, service);
+       if (!valResult.isValid) {
+         throw new Error(`Ошибка в ссылке ${order.link}: ${valResult.error || 'неверный формат'}`);
        }
+       const normalizedLink = valResult.canonicalUrl;
 
        const pricing = await marketingService.calculatePrice(
          user.id, 

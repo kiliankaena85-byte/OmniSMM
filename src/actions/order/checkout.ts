@@ -17,6 +17,7 @@ import { sendOrderBalanceDebitMail } from "@/lib/smtp";
 import { getBaseUrlSync } from "@/utils/get-base-url";
 import { featureFlagService } from "@/services/system/feature-flag.service";
 import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
+import { unifiedLinkEngine } from '@/services/link-engine/unified-link-engine';
 import { validateProhibitedContent } from '@/validators/prohibited-content';
 import { inferTargetTypeFromCategory, normalizeTargetType, resolveServiceTargetType, TargetTypeEnum } from '@/utils/target-type';
 import { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } from '@/constants/link-service-compatibility';
@@ -279,54 +280,11 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
         throw new Error("Неверный формат ссылки.", { cause: e });
       }
     } else {
-      const resolvedTargetTypeStr = resolveServiceTargetType(service);
-      const resolvedTargetType = normalizeTargetType(
-        resolvedTargetTypeStr || inferTargetTypeFromCategory(service.category?.name)
-      );
-
-      // Deep Domain Compatibility Check (Backend Defense Guard)
-      let detectedLinkType = 'generic_link';
-      try {
-        const { IntelligenceLinkAnalyzer } = await import('@/services/analyzer/link-analyzer');
-        const analyzer = new IntelligenceLinkAnalyzer();
-        const analysis = await analyzer.analyze(link.trim());
-        detectedLinkType = analysis?.type || 'generic_link';
-      } catch (err) {
-        console.warn(`[Checkout] IntelligenceLinkAnalyzer exception for ${safeUrlForLog(link)}:`, err);
-        detectedLinkType = 'generic_link';
+      const valResult = await unifiedLinkEngine.validateForService(link, service, customData);
+      if (!valResult.isValid) {
+        throw new Error(valResult.error || "Неверный формат ссылки.");
       }
-      const serviceTargetType = normalizeServiceTargetType(resolvedTargetType);
-
-      if (!isLinkServiceCompatible(detectedLinkType, serviceTargetType)) {
-        const errorMsg = getCompatibilityError(detectedLinkType, serviceTargetType, service.name);
-        throw new Error(errorMsg);
-      }
-
-      if (resolvedTargetType === TargetTypeEnum.CUSTOM || resolvedTargetTypeStr === 'CUSTOM' || service.targetType === 'CUSTOM') {
-        const { getCustomValidator } = await import('@/validators/link-mutators');
-        const customValidator = getCustomValidator(service.customDataType);
-        const customValue = customData || link;
-        const customResult = customValidator.safeParse(customValue);
-        if (!customResult.success) {
-          throw new Error(customResult.error.errors[0].message);
-        }
-      } else {
-        // 1. Clean the link according to provider rules
-        try {
-          normalizedLink = mutateLink(link, platformSlug, resolvedTargetType);
-        } catch (e) {
-          console.warn(`[Checkout] mutateLink failed for ${safeUrlForLog(link)}:`, e);
-          normalizedLink = link.trim();
-        }
-
-        // 2. Validate the cleaned link
-        const validator = getLinkValidator(platformSlug, resolvedTargetType);
-        const linkResult = validator.safeParse(normalizedLink);
-        
-        if (!linkResult.success) {
-          throw new Error(linkResult.error.errors[0].message);
-        }
-      }
+      normalizedLink = valResult.canonicalUrl;
     }
 
     // Validate mediaGroupUrl if provided
@@ -339,9 +297,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
           normalizedMediaGroupLink = 'https://' + normalizedMediaGroupLink;
         }
       } else {
-        const targetType = service.targetType === 'POST'
-          ? inferTargetTypeFromCategory(service.category?.name)
-          : (service.targetType || inferTargetTypeFromCategory(service.category?.name));
+        const targetType = resolveServiceTargetType(service);
 
         normalizedMediaGroupLink = mutateLink(mgTrimmed, platformSlug, targetType);
         const validator = getLinkValidator(platformSlug, targetType);

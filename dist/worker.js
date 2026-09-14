@@ -52645,7 +52645,7 @@ var require_shared = __commonJS({
     var fs3 = require("fs");
     var nmfetch = require_fetch();
     var errors = require_errors3();
-    var dns5 = require("dns");
+    var dns4 = require("dns");
     var net7 = require("net");
     var os3 = require("os");
     var DNS_TTL = 5 * 60 * 1e3;
@@ -52674,16 +52674,16 @@ var require_shared = __commonJS({
       if (!isFamilySupported(family, options.allowInternalNetworkInterfaces)) {
         return callback(null, []);
       }
-      const dnsResolver = dns5.Resolver ? new dns5.Resolver(options) : dns5;
+      const dnsResolver = dns4.Resolver ? new dns4.Resolver(options) : dns4;
       dnsResolver["resolve" + family](hostname, (err, addresses) => {
         if (err) {
           switch (err.code) {
-            case dns5.NODATA:
-            case dns5.NOTFOUND:
-            case dns5.NOTIMP:
-            case dns5.SERVFAIL:
-            case dns5.CONNREFUSED:
-            case dns5.REFUSED:
+            case dns4.NODATA:
+            case dns4.NOTFOUND:
+            case dns4.NOTIMP:
+            case dns4.SERVFAIL:
+            case dns4.CONNREFUSED:
+            case dns4.REFUSED:
             case "EAI_AGAIN":
               return callback(null, []);
           }
@@ -52801,7 +52801,7 @@ var require_shared = __commonJS({
             }
           }
           try {
-            dns5.lookup(options.host, { all: true }, (err3, addresses3) => {
+            dns4.lookup(options.host, { all: true }, (err3, addresses3) => {
               if (err3) {
                 if (cached) {
                   dnsCache.set(options.host, {
@@ -58799,7 +58799,7 @@ var require_mailer = __commonJS({
     var packageData = require_package2();
     var MailMessage = require_mail_message();
     var net7 = require("net");
-    var dns5 = require("dns");
+    var dns4 = require("dns");
     var crypto9 = require("crypto");
     var Mail = class extends EventEmitter {
       constructor(transporter, options, defaults) {
@@ -59114,7 +59114,7 @@ var require_mailer = __commonJS({
               if (net7.isIP(proxy.hostname)) {
                 return connect4(proxy.hostname);
               }
-              return dns5.resolve(proxy.hostname, (err2, address) => {
+              return dns4.resolve(proxy.hostname, (err2, address) => {
                 if (err2) {
                   return callback(err2);
                 }
@@ -112028,7 +112028,8 @@ async function isPublicHost(hostname) {
     return false;
   }
   try {
-    const records = await import_promises.default.lookup(cleanHost, { all: true });
+    const dns4 = await import("dns/promises");
+    const records = await dns4.lookup(cleanHost, { all: true });
     if (!records || records.length === 0) return false;
     for (const record of records) {
       if (!isPublicIp2(record.address)) {
@@ -112086,11 +112087,10 @@ async function resolveShortLink(rawUrl) {
   }
   return currentUrl;
 }
-var import_promises, import_url3, SHORT_LINK_HOSTS;
+var import_url3, SHORT_LINK_HOSTS;
 var init_ssrf_guard3 = __esm({
   "src/lib/ssrf-guard.ts"() {
     "use strict";
-    import_promises = __toESM(require("dns/promises"));
     import_url3 = require("url");
     SHORT_LINK_HOSTS = /* @__PURE__ */ new Set([
       "bit.ly",
@@ -112355,7 +112355,9 @@ function inferTargetTypeFromName(name) {
   return "POST" /* POST */;
 }
 function resolveServiceTargetType(service) {
-  const inferred = inferTargetTypeFromName(service.name);
+  if (!service) return "POST" /* POST */;
+  const effectiveName = service.name || service.category?.name || "";
+  const inferred = inferTargetTypeFromName(effectiveName);
   if ((!service.targetType || service.targetType === "POST" || service.targetType === "CUSTOM") && (inferred === "CHANNEL" /* CHANNEL */ || inferred === "CHANNEL_POSTS" /* CHANNEL_POSTS */ || inferred === "POLL" /* POLL */ || inferred === "VIDEO" /* VIDEO */ || inferred === "STORY" /* STORY */ || inferred === "BOT" /* BOT */)) {
     return inferred;
   }
@@ -140181,480 +140183,969 @@ var init_menu_navigation = __esm({
   }
 });
 
-// src/validators/link-mutators.ts
-var link_mutators_exports = {};
-__export2(link_mutators_exports, {
-  getCustomValidator: () => getCustomValidator,
-  getLinkValidator: () => getLinkValidator,
-  mutateLink: () => mutateLink,
-  validateRegexSafetyAndSmoke: () => validateRegexSafetyAndSmoke
+// src/services/link-engine/link-domain-router.ts
+function resolvePlatformByHostname(rawHost) {
+  if (!rawHost) return null;
+  const host = rawHost.toLowerCase().trim();
+  const direct = DOMAIN_TO_PLATFORM.get(host);
+  if (direct) return direct;
+  for (const [domain, platform] of DOMAIN_TO_PLATFORM.entries()) {
+    if (host.endsWith(`.${domain}`)) {
+      return platform;
+    }
+  }
+  return null;
+}
+var DOMAIN_TO_PLATFORM;
+var init_link_domain_router = __esm({
+  "src/services/link-engine/link-domain-router.ts"() {
+    "use strict";
+    init_link_rules();
+    DOMAIN_TO_PLATFORM = /* @__PURE__ */ new Map([
+      // Telegram
+      ["t.me", "TELEGRAM" /* TELEGRAM */],
+      ["telegram.me", "TELEGRAM" /* TELEGRAM */],
+      ["telegram.dog", "TELEGRAM" /* TELEGRAM */],
+      ["web.telegram.org", "TELEGRAM" /* TELEGRAM */],
+      // VKontakte
+      ["vk.com", "VK" /* VK */],
+      ["m.vk.com", "VK" /* VK */],
+      ["vk.ru", "VK" /* VK */],
+      ["vkontakte.ru", "VK" /* VK */],
+      ["vkvideo.ru", "VK" /* VK */],
+      ["vk.cc", "VK" /* VK */],
+      // Instagram
+      ["instagram.com", "INSTAGRAM" /* INSTAGRAM */],
+      ["www.instagram.com", "INSTAGRAM" /* INSTAGRAM */],
+      ["m.instagram.com", "INSTAGRAM" /* INSTAGRAM */],
+      ["instagr.am", "INSTAGRAM" /* INSTAGRAM */],
+      // TikTok
+      ["tiktok.com", "TIKTOK" /* TIKTOK */],
+      ["www.tiktok.com", "TIKTOK" /* TIKTOK */],
+      ["m.tiktok.com", "TIKTOK" /* TIKTOK */],
+      ["vm.tiktok.com", "TIKTOK" /* TIKTOK */],
+      ["vt.tiktok.com", "TIKTOK" /* TIKTOK */],
+      // YouTube
+      ["youtube.com", "YOUTUBE" /* YOUTUBE */],
+      ["www.youtube.com", "YOUTUBE" /* YOUTUBE */],
+      ["m.youtube.com", "YOUTUBE" /* YOUTUBE */],
+      ["youtu.be", "YOUTUBE" /* YOUTUBE */],
+      ["music.youtube.com", "YOUTUBE" /* YOUTUBE */],
+      // Rutube
+      ["rutube.ru", "RUTUBE" /* RUTUBE */],
+      ["www.rutube.ru", "RUTUBE" /* RUTUBE */],
+      // Odnoklassniki
+      ["ok.ru", "OK" /* OK */],
+      ["www.ok.ru", "OK" /* OK */],
+      ["m.ok.ru", "OK" /* OK */],
+      ["odnoklassniki.ru", "OK" /* OK */],
+      // Twitter / X
+      ["x.com", "TWITTER" /* TWITTER */],
+      ["twitter.com", "TWITTER" /* TWITTER */],
+      ["mobile.twitter.com", "TWITTER" /* TWITTER */],
+      // Threads
+      ["threads.net", "THREADS" /* THREADS */],
+      ["www.threads.net", "THREADS" /* THREADS */],
+      // Facebook
+      ["facebook.com", "FACEBOOK" /* FACEBOOK */],
+      ["www.facebook.com", "FACEBOOK" /* FACEBOOK */],
+      ["m.facebook.com", "FACEBOOK" /* FACEBOOK */],
+      ["fb.watch", "FACEBOOK" /* FACEBOOK */],
+      ["fb.com", "FACEBOOK" /* FACEBOOK */],
+      // Twitch
+      ["twitch.tv", "TWITCH" /* TWITCH */],
+      ["www.twitch.tv", "TWITCH" /* TWITCH */],
+      ["m.twitch.tv", "TWITCH" /* TWITCH */],
+      // Discord
+      ["discord.gg", "DISCORD" /* DISCORD */],
+      ["discord.com", "DISCORD" /* DISCORD */],
+      ["discordapp.com", "DISCORD" /* DISCORD */],
+      // Dzen
+      ["dzen.ru", "DZEN" /* DZEN */],
+      ["zen.yandex.ru", "DZEN" /* DZEN */],
+      // Spotify
+      ["spotify.com", "SPOTIFY" /* SPOTIFY */],
+      ["open.spotify.com", "SPOTIFY" /* SPOTIFY */],
+      // Kick
+      ["kick.com", "KICK" /* KICK */],
+      // Likee
+      ["likee.video", "LIKEE" /* LIKEE */],
+      ["l.likee.video", "LIKEE" /* LIKEE */],
+      // Pinterest
+      ["pinterest.com", "PINTEREST" /* PINTEREST */],
+      ["pin.it", "PINTEREST" /* PINTEREST */],
+      // SoundCloud
+      ["soundcloud.com", "SOUNDCLOUD" /* SOUNDCLOUD */],
+      ["on.soundcloud.com", "SOUNDCLOUD" /* SOUNDCLOUD */],
+      // Reddit
+      ["reddit.com", "REDDIT" /* REDDIT */],
+      ["www.reddit.com", "REDDIT" /* REDDIT */],
+      ["redd.it", "REDDIT" /* REDDIT */],
+      // WhatsApp
+      ["wa.me", "WHATSAPP" /* WHATSAPP */],
+      ["whatsapp.com", "WHATSAPP" /* WHATSAPP */],
+      ["chat.whatsapp.com", "WHATSAPP" /* WHATSAPP */],
+      // Trovo
+      ["trovo.live", "TROVO" /* TROVO */],
+      // Kwai
+      ["kwai.com", "KWAI" /* KWAI */],
+      ["k.kwai.com", "KWAI" /* KWAI */],
+      // Steam
+      ["steamcommunity.com", "STEAM" /* STEAM */],
+      ["store.steampowered.com", "STEAM" /* STEAM */],
+      // LinkedIn
+      ["linkedin.com", "LINKEDIN" /* LINKEDIN */],
+      ["www.linkedin.com", "LINKEDIN" /* LINKEDIN */],
+      // Snapchat
+      ["snapchat.com", "SNAPCHAT" /* SNAPCHAT */],
+      // Vimeo
+      ["vimeo.com", "VIMEO" /* VIMEO */],
+      // Rumble
+      ["rumble.com", "RUMBLE" /* RUMBLE */],
+      // Shazam
+      ["shazam.com", "SHAZAM" /* SHAZAM */],
+      // Medium
+      ["medium.com", "MEDIUM" /* MEDIUM */],
+      // Tumblr
+      ["tumblr.com", "TUMBLR" /* TUMBLR */],
+      // Quora
+      ["quora.com", "QUORA" /* QUORA */],
+      // Apple Music
+      ["music.apple.com", "APPLE" /* APPLE */],
+      ["podcasts.apple.com", "APPLE" /* APPLE */]
+    ]);
+  }
 });
-function validateRegexSafetyAndSmoke(pattern, smokeCases) {
-  if (!pattern || !pattern.trim()) {
-    return { isValid: false, error: "\u0428\u0430\u0431\u043B\u043E\u043D \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u043E\u0433\u043E \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C" };
+
+// src/services/link-engine/link-canonicalizer.ts
+function stripTrackingParams(urlObj, platform, targetType) {
+  const normTarget = (targetType || "").toUpperCase();
+  const host = urlObj.hostname.toLowerCase();
+  if (host.includes("youtube.com") && urlObj.pathname === "/watch") {
+    const v = urlObj.searchParams.get("v");
+    const lc = urlObj.searchParams.get("lc");
+    urlObj.search = "";
+    if (v) urlObj.searchParams.set("v", v);
+    if (lc && normTarget === "COMMENT") urlObj.searchParams.set("lc", lc);
+    return;
   }
-  if (pattern.length > 300) {
-    return { isValid: false, error: "\u0421\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 \u0448\u0430\u0431\u043B\u043E\u043D \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u043E\u0433\u043E \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u044F (\u043C\u0430\u043A\u0441. 300 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)" };
+  if (host === "t.me" || host === "telegram.me" || host === "telegram.dog") {
+    const start = urlObj.searchParams.get("start");
+    const comment = urlObj.searchParams.get("comment");
+    const hasSingle = urlObj.searchParams.has("single");
+    const isPrivate = urlObj.pathname.includes("/+") || urlObj.pathname.includes("/joinchat/");
+    if (normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "CHANNEL_POSTS") {
+      if (!isPrivate) {
+        urlObj.search = "";
+      }
+      return;
+    }
+    if (normTarget === "TELEGRAM_BOT" || normTarget === "BOT") {
+      urlObj.search = "";
+      if (start) urlObj.searchParams.set("start", start);
+      return;
+    }
+    const keysToDelete2 = [];
+    urlObj.searchParams.forEach((_, key) => {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey !== "single" && lowerKey !== "comment" && lowerKey !== "start" && TRACKING_PARAM_PREFIXES.some((p) => lowerKey.startsWith(p))) {
+        keysToDelete2.push(key);
+      }
+    });
+    keysToDelete2.forEach((k) => urlObj.searchParams.delete(k));
+    return;
   }
-  const redosDetectors = [
-    /\([^)]*(\+|\*)[^)]*\)[+*]/,
-    /\([^)]*(\+|\*)[^)]*\)\{/i,
-    /\([a-z0-9_.\-\\s|]+\+[|][^)]+\)\+/i,
-    /\([a-z0-9_.\-\\s|]+\*[|][^)]+\)\*/i,
-    /\(\.\*\)\+/,
-    /\(\.\+\)\+/,
-    /\(\.\*\)\*/,
-    /\([^)]*\|[^)]*\)[+*]/,
-    /\(\.\*[^)]*\)\{\d+,?\}/
-  ];
-  for (const dangerous of redosDetectors) {
-    if (dangerous.test(pattern)) {
+  if (host === "vk.com" || host === "m.vk.com" || host === "vk.ru" || host === "vkvideo.ru") {
+    if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+      urlObj.search = "";
+      return;
+    }
+    const reply = urlObj.searchParams.get("reply");
+    if (reply) {
+      urlObj.search = "";
+      urlObj.searchParams.set("reply", reply);
+      return;
+    }
+    const keysToDelete2 = [];
+    urlObj.searchParams.forEach((_, key) => {
+      const lower = key.toLowerCase();
+      if (TRACKING_PARAM_PREFIXES.some((p) => lower.startsWith(p))) {
+        keysToDelete2.push(key);
+      }
+    });
+    keysToDelete2.forEach((k) => urlObj.searchParams.delete(k));
+    return;
+  }
+  if (host.includes("tiktok.com")) {
+    urlObj.search = "";
+    return;
+  }
+  const keysToDelete = [];
+  urlObj.searchParams.forEach((_, key) => {
+    const lowerKey = key.toLowerCase();
+    if (TRACKING_PARAM_PREFIXES.some((prefix) => lowerKey.startsWith(prefix))) {
+      keysToDelete.push(key);
+    }
+  });
+  for (const k of keysToDelete) {
+    urlObj.searchParams.delete(k);
+  }
+  if (normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "STORY") {
+    urlObj.search = "";
+  }
+}
+function canonicalizeUrl(rawUrl, platform, targetType) {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  let url = rawUrl.trim().replace(/[\x00-\x1F\x7F]/g, "");
+  if (!url) return "";
+  const normTarget = (targetType || "").toUpperCase();
+  const platStr = (platform || "").toUpperCase();
+  if (url.startsWith("@")) {
+    const handle = url.substring(1);
+    if (platStr === "TELEGRAM" || platStr === "TG") return `https://t.me/${handle}`;
+    if (platStr === "INSTAGRAM") return `https://www.instagram.com/${handle}`;
+    if (platStr === "TIKTOK") return `https://www.tiktok.com/@${handle}`;
+    if (platStr === "TWITTER" || platStr === "X") return `https://x.com/${handle}`;
+    if (platStr === "YOUTUBE") return `https://www.youtube.com/@${handle}`;
+    if (platStr === "THREADS") return `https://www.threads.net/@${handle}`;
+    if (platStr === "VK") return `https://vk.com/${handle}`;
+  }
+  if ((platStr === "TELEGRAM" || platStr === "TG") && !url.includes("/") && !url.includes(".")) {
+    return `https://t.me/${url}`;
+  }
+  url = url.replace(/^(?:https?:\/\/)+(https?:\/\/)/i, "$1");
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
+  } else if (url.startsWith("http://")) {
+    url = "https://" + url.slice(7);
+  }
+  const vkPhotoMatch = url.match(/z=(photo-?\d+_\d+)/);
+  if (vkPhotoMatch && (url.includes("vk.com") || url.includes("vk.ru") || platStr === "VK")) {
+    return `https://vk.com/${vkPhotoMatch[1]}`;
+  }
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1]?.split("?")[0]?.split("/")[0];
+    if (id) {
+      url = `https://www.youtube.com/watch?v=${id}`;
+    }
+  }
+  if (url.includes("/shorts/")) {
+    const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]+)/);
+    if (shortsMatch) {
+      const userMatch = url.match(/youtube\.com\/(@[\w.-]+)\/shorts/i);
+      if (userMatch && (normTarget === "CHANNEL" || normTarget === "PROFILE")) {
+        return `https://www.youtube.com/${userMatch[1]}`;
+      }
+      url = `https://www.youtube.com/watch?v=${shortsMatch[1]}`;
+    }
+  }
+  if (url.includes("/live/")) {
+    const id = url.split("/live/")[1]?.split("?")[0]?.split("/")[0];
+    if (id) url = `https://www.youtube.com/watch?v=${id}`;
+  }
+  if (url.includes("/embed/")) {
+    const id = url.split("/embed/")[1]?.split("?")[0]?.split("/")[0];
+    if (id) url = `https://www.youtube.com/watch?v=${id}`;
+  }
+  if (url.includes("rutube.ru/shorts/")) {
+    const id = url.split("/shorts/")[1]?.split("?")[0]?.split("/")[0];
+    if (id) url = `https://rutube.ru/video/${id}/`;
+  }
+  try {
+    const urlObj = new URL(url);
+    const host = urlObj.hostname.toLowerCase();
+    if (host === "m.vk.com" || host === "vk.ru" || host === "vkontakte.ru") {
+      urlObj.hostname = "vk.com";
+    } else if (host === "instagr.am" || host === "m.instagram.com") {
+      urlObj.hostname = "www.instagram.com";
+    } else if (host === "m.tiktok.com") {
+      urlObj.hostname = "www.tiktok.com";
+    } else if (host === "m.youtube.com" || host === "youtube.com") {
+      urlObj.hostname = "www.youtube.com";
+    } else if (host === "twitter.com" || host === "mobile.twitter.com") {
+      urlObj.hostname = "x.com";
+    } else if (host === "telegram.me" || host === "telegram.dog") {
+      urlObj.hostname = "t.me";
+    } else if (host === "m.facebook.com") {
+      urlObj.hostname = "www.facebook.com";
+    }
+    if (urlObj.hostname.includes("instagram.com")) {
+      urlObj.pathname = urlObj.pathname.replace(/^\/@/, "/");
+      if (normTarget === "STORY") {
+        const storyMatch = urlObj.pathname.match(/\/stories\/([^/?#]+)/i);
+        if (storyMatch) {
+          return `https://www.instagram.com/${storyMatch[1]}/`;
+        }
+      }
+    }
+    if (urlObj.hostname === "vk.com") {
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        const wallMatch = urlObj.pathname.match(/\/wall(-?\d+)_\d+/i);
+        if (wallMatch) {
+          const id = wallMatch[1];
+          return id.startsWith("-") ? `https://vk.com/public${id.substring(1)}` : `https://vk.com/id${id}`;
+        }
+      }
+    }
+    if (urlObj.hostname === "t.me") {
+      const webMatch = url.match(/web\.telegram\.org\/(?:k|a)\/#@?([a-zA-Z0-9_]+)/i);
+      if (webMatch) {
+        return `https://t.me/${webMatch[1]}`;
+      }
+      urlObj.pathname = urlObj.pathname.replace(/^\/s\/([a-zA-Z0-9_]+)/i, "/$1");
+      urlObj.pathname = urlObj.pathname.replace(/^\/@/, "/");
+      if (normTarget === "CHANNEL" || normTarget === "CHANNEL_POSTS" || normTarget === "PROFILE") {
+        const postMatch = urlObj.pathname.match(/^\/([\w-]+)\/\d+\/?$/i);
+        if (postMatch && postMatch[1] !== "c" && postMatch[1] !== "s") {
+          urlObj.pathname = `/${postMatch[1]}`;
+        }
+      }
+    }
+    if (urlObj.hostname.includes("tiktok.com")) {
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        const videoMatch = urlObj.pathname.match(/(@[\w.-]+)\/(?:video|photo)\/\d+/i);
+        if (videoMatch) {
+          return `https://www.tiktok.com/${videoMatch[1]}`;
+        }
+        const noAtMatch = urlObj.pathname.match(/^\/([a-zA-Z0-9_.]+)$/);
+        if (noAtMatch && !noAtMatch[1].startsWith("@")) {
+          urlObj.pathname = `/@${noAtMatch[1]}`;
+        }
+      }
+    }
+    if (urlObj.hostname === "x.com") {
+      urlObj.pathname = urlObj.pathname.replace(/^\/@/, "/");
+    }
+    const intellPlatform = typeof platform === "string" ? platform : platform;
+    stripTrackingParams(urlObj, intellPlatform, targetType);
+    let result = urlObj.toString();
+    if (urlObj.hostname.includes("instagram.com")) {
+      result = result.replace(/\/share\/p\/([a-zA-Z0-9_-]+)/i, "/p/$1/");
+      result = result.replace(/\/share\/reel\/([a-zA-Z0-9_-]+)/i, "/reel/$1/");
+      result = result.replace(/\/reels\//i, "/reel/");
+    }
+    if ((normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "STORY") && urlObj.search === "") {
+      result = result.replace(/\/+$/, "");
+    }
+    return result;
+  } catch {
+    return url;
+  }
+}
+var TRACKING_PARAM_PREFIXES;
+var init_link_canonicalizer = __esm({
+  "src/services/link-engine/link-canonicalizer.ts"() {
+    "use strict";
+    TRACKING_PARAM_PREFIXES = [
+      "utm_",
+      "igsh",
+      "igshid",
+      "fbclid",
+      "gclid",
+      "yclid",
+      "ttref",
+      "feature",
+      "si",
+      "ref",
+      "_hsenc",
+      "_hsmi",
+      "mc_cid",
+      "mc_eid",
+      "from",
+      "source"
+    ];
+  }
+});
+
+// src/services/link-engine/link-rules-registry.ts
+function getUnifiedLinkValidator(platform, targetType) {
+  const normPlatform = (platform || "").toUpperCase();
+  const normTarget = (targetType || "").toUpperCase();
+  switch (normPlatform) {
+    case "TELEGRAM":
+      if (normTarget === "CHANNEL" || normTarget === "CHANNEL_POSTS" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0438\u043B\u0438 \u0447\u0430\u0442 Telegram (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov)");
+      }
+      if (normTarget === "POST") {
+        return external_exports.string().refine((val) => !val.includes("/c/"), "\u041D\u0435\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E \u0437\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u0443\u0441\u043B\u0443\u0433\u0443 \u0432 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 \u0447\u0430\u0442 (\u0441\u0441\u044B\u043B\u043A\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 /c/). \u0421\u0434\u0435\u043B\u0430\u0439\u0442\u0435 \u043A\u0430\u043D\u0430\u043B \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u044B\u043C.").and(external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u044B\u0439 \u043F\u043E\u0441\u0442 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123)"));
+      }
+      if (normTarget === "STORY") {
+        return external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.STORY, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044E Telegram (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/s/1)");
+      }
+      if (normTarget === "COMMENT") {
+        return external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.COMMENT, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 \u0432 Telegram (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123?comment=456)");
+      }
+      if (normTarget === "TELEGRAM_BOT" || normTarget === "BOT") {
+        return external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.BOT, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Telegram-\u0431\u043E\u0442\u0430 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/my_bot \u0438\u043B\u0438 ?start=ref123)");
+      }
+      if (normTarget === "POLL") {
+        return external_exports.string().regex(UNIFIED_REGEX.TELEGRAM.POLL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123)");
+      }
+      break;
+    case "VK":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.VK.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442, \u0444\u043E\u0442\u043E, \u043A\u043B\u0438\u043F \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.VK.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
+      }
+      if (normTarget === "COMMENT") {
+        return external_exports.string().regex(UNIFIED_REGEX.VK.COMMENT, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435 (\u0434\u043E\u043B\u0436\u043D\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u044C \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 reply).");
+      }
+      if (normTarget === "POLL") {
+        return external_exports.string().regex(UNIFIED_REGEX.VK.POLL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
+      }
+      break;
+    case "INSTAGRAM":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.INSTAGRAM.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 Reel \u0432 Instagram.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.INSTAGRAM.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Instagram.");
+      }
+      if (normTarget === "STORY") {
+        return external_exports.string().regex(UNIFIED_REGEX.INSTAGRAM.STORY, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Instagram.");
+      }
+      if (normTarget === "COMMENT") {
+        return external_exports.string().regex(UNIFIED_REGEX.INSTAGRAM.COMMENT, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 Instagram.");
+      }
+      if (normTarget === "POLL") {
+        return external_exports.string().regex(UNIFIED_REGEX.INSTAGRAM.POLL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u044E Instagram \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C.");
+      }
+      break;
+    case "TIKTOK":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.TIKTOK.POST, "\u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E \u0438\u043B\u0438 \u0444\u043E\u0442\u043E \u0438\u0437 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F TikTok.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.TIKTOK.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C TikTok.");
+      }
+      break;
+    case "YOUTUBE":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.YOUTUBE.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 YouTube \u0432\u0438\u0434\u0435\u043E, Shorts \u0438\u043B\u0438 \u0441\u0442\u0440\u0438\u043C.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.YOUTUBE.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B YouTube.");
+      }
+      if (normTarget === "COMMENT") {
+        return external_exports.string().regex(UNIFIED_REGEX.YOUTUBE.COMMENT, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 YouTube (\u0441 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u043E\u043C &lc=).");
+      }
+      break;
+    case "RUTUBE":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.RUTUBE.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Rutube-\u0432\u0438\u0434\u0435\u043E \u0438\u043B\u0438 Shorts.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.RUTUBE.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Rutube.");
+      }
+      break;
+    case "OK":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.OK.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0435\u043C\u0443 \u0438\u043B\u0438 \u0441\u0442\u0430\u0442\u0443\u0441 \u0432 \u041E\u0434\u043D\u043E\u043A\u043B\u0430\u0441\u0441\u043D\u0438\u043A\u0430\u0445.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.OK.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0432 \u041E\u0434\u043D\u043E\u043A\u043B\u0430\u0441\u0441\u043D\u0438\u043A\u0430\u0445.");
+      }
+      break;
+    case "TWITTER":
+    case "X":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.TWITTER.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0432\u0438\u0442/\u043F\u043E\u0441\u0442 \u0432 Twitter / X.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.TWITTER.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Twitter / X.");
+      }
+      break;
+    case "THREADS":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.THREADS.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0432 Threads.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.THREADS.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Threads.");
+      }
+      break;
+    case "FACEBOOK":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.FACEBOOK.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E Facebook.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "GROUP") {
+        return external_exports.string().regex(UNIFIED_REGEX.FACEBOOK.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443, \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Facebook.");
+      }
+      break;
+    case "TWITCH":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.TWITCH.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0437\u0430\u043F\u0438\u0441\u044C \u0442\u0440\u0430\u043D\u0441\u043B\u044F\u0446\u0438\u0438 (VOD) Twitch.");
+      }
+      if (normTarget === "CHANNEL" || normTarget === "PROFILE") {
+        return external_exports.string().regex(UNIFIED_REGEX.TWITCH.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Twitch-\u043A\u0430\u043D\u0430\u043B.");
+      }
+      break;
+    case "KICK":
+      return external_exports.string().regex(UNIFIED_REGEX.KICK.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Kick-\u043A\u0430\u043D\u0430\u043B.");
+    case "SPOTIFY":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.SPOTIFY.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0440\u0435\u043A Spotify.");
+      }
+      return external_exports.string().regex(UNIFIED_REGEX.SPOTIFY.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043B\u0435\u0439\u043B\u0438\u0441\u0442, \u0430\u043B\u044C\u0431\u043E\u043C \u0438\u043B\u0438 \u0430\u0440\u0442\u0438\u0441\u0442\u0430 Spotify.");
+    case "MAX":
+      return external_exports.string().regex(UNIFIED_REGEX.MAX.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u043A\u0430\u043D\u0430\u043B \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0430 \u041C\u0410\u041A\u0421.");
+  }
+  return external_exports.string().url("\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 (URL), \u043D\u0430\u0447\u0438\u043D\u0430\u044E\u0449\u0443\u044E\u0441\u044F \u0441 https://");
+}
+function getUnifiedCustomValidator(customDataType) {
+  const type = (customDataType || "NONE").toUpperCase();
+  if (type === "NUMBER") {
+    return external_exports.string().trim().regex(/^\d+$/, "\u0417\u043D\u0430\u0447\u0435\u043D\u0438\u0435 \u0434\u043E\u043B\u0436\u043D\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u0437 \u0446\u0438\u0444\u0440");
+  }
+  if (type === "TEXTAREA") {
+    return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C").max(1e4, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 (\u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10000 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)").refine((val) => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(val), "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0443\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0449\u0438\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B");
+  }
+  return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C");
+}
+var UNIFIED_REGEX;
+var init_link_rules_registry = __esm({
+  "src/services/link-engine/link-rules-registry.ts"() {
+    "use strict";
+    init_zod();
+    UNIFIED_REGEX = {
+      TELEGRAM: {
+        // Allows public channel / group / profile: t.me/durov, t.me/@durov, t.me/joinchat/xxx, t.me/+xxx, t.me/s/durov
+        CHANNEL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+|s\/)?@?[\w-]+\/?(?:\?.*)?$/i,
+        // Allows posts: t.me/channel/123, topic posts: t.me/group/100/250, web previews: t.me/s/channel/123
+        POST: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/(?:topic\/)?\d+(?:\/\d+)?\/?(?:\?.*)?$/i,
+        // Allows stories: t.me/channel/s/123
+        STORY: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/s\/\d+\/?$/i,
+        // Allows comments: t.me/channel/123?comment=456
+        COMMENT: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/\d+\?(?:.*&)?comment=\d+$/i,
+        // Allows bot: t.me/my_bot, t.me/my_bot?start=ref
+        BOT: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+_bot(?:\?start=[\w-]+)?$/i,
+        // Allows poll: t.me/channel/123
+        POLL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/\d+\/?$/i
+      },
+      VK: {
+        // Allows posts, videos, clips, photos: vk.com/wall-1_2, vk.com/video-1_2, vk.com/clip-1_2, vk.com/photo-1_2
+        POST: /^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+/i,
+        // Allows groups, publics, users: vk.com/durov, vk.com/public123, vk.com/club123, vk.com/id123
+        CHANNEL: /^https?:\/\/(?:m\.)?vk\.(?:com|ru)\/(?:public\d+|club\d+|id\d+|[a-zA-Z0-9_.]+)\/?$/i,
+        // Allows comments with reply param (ReDoS hardened)
+        COMMENT: /^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+\?[^#]*\breply=\d+/i,
+        // Allows polls
+        POLL: /^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+/i
+      },
+      INSTAGRAM: {
+        // Allows p, reel, reels, tv, share/p, share/reel
+        POST: /^https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:p|reel|reels|tv|share\/[a-zA-Z0-9_-]+)\/[a-zA-Z0-9_-]+\/?/i,
+        // Allows profile
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?instagram\.com\/@?[a-zA-Z0-9_.]+\/?$/i,
+        // Allows story: instagram.com/stories/username/123 or profile
+        STORY: /^https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:stories\/[a-zA-Z0-9_.]+\/\d+|@?[a-zA-Z0-9_.]+)\/?$/i,
+        // Allows comments: instagram.com/p/xxx/c/yyy
+        COMMENT: /^https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:p|reel|reels|tv)\/[a-zA-Z0-9_-]+\/c\/[a-zA-Z0-9_-]+\/?/i,
+        // Allows polls
+        POLL: /^https?:\/\/(?:www\.|m\.)?instagram\.com\/@?[a-zA-Z0-9_.]+\/?$/i
+      },
+      TIKTOK: {
+        // Allows video/photo posts or share links
+        POST: /^https?:\/\/(?:www\.|m\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/(?:video|photo)\/\d+|^https?:\/\/(?:vm|vt)\.tiktok\.com\/[a-zA-Z0-9_]+/i,
+        // Allows profile
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?tiktok\.com\/@?[a-zA-Z0-9_.]+\/?$/i
+      },
+      YOUTUBE: {
+        // Allows watch, shorts, live, embed, youtu.be
+        POST: /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?.*v=|shorts\/|live\/|embed\/)|youtu\.be\/)[a-zA-Z0-9_-]+/i,
+        // Allows channels: @handle, channel/UC..., c/..., user/...
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?youtube\.com\/(@[a-zA-Z0-9_.-]+|channel\/UC[a-zA-Z0-9_.-]+|c\/[a-zA-Z0-9_.-]+|user\/[a-zA-Z0-9_.-]+)\/?$/i,
+        // Allows comments with &lc= param
+        COMMENT: /^https?:\/\/(?:www\.|m\.)?youtube\.com\/watch\?.*[?&]v=[a-zA-Z0-9_-]+.*[?&]lc=[a-zA-Z0-9_-]+/i
+      },
+      RUTUBE: {
+        POST: /^https?:\/\/(?:www\.)?rutube\.ru\/(?:video|shorts|play\/embed)\/[a-zA-Z0-9_-]+\/?/i,
+        CHANNEL: /^https?:\/\/(?:www\.)?rutube\.ru\/(?:channel\/\d+|u\/[a-zA-Z0-9_.-]+|feeds\/[a-zA-Z0-9_.-]+)\/?/i
+      },
+      OK: {
+        POST: /^https?:\/\/(?:www\.|m\.)?ok\.ru\/(?:group|profile)\/\d+\/(?:topic|statuses)\/\d+/i,
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?ok\.ru\/(?:group\/\d+|profile\/\d+|[a-zA-Z0-9_.-]+)\/?$/i
+      },
+      TWITTER: {
+        POST: /^https?:\/\/(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/\d+/i,
+        CHANNEL: /^https?:\/\/(?:twitter\.com|x\.com)\/@?[a-zA-Z0-9_]+\/?$/i
+      },
+      THREADS: {
+        POST: /^https?:\/\/(?:www\.)?threads\.net\/@[a-zA-Z0-9_.]+\/post\/[a-zA-Z0-9_-]+/i,
+        CHANNEL: /^https?:\/\/(?:www\.)?threads\.net\/@?[a-zA-Z0-9_.]+\/?$/i
+      },
+      FACEBOOK: {
+        POST: /^https?:\/\/(?:www\.|m\.)?(?:facebook\.com|fb\.watch)\/.+/i,
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?facebook\.com\/.+/i
+      },
+      TWITCH: {
+        POST: /^https?:\/\/(?:www\.|m\.)?twitch\.tv\/videos\/\d+/i,
+        CHANNEL: /^https?:\/\/(?:www\.|m\.)?twitch\.tv\/[a-zA-Z0-9_]+\/?$/i
+      },
+      KICK: {
+        CHANNEL: /^https?:\/\/(?:www\.)?kick\.com\/[a-zA-Z0-9_.-]+\/?$/i
+      },
+      SPOTIFY: {
+        POST: /^https?:\/\/open\.spotify\.com\/track\/[a-zA-Z0-9_-]+/i,
+        CHANNEL: /^https?:\/\/open\.spotify\.com\/(?:playlist|album|artist)\/[a-zA-Z0-9_-]+/i
+      },
+      MAX: {
+        CHANNEL: /^https?:\/\/(?:www\.)?max\.ru\/(?:c\/(?:-?\d+(?:\/[a-zA-Z0-9_-]+)?|[a-zA-Z0-9_.-]+)|[a-zA-Z0-9_.-]+)\/?$/i
+      }
+    };
+  }
+});
+
+// src/validators/prohibited-content.ts
+function validateProhibitedContent(link, customData) {
+  if (!link) {
+    return { isAllowed: true };
+  }
+  const normalizedLink = link.toLowerCase().trim();
+  for (const domain of PROHIBITED_GOVERNMENT_DOMAINS) {
+    if (normalizedLink.includes(domain)) {
       return {
-        isValid: false,
-        error: "\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u0430 \u043F\u043E\u0442\u0435\u043D\u0446\u0438\u0430\u043B\u044C\u043D\u0430\u044F ReDoS \u0443\u044F\u0437\u0432\u0438\u043C\u043E\u0441\u0442\u044C (\u0432\u043B\u043E\u0436\u0435\u043D\u043D\u044B\u0435 \u043A\u0432\u0430\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440\u044B \u0432\u0440\u043E\u0434\u0435 (a+)+ \u0438\u043B\u0438 (.*)+)"
+        isAllowed: false,
+        code: "GOVERNMENT_SERVICE_PROHIBITED",
+        error: "\u041F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435 \u0433\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0445 \u0441\u043B\u0443\u0436\u0431, \u0432\u0435\u0434\u043E\u043C\u0441\u0442\u0432, \u043E\u0440\u0433\u0430\u043D\u043E\u0432 \u0432\u043B\u0430\u0441\u0442\u0438 \u0438 \u0441\u0438\u0441\u0442\u0435\u043C \u0433\u043E\u043B\u043E\u0441\u043E\u0432\u0430\u043D\u0438\u044F \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D\u043E (\u043F. 2.1 \u041F\u0440\u0430\u0432\u0438\u043B \u0441\u0435\u0440\u0432\u0438\u0441\u0430)."
       };
     }
   }
-  let regex;
-  try {
-    regex = new RegExp(pattern, "i");
-  } catch (e) {
-    return {
-      isValid: false,
-      error: `\u0421\u0438\u043D\u0442\u0430\u043A\u0441\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043E\u0448\u0438\u0431\u043A\u0430 \u0432 RegEx: ${e instanceof Error ? e.message : String(e)}`
-    };
+  for (const pattern of PROHIBITED_LINK_PATTERNS) {
+    if (pattern.test(normalizedLink)) {
+      return {
+        isAllowed: false,
+        code: "POLITICAL_CONTENT_PROHIBITED",
+        error: "\u041F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432 \u0441 \u0433\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0439 \u0438\u043B\u0438 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0439 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043D\u043E\u0441\u0442\u044C\u044E \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D\u043E \u043F\u0440\u0430\u0432\u0438\u043B\u0430\u043C\u0438 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u044B (\u043F. 2.1 \u041F\u0440\u0430\u0432\u0438\u043B \u0441\u0435\u0440\u0432\u0438\u0441\u0430)."
+      };
+    }
   }
-  if (smokeCases && smokeCases.length > 0) {
-    for (const testCase of smokeCases) {
-      const isMatch = Boolean(testCase.url.match(regex));
-      if (isMatch !== testCase.expectedMatch) {
+  if (customData && customData.trim().length > 0) {
+    const normalizedText = customData.toLowerCase();
+    for (const pattern of PROHIBITED_TEXT_PATTERNS) {
+      if (pattern.test(normalizedText)) {
         return {
-          isValid: false,
-          error: `Smoke-\u0442\u0435\u0441\u0442 \u043D\u0435 \u043F\u0440\u043E\u0439\u0434\u0435\u043D \u0434\u043B\u044F URL "${testCase.url}": \u043E\u0436\u0438\u0434\u0430\u043B\u043E\u0441\u044C ${testCase.expectedMatch ? "\u0441\u043E\u0432\u043F\u0430\u0434\u0435\u043D\u0438\u0435" : "\u043E\u0442\u043A\u043B\u043E\u043D\u0435\u043D\u0438\u0435"}, \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u043E ${isMatch ? "\u0441\u043E\u0432\u043F\u0430\u0434\u0435\u043D\u0438\u0435" : "\u043E\u0442\u043A\u043B\u043E\u043D\u0435\u043D\u0438\u0435"}`
+          isAllowed: false,
+          code: "POLITICAL_CONTENT_PROHIBITED",
+          error: "\u0423\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u0437\u0430\u043F\u0440\u0435\u0449\u0451\u043D\u043D\u0443\u044E \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0443\u044E, \u0430\u0433\u0438\u0442\u0430\u0446\u0438\u043E\u043D\u043D\u0443\u044E \u0438\u043B\u0438 \u043F\u0440\u043E\u0442\u0438\u0432\u043E\u043F\u0440\u0430\u0432\u043D\u0443\u044E \u0442\u0435\u043C\u0430\u0442\u0438\u043A\u0443 (\u043F. 2.1 \u041F\u0440\u0430\u0432\u0438\u043B \u0441\u0435\u0440\u0432\u0438\u0441\u0430)."
         };
       }
     }
   }
-  return { isValid: true };
+  return { isAllowed: true };
 }
-var cleanInstagramUrl, cleanVkUrl, cleanTelegramUrl, cleanYoutubeUrl, cleanTikTokUrl, cleanTwitterUrl, cleanRutubeUrl, cleanFacebookUrl, cleanThreadsUrl, mutateLink, getLinkValidator, getCustomValidator;
-var init_link_mutators = __esm({
-  "src/validators/link-mutators.ts"() {
+var PROHIBITED_GOVERNMENT_DOMAINS, PROHIBITED_LINK_PATTERNS, PROHIBITED_TEXT_PATTERNS;
+var init_prohibited_content = __esm({
+  "src/validators/prohibited-content.ts"() {
     "use strict";
-    init_zod();
-    cleanInstagramUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/m\.instagram\.com/i, "www.instagram.com");
-      cleaned = cleaned.replace(/instagram\.com\/@/i, "instagram.com/");
-      if (targetType === "STORY") {
-        const match = cleaned.match(/\/stories\/([^/?#]+)/i);
-        if (match) {
-          return `https://www.instagram.com/${match[1]}/`;
-        }
+    PROHIBITED_GOVERNMENT_DOMAINS = [
+      "gosuslugi.ru",
+      "\u0433\u043E\u0441\u0443\u0441\u043B\u0443\u0433\u0438.\u0440\u0444",
+      "roi.ru",
+      "\u0440\u043E\u0438\u0441.\u0440\u0444",
+      "kremlin.ru",
+      "\u043F\u0440\u0435\u0437\u0438\u0434\u0435\u043D\u0442.\u0440\u0444",
+      "government.ru",
+      "\u043F\u0440\u0430\u0432\u0438\u0442\u0435\u043B\u044C\u0441\u0442\u0432\u043E.\u0440\u0444",
+      "duma.gov.ru",
+      "\u0434\u0443\u043C\u0430.\u0440\u0444",
+      "council.gov.ru",
+      "genproc.gov.ru",
+      "mvd.ru",
+      "\u043C\u0432\u0434.\u0440\u0444",
+      "mvd.gov.ru",
+      "fsb.ru",
+      "\u0444\u0441\u0431.\u0440\u0444",
+      "mil.ru",
+      "\u043C\u0438\u043D\u043E\u0431\u043E\u0440\u043E\u043D\u044B.\u0440\u0444",
+      "sudrf.ru",
+      "vsrf.ru",
+      "ksrf.ru",
+      "cikrf.ru",
+      "\u0446\u0438\u043A.\u0440\u0444",
+      "nalog.gov.ru",
+      "nalog.ru",
+      "\u043D\u0430\u043B\u043E\u0433.\u0440\u0444",
+      "cbr.ru",
+      "\u0446\u0431.\u0440\u0444",
+      "customs.gov.ru",
+      "fss.gov.ru",
+      "fssprus.ru",
+      "sfr.gov.ru",
+      "pfr.gov.ru",
+      "mos.ru",
+      "spb.ru",
+      "rkn.gov.ru",
+      "fas.gov.ru",
+      "rospotrebnadzor.ru",
+      "mchs.gov.ru",
+      "fsin.gov.ru",
+      "fsin.ru",
+      "minjust.gov.ru",
+      "minjust.ru",
+      "mid.ru",
+      "ombudsmanrf.org",
+      "change.org",
+      "podpishi.org"
+    ];
+    PROHIBITED_LINK_PATTERNS = [
+      /\.gov\.ru/i,
+      /\.mil\.ru/i,
+      /\.mvd\.ru/i,
+      /\.fsb\.ru/i,
+      /\.sudrf\.ru/i,
+      /\.duma\.ru/i,
+      /(?:^|[^a-z0-9])(?:vybory|elect|vybor|cikrf|gosuslugi|kremlin|mvd_official|fsb_official|fsin_official)(?:[^a-z0-9]|$)/i
+    ];
+    PROHIBITED_TEXT_PATTERNS = [
+      /(?:выбор|голос|кандидат|предвыборн|бюллетен|избирательн|госуслуг|петици|митинг|протест|забастовк)/iu,
+      /(?:свержение власти|госпереворот|несанкционированн|террорист|экстремист)/iu,
+      /(?:дискредитаци|фейк.*арми|взрывчат|изготовлени.*оруж)/iu,
+      /(?:фбк|навальн|легион свобод|рпк|терроризм|экстремизм)/iu
+    ];
+  }
+});
+
+// src/services/link-engine/unified-link-engine.ts
+var unified_link_engine_exports = {};
+__export2(unified_link_engine_exports, {
+  normalizePlatformSlug: () => normalizePlatformSlug,
+  unifiedLinkEngine: () => unifiedLinkEngine
+});
+function normalizePlatformSlug(slug) {
+  if (!slug) return "";
+  const s = slug.trim().toUpperCase();
+  if (s === "TG" || s === "TELEGRAM") return "TELEGRAM";
+  if (s === "VK" || s === "VKONTAKTE") return "VK";
+  if (s === "IG" || s === "INSTA" || s === "INSTAGRAM") return "INSTAGRAM";
+  if (s === "YT" || s === "YOUTUBE") return "YOUTUBE";
+  if (s === "TT" || s === "TIKTOK") return "TIKTOK";
+  if (s === "TW" || s === "X" || s === "TWITTER") return "TWITTER";
+  if (s === "OK" || s === "ODNOKLASSNIKI") return "OK";
+  if (s === "FB" || s === "FACEBOOK") return "FACEBOOK";
+  if (s === "TH" || s === "THREADS") return "THREADS";
+  return s;
+}
+var UnifiedLinkEngineImpl, unifiedLinkEngine;
+var init_unified_link_engine = __esm({
+  "src/services/link-engine/unified-link-engine.ts"() {
+    "use strict";
+    init_link_rules();
+    init_link_analyzer();
+    init_link_domain_router();
+    init_link_canonicalizer();
+    init_link_rules_registry();
+    init_target_type();
+    init_link_service_compatibility();
+    init_ssrf_guard3();
+    init_prohibited_content();
+    UnifiedLinkEngineImpl = class {
+      constructor() {
+        this.analyzer = new IntelligenceLinkAnalyzer();
+        this.cache = /* @__PURE__ */ new Map();
+        this.MAX_CACHE_SIZE = 2e3;
+        this.CACHE_TTL_MS = 6e4;
       }
-      cleaned = cleaned.replace(/\/reels\//i, "/reel/");
-      cleaned = cleaned.replace(/\/share\/p\/([a-zA-Z0-9_-]+)/i, "/p/$1/");
-      cleaned = cleaned.replace(/\/share\/reel\/([a-zA-Z0-9_-]+)/i, "/reel/$1/");
-      try {
-        const urlObj = new URL(cleaned);
-        urlObj.search = "";
-        let res = urlObj.toString();
-        if (targetType === "CHANNEL" || targetType === "PROFILE" || targetType === "STORY") {
-          res = res.replace(/\/+$/, "");
+      // 1 minute
+      /**
+       * Fast In-Memory Analysis with LRU Caching and Security Guard.
+       */
+      async analyze(rawUrl) {
+        if (!rawUrl || rawUrl.trim() === "") {
+          return {
+            platform: "OTHER" /* OTHER */,
+            type: "unknown",
+            id: "unknown",
+            canonicalUrl: "",
+            metadata: {},
+            suggestedCategories: [],
+            warnings: ["empty_input"],
+            errorCode: "EMPTY_INPUT",
+            userHint: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043E\u0431\u044A\u0435\u043A\u0442 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F"
+          };
         }
-        return res;
-      } catch {
-        return cleaned.replace(/\/+$/, "");
+        const trimmed = rawUrl.trim();
+        const cached = this.cache.get(trimmed);
+        if (cached) {
+          if (Date.now() < cached.expiresAt) {
+            return cached.result;
+          }
+          this.cache.delete(trimmed);
+        }
+        const analysis = await this.analyzer.analyze(trimmed);
+        if (this.cache.size >= this.MAX_CACHE_SIZE) {
+          const firstKey = this.cache.keys().next().value;
+          if (firstKey) this.cache.delete(firstKey);
+        }
+        this.cache.set(trimmed, { result: analysis, expiresAt: Date.now() + this.CACHE_TTL_MS });
+        return analysis;
+      }
+      /**
+       * End-to-End Validation & Mutation for a specific service.
+       * Enforces SSRF guard, prohibited content check, canonical mutation,
+       * Zod regex schema validation, and semantic targetType compatibility.
+       */
+      async validateForService(rawUrl, service, customData) {
+        if (!rawUrl || !rawUrl.trim()) {
+          return {
+            isValid: false,
+            canonicalUrl: "",
+            platform: "OTHER" /* OTHER */,
+            linkType: "unknown",
+            error: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u043E\u0439",
+            errorCode: "EMPTY_INPUT"
+          };
+        }
+        const trimmed = rawUrl.trim();
+        if (trimmed.length > 2048) {
+          return {
+            isValid: false,
+            canonicalUrl: "",
+            platform: "OTHER" /* OTHER */,
+            linkType: "unknown",
+            error: "\u0414\u043B\u0438\u043D\u0430 \u0441\u0441\u044B\u043B\u043A\u0438 \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0439 \u043B\u0438\u043C\u0438\u0442 (2048 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)"
+          };
+        }
+        const resolvedTargetTypeStr = resolveServiceTargetType(service);
+        const resolvedTargetType = normalizeTargetType(
+          resolvedTargetTypeStr || (service.category?.name ? service.category.name : "ANY")
+        );
+        const serviceTargetType = normalizeServiceTargetType(resolvedTargetType);
+        if (resolvedTargetType === "CUSTOM" /* CUSTOM */ || resolvedTargetTypeStr === "CUSTOM") {
+          const customValidator = getUnifiedCustomValidator(service.customDataType);
+          const customVal = customData || trimmed;
+          const customParsed = customValidator.safeParse(customVal);
+          if (!customParsed.success) {
+            return {
+              isValid: false,
+              canonicalUrl: trimmed,
+              platform: "OTHER" /* OTHER */,
+              linkType: "custom",
+              error: customParsed.error.errors[0].message
+            };
+          }
+          return {
+            isValid: true,
+            canonicalUrl: trimmed,
+            platform: "OTHER" /* OTHER */,
+            linkType: "custom"
+          };
+        }
+        const analysis = await this.analyze(trimmed);
+        if (analysis.errorCode) {
+          return {
+            isValid: false,
+            canonicalUrl: trimmed,
+            platform: analysis.platform,
+            linkType: analysis.type,
+            error: analysis.userHint || "\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 \u0444\u043E\u0440\u043C\u0430\u0442 \u0441\u0441\u044B\u043B\u043A\u0438",
+            errorCode: analysis.errorCode,
+            userHint: analysis.userHint
+          };
+        }
+        const canonicalLink = canonicalizeUrl(trimmed, analysis.platform, resolvedTargetType);
+        if (!isUrlSafeForFetch(canonicalLink)) {
+          return {
+            isValid: false,
+            canonicalUrl: canonicalLink,
+            platform: analysis.platform,
+            linkType: analysis.type,
+            error: "\u0423\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0439 \u0430\u0434\u0440\u0435\u0441 \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D \u043F\u043E\u043B\u0438\u0442\u0438\u043A\u043E\u0439 \u0441\u0435\u0442\u0435\u0432\u043E\u0439 \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438",
+            errorCode: "SECURITY_BLOCKED"
+          };
+        }
+        const prohibitedCheck = validateProhibitedContent(canonicalLink, customData || void 0);
+        if (!prohibitedCheck.isAllowed) {
+          return {
+            isValid: false,
+            canonicalUrl: canonicalLink,
+            platform: analysis.platform,
+            linkType: analysis.type,
+            error: prohibitedCheck.error || "\u041F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435 \u0434\u0430\u043D\u043D\u043E\u0433\u043E \u043A\u043E\u043D\u0442\u0435\u043D\u0442\u0430 \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D\u043E \u043F\u0440\u0430\u0432\u0438\u043B\u0430\u043C\u0438 \u0441\u0435\u0440\u0432\u0438\u0441\u0430",
+            errorCode: "PROHIBITED_CONTENT"
+          };
+        }
+        const rawPlatformSlug = service.category?.network?.slug;
+        const servicePlatformSlug = normalizePlatformSlug(rawPlatformSlug);
+        const detectedPlatform = normalizePlatformSlug(analysis.platform);
+        if (servicePlatformSlug && detectedPlatform && detectedPlatform !== "OTHER") {
+          if (detectedPlatform !== servicePlatformSlug) {
+            return {
+              isValid: false,
+              canonicalUrl: canonicalLink,
+              platform: analysis.platform,
+              linkType: analysis.type,
+              error: `\u0423\u043A\u0430\u0437\u0430\u043D\u0430 \u0441\u0441\u044B\u043B\u043A\u0430 \u0434\u043B\u044F ${analysis.platform}, \u043D\u043E \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0430\u044F \u0443\u0441\u043B\u0443\u0433\u0430 \u043F\u0440\u0435\u0434\u043D\u0430\u0437\u043D\u0430\u0447\u0435\u043D\u0430 \u0434\u043B\u044F ${servicePlatformSlug}`
+            };
+          }
+        }
+        if (!isLinkServiceCompatible(analysis.type, serviceTargetType)) {
+          const compatError = getCompatibilityError(analysis.type, serviceTargetType, service.name || "");
+          return {
+            isValid: false,
+            canonicalUrl: canonicalLink,
+            platform: analysis.platform,
+            linkType: analysis.type,
+            error: compatError,
+            errorCode: "INCOMPATIBLE_TARGET_TYPE"
+          };
+        }
+        const schemaValidator = getUnifiedLinkValidator(analysis.platform, resolvedTargetType);
+        const parsed = schemaValidator.safeParse(canonicalLink);
+        if (!parsed.success) {
+          return {
+            isValid: false,
+            canonicalUrl: canonicalLink,
+            platform: analysis.platform,
+            linkType: analysis.type,
+            error: parsed.error.errors[0].message
+          };
+        }
+        return {
+          isValid: true,
+          canonicalUrl: canonicalLink,
+          platform: analysis.platform,
+          linkType: analysis.type
+        };
+      }
+      /**
+       * Fast canonical mutation according to platform and targetType rules.
+       */
+      mutate(rawUrl, platform, targetType) {
+        const normPlatform = platform ? resolvePlatformByHostname(platform) || platform : null;
+        return canonicalizeUrl(rawUrl, normPlatform, targetType);
+      }
+      /**
+       * High-throughput batch validation for mass orders and API v2 bulk endpoints.
+       */
+      async validateBatch(items) {
+        const results = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (!item.service) {
+            results.push({
+              lineIndex: i,
+              link: item.link,
+              isValid: false,
+              canonicalUrl: item.link,
+              error: "\u0423\u0441\u043B\u0443\u0433\u0430 \u043D\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u0430 \u0438\u043B\u0438 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430"
+            });
+            continue;
+          }
+          const val = await this.validateForService(item.link, item.service, item.customData);
+          results.push({
+            lineIndex: i,
+            link: item.link,
+            isValid: val.isValid,
+            canonicalUrl: val.canonicalUrl,
+            error: val.error
+          });
+        }
+        return results;
       }
     };
-    cleanVkUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/m\.vk\.com/i, "vk.com").replace(/vk\.ru/i, "vk.com");
-      if (targetType === "CHANNEL" || targetType === "PROFILE") {
-        const wallMatch = cleaned.match(/vk\.com\/wall(-?\d+)_\d+/i);
-        if (wallMatch) {
-          const id = wallMatch[1];
-          if (id.startsWith("-")) {
-            return `https://vk.com/public${id.substring(1)}`;
-          } else {
-            return `https://vk.com/id${id}`;
-          }
-        }
-      }
-      const photoMatch = cleaned.match(/z=(photo-?\d+_\d+)/);
-      if (photoMatch) {
-        cleaned = `https://vk.com/${photoMatch[1]}`;
-      }
-      try {
-        const urlObj = new URL(cleaned);
-        if (urlObj.searchParams.has("reply")) {
-          return urlObj.toString();
-        }
-        urlObj.search = "";
-        let res = urlObj.toString();
-        if (targetType === "CHANNEL" || targetType === "PROFILE") {
-          res = res.replace(/\/+$/, "");
-        }
-        return res;
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    cleanTelegramUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/telegram\.me/i, "t.me").replace(/telegram\.dog/i, "t.me");
-      if (!cleaned.includes("/") && !cleaned.includes(".")) {
-        const rawHandle = cleaned.startsWith("@") ? cleaned.substring(1) : cleaned;
-        if (/^[a-zA-Z0-9_]+$/.test(rawHandle)) {
-          cleaned = `https://t.me/${rawHandle}`;
-        }
-      }
-      cleaned = cleaned.replace(/t\.me\/@/i, "t.me/");
-      cleaned = cleaned.replace(/t\.me\/s\/([a-zA-Z0-9_]+)/i, "t.me/$1");
-      const webMatch = cleaned.match(/web\.telegram\.org\/(?:k|a)\/#@?([a-zA-Z0-9_]+)/i);
-      if (webMatch) {
-        cleaned = `https://t.me/${webMatch[1]}`;
-      }
-      if (!/^https?:\/\//i.test(cleaned) && cleaned.includes("t.me")) {
-        cleaned = `https://${cleaned}`;
-      }
-      if (targetType === "CHANNEL" || targetType === "CHANNEL_POSTS" || targetType === "PROFILE") {
-        const postMatch = cleaned.match(/^(https?:\/\/(?:t\.me|telegram\.dog)\/)([\w-]+)\/\d+\/?(?:\?.*)?$/i);
-        if (postMatch && postMatch[2] !== "c" && postMatch[2] !== "s") {
-          cleaned = `${postMatch[1]}${postMatch[2]}`;
-        }
-      }
-      try {
-        const urlObj = new URL(cleaned);
-        if (targetType === "TELEGRAM_BOT") {
-          const start = urlObj.searchParams.get("start");
-          urlObj.search = "";
-          if (start) {
-            urlObj.searchParams.set("start", start);
-          }
-        } else if (targetType === "CHANNEL" || targetType === "CHANNEL_POSTS" || targetType === "PROFILE") {
-          if (!urlObj.pathname.includes("/+") && !urlObj.pathname.includes("/joinchat/")) {
-            urlObj.search = "";
-          }
-        }
-        let res = urlObj.toString();
-        if (targetType === "CHANNEL" || targetType === "PROFILE") {
-          res = res.replace(/\/+$/, "");
-        }
-        return res;
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    cleanYoutubeUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/m\.youtube\.com/i, "www.youtube.com");
-      if (cleaned.includes("youtu.be/")) {
-        const id = cleaned.split("youtu.be/")[1]?.split("?")[0]?.split("/")[0];
-        if (id) cleaned = `https://www.youtube.com/watch?v=${id}`;
-      }
-      if (cleaned.includes("/shorts/")) {
-        const id = cleaned.split("/shorts/")[1]?.split("?")[0]?.split("/")[0];
-        if (id) {
-          const userMatch = cleaned.match(/youtube\.com\/(@[\w.-]+)\/shorts\/\d+/i);
-          if (userMatch && (targetType === "CHANNEL" || targetType === "PROFILE")) {
-            return `https://www.youtube.com/${userMatch[1]}`;
-          }
-          cleaned = `https://www.youtube.com/watch?v=${id}`;
-        }
-      }
-      if (cleaned.includes("/live/")) {
-        const id = cleaned.split("/live/")[1]?.split("?")[0]?.split("/")[0];
-        if (id) cleaned = `https://www.youtube.com/watch?v=${id}`;
-      }
-      if (cleaned.includes("/embed/")) {
-        const id = cleaned.split("/embed/")[1]?.split("?")[0]?.split("/")[0];
-        if (id) cleaned = `https://www.youtube.com/watch?v=${id}`;
-      }
-      try {
-        const urlObj = new URL(cleaned);
-        if (urlObj.hostname.includes("youtube.com") && urlObj.pathname === "/watch") {
-          const v = urlObj.searchParams.get("v");
-          if (v) {
-            if (targetType === "COMMENT") {
-              const lc = urlObj.searchParams.get("lc");
-              return `https://www.youtube.com/watch?v=${v}${lc ? `&lc=${lc}` : ""}`;
-            }
-            return `https://www.youtube.com/watch?v=${v}`;
-          }
-        }
-        if (targetType === "CHANNEL" || targetType === "PROFILE") {
-          urlObj.search = "";
-          return urlObj.toString().replace(/\/+$/, "");
-        }
-      } catch {
-      }
-      return cleaned.replace(/\/+$/, "");
-    };
-    cleanTikTokUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/:\/\/m\.tiktok\.com/i, "://www.tiktok.com");
-      if (targetType === "CHANNEL" || targetType === "PROFILE") {
-        const noAtMatch = cleaned.match(/tiktok\.com\/([a-zA-Z0-9_.]+)$/i);
-        if (noAtMatch && !noAtMatch[1].startsWith("@")) {
-          cleaned = `https://www.tiktok.com/@${noAtMatch[1]}`;
-        }
-      }
-      try {
-        const urlObj = new URL(cleaned);
-        urlObj.search = "";
-        const cleanRes = urlObj.toString();
-        if (targetType === "CHANNEL" || targetType === "PROFILE") {
-          const videoMatch = cleanRes.match(/tiktok\.com\/(@[\w.-]+)\/(?:video|photo)\/\d+/i);
-          if (videoMatch) {
-            return `https://www.tiktok.com/${videoMatch[1]}`;
-          }
-          return cleanRes.replace(/\/+$/, "");
-        }
-        return cleanRes;
-      } catch {
-        return cleaned.split("?")[0];
-      }
-    };
-    cleanTwitterUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/twitter\.com/i, "x.com");
-      cleaned = cleaned.replace(/x\.com\/@/i, "x.com/");
-      try {
-        const urlObj = new URL(cleaned);
-        urlObj.search = "";
-        return urlObj.toString().replace(/\/+$/, "");
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    cleanRutubeUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://");
-      if (cleaned.includes("/shorts/")) {
-        const id = cleaned.split("/shorts/")[1]?.split("?")[0]?.split("/")[0];
-        if (id) cleaned = `https://rutube.ru/video/${id}/`;
-      }
-      try {
-        const urlObj = new URL(cleaned);
-        urlObj.search = "";
-        return urlObj.toString().replace(/\/+$/, "");
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    cleanFacebookUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://").replace(/m\.facebook\.com/i, "www.facebook.com");
-      try {
-        const urlObj = new URL(cleaned);
-        if (!urlObj.pathname.includes("permalink.php") && !urlObj.pathname.includes("profile.php")) {
-          urlObj.search = "";
-        }
-        return urlObj.toString().replace(/\/+$/, "");
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    cleanThreadsUrl = (url, targetType) => {
-      let cleaned = url.trim().replace(/^http:\/\//i, "https://");
-      try {
-        const urlObj = new URL(cleaned);
-        urlObj.search = "";
-        return urlObj.toString().replace(/\/+$/, "");
-      } catch {
-        return cleaned.replace(/\/+$/, "");
-      }
-    };
-    mutateLink = (url, platform, targetType) => {
-      let trimmed = url.trim();
-      if (!trimmed) return "";
-      if (trimmed.startsWith("@")) {
-        const handle = trimmed.substring(1);
-        const plat = (platform || "").toUpperCase();
-        if (plat === "TELEGRAM" || plat === "TG") return `https://t.me/${handle}`;
-        if (plat === "INSTAGRAM") return `https://www.instagram.com/${handle}`;
-        if (plat === "TIKTOK") return `https://www.tiktok.com/@${handle}`;
-        if (plat === "TWITTER" || plat === "X") return `https://x.com/${handle}`;
-        if (plat === "YOUTUBE") return `https://www.youtube.com/@${handle}`;
-        if (plat === "THREADS") return `https://www.threads.net/@${handle}`;
-        if (plat === "VK") return `https://vk.com/${handle}`;
-      }
-      trimmed = trimmed.replace(/^(?:https?:\/\/)+(https?:\/\/)/i, "$1");
-      if (!/^https?:\/\//i.test(trimmed)) {
-        trimmed = "https://" + trimmed;
-      }
-      switch ((platform || "").toUpperCase()) {
-        case "INSTAGRAM":
-          return cleanInstagramUrl(trimmed, targetType);
-        case "VK":
-          return cleanVkUrl(trimmed, targetType);
-        case "TELEGRAM":
-          return cleanTelegramUrl(trimmed, targetType);
-        case "YOUTUBE":
-          return cleanYoutubeUrl(trimmed, targetType);
-        case "TIKTOK":
-          return cleanTikTokUrl(trimmed, targetType);
-        case "TWITTER":
-        case "X":
-          return cleanTwitterUrl(trimmed, targetType);
-        case "RUTUBE":
-          return cleanRutubeUrl(trimmed, targetType);
-        case "FACEBOOK":
-          return cleanFacebookUrl(trimmed, targetType);
-        case "THREADS":
-          return cleanThreadsUrl(trimmed, targetType);
-        default:
-          return trimmed;
-      }
-    };
-    getLinkValidator = (platform, targetType) => {
-      switch (platform.toUpperCase()) {
-        case "TELEGRAM":
-          if (targetType === "CHANNEL" || targetType === "CHANNEL_POSTS" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)?@?[\w-]+\/?(?:\?.*)?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov)");
-          }
-          if (targetType === "POST") {
-            return external_exports.string().refine((val) => !val.includes("/c/"), "\u041D\u0435\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E \u0437\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u0443\u0441\u043B\u0443\u0433\u0443 \u0432 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 \u0447\u0430\u0442 (\u0441\u0441\u044B\u043B\u043A\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 /c/). \u0421\u0434\u0435\u043B\u0430\u0439\u0442\u0435 \u043A\u0430\u043D\u0430\u043B \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u044B\u043C.").and(external_exports.string().regex(/^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/\d+\/?(?:\?.*)?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u044B\u0439 \u043F\u043E\u0441\u0442 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123)"));
-          }
-          if (targetType === "TELEGRAM_BOT") {
-            return external_exports.string().regex(/^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+_bot(?:\?start=[\w-]+)?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Telegram-\u0431\u043E\u0442\u0430 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/my_bot \u0438\u043B\u0438 \u0441 \u0440\u0435\u0444\u0435\u0440\u0430\u043B\u044C\u043D\u044B\u043C \u043A\u043E\u0434\u043E\u043C ?start=ref123)");
-          }
-          if (targetType === "POLL") {
-            return external_exports.string().regex(/^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/\d+\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123)");
-          }
-          if (targetType === "COMMENT") {
-            return external_exports.string().regex(/^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/\d+\?comment=\d+$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 \u0432 Telegram (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/durov/123?comment=456)");
-          }
-          break;
-        case "VK":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442, \u0444\u043E\u0442\u043E \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:m\.)?vk\.(?:com|ru)\/[a-zA-Z0-9_.]+\/?$/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
-          }
-          if (targetType === "COMMENT") {
-            return external_exports.string().regex(/^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+\?(?:.*&)?reply=\d+/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435 (\u0434\u043E\u043B\u0436\u043D\u0430 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u044C \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 reply).");
-          }
-          if (targetType === "POLL") {
-            return external_exports.string().regex(/^https?:\/\/(?:m\.)?(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|clip|photo)-?\d+_\d+/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435.");
-          }
-          break;
-        case "INSTAGRAM":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:p|reel|reels|tv|share\/[a-zA-Z0-9_-]+)\/[a-zA-Z0-9_-]+\/?/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 Reel.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE" || targetType === "STORY") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?instagram\.com\/@?[a-zA-Z0-9_.]+\/?$/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Instagram.");
-          }
-          if (targetType === "COMMENT") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?instagram\.com\/(?:p|reel|reels|tv)\/[a-zA-Z0-9_-]+\/c\/[a-zA-Z0-9_-]+\/?/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 Instagram.");
-          }
-          if (targetType === "POLL") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?instagram\.com\/@?[a-zA-Z0-9_.]+\/?$/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u044E Instagram \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C.");
-          }
-          break;
-        case "TIKTOK":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/(?:video|photo)\/\d+|^https?:\/\/(?:vm|vt)\.tiktok\.com\/[a-zA-Z0-9_]+/, "\u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E \u0438\u043B\u0438 \u0444\u043E\u0442\u043E \u0438\u0437 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F TikTok.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?tiktok\.com\/@?[a-zA-Z0-9_.]+\/?$/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C TikTok.");
-          }
-          break;
-        case "YOUTUBE":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?.*v=|shorts\/|live\/|embed\/)|youtu\.be\/)[a-zA-Z0-9_-]+/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 YouTube \u0432\u0438\u0434\u0435\u043E, Shorts \u0438\u043B\u0438 \u0441\u0442\u0440\u0438\u043C.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?youtube\.com\/(@[a-zA-Z0-9_.-]+|channel\/UC[a-zA-Z0-9_.-]+|c\/[a-zA-Z0-9_.-]+|user\/[a-zA-Z0-9_.-]+)\/?$/, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B YouTube.");
-          }
-          break;
-        case "OK":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?ok\.ru\/(?:group|profile)\/\d+\/(?:topic|statuses)\/\d+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0435\u043C\u0443 \u0438\u043B\u0438 \u0441\u0442\u0430\u0442\u0443\u0441 \u0432 \u041E\u0434\u043D\u043E\u043A\u043B\u0430\u0441\u0441\u043D\u0438\u043A\u0430\u0445.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?ok\.ru\/(?:group\/\d+|profile\/\d+|[a-zA-Z0-9_.-]+)\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0432 \u041E\u0434\u043D\u043E\u043A\u043B\u0430\u0441\u0441\u043D\u0438\u043A\u0430\u0445.");
-          }
-          break;
-        case "RUTUBE":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?rutube\.ru\/(?:video|shorts|play\/embed)\/[a-zA-Z0-9_-]+\/?/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Rutube-\u0432\u0438\u0434\u0435\u043E \u0438\u043B\u0438 Shorts.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?rutube\.ru\/(?:channel\/\d+|u\/[a-zA-Z0-9_.-]+|feeds\/[a-zA-Z0-9_.-]+)\/?/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Rutube.");
-          }
-          break;
-        case "TWITTER":
-        case "X":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/\d+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0432\u0438\u0442/\u043F\u043E\u0441\u0442 \u0432 Twitter / X.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:twitter\.com|x\.com)\/@?[a-zA-Z0-9_]+\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Twitter / X.");
-          }
-          break;
-        case "FACEBOOK":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?(?:facebook\.com|fb\.watch)\/.+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E Facebook.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE" || targetType === "GROUP") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.|m\.)?facebook\.com\/.+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443, \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Facebook.");
-          }
-          break;
-        case "THREADS":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?threads\.net\/@[a-zA-Z0-9_.]+\/post\/[a-zA-Z0-9_-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0432 Threads.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?threads\.net\/@?[a-zA-Z0-9_.]+\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Threads.");
-          }
-          break;
-        case "TWITCH":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:clips\.twitch\.tv\/|twitch\.tv\/[\w]+\/clip\/|twitch\.tv\/videos\/\d+)/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043B\u0438\u043F \u0438\u043B\u0438 \u0437\u0430\u043F\u0438\u0441\u044C \u0441\u0442\u0440\u0438\u043C\u0430 Twitch.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?twitch\.tv\/[a-zA-Z0-9_]+\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B Twitch.");
-          }
-          break;
-        case "LIKEE":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:l\.likee\.video\/v\/[\w-]+|(?:likee\.video|likee\.com)\/@[\w.]+\/video\/\d+)/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E Likee.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:l\.likee\.video\/p\/[\w-]+|(?:likee\.video|likee\.com)\/@?[\w.]+)\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Likee.");
-          }
-          break;
-        case "DZEN":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?dzen\.ru\/(?:a|b|video\/watch)\/[a-zA-Z0-9_-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0441\u0442\u0430\u0442\u044C\u044E, \u043F\u043E\u0441\u0442 \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E \u0414\u0437\u0435\u043D.");
-          }
-          if (targetType === "CHANNEL" || targetType === "PROFILE") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?dzen\.ru\/(?:id\/[a-zA-Z0-9_-]+|[a-zA-Z0-9_.-]+)\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0414\u0437\u0435\u043D-\u043A\u0430\u043D\u0430\u043B.");
-          }
-          break;
-        case "DISCORD":
-          return external_exports.string().regex(/^https?:\/\/(?:discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9_-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443-\u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 Discord (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, discord.gg/name)");
-        case "KICK":
-          return external_exports.string().regex(/^https?:\/\/(?:www\.)?kick\.com\/[a-zA-Z0-9_.-]+\/?$/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 Kick-\u043A\u0430\u043D\u0430\u043B.");
-        case "SPOTIFY":
-          if (targetType === "POST") {
-            return external_exports.string().regex(/^https?:\/\/open\.spotify\.com\/track\/[a-zA-Z0-9_-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0442\u0440\u0435\u043A Spotify.");
-          }
-          return external_exports.string().regex(/^https?:\/\/open\.spotify\.com\/(?:playlist|album|artist)\/[a-zA-Z0-9_-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043B\u0435\u0439\u043B\u0438\u0441\u0442, \u0430\u043B\u044C\u0431\u043E\u043C \u0438\u043B\u0438 \u0430\u0440\u0442\u0438\u0441\u0442\u0430 Spotify.");
-        case "MAX":
-          if (targetType === "CHANNEL") {
-            return external_exports.string().regex(/^https?:\/\/(?:www\.)?max\.ru\/c\/(?:-?\d+(?:\/[a-zA-Z0-9_-]+)?|[a-zA-Z0-9_.-]+)/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0438\u043B\u0438 \u0447\u0430\u0442 \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0430 \u041C\u0410\u041A\u0421 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, max.ru/c/name).");
-          }
-          return external_exports.string().regex(/^https?:\/\/(?:www\.)?max\.ru\/[a-zA-Z0-9_.-]+/i, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u0431\u043E\u0442\u0430 \u0432 \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0435 \u041C\u0410\u041A\u0421.");
-      }
-      return external_exports.string().url("\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 (URL), \u043D\u0430\u0447\u0438\u043D\u0430\u044E\u0449\u0443\u044E\u0441\u044F \u0441 https://");
-    };
-    getCustomValidator = (customDataType) => {
-      const type = customDataType?.toUpperCase() || "NONE";
-      if (type === "NUMBER") {
-        return external_exports.string().trim().regex(/^\d+$/, "\u0417\u043D\u0430\u0447\u0435\u043D\u0438\u0435 \u0434\u043E\u043B\u0436\u043D\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u0437 \u0446\u0438\u0444\u0440");
-      }
-      if (type === "TEXTAREA") {
-        return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C").max(1e4, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 (\u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10000 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)").refine((val) => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(val), "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0443\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0449\u0438\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B");
-      }
-      return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C");
-    };
+    unifiedLinkEngine = new UnifiedLinkEngineImpl();
   }
 });
 
@@ -140823,20 +141314,18 @@ var init_order_wizard = __esm({
         const orderData = getOrderData(ctx);
         const service = orderData.service;
         if (!service) return ctx.scene.leave();
-        const platformSlug = service.category?.network?.slug?.toUpperCase() || "";
-        const { mutateLink: mutateLink2, getLinkValidator: getLinkValidator2 } = await Promise.resolve().then(() => (init_link_mutators(), link_mutators_exports));
-        const { inferTargetTypeFromCategory: inferTargetTypeFromCategory2 } = await Promise.resolve().then(() => (init_target_type(), target_type_exports));
-        const targetType = service.targetType === "POST" ? inferTargetTypeFromCategory2(service.category?.name) : service.targetType || inferTargetTypeFromCategory2(service.category?.name);
+        const { unifiedLinkEngine: unifiedLinkEngine2 } = await Promise.resolve().then(() => (init_unified_link_engine(), unified_link_engine_exports));
         let normalizedLink = link;
         let isValid2 = true;
         let validationErrorMsg = "";
         try {
-          normalizedLink = mutateLink2(link, platformSlug, targetType);
-          const validator = getLinkValidator2(platformSlug, targetType);
-          const linkResult = validator.safeParse(normalizedLink);
-          if (!linkResult.success) {
-            isValid2 = false;
-            validationErrorMsg = linkResult.error.errors[0].message;
+          const valResult = await unifiedLinkEngine2.validateForService(link, service);
+          isValid2 = valResult.isValid;
+          if (!valResult.isValid) {
+            validationErrorMsg = valResult.error || "\u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u0444\u043E\u0440\u043C\u0430\u0442";
+            normalizedLink = valResult.canonicalUrl || link;
+          } else {
+            normalizedLink = valResult.canonicalUrl;
           }
         } catch (err) {
           isValid2 = false;

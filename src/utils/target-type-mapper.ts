@@ -192,10 +192,12 @@ export function inferTargetTypeFromName(name: string | null | undefined): Target
 
 /**
  * Resolves the true TargetType for a service, correcting legacy or corrupted
- * database targetType values when service name unambiguously indicates the target.
+ * database targetType values when service name or category name unambiguously indicates the target.
  */
-export function resolveServiceTargetType(service: { name: string; targetType?: string | null }): string {
-  const inferred = inferTargetTypeFromName(service.name);
+export function resolveServiceTargetType(service: { name?: string; targetType?: string | null; category?: { name?: string | null } | null }): string {
+  if (!service) return TargetTypeEnum.POST;
+  const effectiveName = service.name || service.category?.name || '';
+  const inferred = inferTargetTypeFromName(effectiveName);
   if (
     (!service.targetType || service.targetType === 'POST' || service.targetType === 'CUSTOM') &&
     (inferred === TargetTypeEnum.CHANNEL ||

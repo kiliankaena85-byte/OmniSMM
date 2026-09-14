@@ -482,7 +482,12 @@ beforeEach(async () => {
         'mobile-trust-header',
         'llm-prompt-sanitizer',
         'client-dashboard-master',
-        'vulnerability-vectors-remediation'
+        'vulnerability-vectors-remediation',
+        'unified-link-engine',
+        'link-validator-stress',
+        'link-analyzer.comprehensive',
+        'api-v2-link-validation',
+        'checkout.test.ts'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
         shouldReset = false;

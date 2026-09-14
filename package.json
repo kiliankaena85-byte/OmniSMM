@@ -53,6 +53,8 @@
     "qa:site": "tsx scripts/qa-sentinel/runner.ts",
     "qa:site:quick": "tsx scripts/qa-sentinel/runner.ts --quick",
     "heal:ooda": "tsx scripts/self-healing-ooda-loop.ts",
+    "loop:self-improve": "tsx scripts/self-improving-orchestrator.ts",
+    "loop:heal": "tsx scripts/self-improving-orchestrator.ts --auto-heal",
     "test:watch": "dotenv -e .env.test -- vitest",
     "test:db": "dotenv -e .env.test -- prisma db push --accept-data-loss",
     "test:e2e": "dotenv -e .env.test -- playwright test",

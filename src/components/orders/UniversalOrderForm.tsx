@@ -507,7 +507,7 @@ export function UniversalOrderForm({
 
       {/* Sticky Checkout Footer */}
       {engine.stats.totalTasks > 0 && (
-         <div className="fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-xl border-t border-border/80 p-5 z-50 md:sticky md:bottom-4 md:rounded-3xl md:border md:border-border/60 md:shadow-2xl md:ring-1 md:ring-black/5 space-y-4 animate-in slide-in-from-bottom-5 duration-300">
+         <div className="fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-xl border-t border-border/80 p-5 z-50 md:sticky md:bottom-4 md:rounded-3xl md:border md:border-border/60 md:shadow-2xl md:ring-1 md:ring-black/5 space-y-4 animate-in slide-in-from-bottom-5 duration-300 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-0">
             
             {error && (
               <div className="bg-destructive/10 border border-rose-500/20 text-destructive text-sm p-3 rounded-xl">

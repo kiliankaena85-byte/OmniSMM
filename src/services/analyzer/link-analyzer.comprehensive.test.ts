@@ -99,7 +99,7 @@ describe('🔬 Comprehensive Link Analyzer Audit', () => {
             });
 
             it('post with /s/ discussion thread', async () => {
-                await expectPlatform('https://t.me/channel_name/s/789', IntelligencePlatform.TELEGRAM, 'post');
+                await expectPlatform('https://t.me/s/channel_name/789', IntelligencePlatform.TELEGRAM, 'post');
             });
 
             it('post with query params', async () => {

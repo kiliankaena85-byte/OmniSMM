@@ -14,6 +14,7 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { spawnSync } from 'child_process';
+import { evolveSkillWithLesson } from './skill-evolve';
 
 dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -215,6 +216,21 @@ describe('Self-Healing Reproduction Suite [${cleanIncident.incidentId}]', () => 
     };
 
     this.saveReport(report, cleanIncident);
+
+    if (verdict === 'READY_FOR_HUMAN_APPROVAL') {
+      try {
+        evolveSkillWithLesson({
+          skillName: 'self-healing-ooda-loop',
+          incidentSlug: `incident-${cleanIncident.incidentId.toLowerCase()}`,
+          triggerCondition: `Исключение ${cleanIncident.errorName}: ${cleanIncident.errorMessage.slice(0, 100)}`,
+          solutionPattern: `Применение верифицированного TDD-хотфикса для файла ${cleanIncident.targetFile}`,
+          verifiedDate: new Date().toISOString().split('T')[0],
+        });
+        console.log('   ✓ Skill Evolution:   🟢 Lesson learned registered in .agents/skills');
+      } catch (err: any) {
+        console.warn('   ⚠ Skill Evolution failed (non-blocking):', err.message);
+      }
+    }
 
     console.log('----------------------------------------------------------------------');
     console.log('📊 OODA LOOP SELF-HEALING SCORECARD:');
