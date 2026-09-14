@@ -1,3 +1,16 @@
+- [x] ⚡ [SIL-2026] Заказы в админ-панели: Интерактивная сортировка (ASC / DESC) колонок таблицы (100% COMPLETE & VERIFIED):
+  * 🎛️ **Интерактивные заголовки колонок (`OrderSortableHeader`):**
+    - Внедрен компонент `OrderSortableHeader` с иконками `ArrowUpDown`, `ArrowUp` (ASC) и `ArrowDown` (DESC), семантическими подсказками и `aria-sort`.
+    - Подключена сортировка для колонок: `ID` (`numericId`), `Клиент` (`client`), `Дата` (`createdAt`), `Сумма` (`charge`), `Статус` (`status`).
+    - Сохранение активных фильтров при переключении сортировки со сбросом пагинации на `page=1`.
+  * ⚙️ **Бэкенд и типизация (`order.service.ts` & `orders/page.tsx`):**
+    - Реализована функция `resolveOrderOrderBy` с поддержкой прямых полей и связи с клиентом `user.email`.
+    - Поддержка алиасов `sort` / `sortBy` и `order` / `sortOrder`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и пройден модульный сьют `src/__tests__/unit/admin-orders-sorting.test.ts` (5/5 PASS).
+    - Подтвержден сьют целостности `src/__tests__/unit/admin-orders-integrity.test.ts` (4/4 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [SIL-2026] Self-Improving Loop (SIL-2026): Ликвидация паразитного автоскролла (Desktop & Mobile) и исправление редиректа оплаты на localhost:3000 (100% COMPLETE & VERIFIED):
   * 🛑 **Устранение паразитного автоскролла вверх на десктопе и смартфонах:**
     - Выявлена корневая причина: в `PlanFullscreenCheckout.tsx` хук `useEffect(..., [onClose])` вызывал `window.scrollTo({ top: 0, behavior: 'instant' })` на каждый ререндер родителя `SmartLinkLanding` при передаче новой функции `onClose`.

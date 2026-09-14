@@ -67,6 +67,26 @@ const ACTIVITY_TYPE_KEYWORDS: Record<string, string[]> = {
   watchtime: ['час', 'удержан', 'длительн', 'watch time', 'hour', 'duration'],
 };
 
+export function resolveOrderOrderBy(
+  sortField?: string,
+  sortOrder?: 'asc' | 'desc'
+): Record<string, any> {
+  const defaultOrderBy: Record<string, 'asc' | 'desc'> = { createdAt: 'desc' };
+  if (!sortField) return defaultOrderBy;
+
+  const dir: 'asc' | 'desc' = sortOrder === 'asc' ? 'asc' : 'desc';
+
+  if (['numericId', 'status', 'quantity', 'remains', 'charge', 'providerCost', 'createdAt', 'updatedAt'].includes(sortField)) {
+    return { [sortField]: dir };
+  }
+
+  if (sortField === 'client' || sortField === 'user' || sortField === 'email') {
+    return { user: { email: dir } };
+  }
+
+  return defaultOrderBy;
+}
+
 // ── Service ──
 
 class AdminOrderService {
@@ -336,13 +356,7 @@ class AdminOrderService {
     }
 
     // Dynamic sorting
-    let orderBy: Record<string, 'asc' | 'desc'> = { createdAt: 'desc' };
-    if (params.sortField) {
-      const dir = params.sortOrder === 'asc' ? 'asc' : 'desc';
-      if (['numericId', 'status', 'quantity', 'remains', 'charge', 'providerCost', 'createdAt', 'updatedAt'].includes(params.sortField)) {
-        orderBy = { [params.sortField]: dir };
-      }
-    }
+    const orderBy = resolveOrderOrderBy(params.sortField, params.sortOrder);
 
     return paginatedQuery<AdminOrderRow>(db.order, {
       cursor,

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useState, useTransition, useOptimistic } from 'react';
 import { toast } from 'sonner';
 import { OrderColumn, TenantBrandBadge, STATUS_LABELS } from './columns';
+import { OrderSortableHeader } from './order-sortable-header';
 import Link from 'next/link';
 import { 
   Clock, 
@@ -454,12 +455,22 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-muted/40 border-b border-border/60 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground select-none">
-              <th scope="col" className="py-2.5 px-3 w-[70px]">ID</th>
-              <th scope="col" className="py-2.5 px-3 w-[160px]">Клиент</th>
+              <th scope="col" className="py-2 px-3 w-[75px]">
+                <OrderSortableHeader title="ID" field="numericId" />
+              </th>
+              <th scope="col" className="py-2 px-3 w-[160px]">
+                <OrderSortableHeader title="Клиент" field="client" />
+              </th>
               <th scope="col" className="py-2.5 px-3">Информация о заказе</th>
-              <th scope="col" className="py-2.5 px-3 w-[130px]">Дата</th>
-              <th scope="col" className="py-2.5 px-3 w-[100px] text-right">Сумма</th>
-              <th scope="col" className="py-2.5 px-3 w-[120px]">Статус</th>
+              <th scope="col" className="py-2 px-3 w-[130px]">
+                <OrderSortableHeader title="Дата" field="createdAt" />
+              </th>
+              <th scope="col" className="py-2 px-3 w-[100px] text-right">
+                <OrderSortableHeader title="Сумма" field="charge" align="right" />
+              </th>
+              <th scope="col" className="py-2 px-3 w-[120px]">
+                <OrderSortableHeader title="Статус" field="status" />
+              </th>
               <th scope="col" className="py-2.5 px-3 w-[90px] text-right">Действия</th>
             </tr>
           </thead>

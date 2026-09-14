@@ -36,6 +36,8 @@ type Props = {
     stale?: string;
     sort?: string;
     order?: string;
+    sortBy?: string;
+    sortOrder?: string;
     tenant?: string;
     providerId?: string;
     errorCategory?: string;
@@ -139,8 +141,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     dateFrom: params.dateFrom || undefined,
     dateTo: params.dateTo || undefined,
     staleMinutes: !isNaN(staleMinutes || NaN) ? staleMinutes : undefined,
-    sortField: params.sort || undefined,
-    sortOrder: (params.order === 'asc' || params.order === 'desc') ? params.order : undefined,
+    sortField: params.sort || params.sortBy || undefined,
+    sortOrder: (params.order === 'asc' || params.order === 'desc' || params.sortOrder === 'asc' || params.sortOrder === 'desc')
+      ? ((params.order || params.sortOrder) as 'asc' | 'desc')
+      : undefined,
   });
 
   // Если передан edit_order_id, гарантируем, что этот заказ есть на первой странице (в начале списка)
