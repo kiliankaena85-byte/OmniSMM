@@ -130267,7 +130267,15 @@ async function assertSafeOutboundUrl(rawUrl) {
     "t.me",
     "auth.robokassa.ru",
     "merchant.roboxchange.com",
-    "generativelanguage.googleapis.com"
+    "generativelanguage.googleapis.com",
+    // Verified official provider gateways
+    "vexboost.ru",
+    "api.vexboost.ru",
+    "soc-rocket.ru",
+    "stream-promotion.ru",
+    "likedrom.com",
+    "smmprime.com",
+    "smmpanelus.com"
   ];
   if (TRUSTED_SYSTEM_DOMAINS.some((d) => hostname === d || hostname.endsWith(`.${d}`))) {
     return { ok: true, ip: "trusted-gateway", hostname };

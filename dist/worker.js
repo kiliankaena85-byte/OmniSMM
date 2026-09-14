@@ -103738,7 +103738,15 @@ async function assertSafeOutboundUrl(rawUrl) {
     "t.me",
     "auth.robokassa.ru",
     "merchant.roboxchange.com",
-    "generativelanguage.googleapis.com"
+    "generativelanguage.googleapis.com",
+    // Verified official provider gateways
+    "vexboost.ru",
+    "api.vexboost.ru",
+    "soc-rocket.ru",
+    "stream-promotion.ru",
+    "likedrom.com",
+    "smmprime.com",
+    "smmpanelus.com"
   ];
   if (TRUSTED_SYSTEM_DOMAINS.some((d) => hostname === d || hostname.endsWith(`.${d}`))) {
     return { ok: true, ip: "trusted-gateway", hostname };
@@ -127139,7 +127147,8 @@ var init_order_triage_alert_service = __esm({
             isBalanceRelated: true
           };
         }
-        if (lower.includes("private") || lower.includes("closed") || lower.includes("hidden") || lower.includes("\u043F\u0440\u0438\u0432\u0430\u0442\u043D\u044B\u0439") || lower.includes("\u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439") || lower.includes("restricted") || lower.includes("account is private") || lower.includes("profile is private") || lower.includes("channel is private") || lower.includes("group is private")) {
+        const isNetworkOrSsrf = lower.includes("private ip") || lower.includes("ssrf") || lower.includes("private network") || lower.includes("blocked url") || lower.includes("private") && (lower.includes("ip") || lower.includes("host") || lower.includes("address") || lower.includes("gateway"));
+        if (!isNetworkOrSsrf && (lower.includes("account is private") || lower.includes("profile is private") || lower.includes("channel is private") || lower.includes("group is private") || lower.includes("target is private") || lower.includes("is private") || lower.includes("closed profile") || lower.includes("profile is closed") || lower.includes("hidden") || lower.includes("\u043F\u0440\u0438\u0432\u0430\u0442\u043D\u044B\u0439") || lower.includes("\u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439") || lower.includes("restricted") && !lower.includes("ip") || lower.includes("private") && !lower.includes("network") && !lower.includes("ip") && !lower.includes("host") || lower.includes("closed") && !lower.includes("connection") && !lower.includes("socket"))) {
           return {
             type: "PRIVATE_ACCOUNT",
             tag: "[PRIVATE_ACCOUNT]",
@@ -127179,13 +127188,14 @@ var init_order_triage_alert_service = __esm({
             isBalanceRelated: false
           };
         }
-        if (lower.includes("timeout") || lower.includes("etimedout") || lower.includes("econnreset") || lower.includes("socket hang up") || lower.includes("eai_again")) {
+        if (lower.includes("timeout") || lower.includes("etimedout") || lower.includes("econnreset") || lower.includes("socket hang up") || lower.includes("eai_again") || lower.includes("private ip") || lower.includes("ssrf") || lower.includes("blocked url") || lower.includes("private network")) {
+          const isSsrf = lower.includes("private ip") || lower.includes("ssrf") || lower.includes("blocked url") || lower.includes("private network");
           return {
             type: "TIMEOUT_OR_NETWORK",
-            tag: "[NETWORK_TIMEOUT]",
-            title: "\u23F1\uFE0F \u0421\u0435\u0442\u0435\u0432\u043E\u0439 \u0442\u0430\u0439\u043C\u0430\u0443\u0442 / \u041E\u0431\u0440\u044B\u0432 \u0441\u0432\u044F\u0437\u0438",
-            explanation: "\u041F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u0437\u0430 \u043E\u0442\u0432\u0435\u0434\u0451\u043D\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F (HTTP Timeout / Network Glitch).",
-            supportAction: "\u0417\u0430\u043A\u0430\u0437 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0435. \u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044C \u0432 \u043A\u0430\u0431\u0438\u043D\u0435\u0442\u0435 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430, \u0447\u0442\u043E \u0437\u0430\u043A\u0430\u0437 \u043D\u0435 \u0431\u044B\u043B \u0441\u043E\u0437\u0434\u0430\u043D, \u043F\u043E\u0441\u043B\u0435 \u0447\u0435\u0433\u043E \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0443.",
+            tag: isSsrf ? "[GATEWAY_SSRF_BLOCKED]" : "[NETWORK_TIMEOUT]",
+            title: isSsrf ? "\u{1F6E1}\uFE0F \u0421\u0435\u0442\u0435\u0432\u0430\u044F \u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0430 \u0448\u043B\u044E\u0437\u0430 (SSRF / Private IP)" : "\u23F1\uFE0F \u0421\u0435\u0442\u0435\u0432\u043E\u0439 \u0442\u0430\u0439\u043C\u0430\u0443\u0442 / \u041E\u0431\u0440\u044B\u0432 \u0441\u0432\u044F\u0437\u0438",
+            explanation: isSsrf ? "\u0417\u0430\u043F\u0440\u043E\u0441 \u043A \u0448\u043B\u044E\u0437\u0443 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430 \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u044B\u043C \u044D\u043A\u0440\u0430\u043D\u043E\u043C \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438 SSRF (\u0430\u0434\u0440\u0435\u0441 \u0448\u043B\u044E\u0437\u0430 \u0440\u0430\u0437\u0440\u0435\u0448\u0430\u0435\u0442\u0441\u044F \u0432 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439/\u043F\u0440\u0438\u0432\u0430\u0442\u043D\u044B\u0439 IP)." : "\u041F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u0437\u0430 \u043E\u0442\u0432\u0435\u0434\u0451\u043D\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F (HTTP Timeout / Network Glitch).",
+            supportAction: isSsrf ? "\u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u043E\u0441\u0442\u044C URL \u0448\u043B\u044E\u0437\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430 \u0432 \u0430\u0434\u043C\u0438\u043D\u043A\u0435, DNS-\u0440\u0435\u0437\u043E\u043B\u0432 \u0438\u043B\u0438 \u0440\u0430\u0431\u043E\u0442\u0443 \u0441\u0435\u0442\u0435\u0432\u043E\u0433\u043E \u043F\u0440\u043E\u043A\u0441\u0438-\u0441\u0435\u0440\u0432\u0435\u0440\u0430 Clash/Mihomo." : "\u0417\u0430\u043A\u0430\u0437 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0435. \u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044C \u0432 \u043A\u0430\u0431\u0438\u043D\u0435\u0442\u0435 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430, \u0447\u0442\u043E \u0437\u0430\u043A\u0430\u0437 \u043D\u0435 \u0431\u044B\u043B \u0441\u043E\u0437\u0434\u0430\u043D, \u043F\u043E\u0441\u043B\u0435 \u0447\u0435\u0433\u043E \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0443.",
             isBalanceRelated: false
           };
         }
