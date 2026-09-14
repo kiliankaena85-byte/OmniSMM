@@ -39,7 +39,7 @@ export function DeleteArticleButton({ id }: DeleteArticleButtonProps) {
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      className="min-h-[44px] min-w-[76px] px-3 py-2 bg-destructive/10 hover:bg-destructive/20 active:scale-[0.98] disabled:opacity-50 text-destructive font-bold text-xs rounded-xl transition-all flex items-center justify-center cursor-pointer"
+      className="px-3 py-1.5 bg-destructive/10 hover:bg-destructive/20 active:scale-[0.98] disabled:opacity-50 text-destructive font-semibold text-xs rounded-lg transition-all flex items-center justify-center cursor-pointer"
       title="Удалить статью"
     >
       {isDeleting ? "Удаление..." : "Удалить"}

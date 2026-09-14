@@ -372,23 +372,18 @@ export function CategoryManager({
   };
 
   return (
-    <div className="flex flex-col gap-5 w-full">
-      
-      {/* ─── Top Clean Header ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
-              <Layers className="w-5 h-5 text-primary" />
-              Соцсети & Категории
-            </h1>
-            <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full border border-border/50">
-              {networks.length} соцсетей · {categories.length} категорий
+    <div className="flex flex-col gap-4 w-full">
+      {/* ─── Consolidated Action & Stats Bar ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border/70 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg border border-border/50">
+            {networks.length} соцсетей · {categories.length} категорий
+          </span>
+          {emptyCategoriesCount > 0 && (
+            <span className="text-xs font-mono font-bold text-destructive bg-destructive/10 px-2.5 py-1 rounded-lg border border-destructive/25">
+              Пустых: {emptyCategoriesCount}
             </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Управление структурой каталога, привязками к соцсетям и правилами анализатора ссылок.
-          </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -397,7 +392,7 @@ export function CategoryManager({
               intent="destructive"
               size="sm"
               onClick={() => setCleanupConfirmOpen(true)}
-              className="font-bold h-9 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 cursor-pointer"
+              className="font-bold h-8.5 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 mr-1.5" />
               Очистить пустые ({selectedNetworkFilter !== 'ALL' && selectedNetworkEmptyCount > 0 ? `${selectedNetworkEmptyCount} в сети` : emptyCategoriesCount})
@@ -408,7 +403,7 @@ export function CategoryManager({
             intent="outline"
             size="sm"
             onClick={() => setMergeModalOpen(true)}
-            className="font-bold h-9 bg-background text-muted-foreground hover:text-foreground cursor-pointer"
+            className="font-bold h-8.5 bg-background text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <GitMerge className="w-3.5 h-3.5 mr-1.5" />
             Объединить
@@ -425,7 +420,7 @@ export function CategoryManager({
               setNetError(null);
               setNetworkModalOpen(true);
             }}
-            className="font-bold h-9 bg-background text-muted-foreground hover:text-foreground cursor-pointer"
+            className="font-bold h-8.5 bg-background text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <Globe className="w-3.5 h-3.5 mr-1.5" />
             Соцсети ({networks.length})
@@ -435,7 +430,7 @@ export function CategoryManager({
             intent="primary"
             size="sm"
             onClick={openNewCategoryModal}
-            className="font-bold h-9 cursor-pointer"
+            className="font-bold h-8.5 cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Добавить категорию
@@ -444,7 +439,7 @@ export function CategoryManager({
       </div>
 
       {/* ─── Filter & Search Bar ─── */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 bg-card p-3 rounded-2xl border border-border shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center gap-3 bg-card p-3 rounded-xl border border-border/70 shadow-2xs">
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <input
@@ -452,13 +447,13 @@ export function CategoryManager({
             placeholder="Поиск по категории или соцсети..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full h-9 pl-9 pr-3 text-xs rounded-xl border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full h-8.5 pl-9 pr-3 text-xs rounded-lg border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
 
         <div className="w-full sm:w-56">
           <Select value={selectedNetworkFilter} onValueChange={val => setSelectedNetworkFilter(val || 'ALL')}>
-            <SelectTrigger className="w-full h-9 border border-border bg-background text-foreground text-xs rounded-xl cursor-pointer px-3">
+            <SelectTrigger className="w-full h-8.5 border border-border bg-background text-foreground text-xs rounded-lg cursor-pointer px-3">
               <SelectValue placeholder="Все соцсети">
                 {(value: string) => {
                   if (value === 'ALL') return 'Все соцсети';

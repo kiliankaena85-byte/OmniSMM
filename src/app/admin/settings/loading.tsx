@@ -1,6 +1,6 @@
 import { Settings } from 'lucide-react';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
-import { SYSTEM_TABS } from '@/components/admin/navigation-data';
+import { SYSTEM_TABS, ONBOARDING_CONFIGS } from '@/components/admin/navigation-data';
 
 export default function SettingsLoading() {
   return (
@@ -11,10 +11,12 @@ export default function SettingsLoading() {
         title="Настройки системы"
         description="Загрузка параметров платформы и конфигурации..."
         tabs={SYSTEM_TABS}
+        onboardingKey="settings"
+        onboarding={ONBOARDING_CONFIGS.settings}
       />
 
       {/* Settings Tab Content Skeleton */}
-      <div className="bg-card rounded-xl border border-border/70 p-6 shadow-sm space-y-6">
+      <div className="bg-card rounded-lg border border-border/70 p-6 shadow-xs space-y-6">
         <div className="space-y-2 border-b border-border/40 pb-4">
           <div className="h-6 w-48 bg-muted/40 animate-pulse rounded" />
           <div className="h-3.5 w-80 bg-muted/30 animate-pulse rounded" />

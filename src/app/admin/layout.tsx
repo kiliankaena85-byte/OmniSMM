@@ -161,7 +161,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <div className="flex-1 min-w-0 h-screen overflow-y-auto has-[.tickets-workspace]:overflow-hidden p-0 md:p-3.5 z-10 relative flex flex-col">
             <SystemEmergencyBanner />
             {/* Top Sticky Header Bar with Mobile Drawer, Global Site Switcher & Profile Dropdown */}
-            <header className="sticky top-0 z-30 mb-2 px-3 md:px-3 py-2 md:py-2.5 flex items-center justify-between gap-3 shrink-0 bg-background/90 backdrop-blur-md border-b border-border/50 shadow-xs md:rounded-xl">
+            <header className="sticky top-0 z-30 mb-2 px-3 md:px-3 py-2 md:py-2.5 flex items-center justify-between gap-3 shrink-0 bg-background/90 backdrop-blur-md border-b border-border/70 shadow-xs md:rounded-lg">
               <div className="flex items-center gap-2 md:gap-3">
                 <MobileNavDrawer
                   userEmail={user.email}
@@ -185,7 +185,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               </div>
             </header>
 
-            <main id="main-content" tabIndex={-1} className="w-full flex-1 min-h-fit has-[.tickets-workspace]:min-h-0 flex flex-col relative transition-all duration-200 bg-card md:rounded-xl md:border md:border-border/60 md:shadow-sm outline-none has-[.tickets-workspace]:h-full has-[.tickets-workspace]:overflow-hidden">
+            <main id="main-content" tabIndex={-1} className="w-full flex-1 min-h-fit has-[.tickets-workspace]:min-h-0 flex flex-col relative transition-all duration-200 bg-card md:rounded-lg md:border md:border-border/70 md:shadow-xs outline-none has-[.tickets-workspace]:h-full has-[.tickets-workspace]:overflow-hidden">
               <div className="w-full flex-1 min-h-fit has-[.tickets-workspace]:min-h-0 flex flex-col relative p-3 md:p-4.5 has-[.tickets-workspace]:p-0 has-[.tickets-workspace]:h-full has-[.tickets-workspace]:overflow-hidden">
                 {children}
               </div>

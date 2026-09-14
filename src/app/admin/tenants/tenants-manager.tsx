@@ -135,16 +135,16 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
   return (
     <div className="space-y-6 sm:space-y-8 font-sans text-foreground">
       {/* ── HEADER BANNER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-3xl p-5 sm:p-6 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border/70 rounded-lg p-5 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <span className="p-2.5 rounded-2xl bg-primary/10 text-primary shrink-0">
+            <span className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
               <Globe className="w-5 h-5" />
             </span>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+              <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
                 Бренды & Домены (White-Label)
-              </h1>
+              </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Масштабируйте бизнес: подключайте новые сайты-сателлиты с индивидуальным брендингом
               </p>
@@ -154,7 +154,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer min-h-[44px] shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-all duration-200 active:scale-[0.98] cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Добавить бренд</span>
@@ -163,28 +163,28 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
 
       {/* ── METRIC STATS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-1">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Всего сайтов</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-foreground font-mono">{tenants.length}</span>
+            <span className="text-2xl font-bold text-foreground font-mono">{tenants.length}</span>
             <Layers className="w-5 h-5 text-primary" />
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-1">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Активные бренды</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
               {tenants.filter(t => t.isActive).length}
             </span>
             <Activity className="w-5 h-5 text-emerald-500" />
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-1">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Изоляция данных</span>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground">PostgreSQL Multi-Tenant</span>
+            <span className="text-xs font-semibold text-foreground">PostgreSQL Multi-Tenant</span>
             <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
         </div>
@@ -198,8 +198,8 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
           return (
             <div 
               key={tenant.id}
-              className={`bg-card border rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-6 transition-all duration-200 relative overflow-hidden ${
-                tenant.isActive ? 'border-border hover:border-primary/40 hover:shadow-md' : 'border-border/60 opacity-80'
+              className={`bg-card border rounded-lg p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-6 transition-all duration-200 relative overflow-hidden ${
+                tenant.isActive ? 'border-border/70 hover:border-primary/40 hover:shadow-md' : 'border-border/60 opacity-80'
               }`}
             >
               <div className="space-y-4">
@@ -229,7 +229,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
 
                 {/* Domain info box */}
                 <div className="space-y-2 pt-2 border-t border-border/60 text-xs">
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-secondary/30 border border-border/40 gap-2">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border/40 gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Globe className="w-4 h-4 text-primary shrink-0" />
                       <span className="font-mono font-bold text-foreground truncate text-xs">{tenant.domain}</span>
@@ -237,7 +237,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                     <div className="flex items-center gap-1 shrink-0">
                       <button 
                         onClick={() => handleCopy(tenant.domain)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                         title="Скопировать домен"
                       >
                         {copiedDomain === tenant.domain ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -246,7 +246,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                         href={`https://${tenant.domain}`} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
+                        className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
                         title="Открыть сайт"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -272,7 +272,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
               <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-2">
                 <Link
                   href={`/admin/settings?tenant=${tenant.id}`}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80 text-foreground flex items-center gap-1.5 transition-all min-h-[38px]"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-secondary hover:bg-secondary/80 text-foreground flex items-center gap-1.5 transition-all"
                 >
                   <Settings className="w-3.5 h-3.5 text-muted-foreground" />
                   <span>Настройки</span>
@@ -282,7 +282,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                   <button
                     disabled={isSystem || loading}
                     onClick={() => handleToggle(tenant.id, tenant.isActive)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[38px] ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       tenant.isActive 
                         ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
                         : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
@@ -295,7 +295,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                     <button
                       disabled={loading}
                       onClick={() => handleDelete(tenant.id, tenant.name)}
-                      className="p-2 rounded-xl text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all cursor-pointer flex items-center justify-center"
                       title="Удалить бренд"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -311,24 +311,24 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
       {/* ── MODAL DIALOG: ADD NEW TENANT ── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl space-y-6 relative">
+          <div className="bg-card border border-border/70 rounded-lg p-6 sm:p-8 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl space-y-6 relative">
             <div className="flex items-center justify-between border-b border-border pb-4 sticky top-0 bg-card z-10">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                <span className="p-2 rounded-lg bg-primary/10 text-primary">
                   <Plus className="w-5 h-5" />
                 </span>
-                <h2 className="text-xl font-black text-foreground">Подключение нового бренда</h2>
+                <h2 className="text-base sm:text-lg font-bold text-foreground">Подключение нового бренда</h2>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold p-2 cursor-pointer rounded-xl hover:bg-secondary"
+                className="text-muted-foreground hover:text-foreground text-sm font-semibold p-1.5 cursor-pointer rounded-lg hover:bg-secondary"
               >
                 ✕
               </button>
             </div>
 
             {error && (
-              <div className="p-3.5 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -336,7 +336,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
 
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="font-bold text-foreground">Название бренда (Site Name)</label>
+                <label className="font-semibold text-foreground">Название бренда (Site Name)</label>
                 <input
                   type="text"
                   required
@@ -348,49 +348,49 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                       setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'));
                     }
                   }}
-                  className="w-full px-4 py-3 rounded-2xl bg-background border border-border focus:border-primary focus:outline-none text-foreground text-xs"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-foreground">Идентификатор (Slug / ID)</label>
+                  <label className="font-semibold text-foreground">Идентификатор (Slug / ID)</label>
                   <input
                     type="text"
                     required
                     placeholder="partner"
                     value={slug}
                     onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-foreground">Основной домен</label>
+                  <label className="font-semibold text-foreground">Основной домен</label>
                   <input
                     type="text"
                     required
                     placeholder="smmpartner.ru"
                     value={domain}
                     onChange={e => setDomain(e.target.value.toLowerCase().trim())}
-                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-foreground">Дополнительный домен / Алиас (Опционально)</label>
+                <label className="font-semibold text-foreground">Дополнительный домен / Алиас (Опционально)</label>
                 <input
                   type="text"
                   placeholder="www.smmpartner.ru"
                   value={customDomain}
                   onChange={e => setCustomDomain(e.target.value.toLowerCase().trim())}
-                  className="w-full px-4 py-3 rounded-2xl bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
                 />
               </div>
 
-              <div className="p-4 rounded-2xl bg-secondary/40 border border-border/50 space-y-2 text-[11px] text-muted-foreground">
-                <span className="font-bold text-foreground block flex items-center gap-1.5">
+              <div className="p-3.5 rounded-lg bg-secondary/40 border border-border/50 space-y-2 text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground block flex items-center gap-1.5">
                   <Radio className="w-3.5 h-3.5 text-primary" />
                   DNS Инструкция:
                 </span>
@@ -401,14 +401,14 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl font-bold bg-secondary hover:bg-secondary/80 text-foreground transition-all cursor-pointer min-h-[40px]"
+                  className="px-4 py-2 rounded-lg font-semibold bg-secondary hover:bg-secondary/80 text-foreground transition-all cursor-pointer"
                 >
                   Отмена
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 disabled:opacity-50 cursor-pointer min-h-[40px]"
+                  className="px-5 py-2 rounded-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs transition-all duration-200 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Создание...' : 'Создать бренд'}
                 </button>

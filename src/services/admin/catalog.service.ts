@@ -369,6 +369,12 @@ class AdminCatalogService {
         andConditions.push({
           cooldownReason: { in: ['ZOMBIE_AUTO_DISABLED', 'ZOMBIE_ARCHIVED'] },
         });
+      } else if (params.providerStatus === 'cooldown') {
+        andConditions.push({
+          isActive: true,
+          cooldownUntil: { gt: new Date() },
+          cooldownReason: { notIn: ['ZOMBIE_AUTO_DISABLED', 'ZOMBIE_ARCHIVED'] },
+        });
       } else if (params.providerStatus === 'manual') {
         andConditions.push({
           providerId: null,

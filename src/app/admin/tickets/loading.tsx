@@ -1,6 +1,6 @@
 import { MessageSquare } from 'lucide-react';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
-import { OPERATIONS_TABS } from '@/components/admin/navigation-data';
+import { OPERATIONS_TABS, ONBOARDING_CONFIGS } from '@/components/admin/navigation-data';
 
 export default function TicketsLoading() {
   return (
@@ -10,6 +10,8 @@ export default function TicketsLoading() {
         title="Тикеты поддержки"
         description="Загрузка обращений клиентов..."
         tabs={OPERATIONS_TABS}
+        onboardingKey="tickets"
+        onboarding={ONBOARDING_CONFIGS.tickets}
       />
 
       {/* Tickets Search & Filter Skeleton */}
@@ -20,7 +22,7 @@ export default function TicketsLoading() {
       </div>
 
       {/* Tickets List Skeleton */}
-      <div className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-sm divide-y divide-border/40">
+      <div className="bg-card rounded-lg border border-border/70 overflow-hidden shadow-xs divide-y divide-border/40">
         {[...Array(7)].map((_, i) => (
           <div key={i} className="p-4 flex items-center justify-between gap-4">
             <div className="space-y-1.5 flex-1">

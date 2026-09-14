@@ -67,7 +67,7 @@ export type RefillItemDTO = {
   };
 };
 
-const STATUS_LABELS: Record<string, { label: string; intent: 'primary' | 'secondary' | 'destructive'; bg: string }> = {
+export const STATUS_LABELS: Record<string, { label: string; intent: 'primary' | 'secondary' | 'destructive'; bg: string }> = {
   PENDING: { label: 'Ожидает', intent: 'secondary', bg: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
   IN_PROGRESS: { label: 'В работе', intent: 'primary', bg: 'bg-primary/10 text-primary border-primary/20' },
   COMPLETED: { label: 'Выполнен', intent: 'secondary', bg: 'bg-success/10 text-success border-success/20' },
@@ -75,7 +75,7 @@ const STATUS_LABELS: Record<string, { label: string; intent: 'primary' | 'second
   ERROR: { label: 'Ошибка API', intent: 'destructive', bg: 'bg-destructive/10 text-destructive border-destructive/20' },
 };
 
-function formatAge(date: string | Date): { text: string; isOld: boolean } {
+export function formatAge(date: string | Date): { text: string; isOld: boolean } {
   const diffMs = Date.now() - new Date(date).getTime();
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffHours / 24);
@@ -221,7 +221,7 @@ export function RefillsTable({
     <div className="w-full space-y-4">
       {/* ── 1. Kill-Switch Banner & Status ── */}
       <div
-        className={`p-4 rounded-2xl border transition-all duration-300 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm ${
+        className={`p-4 rounded-lg border transition-all duration-300 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs ${
           isModuleEnabled
             ? 'bg-success/5 border-success/20'
             : 'bg-destructive/10 border-destructive/30'
@@ -229,7 +229,7 @@ export function RefillsTable({
       >
         <div className="flex items-center gap-3">
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
               isModuleEnabled ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
             }`}
           >
@@ -278,14 +278,14 @@ export function RefillsTable({
       </div>
 
       {/* ── 2. Toolbar: Search & Filter Pills ── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/40 p-2 rounded-2xl border border-border/40 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/40 p-2 rounded-lg border border-border/70 backdrop-blur-sm shadow-xs">
         {/* Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'all'
-                ? 'bg-primary text-primary-foreground shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -296,9 +296,9 @@ export function RefillsTable({
           </button>
           <button
             onClick={() => setStatusFilter('PENDING')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'PENDING'
-                ? 'bg-amber-500 text-white shadow-sm'
+                ? 'bg-amber-500 text-white shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -309,9 +309,9 @@ export function RefillsTable({
           </button>
           <button
             onClick={() => setStatusFilter('IN_PROGRESS')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'IN_PROGRESS'
-                ? 'bg-primary text-primary-foreground shadow-sm'
+                ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -323,9 +323,9 @@ export function RefillsTable({
           </button>
           <button
             onClick={() => setStatusFilter('COMPLETED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'COMPLETED'
-                ? 'bg-success text-success-foreground shadow-sm'
+                ? 'bg-success text-success-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -336,9 +336,9 @@ export function RefillsTable({
           </button>
           <button
             onClick={() => setStatusFilter('ERROR_OR_REJECTED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'ERROR_OR_REJECTED'
-                ? 'bg-destructive text-destructive-foreground shadow-sm'
+                ? 'bg-destructive text-destructive-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -358,7 +358,7 @@ export function RefillsTable({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Поиск по № заказа, ссылке, email..."
-            className="pl-8 pr-3 h-8.5 text-xs bg-background/80"
+            className="pl-8 pr-3 h-8.5 text-xs bg-background/80 rounded-lg"
           />
           {search && (
             <button
@@ -372,7 +372,7 @@ export function RefillsTable({
       </div>
 
       {/* ── 3. Table Card ── */}
-      <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-[24px] shadow-sm ring-1 ring-border/5 overflow-hidden p-0">
+      <div className="bg-card/60 backdrop-blur-md border border-border/70 rounded-lg shadow-xs overflow-hidden p-0">
         <Table className="table-fixed w-full" aria-label="Таблица заявок на докрутку">
           <TableHeader>
             <TableRow>
@@ -401,7 +401,7 @@ export function RefillsTable({
               <TableRow>
                 <TableCell colSpan={6} className="py-12 px-6">
                   <div className="py-10 text-center space-y-4 max-w-md mx-auto">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mx-auto">
                       <SlidersHorizontal className="w-6 h-6" />
                     </div>
                     <div>

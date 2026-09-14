@@ -245,7 +245,7 @@ export function PatternsClient({ initialPatterns, networks }: PatternsClientProp
   return (
     <div className="space-y-6">
       {/* Top Filter & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-xl p-4 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border/70 rounded-lg p-4 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Filter className="w-4 h-4" />
@@ -278,7 +278,7 @@ export function PatternsClient({ initialPatterns, networks }: PatternsClientProp
       </div>
 
       {/* Patterns Table */}
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-card border border-border/70 rounded-lg shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 text-muted-foreground uppercase font-medium border-b border-border text-[11px]">
@@ -347,8 +347,8 @@ export function PatternsClient({ initialPatterns, networks }: PatternsClientProp
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border/70 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
               <div className="flex items-center gap-2.5">
@@ -550,8 +550,8 @@ export function PatternsClient({ initialPatterns, networks }: PatternsClientProp
 
       {/* Delete Confirm Modal */}
       {isDeleteModalOpen && deletingPattern && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border/70 rounded-lg shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-2 text-destructive font-semibold text-base">
               <AlertTriangle className="w-5 h-5" />
               Удаление паттерна

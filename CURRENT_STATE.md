@@ -1,4 +1,298 @@
-# CURRENT_STATE.md
+- [x] ⚡ [SIL-2026] Шаг 20: Атомарная проработка и аудит экрана /admin/system/features & Layout Master Wrapper (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/system/features/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `ToggleLeft`, заголовок «Управление фичами (Feature Flags)», табы `SYSTEM_TABS`, `onboardingKey="features"`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона воспроизводит легенду статусов, шапки групп флагов и строки таблицы.
+  * 🛡️ **Инварианты стейт-машины фича-флагов (Three-State State Machine):**
+    - Подтвержден циклический переход `OFF` -> `TEST` -> `ON` -> `OFF`.
+    - Подтверждена защита изоляции тестовых пользователей в режиме `TEST` (`isEnabled(key, isTestUser)`).
+    - Инвалидация кэша в Redis (`ff:{key}`) происходит немедленно при переключении.
+  * 🎨 **Нормализация дизайн-токенов верстки (RLS-2026):**
+    - В `src/app/admin/system/features/feature-flags-client.tsx` легенда режимов, контейнеры групп флагов и таблица переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+    - В глобальном мастер-макете `src/app/admin/layout.tsx` шапка Header и контейнер основного контента `main` приведены к каноническим токенам `md:rounded-lg md:border md:border-border/70 md:shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-features-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют всех 20 экранов админки: 88/88 PASS (4.36s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-FEATURES]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 19: Атомарная проработка и аудит экрана /admin/knowledge (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/knowledge/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `BookOpen`, заголовок «База знаний & Блог», табы `SYSTEM_TABS`, `onboardingKey="knowledge"`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона воспроизводит 3 виджета метрик блога, шапку таблицы и 5 скелетон-строк статей.
+  * 🛡️ **Инварианты статистики и предпросмотра статей:**
+    - Подтверждена точная калькуляция опубликованных статей (`status === "PUBLISHED"`) и суммарного счетчика просмотров `viewCount`.
+    - Ссылки публичного предпросмотра формируются строго по каноническому маршруту `/knowledge/:slug`.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - В `src/app/admin/knowledge/page.tsx` карточки метрик (Всего статей, Опубликовано, Всего просмотров), контейнер таблицы статей и кнопки действий («Просмотр», «Редактировать») переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+    - В `src/app/admin/knowledge/DeleteArticleButton.tsx` кнопка удаления нормализована до `rounded-lg`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-knowledge-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-19: 84/84 PASS (4.10s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-KNOWLEDGE]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 18: Атомарная проработка и аудит экрана /admin/pages (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/pages/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `FileText`, заголовок «CMS Страницы», табы `SYSTEM_TABS`, `onboardingKey="pages"`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона воспроизводит шапку таблицы и 5 скелетон-строк страниц.
+  * 🛡️ **Инварианты маршрутизации и предпросмотра (Preview Routing Invariant):**
+    - Страницы правового контура (`privacy`, `terms`, `refund`, `rules`, `cookie`) маршрутизируются строго на `/legal/:slug`.
+    - Пользовательские статические CMS страницы маршрутизируются на `/p/:slug`.
+    - Маршрут создания `/admin/pages/new` перенаправляет на актуальный редактор `/admin/cms/new`.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - В `src/app/admin/pages/page.tsx` контейнер таблицы переведен с устаревшего `rounded-2xl shadow-sm` на канонические токены `rounded-lg border border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-pages-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-18: 80/80 PASS (4.01s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-PAGES]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 17: Атомарная проработка и аудит экрана /admin/tenants (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/tenants/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `Globe`, заголовок «Бренды и Мульти-арендаторы», табы `SYSTEM_TABS`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона строго повторяет верхний баннер действий, 3 карточки метрик (Всего сайтов, Активные бренды, Изоляция данных) и карточки брендов.
+  * 🛡️ **Инварианты мульти-тенантности OmniSMM 1.0:**
+    - Подтверждена защита базовых системных брендов (`smmplan`, `flux`) от удаления и деактивации (`isSystem: true`).
+    - Проверена изоляция тенантов в PostgreSQL и Edge Runtime (`normalizeTenantId`, `resolveTenantFromHostEdge`).
+    - Исключены фантомные бренды с гарантией суверенного налогового барьера ст. 54.1 НК РФ.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - В `src/app/admin/tenants/tenants-manager.tsx` нормализованы заголовочный баннер действий, 3 карточки метрик, карточки брендов/витрин, боксы доменов и модальное окно добавления нового бренда до канонических токенов `rounded-lg border-border/70 shadow-xs / shadow-2xl`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-tenants-integrity.test.ts` (5/5 PASS).
+    - Пройден полный регрессионный сьют шагов 1-17: 76/76 PASS (3.97s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-TENANTS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 16: Атомарная проработка и аудит экрана /admin/settings/roles (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/settings/roles/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `ShieldCheck`, заголовок «Роли и матрица прав», табы `SYSTEM_TABS`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона строго повторяет верхний тулбар действий, 3 карточки ролей-пресетов и строки матрицы прав.
+  * 🛡️ **Целостность RBAC и защита системных ролей:**
+    - Подтверждена защита ролей `isSystem: true` от удаления и смены названия.
+    - Подтверждена блокировка удаления ролей с активными сотрудниками (`_count.users > 0`) с информативной подсказкой.
+    - Проверена структура всех 16 секций матрицы прав (`RbacSectionId`), гарантируя паритет с константами `ADMIN_PERMISSIONS` и правилом Grant Ceiling.
+  * 🎨 **Синхронизация и нормализация дизайн-токенов верстки:**
+    - В `src/app/admin/settings/roles/page.tsx` добавлен проп `icon={ShieldCheck}` в `AdminTabbedHeader`.
+    - В `src/app/admin/settings/roles/roles-client.tsx` нормализованы заголовочная карточка действий, контейнер таблицы ролей, быстрые тумблеры матриц прав, разделители секций, модальные окна создания/редактирования, клонирования и удаления до канонических токенов `rounded-lg border-border/70 shadow-2xl / shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-roles-integrity.test.ts` (5/5 PASS).
+    - Пройден полный регрессионный сьют шагов 1-16: 71/71 PASS (3.74s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-ROLES]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 15: Атомарная проработка и аудит экрана /admin/settings (100% COMPLETE & VERIFIED):
+  * 🎨 **Синхронизация скелетона загрузки (`loading.tsx`):**
+    - В `src/app/admin/settings/loading.tsx` синхронизированы онбординг `onboardingKey="settings"` и конфигурация `ONBOARDING_CONFIGS.settings`.
+    - Скелетон формы параметров переведен на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🛡️ **Архитектура кластеризации настроек (Master Clusters):**
+    - Реализована декомпозиция на 3 мастер-кластера (`showcase`, `integrations`, `security`) и 9 специализированных под-вкладок (`system`, `catalog`, `integrations`, `telegram`, `proxy`, `storefront`, `team`, `templates`, `audit`).
+    - Гарантирована 100% обратная совместимость со старыми ссылками (`resolveSettingsNavigation`).
+  * 🔒 **Безопасность секретов (Zero Key Exposure):**
+    - Подтверждено серверное маскирование всех 11 критических токенов и ключей шлюзов маской `••••••••••••••••`, полностью исключая утечку реальных учетных данных клиенту.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Карточки мастер-кластеров `SettingsClusterTabs`, под-вкладки, чек-лист готовности `OnboardingReadinessBar`, 4 куба состояния шлюзов и инфраструктуры в `SystemHealthOverview` переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-settings-integrity.test.ts` (6/6 PASS).
+    - Пройден полный регрессионный сьют шагов 1-15 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions, Finance, Marketing, Refills, Tickets, Settings): 66/66 PASS (3.48s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-SETTINGS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 14: Атомарная проработка и аудит экрана /admin/tickets (100% COMPLETE & VERIFIED):
+  * 🎨 **Синхронизация скелетона загрузки (`loading.tsx`):**
+    - В `src/app/admin/tickets/loading.tsx` подключены `onboardingKey="tickets"` и конфигурация `ONBOARDING_CONFIGS.tickets`.
+    - Скелетон списка диалогов и тулбар фильтрации переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🛡️ **Целостность службы поддержки & Эскроу-лимиты:**
+    - Подтвержден расчет суточного бюджета доверия оператора (`supportLimitCents`) с жестким анкерированием к 00:00 МСК (`getMSKMidnightUTC`). Начисления свыше лимита либо аномальные суммы (> 100 000 ₽) принудительно отправляются в карантин транзакций.
+    - Проверена точность расчета SLA (`getSupportSlaInfo`: 15 мин в дневную смену с 08:00 до 22:59 МСК, 45 мин в ночное дежурство с 23:00 до 07:59 МСК).
+    - Зафиксирован инвариант отмены заказов в тикетах: разрешена отмена только для незавершенных статусов (`PENDING`, `AWAITING_PAYMENT`, `IN_PROGRESS`, `ERROR`) с проверкой прав саппорта. Выполненные и частично закрытые закалы защищены от отмены.
+  * 🎨 **Нормализация дизайн-токенов воркспейса:**
+    - Аватары диалогов, карточки обращений в сайдбаре, плашки прикрепленных заказов в шапке чата, экшн-кнопки и пустое состояние в `UnifiedTicketsWorkspace` и `TicketsSidebar` приведены к стандарту `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-tickets-integrity.test.ts` (6/6 PASS).
+    - Пройден полный регрессионный сьют шагов 1-14 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions, Finance, Marketing, Refills, Tickets): 60/60 PASS (3.31s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-TICKETS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 13: Атомарная проработка и аудит экрана /admin/refills (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/refills/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `RefreshCw`, заголовок «Гарантийные Докрутки (Refills)», табы `OPERATIONS_TABS`, `onboardingKey="refills"`), полностью устранив Layout Shift (CLS).
+    - Структура скелетона строго повторяет Kill-Switch баннер, тулбар фильтрации статусов и строки реестра заявок на докрутку.
+  * 🛡️ **Целостность жизненного цикла докруток & Kill-Switch:**
+    - Подтвержден глобальный Kill-Switch (`toggleRefillModuleAction` через `SettingsProvider.isRefillModuleEnabled()`), защищающий платформу при сбоях поставщиков.
+    - Зафиксирован инвариант терминальности статуса `COMPLETED`: запрещен повторный перезапуск выполненных докруток для исключения повторного расхода баланса.
+    - Проверена точность расчета возраста заявки (`formatAge`: минуты, часы, дни, индикатор задержки `isOld >= 2 дней` для заказов в работе).
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Kill-Switch баннер, тулбар фильтрации статусов (`Все`, `Ожидают`, `В работе`, `Выполнены`, `Сбои / Отказ`), строка поиска, контейнер таблицы и пустое состояние переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-refills-integrity.test.ts` (5/5 PASS).
+    - Пройден полный регрессионный сьют шагов 1-13 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions, Finance, Marketing, Refills): 54/54 PASS (3.09s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-REFILLS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 12: Атомарная проработка и аудит экрана /admin/marketing (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/marketing/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `Gift`, заголовок «Маркетинг», табы `FINANCE_TABS`, `onboardingKey="marketing"`), ликвидировав Layout Shift (CLS).
+    - Структура скелетона строго повторяет табы переключения, тулбар фильтрации промокодов, таблицу промокодов и KPI карточки партнерской программы.
+  * 🛡️ **Финансовая целостность реферальных выплат и промокодов:**
+    - Зафиксирован инвариант запрета частичных реферальных выплат (`adminMarketingService.processPayout`), гарантирующий атомарное перемещение баланса через `WalletOps.credit` с `idempotencyKey` и проверку гонок по балансу (`count === 0`).
+    - Проверена строгая валидация типов промокодов (`DISCOUNT` снижает стоимость с лимитом 100%, `VOUCHER` начисляет баланс без изменения цены заказа) и нормализация кода в верхний регистр (`toUpperCase()`).
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Табы переключения (`MarketingTabs`), карточка промокодов, тулбар фильтрации, карточки KPI реферальной программы (Выплачено, В ожидании, Топ рефоводов) и таблицы переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-marketing-integrity.test.ts` (3/3 PASS).
+    - Пройден полный регрессионный сьют шагов 1-12 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions, Finance, Marketing): 49/49 PASS (2.67s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-MARKETING]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 11: Атомарная проработка и аудит экрана /admin/finance (100% COMPLETE & VERIFIED):
+  * 🎨 **Синхронизация скелетона загрузки (`loading.tsx`):**
+    - В `src/app/admin/finance/loading.tsx` устаревшая иконка `CreditCard` заменена на каноническую `Wallet`, а заголовок синхронизирован с рабочим экраном («Финансовый учёт & Касса») с добавлением онбординга `onboardingKey="finance"` и 4 табов `FINANCE_TABS`, ликвидировав Layout Shift (CLS).
+    - Структура скелетона строго повторяет 4 модульных таба, сетку 4 KPI-карточек и декомпозицию P&L.
+  * 🛡️ **Целостность P&L калькуляции и лимит УСН 2026:**
+    - Проверена точность P&L калькуляции (`AccountingService`): расчет валовой выручки, возвратов, комиссий эквайринга (~3.5% ЮKassa, ~1% CryptoBot), себестоимости COGS пропорционально выполненным единицам и OPEX.
+    - Проверена динамическая адаптация ставки налога при превышении лимита выручки УСН 20 млн ₽ (2 млрд копеек) с автоматическим начислением НДС 5%.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - 4 модульные вкладки переключения, карточки KPI (Gross, Refunds, COGS, Маржа), блок декомпозиции EBITDA, тулбар фильтрации платежей и панель настроек переведены на токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-finance-integrity.test.ts` (3/3 PASS).
+    - Пройден полный регрессионный сьют шагов 1-11 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions, Finance): 46/46 PASS (2.50s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-FINANCE]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 10: Атомарная проработка и аудит экрана /admin/transactions (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/transactions/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `ArrowLeftRight`, заголовок «Транзакции платформы (Ledger)», табы `FINANCE_TABS`, `onboardingKey="finance"`), ликвидировав Layout Shift (CLS).
+    - Структура скелетона строго повторяет рабочий экран (4 KPI карточки сводки, тулбар фильтрации, поле поиска, чипсы типов, строки таблицы и пагинаторы).
+  * 🛡️ **Резолюция типов Ledger и двусторонняя фильтрация сумм:**
+    - Проверена строгая классификация проводок (`resolveLedgerTypeForDisplay`): однозначный маппинг современных типов (`TOPUP`, `ORDER_CHARGE`, `ORDER_CANCEL`, `REFUND`, `COMPENSATION`, `ADJUSTMENT`, `REROUTE`) и legacy `PAYMENT` со 100% покрытием в `LEDGER_TYPE_CONFIG`.
+    - Проверена двусторонняя фильтрация по суммам (дебет/кредит) и поиск потерянных платежей (допуск $\pm 10\%$ за последние 3 дня с выборкой по `gatewayId`).
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Карточки KPI, тулбар фильтрации, инпуты поиска и сумм, кнопка фильтров со счетчиком, селектор периодов, контейнер таблицы и экшн-кнопка экспорта CSV переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-transactions-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-10 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients, Transactions): 43/43 PASS (2.33s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-TRANSACTIONS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 9: Атомарная проработка и аудит экрана /admin/clients (100% COMPLETE & VERIFIED):
+  * 🎨 **Синхронизация скелетона загрузки (`loading.tsx`):**
+    - В `src/app/admin/clients/loading.tsx` устаревший `AdminPageHeader` заменен на канонический `AdminTabbedHeader` (иконка `Users`, заголовок «Клиенты платформы», табы `FINANCE_TABS`, `onboardingKey="clients"`), ликвидировав Layout Shift (CLS).
+    - Структура скелетона строго синхронизирована с рабочим экраном (строка KPI обязательств Liability, тулбар фильтров-чипсов, поле поиска с быстрым селектором сортировки, строки таблицы с бейджами и аватарами клиентов).
+  * 🛡️ **Иммунитет сортировки и защита обязательств Liability:**
+    - Зафиксирована валидация параметров сортировки по белому списку `USER_SORT_FIELDS` (`createdAt`, `balance`, `totalSpent`, `orders`, `email`, `role`) с детерминированным тай-брейкером `{ id: 'desc' }`.
+    - Проверена строгая изоляция финансовой сводки (`canSeeFinances`): общие обязательства платформы Liability (`stats.totalLiability`) и балансы скрыты от несанкционированных ролей.
+    - Проверена классификация клиентов по тирам объема (`getVolumeTier`: Regular, Bronze, Silver, Gold, Platinum) и B2B детектор.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Кнопка экспорта CSV, карточка фильтрации, поисковое поле с кнопкой, селектор сортировки `ClientQuickSort`, контейнер таблицы и кнопка перехода в карточку переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-clients-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-9 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import, Clients): 39/39 PASS (2.22s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-CLIENTS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 8: Атомарная проработка и аудит экрана /admin/providers/import (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/providers/import/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `Download`, заголовок «Импорт Услуг», табы `CATALOG_TABS`), устранив Layout Shift (CLS) и подмену родительского заголовка провайдеров.
+  * 🛡️ **Ценовой пол и финансовая безопасность (`SAFETY_FLOOR_MARKUP`):**
+    - Зафиксирована валидация розничных цен при импорте через формулу покрытия обязательных сборов (`SafetyPrice = Cost * (1 + 3.0) / (1 - 0.145)`), психологическое округление кратно 10/100 (`applyBeautifulRounding`) и порог отсечения ценовых аномалий (`checkPriceSanityLimit`).
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Блоки пустого состояния (`!canImport`) и кнопки перехода к добавлению провайдера/категории переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-import-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-8 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers, Import): 35/35 PASS (2.02s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-IMPORT]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 7: Атомарная проработка и аудит экрана /admin/providers (100% COMPLETE & VERIFIED):
+  * 🎨 **Синхронизация скелетона загрузки (`loading.tsx`):**
+    - В `src/app/admin/providers/loading.tsx` устаревшая иконка `LinkIcon` заменена на каноническую `Plug`, добавлены `onboardingKey="providers"` и `onboarding` конфигурация.
+    - Структура скелетона приведена к 100% соответствию рабочему экрану (виджет глобальной ликвидности `LiquidityDashboard` + тулбар фильтров + строки таблицы шлюзов), ликвидирован Layout Shift (CLS).
+  * 🛡️ **Безопасность секретов & Мониторинг ликвидности:**
+    - Зафиксирован инвариант строгой изоляции API-ключей в `ProviderListDTO` и `ProviderDetailDTO` (Zero Key Exposure).
+    - Проверены расчеты Runway Days (запас хода по ликвидности при 24-часовом расходе) и градации SLA/Ping провайдеров.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Кнопки быстрых действий в шапке («⏬ Импорт Услуг», «+ Подключить Панель»), тулбар фильтрации, карточки ликвидности и контейнер таблицы переведены на токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-providers-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-7 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns, Providers): 31/31 PASS (1.88s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-PROVIDERS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 6: Атомарная проработка и аудит экрана /admin/catalog/patterns (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/catalog/patterns/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `Code2`, заголовок «Паттерны валидации ссылок», табы `CATALOG_TABS`), устранив Layout Shift (CLS) и подмену родительского заголовка каталога.
+  * 🛡️ **Защита ReDoS & Безопасность регулярных выражений:**
+    - Зафиксирован обязательный статический аудит на опасные вложенные квантификаторы (`(a+)+`, `(.*)+`, `(a*)*`) с лимитом длины RegEx ($\le 300$ символов) и входных ссылок в песочнице ($\le 512$ символов).
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Фильтр-бар, таблица правил и модальные окна создания, редактирования и удаления в `patterns-client.tsx` переведены на токены `rounded-lg border-border/70 shadow-xs / shadow-2xl` с мягким бэкдропом `backdrop-blur-xs`.
+    - Метаданные страницы обновлены до канонического названия `OmniSMM 1.0`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-patterns-integrity.test.ts` (5/5 PASS).
+    - Пройден полный регрессионный сьют шагов 1-6 (Dashboard, Orders, Catalog, Categories, Quarantine, Patterns): 27/27 PASS (1.58s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-PATTERNS]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 5: Атомарная проработка и аудит экрана /admin/catalog/quarantine (100% COMPLETE & VERIFIED):
+  * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
+    - Создан специализированный `src/app/admin/catalog/quarantine/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `AlertTriangle`, заголовок «Карантин цен и аномалий», табы `CATALOG_TABS`), устранив Layout Shift (CLS) и подмену родительского заголовка каталога.
+  * 🛡️ **RBAC Guard и изоляция Multi-Tenant (`page.tsx`):**
+    - Внедрен вызов `await enforceSectionAccess('catalog')` на уровне Server Component.
+    - Реализовано разрешение контекста тенанта (`resolveAdminTenantContext`) и фильтрация выборок `quarantined`, `zombies` и `blockedByApi` (`tenantServiceCondition = { category: { tenantId: tenantFilter } }`), предотвратив утечку чужих услуг между брендами `smmplan` и `smmflux`.
+  * 🎨 **Нормализация дизайн-токенов верстки:**
+    - Пустые состояния (`renderEmptyState`), контейнеры всех 4 таблиц (`quarantine-client.tsx`) и диалоговое окно сверки API (`quarantine-diff-modal.tsx`) переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-quarantine-integrity.test.ts` (5/5 PASS): проверка детектора дрифта цен, подмены услуг (`SERVICE_REPLACED`), мутации лимитов/гарантий (`MUTATED_PARAMS`) и сходства названий.
+    - Пройден полный регрессионный сьют шагов 1-5 (Dashboard, Orders, Catalog, Categories, Quarantine): 22/22 PASS (1.40s).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-QUARANTINE]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 4: Атомарная проработка и аудит экрана /admin/catalog/categories (100% COMPLETE & VERIFIED):
+  * 🏛️ **Ликвидация дублирующего заголовка (Header Duplication):**
+    - В `src/app/admin/catalog/categories/components/category-manager.tsx` удален локальный дублирующий `<h1>Соцсети & Категории</h1>` и горизонтальные разделители (так как `AdminTabbedHeader` уже отрендерен на уровне `page.tsx`).
+    - Все действия экрана («Очистить пустые», «Объединить», «Соцсети», «Добавить категорию») и счетчик консолидированы в единую компактную панель над строкой фильтрации, сэкономив 70-80px полезной высоты экрана.
+  * 🎨 **Нормализация скелетона (`loading.tsx`):**
+    - Скелетон переведен на канонические токены `rounded-lg border-border/70` с обязательными атрибутами доступности `role="status"`, `aria-live="polite"` и `<span className="sr-only">`.
+  * 🏷️ **Инварианты таксономии и тегов анализатора ссылок:**
+    - Зафиксирован инвариант запрета слияния (Merge) категорий разных социальных сетей (`source.networkId === target.networkId`).
+    - Зафиксирован канонический список 10 тегов анализатора ссылок (`channel`, `post`, `profile`, `video`, `reel`, `story`, `poll`, `comment`, `bot`, `chat`) с валидацией аффинити к социальным сетям.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-categories-integrity.test.ts` (4/4 PASS).
+    - Пройден полный регрессионный сьют шагов 1-4: 17/17 PASS.
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-CATEGORIES]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 3: Атомарная проработка и аудит экрана /admin/catalog (100% COMPLETE & VERIFIED):
+  * ⏸ **Синхронизация фильтра и ссылки «На отстое» (`cooldown`):**
+    - В `adminCatalogService.listServices` внедрена фильтрация по `providerStatus === 'cooldown'` (`cooldownUntil: { gt: now }`, исключая зомби-услуги), восстановив 100% паритет со счетчиком `catalogHealth.cooldown`.
+    - В селектор статусов поставщика `catalog-filters.tsx` добавлена опция `cooldown` («Временный отстой (Cooldown)»).
+    - В шапке каталога ссылка кнопки «⏸ На отстое» исправлена с широкого `?isActive=true` на точечный `?providerStatus=cooldown&tenant=${selectedTenant}`.
+  * 🏛️ **Интеграция единого `AdminTabbedHeader`:**
+    - В `src/app/admin/catalog/page.tsx` кастомный заголовок заменен на канонический `AdminTabbedHeader` с табами `CATALOG_TABS`, ликвидировав рассинхрон навигации со смежными страницами (`/categories`, `/quarantine`).
+    - Сохранена полная KPI-строка (Всего услуг, Активных, Ср. маржа, Курс USD) и вынесены все экшн-кнопки («Карантин», «Зомби», «На отстое», «Категории & Соцсети», «Импорт услуг», «+ Создать услугу»).
+  * 🎨 **Нормализация скелетона (`loading.tsx`):**
+    - Скелетон переведен на канонические дизайн-токены `rounded-lg border-border/70`, добавлены `role="status"` и `aria-live="polite"` для исключения Layout Shift (CLS).
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-catalog-integrity.test.ts` (5/5 PASS).
+    - `src/__tests__/unit/admin-orders-integrity.test.ts` и `admin-dashboard-integrity.test.ts` (8/8 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Зафиксирован выученный урок `[LESSON-2026-09-14-SIL-CATALOG]` в `.agents/skills/layout-overflow-sentry/SKILL.md`.
+- [x] ⚡ [SIL-2026] Шаг 2: Атомарная проработка и аудит экрана /admin/orders (100% COMPLETE & VERIFIED):
+  * 🛡️ **Ликвидация хрупкого DOM-хака `document.querySelector`:**
+    - Устранен поиск по селектору `button[title*="..."]` в быстрых кнопках верхней панели `src/app/admin/orders/components/order-client.tsx`.
+    - В `src/components/admin/bulk-actions/BulkActionsPanel.tsx` внедрен управляемый протокол открытия модалки отмены (`externalCancelOpen`, `onOpenCancelModal`, `onCloseCancelModal`) и регистрация колбэка перезапуска (`onRegisterRestart`), обеспечив чистую React-инкапсуляцию.
+  * 🎯 **Синхронизация фильтра статусов заказов (`OrdersFilterForm`):**
+    - В `STATUS_OPTIONS` добавлены опции `PROBLEMATIC` («⚠️ Проблемные (сбои/отмены)») и `PENDING_CHECK` («🔍 Проверка ссылки»), восстановив 100% паритет с бэкенд-фильтрацией `adminOrderService.searchOrders`.
+  * 🏷️ **Полнота словарей жизненного цикла заказов (`columns.tsx`):**
+    - В `STATUS_LABELS` и `STATUS_STYLES` добавлены недостающие маппинги для `PENDING_CHECK` («Проверка ссылки») и `REFUNDING` («Возврат»).
+  * 🎨 **Дизайн-токены скелетона загрузки (`loading.tsx`):**
+    - Устаревший `AdminPageHeader` заменен на канонический `AdminTabbedHeader`.
+    - Скелетон переведен на стандартные дизайн-токены `rounded-lg border-border/70`, ликвидирован Layout Shift (CLS).
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/admin-orders-integrity.test.ts` (4/4 PASS).
+    - `src/__tests__/unit/admin-dashboard-integrity.test.ts` (4/4 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [SIL-2026] Шаг 1: Атомарная проработка и аудит экрана /admin/dashboard (100% COMPLETE & VERIFIED):
   * 🔗 **Ликвидация 404 битых ссылок в KPI-карточках и виджетах:**
     - Ссылка «Валовый оборот» переведена с `/admin/finance/overview` на канонический `/admin/finance`.

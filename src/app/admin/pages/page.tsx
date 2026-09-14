@@ -29,7 +29,7 @@ export default async function AdminPagesList() {
         onboarding={ONBOARDING_CONFIGS.pages}
       />
 
-      <div className="rounded-2xl shadow-sm bg-card overflow-hidden">
+      <div className="rounded-lg border border-border/70 shadow-xs bg-card overflow-hidden">
         <PagesTable pages={pages} />
       </div>
     </div>

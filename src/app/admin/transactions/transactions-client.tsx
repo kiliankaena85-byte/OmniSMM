@@ -272,10 +272,10 @@ export function TransactionsClient({
     <div className="space-y-5 w-full">
       {/* 4 Summary Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-2xl p-3.5 shadow-2xs">
+        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-lg p-3.5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Всего операций</span>
-            <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <ArrowLeftRight className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -283,10 +283,10 @@ export function TransactionsClient({
           <div className="text-[11px] text-muted-foreground mt-0.5">В текущей выборке</div>
         </div>
 
-        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-2xl p-3.5 shadow-2xs">
+        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-lg p-3.5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Одобрено (Приход)</span>
-            <div className="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <CreditCard className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -296,10 +296,10 @@ export function TransactionsClient({
           <div className="text-[11px] text-muted-foreground mt-0.5">Пополнения и начисления</div>
         </div>
 
-        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-2xl p-3.5 shadow-2xs">
+        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-lg p-3.5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Возвраты & Сдача</span>
-            <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <RotateCcw className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -309,10 +309,10 @@ export function TransactionsClient({
           <div className="text-[11px] text-muted-foreground mt-0.5">Авто-возвраты по заказам</div>
         </div>
 
-        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-2xl p-3.5 shadow-2xs">
+        <div className="bg-card/70 backdrop-blur-sm border border-border/70 rounded-lg p-3.5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Карантин / Очередь</span>
-            <div className="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -324,7 +324,7 @@ export function TransactionsClient({
       </div>
 
       {/* Filter Toolbar & Quick Type Chips */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/80 rounded-2xl p-3 shadow-xs space-y-2.5">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/70 rounded-lg p-3 shadow-xs space-y-2.5">
         
         {/* Row 1: Search, Period, Status, Export */}
         <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
@@ -335,18 +335,18 @@ export function TransactionsClient({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск по Email, ID, UUID, причине..."
-              className="w-full h-8 pl-8 pr-3 text-xs bg-background border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full h-8 pl-8 pr-3 text-xs bg-background border border-border/70 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-xs"
             />
           </form>
 
           {/* Period selector */}
-          <div className="flex items-center gap-1 bg-muted/40 p-0.5 rounded-xl border border-border/50 shrink-0">
+          <div className="flex items-center gap-1 bg-muted/40 p-0.5 rounded-lg border border-border/50 shrink-0">
             {PERIOD_OPTIONS.map(po => (
               <button
                 key={po.id}
                 type="button"
                 onClick={() => handlePeriodChange(po.id)}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                   period === po.id
                     ? 'bg-card text-foreground shadow-2xs border border-border/60'
                     : 'text-muted-foreground hover:text-foreground'
@@ -362,7 +362,7 @@ export function TransactionsClient({
             value={status}
             onChange={(e) => handleStatusChange(e.target.value)}
             aria-label="Фильтр по статусу"
-            className="h-8 px-2.5 text-xs font-semibold bg-background border border-border/60 rounded-xl text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer shrink-0"
+            className="h-8 px-2.5 text-xs font-semibold bg-background border border-border/70 rounded-lg text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer shrink-0 shadow-xs"
           >
             {STATUS_OPTIONS.map(so => (
               <option key={so.id} value={so.id}>{so.label}</option>
@@ -373,10 +373,10 @@ export function TransactionsClient({
           <button
             type="button"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`h-8 px-2.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0 ${
+            className={`h-8 px-2.5 rounded-lg border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 ${
               showAdvancedFilters || activeFiltersCount > 0
                 ? 'bg-primary/10 border-primary/40 text-primary'
-                : 'bg-background border-border/60 hover:bg-muted text-foreground'
+                : 'bg-background border-border/70 hover:bg-muted text-foreground'
             }`}
             title="Фильтры по сумме и датам"
           >
@@ -395,7 +395,7 @@ export function TransactionsClient({
               type="button"
               onClick={() => loadData(period, status, type, search, minAmount, maxAmount, dateFrom, dateTo)}
               disabled={isPending}
-              className="h-8 px-2.5 rounded-xl border border-border/60 bg-background hover:bg-muted text-foreground flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+              className="h-8 px-2.5 rounded-lg border border-border/70 bg-background hover:bg-muted text-foreground flex items-center gap-1 text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
               title="Обновить данные"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
@@ -406,7 +406,7 @@ export function TransactionsClient({
               <button
                 type="button"
                 onClick={handleExportCsv}
-                className="h-8 px-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                className="h-8 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs"
                 title="Экспорт транзакций в CSV (только для Администратора/Владельца)"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -418,7 +418,7 @@ export function TransactionsClient({
 
         {/* Row 2: Advanced Search (Price Range & Exact Date Range for Lost Payments) */}
         {showAdvancedFilters && (
-          <div className="p-3 bg-muted/20 border border-border/60 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-3 bg-muted/20 border border-border/70 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
               {/* Price Range: Min / Max */}
               <div className="lg:col-span-4 space-y-1.5">
@@ -435,7 +435,7 @@ export function TransactionsClient({
                       value={minAmount}
                       onChange={(e) => setMinAmount(e.target.value)}
                       placeholder="От 0 ₽"
-                      className="w-full h-8 px-2.5 text-xs bg-background border border-border/60 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                      className="w-full h-8 px-2.5 text-xs bg-background border border-border/70 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono shadow-xs"
                     />
                   </div>
                   <span className="text-muted-foreground text-xs font-bold">—</span>
@@ -447,7 +447,7 @@ export function TransactionsClient({
                       value={maxAmount}
                       onChange={(e) => setMaxAmount(e.target.value)}
                       placeholder="До..."
-                      className="w-full h-8 px-2.5 text-xs bg-background border border-border/60 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                      className="w-full h-8 px-2.5 text-xs bg-background border border-border/70 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono shadow-xs"
                     />
                   </div>
                 </div>
@@ -463,14 +463,14 @@ export function TransactionsClient({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="flex-1 h-8 px-2 text-xs bg-background border border-border/60 rounded-lg text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+                    className="flex-1 h-8 px-2 text-xs bg-background border border-border/70 rounded-lg text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-xs"
                   />
                   <span className="text-muted-foreground text-xs font-bold">—</span>
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="flex-1 h-8 px-2 text-xs bg-background border border-border/60 rounded-lg text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+                    className="flex-1 h-8 px-2 text-xs bg-background border border-border/70 rounded-lg text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-xs"
                   />
                 </div>
               </div>
@@ -481,7 +481,7 @@ export function TransactionsClient({
                   type="button"
                   onClick={handleApplyAdvancedFilters}
                   disabled={isPending}
-                  className="flex-1 h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center justify-center gap-1"
+                  className="flex-1 h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1"
                 >
                   <Search className="w-3.5 h-3.5" />
                   <span>Найти</span>
@@ -490,7 +490,7 @@ export function TransactionsClient({
                   type="button"
                   onClick={handleResetFilters}
                   disabled={isPending}
-                  className="h-8 px-3 rounded-lg border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-bold transition-all cursor-pointer"
+                  className="h-8 px-3 rounded-lg border border-border/70 bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-bold transition-all cursor-pointer shadow-xs"
                   title="Сбросить все фильтры"
                 >
                   Сброс
@@ -551,10 +551,10 @@ export function TransactionsClient({
                 key={to.id}
                 type="button"
                 onClick={() => handleTypeChange(to.id)}
-                className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap border ${
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap border ${
                   isActive
-                    ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
-                    : 'bg-background text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                    : 'bg-background text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {to.label}
@@ -565,7 +565,7 @@ export function TransactionsClient({
       </div>
 
       {/* Main Ledger Table Card */}
-      <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-card border border-border/70 rounded-lg overflow-hidden shadow-xs">
         {/* Table Top Header with Count & Pagination */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-4 border-b border-border/60 bg-muted/15">
           <h3 className="text-xs font-bold text-foreground flex items-center gap-2">

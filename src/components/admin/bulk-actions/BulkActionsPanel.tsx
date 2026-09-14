@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { 
@@ -19,12 +20,42 @@ interface Props {
   canSeeRates: boolean;
   userRole?: string;
   onClearSelection: () => void;
+  externalCancelOpen?: boolean;
+  onOpenCancelModal?: () => void;
+  onCloseCancelModal?: () => void;
+  onRegisterRestart?: (triggerRestart: () => void) => void;
 }
 
-export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPPORT', onClearSelection }: Props) {
+export function BulkActionsPanel({ 
+  selectedOrders, 
+  canSeeRates, 
+  userRole = 'SUPPORT', 
+  onClearSelection,
+  externalCancelOpen,
+  onOpenCancelModal,
+  onCloseCancelModal,
+  onRegisterRestart,
+}: Props) {
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [internalCancelModal, setInternalCancelModal] = useState(false);
+  const isCancelModalOpen = externalCancelOpen !== undefined ? externalCancelOpen : internalCancelModal;
+
+  const openCancelModal = () => {
+    if (onOpenCancelModal) {
+      onOpenCancelModal();
+    } else {
+      setInternalCancelModal(true);
+    }
+  };
+
+  const closeCancelModal = () => {
+    if (onCloseCancelModal) {
+      onCloseCancelModal();
+    } else {
+      setInternalCancelModal(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -58,7 +89,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
   const isSanityMatch = !requiresSanityVerification || parseInt(sanityCountInput.trim(), 10) === cancellableCount;
   const canSubmitCancel = isSanityMatch && (ticketId.trim().length > 0 || reasonCode.length > 0);
 
-  const handleBulkRestart = () => {
+  const handleBulkRestart = useCallback(() => {
     const errorIds = selectedOrders.filter(o => o.status === 'ERROR' || o.status === 'PENDING').map(o => o.id);
     if (errorIds.length === 0) {
       toast.warning('Нет заказов в статусе ERROR или PENDING для перезапуска');
@@ -76,7 +107,13 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
         toast.error((err as Error).message || 'Ошибка при перезапуске заказов');
       }
     });
-  };
+  }, [selectedOrders, onClearSelection]);
+
+  useEffect(() => {
+    if (onRegisterRestart) {
+      onRegisterRestart(handleBulkRestart);
+    }
+  }, [onRegisterRestart, handleBulkRestart]);
 
   const handleExecuteCancel = () => {
     const ids = selectedOrders.map(o => o.id);
@@ -86,7 +123,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
         if (res.success) {
           const refundText = res.totalRefundCents > 0 ? `, возврат: ${formatKopecks(res.totalRefundCents)}` : '';
           toast.success(`🚫 Отменено заказов: ${res.cancelledCount}${refundText}`);
-          setShowCancelModal(false);
+          closeCancelModal();
           onClearSelection();
         } else if (res.error) {
           toast.error(res.error);
@@ -116,7 +153,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
           <button
             type="button"
             disabled={isPending || cancellableCount === 0}
-            onClick={() => setShowCancelModal(true)}
+            onClick={openCancelModal}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-xl transition-all shadow-sm disabled:opacity-40 cursor-pointer whitespace-nowrap"
             title="Отменить выбранные заказы и произвести возврат клиентам"
           >
@@ -163,7 +200,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
       </div>
 
       {/* Sanity Guard Modal for Bulk Cancel (Hoisted directly to document.body via Portal) */}
-      {showCancelModal && mounted && createPortal(
+      {isCancelModalOpen && mounted && createPortal(
         <div className="fixed inset-0 z-[99999] bg-zinc-950/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div 
             className="bg-card border border-border/80 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150"
@@ -176,7 +213,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
               </div>
               <button
                 type="button"
-                onClick={() => setShowCancelModal(false)}
+                onClick={closeCancelModal}
                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -239,7 +276,7 @@ export function BulkActionsPanel({ selectedOrders, canSeeRates, userRole = 'SUPP
             <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
               <button
                 type="button"
-                onClick={() => setShowCancelModal(false)}
+                onClick={closeCancelModal}
                 className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
               >
                 Отмена

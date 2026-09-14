@@ -249,6 +249,8 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
 
   // Confirm Modals state for single row actions
   const [cancelModalOrder, setCancelModalOrder] = useState<OrderColumn | null>(null);
+  const [isBulkCancelOpen, setIsBulkCancelOpen] = useState(false);
+  const bulkRestartTriggerRef = React.useRef<(() => void) | null>(null);
   const [, startTransition] = useTransition();
 
   const canCancel = ['OWNER', 'ADMIN'].includes(userRole);
@@ -415,10 +417,7 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
               {!['COMPLETED', 'CANCELED'].includes(lockedStatus || '') && (
                 <button
                   type="button"
-                  onClick={() => {
-                    const bulkPanelCancel = document.querySelector('button[title*="Отменить выбранные заказы"]') as HTMLButtonElement;
-                    if (bulkPanelCancel) bulkPanelCancel.click();
-                  }}
+                  onClick={() => setIsBulkCancelOpen(true)}
                   className="px-2.5 py-1 text-xs font-bold bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-md transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                 >
                   <XCircle className="w-3.5 h-3.5" />
@@ -431,8 +430,9 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
                 <button
                   type="button"
                   onClick={() => {
-                    const bulkPanelRestart = document.querySelector('button[title*="Перезапустить выбранные"]') as HTMLButtonElement;
-                    if (bulkPanelRestart) bulkPanelRestart.click();
+                    if (bulkRestartTriggerRef.current) {
+                      bulkRestartTriggerRef.current();
+                    }
                   }}
                   className="px-2.5 py-1 text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 active:scale-95 rounded-md transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                 >
@@ -699,6 +699,12 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
           canSeeRates={canSeeRates}
           userRole={userRole}
           onClearSelection={() => setSelectedIds(new Set())}
+          externalCancelOpen={isBulkCancelOpen}
+          onOpenCancelModal={() => setIsBulkCancelOpen(true)}
+          onCloseCancelModal={() => setIsBulkCancelOpen(false)}
+          onRegisterRestart={(fn) => {
+            bulkRestartTriggerRef.current = fn;
+          }}
         />
       )}
 

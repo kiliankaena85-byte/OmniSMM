@@ -4,6 +4,7 @@ import { RBAC_SECTIONS } from '@/lib/rbac-sections';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
 import { SYSTEM_TABS } from '@/components/admin/navigation-data';
 import { RolesClient } from './roles-client';
+import { ShieldCheck } from 'lucide-react';
 
 export const metadata = {
   title: 'Роли и матрица прав | OmniSMM 1.0',
@@ -18,6 +19,7 @@ export default async function RolesManagementPage() {
   return (
     <div className="space-y-6">
       <AdminTabbedHeader
+        icon={ShieldCheck}
         title="Роли и матрица прав"
         description="Управление ролями сотрудников, гранулярными правами доступа и защитой от несанкционированных действий."
         tabs={SYSTEM_TABS}

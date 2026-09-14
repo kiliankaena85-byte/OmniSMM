@@ -37,7 +37,7 @@ export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
   return (
     <div className="space-y-4">
       {/* ── LEVEL 1: Master Clusters (3 Segmented Cards) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-1.5 bg-muted/20 border border-border/80 rounded-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-1.5 bg-muted/20 border border-border/70 rounded-lg shadow-xs">
         {SETTINGS_CLUSTERS.map((cluster) => {
           const Icon = cluster.icon;
           const isSelected = cluster.id === activeCluster;
@@ -49,9 +49,9 @@ export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
               key={cluster.id}
               href={targetHref}
               scroll={false}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer ${
                 isSelected
-                  ? 'bg-card text-foreground shadow-sm border border-border font-bold scale-[1.01]'
+                  ? 'bg-card text-foreground shadow-xs border border-border font-bold scale-[1.01]'
                   : 'text-muted-foreground hover:text-foreground hover:bg-card/40 border border-transparent'
               }`}
             >
@@ -95,7 +95,7 @@ export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
               key={subTab.id}
               href={`?tab=${subTab.id}`}
               scroll={false}
-              className={`flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all shrink-0 snap-start cursor-pointer border ${
+              className={`flex items-center gap-2 py-2 px-4 rounded-lg text-xs font-bold transition-all shrink-0 snap-start cursor-pointer border ${
                 isSubActive
                   ? 'bg-primary/10 text-primary border-primary/30 shadow-xs'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 border-transparent'

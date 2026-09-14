@@ -23,11 +23,11 @@ export default async function ProvidersAdminPage() {
         title="Провайдеры API"
         description="Управление поставщиками услуг (панелями SMM)"
         action={(
-          <div className="flex gap-3">
-            <Link href="/admin/providers/import" className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-muted-foreground bg-background/50 backdrop-blur-sm border border-border/60 shadow-sm rounded-xl hover:bg-muted/80 hover:text-primary transition-all duration-200 active:scale-95">
+          <div className="flex gap-2.5">
+            <Link href="/admin/providers/import" className="inline-flex items-center justify-center px-3.5 py-2 text-xs font-bold text-foreground bg-card/60 backdrop-blur-xs border border-border/70 shadow-xs rounded-lg hover:bg-muted/80 hover:text-primary transition-all duration-200 active:scale-95">
               ⏬ Импорт Услуг
             </Link>
-            <Link href="/admin/providers/new" className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-primary-foreground bg-primary shadow-sm rounded-xl hover:opacity-90 transition-all duration-200 active:scale-95">
+            <Link href="/admin/providers/new" className="inline-flex items-center justify-center px-3.5 py-2 text-xs font-bold text-primary-foreground bg-primary shadow-xs rounded-lg hover:bg-primary/90 transition-all duration-200 active:scale-95">
               + Подключить Панель
             </Link>
           </div>

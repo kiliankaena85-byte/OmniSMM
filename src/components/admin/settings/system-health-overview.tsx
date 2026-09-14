@@ -156,7 +156,7 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
       {/* Grid of 4 Health Cubes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {/* 1. Payment Gateways */}
-        <div className="p-4 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-md space-y-3">
+        <div className="p-4 rounded-lg border border-border/70 bg-background/60 backdrop-blur-md space-y-3 shadow-xs">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-primary" />
@@ -195,7 +195,7 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
         </div>
 
         {/* 2. Email Server */}
-        <div className="p-4 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-md space-y-3">
+        <div className="p-4 rounded-lg border border-border/70 bg-background/60 backdrop-blur-md space-y-3 shadow-xs">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-primary" />
@@ -226,7 +226,7 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
         </div>
 
         {/* 3. Google Gemini AI */}
-        <div className="p-4 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-md space-y-3">
+        <div className="p-4 rounded-lg border border-border/70 bg-background/60 backdrop-blur-md space-y-3 shadow-xs">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-primary" />
@@ -257,7 +257,7 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
         </div>
 
         {/* 4. Exchange Rate */}
-        <div className="p-4 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-md space-y-3">
+        <div className="p-4 rounded-lg border border-border/70 bg-background/60 backdrop-blur-md space-y-3 shadow-xs">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4 text-primary" />

@@ -89,22 +89,26 @@ function timeAgo(iso: string): string {
 export const STATUS_STYLES: Record<string, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
   AWAITING_PAYMENT: 'warning',
   PENDING: 'default',
+  PENDING_CHECK: 'primary',
   IN_PROGRESS: 'primary',
   COMPLETED: 'success',
   PARTIAL: 'warning',
   CANCELED: 'default',
   ERROR: 'danger',
+  REFUNDING: 'secondary',
 };
 
 export const STATUS_LABELS: Record<string, string> = {
   ALL: 'Все',
   AWAITING_PAYMENT: 'Ожидает',
   PENDING: 'В очереди',
+  PENDING_CHECK: 'Проверка ссылки',
   IN_PROGRESS: 'В работе',
   COMPLETED: 'Выполнен',
   PARTIAL: 'Частичный',
   CANCELED: 'Отменён',
   ERROR: 'Ошибка',
+  REFUNDING: 'Возврат',
 };
 
 // ── Sub-Components ──

@@ -493,6 +493,7 @@ export function CatalogFilters({ categories, providers, selectedTenant }: Catalo
                   if (value === 'all') return 'Все статусы провайдера';
                   if (value === 'active') return 'Активна у поставщика';
                   if (value === 'zombie') return 'Удалена у поставщика (Zombie)';
+                  if (value === 'cooldown') return 'Временный отстой (Cooldown)';
                   if (value === 'manual') return 'Ручная услуга';
                   return value;
                 }}
@@ -502,6 +503,7 @@ export function CatalogFilters({ categories, providers, selectedTenant }: Catalo
               <SelectItem value="all" label="Все статусы провайдера" className="text-xs cursor-pointer">Все статусы провайдера</SelectItem>
               <SelectItem value="active" label="Активна у поставщика" className="text-xs cursor-pointer">Активна у поставщика</SelectItem>
               <SelectItem value="zombie" label="Удалена у поставщика (Zombie)" className="text-xs cursor-pointer">Удалена у поставщика (Zombie)</SelectItem>
+              <SelectItem value="cooldown" label="Временный отстой (Cooldown)" className="text-xs cursor-pointer">Временный отстой (Cooldown)</SelectItem>
               <SelectItem value="manual" label="Ручная услуга" className="text-xs cursor-pointer">Ручная услуга</SelectItem>
             </SelectContent>
           </Select>

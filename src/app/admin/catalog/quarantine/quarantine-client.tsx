@@ -208,7 +208,7 @@ export function QuarantineClient({ initialPriceSpikes, initialZombies, initialAp
 
   function renderEmptyState(title: string, desc: string) {
     return (
-      <div className="bg-card border border-border rounded-xl p-16 text-center">
+      <div className="bg-card border border-border/70 rounded-lg p-16 text-center shadow-xs">
         <div className="text-4xl mb-3">✅</div>
         <p className="text-foreground font-medium">{title}</p>
         <p className="text-sm text-muted-foreground mt-1">{desc}</p>
@@ -270,7 +270,7 @@ export function QuarantineClient({ initialPriceSpikes, initialZombies, initialAp
             )}
           </div>
           {priceSpikes.length === 0 ? renderEmptyState('Карантин цен пуст', 'Все ценовые изменения в норме') : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden w-full">
+            <div className="bg-card border border-border/70 rounded-lg overflow-hidden w-full shadow-xs">
               <Table aria-label="Ценовые скачки">
                 <Table.ScrollContainer>
                   <Table.Content>
@@ -330,7 +330,7 @@ export function QuarantineClient({ initialPriceSpikes, initialZombies, initialAp
         <div className="space-y-4 animate-in fade-in duration-300">
           <p className="text-sm text-muted-foreground">{zombies.length} зомби-услуг обнаружено (провайдер удалил их из API)</p>
           {zombies.length === 0 ? renderEmptyState('Зомби нет', 'Все услуги активно поддерживаются провайдерами') : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden w-full">
+            <div className="bg-card border border-border/70 rounded-lg overflow-hidden w-full shadow-xs">
               <Table aria-label="Зомби услуги">
                 <Table.ScrollContainer>
                   <Table.Content>
@@ -378,7 +378,7 @@ export function QuarantineClient({ initialPriceSpikes, initialZombies, initialAp
         <div className="space-y-4 animate-in fade-in duration-300">
           <p className="text-sm text-muted-foreground">{apiErrors.length} услуг заблокировано из-за сбоев API</p>
           {apiErrors.length === 0 ? renderEmptyState('Сбоев нет', 'Провайдеры работают в штатном режиме') : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden w-full">
+            <div className="bg-card border border-border/70 rounded-lg overflow-hidden w-full shadow-xs">
               <Table aria-label="Сбои API">
                 <Table.ScrollContainer>
                   <Table.Content>
@@ -429,7 +429,7 @@ export function QuarantineClient({ initialPriceSpikes, initialZombies, initialAp
         <div className="space-y-4 animate-in fade-in duration-300">
           <p className="text-sm text-muted-foreground">{autoFixes.length} последних автоисправлений (очистка текста, автокоррекция наценки)</p>
           {autoFixes.length === 0 ? renderEmptyState('История пуста', 'Никаких автоисправлений еще не производилось') : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden w-full">
+            <div className="bg-card border border-border/70 rounded-lg overflow-hidden w-full shadow-xs">
               <Table aria-label="История автоисправлений">
                 <Table.ScrollContainer>
                   <Table.Content>

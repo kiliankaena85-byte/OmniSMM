@@ -72,11 +72,11 @@ export function FeatureFlagsClient({ initialFlags }: Props) {
   return (
     <div className="space-y-4">
       {/* Legend */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground bg-card/60 backdrop-blur-md border border-border rounded-xl p-3">
-        <span className="font-bold text-foreground">Режимы:</span>
-        <span className="px-2 py-0.5 rounded-md font-bold bg-success/15 text-success border border-emerald-500/30">Включён</span>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground bg-card border border-border/70 rounded-lg p-3 shadow-xs">
+        <span className="font-semibold text-foreground">Режимы:</span>
+        <span className="px-2 py-0.5 rounded-md font-semibold bg-success/15 text-success border border-emerald-500/30">Включён</span>
         <span>для всех</span>
-        <span className="px-2 py-0.5 rounded-md font-bold bg-warning/15 text-warning border border-amber-500/30">Тест</span>
+        <span className="px-2 py-0.5 rounded-md font-semibold bg-warning/15 text-warning border border-amber-500/30">Тест</span>
         <span>для тестовых аккаунтов</span>
         <span className="px-2 py-0.5 rounded-md font-medium bg-muted text-muted-foreground border border-border">Выключен</span>
         <span>отключён</span>
@@ -88,9 +88,9 @@ export function FeatureFlagsClient({ initialFlags }: Props) {
         if (!groupFlags.length) return null;
 
         return (
-          <div key={group.label} className="bg-card/60 backdrop-blur-md border border-border/60 rounded-xl overflow-hidden shadow-sm">
+          <div key={group.label} className="bg-card border border-border/70 rounded-lg overflow-hidden shadow-xs">
             <div className="px-4 py-2 border-b border-border/60 bg-muted/40">
-              <h2 className="text-xs font-black text-foreground tracking-wide uppercase">{group.label}</h2>
+              <h2 className="text-xs font-semibold text-foreground tracking-wide uppercase">{group.label}</h2>
             </div>
             <Table aria-label={`Группа флагов: ${group.label}`}>
               <Table.ScrollContainer>

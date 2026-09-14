@@ -340,7 +340,7 @@ export function UnifiedTicketsWorkspace({
                         <ChevronLeft className="w-5 h-5 text-foreground" />
                       </Button>
                     )}
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 font-black text-xs border border-border text-foreground bg-muted">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 font-black text-xs border border-border text-foreground bg-muted shadow-xs">
                       {activeTicket.user.email.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1 overflow-hidden">
@@ -394,7 +394,7 @@ export function UnifiedTicketsWorkspace({
                       <button
                         type="button"
                         onClick={() => activeTicket.order && handleOpenOrderDrawer({ ...activeTicket.order, remains: 0, quantity: 1, link: '' } as unknown as OrderModalColumn)}
-                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 cursor-pointer shadow-sm text-xs font-bold"
+                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 cursor-pointer shadow-xs text-xs font-bold"
                         title="Управление прикрепленным заказом"
                       >
                         <span className="flex items-center gap-1.5">
@@ -424,7 +424,7 @@ export function UnifiedTicketsWorkspace({
                     <Button
                       intent="ghost"
                       onClick={() => setShowProfile(!showProfile)}
-                      className="min-h-[44px] min-w-[44px] touch-target-expand rounded-xl p-0 flex items-center justify-center cursor-pointer text-foreground hover:bg-muted border border-border"
+                      className="min-h-[44px] min-w-[44px] touch-target-expand rounded-lg p-0 flex items-center justify-center cursor-pointer text-foreground hover:bg-muted border border-border"
                       title="Профиль клиента"
                     >
                       <Info className="w-5 h-5 text-foreground" />
@@ -437,10 +437,10 @@ export function UnifiedTicketsWorkspace({
                   <div className="p-3 border-b border-border/50 bg-card/60 backdrop-blur-md shrink-0 select-none">
                     <div 
                       onClick={() => activeTicket.order && handleOpenOrderDrawer({ ...activeTicket.order, remains: 0, quantity: 1, link: '' } as unknown as OrderModalColumn)}
-                      className="bg-primary/5 border border-primary/10 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors"
+                      className="bg-primary/5 border border-primary/10 rounded-lg p-3 flex items-center justify-between gap-3 shadow-xs cursor-pointer hover:bg-primary/10 transition-colors"
                     >
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0">
                           📦
                         </div>
                         <div className="min-w-0">

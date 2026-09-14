@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { resolveAdminTenantContext } from '@/utils/admin-tenant';
 import { notFound, redirect } from 'next/navigation';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
-import { FINANCE_TABS } from '@/components/admin/navigation-data';
+import { FINANCE_TABS, ONBOARDING_CONFIGS } from '@/components/admin/navigation-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +77,8 @@ export default async function TransactionsPage({ searchParams }: Props) {
         title="Транзакции платформы (Ledger)"
         description="Сквозной реестр финансовых операций, пополнений, оплат заказов и возвратов по всем клиентам"
         tabs={FINANCE_TABS}
+        onboardingKey="finance"
+        onboarding={ONBOARDING_CONFIGS.finance}
       />
 
       <TransactionsClient

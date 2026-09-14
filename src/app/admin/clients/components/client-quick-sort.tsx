@@ -125,7 +125,7 @@ export function ClientQuickSort() {
   return (
     <div className="flex items-center gap-2">
       <DropdownMenu>
-        <DropdownMenuTrigger className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold bg-background/60 hover:bg-muted/80 text-foreground border border-border/60 rounded-xl transition-all shadow-xs outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none">
+        <DropdownMenuTrigger className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-background/60 hover:bg-muted/80 text-foreground border border-border/70 rounded-lg transition-all shadow-xs outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none">
           <ArrowUpDown className="w-3.5 h-3.5 text-primary" />
           <span className="hidden sm:inline text-muted-foreground font-normal">Сортировка:</span>
           <span className="font-bold truncate max-w-[160px]">
@@ -161,7 +161,7 @@ export function ClientQuickSort() {
         <button
           type="button"
           onClick={handleResetSort}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all select-none cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all select-none cursor-pointer"
           title="Сбросить сортировку (вернуться к новым)"
         >
           <span>{activePreset?.label.replace(/^[^\s]+\s/, '') || currentSortBy}</span>

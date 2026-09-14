@@ -11,11 +11,11 @@ interface MarketingTabsProps {
 export function MarketingTabs({ promocodesContent, referralsContent }: MarketingTabsProps) {
   return (
     <Tabs defaultValue="promocodes">
-      <TabsList className="bg-muted/50 p-1 rounded-xl">
-        <TabsTrigger value="promocodes" className="rounded-lg px-6 py-2 font-bold uppercase tracking-wider text-xs">
+      <TabsList className="bg-muted/50 p-1 rounded-lg border border-border/60 shadow-xs">
+        <TabsTrigger value="promocodes" className="rounded-md px-5 py-1.5 font-bold uppercase tracking-wider text-xs">
           Промокоды
         </TabsTrigger>
-        <TabsTrigger value="referrals" className="rounded-lg px-6 py-2 font-bold uppercase tracking-wider text-xs">
+        <TabsTrigger value="referrals" className="rounded-md px-5 py-1.5 font-bold uppercase tracking-wider text-xs">
           Партнерская программа
         </TabsTrigger>
       </TabsList>

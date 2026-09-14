@@ -91,7 +91,7 @@ export function QuarantineDiffModal({ item, onClose, onResolved }: Props) {
       onClick={onClose}
     >
       <div 
-        className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-card text-card-foreground border border-border/70 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

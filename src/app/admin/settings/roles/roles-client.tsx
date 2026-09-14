@@ -294,7 +294,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
   return (
     <div className="space-y-6">
       {/* Top action header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-xl p-4 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border/70 rounded-lg p-4 shadow-xs">
         <div>
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
@@ -306,7 +306,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-sm shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-xs shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Создать роль
@@ -314,7 +314,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
       </div>
 
       {/* Roles List Table */}
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-card border border-border/70 rounded-lg shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 text-muted-foreground uppercase font-medium border-b border-border text-[11px]">
@@ -410,11 +410,11 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
       {/* Edit / Create Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card border border-border/70 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
@@ -474,7 +474,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
                 </div>
 
                 {/* Master quick toggles */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/80 text-xs">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/70 text-xs">
                   <span className="font-medium text-foreground">Быстрое управление всей матрицей:</span>
                   <div className="flex items-center gap-2">
                     <button
@@ -497,7 +497,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
                 {/* Permission Matrix grouped */}
                 <div className="space-y-6">
                   {Object.entries(groupedSections).map(([groupName, groupSecs]) => (
-                    <div key={groupName} className="border border-border rounded-xl overflow-hidden shadow-xs">
+                    <div key={groupName} className="border border-border/70 rounded-lg overflow-hidden shadow-xs">
                       {/* Group Header */}
                       <div className="flex items-center justify-between px-4 py-2.5 bg-muted/50 border-b border-border">
                         <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
@@ -588,7 +588,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
       {/* Clone Modal */}
       {isCloneModalOpen && cloningRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card border border-border/70 rounded-lg shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-2 text-foreground font-semibold text-base">
               <Copy className="w-5 h-5 text-primary" />
               Клонирование роли
@@ -633,7 +633,7 @@ export function RolesClient({ initialRoles, sections }: RolesClientProps) {
       {/* Delete Confirm Modal */}
       {isDeleteModalOpen && deletingRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card border border-border/70 rounded-lg shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-2 text-destructive font-semibold text-base">
               <AlertTriangle className="w-5 h-5" />
               Удаление роли

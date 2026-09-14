@@ -62,8 +62,8 @@ export default async function MarketingPage() {
       <MarketingTabs
         promocodesContent={
           <div className="w-full">
-            <Card className="rounded-2xl border-border bg-card shadow-xs">
-              <CardHeader className="border-b border-border bg-muted/20 rounded-t-2xl pb-4 pt-5 flex flex-row items-center justify-between gap-4">
+            <Card className="rounded-lg border-border/70 bg-card shadow-xs overflow-hidden">
+              <CardHeader className="border-b border-border/70 bg-muted/20 rounded-t-lg pb-4 pt-5 flex flex-row items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-foreground text-sm font-extrabold uppercase tracking-wider">Список промокодов</CardTitle>
                 </div>
@@ -79,9 +79,9 @@ export default async function MarketingPage() {
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-2xl border-border/50 shadow-sm bg-background/60 backdrop-blur-xl">
+              <Card className="rounded-lg border-border/70 shadow-xs bg-background/60 backdrop-blur-xl">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-success/20 text-success rounded-xl">
+                  <div className="p-3 bg-success/20 text-success rounded-lg">
                     <TrendingUp className="w-6 h-6" />
                   </div>
                   <div>
@@ -91,9 +91,9 @@ export default async function MarketingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border-border/50 shadow-sm bg-background/60 backdrop-blur-xl">
+              <Card className="rounded-lg border-border/70 shadow-xs bg-background/60 backdrop-blur-xl">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-warning/20 text-warning rounded-xl">
+                  <div className="p-3 bg-warning/20 text-warning rounded-lg">
                     <Wallet className="w-6 h-6" />
                   </div>
                   <div>
@@ -103,9 +103,9 @@ export default async function MarketingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border-border/50 shadow-sm bg-background/60 backdrop-blur-xl">
+              <Card className="rounded-lg border-border/70 shadow-xs bg-background/60 backdrop-blur-xl">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                  <div className="p-3 bg-primary/10 text-primary rounded-lg">
                     <Users className="w-6 h-6" />
                   </div>
                   <div>
@@ -117,8 +117,8 @@ export default async function MarketingPage() {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-               <Card className="rounded-2xl border-border/50 shadow-sm bg-background/60 backdrop-blur-xl">
-                  <CardHeader className="border-b border-border/50 bg-muted/50 rounded-t-2xl pb-4">
+               <Card className="rounded-lg border-border/70 shadow-xs bg-background/60 backdrop-blur-xl overflow-hidden">
+                  <CardHeader className="border-b border-border/70 bg-muted/30 rounded-t-lg pb-4">
                     <CardTitle className="text-foreground text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-success" />
                       Экономика программы (последние 6 мес.)
@@ -129,8 +129,8 @@ export default async function MarketingPage() {
                   </CardContent>
                </Card>
 
-               <Card className="rounded-2xl border-border/50 shadow-sm bg-background/60 backdrop-blur-xl">
-                  <CardHeader className="border-b border-border/50 bg-muted/50 rounded-t-2xl pb-4">
+               <Card className="rounded-lg border-border/70 shadow-xs bg-background/60 backdrop-blur-xl overflow-hidden">
+                  <CardHeader className="border-b border-border/70 bg-muted/30 rounded-t-lg pb-4">
                     <CardTitle className="text-foreground text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                       <Users className="w-4 h-4 text-primary" />
                       Аудит рефоводов

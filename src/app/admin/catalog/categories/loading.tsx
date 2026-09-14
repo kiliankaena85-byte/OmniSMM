@@ -4,7 +4,8 @@ import { CATALOG_TABS } from '@/components/admin/navigation-data';
 
 export default function CategoriesLoading() {
   return (
-    <div className="space-y-5 w-full min-w-0 animate-in fade-in duration-300 ease-out sm:px-2 md:px-0 min-h-full pb-10" role="status" aria-busy="true">
+    <div className="space-y-5 w-full min-w-0 animate-in fade-in duration-300 ease-out sm:px-2 md:px-0 min-h-full pb-10" role="status" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Загрузка структуры категорий...</span>
       <AdminTabbedHeader
         icon={Layers}
         title="Категории & Соцсети"
@@ -20,7 +21,7 @@ export default function CategoriesLoading() {
       </div>
 
       {/* Categories Table Skeleton */}
-      <div className="bg-card rounded-xl border border-border/70 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-lg border border-border/70 overflow-hidden shadow-sm">
         <div className="p-3.5 border-b border-border/50 flex items-center justify-between bg-muted/20">
           <div className="h-5 w-40 bg-muted/40 animate-pulse rounded" />
           <div className="h-8 w-32 bg-muted/40 animate-pulse rounded-lg" />

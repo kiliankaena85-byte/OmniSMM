@@ -45,7 +45,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
 
       {/* 4 Main KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-success/30 bg-success/10 p-5 space-y-2">
+        <div className="rounded-lg border border-success/30 bg-success/10 p-5 space-y-2 shadow-xs">
           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-success">
             <span>Выручка (Gross)</span>
             <DollarSign className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
           </div>
         </div>
 
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 space-y-2">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-5 space-y-2 shadow-xs">
           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-destructive">
             <span>Возвраты (Refunds)</span>
             <TrendingDown className="w-4 h-4" />
@@ -71,7 +71,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
           </div>
         </div>
 
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-5 space-y-2">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-5 space-y-2 shadow-xs">
           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-warning">
             <span>Закупка (COGS)</span>
             <TrendingDown className="w-4 h-4" />
@@ -84,7 +84,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
           </div>
         </div>
 
-        <div className="rounded-2xl border border-primary/30 bg-primary/10 p-5 space-y-2">
+        <div className="rounded-lg border border-primary/30 bg-primary/10 p-5 space-y-2 shadow-xs">
           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-primary">
             <span>Валовая Маржа</span>
             <TrendingUp className="w-4 h-4" />
@@ -101,9 +101,9 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
       {/* Breakdown & Settings Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: EBITDA / Net Profit Breakdown */}
-        <div className="lg:col-span-2 rounded-3xl border border-border/60 shadow-lg bg-card/70 backdrop-blur-xl p-6 sm:p-8 space-y-6">
+        <div className="lg:col-span-2 rounded-lg border border-border/70 shadow-xs bg-card/70 backdrop-blur-xl p-6 sm:p-8 space-y-6">
           <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-            <div className="p-2 bg-primary/10 text-primary rounded-xl border border-primary/20">
+            <div className="p-2 bg-primary/10 text-primary rounded-lg border border-primary/20">
               <PieChart className="w-5 h-5" />
             </div>
             <div>
@@ -121,7 +121,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
               { label: `Налоги (${metrics.effectiveTaxRate.toFixed(1)}%)`, value: -metrics.taxes, color: 'text-destructive', desc: 'Оценочный налог УСН на прибыль' },
               { label: 'OPEX (Постоянные расходы)', value: -metrics.opex, color: 'text-destructive', desc: 'Серверы, софт, поддержка, инфраструктура' },
             ].map((row) => (
-              <div key={row.label} className="flex justify-between items-center p-3 rounded-xl bg-muted/20 border border-border/40">
+              <div key={row.label} className="flex justify-between items-center p-3 rounded-lg bg-muted/20 border border-border/40">
                 <div className="space-y-0.5">
                   <span className="text-sm font-bold text-foreground block">{row.label}</span>
                   <span className="text-[11px] text-muted-foreground">{row.desc}</span>
@@ -133,7 +133,7 @@ export function FinanceOverviewTab({ metrics, settings, quarantineList }: Financ
             ))}
 
             {/* Net Profit Summary */}
-            <div className={`p-5 rounded-2xl flex justify-between items-center shadow-lg transition-all ${
+            <div className={`p-5 rounded-lg flex justify-between items-center shadow-xs transition-all ${
               metrics.profitNet >= 0 ? 'bg-success text-primary-foreground' : 'bg-destructive text-primary-foreground'
             }`}>
               <div className="space-y-0.5">

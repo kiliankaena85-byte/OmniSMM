@@ -196,13 +196,13 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
   return (
     <div className="w-full space-y-4">
       {/* -- Toolbar: Search & Filter Tabs -- */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/40 p-2.5 rounded-2xl border border-border/40 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/40 p-2.5 rounded-lg border border-border/70 backdrop-blur-xs shadow-xs">
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           <button
             type="button"
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'all'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
@@ -216,7 +216,7 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
           <button
             type="button"
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'active'
                 ? 'bg-success text-success-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
@@ -231,7 +231,7 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
           <button
             type="button"
             onClick={() => setStatusFilter('error')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'error'
                 ? 'bg-destructive text-destructive-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
@@ -247,9 +247,9 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
           <button
             type="button"
             onClick={() => setStatusFilter('disabled')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilter === 'disabled'
-                ? 'bg-muted text-foreground shadow-xs border border-border'
+                ? 'bg-muted text-foreground shadow-xs border border-border/70'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
             }`}
           >
@@ -282,7 +282,7 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
       </div>
 
       {/* -- Main Container: Desktop Table + Mobile Cards -- */}
-      <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-[24px] shadow-xs ring-1 ring-border/5 overflow-hidden p-0">
+      <div className="bg-card/60 backdrop-blur-xs border border-border/70 rounded-lg shadow-xs overflow-hidden p-0">
         {filtered.length === 0 ? (
           <div className="py-16 px-6 text-center space-y-4 max-w-md mx-auto">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
@@ -315,7 +315,7 @@ export function ProvidersTable({ providers }: { providers: ProviderListDTO[] }) 
                 </Button>
                 <Link
                   href="/admin/providers/new"
-                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-primary-foreground bg-primary rounded-xl hover:opacity-90 transition-all duration-200 shadow-xs active:scale-95"
+                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-xs active:scale-95"
                 >
                   + Добавить шлюз
                 </Link>

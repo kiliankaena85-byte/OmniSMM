@@ -46,31 +46,31 @@ export default async function AdminKnowledgePage() {
       {/* Metrics Widgets block */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {/* Metric 1 */}
-        <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
           <div className="flex justify-between items-start mb-2">
             <span className="text-muted-foreground text-[10px] font-black uppercase tracking-wider">Всего статей</span>
             <span className="text-primary text-xs font-bold bg-primary/10 px-2 py-0.5 rounded-full">Блог</span>
           </div>
-          <div className="text-2xl font-black text-foreground tabular-nums">
+          <div className="text-2xl font-bold text-foreground tabular-nums">
             {totalArticles}
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-success" />
           <div className="flex justify-between items-start mb-2">
             <span className="text-muted-foreground text-[10px] font-black uppercase tracking-wider">Опубликовано</span>
             <span className="text-success text-xs font-bold bg-success/10 px-2 py-0.5 rounded-full">Публичные</span>
           </div>
-          <div className="text-2xl font-black text-foreground tabular-nums">
+          <div className="text-2xl font-bold text-foreground tabular-nums">
             {publishedArticles} / {totalArticles}
           </div>
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-card border border-border/70 rounded-lg p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-warning" />
           <div className="flex justify-between items-start mb-2">
             <span className="text-muted-foreground text-[10px] font-black uppercase tracking-wider">Всего просмотров</span>
@@ -78,14 +78,14 @@ export default async function AdminKnowledgePage() {
               <Eye className="w-3 h-3 shrink-0" /> Views
             </span>
           </div>
-          <div className="text-2xl font-black text-foreground tabular-nums">
+          <div className="text-2xl font-bold text-foreground tabular-nums">
             {totalViews.toLocaleString("ru-RU")}
           </div>
         </div>
       </div>
 
       {/* Main Table section */}
-      <div className="bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card border border-border/70 rounded-lg shadow-xs overflow-hidden">
         {articles.length === 0 ? (
           <div className="h-48 flex flex-col items-center justify-center text-center p-8">
             <BookOpen className="w-12 h-12 text-muted-foreground/40 mb-3 shrink-0" />
@@ -163,13 +163,13 @@ export default async function AdminKnowledgePage() {
                           <Link 
                             href={`/knowledge/${item.slug}`} 
                             target="_blank"
-                            className="min-h-[44px] min-w-[80px] px-3 py-2 bg-muted/60 hover:bg-muted active:scale-[0.98] text-foreground font-bold text-xs rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                            className="px-3 py-1.5 bg-muted/60 hover:bg-muted active:scale-[0.98] text-foreground font-semibold text-xs rounded-lg transition-all flex items-center justify-center cursor-pointer"
                           >
                             Просмотр
                           </Link>
                           <Link 
                             href={`/admin/knowledge/${item.id}/edit`} 
-                            className="min-h-[44px] min-w-[108px] px-4 py-2 bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] font-bold text-xs rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                            className="px-3.5 py-1.5 bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] font-semibold text-xs rounded-lg transition-all flex items-center justify-center cursor-pointer"
                           >
                             Редактировать
                           </Link>

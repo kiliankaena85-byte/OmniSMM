@@ -167,97 +167,98 @@ export default async function AdminCatalogPage({ searchParams }: Props) {
   });
   return (
     <div className="flex flex-col gap-3 w-full animate-in fade-in duration-300">
-      {/* Clean Modern Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-lg font-black text-foreground tracking-tight flex items-center gap-2">
-              <ShoppingCart className="w-4.5 h-4.5 text-primary" />
-              Каталог услуг
-            </h1>
-            <span className="text-[11px] font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border/50">
+      {/* Unified Tabbed Header */}
+      <AdminTabbedHeader
+        icon={ShoppingCart}
+        title="Каталог услуг"
+        description={
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
+            <span className="font-mono font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border/50">
               {stats.totalServices} услуг
             </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2 font-medium">
+            <span>·</span>
             <span>Активных: <b className="text-emerald-500 font-bold">{stats.activeServices}</b></span>
             <span>·</span>
             <span>Ср. маржа: <b className="text-primary font-bold">x{markupAnalytics.averageMarkup.toFixed(2)}</b></span>
             <span>·</span>
             <span>Курс USD: <b className="font-bold text-foreground">{usdToRub.toFixed(2)} ₽</b></span>
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* AUD-14 (3.3): catalog health counters — quarantine / zombies / temporarily hidden */}
-          {catalogHealth.quarantine > 0 && (
-            <Link href={`/admin/catalog/quarantine?tenant=${selectedTenant}`}>
-              <Button
-                intent="outline"
-                size="sm"
-                className="font-bold h-9 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
-              >
-                ⚠️ Карантин ({catalogHealth.quarantine})
-              </Button>
-            </Link>
-          )}
-          {catalogHealth.zombies > 0 && (
-            <Link href={`/admin/catalog?providerStatus=zombie&tenant=${selectedTenant}`}>
-              <Button
-                intent="outline"
-                size="sm"
-                className="font-bold h-9 border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-500/20"
-                title="Услуги, отключённые авто-зомби-логикой (ZOMBIE_AUTO_DISABLED / ZOMBIE_ARCHIVED)"
-              >
-                🧟 Зомби ({catalogHealth.zombies})
-              </Button>
-            </Link>
-          )}
-          {catalogHealth.cooldown > 0 && (
-            <Link href={`/admin/catalog?isActive=true&tenant=${selectedTenant}`}>
-              <Button
-                intent="outline"
-                size="sm"
-                className="font-bold h-9 border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20"
-                title="Активные услуги во временном отстое (cooldown) — скрыты с витрины до окончания срока"
-              >
-                ⏸ На отстое ({catalogHealth.cooldown})
-              </Button>
-            </Link>
-          )}
-          <Link href={`/admin/catalog/categories?tenant=${selectedTenant}`}>
-            <Button
-              intent="outline"
-              size="sm"
-              className="font-bold h-9 bg-background text-muted-foreground hover:text-foreground"
-            >
-              Категории & Соцсети
-            </Button>
-          </Link>
-          {canEdit && (
-          <div className="flex items-center gap-2">
-            <Link href="/admin/providers/import">
+          </div>
+        }
+        tabs={CATALOG_TABS}
+        onboardingKey="catalog"
+        onboarding={ONBOARDING_CONFIGS.catalog}
+        currentTenant={selectedTenant}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            {catalogHealth.quarantine > 0 && (
+              <Link href={`/admin/catalog/quarantine?tenant=${selectedTenant}`}>
+                <Button
+                  intent="outline"
+                  size="sm"
+                  className="font-bold h-9 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
+                >
+                  ⚠️ Карантин ({catalogHealth.quarantine})
+                </Button>
+              </Link>
+            )}
+            {catalogHealth.zombies > 0 && (
+              <Link href={`/admin/catalog?providerStatus=zombie&tenant=${selectedTenant}`}>
+                <Button
+                  intent="outline"
+                  size="sm"
+                  className="font-bold h-9 border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-500/20"
+                  title="Услуги, отключённые авто-зомби-логикой (ZOMBIE_AUTO_DISABLED / ZOMBIE_ARCHIVED)"
+                >
+                  🧟 Зомби ({catalogHealth.zombies})
+                </Button>
+              </Link>
+            )}
+            {catalogHealth.cooldown > 0 && (
+              <Link href={`/admin/catalog?providerStatus=cooldown&tenant=${selectedTenant}`}>
+                <Button
+                  intent="outline"
+                  size="sm"
+                  className="font-bold h-9 border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20"
+                  title="Активные услуги во временном отстое (cooldown) — скрыты с витрины до окончания срока"
+                >
+                  ⏸ На отстое ({catalogHealth.cooldown})
+                </Button>
+              </Link>
+            )}
+            <Link href={`/admin/catalog/categories?tenant=${selectedTenant}`}>
               <Button
                 intent="outline"
                 size="sm"
                 className="font-bold h-9 bg-background text-muted-foreground hover:text-foreground"
               >
-                Импорт услуг
+                Категории & Соцсети
               </Button>
             </Link>
-            <Link href="/admin/catalog/new">
-              <Button
-                intent="primary"
-                size="sm"
-                className="font-bold h-9"
-              >
-                + Создать услугу
-              </Button>
-            </Link>
+            {canEdit && (
+              <div className="flex items-center gap-2">
+                <Link href="/admin/providers/import">
+                  <Button
+                    intent="outline"
+                    size="sm"
+                    className="font-bold h-9 bg-background text-muted-foreground hover:text-foreground"
+                  >
+                    Импорт услуг
+                  </Button>
+                </Link>
+                <Link href="/admin/catalog/new">
+                  <Button
+                    intent="primary"
+                    size="sm"
+                    className="font-bold h-9"
+                  >
+                    + Создать услугу
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
-        )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Direct Catalog Table with 2x4 Filters and Service Rows */}
       <CatalogTable 

@@ -104,9 +104,9 @@ export default async function AdminClientsPage({ searchParams }: Props) {
           <div className="flex items-center gap-3">
             <a
               href={`/api/admin/export?${exportParams.toString()}`}
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-foreground bg-card/80 backdrop-blur-md border border-border shadow-xs rounded-xl hover:bg-muted transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold text-foreground bg-card/80 backdrop-blur-md border border-border/70 shadow-xs rounded-lg hover:bg-muted transition-all active:scale-95"
             >
-              <Download className="w-4 h-4" /> Экспорт CSV
+              <Download className="w-3.5 h-3.5" /> Экспорт CSV
             </a>
           </div>
         ) : undefined}
@@ -116,7 +116,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
       />
 
       {/* Filter Tabs & Search / Sort Bar */}
-      <div className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-4 sm:p-5 ring-1 ring-border/5 space-y-4">
+      <div className="bg-card/60 backdrop-blur-md border border-border/70 shadow-xs rounded-lg p-4 sm:p-5 ring-1 ring-border/5 space-y-4">
         {/* Fast Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           {filterTabs.map((f) => {
@@ -133,10 +133,10 @@ export default async function AdminClientsPage({ searchParams }: Props) {
               <Link
                 key={f.id}
                 href={`/admin/clients${queryParams.toString() ? `?${queryParams.toString()}` : ''}`}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all select-none whitespace-nowrap cursor-pointer border ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all select-none whitespace-nowrap cursor-pointer border ${
                   isActive
                     ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                    : 'bg-background/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
+                    : 'bg-background/60 text-muted-foreground border-border/70 hover:bg-muted hover:text-foreground'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -168,19 +168,19 @@ export default async function AdminClientsPage({ searchParams }: Props) {
                 name="q"
                 defaultValue={search}
                 placeholder="Поиск по Email, ID, Telegram, Названию компании или ИНН..."
-                className="w-full pl-10 pr-4 py-2.5 text-xs bg-background/60 border border-border/60 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-xs text-foreground placeholder:text-muted-foreground/60 font-medium"
+                className="w-full pl-10 pr-4 py-2 text-xs bg-background/60 border border-border/70 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-xs text-foreground placeholder:text-muted-foreground/60 font-medium"
               />
             </div>
             <button
               type="submit"
-              className="sm:w-auto w-full px-5 py-2.5 text-xs font-bold bg-primary text-primary-foreground rounded-xl active:scale-95 transition-all shadow-xs hover:opacity-90 cursor-pointer"
+              className="sm:w-auto w-full px-4 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-lg active:scale-95 transition-all shadow-xs hover:opacity-90 cursor-pointer"
             >
               Найти
             </button>
             {search && (
               <Link
                 href={`/admin/clients${filter !== 'all' ? `?filter=${filter}` : ''}`}
-                className="sm:w-auto w-full px-4 py-2.5 text-xs font-bold text-muted-foreground bg-muted hover:bg-muted/80 rounded-xl transition-all flex items-center justify-center"
+                className="sm:w-auto w-full px-3.5 py-2 text-xs font-bold text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg transition-all flex items-center justify-center border border-border/70"
               >
                 Сброс
               </Link>
@@ -195,7 +195,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
       </div>
 
       {/* Main Clients Table */}
-      <div className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl ring-1 ring-border/5 overflow-hidden">
+      <div className="bg-card/60 backdrop-blur-md border border-border/70 shadow-xs rounded-lg ring-1 ring-border/5 overflow-hidden">
         <div className="p-4 sm:p-6">
           <ClientTable 
             data={users.map(u => ({

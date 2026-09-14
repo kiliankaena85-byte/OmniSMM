@@ -155,7 +155,7 @@ export function FinancePaymentsTab({ initial, period: initPeriod, tenantId }: Fi
   return (
     <div className="space-y-6">
       {/* Action Bar: Filters, Search & 1-Click CSV Export */}
-      <div className="space-y-3 p-4 rounded-2xl border border-border/70 bg-card/60 backdrop-blur-md shadow-xs">
+      <div className="space-y-3 p-4 rounded-lg border border-border/70 bg-card/60 backdrop-blur-md shadow-xs">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1.5">

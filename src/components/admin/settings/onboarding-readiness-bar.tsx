@@ -108,14 +108,14 @@ export function OnboardingReadinessBar({ settings }: OnboardingReadinessBarProps
   const isAllComplete = completedCount === totalCount;
 
   return (
-    <Card className="rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/5 via-card to-primary/5 p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300">
+    <Card className="rounded-lg border border-border/70 bg-gradient-to-r from-primary/5 via-card to-primary/5 p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all duration-300">
       {/* Decorative Glow */}
       <div className="absolute top-0 right-1/4 w-72 h-20 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="p-2 bg-primary/15 text-primary rounded-xl border border-primary/20 shrink-0">
+          <div className="p-2 bg-primary/15 text-primary rounded-lg border border-primary/20 shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="min-w-0">
@@ -146,7 +146,7 @@ export function OnboardingReadinessBar({ settings }: OnboardingReadinessBarProps
           variant="outline"
           size="sm"
           onClick={toggleCollapse}
-          className="h-8 px-2.5 text-xs font-bold gap-1 text-muted-foreground hover:text-foreground shrink-0 rounded-xl"
+          className="h-8 px-2.5 text-xs font-bold gap-1 text-muted-foreground hover:text-foreground shrink-0 rounded-lg shadow-xs"
           aria-label={isCollapsed ? 'Развернуть чек-лист' : 'Свернуть чек-лист'}
         >
           {isCollapsed ? (
@@ -179,14 +179,14 @@ export function OnboardingReadinessBar({ settings }: OnboardingReadinessBarProps
             return (
               <div
                 key={step.id}
-                className={`p-3.5 rounded-2xl border transition-all duration-200 flex flex-col justify-between gap-3 ${
+                className={`p-3.5 rounded-lg border transition-all duration-200 flex flex-col justify-between gap-3 shadow-xs ${
                   step.isCompleted
                     ? 'bg-emerald-500/5 border-emerald-500/20 text-foreground'
-                    : 'bg-card border-border hover:border-primary/40 hover:shadow-xs'
+                    : 'bg-card border-border/70 hover:border-primary/40'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-xl border shrink-0 ${
+                  <div className={`p-2 rounded-lg border shrink-0 ${
                     step.isCompleted
                       ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                       : 'bg-muted text-muted-foreground border-border/40'

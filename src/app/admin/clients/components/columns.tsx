@@ -188,7 +188,7 @@ export const columns: ColumnDef<ClientColumn>[] = [
         <div className="text-right">
           <Link
             href={`/admin/clients/${row.original.id}`}
-            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition-all active:scale-95 shadow-xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-lg transition-all active:scale-95 shadow-xs"
           >
             Карточка →
           </Link>

@@ -3,6 +3,10 @@ import { QuarantineClient } from './quarantine-client';
 import { AlertTriangle } from 'lucide-react';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
 import { CATALOG_TABS, ONBOARDING_CONFIGS } from '@/components/admin/navigation-data';
+import { headers, cookies } from 'next/headers';
+import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
+import { verifySession } from '@/lib/session';
+import { enforceSectionAccess } from '@/lib/server/rbac';
 
 interface ServiceWithRelations {
   id: string;
@@ -65,15 +69,49 @@ interface AutoFixItemDto {
 
 export const dynamic = 'force-dynamic';
 
-export default async function QuarantinePage() {
+type Props = {
+  searchParams?: Promise<{ tenant?: string }>;
+};
+
+export default async function QuarantinePage({ searchParams }: Props) {
+  await enforceSectionAccess('catalog');
+
+  const reqHeaders = await headers();
+  const cookieStore = await cookies();
+  const session = await verifySession();
+  const user = session ? await db.user.findUnique({ 
+    where: { id: session.userId },
+    select: { id: true, role: true, tenantId: true }
+  }) : null;
+
+  const params = searchParams ? await searchParams : {};
+  const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
+
+  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+  const headerTenant = normalizeTenantId(reqHeaders.get('x-tenant-id'));
+  const effectiveParamTenant = params.tenant || cookieTenant;
+
+  const resolvedTenant = resolveAdminTenantContext(user as unknown as import('@prisma/client').User, effectiveParamTenant);
+  const selectedTenant = resolvedTenant !== 'all' ? resolvedTenant : (headerTenant || 'smmplan');
+  const tenantFilter = selectedTenant ? { in: [selectedTenant, 'all'] } : undefined;
+
+  const tenantServiceCondition = tenantFilter ? { category: { tenantId: tenantFilter } } : {};
+
   const [quarantined, zombies, blockedByApi, autoFixLogs] = await Promise.all([
     db.service.findMany({
-      where: { isQuarantined: true },
+      where: { 
+        isQuarantined: true,
+        ...tenantServiceCondition,
+      },
       include: { category: { include: { network: true } }, provider: { select: { id: true, name: true } } },
       orderBy: { quarantinedAt: 'desc' },
     }) as Promise<ServiceWithRelations[]>,
     db.service.findMany({
-      where: { cooldownReason: 'ZOMBIE_AUTO_DISABLED', isActive: false },
+      where: { 
+        cooldownReason: 'ZOMBIE_AUTO_DISABLED', 
+        isActive: false,
+        ...tenantServiceCondition,
+      },
       include: { category: { include: { network: true } }, provider: { select: { id: true, name: true } } },
       orderBy: { updatedAt: 'desc' },
     }) as Promise<ServiceWithRelations[]>,
@@ -81,6 +119,7 @@ export default async function QuarantinePage() {
       where: {
         cooldownUntil: { gt: new Date() },
         cooldownReason: { not: 'ZOMBIE_AUTO_DISABLED' },
+        ...tenantServiceCondition,
       },
       include: { category: { include: { network: true } }, provider: { select: { id: true, name: true } } },
       orderBy: { cooldownUntil: 'desc' },
@@ -91,6 +130,7 @@ export default async function QuarantinePage() {
       take: 100,
     }) as Promise<AutoFixLog[]>,
   ]);
+
 
   const mapToDto = (s: ServiceWithRelations): QuarantineItemDto => ({
     id: s.id,

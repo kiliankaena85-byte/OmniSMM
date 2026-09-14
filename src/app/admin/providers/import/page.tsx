@@ -54,7 +54,7 @@ export default async function ImportProvidersPage({ searchParams }: ImportPagePr
 
       {/* PATCH P1-5: split empty state — two distinct scenarios with correct links */}
       {!canImport ? (
-        <div className="bg-card/60 backdrop-blur-md border border-border/50 p-6 rounded-2xl shadow-sm ring-1 ring-border/5 space-y-4">
+        <div className="bg-card/60 backdrop-blur-xs border border-border/70 p-6 rounded-lg shadow-xs space-y-4">
           <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-foreground">
             <span className="bg-muted/50 p-1.5 rounded-md">
               {noProviders ? <PlusCircle className="w-4 h-4 text-warning" /> : <FolderPlus className="w-4 h-4 text-warning" />}
@@ -76,7 +76,7 @@ export default async function ImportProvidersPage({ searchParams }: ImportPagePr
             {noProviders && (
               <Link
                 href="/admin/providers/new"
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 shadow-sm"
+                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-95 shadow-xs"
               >
                 <PlusCircle className="w-4 h-4" />
                 + Добавить провайдера
@@ -85,7 +85,7 @@ export default async function ImportProvidersPage({ searchParams }: ImportPagePr
             {noCategories && (
               <Link
                 href="/admin/catalog/categories"
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 shadow-sm"
+                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-95 shadow-xs"
               >
                 <FolderPlus className="w-4 h-4" />
                 Создать категории
