@@ -71041,7 +71041,7 @@ var init_link_rules = __esm({
       {
         platform: "VK" /* VK */,
         type: "comment",
-        pattern: /(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|photo|clip)(-?\d+_\d+)\?(?:[^#&]*&)*reply=(\d+)/i,
+        pattern: /(?:vk\.(?:com|ru)|vkvideo\.ru)\/(?:wall|video|photo|clip)(-?\d+_\d+)\?[^#]*\breply=(\d+)/i,
         suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.REACTIONS],
         context: "social_reach"
       },
@@ -71621,10 +71621,38 @@ __export2(ssrf_guard_exports, {
   SHORT_LINK_HOSTS: () => SHORT_LINK_HOSTS,
   isPublicHost: () => isPublicHost,
   isPublicIp: () => isPublicIp,
+  isUrlSafeForFetch: () => isUrlSafeForFetch,
   resolveShortLink: () => resolveShortLink
 });
-function isPublicIp(ip) {
-  if (ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("169.254.") || ip.startsWith("192.168.") || ip === "0.0.0.0") {
+function isPublicIp(rawIp) {
+  let ip = rawIp.trim().toLowerCase();
+  if (ip.startsWith("[") && ip.endsWith("]")) {
+    ip = ip.slice(1, -1);
+  }
+  if (ip.startsWith("::ffff:")) {
+    const rem = ip.slice(7);
+    if (rem.includes(".")) {
+      ip = rem;
+    } else {
+      const parts = rem.split(":");
+      if (parts.length === 2) {
+        const high = parseInt(parts[0], 16);
+        const low = parseInt(parts[1], 16);
+        if (!isNaN(high) && !isNaN(low)) {
+          const b1 = high >> 8 & 255;
+          const b2 = high & 255;
+          const b3 = low >> 8 & 255;
+          const b4 = low & 255;
+          ip = `${b1}.${b2}.${b3}.${b4}`;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+  }
+  if (ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("169.254.") || ip.startsWith("192.168.") || ip === "0.0.0.0" || ip.startsWith("0.")) {
     return false;
   }
   if (ip.startsWith("172.")) {
@@ -71636,8 +71664,26 @@ function isPublicIp(ip) {
       }
     }
   }
-  const normalizedIp = ip.toLowerCase();
-  if (normalizedIp === "::1" || normalizedIp === "::" || normalizedIp.startsWith("fc00:") || normalizedIp.startsWith("fd00:") || normalizedIp.startsWith("fe80:")) {
+  if (ip === "::1" || ip === "::" || ip.startsWith("fc00:") || ip.startsWith("fd00:") || ip.startsWith("fe80:") || ip === "fd00:ec2::254") {
+    return false;
+  }
+  return true;
+}
+function isUrlSafeForFetch(urlString) {
+  if (!urlString || typeof urlString !== "string") return false;
+  let parsedUrl;
+  try {
+    parsedUrl = new import_url.URL(urlString.startsWith("http") ? urlString : `https://${urlString}`);
+  } catch {
+    return false;
+  }
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) return false;
+  const rawHost = parsedUrl.hostname.toLowerCase().trim();
+  const host = rawHost.startsWith("[") && rawHost.endsWith("]") ? rawHost.slice(1, -1) : rawHost;
+  if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") || host === "metadata.google.internal" || host.endsWith(".metadata.internal")) {
+    return false;
+  }
+  if (!isPublicIp(host)) {
     return false;
   }
   return true;
@@ -129988,6 +130034,10 @@ var init_anti_negative_margin = __esm({
 });
 
 // src/services/marketing.service.ts
+var marketing_service_exports = {};
+__export2(marketing_service_exports, {
+  marketingService: () => marketingService
+});
 var MarketingService, marketingService;
 var init_marketing_service = __esm({
   "src/services/marketing.service.ts"() {
@@ -130041,6 +130091,9 @@ var init_marketing_service = __esm({
         }
         const service = preloadedContext && preloadedContext.service !== void 0 ? preloadedContext.service : await db.service.findUnique({ where: { id: serviceId } });
         if (!service) throw new Error("Service not found");
+        if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(quantity)) {
+          throw new Error("\u041A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0446\u0435\u043B\u044B\u043C \u043F\u043E\u043B\u043E\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u043C \u0447\u0438\u0441\u043B\u043E\u043C");
+        }
         if (quantity < service.minQty || quantity > service.maxQty) {
           throw new Error(`Quantity must be between ${service.minQty} and ${service.maxQty}`);
         }
@@ -139947,6 +140000,15 @@ var init_payment_service = __esm({
                   data: { status: "PENDING" }
                 });
                 await logPromoCodeUsageIfNeeded(tx, linkedOrderId, targetUserId);
+                if (order.promoCodeId) {
+                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
+                  if (promo) {
+                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
+                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
+                      console.warn(`[MARKETING] Could not consume promo code ${promo.code} on payment confirmation:`, err);
+                    });
+                  }
+                }
                 activatedOrders.push({
                   id: order.id,
                   isDripFeed: order.isDripFeed,
@@ -140001,6 +140063,15 @@ var init_payment_service = __esm({
                   numericId: order.numericId
                 });
                 await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
+                if (order.promoCodeId) {
+                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
+                  if (promo) {
+                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
+                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
+                      console.warn(`[MARKETING] Could not consume basket promo code ${promo.code} on payment confirmation:`, err);
+                    });
+                  }
+                }
               }
               await WalletOps.credit(
                 tx,

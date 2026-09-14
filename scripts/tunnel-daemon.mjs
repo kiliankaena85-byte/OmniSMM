@@ -8,92 +8,28 @@
  */
 
 import { spawn } from 'child_process';
-import { readFileSync } from 'fs';
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
 
-const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || 'cfut_EFnUoQN8CInbcwzNchPSrx0oWPReaNK8jtlvqENH1dec0681';
-const ACCOUNT_ID = '0a7a9a7acb363ffba6f1f1d71897b94c';
-const ZONE_ID = 'b67ab9748fc5f42587bc0d455faf0fdd';
+process.on('uncaughtException', (err) => {
+  console.error('[Watchdog] Caught exception (continuing):', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Watchdog] Caught rejection (continuing):', reason);
+});
+
+const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '0a7a9a7acb363ffba6f1f1d71897b94c';
 const SCRIPT_NAME = 'smmplan-test-proxy';
 
 let currentTunnelUrl = null;
 let heartbeatInterval = null;
-
-async function updateCloudflareWorker(tunnelUrl) {
-  console.log(`[Cloudflare] Updating Worker "${SCRIPT_NAME}" to REDIRECT (302) to: ${tunnelUrl}...`);
-
-  const WORKER_CODE = `
-const TARGET_ORIGIN = '${tunnelUrl}';
-
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const destination = new URL(url.pathname + url.search, TARGET_ORIGIN);
-    return Response.redirect(destination.toString(), 302);
-  }
-};
-`;
-
-  const formData = new FormData();
-  const meta = {
-    main_module: 'worker.js',
-    compatibility_date: '2024-09-23',
-    compatibility_flags: ['nodejs_compat']
-  };
-  formData.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }), 'metadata.json');
-  formData.append('worker.js', new Blob([WORKER_CODE], { type: 'application/javascript+module' }), 'worker.js');
-
-  const uploadRes = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/workers/scripts/${SCRIPT_NAME}`,
-    {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${CF_TOKEN}` },
-      body: formData
-    }
-  );
-  const json = await uploadRes.json();
-  if (json.success) {
-    console.log(`[Cloudflare] ✅ Worker updated to REDIRECT 302 -> ${tunnelUrl}`);
-  } else {
-    console.error(`[Cloudflare] ❌ Worker update failed:`, json.errors);
-  }
-}
-
 let activeSsh = null;
 let consecutiveFailures = 0;
 
 const TARGET_HOST = process.env.TUNNEL_TARGET || '127.0.0.1:3000';
-
-function startTunnel() {
-  console.log(`[Tunnel] Launching SSH tunnel to localhost.run (forwarding to ${TARGET_HOST})...`);
-
-  // localhost.run (clean redirect without warning pages)
-  const ssh = spawn('ssh', [
-    '-o', 'StrictHostKeyChecking=no',
-    '-o', 'ServerAliveInterval=15',
-    '-o', 'ServerAliveCountMax=3',
-    '-o', 'ExitOnForwardFailure=yes',
-    '-R', `80:${TARGET_HOST}`,
-    'nokey@localhost.run'
-  ]);
-  activeSsh = ssh;
-  consecutiveFailures = 0;
-
-  let buffer = '';
-
-  ssh.stdout.on('data', (data) => {
-    const text = data.toString();
-    buffer += text;
-    process.stdout.write(text);
-
-    // Match pinggy or localhost.run URL
-    const match = buffer.match(/https:\/\/([a-z0-9-]+)\.free\.pinggy\.net/)
-      || buffer.match(/https:\/\/([a-z0-9-]+)\.run\.pinggy-free\.link/)
-      || buffer.match(/https:\/\/([a-z0-9]+\.lhr\.life)/);
-
-    if (match && match[0] !== currentTunnelUrl) {
-      currentTunnelUrl = match[0];
-      console.log(`\n[Tunnel] 🌟 Detected active tunnel URL: ${currentTunnelUrl}`);
-      updateCloudflareWorker(currentTunnelUrl);
+const TUNNEL_URL_FILE = resolve(process.cwd(), 'TUNNEL_URL.txt');
 
 function killSsh(child) {
   if (!child) return;
@@ -108,7 +44,98 @@ function killSsh(child) {
   }
 }
 
-      // Start keep-alive heartbeats every 15 seconds
+async function updateCloudflareWorker(tunnelUrl) {
+  if (!CF_TOKEN || CF_TOKEN.startsWith('cfut_EFnUo')) {
+    return;
+  }
+
+  console.log(`[Cloudflare] Updating Worker "${SCRIPT_NAME}" to REDIRECT (302) to: ${tunnelUrl}...`);
+
+  const WORKER_CODE = `
+const TARGET_ORIGIN = '${tunnelUrl}';
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const destination = new URL(url.pathname + url.search, TARGET_ORIGIN);
+    return Response.redirect(destination.toString(), 302);
+  }
+};
+`;
+
+  try {
+    const formData = new FormData();
+    const meta = {
+      main_module: 'worker.js',
+      compatibility_date: '2024-09-23',
+      compatibility_flags: ['nodejs_compat']
+    };
+    formData.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }), 'metadata.json');
+    formData.append('worker.js', new Blob([WORKER_CODE], { type: 'application/javascript+module' }), 'worker.js');
+
+    const uploadRes = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/workers/scripts/${SCRIPT_NAME}`,
+      {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${CF_TOKEN}` },
+        body: formData
+      }
+    );
+    const json = await uploadRes.json();
+    if (json.success) {
+      console.log(`[Cloudflare] ✅ Worker updated to REDIRECT 302 -> ${tunnelUrl}`);
+    } else {
+      console.warn(`[Cloudflare] ⚠️ Worker update skipped:`, json.errors?.[0]?.message || 'Auth failed');
+    }
+  } catch (err) {
+    console.warn(`[Cloudflare] ⚠️ Worker update error:`, err.message);
+  }
+}
+
+function startTunnel() {
+  console.log(`[Tunnel] Launching SSH tunnel to Pinggy (forwarding to ${TARGET_HOST} via port 443)...`);
+
+  const ssh = spawn('ssh', [
+    '-p', '443',
+    '-o', 'StrictHostKeyChecking=no',
+    '-o', 'ServerAliveInterval=15',
+    '-o', 'ServerAliveCountMax=3',
+    '-R', `0:${TARGET_HOST}`,
+    'a.pinggy.io'
+  ]);
+
+  activeSsh = ssh;
+  consecutiveFailures = 0;
+  let buffer = '';
+
+  ssh.stdout.on('data', (data) => {
+    const text = data.toString();
+    buffer += text;
+    process.stdout.write(text);
+
+    // Match localhost.run or pinggy URL
+    const match = buffer.match(/https:\/\/([a-z0-9]+\.lhr\.life)/)
+      || buffer.match(/https:\/\/([a-z0-9-]+)\.free\.pinggy\.net/)
+      || buffer.match(/https:\/\/([a-z0-9-]+)\.run\.pinggy-free\.link/);
+
+    if (match && match[0] !== currentTunnelUrl) {
+      currentTunnelUrl = match[0];
+      const timestamp = new Date().toLocaleString('ru-RU');
+      console.log(`\n=======================================================`);
+      console.log(`  🌟 LIVE TUNNEL URL: ${currentTunnelUrl}`);
+      console.log(`  🕒 Updated at: ${timestamp}`);
+      console.log(`=======================================================\n`);
+
+      try {
+        writeFileSync(TUNNEL_URL_FILE, `${currentTunnelUrl}\n# SMMplan Active Tunnel\n# Updated: ${timestamp}\n`);
+        console.log(`[Tunnel] Saved active URL to ${TUNNEL_URL_FILE}`);
+      } catch (e) {
+        console.error(`[Tunnel] Could not write URL file:`, e.message);
+      }
+
+      updateCloudflareWorker(currentTunnelUrl);
+
+      // Start keep-alive heartbeats every 20 seconds
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       heartbeatInterval = setInterval(async () => {
         try {
@@ -125,7 +152,7 @@ function killSsh(child) {
           } else {
             consecutiveFailures++;
             console.log(`[Heartbeat] ⚠️ Ping returned status: ${res.status} (fail count: ${consecutiveFailures})`);
-            if (consecutiveFailures >= 2) {
+            if (consecutiveFailures >= 3) {
               console.log(`[Heartbeat] 🚨 Tunnel dead (${consecutiveFailures} consecutive non-200). Force restarting SSH...`);
               killSsh(ssh);
             }
@@ -133,12 +160,12 @@ function killSsh(child) {
         } catch(e) {
           consecutiveFailures++;
           console.log(`[Heartbeat] ⚠️ Ping error: ${e.message} (fail count: ${consecutiveFailures})`);
-          if (consecutiveFailures >= 2) {
+          if (consecutiveFailures >= 3) {
             console.log(`[Heartbeat] 🚨 Tunnel unreachable (${consecutiveFailures} consecutive errors). Force restarting SSH...`);
             killSsh(ssh);
           }
         }
-      }, 15000);
+      }, 20000);
     }
   });
 
@@ -160,6 +187,19 @@ function killSsh(child) {
     console.error(`[Tunnel] Error:`, err);
   });
 }
+
+// Graceful cleanup
+process.on('SIGINT', () => {
+  console.log('\n[Tunnel] Shutting down tunnel daemon...');
+  if (activeSsh) killSsh(activeSsh);
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n[Tunnel] Received SIGTERM...');
+  if (activeSsh) killSsh(activeSsh);
+  process.exit(0);
+});
 
 console.log('═══════════════════════════════════════════════════════');
 console.log('  🚀 SMMplan Persistent Tunnel & Proxy Watchdog Daemon');

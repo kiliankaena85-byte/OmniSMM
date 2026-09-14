@@ -6,31 +6,10 @@ import { safeUrlForLog } from "@/lib/log-safe";
 
 
 import { IntelligenceAnalysisResult } from "@/services/analyzer/link-analyzer";
+import { isUrlSafeForFetch } from "@/lib/ssrf-guard";
 
 const MAX_ANALYZE_CACHE_ENTRIES = 1000;
 const analyzeCache = new Map<string, { data: IntelligenceAnalysisResult; expiresAt: number }>();
-
-function isUrlSafeForFetch(urlString: string): boolean {
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(urlString);
-  } catch {
-    return false;
-  }
-  if (!['http:', 'https:'].includes(parsedUrl.protocol)) return false;
-  
-  const hostname = parsedUrl.hostname.toLowerCase();
-  // Block metadata endpoints
-  if (hostname === '169.254.169.254' || hostname === 'metadata.google.internal' || hostname.endsWith('.metadata.internal')) {
-    return false;
-  }
-  // Block local/loopback
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return false;
-  // Block private IP ranges (simplified regex check)
-  if (/^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|0\.)/.test(hostname)) return false;
-  
-  return true;
-}
 
 /**
  * @public Safe public URL intelligence analyzer for order forms

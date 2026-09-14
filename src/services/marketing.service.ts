@@ -81,6 +81,10 @@ class MarketingService {
         
     if (!service) throw new Error('Service not found');
 
+    if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(quantity)) {
+      throw new Error('Количество должно быть целым положительным числом');
+    }
+
     if (quantity < service.minQty || quantity > service.maxQty) {
       throw new Error(`Quantity must be between ${service.minQty} and ${service.maxQty}`);
     }

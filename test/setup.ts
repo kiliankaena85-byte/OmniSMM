@@ -481,7 +481,8 @@ beforeEach(async () => {
         'proxy-tenant-override-auth',
         'mobile-trust-header',
         'llm-prompt-sanitizer',
-        'client-dashboard-master'
+        'client-dashboard-master',
+        'vulnerability-vectors-remediation'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
         shouldReset = false;

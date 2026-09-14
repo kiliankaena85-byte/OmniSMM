@@ -21,6 +21,7 @@ import { validateProhibitedContent } from '@/validators/prohibited-content';
 import { inferTargetTypeFromCategory, normalizeTargetType, resolveServiceTargetType, TargetTypeEnum } from '@/utils/target-type';
 import { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } from '@/constants/link-service-compatibility';
 import { safeUrlForLog } from '@/lib/log-safe';
+import { isUrlSafeForFetch } from '@/lib/ssrf-guard';
 import { SmartDripService } from '@/services/dripfeed/smart-drip.service';
 import { randomUUID } from 'crypto';
 
@@ -47,6 +48,13 @@ export async function calculatePriceAction(
     const isAllowed = await RateLimitService.check("priceCalc", 60, 60, true);
     if (!isAllowed) {
       return { success: false, error: "Слишком много запросов. Попробуйте через минуту." };
+    }
+
+    if (!quantity || !Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(quantity) || quantity > 10_000_000) {
+      return { success: false, error: "Количество должно быть целым положительным числом" };
+    }
+    if (runs !== undefined && (!Number.isInteger(runs) || runs < 1 || runs > 100)) {
+      return { success: false, error: "Количество запусков должно быть от 1 до 100" };
     }
 
     const service = await db.service.findUnique({ where: { id: serviceId } });
@@ -92,11 +100,11 @@ import { MutexManager } from '@/lib/redis-lock';
 const checkoutSchema = z.object({
   serviceId: z.string(),
   link: z.string().min(3, "Ссылка слишком короткая").max(2048, "Ссылка слишком длинная").refine(val => !val.includes(' '), "Ссылка не должна содержать пробелов"),
-  quantity: z.number().min(1),
+  quantity: z.number().int("Количество должно быть целым числом").min(1, "Минимальное количество — 1").max(10_000_000, "Превышен максимальный лимит количества"),
   email: z.string().email("Неверный email"),
   promoCodeStr: z.string().trim().max(32, "Промокод не может быть длиннее 32 символов").regex(/^[a-zA-Z0-9_-]*$/, "Некорректный формат промокода").optional(),
-  runs: z.number().int().positive().optional(),
-  interval: z.number().int().positive().optional(),
+  runs: z.number().int("Количество запусков должно быть целым числом").min(1).max(100).optional(),
+  interval: z.number().int("Интервал должен быть целым числом").min(1).max(10080).optional(),
   customData: z.string().optional(),
   gateway: z.string().optional().default('yookassa'),
   idempotencyKey: z.string().min(10).max(64).optional(),
@@ -260,15 +268,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
           throw new Error("Указан некорректный домен ссылки.");
         }
         // SSRF Guard: block private/loopback/cloud metadata IP addresses
-        if (
-          host === 'localhost' ||
-          host === '127.0.0.1' ||
-          host === '::1' ||
-          host === '169.254.169.254' ||
-          host.startsWith('10.') ||
-          host.startsWith('192.168.') ||
-          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
-        ) {
+        if (!isUrlSafeForFetch(normalizedLink)) {
           throw new Error("Указанный адрес заблокирован политикой безопасности.");
         }
       } catch (e: unknown) {
@@ -578,8 +578,10 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
           secondOrderId = secondOrder.id;
         }
 
-        // Consume Promo Code if used
-        if (normalizedPromo) {
+        // Consume Promo Code immediately ONLY if paid via balance.
+        // For external gateways (YooKassa, Robokassa, CryptoBot), consumePromoCode is called
+        // upon payment confirmation in paymentService.confirmPayment.
+        if (gateway === 'balance' && normalizedPromo) {
           await marketingService.consumePromoCode(tx, normalizedPromo);
         }
 

@@ -217,6 +217,15 @@ export class PaymentService {
               data: { status: 'PENDING' }
             });
             await logPromoCodeUsageIfNeeded(tx, linkedOrderId, targetUserId);
+            if (order.promoCodeId) {
+              const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
+              if (promo) {
+                const { marketingService } = await import('@/services/marketing.service');
+                await marketingService.consumePromoCode(tx, promo.code).catch((err) => {
+                  console.warn(`[MARKETING] Could not consume promo code ${promo.code} on payment confirmation:`, err);
+                });
+              }
+            }
             activatedOrders.push({ 
               id: order.id, 
               isDripFeed: order.isDripFeed, 
@@ -268,6 +277,15 @@ export class PaymentService {
                 numericId: order.numericId 
               });
               await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
+              if (order.promoCodeId) {
+                const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
+                if (promo) {
+                  const { marketingService } = await import('@/services/marketing.service');
+                  await marketingService.consumePromoCode(tx, promo.code).catch((err) => {
+                    console.warn(`[MARKETING] Could not consume basket promo code ${promo.code} on payment confirmation:`, err);
+                  });
+                }
+              }
            }
 
             // Credit full expected paid amount first to currentPayment.userId

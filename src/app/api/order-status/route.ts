@@ -63,11 +63,7 @@ export async function GET(req: NextRequest) {
       }
 
       if (!session && !isTokenValid) {
-        const isAwaiting = order.status === 'AWAITING_PAYMENT';
-        const isRecentlyUpdated = order.updatedAt && (Date.now() - new Date(order.updatedAt).getTime() < 15 * 60 * 1000);
-        if (!isAwaiting && !isRecentlyUpdated) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
       // Synchronous status check fallback
@@ -137,14 +133,6 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      if (!session && !isTokenValid) {
-        return NextResponse.json({
-          orderId: order.id,
-          numericId: order.numericId,
-          status: order.status,
-        });
-      }
-
       return NextResponse.json({
         orderId: order.id,
         numericId: order.numericId,
@@ -164,11 +152,7 @@ export async function GET(req: NextRequest) {
       }
 
       if (!session && !isTokenValid) {
-        const isAwaiting = payment.status === 'PENDING';
-        const isRecentlyUpdated = payment.updatedAt && (Date.now() - new Date(payment.updatedAt).getTime() < 15 * 60 * 1000);
-        if (!isAwaiting && !isRecentlyUpdated) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
       // Synchronous status check fallback

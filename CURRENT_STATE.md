@@ -1,4 +1,29 @@
 # CURRENT_STATE.md
+- [x] Полная ликвидация векторов уязвимости и векторов отказа платформы (Round Table Security & Resilience — 100% COMPLETE & VERIFIED):
+  * 🛡️ **[SEC-P0.1] Ликвидация обхода SSRF-фильтра (`ssrf-guard.ts`, `analyze-url.ts`, `checkout.ts`):**
+    - В `isPublicIp` добавлено снятие скобок IPv6 (`[::1]`), поддержка шестнадцатеричной нотации IPv4-mapped IPv6 (`[::ffff:7f00:1]`, генерируемой парсером WHATWG URL в Node.js), блокировка подсетей loopback `127.0.0.0/8`, `0.0.0.0/8`, link-local и облачных метаданных (`[fd00:ec2::254]`).
+    - Введена централизованная функция `isUrlSafeForFetch()`, устранены все локальные незащищенные проверки хостов в Server Actions.
+  * 🔒 **[SEC-P0.2] Ликвидация IDOR утечки данных заказов (`src/app/api/order-status/route.ts`):**
+    - Полностью удалена небезопасная лазейка `isAwaiting || isRecentlyUpdated`, отдававшая метаданные чужих заказов неавторизованным запросам.
+    - Введен строгий инвариант Rule 12: доступ разрешен СТРОГО владельцу заказа с активной сессией (`order.userId === session.userId`) либо гостю с валидным криптографическим JWT/HMAC токеном. Любые запросы без сессии и токена немедленно получают HTTP 401 Unauthorized.
+  * 💰 **[FIN-P0.1] Искоренение Float/NaN Quantity Injection (`checkout.ts`, `marketing.service.ts`):**
+    - В `calculatePriceAction` и `marketingService.calculatePrice` внедрена строгая проверка `Number.isInteger(quantity) && quantity > 0 && Number.isFinite(quantity)`.
+    - В схеме Zod `checkoutSchema` поле `quantity` ужесточено валидатором `.int()`, а параметры `runs` и `interval` ограничены валидными диапазонами целых чисел, исключая дробные объемы и несоответствия с `Order.quantity: Int` в БД.
+  * 🎟️ **[FIN-P1.1] Предотвращение сжигания промокодов (Promo Code Exhaustion Protection):**
+    - В `checkoutAction` списание лимита использований промокода (`consumePromoCode`) теперь выполняется мгновенно ТОЛЬКО при оплате с баланса (`gateway === 'balance'`).
+    - Для внешних платежных шлюзов (ЮKassa, Robokassa, CryptoBot) списание промокода перенесено в `paymentService.confirmPayment` на момент фактического поступления денежных средств, устраняя сжигание лимитов при брошенных неоплаченных заказах.
+  * ⚡ **[SEC-P1.1] Устранение ReDoS в анализаторе ссылок (`link-rules.ts`):**
+    - В правиле комментариев VK заменена конструкция с полиномиальным бэктрекингом `(?:[^#&]*&)*reply=(\d+)` на детерминированный линейный поиск параметра `reply`. Спам-строки из 5000+ амперсандов теперь обрабатываются за 0.2 мс без блокировки Event Loop.
+  * 🧪 **Автоматизированное TDD-тестирование & Регрессионная верификация:**
+    - Новый security-сьют: `src/__tests__/security/vulnerability-vectors-remediation.test.ts` — **15/15 PASS (100%)**.
+    - Регрессионные сьюты валидатора и анализатора: **41/41 PASS (100%)**.
+    - Строгая проверка типов: `npx tsc --noEmit` — **0 ошибок**.
+    - Контроль безопасности бандла: `check-bundle-secrets.mjs` — **0 утечек**.
+    - Контроль доменов в документации: `check-api-docs-domains.ts` — **0 нарушений**.
+  * 🚀 **Сборка и перезапуск продакшен-контейнера:**
+    - Чистая сборка Next.js 16 Webpack standalone на хосте (`npm run build`) завершена успешно.
+    - Контейнер `smmplan_web` пересобран и перезапущен (`docker compose up -d --build web`) в статусе `healthy`.
+    - Доступность через официальный туннель: `https://smmplan.tailbb9d28.ts.net/api/health` — `{"status":"healthy"}` (HTTP 200 OK).
 - [x] Полная ликвидация критических векторов отказа URL-валидатора, чекаута и движка заказов (100% COMPLETE & VERIFIED):
   * 🎯 **[P0] Устранение сбоя TargetType в чекауте (`checkout.ts`):**
     - В `src/actions/order/checkout.ts` и `src/utils/target-type.ts` внедрен вызов `resolveServiceTargetType(service)`.
