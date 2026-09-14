@@ -173,6 +173,9 @@
   --color-popover: #1e293b;
   --color-popover-foreground: #f8fafc;
 
+  --color-secondary: #0c4a6e; /* deep sky-900 for dark mode */
+  --color-secondary-foreground: #38bdf8; /* sky-400 */
+
   --color-muted: #243042; /* Soft intermediate slate */
   --color-muted-foreground: #cbd5e1; /* slate-300 for 4.5:1 contrast on slate-800 */
 

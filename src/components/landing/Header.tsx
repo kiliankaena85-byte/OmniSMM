@@ -108,7 +108,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center justify-center p-2 sm:p-2.5 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors border border-border/70 cursor-pointer disabled:opacity-50"
+                className="flex items-center justify-center p-2 sm:p-2.5 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-card/80 hover:bg-card text-muted-foreground hover:text-destructive transition-colors border border-border/70 cursor-pointer disabled:opacity-50"
                 title="Выйти из аккаунта"
                 aria-label="Выйти из аккаунта"
               >
@@ -125,10 +125,10 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
               className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all duration-300 ${
                 isFlux
                   ? "bg-card text-foreground border-border/80 hover:border-purple-400 hover:text-purple-600 shadow-sm"
-                  : "bg-secondary/80 text-foreground border-border/70 hover:bg-secondary"
+                  : "bg-card/80 text-foreground border-border/80 hover:border-primary/50 hover:text-primary hover:bg-card shadow-sm"
               }`}
             >
-              <LogIn className={`w-4 h-4 ${isFlux ? "text-purple-500" : "text-muted-foreground"}`} />
+              <LogIn className={`w-4 h-4 transition-colors ${isFlux ? "text-purple-500" : "text-primary"}`} />
               <span>Войти</span>
             </Link>
           )}
@@ -137,7 +137,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Открыть меню навигации"
-                className="flex items-center justify-center p-2.5 rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/70 cursor-pointer active:scale-95 transition-all min-h-[44px] min-w-[44px] outline-none"
+                className="flex items-center justify-center p-2.5 rounded-full bg-card/80 hover:bg-card text-muted-foreground hover:text-foreground border border-border/70 cursor-pointer active:scale-95 transition-all min-h-[44px] min-w-[44px] outline-none"
               >
                 <Menu className="w-5 h-5 shrink-0" />
               </DropdownMenuTrigger>
