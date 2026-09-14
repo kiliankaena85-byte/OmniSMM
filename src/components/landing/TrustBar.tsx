@@ -20,21 +20,24 @@ export function TrustBar() {
       <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-content1 to-transparent z-10 pointer-events-none hidden md:block" />
       
       {/* Mobile Grid Layout (< md) */}
-      <div className="grid grid-cols-2 gap-3.5 px-4 w-full max-w-lg sm:max-w-2xl mx-auto md:hidden">
-        {stats.map((s, idx) => (
-          <div
-            key={`${s.label}-${idx}`}
-            className="flex items-center gap-2 md:gap-4 bg-content2 border border-border/50 rounded-2xl p-3 md:p-4 w-full shadow-sm hover:border-primary/20 transition-all duration-300"
-          >
-            <div className={`p-2.5 rounded-xl bg-content1 shadow-sm border border-border/50 shrink-0 ${s.color}`}>
-               <s.icon className="w-5 h-5 drop-shadow-sm" />
+      <div className="grid grid-cols-2 gap-3 px-4 w-full md:hidden">
+        {stats.map((s, idx) => {
+          const Icon = s.icon;
+          return (
+            <div
+              key={`${s.label}-${idx}`}
+              className="flex items-start gap-2.5 bg-content2 border border-border/50 rounded-2xl p-3 w-full shadow-sm hover:border-primary/20 transition-all duration-300"
+            >
+              <div className={`p-2 rounded-xl bg-content1 shadow-sm border border-border/50 shrink-0 mt-0.5 ${s.color}`}>
+                <Icon className="w-4 h-4 drop-shadow-sm" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <div className="text-sm font-bold tracking-tight text-foreground tabular-nums leading-tight">{s.value}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground whitespace-normal leading-tight mt-0.5">{s.label}</div>
+              </div>
             </div>
-            <div className="flex flex-col min-w-0">
-               <div className="text-sm md:text-base font-bold tracking-tight text-foreground tabular-nums">{s.value}</div>
-               <div className="text-[10px] md:text-[10px] font-bold uppercase tracking-wider text-muted-foreground whitespace-normal leading-tight">{s.label}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Desktop Marquee (>= md) */}
@@ -48,20 +51,23 @@ export function TrustBar() {
           }}
           className="flex gap-4 sm:gap-8 px-4 sm:px-8 shrink-0 items-center whitespace-nowrap"
         >
-          {marqueeItems.map((s, idx) => (
-            <div
-              key={`${s.label}-${idx}`}
-              className="flex items-center gap-4 bg-content2 border border-border/50 rounded-full px-6 py-3 shrink-0"
-            >
-              <div className={`p-2 rounded-full bg-content1 shadow-sm border border-border/50 ${s.color}`}>
-                <s.icon className="w-5 h-5 drop-shadow-sm" />
+          {marqueeItems.map((s, idx) => {
+            const Icon = s.icon;
+            return (
+              <div
+                key={`${s.label}-${idx}`}
+                className="flex items-center gap-4 bg-content2 border border-border/50 rounded-full px-6 py-3 shrink-0"
+              >
+                <div className={`p-2 rounded-full bg-content1 shadow-sm border border-border/50 ${s.color}`}>
+                  <Icon className="w-5 h-5 drop-shadow-sm" />
+                </div>
+                <div className="flex flex-col">
+                  <div className="text-xl font-bold tracking-tight text-foreground tabular-nums">{s.value}</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <div className="text-xl font-bold tracking-tight text-foreground tabular-nums">{s.value}</div>
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </section>

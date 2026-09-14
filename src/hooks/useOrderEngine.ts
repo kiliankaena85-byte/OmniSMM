@@ -925,17 +925,33 @@ export function useOrderEngine(
   const displayCatalog = catalog;
 
   const compatibilityWarning = useMemo(() => {
-    if (!selectedService || !detectedType || isLinkOverridden) return null;
-    const activeCat = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
-    const serviceTargetType = normalizeServiceTargetType(
-      // FIX: resolveServiceTargetType corrects Prisma's default "POST" using name inference
-      resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat?.name)
-    );
-    if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
-      return getCompatibilityError(detectedType, serviceTargetType, selectedService.name);
+    if (!selectedService || isLinkOverridden) return null;
+
+    // 1. Cross-platform mismatch check
+    if (platform && platform !== IntelligencePlatform.OTHER) {
+      const serviceNetwork = catalog.find(n => n.categories.some(c => c.id === selectedService.categoryId));
+      if (serviceNetwork) {
+        const detectedPlat = platform.toLowerCase();
+        const servicePlat = serviceNetwork.slug.toLowerCase();
+        if (!servicePlat.includes(detectedPlat) && !detectedPlat.includes(servicePlat)) {
+          return `Ссылка относится к ${platform}, а услуга выбрана для ${serviceNetwork.name}.`;
+        }
+      }
+    }
+
+    // 2. Target-type compatibility check
+    if (detectedType) {
+      const activeCat = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
+      const serviceTargetType = normalizeServiceTargetType(
+        // FIX: resolveServiceTargetType corrects Prisma's default "POST" using name inference
+        resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat?.name)
+      );
+      if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
+        return getCompatibilityError(detectedType, serviceTargetType, selectedService.name);
+      }
     }
     return null;
-  }, [selectedService, detectedType, isLinkOverridden, catalog]);
+  }, [selectedService, platform, detectedType, isLinkOverridden, catalog]);
 
   // Live Sync: on window focus or visibility change, re-check selected service for real-time prices and limits
   useEffect(() => {

@@ -22,6 +22,8 @@ export interface PlanCheckoutValidationOptions {
   setLocalError: (err: string | null) => void;
   setShakeKey: (key: number) => void;
   handleCheckout: (gateway: string) => void;
+  compatibilityWarning?: string | null;
+  isLinkOverridden?: boolean;
 }
 
 export function validateAndSubmitPlanCheckout({
@@ -44,9 +46,19 @@ export function validateAndSubmitPlanCheckout({
   setLocalError,
   setShakeKey,
   handleCheckout,
+  compatibilityWarning,
+  isLinkOverridden,
 }: PlanCheckoutValidationOptions): boolean {
   if (!url || url.trim().length < 3) {
     setLocalError('Пожалуйста, укажите ссылку на объект продвижения');
+    setShakeKey(Date.now());
+    safeFocus(linkInputRef.current, true);
+    return false;
+  }
+
+  // If analyzer detected incompatibility and user has not yet checked "I am sure"
+  if (compatibilityWarning && !isLinkOverridden) {
+    setLocalError(compatibilityWarning + ' Если вы уверены, что ссылка верная — отметьте галочку «Я уверен, что ссылка верная».');
     setShakeKey(Date.now());
     safeFocus(linkInputRef.current, true);
     return false;

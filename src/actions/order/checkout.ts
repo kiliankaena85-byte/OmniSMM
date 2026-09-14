@@ -332,12 +332,8 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
       }
     }
 
-    // Role-based validation check for bypass link mode
-    if (isLinkOverridden) {
-      if (!user || (user.role !== 'OWNER' && user.role !== 'MANAGER')) {
-        throw new Error("У вас нет прав для обхода валидации ссылки");
-      }
-    }
+    // Client-Confirmed Bypass Mode: Any user can order with isLinkOverridden if they explicitly confirmed the warning,
+    // provided the link passes basic URL & SSRF safety validation above. Admin alert is triggered in step 8.
 
     let isNewUser = false;
     const consentIp = await getClientIp();

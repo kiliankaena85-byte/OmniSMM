@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Link as LinkIcon, X, Mail } from 'lucide-react';
+import { Link as LinkIcon, X, Mail, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { PublicNetwork, PublicService } from '@/actions/order/catalog';
 import { PlanCheckoutQuantity } from './PlanCheckoutQuantity';
 import { PlanCheckoutCustomData } from './PlanCheckoutCustomData';
@@ -33,6 +33,9 @@ export interface PlanCheckoutInputsProps {
   email: string;
   setEmail: (email: string) => void;
   setLocalError: (err: string | null) => void;
+  compatibilityWarning?: string | null;
+  isLinkOverridden?: boolean;
+  setIsLinkOverridden?: (val: boolean) => void;
 }
 
 export function PlanCheckoutInputs({
@@ -62,6 +65,9 @@ export function PlanCheckoutInputs({
   email,
   setEmail,
   setLocalError,
+  compatibilityWarning,
+  isLinkOverridden,
+  setIsLinkOverridden,
 }: PlanCheckoutInputsProps) {
   return (
     <div className="space-y-5">
@@ -116,6 +122,48 @@ export function PlanCheckoutInputs({
         <p className="text-[11px] text-muted-foreground pl-1">
           {selectedService.linkHint || 'Укажите ссылку на открытый канал, группу или конкретный пост.'}
         </p>
+
+        {/* Dynamic Link Warning & Client Override (CSR-2026 / Client Trust Bypass) */}
+        {compatibilityWarning && !isLinkOverridden && url.trim().length >= 4 && (
+          <div className="mt-2 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 space-y-2.5 animate-in fade-in duration-200">
+            <div className="flex items-start gap-2 text-xs font-semibold leading-relaxed">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <span>{compatibilityWarning}</span>
+            </div>
+            {setIsLinkOverridden && (
+              <label className="flex items-center gap-2.5 text-xs font-bold text-foreground cursor-pointer select-none bg-background/90 hover:bg-background border border-amber-500/30 p-2.5 rounded-xl transition-all shadow-sm">
+                <input
+                  type="checkbox"
+                  checked={isLinkOverridden || false}
+                  onChange={(e) => {
+                    setIsLinkOverridden(e.target.checked);
+                    setLocalError(null);
+                  }}
+                  className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer shrink-0"
+                />
+                <span>Я уверен, что ссылка верная (всё равно заказать)</span>
+              </label>
+            )}
+          </div>
+        )}
+
+        {isLinkOverridden && (
+          <div className="mt-2 p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-between gap-2 text-xs font-semibold animate-in fade-in duration-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Режим прямого заказа активен — ссылка принята как есть.</span>
+            </div>
+            {setIsLinkOverridden && (
+              <button
+                type="button"
+                onClick={() => setIsLinkOverridden(false)}
+                className="text-[11px] underline text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                Отменить
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Warning & Custom Data */}

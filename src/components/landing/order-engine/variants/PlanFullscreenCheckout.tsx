@@ -38,6 +38,7 @@ export function PlanFullscreenCheckout({
     dripFeedEnabled, setDripFeedEnabled, runs, setRuns,
     dripInterval, setDripInterval, catalog, networkId, pricing,
     totalPriceFormatted, isWarningConfirmed, setIsWarningConfirmed,
+    compatibilityWarning, isLinkOverridden, setIsLinkOverridden,
   } = engine;
 
   const [selectedGateway, setSelectedGateway] = useState<string>('yookassa');
@@ -131,6 +132,7 @@ export function PlanFullscreenCheckout({
       minQty, maxQty, effectiveMinQty, dripFeedEnabled, runs, email,
       agreedToTerms, selectedGateway, linkInputRef, emailInputRef,
       quantityInputRef, setLocalError, setShakeKey, handleCheckout,
+      compatibilityWarning, isLinkOverridden,
     });
   };
 
@@ -178,6 +180,9 @@ export function PlanFullscreenCheckout({
             email={email}
             setEmail={setEmail}
             setLocalError={setLocalError}
+            compatibilityWarning={compatibilityWarning}
+            isLinkOverridden={isLinkOverridden}
+            setIsLinkOverridden={setIsLinkOverridden}
           />
 
           <PlanCheckoutGateways

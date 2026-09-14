@@ -125741,7 +125741,7 @@ function isAllowedHost(host) {
   if (!host) return false;
   const cleanHost = host.split(":")[0].toLowerCase();
   if (cleanHost === "0.0.0.0" || cleanHost === "host.docker.internal") return false;
-  return ALLOWED_HOST_DOMAINS.includes(cleanHost) || cleanHost.endsWith(".smmplan.pro") || cleanHost.endsWith(".smmflux.ru") || cleanHost.endsWith(".ts.net") || cleanHost === "desktop-25m6el7.tailbb9d28.ts.net";
+  return ALLOWED_HOST_DOMAINS.includes(cleanHost) || cleanHost.endsWith(".smmplan.pro") || cleanHost.endsWith(".smmflux.ru") || cleanHost.endsWith(".ts.net") || cleanHost.endsWith(".trycloudflare.com") || cleanHost === "desktop-25m6el7.tailbb9d28.ts.net";
 }
 async function getBaseUrlAsync(reqHost, reqProto) {
   const envUrl = process.env.WEBAPP_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL;
@@ -125764,7 +125764,10 @@ async function getBaseUrlAsync(reqHost, reqProto) {
         host = process.env.NODE_ENV === "production" ? process.env.APP_URL ? new URL(process.env.APP_URL).host : "test.smmplan.pro" : "localhost:3000";
       }
       if (isAllowedHost(host)) {
-        return `${proto}://${host}`;
+        const cleanHost = host.split(":")[0].toLowerCase();
+        const isTunnelOrProd = cleanHost.endsWith(".ts.net") || cleanHost.endsWith(".trycloudflare.com") || cleanHost.endsWith(".smmplan.pro") || cleanHost.endsWith(".smmflux.ru");
+        const resolvedProto = isTunnelOrProd ? "https" : proto;
+        return `${resolvedProto}://${host}`;
       }
     }
   } catch {
@@ -125815,7 +125818,8 @@ function getBaseUrlSync(reqHost, reqProto) {
     }
     if (isAllowedHost(host)) {
       const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
-      const proto = reqProto || (isLocal ? "http" : process.env.NODE_ENV === "production" ? "https" : "http");
+      const isTunnel = host.includes(".ts.net") || host.includes(".trycloudflare.com");
+      const proto = isTunnel ? "https" : reqProto || (isLocal ? "http" : process.env.NODE_ENV === "production" ? "https" : "http");
       return `${proto}://${host}`;
     }
   }
