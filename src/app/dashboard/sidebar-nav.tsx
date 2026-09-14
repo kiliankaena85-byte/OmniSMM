@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LogOut,
   ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 
 import { BalanceDisplay } from '@/components/dashboard/balance/BalanceDisplay';
@@ -45,10 +46,19 @@ export function SidebarNav({
   return (
     <aside className="hidden md:flex w-[260px] flex-col shrink-0 border-r border-border/80 bg-card/90 backdrop-blur-2xl">
       {/* Logo Header */}
-      <div className="p-5 border-b border-border/70 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group" aria-label="На главную">
-          <TenantLogo tenantId="smmplan" className="w-8 h-8 group-hover:scale-105 transition-transform" iconClassName="text-sm" />
-          <span className="font-black text-foreground text-lg tracking-tight leading-none">SMMplan</span>
+      <div className="p-4 border-b border-border/70 flex items-center justify-between gap-2">
+        <Link href="/" className="flex items-center gap-2.5 group min-w-0" aria-label="Перейти на главную страницу">
+          <TenantLogo tenantId="smmplan" className="w-8 h-8 group-hover:scale-105 transition-transform shrink-0" iconClassName="text-sm" />
+          <span className="font-black text-foreground text-lg tracking-tight leading-none truncate">SMMplan</span>
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 shrink-0"
+          title="Перейти на главный экран (Витрина услуг)"
+          aria-label="На сайт"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span>На сайт</span>
         </Link>
       </div>
 

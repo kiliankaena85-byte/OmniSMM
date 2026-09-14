@@ -1,3 +1,37 @@
+- [x] ⚡ [SIL-2026] Self-Improving Loop (SIL-2026): Личный кабинет пользователя — Выход на главный экран & Навигационная эргономика (100% COMPLETE & VERIFIED):
+  * 🌐 **Выход на главный экран (публичную витрину `/`) во всех интерфейсах:**
+    - В десктопном сайдбаре `src/app/dashboard/sidebar-nav.tsx` добавлена компактная кнопка «На сайт» (`href="/"`, иконка `ExternalLink`, плавные hover/active эффекты).
+    - В оболочке Flux `src/components/dashboard/flux/FluxDashboardShell.tsx` исправлена ссылка логотипа на `href="/"` и добавлена кнопка «На сайт» в десктопном хедере.
+    - В мобильной верхней панели `src/components/dashboard/classic/ClassicDashboardShell.tsx` ссылка на логотип снабжена бейджем «На сайт» и доступным лейблом.
+    - В приветственном Hero-баннере `src/components/dashboard/classic/ClassicDashboardHome.tsx` добавлена ссылка «На витрину» с иконкой `ExternalLink`.
+  * ⌨️ **Быстрые команды (`UserCommandMenu.tsx` / `Ctrl+K`):**
+    - Добавлена команда «Перейти на главный сайт (Витрина услуг)» (`href="/"`, иконка `Globe`, шорткат `⌘S`), а пункт внутреннего дашборда уточнен как «Главная страница (Дашборд)» (`⌘H`).
+  * 🧭 **Хлебные крошки (`DashboardBreadcrumbs.tsx`):**
+    - Создан легковесный клиентский компонент навигации `DashboardBreadcrumbs` (`Сайт (/) → Кабинет (/dashboard) → [Раздел]`).
+    - Внедрен на экранах `/dashboard/orders`, `/dashboard/settings` и `/dashboard/tickets/[id]`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/dashboard-exit-to-landing-integrity.test.ts` (5/5 PASS).
+    - Тестовый сьют темизации `src/__tests__/unit/theming-tokens-integrity.test.ts` (3/3 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+- [x] ⚡ [SIL-2026] Self-Improving Loop (SIL-2026): Темизация и UI-целостность Лэндинга и Личного кабинета (100% COMPLETE & VERIFIED):
+  * 🎨 **Полнота палитры токенов в `src/app/globals.css` (Все 12 тем):**
+    - Добавлены недостающие токены `--color-content1`, `--color-content2`, `--color-content3` для всех вариантов (`emerald-light/dark`, `violet-light/dark`, `warm-light/dark`, `telegram-light/dark`).
+    - Подтверждено соответствие контрастности WCAG 2.2 AA / APCA (13/13 PASS, контрастность до 21:1).
+  * 🌓 **Переключатель тем `ThemeSwitcher` на всех ключевых экранах:**
+    - В публичную шапку `src/components/landing/Header.tsx` добавлен переключатель темы (`variant="toggle"`).
+    - В мобильную панель дашборда `src/components/dashboard/classic/ClassicDashboardShell.tsx` добавлен `ThemeSwitcher`.
+    - В шапку `src/components/dashboard/flux/FluxDashboardShell.tsx` добавлен `ThemeSwitcher`.
+  * 🛡️ **Ликвидация хардкода цветов и устаревших утилит:**
+    - В `src/components/landing/Header.tsx` заменены `bg-default-100/200` на семантические токены `bg-secondary` и `border-border/70`.
+    - В `src/components/landing/order-engine/TariffCard.tsx` добавлены адаптивные `dark:` классы для всех бейджей тарифов.
+    - В `src/app/dashboard/settings/api/ApiKeyManager.tsx` заменен `text-white` на `text-primary-foreground`.
+    - В `src/app/dashboard/referrals/referral-ui.tsx` заменен `text-white` на `text-primary-foreground`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и успешно пройден тестовый сьют `src/__tests__/unit/theming-tokens-integrity.test.ts` (3/3 PASS).
+    - `theme-harness.ts --contrast` — 13/13 PASS по WCAG 2.2 AA.
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [SIL-2026] Шаг 20: Атомарная проработка и аудит экрана /admin/system/features & Layout Master Wrapper (100% COMPLETE & VERIFIED):
   * 🎨 **Выделенный скелетон загрузки (`loading.tsx`):**
     - Создан специализированный `src/app/admin/system/features/loading.tsx` с каноническим `AdminTabbedHeader` (иконка `ToggleLeft`, заголовок «Управление фичами (Feature Flags)», табы `SYSTEM_TABS`, `onboardingKey="features"`), полностью устранив Layout Shift (CLS).

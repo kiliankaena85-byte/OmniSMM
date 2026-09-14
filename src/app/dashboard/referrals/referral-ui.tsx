@@ -324,7 +324,7 @@ export function ReferralUi({
             type="button"
             onClick={handleTransfer}
             disabled={isTransferring || earnedRub <= 0}
-            className="shrink-0 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            className="shrink-0 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-primary-foreground font-bold text-sm rounded-2xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             <CreditCard className="w-4 h-4" />
             <span>{isTransferring ? 'Перевод...' : `Перевести ${earnedRub.toFixed(2)} ₽`}</span>
@@ -353,7 +353,7 @@ export function ReferralUi({
             aria-label="Скопировать реферальную ссылку"
             className={`shrink-0 px-5 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
               copiedLink
-                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-primary-foreground shadow-md shadow-emerald-500/20'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20'
             }`}
           >

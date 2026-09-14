@@ -152,7 +152,16 @@ export function ClassicDashboardHome({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-muted-foreground hover:text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              title="Перейти на главный сайт и витрину услуг"
+              aria-label="На витрину"
+            >
+              <ExternalLink className="w-4 h-4 text-primary shrink-0" />
+              <span>На витрину</span>
+            </Link>
             <Link
               href="/dashboard/new-order"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"

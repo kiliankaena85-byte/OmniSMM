@@ -7,6 +7,7 @@ import { ROUTES } from "@/lib/routes";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { TenantLogo } from "@/components/ui/TenantLogo";
 import { normalizeTenantId } from "@/lib/tenant-resolver-edge";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 interface HeaderProps {
   initialEmail?: string;
@@ -86,6 +87,8 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeSwitcher variant="toggle" className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-full border border-border/70 bg-card/60 hover:bg-secondary" />
+
           {initialEmail ? (
             <div className="hidden sm:flex items-center gap-2 sm:gap-3">
               <span className="hidden lg:inline text-xs font-semibold text-muted-foreground">
@@ -105,7 +108,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center justify-center p-2 sm:p-2.5 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-default-100 hover:bg-default-200 text-muted-foreground hover:text-destructive transition-colors border border-default-200 cursor-pointer disabled:opacity-50"
+                className="flex items-center justify-center p-2 sm:p-2.5 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors border border-border/70 cursor-pointer disabled:opacity-50"
                 title="Выйти из аккаунта"
                 aria-label="Выйти из аккаунта"
               >
@@ -122,7 +125,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
               className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all duration-300 ${
                 isFlux
                   ? "bg-card text-foreground border-border/80 hover:border-purple-400 hover:text-purple-600 shadow-sm"
-                  : "bg-default-100 text-foreground border-default-200 hover:bg-default-200"
+                  : "bg-secondary/80 text-foreground border-border/70 hover:bg-secondary"
               }`}
             >
               <LogIn className={`w-4 h-4 ${isFlux ? "text-purple-500" : "text-muted-foreground"}`} />
@@ -130,11 +133,11 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
             </Link>
           )}
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Открыть меню навигации"
-                className="flex items-center justify-center p-2.5 rounded-full bg-default-100 hover:bg-default-200 text-muted-foreground hover:text-foreground border border-default-200 cursor-pointer active:scale-95 transition-all min-h-[44px] min-w-[44px] outline-none"
+                className="flex items-center justify-center p-2.5 rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/70 cursor-pointer active:scale-95 transition-all min-h-[44px] min-w-[44px] outline-none"
               >
                 <Menu className="w-5 h-5 shrink-0" />
               </DropdownMenuTrigger>

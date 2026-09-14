@@ -17,6 +17,7 @@ import { CopyText } from '@/components/ui/CopyText';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { getTenantDashboardViews } from '@/tenants/factory';
 import { formatRubles } from '@/utils/format-price';
+import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
 import { Metadata } from 'next';
 import {
   Table,
@@ -232,6 +233,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <DashboardBreadcrumbs items={[{ label: 'Мои заказы' }]} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Мои заказы</h1>

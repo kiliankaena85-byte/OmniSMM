@@ -16,15 +16,15 @@ interface TariffCardProps {
 function getBadgeStyle(badge: string) {
   switch (badge) {
     case "ПРЕМИУМ":
-      return "bg-gradient-to-r from-amber-500/15 to-orange-500/15 text-amber-700 border-amber-200/50";
+      return "bg-gradient-to-r from-amber-500/15 to-orange-500/15 text-amber-700 dark:text-amber-300 border-amber-200/50 dark:border-amber-500/30";
     case "ЭКОНОМ":
-      return "bg-emerald-500/10 text-emerald-700 border-emerald-200/50";
+      return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-500/30";
     case "ЖИВЫЕ":
-      return "bg-sky-500/10 text-sky-700 border-sky-200/50";
+      return "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200/50 dark:border-sky-500/30";
     case "ХИТ":
       return "bg-primary/10 text-primary border-primary/20";
     case "ГАРАНТИЯ":
-      return "bg-violet-500/10 text-violet-700 border-violet-200/50";
+      return "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200/50 dark:border-violet-500/30";
     default:
       return "bg-muted text-muted-foreground border-border/50";
   }

@@ -250,6 +250,9 @@
   --color-secondary: #d1fae5; /* emerald-100 */
   --color-secondary-foreground: #047857; /* emerald-700 */
   --color-ring: #a7f3d0; /* emerald-200 */
+  --color-content1: #ffffff;
+  --color-content2: #f1f5f9;
+  --color-content3: #e2e8f0;
   --animate-hover-pulse: hover-pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -272,6 +275,9 @@
   --color-secondary: #064e3b; /* emerald-950 */
   --color-secondary-foreground: #34d399; /* emerald-400 */
   --color-ring: rgba(16, 185, 129, 0.35);
+  --color-content1: #1e293b;
+  --color-content2: #243042;
+  --color-content3: #2d3a4e;
   --animate-hover-pulse: hover-pulse-emerald-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -294,6 +300,9 @@
   --color-secondary: #ede9fe; /* violet-100 */
   --color-secondary-foreground: #6d28d9; /* violet-700 */
   --color-ring: #ddd6fe; /* violet-200 */
+  --color-content1: #ffffff;
+  --color-content2: #f1f5f9;
+  --color-content3: #e2e8f0;
   --animate-hover-pulse: hover-pulse-violet 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -316,6 +325,9 @@
   --color-secondary: #2e1065; /* violet-950 */
   --color-secondary-foreground: #c084fc; /* violet-400 */
   --color-ring: rgba(167, 139, 250, 0.35);
+  --color-content1: #1e293b;
+  --color-content2: #243042;
+  --color-content3: #2d3a4e;
   --animate-hover-pulse: hover-pulse-violet-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -340,6 +352,9 @@
   --color-secondary: #FEF3C7;
   --color-secondary-foreground: #92400E;
   --color-ring: #FDE68A;
+  --color-content1: #FFFFFF;
+  --color-content2: #F4F4F5;
+  --color-content3: #E4E4E7;
   --animate-hover-pulse: hover-pulse-warm 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -364,6 +379,9 @@
   --color-secondary: #78350F;
   --color-secondary-foreground: #FBBF24;
   --color-ring: rgba(245, 158, 11, 0.35); /* Soft amber focus ring glow */
+  --color-content1: #18181B;
+  --color-content2: #27272A;
+  --color-content3: #3F3F46;
   --animate-hover-pulse: hover-pulse-warm-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -431,6 +449,9 @@
   --color-secondary: #E1F3D4;
   --color-secondary-foreground: #000000;
   --color-ring: #BADEFC;
+  --color-content1: #FFFFFF;
+  --color-content2: #F1F5F9;
+  --color-content3: #E7EBF0;
   --radius: 0.625rem;
 }
 
@@ -450,6 +471,9 @@
   --color-secondary: #2B5278;
   --color-secondary-foreground: #F5F6F7;
   --color-ring: rgba(82, 136, 193, 0.35); /* Soft telegram blue focus ring glow */
+  --color-content1: #182533;
+  --color-content2: #101921;
+  --color-content3: #243344;
   --radius: 0.625rem;
 }
 

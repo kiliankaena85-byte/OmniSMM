@@ -14,7 +14,8 @@ import {
   Receipt,
   Cpu,
   Search,
-  ExternalLink
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import {
   CommandDialog,
@@ -80,9 +81,14 @@ export function UserCommandMenu() {
           <CommandEmpty>Ничего не найдено.</CommandEmpty>
           
           <CommandGroup heading="Навигация">
+            <CommandItem onSelect={() => handleSelect('/')}>
+              <Globe className="mr-2 h-4 w-4 text-emerald-500" />
+              <span>Перейти на главный сайт (Витрина услуг)</span>
+              <CommandShortcut>⌘S</CommandShortcut>
+            </CommandItem>
             <CommandItem onSelect={() => handleSelect('/dashboard')}>
               <LayoutDashboard className="mr-2 h-4 w-4 text-primary" />
-              <span>Главная страница</span>
+              <span>Главная страница (Дашборд)</span>
               <CommandShortcut>⌘H</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect('/dashboard/new-order')}>

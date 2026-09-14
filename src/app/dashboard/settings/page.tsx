@@ -15,6 +15,7 @@ import CompanyRequisitesCard from '@/components/dashboard/settings/CompanyRequis
 import B2bWebhookCard from '@/components/dashboard/settings/B2bWebhookCard';
 import ApiKeyManager from './api/ApiKeyManager';
 import { formatBalance } from '@/lib/utils';
+import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,6 +89,7 @@ export default async function ClientSettingsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <DashboardBreadcrumbs items={[{ label: 'Настройки' }]} />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Профиль и настройки</h1>

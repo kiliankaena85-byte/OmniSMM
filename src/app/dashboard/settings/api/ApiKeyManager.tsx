@@ -97,7 +97,7 @@ export default function ApiKeyManager({
                   aria-label="Скопировать API-ключ"
                   className={`shrink-0 px-4 py-2.5 rounded-xl border font-semibold text-xs transition-all duration-200 ${
                     copied
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      ? 'bg-primary border-primary text-primary-foreground shadow-sm'
                       : 'bg-card border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
                   }`}
                 >

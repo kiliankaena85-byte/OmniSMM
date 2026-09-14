@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SidebarNav, MobileBottomNav } from '@/app/dashboard/sidebar-nav';
 import { formatBalance } from '@/lib/utils';
 import { BalanceDisplay } from '@/components/dashboard/balance/BalanceDisplay';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 import { TenantLogo } from '@/components/ui/TenantLogo';
 
@@ -29,11 +30,20 @@ export function ClassicDashboardShell({
 
       {/* ── Mobile top bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-2xl border-b border-border/80 px-3 sm:px-4 py-2 flex items-center justify-between min-h-[56px] shadow-sm gap-2">
-        <Link href="/" className="flex items-center gap-2 font-black text-foreground shrink-0 min-h-[44px]">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-black text-foreground shrink-0 min-h-[44px] hover:opacity-90 active:scale-95 transition-all"
+          title="Перейти на главный сайт (Витрина)"
+          aria-label="На сайт"
+        >
           <TenantLogo tenantId="smmplan" className="w-7 h-7 shrink-0" iconClassName="w-3.5 h-3.5" />
           <span className="truncate tracking-tight font-bold text-sm sm:text-base min-w-0">SMMplan</span>
+          <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/60">
+            На сайт
+          </span>
         </Link>
         <div className="flex items-center gap-2 shrink-0">
+          <ThemeSwitcher variant="toggle" className="w-9 h-9 rounded-xl border border-border/70 bg-card/60" />
           <BalanceDisplay initialBalance={formatBalance(user.balanceCents)} variant="mobile-header" />
           <Link
             href="/dashboard/finance"

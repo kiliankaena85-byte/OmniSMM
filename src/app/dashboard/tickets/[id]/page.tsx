@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock } from 'lucide-react';
 import ChatWindow from '@/components/support/ChatWindow';
 import { getSupportSlaInfo } from '@/utils/support-sla';
+import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -227,15 +228,24 @@ export default async function ClientTicketChatPage({
       return (
         <div className="space-y-4 animate-in fade-in duration-500 flex flex-col h-[calc(100dvh-13rem)] md:h-[calc(100dvh-7rem)] min-h-[350px] md:min-h-[500px]">
           {/* Header / breadcrumb */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href="/dashboard/tickets"
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-all duration-200 min-h-[44px]"
-              aria-label="Назад к списку тикетов"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Поддержка
-            </Link>
+          <div className="flex flex-col gap-2 shrink-0">
+            <DashboardBreadcrumbs
+              items={[
+                { label: 'Поддержка', href: '/dashboard/tickets' },
+                { label: `Тикет #${ticket.id.slice(-6)}` },
+              ]}
+              className="mb-1"
+            />
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/tickets"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-all duration-200 min-h-[44px]"
+                aria-label="Назад к списку тикетов"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>К списку тикетов</span>
+              </Link>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">

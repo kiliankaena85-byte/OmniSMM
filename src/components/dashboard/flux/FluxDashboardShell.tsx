@@ -9,11 +9,13 @@ import {
   Wallet, 
   LogOut,
   Users,
-  Settings
+  Settings,
+  ExternalLink
 } from 'lucide-react';
 
 import { MAIN_NAV_ITEMS, MOBILE_BOTTOM_NAV_ITEMS } from '@/lib/navigation';
 import { useUnreadSupport } from '@/hooks/useUnreadSupport';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 import { TenantLogo } from '@/components/ui/TenantLogo';
 
@@ -51,11 +53,22 @@ export function FluxDashboardShell({
 
       {/* ── Top Navigation Bar ── */}
       <header className="relative z-40 w-full px-4 sm:px-8 py-3.5 flex items-center justify-between backdrop-blur-2xl bg-white/60 dark:bg-black/60 border-b border-border/30 shadow-sm sticky top-0">
-        <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="flex items-center gap-2.5 font-black text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity">
-            <TenantLogo tenantId="flux" className="w-9 h-9" iconClassName="w-4 h-4" />
-            <span className="truncate tracking-tight font-black min-w-0">SMMflux</span>
-          </Link>
+        <div className="flex items-center gap-4 sm:gap-8">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2.5 font-black text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity" title="Перейти на главную страницу (Витрина)" aria-label="На главную">
+              <TenantLogo tenantId="flux" className="w-9 h-9" iconClassName="w-4 h-4" />
+              <span className="truncate tracking-tight font-black min-w-0">SMMflux</span>
+            </Link>
+            <Link
+              href="/"
+              className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 shrink-0"
+              title="Перейти на витрину услуг"
+              aria-label="На сайт"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>На сайт</span>
+            </Link>
+          </div>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
@@ -93,6 +106,7 @@ export function FluxDashboardShell({
         </div>
 
         <div className="flex items-center gap-2.5 sm:gap-4">
+          <ThemeSwitcher variant="toggle" className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-border/70 bg-card/60" />
           <BalanceDisplay initialBalance={balanceRub} variant="mobile-header" />
           <Link
             href="/dashboard/finance"
