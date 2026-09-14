@@ -24,6 +24,13 @@ function clearSessionCookiesOnResponse(response: NextResponse) {
 // Map of legacy routes to new static routes
 const legacyRedirects: Record<string, string> = {
   '/register': '/login?tab=register',
+  '/auth/signin': ROUTES.AUTH.LOGIN,
+  '/signin': ROUTES.AUTH.LOGIN,
+  '/auth/login': ROUTES.AUTH.LOGIN,
+  '/cabinet': ROUTES.DASHBOARD.HOME,
+  '/add-funds': ROUTES.DASHBOARD.ADD_FUNDS,
+  '/orders': ROUTES.DASHBOARD.ORDERS,
+  '/catalog': ROUTES.SERVICES.INDEX,
   '/p/offer': ROUTES.LEGAL.TERMS,
   '/p/terms': ROUTES.LEGAL.TERMS,
   '/p/privacy': ROUTES.LEGAL.PRIVACY,

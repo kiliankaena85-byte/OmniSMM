@@ -51,7 +51,7 @@ export function CookieConsent() {
         isDashboard
           ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-4'
           : 'bottom-3 sm:bottom-4'
-      } left-3 right-3 sm:left-auto sm:right-4 sm:max-w-md z-[9999] p-3 sm:p-3.5 rounded-2xl bg-zinc-900/95 text-zinc-100 border border-zinc-800 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300`}
+      } left-3 right-3 sm:left-auto sm:right-4 sm:max-w-sm z-[9999] p-2.5 sm:p-3 rounded-2xl bg-zinc-900/95 text-zinc-100 border border-zinc-800 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
