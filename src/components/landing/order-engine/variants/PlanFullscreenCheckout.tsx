@@ -55,27 +55,35 @@ export function PlanFullscreenCheckout({
 
   const activeCategory = activeNetwork?.categories.find(c => c.id === selectedService.categoryId) || null;
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'instant' });
       window.history.pushState({ smmplan_fullscreen_checkout: true }, '', window.location.href);
     }
-    const handlePopState = () => onClose();
+    const handlePopState = () => {
+      onCloseRef.current();
+    };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     getAvailableGatewaysAction().then((res) => {
       if (res.success && res.data) {
         setAvailableGateways(res.data);
-        if (selectedGateway !== 'balance' && !res.data[selectedGateway as keyof typeof res.data]) {
-          const first = (['yookassa', 'cryptobot'] as const).find((g) => res.data?.[g]);
-          if (first) setSelectedGateway(first);
-        }
+        const data = res.data;
+        setSelectedGateway((current) => {
+          if (current !== 'balance' && !data[current as keyof typeof data]) {
+            const first = (['yookassa', 'cryptobot'] as const).find((g) => data?.[g]);
+            return first || current;
+          }
+          return current;
+        });
       }
     });
-  }, [selectedGateway]);
+  }, []);
 
   useEffect(() => {
     if (!url && linkInputRef.current && typeof window !== 'undefined' && window.innerWidth >= 768) {

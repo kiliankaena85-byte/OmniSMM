@@ -15,6 +15,7 @@ export const PROD_ALLOWED_PAYMENT_DOMAINS = [
   'robokassa.com',
   'smmplan.pro',
   'smmflux.ru',
+  'ts.net',
 ] as const;
 
 export const ALLOWED_PAYMENT_DOMAINS: string[] = [

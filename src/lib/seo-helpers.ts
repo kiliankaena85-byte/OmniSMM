@@ -34,7 +34,7 @@ export function resolveCanonicalHost(tenantId: string, incomingHost?: string | n
   if (normTenant === 'flux') {
     if (hostWithoutPort === 'flux.smmplan.pro' || rawHost === 'flux.smmplan.pro') return 'flux.smmplan.pro';
     if (hostWithoutPort === 'smmflux.ru' || rawHost === 'smmflux.ru') return 'smmflux.ru';
-    if (rawHost.includes('localhost') || rawHost.includes('127.0.0.1')) return rawHost;
+    if (rawHost.includes('localhost') || rawHost.includes('127.0.0.1') || rawHost.endsWith('.ts.net')) return rawHost;
     // Default fallback for flux on test vs prod
     return process.env.NODE_ENV === 'production' && !process.env.APP_URL?.includes('test.')
       ? 'smmflux.ru'
@@ -43,7 +43,7 @@ export function resolveCanonicalHost(tenantId: string, incomingHost?: string | n
     // smmplan tenant
     if (hostWithoutPort === 'test.smmplan.pro' || rawHost === 'test.smmplan.pro') return 'test.smmplan.pro';
     if (hostWithoutPort === 'smmplan.pro' || rawHost === 'smmplan.pro') return 'smmplan.pro';
-    if (rawHost.includes('localhost') || rawHost.includes('127.0.0.1')) return rawHost;
+    if (rawHost.includes('localhost') || rawHost.includes('127.0.0.1') || rawHost.endsWith('.ts.net')) return rawHost;
     // Default fallback for smmplan on test vs prod
     return process.env.NODE_ENV === 'production' && !process.env.APP_URL?.includes('test.')
       ? 'smmplan.pro'

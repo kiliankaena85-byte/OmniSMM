@@ -5,8 +5,7 @@ import { createSafeAction } from '@/lib/safe-action';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { verifySession, createSession } from '@/lib/session';
-import { marketingService } from '@/services/marketing.service';
-import { getBaseUrlSync } from "@/utils/get-base-url";
+import { getBaseUrlSync, isAllowedHost } from "@/utils/get-base-url";
 import { headers } from 'next/headers';
 import { getClientIp } from '@/utils/ip';
 import { RateLimitService } from '@/services/core/rate-limit.service';
@@ -16,6 +15,7 @@ import { runSerializableTransaction } from '@/lib/transactions';
 import { unifiedLinkEngine } from '@/services/link-engine/unified-link-engine';
 import { inferTargetTypeFromCategory } from '@/utils/target-type';
 import { AccountExistsError } from '@/utils/error-handler';
+import { marketingService } from '@/services/marketing.service';
 
 const massOrderSchema = z.object({
   text: z.string().min(1, 'Введите данные для заказа').max(20480, 'Текст заказа слишком длинный'),
@@ -357,14 +357,20 @@ export const massOrderCheckoutAction = async (input: z.infer<typeof massOrderSch
     });
 
 
-    const fwdHost = reqHeaders.get("x-forwarded-host");
-    const hostHeader = reqHeaders.get("host");
-    let host = fwdHost || hostHeader || new URL(getBaseUrlSync()).host;
-    if (host.includes("0.0.0.0") || host.includes("host.docker.internal")) {
-      host = process.env.NODE_ENV === "production" ? "test.smmplan.pro" : "localhost:3000";
+    const originHeader = reqHeaders?.get("origin") || reqHeaders?.get("referer");
+    let clientOrigin = "";
+    if (originHeader) {
+      try {
+        const u = new URL(originHeader);
+        if (isAllowedHost(u.host)) {
+          clientOrigin = `${u.protocol}//${u.host}`;
+        }
+      } catch {}
     }
-    const protocol = reqHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
-    const origin = getBaseUrlSync(host, protocol);
+    const fwdHost = reqHeaders?.get("x-forwarded-host");
+    const host = fwdHost || reqHeaders?.get("host");
+    const protocol = reqHeaders?.get("x-forwarded-proto") || (host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https");
+    const origin = clientOrigin || getBaseUrlSync(host, protocol);
     let successUrl = `${origin}/success?paymentId=${result.paymentId}`;
 
     // [Phase 3 Surgeon] Generate capability token for sessionless payment return validation
@@ -668,14 +674,20 @@ export const structuredMassOrderCheckoutAction = async (input: z.infer<typeof st
     });
 
     let paymentUrl: string | undefined;
-    const fwdHost = reqHeaders.get("x-forwarded-host");
-    const hostHeader = reqHeaders.get("host");
-    let host = fwdHost || hostHeader || new URL(getBaseUrlSync()).host;
-    if (host.includes("0.0.0.0") || host.includes("host.docker.internal")) {
-      host = process.env.NODE_ENV === "production" ? "test.smmplan.pro" : "localhost:3000";
+    const originHeader = reqHeaders?.get("origin") || reqHeaders?.get("referer");
+    let clientOrigin = "";
+    if (originHeader) {
+      try {
+        const u = new URL(originHeader);
+        if (isAllowedHost(u.host)) {
+          clientOrigin = `${u.protocol}//${u.host}`;
+        }
+      } catch {}
     }
-    const protocol = reqHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
-    const origin = getBaseUrlSync(host, protocol);
+    const fwdHost = reqHeaders?.get("x-forwarded-host");
+    const host = fwdHost || reqHeaders?.get("host");
+    const protocol = reqHeaders?.get("x-forwarded-proto") || (host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https");
+    const origin = clientOrigin || getBaseUrlSync(host, protocol);
     let successUrl = `${origin}/success?paymentId=${result.paymentId}`;
 
     let token = '';

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/lib/auth/password';
-import { VaultService } from '../src/lib/vault';
+import { encrypt } from '../src/lib/crypto/encryption';
 import { randomBytes } from 'crypto';
 
 // ⛔ PRODUCTION GUARD — seed.ts must NEVER run in production
@@ -71,7 +71,7 @@ async function main() {
     create: {
       name: 'Vexboost',
       apiUrl: 'https://vexboost.ru/api/v2/',
-      apiKey: VaultService.encrypt(process.env.VEXBOOST_API_KEY || 'dummy_key'),
+      apiKey: encrypt(process.env.VEXBOOST_API_KEY || 'dummy_key'),
       isActive: true,
       ticketUrl: 'https://vexboost.ru/tickets/'
     }

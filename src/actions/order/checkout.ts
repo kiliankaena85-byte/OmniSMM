@@ -14,7 +14,7 @@ import { generateGuestOrderToken } from '@/lib/order-token';
 import { WalletOps, WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError } from '@/services/financial/wallet-ops';
 import { handleServerError, AccountExistsError } from '@/utils/error-handler';
 import { sendOrderBalanceDebitMail } from "@/lib/smtp";
-import { getBaseUrlSync } from "@/utils/get-base-url";
+import { getBaseUrlSync, isAllowedHost } from "@/utils/get-base-url";
 import { featureFlagService } from "@/services/system/feature-flag.service";
 import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
 import { unifiedLinkEngine } from '@/services/link-engine/unified-link-engine';
@@ -674,9 +674,20 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     // 7. Generate payment URL (gateway-specific API calls)
     let paymentUrl: string | undefined;
 
-    const host = reqHeaders?.get("host") || "localhost:3000";
-    const protocol = reqHeaders?.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
-    const origin = getBaseUrlSync(host, protocol);
+    const originHeader = reqHeaders?.get("origin") || reqHeaders?.get("referer");
+    let clientOrigin = "";
+    if (originHeader) {
+      try {
+        const u = new URL(originHeader);
+        if (isAllowedHost(u.host)) {
+          clientOrigin = `${u.protocol}//${u.host}`;
+        }
+      } catch {}
+    }
+    const fwdHost = reqHeaders?.get("x-forwarded-host");
+    const host = fwdHost || reqHeaders?.get("host");
+    const protocol = reqHeaders?.get("x-forwarded-proto") || (host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https");
+    const origin = clientOrigin || getBaseUrlSync(host, protocol);
     let successUrl = `${origin}/success?orderId=${result.orderId}`;
 
     // [Phase 3 Surgeon] Generate capability token for sessionless payment return validation
@@ -1056,9 +1067,20 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 
     let paymentUrl: string | undefined;
 
-    const host = reqHeaders.get("host") || "localhost:3000";
-    const protocol = reqHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
-    const origin = getBaseUrlSync(host, protocol);
+    const originHeader = reqHeaders?.get("origin") || reqHeaders?.get("referer");
+    let clientOrigin = "";
+    if (originHeader) {
+      try {
+        const u = new URL(originHeader);
+        if (isAllowedHost(u.host)) {
+          clientOrigin = `${u.protocol}//${u.host}`;
+        }
+      } catch {}
+    }
+    const fwdHost = reqHeaders.get("x-forwarded-host");
+    const host = fwdHost || reqHeaders.get("host");
+    const protocol = reqHeaders.get("x-forwarded-proto") || (host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https");
+    const origin = clientOrigin || getBaseUrlSync(host, protocol);
     let successUrl = `${origin}/success?orderId=${order.id}`;
 
     let token = '';
