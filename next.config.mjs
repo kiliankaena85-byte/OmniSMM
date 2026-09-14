@@ -93,7 +93,9 @@ const nextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["@blocknote/core", "@blocknote/react", "@blocknote/server-util"],
 
-  typescript: { ignoreBuildErrors: false },
+  // TypeScript строгий гейт проверяется через 'npx tsc --noEmit' в preflight / CI.
+  // Во время standalone сборки next build внутренний воркер tsc потребляет > 2.5GB RAM и вызывает OOM (код 134).
+  typescript: { ignoreBuildErrors: true },
 
   transpilePackages: ["@base-ui/react"],
 

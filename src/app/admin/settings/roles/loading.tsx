@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
 import { ShieldCheck } from 'lucide-react';
 import { SYSTEM_TABS } from '@/components/admin/navigation-data';
