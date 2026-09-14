@@ -1,3 +1,16 @@
+- [x] 🚀 Настройка инфраструктуры удалённого развёртывания (Remote GitOps / CI/CD Deployment) — (100% COMPLETE & VERIFIED):
+  * 🖥️ **GitHub Actions Self-Hosted Runner (`C:\actions-runner`):**
+    - Настроен и зарегистрирован официальный раннер `smmplan-prod-server` на Windows хосте.
+    - Автоматический старт в фоновом режиме через VBS-скрипт в автозагрузке (`Start-Github-Runner.vbs`) без необходимости прав администратора Windows или UAC.
+  * ⚙️ **Workflow автоматического деплоя (`.github/workflows/deploy-server.yml`):**
+    - Автоматический запуск при пуше в `main` или по кнопке «Run workflow» из интерфейса GitHub.
+    - Этапы: `git pull` $\to$ аудит зависимостей $\to$ `npm run build` (Next.js 16 Webpack standalone на хосте) $\to$ `docker compose up -d --build web worker bot` $\to$ верификация `/api/health`.
+  * 🛠️ **Исправление SSRF/Client-Only бага сборки:**
+    - В `src/app/admin/finance/loading.tsx` и `src/app/admin/marketing/loading.tsx` добавлена директива `'use client'`, устранившая ошибку Next.js Webpack при импорте скелетонов в Server Components.
+  * 🧪 **Верификация первого удалённого деплоя:**
+    - Задача принята раннером из GitHub и выполнена успешно за 6 минут (`exit code 0`).
+    - Контейнеры `smmplan_web`, `smmplan_lite_worker` и `smmplan_bot` пересобраны и находятся в статусе `healthy`.
+    - Доступность: локально `http://127.0.0.1:3000/api/health` и публично `https://smmplan.tailbb9d28.ts.net/api/health` — `{"status":"healthy"}` (HTTP 200 OK).
 - [x] ⚡ [SIL-2026] Self-Improving Loop (SIL-2026): Личный кабинет пользователя — Выход на главный экран & Навигационная эргономика (100% COMPLETE & VERIFIED):
   * 🌐 **Выход на главный экран (публичную витрину `/`) во всех интерфейсах:**
     - В десктопном сайдбаре `src/app/dashboard/sidebar-nav.tsx` добавлена компактная кнопка «На сайт» (`href="/"`, иконка `ExternalLink`, плавные hover/active эффекты).
