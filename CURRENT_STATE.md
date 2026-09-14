@@ -1,4 +1,19 @@
 # CURRENT_STATE.md
+- [x] Внедрение комплексного автономного контура Self-Improving Loop (SIL-2026) — (100% COMPLETE & VERIFIED):
+  * 🔄 **Единый CLI-оркестратор `scripts/self-improving-orchestrator.ts` (`npm run loop:self-improve`):**
+    - **Фаза 1 (Static Quality & Secrets):** Интеграция строгой компиляции TypeScript (`tsc --noEmit`), сканирования секретов в бандле (`check-bundle-secrets.mjs`) и проверки API-доменов.
+    - **Фаза 2 (Layout & Mobile Density Sentry):** Автоматический поиск дефектов верстки (сжатые SVG, отсутствие `min-w-0`, `w-screen`, тач-таргеты $\ge 44\text{px}$) с поддержкой автоматического применения codemod-правок через `npm run loop:heal` (`healLayoutFiles`).
+    - **Фаза 3 (Adversarial TDD & Critical Regression Gate):** Регрессионный прогон критических сьютов (`vulnerability-vectors-remediation.test.ts`, `sensitive-data-filter.test.ts`, `p0-threat-matrix.test.ts`) в изолированном тестовом окружении (`.env.test`).
+    - **Фаза 4 (Ephemeral Sandbox Visual Loop):** Опциональный сквозной headless-аудит под 4 ролями (Гость, B2C User, Flux User, Owner) на изолированном порту 3005.
+    - **Фаза 5 (Skill Evolution & Memory Synthesis):** Автоматическая фиксация выученных уроков в `.agents/skills/<skill>/SKILL.md` через `evolveSkillWithLesson()` для полной ликвидации архитектурной амнезии.
+  * 🏛️ **Новый архитектурный скилл платформы:**
+    - `.agents/skills/self-improving-loop/SKILL.md`: зафиксированы 5 фаз замкнутого цикла, жесткие инварианты (запрет повторных регрессий, Human Approval Gate) и матрица команд.
+  * 🔗 **Интеграция с OODA-контуром самоисцеления (`scripts/self-healing-ooda-loop.ts`):**
+    - При успешной генерации и верификации хотфикса (`READY_FOR_HUMAN_APPROVAL`) выученный урок автоматически регистрируется в базе навыков агентов.
+  * 🧪 **Автоматизированная верификация пайплайна:**
+    - `npm run loop:self-improve`: **100% PASS** (все фазы пройдены, 0 ошибок).
+    - `npm run loop:heal`: **100% PASS** (2 автоисправления верстки применены, 0 регрессий).
+    - Карта результатов сохранена в `.planning/SELF_IMPROVING_LOOP_SCORECARD.md`.
 - [x] Унификация архитектуры валидатора ссылок, таксономия 37 соцсетей и спецификация пограничных случаев (100% COMPLETE & VERIFIED):
   * ⚡ **Единое архитектурное ядро `UnifiedLinkEngine` (`src/services/link-engine/`):**
     - $O(1)$ маршрутизация доменов (`link-domain-router.ts`) для 37+ платформ без фрагментации.
