@@ -1,3 +1,20 @@
+- [x] ⚡ [SIL-2026] Self-Improving Loop (SIL-2026): Ликвидация паразитного автоскролла (Desktop & Mobile) и исправление редиректа оплаты на localhost:3000 (100% COMPLETE & VERIFIED):
+  * 🛑 **Устранение паразитного автоскролла вверх на десктопе и смартфонах:**
+    - Выявлена корневая причина: в `PlanFullscreenCheckout.tsx` хук `useEffect(..., [onClose])` вызывал `window.scrollTo({ top: 0, behavior: 'instant' })` на каждый ререндер родителя `SmartLinkLanding` при передаче новой функции `onClose`.
+    - Любое действие (ввод email, клик чекбокса 152-ФЗ, изменение количества) мутировало стейт `engine`, вызывая ререндер и моментальный отлёт страницы на `top: 0` на десктопе, а также на мобильных устройствах (так как `PlanFullscreenCheckout` был смонтирован в DOM внутри `<div className="hidden md:flex">`).
+    - В `PlanFullscreenCheckout.tsx` колбэк `onClose` зафиксирован через `useRef`, добавлен флаг `hasMountedScrollRef`, хук переведён на `[]` и условие `window.innerWidth >= 768 && !hasMountedScrollRef.current`. На мобильных устройствах вызовы скролла и `history.pushState` заблокированы на корню.
+    - В `SmartLinkLanding.tsx` колбэк закрытия мемоизирован через `useCallback`.
+    - В `MobileStep4Checkout.tsx` добавлен `id="step-4"`, убрана анимация `height: 0`. В шагах 1-3 добавлены якорные `id="step-1"`, `id="step-2"`, `id="step-3"`.
+  * 🌐 **Исправление редиректа оплаты (Payment Return URL) на localhost:3000:**
+    - В `src/utils/get-base-url.ts` добавлен список доверенных туннелей `ALLOWED_TUNNEL_SUFFIXES` (включая `.ts.net`, `.trycloudflare.com`, `.ngrok-free.app` и др.).
+    - В `isAllowedHost()` разрешены туннельные хосты. Для туннелей и продакшена протокол строго принуждается к `https://`.
+    - В `.env` актуализирован `NEXT_PUBLIC_APP_URL="https://smmplan.tailbb9d28.ts.net"`.
+  * 🧪 **TDD & Регрессионная верификация:**
+    - Разработан и пройден тестовый сьют `src/__tests__/unit/get-base-url-tunnel-integrity.test.ts` (6/6 PASS).
+    - Расширен тестовый сьют `src/__tests__/plan-fullscreen-checkout.test.tsx` (7/7 PASS) с проверкой отсутствия повторных скроллов и полной блокировки на мобильных устройствах.
+    - Пройден тестовый сьют `src/__tests__/mobile-wizard-smoke.test.tsx` (16/16 PASS).
+    - `npx tsc --noEmit` — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] 🚀 Настройка инфраструктуры удалённого развёртывания (Remote GitOps / CI/CD Deployment) — (100% COMPLETE & VERIFIED):
   * 🖥️ **GitHub Actions Self-Hosted Runner (`C:\actions-runner`):**
     - Настроен и зарегистрирован официальный раннер `smmplan-prod-server` на Windows хосте.

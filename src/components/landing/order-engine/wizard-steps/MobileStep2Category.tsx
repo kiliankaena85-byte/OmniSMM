@@ -65,10 +65,11 @@ export function MobileStep2Category({
 
   return (
     <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 26 }}
+      id="step-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       ref={step2Ref}
       className="space-y-3 overflow-visible border-t border-border/30 pt-3 scroll-mt-20"
     >

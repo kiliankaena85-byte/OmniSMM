@@ -52,10 +52,11 @@ export function MobileStep3Service({
 
   return (
     <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 26 }}
+      id="step-3"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       ref={step3Ref}
       className="space-y-3 overflow-visible border-t border-border/30 pt-3 scroll-mt-20"
     >

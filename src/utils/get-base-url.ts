@@ -54,7 +54,10 @@ export async function getBaseUrlAsync(reqHost?: string | null, reqProto?: string
           : "localhost:3000";
       }
       if (isAllowedHost(host)) {
-        return `${proto}://${host}`;
+        const cleanHost = host.split(':')[0].toLowerCase();
+        const isTunnelOrProd = cleanHost.endsWith('.ts.net') || cleanHost.endsWith('.trycloudflare.com') || cleanHost.endsWith('.smmplan.pro') || cleanHost.endsWith('.smmflux.ru');
+        const resolvedProto = isTunnelOrProd ? 'https' : proto;
+        return `${resolvedProto}://${host}`;
       }
     }
   } catch {
