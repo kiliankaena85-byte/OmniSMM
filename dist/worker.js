@@ -110180,29 +110180,32 @@ var init_compensation_service = __esm({
   }
 });
 
-// src/constants/link-service-compatibility.ts
-var link_service_compatibility_exports = {};
-__export2(link_service_compatibility_exports, {
+// src/utils/target-type-mapper.ts
+var target_type_mapper_exports = {};
+__export2(target_type_mapper_exports, {
   LinkType: () => LinkType,
-  ServiceTargetType: () => ServiceTargetType,
+  TargetTypeEnum: () => TargetTypeEnum,
   getCompatibilityError: () => getCompatibilityError,
+  inferTargetTypeFromName: () => inferTargetTypeFromName,
   isLinkServiceCompatible: () => isLinkServiceCompatible,
-  normalizeLinkType: () => normalizeLinkType,
-  normalizeServiceTargetType: () => normalizeServiceTargetType
+  isTargetTypeCompatible: () => isTargetTypeCompatible,
+  normalizeTargetType: () => normalizeTargetType,
+  resolveServiceTargetType: () => resolveServiceTargetType
 });
-function normalizeLinkType(rawType) {
+function normalizeTargetType(rawType) {
   if (!rawType) return "CUSTOM" /* CUSTOM */;
   const clean = rawType.trim().toUpperCase();
   switch (clean) {
     case "CHANNEL":
     case "GROUP":
     case "CHAT":
+    case "PUBLIC":
+    case "COMMUNITY":
+    case "COMMUNITIES":
+    case "SUBSCRIBERS":
+    case "MEMBERS":
+    case "BOOST":
       return "CHANNEL" /* CHANNEL */;
-    case "PROFILE":
-    case "USER":
-    case "ACCOUNT":
-    case "ARTIST":
-      return "PROFILE" /* PROFILE */;
     case "POST":
     case "PRIVATE_POST":
     case "PHOTO":
@@ -110210,7 +110213,20 @@ function normalizeLinkType(rawType) {
     case "TWEET":
     case "STATUS":
     case "TRACK":
+    case "POST_INTERACTION":
+    case "LIKES":
+    case "REACTIONS":
+    case "VIEWS":
+    case "REPOSTS":
+    case "SHARES":
       return "POST" /* POST */;
+    case "PROFILE":
+    case "USER":
+    case "ACCOUNT":
+    case "ARTIST":
+    case "FOLLOWERS":
+    case "FRIENDS":
+      return "PROFILE" /* PROFILE */;
     case "VIDEO":
     case "SHORT_VIDEO":
     case "SHORT_LINK":
@@ -110221,100 +110237,102 @@ function normalizeLinkType(rawType) {
     case "VK_CLIP":
     case "VK_PLAY":
     case "PHOTO_MODE":
+    case "VIDEO_INTERACTION":
+    case "WATCH_TIME":
+    case "LIVESTREAM":
       return "VIDEO" /* VIDEO */;
     case "STORY":
     case "STORIES":
     case "HIGHLIGHT":
     case "HIGHLIGHTS":
+    case "STORY_INTERACTION":
       return "STORY" /* STORY */;
     case "POLL":
     case "VOTE":
+    case "VOTES":
+    case "POLL_VOTES":
       return "POLL" /* POLL */;
+    case "COMMENT":
+    case "COMMENTS":
+    case "REVIEWS":
+      return "COMMENTS" /* COMMENTS */;
     case "BOT":
+    case "REFERRAL":
+    case "BOT_STARTS":
       return "BOT" /* BOT */;
-    case "GENERIC_LINK":
-    case "OTHER":
-    case "UNKNOWN":
-      return "CUSTOM" /* CUSTOM */;
-    default:
-      return "CUSTOM" /* CUSTOM */;
-  }
-}
-function normalizeServiceTargetType(rawType) {
-  if (!rawType) return "CUSTOM" /* CUSTOM */;
-  const clean = rawType.trim().toUpperCase();
-  switch (clean) {
-    case "CHANNEL":
-    case "GROUP":
-    case "PUBLIC":
-    case "COMMUNITY":
-    case "COMMUNITIES":
-    case "SUBSCRIBERS":
-    case "MEMBERS":
-    case "BOOST":
-      return "CHANNEL" /* CHANNEL */;
-    case "PROFILE":
-    case "FOLLOWERS":
-    case "FRIENDS":
-      return "PROFILE" /* PROFILE */;
-    case "POST_INTERACTION":
-    case "POST":
-    case "LIKES":
-    case "REACTIONS":
-    case "VIEWS":
-    case "REPOSTS":
-    case "SHARES":
-      return "POST_INTERACTION" /* POST_INTERACTION */;
-    case "VIDEO_INTERACTION":
-    case "VIDEO":
-    case "WATCH_TIME":
-    case "LIVESTREAM":
-      return "VIDEO_INTERACTION" /* VIDEO_INTERACTION */;
-    case "STORY_INTERACTION":
-    case "STORY":
-    case "STORIES":
-      return "STORY_INTERACTION" /* STORY_INTERACTION */;
     case "CHANNEL_POSTS":
     case "AUTO_POSTS":
     case "AUTO_VIEWS":
     case "AUTO_LIKES":
     case "AUTO":
       return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
-    case "POLL_VOTES":
-    case "POLL":
-    case "VOTES":
-      return "POLL_VOTES" /* POLL_VOTES */;
-    case "BOT_STARTS":
-    case "BOT":
-    case "REFERRAL":
-      return "BOT_STARTS" /* BOT_STARTS */;
-    case "COMMENTS":
-    case "COMMENT":
-    case "REVIEWS":
-      return "COMMENTS" /* COMMENTS */;
+    case "CUSTOM":
+    case "GENERIC_LINK":
+    case "OTHER":
+    case "UNKNOWN":
     default:
       return "CUSTOM" /* CUSTOM */;
   }
 }
-function isLinkServiceCompatible(rawLinkType, rawTargetType) {
-  if (!rawLinkType || !rawTargetType) return true;
-  const link = normalizeLinkType(rawLinkType);
-  const target = normalizeServiceTargetType(rawTargetType);
-  if (link === "CUSTOM" /* CUSTOM */ || target === "CUSTOM" /* CUSTOM */) {
-    return true;
+function inferTargetTypeFromName(name) {
+  if (!name) return "POST" /* POST */;
+  const n = name.toLowerCase().replace(/vexboost/gi, "").replace(/smmboost/gi, "");
+  const nNoPunct = n.replace(/[^a-zа-яё0-9]/gi, "");
+  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
+  n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u043E\u0441\u0442") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u0443\u0431\u043B\u0438\u043A") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D") && (n.includes("\u043F\u043E\u0441\u0442") || n.includes("\u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u0443\u0431\u043B\u0438\u043A")) || n.includes("last post") || n.includes("last 5 post") || n.includes("last 10 post") || n.includes("last 20 post") || n.includes("last 50 post") || // "Пакет охвата" — views package on last N posts of a channel
+  n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440")) {
+    return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
   }
-  const allowedTargets = COMPATIBILITY_MAP[link];
+  if (n.includes("\u043E\u043F\u0440\u043E\u0441") || n.includes("\u0433\u043E\u043B\u043E\u0441") || n.includes("poll") || n.includes("vote")) {
+    return "POLL" /* POLL */;
+  }
+  if (n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") || n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0444\u043E\u043B\u043B\u043E\u0432\u0435\u0440") || n.includes("subscriber") || n.includes("member") || n.includes("follower") || n.includes("\u043A\u0430\u043D\u0430\u043B") || n.includes("channel") || n.includes("\u0433\u0440\u0443\u043F\u043F") || n.includes("group") || n.includes("\u0431\u0443\u0441\u0442") || n.includes("boost") || n.includes("\u0438\u043D\u0432\u0430\u0439\u0442") || n.includes("invite")) {
+    return "CHANNEL" /* CHANNEL */;
+  }
+  if (n.includes("\u0441\u0442\u043E\u0440\u0438") || n.includes("story") || n.includes("stories") || n.includes("\u0438\u0441\u0442\u043E\u0440\u0438")) {
+    return "STORY" /* STORY */;
+  }
+  if (n.includes("\u0432\u0438\u0434\u0435\u043E") || n.includes("video") || n.includes("shorts") || n.includes("reels") || n.includes("clip") || n.includes("\u043A\u043B\u0438\u043F") || n.includes("\u0441\u0442\u0440\u0438\u043C") || n.includes("stream") || n.includes("\u0437\u0440\u0438\u0442\u0435\u043B")) {
+    return "VIDEO" /* VIDEO */;
+  }
+  if (n.includes("\u043F\u0440\u043E\u0444\u0438\u043B\u044C") || n.includes("profile") || n.includes("\u0430\u043A\u043A\u0430\u0443\u043D\u0442") || n.includes("\u0434\u0440\u0443\u0433") || n.includes("friend")) {
+    return "PROFILE" /* PROFILE */;
+  }
+  if (n.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442") || n.includes("comment") || n.includes("\u043E\u0442\u0437\u044B\u0432") || n.includes("review")) {
+    return "COMMENTS" /* COMMENTS */;
+  }
+  if (n.includes("\u0431\u043E\u0442") || n.includes("bot") || n.includes("\u0440\u0435\u0444\u0435\u0440\u0430\u043B") || n.includes("referral")) {
+    return "BOT" /* BOT */;
+  }
+  return "POST" /* POST */;
+}
+function resolveServiceTargetType(service) {
+  if (!service) return "POST" /* POST */;
+  const effectiveName = service.name || service.category?.name || "";
+  const inferred = inferTargetTypeFromName(effectiveName);
+  if ((!service.targetType || service.targetType === "POST" || service.targetType === "CUSTOM") && (inferred === "CHANNEL" /* CHANNEL */ || inferred === "CHANNEL_POSTS" /* CHANNEL_POSTS */ || inferred === "POLL" /* POLL */ || inferred === "VIDEO" /* VIDEO */ || inferred === "STORY" /* STORY */ || inferred === "BOT" /* BOT */)) {
+    return inferred;
+  }
+  return service.targetType || inferred;
+}
+function isTargetTypeCompatible(detectedLinkType, serviceTargetType) {
+  if (!detectedLinkType || !serviceTargetType) return true;
+  const detected = normalizeTargetType(detectedLinkType);
+  const service = normalizeTargetType(serviceTargetType);
+  if (detected === "CUSTOM" /* CUSTOM */ || service === "CUSTOM" /* CUSTOM */) return true;
+  if (detected === service) return true;
+  const allowedTargets = UNIFIED_COMPATIBILITY_MAP[detected];
   if (!allowedTargets) return true;
-  return allowedTargets.has(target);
+  return allowedTargets.has(service);
 }
 function getCompatibilityError(rawLinkType, rawTargetType, serviceName) {
-  const link = normalizeLinkType(rawLinkType);
-  const target = normalizeServiceTargetType(rawTargetType);
+  const link = normalizeTargetType(rawLinkType);
+  const target = normalizeTargetType(rawTargetType);
   const prefix = serviceName ? `\u0423\u0441\u043B\u0443\u0433\u0430 \xAB${serviceName}\xBB` : "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u0430\u044F \u0443\u0441\u043B\u0443\u0433\u0430";
-  if (link === "PROFILE" /* PROFILE */ && target === "POST_INTERACTION" /* POST_INTERACTION */) {
+  if (link === "PROFILE" /* PROFILE */ && target === "POST" /* POST */) {
     return `${prefix} \u043F\u0440\u0435\u0434\u043D\u0430\u0437\u043D\u0430\u0447\u0435\u043D\u0430 \u0434\u043B\u044F \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u0439 (\u043B\u0430\u0439\u043A\u0438/\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B/\u0440\u0435\u0430\u043A\u0446\u0438\u0438). \u0414\u043B\u044F \u0435\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u044F \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u044B\u0439 \u043F\u043E\u0441\u0442 \u0438\u043B\u0438 \u0444\u043E\u0442\u043E, \u0430 \u043D\u0435 \u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443 \u043F\u0440\u043E\u0444\u0438\u043B\u044F.`;
   }
-  if (link === "CHANNEL" /* CHANNEL */ && target === "POST_INTERACTION" /* POST_INTERACTION */) {
+  if (link === "CHANNEL" /* CHANNEL */ && target === "POST" /* POST */) {
     return `${prefix} \u043F\u0440\u0438\u043C\u0435\u043D\u044F\u0435\u0442\u0441\u044F \u043A \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u044B\u043C \u0437\u0430\u043F\u0438\u0441\u044F\u043C. \u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u044B\u0439 \u043F\u043E\u0441\u0442 \u0432 \u043A\u0430\u043D\u0430\u043B\u0435 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, https://t.me/channel/123), \u0430 \u043D\u0435 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0446\u0435\u043B\u0438\u043A\u043E\u043C.`;
   }
   if (link === "POST" /* POST */ && target === "CHANNEL" /* CHANNEL */) {
@@ -110326,98 +110344,177 @@ function getCompatibilityError(rawLinkType, rawTargetType, serviceName) {
   if (link === "POST" /* POST */ && target === "CHANNEL_POSTS" /* CHANNEL_POSTS */) {
     return `${prefix} \u2014 \u044D\u0442\u043E \u043F\u0430\u043A\u0435\u0442 \u0430\u0432\u0442\u043E-\u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u0435\u0439 \u043D\u0430 \u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u0438 \u043A\u0430\u043D\u0430\u043B\u0430. \u0414\u043B\u044F \u0435\u0435 \u0437\u0430\u043F\u0443\u0441\u043A\u0430 \u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F \u0441\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0446\u0435\u043B\u0438\u043A\u043E\u043C, \u0430 \u043D\u0435 \u043D\u0430 \u0440\u0430\u0437\u043E\u0432\u044B\u0439 \u043F\u043E\u0441\u0442.`;
   }
-  if (link === "STORY" /* STORY */ && target !== "STORY_INTERACTION" /* STORY_INTERACTION */) {
+  if (link === "STORY" /* STORY */ && target !== "STORY" /* STORY */) {
     return `${prefix} \u043D\u0435 \u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u0430 \u0441\u043E \u0441\u0441\u044B\u043B\u043A\u0430\u043C\u0438 \u043D\u0430 \u0418\u0441\u0442\u043E\u0440\u0438\u0438 (Stories). \u0414\u043B\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u0439 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B \u0438 \u0440\u0435\u0430\u043A\u0446\u0438\u0438 \u043D\u0430 \u0441\u0442\u043E\u0440\u0438\u0437.`;
   }
-  if (link !== "STORY" /* STORY */ && target === "STORY_INTERACTION" /* STORY_INTERACTION */) {
+  if (link !== "STORY" /* STORY */ && target === "STORY" /* STORY */) {
     return `${prefix} \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u0438\u0441\u043A\u043B\u044E\u0447\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0441\u043E \u0441\u0441\u044B\u043B\u043A\u0430\u043C\u0438 \u043D\u0430 \u0418\u0441\u0442\u043E\u0440\u0438\u0438 (Stories). \u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0430\u043A\u0442\u0438\u0432\u043D\u0443\u044E \u0438\u0441\u0442\u043E\u0440\u0438\u044E.`;
   }
   return `${prefix} (\u0442\u0438\u043F \u0446\u0435\u043B\u0438: ${target}) \u043D\u0435\u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u0430 \u0441 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u043C \u0442\u0438\u043F\u043E\u043C \u0441\u0441\u044B\u043B\u043A\u0438 (${link}). \u041F\u043E\u0436\u0430\u043B\u0443\u0439\u0441\u0442\u0430, \u043F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0444\u043E\u0440\u043C\u0430\u0442 \u0441\u0441\u044B\u043B\u043A\u0438.`;
 }
-var LinkType, ServiceTargetType, COMPATIBILITY_MAP;
-var init_link_service_compatibility = __esm({
-  "src/constants/link-service-compatibility.ts"() {
+var TargetTypeEnum, LinkType, UNIFIED_COMPATIBILITY_MAP, isLinkServiceCompatible;
+var init_target_type_mapper = __esm({
+  "src/utils/target-type-mapper.ts"() {
     "use strict";
-    LinkType = /* @__PURE__ */ ((LinkType2) => {
-      LinkType2["CHANNEL"] = "CHANNEL";
-      LinkType2["PROFILE"] = "PROFILE";
-      LinkType2["POST"] = "POST";
-      LinkType2["VIDEO"] = "VIDEO";
-      LinkType2["STORY"] = "STORY";
-      LinkType2["POLL"] = "POLL";
-      LinkType2["BOT"] = "BOT";
-      LinkType2["CUSTOM"] = "CUSTOM";
-      return LinkType2;
-    })(LinkType || {});
-    ServiceTargetType = /* @__PURE__ */ ((ServiceTargetType2) => {
-      ServiceTargetType2["CHANNEL"] = "CHANNEL";
-      ServiceTargetType2["PROFILE"] = "PROFILE";
-      ServiceTargetType2["POST_INTERACTION"] = "POST_INTERACTION";
-      ServiceTargetType2["VIDEO_INTERACTION"] = "VIDEO_INTERACTION";
-      ServiceTargetType2["STORY_INTERACTION"] = "STORY_INTERACTION";
-      ServiceTargetType2["CHANNEL_POSTS"] = "CHANNEL_POSTS";
-      ServiceTargetType2["POLL_VOTES"] = "POLL_VOTES";
-      ServiceTargetType2["BOT_STARTS"] = "BOT_STARTS";
-      ServiceTargetType2["COMMENTS"] = "COMMENTS";
-      ServiceTargetType2["CUSTOM"] = "CUSTOM";
-      return ServiceTargetType2;
-    })(ServiceTargetType || {});
-    COMPATIBILITY_MAP = {
+    TargetTypeEnum = /* @__PURE__ */ ((TargetTypeEnum2) => {
+      TargetTypeEnum2["CHANNEL"] = "CHANNEL";
+      TargetTypeEnum2["POST"] = "POST";
+      TargetTypeEnum2["PROFILE"] = "PROFILE";
+      TargetTypeEnum2["STORY"] = "STORY";
+      TargetTypeEnum2["VIDEO"] = "VIDEO";
+      TargetTypeEnum2["CHANNEL_POSTS"] = "CHANNEL_POSTS";
+      TargetTypeEnum2["POLL"] = "POLL";
+      TargetTypeEnum2["COMMENTS"] = "COMMENTS";
+      TargetTypeEnum2["BOT"] = "BOT";
+      TargetTypeEnum2["CUSTOM"] = "CUSTOM";
+      TargetTypeEnum2["POST_INTERACTION"] = "POST";
+      TargetTypeEnum2["VIDEO_INTERACTION"] = "VIDEO";
+      TargetTypeEnum2["STORY_INTERACTION"] = "STORY";
+      TargetTypeEnum2["POLL_VOTES"] = "POLL";
+      TargetTypeEnum2["BOT_STARTS"] = "BOT";
+      return TargetTypeEnum2;
+    })(TargetTypeEnum || {});
+    LinkType = TargetTypeEnum;
+    UNIFIED_COMPATIBILITY_MAP = {
       ["CHANNEL" /* CHANNEL */]: /* @__PURE__ */ new Set([
         "CHANNEL" /* CHANNEL */,
         "CHANNEL_POSTS" /* CHANNEL_POSTS */,
         "PROFILE" /* PROFILE */,
-        // Permitted in platforms where channel and profile share namespace
         "CUSTOM" /* CUSTOM */
       ]),
       ["PROFILE" /* PROFILE */]: /* @__PURE__ */ new Set([
         "PROFILE" /* PROFILE */,
         "CHANNEL" /* CHANNEL */,
-        // Permitted in Instagram/TikTok (account followers)
         "CHANNEL_POSTS" /* CHANNEL_POSTS */,
-        // Permitted for automated post monitoring subscriptions on profile
+        // Anomaly 1.3: IG/TikTok profile post monitoring
         "CUSTOM" /* CUSTOM */
       ]),
       ["POST" /* POST */]: /* @__PURE__ */ new Set([
-        "POST_INTERACTION" /* POST_INTERACTION */,
-        "VIDEO_INTERACTION" /* VIDEO_INTERACTION */,
+        "POST" /* POST */,
+        "VIDEO" /* VIDEO */,
         "COMMENTS" /* COMMENTS */,
-        "POLL_VOTES" /* POLL_VOTES */,
+        "POLL" /* POLL */,
+        // Anomaly 1.2: TG/VK polls inside posts
         "CUSTOM" /* CUSTOM */
       ]),
       ["VIDEO" /* VIDEO */]: /* @__PURE__ */ new Set([
-        "VIDEO_INTERACTION" /* VIDEO_INTERACTION */,
-        "POST_INTERACTION" /* POST_INTERACTION */,
+        "VIDEO" /* VIDEO */,
+        "POST" /* POST */,
         "COMMENTS" /* COMMENTS */,
+        // Anomaly 1.1: Comments on videos/clips
         "CUSTOM" /* CUSTOM */
       ]),
       ["STORY" /* STORY */]: /* @__PURE__ */ new Set([
-        "STORY_INTERACTION" /* STORY_INTERACTION */,
+        "STORY" /* STORY */,
         "CUSTOM" /* CUSTOM */
       ]),
       ["POLL" /* POLL */]: /* @__PURE__ */ new Set([
-        "POLL_VOTES" /* POLL_VOTES */,
-        "POST_INTERACTION" /* POST_INTERACTION */,
+        "POLL" /* POLL */,
+        "POST" /* POST */,
         "CUSTOM" /* CUSTOM */
       ]),
       ["BOT" /* BOT */]: /* @__PURE__ */ new Set([
-        "BOT_STARTS" /* BOT_STARTS */,
+        "BOT" /* BOT */,
         "CHANNEL" /* CHANNEL */,
         "CUSTOM" /* CUSTOM */
       ]),
-      ["CUSTOM" /* CUSTOM */]: /* @__PURE__ */ new Set([
-        "CUSTOM" /* CUSTOM */,
+      ["COMMENTS" /* COMMENTS */]: /* @__PURE__ */ new Set([
+        "COMMENTS" /* COMMENTS */,
+        "POST" /* POST */,
+        "VIDEO" /* VIDEO */,
+        "CUSTOM" /* CUSTOM */
+      ]),
+      ["CHANNEL_POSTS" /* CHANNEL_POSTS */]: /* @__PURE__ */ new Set([
+        "CHANNEL_POSTS" /* CHANNEL_POSTS */,
         "CHANNEL" /* CHANNEL */,
         "PROFILE" /* PROFILE */,
-        "POST_INTERACTION" /* POST_INTERACTION */,
-        "VIDEO_INTERACTION" /* VIDEO_INTERACTION */,
-        "STORY_INTERACTION" /* STORY_INTERACTION */,
+        "CUSTOM" /* CUSTOM */
+      ]),
+      ["CUSTOM" /* CUSTOM */]: /* @__PURE__ */ new Set([
+        "CHANNEL" /* CHANNEL */,
+        "PROFILE" /* PROFILE */,
+        "POST" /* POST */,
+        "VIDEO" /* VIDEO */,
+        "STORY" /* STORY */,
+        "POLL" /* POLL */,
+        "BOT" /* BOT */,
+        "COMMENTS" /* COMMENTS */,
         "CHANNEL_POSTS" /* CHANNEL_POSTS */,
-        "POLL_VOTES" /* POLL_VOTES */,
-        "BOT_STARTS" /* BOT_STARTS */,
-        "COMMENTS" /* COMMENTS */
+        "CUSTOM" /* CUSTOM */
       ])
     };
+    isLinkServiceCompatible = isTargetTypeCompatible;
+  }
+});
+
+// src/utils/target-type.ts
+var target_type_exports = {};
+__export2(target_type_exports, {
+  LinkType: () => LinkType,
+  TargetTypeEnum: () => TargetTypeEnum,
+  getCompatibilityError: () => getCompatibilityError,
+  inferTargetTypeFromCategory: () => inferTargetTypeFromCategory,
+  inferTargetTypeFromName: () => inferTargetTypeFromName,
+  isCompatible: () => isCompatible,
+  isHybridViewCategory: () => isHybridViewCategory,
+  isLinkServiceCompatible: () => isLinkServiceCompatible,
+  isTargetTypeCompatible: () => isTargetTypeCompatible,
+  normalizeTargetType: () => normalizeTargetType,
+  resolveServiceTargetType: () => resolveServiceTargetType
+});
+function isCompatible(serviceType, linkType) {
+  return isTargetTypeCompatible(linkType, serviceType);
+}
+function isHybridViewCategory(categoryName) {
+  if (!categoryName) return false;
+  const n = categoryName.toLowerCase();
+  if (n.includes("\u0441\u0442\u043E\u0440\u0438") || n.includes("story") || n.includes("\u043A\u043B\u0438\u043F") || n.includes("clip") || n.includes("shorts") || n.includes("reel")) {
+    return false;
+  }
+  return n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("view") || n.includes("watch");
+}
+function inferTargetTypeFromCategory(categoryName) {
+  if (isHybridViewCategory(categoryName)) {
+    return "CUSTOM" /* CUSTOM */;
+  }
+  return inferTargetTypeFromName(categoryName);
+}
+var init_target_type = __esm({
+  "src/utils/target-type.ts"() {
+    "use strict";
+    init_target_type_mapper();
+  }
+});
+
+// src/constants/link-service-compatibility.ts
+var link_service_compatibility_exports = {};
+__export2(link_service_compatibility_exports, {
+  LinkType: () => LinkType2,
+  ServiceTargetType: () => ServiceTargetType,
+  getCompatibilityError: () => getCompatibilityError2,
+  isLinkServiceCompatible: () => isLinkServiceCompatible2,
+  normalizeLinkType: () => normalizeLinkType,
+  normalizeServiceTargetType: () => normalizeServiceTargetType
+});
+function normalizeLinkType(rawType) {
+  return normalizeTargetType(rawType);
+}
+function normalizeServiceTargetType(rawType) {
+  return normalizeTargetType(rawType);
+}
+function isLinkServiceCompatible2(rawLinkType, rawTargetType) {
+  return isTargetTypeCompatible(rawLinkType, rawTargetType);
+}
+function getCompatibilityError2(rawLinkType, rawTargetType, serviceName) {
+  return getCompatibilityError(rawLinkType, rawTargetType, serviceName);
+}
+var LinkType2, ServiceTargetType;
+var init_link_service_compatibility = __esm({
+  "src/constants/link-service-compatibility.ts"() {
+    "use strict";
+    init_target_type();
+    LinkType2 = TargetTypeEnum;
+    ServiceTargetType = TargetTypeEnum;
   }
 });
 
@@ -110512,11 +110609,33 @@ var init_description_sanitizer = __esm({
   }
 });
 
+// src/constants/geo-registry.ts
+var GEO_MAP;
+var init_geo_registry = __esm({
+  "src/constants/geo-registry.ts"() {
+    "use strict";
+    GEO_MAP = {
+      "RU": ["\u0440\u043E\u0441\u0441\u0438\u044F", "\u0440\u0444", "ru", "\u{1F1F7}\u{1F1FA}", "\u0440\u0443\u0441\u0441\u043A\u0438\u0435"],
+      "USA": ["\u0441\u0448\u0430", "usa", "\u{1F1FA}\u{1F1F8}", "english", "worldwide"],
+      "KZ": ["\u043A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D", "\u043A\u0437", "kz", "\u{1F1F0}\u{1F1FF}"],
+      "UZ": ["\u0443\u0437\u0431\u0435\u043A\u0438\u0441\u0442\u0430\u043D", "uz", "\u{1F1FA}\u{1F1FF}"],
+      "UA": ["\u0443\u043A\u0440\u0430\u0438\u043D\u0430", "ua", "\u{1F1FA}\u{1F1E6}"],
+      "TR": ["\u0442\u0443\u0440\u0446\u0438\u044F", "tr", "\u{1F1F9}\u{1F1F7}", "turkey"],
+      "IN": ["\u0438\u043D\u0434\u0438\u044F", "in", "\u{1F1EE}\u{1F1F3}", "india"],
+      "BR": ["\u0431\u0440\u0430\u0437\u0438\u043B\u0438\u044F", "br", "\u{1F1E7}\u{1F1F7}"],
+      "IL": ["\u0438\u0437\u0440\u0430\u0438\u043B\u044C", "il", "\u{1F1EE}\u{1F1F1}"],
+      "AR": ["\u0430\u0440\u0430\u0431", "arabic", "\u{1F1E6}\u{1F1EA}"],
+      "CN": ["\u043A\u0438\u0442\u0430\u0439", "china", "\u{1F1E8}\u{1F1F3}"]
+    };
+  }
+});
+
 // src/services/providers/name-tokenizer.service.ts
 var NameTokenizerService;
 var init_name_tokenizer_service = __esm({
   "src/services/providers/name-tokenizer.service.ts"() {
     "use strict";
+    init_geo_registry();
     NameTokenizerService = class {
       /**
        * Extracts metrics from a chaotic provider service name and returns a cleaned version.
@@ -110568,18 +110687,7 @@ var init_name_tokenizer_service = __esm({
         } else if (lowerName.includes("\u0441 \u0433\u0430\u0440\u0430\u043D\u0442\u0438\u0435\u0439") || lowerName.includes("\u0433\u0430\u0440\u0430\u043D\u0442\u0438\u044F") || lowerName.includes("\u0433\u0430\u0440\u0430\u043D\u0442\u0438\u0435\u0439") || lowerName.includes("\u0430\u0432\u0442\u043E\u0434\u043E\u043A\u0440\u0443\u0442\u043A\u0430") || lowerName.includes("\u0434\u043E\u043A\u0440\u0443\u0442\u043A") || lowerName.includes("refill") || lowerName.includes("re-fill") || lowerName.includes("auto-refill") || lowerName.includes("warranty") || lowerName.includes("\u267B\uFE0F") || lowerName.match(/(\d+)\s*(?:дней|дня|день|day|d|days)\s*(?:refill|гарант|warranty)?/i)) {
           hasRefill = true;
         }
-        const geoMap = {
-          "RU": ["\u0440\u043E\u0441\u0441\u0438\u044F", "\u0440\u0444", "ru", "\u{1F1F7}\u{1F1FA}", "\u0440\u0443\u0441\u0441\u043A\u0438\u0435"],
-          "USA": ["\u0441\u0448\u0430", "usa", "\u{1F1FA}\u{1F1F8}", "english"],
-          "KZ": ["\u043A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D", "\u043A\u0437", "kz", "\u{1F1F0}\u{1F1FF}"],
-          "UZ": ["\u0443\u0437\u0431\u0435\u043A\u0438\u0441\u0442\u0430\u043D", "uz", "\u{1F1FA}\u{1F1FF}"],
-          "UA": ["\u0443\u043A\u0440\u0430\u0438\u043D\u0430", "ua", "\u{1F1FA}\u{1F1E6}"],
-          "TR": ["\u0442\u0443\u0440\u0446\u0438\u044F", "tr", "\u{1F1F9}\u{1F1F7}", "turkey"],
-          "IN": ["\u0438\u043D\u0434\u0438\u044F", "in", "\u{1F1EE}\u{1F1F3}", "india"],
-          "BR": ["\u0431\u0440\u0430\u0437\u0438\u043B\u0438\u044F", "br", "\u{1F1E7}\u{1F1F7}"],
-          "AR": ["\u0430\u0440\u0430\u0431", "arabic", "\u{1F1E6}\u{1F1EA}"]
-        };
-        for (const [code, keywords] of Object.entries(geoMap)) {
+        for (const [code, keywords] of Object.entries(GEO_MAP)) {
           if (keywords.some((k) => lowerName.includes(k) || lowerCat.includes(k))) {
             geo = code;
             break;
@@ -110736,11 +110844,12 @@ var init_translation_dictionary = __esm({
 });
 
 // src/services/providers/smart-analyzer.logic.ts
-var DEFAULT_CATEGORY_METRICS, PLATFORM_LABELS, CATEGORY_LABELS, PLATFORM_KEYWORDS, CATEGORY_MAP, GEO_MAP, SmartAnalyzerLogic;
+var DEFAULT_CATEGORY_METRICS, PLATFORM_LABELS, CATEGORY_LABELS, PLATFORM_KEYWORDS, CATEGORY_MAP, SmartAnalyzerLogic;
 var init_smart_analyzer_logic = __esm({
   "src/services/providers/smart-analyzer.logic.ts"() {
     "use strict";
     init_description_sanitizer();
+    init_geo_registry();
     init_name_tokenizer_service();
     init_translation_dictionary();
     DEFAULT_CATEGORY_METRICS = {
@@ -110900,19 +111009,6 @@ var init_smart_analyzer_logic = __esm({
       STREAMS: ["viewer", "stream", "\u0437\u0440\u0438\u0442\u0435\u043B", "\u0441\u0442\u0440\u0438\u043C", "online", "\u043E\u043D\u043B\u0430\u0439\u043D"],
       COMPLAINTS: ["\u0436\u0430\u043B\u043E\u0431\u0430", "report", "complaint", "claim", "\u043D\u0430\u0441\u0438\u043B\u0438\u0435", "\u0441\u043F\u0430\u043C", "\u043F\u043E\u0440\u043D\u043E\u0433\u0440\u0430\u0444\u0438\u044F", "\u0430\u0432\u0442\u043E\u0440\u0441\u043A\u043E\u0435 \u043F\u0440\u0430\u0432\u043E", "\u0444\u0435\u0439\u043A"],
       OTHER: []
-    };
-    GEO_MAP = {
-      "RU": ["\u0440\u043E\u0441\u0441\u0438\u044F", "\u0440\u0444", "ru", "\u{1F1F7}\u{1F1FA}", "\u0440\u0443\u0441\u0441\u043A\u0438\u0435"],
-      "USA": ["\u0441\u0448\u0430", "usa", "\u{1F1FA}\u{1F1F8}", "english", "worldwide"],
-      "KZ": ["\u043A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D", "\u043A\u0437", "kz", "\u{1F1F0}\u{1F1FF}"],
-      "UZ": ["\u0443\u0437\u0431\u0435\u043A\u0438\u0441\u0442\u0430\u043D", "uz", "\u{1F1FA}\u{1F1FF}"],
-      "UA": ["\u0443\u043A\u0440\u0430\u0438\u043D\u0430", "ua", "\u{1F1FA}\u{1F1E6}"],
-      "TR": ["\u0442\u0443\u0440\u0446\u0438\u044F", "tr", "\u{1F1F9}\u{1F1F7}", "turkey"],
-      "IN": ["\u0438\u043D\u0434\u0438\u044F", "in", "\u{1F1EE}\u{1F1F3}", "india"],
-      "BR": ["\u0431\u0440\u0430\u0437\u0438\u043B\u0438\u044F", "br", "\u{1F1E7}\u{1F1F7}"],
-      "IL": ["\u0438\u0437\u0440\u0430\u0438\u043B\u044C", "il", "\u{1F1EE}\u{1F1F1}"],
-      "AR": ["\u0430\u0440\u0430\u0431", "arabic", "\u{1F1E6}\u{1F1EA}"],
-      "CN": ["\u043A\u0438\u0442\u0430\u0439", "china", "\u{1F1E8}\u{1F1F3}"]
     };
     SmartAnalyzerLogic = class {
       static detectSync(name, description = "", categoryInput = "", dynamicPlatforms, basePriceUsd = 0) {
@@ -111416,14 +111512,16 @@ var init_link_rules = __esm({
       {
         platform: "TWITTER" /* TWITTER */,
         type: "post",
-        pattern: /(?:twitter\.com|x\.com)\/([\w]+)\/status\/(\d+)/,
+        // BUG-FIX (SIL-2026): anchor host with (?:^|[./]) to prevent substring match inside yandex.com etc.
+        pattern: /(?:(?:^|[./])twitter\.com|(?:^|[./])x\.com)\/([\w]+)\/status\/(\d+)/,
         suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.REPOSTS, CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.BOOKMARKS],
         context: "social_reach"
       },
       {
         platform: "TWITTER" /* TWITTER */,
         type: "profile",
-        pattern: /(?:twitter\.com|x\.com)\/([\w]+)/,
+        // BUG-FIX (SIL-2026): anchor host with (?:^|[./]) to prevent substring match inside yandex.com etc.
+        pattern: /(?:(?:^|[./])twitter\.com|(?:^|[./])x\.com)\/([\w]+)/,
         suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS, CATEGORY_LABELS.AUTO_VIEWS],
         context: "social_presence"
       },
@@ -111888,21 +111986,11 @@ function stripQueryParams(url) {
   try {
     const parsed = new URL(trimmed);
     const searchParams = parsed.searchParams;
-    const blackListPrefixes = [
-      "igsh",
-      "igshid",
-      "utm_",
-      "fbclid",
-      "gclid",
-      "yclid",
-      "ttref",
-      "feature",
-      "si",
-      "ref"
-    ];
+    const exactBlocklist = /* @__PURE__ */ new Set(["igsh", "igshid", "fbclid", "gclid", "yclid", "ttref", "feature", "si", "ref"]);
+    const prefixBlocklist = ["utm_"];
     const keysToDelete = [];
     searchParams.forEach((_, key) => {
-      if (blackListPrefixes.some((p) => key.startsWith(p))) {
+      if (exactBlocklist.has(key) || prefixBlocklist.some((p) => key.startsWith(p))) {
         keysToDelete.push(key);
       }
     });
@@ -112004,7 +112092,8 @@ function isUrlSafeForFetch(urlString) {
   if (!urlString || typeof urlString !== "string") return false;
   let parsedUrl;
   try {
-    parsedUrl = new import_url3.URL(urlString.startsWith("http") ? urlString : `https://${urlString}`);
+    const hasExplicitScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlString);
+    parsedUrl = new import_url3.URL(hasExplicitScheme ? urlString : `https://${urlString}`);
   } catch {
     return false;
   }
@@ -112096,6 +112185,8 @@ var init_ssrf_guard3 = __esm({
       "bit.ly",
       "youtu.be",
       "vm.tiktok.com",
+      // NOTE: vt.tiktok.com is NOT here — it's handled directly by LINK_RULES pattern
+      // without needing HTTP resolution (adding it here would cause real HTTP fetches in tests)
       "t.co",
       "cutt.ly",
       "clck.ru",
@@ -112262,187 +112353,6 @@ var init_link_analyzer = __esm({
         };
       }
     };
-  }
-});
-
-// src/utils/target-type-mapper.ts
-var target_type_mapper_exports = {};
-__export2(target_type_mapper_exports, {
-  TargetTypeEnum: () => TargetTypeEnum,
-  inferTargetTypeFromName: () => inferTargetTypeFromName,
-  isTargetTypeCompatible: () => isTargetTypeCompatible,
-  normalizeTargetType: () => normalizeTargetType,
-  resolveServiceTargetType: () => resolveServiceTargetType
-});
-function normalizeTargetType(rawType) {
-  if (!rawType) return "CUSTOM" /* CUSTOM */;
-  const clean = rawType.trim().toUpperCase();
-  switch (clean) {
-    case "CHANNEL":
-    case "GROUP":
-    case "CHAT":
-      return "CHANNEL" /* CHANNEL */;
-    case "POST":
-    case "PRIVATE_POST":
-    case "PHOTO":
-    case "WALL":
-    case "TWEET":
-    case "STATUS":
-      return "POST" /* POST */;
-    case "PROFILE":
-    case "USER":
-    case "ACCOUNT":
-      return "PROFILE" /* PROFILE */;
-    case "VIDEO":
-    case "SHORT_VIDEO":
-    case "SHORT_LINK":
-    case "CLIP":
-    case "REEL":
-    case "SHORTS":
-    case "VK_VIDEO":
-    case "VK_CLIP":
-    case "VK_PLAY":
-      return "VIDEO" /* VIDEO */;
-    case "STORY":
-    case "STORIES":
-      return "STORY" /* STORY */;
-    case "POLL":
-    case "VOTE":
-      return "POLL" /* POLL */;
-    case "COMMENT":
-    case "COMMENTS":
-      return "COMMENTS" /* COMMENTS */;
-    case "BOT":
-      return "BOT" /* BOT */;
-    case "CHANNEL_POSTS":
-    case "AUTO_POSTS":
-    case "AUTO":
-      return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
-    default:
-      return "CUSTOM" /* CUSTOM */;
-  }
-}
-function inferTargetTypeFromName(name) {
-  if (!name) return "POST" /* POST */;
-  const n = name.toLowerCase().replace(/vexboost/gi, "").replace(/smmboost/gi, "");
-  const nNoPunct = n.replace(/[^a-zа-яё0-9]/gi, "");
-  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
-  n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u043E\u0441\u0442") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u0443\u0431\u043B\u0438\u043A") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D") && (n.includes("\u043F\u043E\u0441\u0442") || n.includes("\u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u0443\u0431\u043B\u0438\u043A")) || n.includes("last post") || n.includes("last 5 post") || n.includes("last 10 post") || n.includes("last 20 post") || n.includes("last 50 post") || // "Пакет охвата" — views package on last N posts of a channel
-  n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440")) {
-    return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
-  }
-  if (n.includes("\u043E\u043F\u0440\u043E\u0441") || n.includes("\u0433\u043E\u043B\u043E\u0441") || n.includes("poll") || n.includes("vote")) {
-    return "POLL" /* POLL */;
-  }
-  if (n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") || n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0444\u043E\u043B\u043B\u043E\u0432\u0435\u0440") || n.includes("subscriber") || n.includes("member") || n.includes("follower") || n.includes("\u043A\u0430\u043D\u0430\u043B") || n.includes("channel") || n.includes("\u0433\u0440\u0443\u043F\u043F") || n.includes("group") || n.includes("\u0431\u0443\u0441\u0442") || n.includes("boost") || n.includes("\u0438\u043D\u0432\u0430\u0439\u0442") || n.includes("invite")) {
-    return "CHANNEL" /* CHANNEL */;
-  }
-  if (n.includes("\u0441\u0442\u043E\u0440\u0438") || n.includes("story") || n.includes("stories") || n.includes("\u0438\u0441\u0442\u043E\u0440\u0438")) {
-    return "STORY" /* STORY */;
-  }
-  if (n.includes("\u0432\u0438\u0434\u0435\u043E") || n.includes("video") || n.includes("shorts") || n.includes("reels") || n.includes("clip") || n.includes("\u043A\u043B\u0438\u043F") || n.includes("\u0441\u0442\u0440\u0438\u043C") || n.includes("stream") || n.includes("\u0437\u0440\u0438\u0442\u0435\u043B")) {
-    return "VIDEO" /* VIDEO */;
-  }
-  if (n.includes("\u043F\u0440\u043E\u0444\u0438\u043B\u044C") || n.includes("profile") || n.includes("\u0430\u043A\u043A\u0430\u0443\u043D\u0442") || n.includes("\u0434\u0440\u0443\u0433") || n.includes("friend")) {
-    return "PROFILE" /* PROFILE */;
-  }
-  if (n.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442") || n.includes("comment") || n.includes("\u043E\u0442\u0437\u044B\u0432") || n.includes("review")) {
-    return "COMMENTS" /* COMMENTS */;
-  }
-  if (n.includes("\u0431\u043E\u0442") || n.includes("bot") || n.includes("\u0440\u0435\u0444\u0435\u0440\u0430\u043B") || n.includes("referral")) {
-    return "BOT" /* BOT */;
-  }
-  return "POST" /* POST */;
-}
-function resolveServiceTargetType(service) {
-  if (!service) return "POST" /* POST */;
-  const effectiveName = service.name || service.category?.name || "";
-  const inferred = inferTargetTypeFromName(effectiveName);
-  if ((!service.targetType || service.targetType === "POST" || service.targetType === "CUSTOM") && (inferred === "CHANNEL" /* CHANNEL */ || inferred === "CHANNEL_POSTS" /* CHANNEL_POSTS */ || inferred === "POLL" /* POLL */ || inferred === "VIDEO" /* VIDEO */ || inferred === "STORY" /* STORY */ || inferred === "BOT" /* BOT */)) {
-    return inferred;
-  }
-  return service.targetType || inferred;
-}
-function isTargetTypeCompatible(detectedLinkType, serviceTargetType) {
-  if (!detectedLinkType || !serviceTargetType) return true;
-  const detected = normalizeTargetType(detectedLinkType);
-  const service = normalizeTargetType(serviceTargetType);
-  if (detected === "CUSTOM" /* CUSTOM */ || service === "CUSTOM" /* CUSTOM */) return true;
-  if (detected === service) return true;
-  switch (detected) {
-    case "CHANNEL" /* CHANNEL */:
-      return service === "CHANNEL" /* CHANNEL */ || service === "CHANNEL_POSTS" /* CHANNEL_POSTS */ || service === "PROFILE" /* PROFILE */;
-    case "POST" /* POST */:
-      return service === "POST" /* POST */ || service === "VIDEO" /* VIDEO */ || service === "COMMENTS" /* COMMENTS */;
-    case "PROFILE" /* PROFILE */:
-      return service === "PROFILE" /* PROFILE */ || service === "CHANNEL" /* CHANNEL */;
-    case "VIDEO" /* VIDEO */:
-      return service === "VIDEO" /* VIDEO */ || service === "POST" /* POST */;
-    case "STORY" /* STORY */:
-      return service === "STORY" /* STORY */;
-    case "POLL" /* POLL */:
-      return service === "POLL" /* POLL */ || service === "POST" /* POST */;
-    case "BOT" /* BOT */:
-      return service === "BOT" /* BOT */ || service === "CHANNEL" /* CHANNEL */;
-    case "CHANNEL_POSTS" /* CHANNEL_POSTS */:
-      return service === "CHANNEL_POSTS" /* CHANNEL_POSTS */ || service === "CHANNEL" /* CHANNEL */;
-    default:
-      return true;
-  }
-}
-var TargetTypeEnum;
-var init_target_type_mapper = __esm({
-  "src/utils/target-type-mapper.ts"() {
-    "use strict";
-    TargetTypeEnum = /* @__PURE__ */ ((TargetTypeEnum2) => {
-      TargetTypeEnum2["CHANNEL"] = "CHANNEL";
-      TargetTypeEnum2["POST"] = "POST";
-      TargetTypeEnum2["PROFILE"] = "PROFILE";
-      TargetTypeEnum2["STORY"] = "STORY";
-      TargetTypeEnum2["VIDEO"] = "VIDEO";
-      TargetTypeEnum2["CHANNEL_POSTS"] = "CHANNEL_POSTS";
-      TargetTypeEnum2["POLL"] = "POLL";
-      TargetTypeEnum2["COMMENTS"] = "COMMENTS";
-      TargetTypeEnum2["BOT"] = "BOT";
-      TargetTypeEnum2["CUSTOM"] = "CUSTOM";
-      return TargetTypeEnum2;
-    })(TargetTypeEnum || {});
-  }
-});
-
-// src/utils/target-type.ts
-var target_type_exports = {};
-__export2(target_type_exports, {
-  TargetTypeEnum: () => TargetTypeEnum,
-  inferTargetTypeFromCategory: () => inferTargetTypeFromCategory,
-  inferTargetTypeFromName: () => inferTargetTypeFromName,
-  isCompatible: () => isCompatible,
-  isHybridViewCategory: () => isHybridViewCategory,
-  isTargetTypeCompatible: () => isTargetTypeCompatible,
-  normalizeTargetType: () => normalizeTargetType,
-  resolveServiceTargetType: () => resolveServiceTargetType
-});
-function isCompatible(serviceType, linkType) {
-  return isTargetTypeCompatible(linkType, serviceType);
-}
-function isHybridViewCategory(categoryName) {
-  if (!categoryName) return false;
-  const n = categoryName.toLowerCase();
-  if (n.includes("\u0441\u0442\u043E\u0440\u0438") || n.includes("story") || n.includes("\u043A\u043B\u0438\u043F") || n.includes("clip") || n.includes("shorts") || n.includes("reel")) {
-    return false;
-  }
-  return n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("view") || n.includes("watch");
-}
-function inferTargetTypeFromCategory(categoryName) {
-  if (isHybridViewCategory(categoryName)) {
-    return "CUSTOM" /* CUSTOM */;
-  }
-  return inferTargetTypeFromName(categoryName);
-}
-var init_target_type = __esm({
-  "src/utils/target-type.ts"() {
-    "use strict";
-    init_target_type_mapper();
   }
 });
 
@@ -126452,7 +126362,7 @@ var init_order_service = __esm({
               throw new Error("SERVICE_INACTIVE");
             }
             if (!input.isLinkOverridden) {
-              const { isLinkServiceCompatible: isLinkServiceCompatible2, getCompatibilityError: getCompatibilityError2, normalizeServiceTargetType: normalizeServiceTargetType2 } = await Promise.resolve().then(() => (init_link_service_compatibility(), link_service_compatibility_exports));
+              const { isLinkServiceCompatible: isLinkServiceCompatible3, getCompatibilityError: getCompatibilityError3, normalizeServiceTargetType: normalizeServiceTargetType2 } = await Promise.resolve().then(() => (init_link_service_compatibility(), link_service_compatibility_exports));
               let detectedLinkType = "generic_link";
               try {
                 const { IntelligenceLinkAnalyzer: IntelligenceLinkAnalyzer2 } = await Promise.resolve().then(() => (init_link_analyzer(), link_analyzer_exports));
@@ -126465,8 +126375,8 @@ var init_order_service = __esm({
               }
               const resolvedTargetType = service.targetType || (service.category?.name ? (await Promise.resolve().then(() => (init_target_type(), target_type_exports))).inferTargetTypeFromCategory(service.category.name) : "POST");
               const serviceTargetType = normalizeServiceTargetType2(resolvedTargetType);
-              if (!isLinkServiceCompatible2(detectedLinkType, serviceTargetType)) {
-                const errorMsg = getCompatibilityError2(detectedLinkType, serviceTargetType, service.name);
+              if (!isLinkServiceCompatible3(detectedLinkType, serviceTargetType)) {
+                const errorMsg = getCompatibilityError3(detectedLinkType, serviceTargetType, service.name);
                 throw new Error(`LINK_SERVICE_MISMATCH: ${errorMsg}`);
               }
             }
@@ -140429,23 +140339,25 @@ function canonicalizeUrl(rawUrl, platform, targetType) {
       url = `https://www.youtube.com/watch?v=${id}`;
     }
   }
-  if (url.includes("/shorts/")) {
-    const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]+)/);
-    if (shortsMatch) {
-      const userMatch = url.match(/youtube\.com\/(@[\w.-]+)\/shorts/i);
-      if (userMatch && (normTarget === "CHANNEL" || normTarget === "PROFILE")) {
-        return `https://www.youtube.com/${userMatch[1]}`;
+  if (url.includes("youtube.com") || url.includes("youtu.be") || platStr === "YOUTUBE" || platStr === "YT") {
+    if (url.includes("/shorts/")) {
+      const shortsMatch = url.match(/\/shorts\/([a-zA-Z0-9_-]+)/);
+      if (shortsMatch) {
+        const userMatch = url.match(/youtube\.com\/(@[\w.-]+)\/shorts/i);
+        if (userMatch && (normTarget === "CHANNEL" || normTarget === "PROFILE")) {
+          return `https://www.youtube.com/${userMatch[1]}`;
+        }
+        url = `https://www.youtube.com/watch?v=${shortsMatch[1]}`;
       }
-      url = `https://www.youtube.com/watch?v=${shortsMatch[1]}`;
     }
-  }
-  if (url.includes("/live/")) {
-    const id = url.split("/live/")[1]?.split("?")[0]?.split("/")[0];
-    if (id) url = `https://www.youtube.com/watch?v=${id}`;
-  }
-  if (url.includes("/embed/")) {
-    const id = url.split("/embed/")[1]?.split("?")[0]?.split("/")[0];
-    if (id) url = `https://www.youtube.com/watch?v=${id}`;
+    if (url.includes("/live/")) {
+      const id = url.split("/live/")[1]?.split("?")[0]?.split("/")[0];
+      if (id) url = `https://www.youtube.com/watch?v=${id}`;
+    }
+    if (url.includes("/embed/")) {
+      const id = url.split("/embed/")[1]?.split("?")[0]?.split("/")[0];
+      if (id) url = `https://www.youtube.com/watch?v=${id}`;
+    }
   }
   if (url.includes("rutube.ru/shorts/")) {
     const id = url.split("/shorts/")[1]?.split("?")[0]?.split("/")[0];
@@ -140454,8 +140366,11 @@ function canonicalizeUrl(rawUrl, platform, targetType) {
   try {
     const urlObj = new URL(url);
     const host = urlObj.hostname.toLowerCase();
-    if (host === "m.vk.com" || host === "vk.ru" || host === "vkontakte.ru") {
+    if (host === "m.vk.com" || host === "vk.ru" || host === "vkontakte.ru" || host === "vkvideo.ru") {
       urlObj.hostname = "vk.com";
+    } else if (host === "discord.com" && urlObj.pathname.startsWith("/invite/")) {
+      const code = urlObj.pathname.replace(/^\/invite\//, "").replace(/\/$/, "");
+      return `https://discord.gg/${code}`;
     } else if (host === "instagr.am" || host === "m.instagram.com") {
       urlObj.hostname = "www.instagram.com";
     } else if (host === "m.tiktok.com") {
@@ -140494,6 +140409,7 @@ function canonicalizeUrl(rawUrl, platform, targetType) {
       }
       urlObj.pathname = urlObj.pathname.replace(/^\/s\/([a-zA-Z0-9_]+)/i, "/$1");
       urlObj.pathname = urlObj.pathname.replace(/^\/@/, "/");
+      urlObj.pathname = urlObj.pathname.replace(/\/topic\/(\d+)\/(\d+)/i, "/$1/$2");
       if (normTarget === "CHANNEL" || normTarget === "CHANNEL_POSTS" || normTarget === "PROFILE") {
         const postMatch = urlObj.pathname.match(/^\/([\w-]+)\/\d+\/?$/i);
         if (postMatch && postMatch[1] !== "c" && postMatch[1] !== "s") {
@@ -140520,9 +140436,9 @@ function canonicalizeUrl(rawUrl, platform, targetType) {
     stripTrackingParams(urlObj, intellPlatform, targetType);
     let result = urlObj.toString();
     if (urlObj.hostname.includes("instagram.com")) {
-      result = result.replace(/\/share\/p\/([a-zA-Z0-9_-]+)/i, "/p/$1/");
-      result = result.replace(/\/share\/reel\/([a-zA-Z0-9_-]+)/i, "/reel/$1/");
-      result = result.replace(/\/reels\//i, "/reel/");
+      result = result.replace(/\/share\/p\/([a-zA-Z0-9_-]+)\/?/i, "/p/$1/");
+      result = result.replace(/\/share\/reel\/([a-zA-Z0-9_-]+)\/?/i, "/reel/$1/");
+      result = result.replace(/\/reels\/([a-zA-Z0-9_-]+)\/?/i, "/reel/$1/");
     }
     if ((normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "STORY") && urlObj.search === "") {
       result = result.replace(/\/+$/, "");
@@ -140690,6 +140606,18 @@ function getUnifiedLinkValidator(platform, targetType) {
       return external_exports.string().regex(UNIFIED_REGEX.SPOTIFY.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u043B\u0435\u0439\u043B\u0438\u0441\u0442, \u0430\u043B\u044C\u0431\u043E\u043C \u0438\u043B\u0438 \u0430\u0440\u0442\u0438\u0441\u0442\u0430 Spotify.");
     case "MAX":
       return external_exports.string().regex(UNIFIED_REGEX.MAX.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u043A\u0430\u043D\u0430\u043B \u043C\u0435\u0441\u0441\u0435\u043D\u0434\u0436\u0435\u0440\u0430 \u041C\u0410\u041A\u0421.");
+    case "DZEN":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.DZEN.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E \u0432 \u0414\u0437\u0435\u043D\u0435.");
+      }
+      return external_exports.string().regex(UNIFIED_REGEX.DZEN.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0432 \u0414\u0437\u0435\u043D\u0435.");
+    case "LIKEE":
+      if (normTarget === "POST") {
+        return external_exports.string().regex(UNIFIED_REGEX.LIKEE.POST, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E Likee.");
+      }
+      return external_exports.string().regex(UNIFIED_REGEX.LIKEE.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Likee.");
+    case "DISCORD":
+      return external_exports.string().regex(UNIFIED_REGEX.DISCORD.CHANNEL, "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443-\u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u043D\u0430 Discord \u0441\u0435\u0440\u0432\u0435\u0440 (discord.gg/...).");
   }
   return external_exports.string().url("\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 (URL), \u043D\u0430\u0447\u0438\u043D\u0430\u044E\u0449\u0443\u044E\u0441\u044F \u0441 https://");
 }
@@ -140702,6 +140630,287 @@ function getUnifiedCustomValidator(customDataType) {
     return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C").max(1e4, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 (\u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10000 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)").refine((val) => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(val), "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0443\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0449\u0438\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B");
   }
   return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C");
+}
+function getUnifiedLinkSpecification(platform, targetType, activityType = "OTHER") {
+  const net7 = (platform || "").toLowerCase();
+  const target = (targetType || "").toUpperCase();
+  const act = (activityType || "").toUpperCase();
+  if (net7.includes("telegram") || net7 === "tg") {
+    if (target === "CHANNEL" || act.includes("SUBSCRIBER") || act.includes("MEMBER") || act.includes("BOOST") || act.includes("GROUP")) {
+      return {
+        targetType: "CHANNEL",
+        placeholder: "https://t.me/channel_name \u0438\u043B\u0438 https://t.me/+joinchat_hash",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u044B\u0439 \u0438\u043B\u0438 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 Telegram \u043A\u0430\u043D\u0430\u043B/\u0447\u0430\u0442",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/)?@?[\\w-]+",
+        clientRequirement: "\u041A\u0430\u043D\u0430\u043B/\u0433\u0440\u0443\u043F\u043F\u0430 \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B (\u0435\u0441\u043B\u0438 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 \u2014 \u0441\u0441\u044B\u043B\u043A\u0430 \u0441 + \u0438\u043B\u0438 joinchat)",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    if (target === "STORY" || act.includes("STOR")) {
+      return {
+        targetType: "STORY",
+        placeholder: "https://t.me/channel_name/s/12",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044E Telegram \u043A\u0430\u043D\u0430\u043B\u0430 (\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 24\u201348 \u0447\u0430\u0441\u043E\u0432)",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/[\\w-]+\\/s\\/\\d+",
+        clientRequirement: "\u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u0430 \u043D\u0430 \u043C\u043E\u043C\u0435\u043D\u0442 \u0437\u0430\u043F\u0443\u0441\u043A\u0430 \u0437\u0430\u043A\u0430\u0437\u0430",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    if (target === "POLL" || act.includes("POLL") || act.includes("VOTE")) {
+      return {
+        targetType: "POLL",
+        placeholder: "https://t.me/channel_name/1234",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0441 \u043E\u043F\u0440\u043E\u0441\u043E\u043C \u0432 Telegram (\u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u043D\u043E\u043C\u0435\u0440 \u0432\u0430\u0440\u0438\u0430\u043D\u0442\u0430)",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+",
+        clientRequirement: "\u041E\u043F\u0440\u043E\u0441 \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043B\u044F \u0433\u043E\u043B\u043E\u0441\u043E\u0432\u0430\u043D\u0438\u044F",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NUMBER",
+        customDataLabel: "\u041D\u043E\u043C\u0435\u0440 \u0432\u0430\u0440\u0438\u0430\u043D\u0442\u0430 \u043E\u0442\u0432\u0435\u0442\u0430 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: 1, 2 \u0438\u043B\u0438 3)"
+      };
+    }
+    if (target === "COMMENT" || target === "COMMENTS" || act.includes("COMMENT")) {
+      return {
+        targetType: "COMMENTS",
+        placeholder: "https://t.me/channel_name/1234",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0432 Telegram \u0434\u043B\u044F \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u0438 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0435\u0432",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+",
+        clientRequirement: "\u0412 \u043A\u0430\u043D\u0430\u043B\u0435 \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C \u0432\u043A\u043B\u044E\u0447\u0435\u043D\u044B \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0438/\u043E\u0431\u0441\u0443\u0436\u0434\u0435\u043D\u0438\u044F",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "TEXTAREA",
+        customDataLabel: "\u0422\u0435\u043A\u0441\u0442 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0435\u0432 (\u043A\u0430\u0436\u0434\u044B\u0439 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0439 \u0441 \u043D\u043E\u0432\u043E\u0439 \u0441\u0442\u0440\u043E\u043A\u0438)"
+      };
+    }
+    if (target === "BOT" || act.includes("BOT") || act.includes("REFERRAL")) {
+      return {
+        targetType: "BOT",
+        placeholder: "https://t.me/my_bot \u0438\u043B\u0438 https://t.me/my_bot?start=ref123",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 Telegram-\u0431\u043E\u0442\u0430 (\u0441 \u0440\u0435\u0444\u0435\u0440\u0430\u043B\u044C\u043D\u044B\u043C \u043A\u043E\u0434\u043E\u043C \u043F\u0440\u0438 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E\u0441\u0442\u0438)",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/[\\w-]+_bot",
+        clientRequirement: "\u0411\u043E\u0442 \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u0435\u043D \u0438 \u043F\u0440\u0438\u043D\u0438\u043C\u0430\u0442\u044C \u043A\u043E\u043C\u0430\u043D\u0434\u0443 /start",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "POST",
+      placeholder: "https://t.me/channel_name/1234",
+      hint: "\u041F\u0440\u044F\u043C\u0430\u044F \u0441\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u043E\u0441\u0442 \u0438\u043B\u0438 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0432 Telegram",
+      regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+",
+      clientRequirement: "\u041F\u043E\u0441\u0442 \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u043F\u0443\u0431\u043B\u0438\u043A\u043E\u0432\u0430\u043D \u0432 \u043E\u0442\u043A\u0440\u044B\u0442\u043E\u043C \u043A\u0430\u043D\u0430\u043B\u0435/\u0433\u0440\u0443\u043F\u043F\u0435",
+      requiresBotAdmin: false,
+      isMediaGroupAware: true,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("vk") || net7 === "vkontakte") {
+    if (target === "PROFILE" || target === "CHANNEL" || act.includes("SUBSCRIBER") || act.includes("FRIEND") || act.includes("GROUP")) {
+      return {
+        targetType: target === "PROFILE" ? "PROFILE" : "CHANNEL",
+        placeholder: "https://vk.com/username \u0438\u043B\u0438 https://vk.com/public12345",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443, \u0433\u0440\u0443\u043F\u043F\u0443 \u0438\u043B\u0438 \u043F\u0430\u0431\u043B\u0438\u043A \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435",
+        regex: "^https?:\\/\\/(?:m\\.)?vk\\.(?:com|ru)\\/(?:public\\d+|club\\d+|id\\d+|[a-zA-Z0-9_.]+)",
+        clientRequirement: "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u0441\u043E\u043E\u0431\u0449\u0435\u0441\u0442\u0432\u043E \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044B \u0434\u043B\u044F \u0432\u0441\u0435\u0445",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: target === "VIDEO" ? "VIDEO" : "POST",
+      placeholder: "https://vk.com/wall-12345_67890 \u0438\u043B\u0438 https://vk.com/video-12345_67890",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u0443\u044E \u0437\u0430\u043F\u0438\u0441\u044C, \u0432\u0438\u0434\u0435\u043E \u0438\u043B\u0438 \u043A\u043B\u0438\u043F \u0412\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u0435",
+      regex: "^https?:\\/\\/(?:m\\.)?(?:vk\\.(?:com|ru)|vkvideo\\.ru)\\/(?:wall|video|clip|photo)-?\\d+_\\d+",
+      clientRequirement: "\u0417\u0430\u043F\u0438\u0441\u044C \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u043E\u0439",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("youtube") || net7 === "yt") {
+    if (target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "CHANNEL",
+        placeholder: "https://youtube.com/@channel_name",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 YouTube-\u043A\u0430\u043D\u0430\u043B (\u0444\u043E\u0440\u043C\u0430\u0442 @handle \u0438\u043B\u0438 channel/UC...)",
+        regex: "^https?:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/(@[a-zA-Z0-9_.-]+|channel\\/UC[a-zA-Z0-9_.-]+)",
+        clientRequirement: "\u041A\u0430\u043D\u0430\u043B \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442 \u0434\u043B\u044F \u043E\u0442\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A\u043E\u0432",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "VIDEO",
+      placeholder: "https://youtube.com/watch?v=dQw4w9WgXcQ \u0438\u043B\u0438 https://youtube.com/shorts/dQw4w9WgXcQ",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E, Shorts \u0438\u043B\u0438 \u0442\u0440\u0430\u043D\u0441\u043B\u044F\u0446\u0438\u044E YouTube",
+      regex: "^https?:\\/\\/(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:watch\\?.*v=|shorts\\/|live\\/|embed\\/)|youtu\\.be\\/)[a-zA-Z0-9_-]+",
+      clientRequirement: "\u0412\u0438\u0434\u0435\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u043F\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u043E\u0439 \u0441\u0441\u044B\u043B\u043A\u0435",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("instagram") || net7 === "inst" || net7 === "ig") {
+    if (target === "PROFILE" || target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "PROFILE",
+        placeholder: "https://instagram.com/username",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C Instagram",
+        regex: "^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/@?[a-zA-Z0-9_.]+",
+        clientRequirement: "\u041F\u0440\u043E\u0444\u0438\u043B\u044C Instagram \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C (\u043D\u0435 \u043F\u0440\u0438\u0432\u0430\u0442\u043D\u044B\u043C)",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    if (target === "STORY" || act.includes("STOR")) {
+      return {
+        targetType: "STORY",
+        placeholder: "https://instagram.com/stories/username/1234567890/",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044E Instagram",
+        regex: "^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/stories\\/[a-zA-Z0-9_.]+\\/\\d+",
+        clientRequirement: "\u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u0430 (24 \u0447\u0430\u0441\u0430 \u0441 \u043C\u043E\u043C\u0435\u043D\u0442\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u0438)",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "POST",
+      placeholder: "https://instagram.com/p/CODE/ \u0438\u043B\u0438 https://instagram.com/reel/CODE/",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 Reels \u0432 Instagram",
+      regex: "^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/(?:p|reel|reels|tv|share\\/[a-zA-Z0-9_-]+)\\/[a-zA-Z0-9_-]+",
+      clientRequirement: "\u041F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044F \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u0432 \u043E\u0442\u043A\u0440\u044B\u0442\u043E\u043C \u043F\u0440\u043E\u0444\u0438\u043B\u0435",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("tiktok") || net7 === "tt") {
+    if (target === "PROFILE" || target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "PROFILE",
+        placeholder: "https://tiktok.com/@username",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C TikTok",
+        regex: "^https?:\\/\\/(?:www\\.|m\\.)?tiktok\\.com\\/@?[a-zA-Z0-9_.]+",
+        clientRequirement: "\u0410\u043A\u043A\u0430\u0443\u043D\u0442 TikTok \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "VIDEO",
+      placeholder: "https://tiktok.com/@user/video/1234567890 \u0438\u043B\u0438 https://vm.tiktok.com/CODE",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E \u0432 TikTok",
+      regex: "^https?:\\/\\/(?:www\\.|m\\.)?tiktok\\.com\\/@[a-zA-Z0-9_.]+\\/(?:video|photo)\\/\\d+|^https?:\\/\\/(?:vm|vt)\\.tiktok\\.com\\/[a-zA-Z0-9_]+",
+      clientRequirement: "\u0412\u0438\u0434\u0435\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u043E\u0431\u0449\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B\u043C",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("rutube")) {
+    if (target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "CHANNEL",
+        placeholder: "https://rutube.ru/channel/123456/ \u0438\u043B\u0438 https://rutube.ru/u/channel_name/",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B Rutube",
+        regex: "^https?:\\/\\/(?:www\\.)?rutube\\.ru\\/(?:channel\\/\\d+|u\\/[a-zA-Z0-9_.-]+)",
+        clientRequirement: "\u041A\u0430\u043D\u0430\u043B Rutube \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "VIDEO",
+      placeholder: "https://rutube.ru/video/CODE32/ \u0438\u043B\u0438 https://rutube.ru/shorts/CODE32/",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E\u0437\u0430\u043F\u0438\u0441\u044C \u0438\u043B\u0438 Shorts \u0432 Rutube",
+      regex: "^https?:\\/\\/(?:www\\.)?rutube\\.ru\\/(?:video|shorts|play\\/embed)\\/[a-zA-Z0-9_-]+",
+      clientRequirement: "\u0412\u0438\u0434\u0435\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u043F\u043E \u043F\u0440\u044F\u043C\u043E\u0439 \u0441\u0441\u044B\u043B\u043A\u0435",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("dzen") || net7.includes("zen")) {
+    if (target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "CHANNEL",
+        placeholder: "https://dzen.ru/channel_name \u0438\u043B\u0438 https://dzen.ru/id/12345",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043A\u0430\u043D\u0430\u043B \u0432 \u0414\u0437\u0435\u043D\u0435",
+        regex: "^https?:\\/\\/(?:www\\.)?(?:dzen\\.ru|zen\\.yandex\\.ru)\\/(?:id\\/[a-zA-Z0-9_-]+|channel\\/[a-zA-Z0-9_-]+|@?[a-zA-Z0-9_.-]+)",
+        clientRequirement: "\u041A\u0430\u043D\u0430\u043B \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u043F\u0443\u0431\u043B\u0438\u043A\u043E\u0432\u0430\u043D",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "POST",
+      placeholder: "https://dzen.ru/a/CODE \u0438\u043B\u0438 https://dzen.ru/video/watch/CODE",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044E \u0438\u043B\u0438 \u0432\u0438\u0434\u0435\u043E \u0432 \u0414\u0437\u0435\u043D\u0435",
+      regex: "^https?:\\/\\/(?:www\\.)?(?:dzen\\.ru|zen\\.yandex\\.ru)\\/(?:a\\/|b\\/|shorts\\/|video\\/watch\\/|media\\/)[a-zA-Z0-9_-]+",
+      clientRequirement: "\u041F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044F \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u0430",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("likee")) {
+    if (target === "PROFILE" || target === "CHANNEL" || act.includes("SUBSCRIBER")) {
+      return {
+        targetType: "PROFILE",
+        placeholder: "https://likee.video/@username \u0438\u043B\u0438 https://l.likee.video/p/CODE",
+        hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u0432 Likee",
+        regex: "^https?:\\/\\/(?:l\\.likee\\.video\\/p\\/[\\w-]+|(?:likee\\.video|likee\\.com)\\/@[\\w.]+)",
+        clientRequirement: "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0431\u0449\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B\u043C",
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: "NONE"
+      };
+    }
+    return {
+      targetType: "VIDEO",
+      placeholder: "https://likee.video/@user/video/12345 \u0438\u043B\u0438 https://l.likee.video/v/CODE",
+      hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u0432\u0438\u0434\u0435\u043E \u0432 Likee",
+      regex: "^https?:\\/\\/(?:l\\.likee\\.video\\/v\\/[\\w-]+|(?:likee\\.video|likee\\.com)\\/@[\\w.]+\\/video\\/\\d+)",
+      clientRequirement: "\u0412\u0438\u0434\u0435\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u043E",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  if (net7.includes("discord")) {
+    return {
+      targetType: "CHANNEL",
+      placeholder: "https://discord.gg/invite_code",
+      hint: "\u0411\u0435\u0441\u0441\u0440\u043E\u0447\u043D\u0430\u044F \u0441\u0441\u044B\u043B\u043A\u0430-\u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u043D\u0430 Discord-\u0441\u0435\u0440\u0432\u0435\u0440",
+      regex: "^https?:\\/\\/(?:www\\.)?(?:discord\\.gg|discord\\.com\\/invite)\\/[a-zA-Z0-9_-]+",
+      clientRequirement: "\u0421\u0441\u044B\u043B\u043A\u0430-\u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u0430 \u0438 \u0431\u0435\u0437 \u043B\u0438\u043C\u0438\u0442\u0430 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0439",
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: "NONE"
+    };
+  }
+  return {
+    targetType: target || "POST",
+    placeholder: "https://...",
+    hint: "\u0412\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043F\u0440\u044F\u043C\u0443\u044E \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043E\u0431\u044A\u0435\u043A\u0442 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F",
+    regex: "^https?:\\/\\/.+",
+    clientRequirement: "\u041E\u0431\u044A\u0435\u043A\u0442 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0431\u0449\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B\u043C",
+    requiresBotAdmin: false,
+    isMediaGroupAware: false,
+    customDataType: "NONE"
+  };
 }
 var UNIFIED_REGEX;
 var init_link_rules_registry = __esm({
@@ -140792,6 +141001,17 @@ var init_link_rules_registry = __esm({
       },
       MAX: {
         CHANNEL: /^https?:\/\/(?:www\.)?max\.ru\/(?:c\/(?:-?\d+(?:\/[a-zA-Z0-9_-]+)?|[a-zA-Z0-9_.-]+)|[a-zA-Z0-9_.-]+)\/?$/i
+      },
+      DZEN: {
+        POST: /^https?:\/\/(?:www\.)?(?:dzen\.ru|zen\.yandex\.ru)\/(?:a\/|b\/|shorts\/|video\/watch\/|media\/(?:[\w.-]+\/)?)[a-zA-Z0-9_-]+/i,
+        CHANNEL: /^https?:\/\/(?:www\.)?(?:dzen\.ru|zen\.yandex\.ru)\/(?:id\/[a-zA-Z0-9_-]+|u\/[a-zA-Z0-9_.-]+|channel\/[a-zA-Z0-9_-]+|@?[a-zA-Z0-9_.-]+)\/?/i
+      },
+      LIKEE: {
+        POST: /^https?:\/\/(?:l\.likee\.video\/v\/[\w-]+|(?:likee\.video|likee\.com)\/@[\w.]+\/video\/\d+)/i,
+        CHANNEL: /^https?:\/\/(?:l\.likee\.video\/p\/[\w-]+|(?:likee\.video|likee\.com)\/@[\w.]+)\/?/i
+      },
+      DISCORD: {
+        CHANNEL: /^https?:\/\/(?:www\.)?(?:discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9_-]+/i
       }
     };
   }
@@ -141080,8 +141300,8 @@ var init_unified_link_engine = __esm({
             };
           }
         }
-        if (!isLinkServiceCompatible(analysis.type, serviceTargetType)) {
-          const compatError = getCompatibilityError(analysis.type, serviceTargetType, service.name || "");
+        if (!isLinkServiceCompatible2(analysis.type, serviceTargetType)) {
+          const compatError = getCompatibilityError2(analysis.type, serviceTargetType, service.name || "");
           return {
             isValid: false,
             canonicalUrl: canonicalLink,
@@ -144171,7 +144391,7 @@ async function handleLinkInput(ctx, rawInput) {
     const canonicalLink = analysis.canonicalUrl || rawInput.trim();
     if (!ctx.session) ctx.session = {};
     ctx.session.activeLink = canonicalLink;
-    const { isLinkServiceCompatible: isLinkServiceCompatible2, normalizeServiceTargetType: normalizeServiceTargetType2 } = await Promise.resolve().then(() => (init_link_service_compatibility(), link_service_compatibility_exports));
+    const { isLinkServiceCompatible: isLinkServiceCompatible3, normalizeServiceTargetType: normalizeServiceTargetType2 } = await Promise.resolve().then(() => (init_link_service_compatibility(), link_service_compatibility_exports));
     const { resolveServiceTargetType: resolveServiceTargetType2 } = await Promise.resolve().then(() => (init_target_type_mapper(), target_type_mapper_exports));
     const detectedType = analysis.type || "generic_link";
     const compatibleCategories = [];
@@ -144180,7 +144400,7 @@ async function handleLinkInput(ctx, rawInput) {
       const hasCompatibleService = svcs.some((s) => {
         const rawTarget = resolveServiceTargetType2(s);
         const normalized = normalizeServiceTargetType2(rawTarget);
-        return isLinkServiceCompatible2(detectedType, normalized);
+        return isLinkServiceCompatible3(detectedType, normalized);
       });
       if (hasCompatibleService) {
         compatibleCategories.push(c);
@@ -160032,6 +160252,7 @@ var SecuritySanitizer = class {
 
 // src/services/admin/catalog.service.ts
 init_smart_analyzer_logic();
+init_link_rules_registry();
 async function ensureTaxonomyTenantAccess(categoryId) {
   const category = await db.category.findUnique({
     where: { id: categoryId },
@@ -160249,6 +160470,12 @@ var AdminCatalogService = class {
       } else if (params.providerStatus === "zombie") {
         andConditions.push({
           cooldownReason: { in: ["ZOMBIE_AUTO_DISABLED", "ZOMBIE_ARCHIVED"] }
+        });
+      } else if (params.providerStatus === "cooldown") {
+        andConditions.push({
+          isActive: true,
+          cooldownUntil: { gt: /* @__PURE__ */ new Date() },
+          cooldownReason: { notIn: ["ZOMBIE_AUTO_DISABLED", "ZOMBIE_ARCHIVED"] }
         });
       } else if (params.providerStatus === "manual") {
         andConditions.push({
@@ -161089,6 +161316,12 @@ var AdminCatalogService = class {
           return categoryId;
         })();
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || "";
+        const effectiveTargetType = shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || "");
+        const linkSpec = getUnifiedLinkSpecification(
+          shadowExt.platform || fallbackCategoryRecord?.network?.slug || "",
+          effectiveTargetType,
+          shadowExt.normalizedCategory || fallbackCategoryRecord?.activityType || ""
+        );
         servicesToCreate.push({
           tenantId: tId,
           slug: stableSlug,
@@ -161111,9 +161344,9 @@ var AdminCatalogService = class {
           features: {
             platform: shadowExt.platform,
             category: shadowExt.normalizedCategory,
-            targetType: shadowExt.targetType,
-            customDataType: shadowExt.customDataType,
-            isMediaGroupAware: shadowExt.isMediaGroupAware,
+            targetType: effectiveTargetType,
+            customDataType: linkSpec.customDataType || shadowExt.customDataType || "NONE",
+            isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
             isPrivate: shadowExt.isPrivate,
             warranty: shadowExt.warranty,
             geo: shadowExt.geo,
@@ -161121,9 +161354,16 @@ var AdminCatalogService = class {
             anomalyScore: shadowExt.anomalyScore
           },
           anomalyScore: shadowExt.anomalyScore || 0,
-          targetType: shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || ""),
-          customDataType: shadowExt.customDataType || "NONE",
-          isMediaGroupAware: shadowExt.isMediaGroupAware || false,
+          targetType: effectiveTargetType,
+          // Declarative Link Rules from Unified Link Engine (SIL-2026)
+          linkPlaceholder: linkSpec.placeholder,
+          linkHint: linkSpec.hint,
+          linkValidatorRegex: linkSpec.regex,
+          clientRequirement: linkSpec.clientRequirement || (shadowExt.isPrivate ? "\u0422\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043E\u0431\u044A\u0435\u043A\u0442\u0443" : "\u041E\u0431\u044A\u0435\u043A\u0442 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C"),
+          requiresBotAdmin: linkSpec.requiresBotAdmin || false,
+          customDataType: linkSpec.customDataType || shadowExt.customDataType || "NONE",
+          customDataLabel: linkSpec.customDataLabel || null,
+          isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
           isActive: true,
           isDripFeedEnabled: Boolean(liveExt.dripfeed),
           isRefillEnabled: Boolean(liveExt.refill),

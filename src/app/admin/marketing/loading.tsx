@@ -1,3 +1,5 @@
+'use client';
+
 import { Gift } from 'lucide-react';
 import { Skeleton } from '@heroui/react';
 import { AdminTabbedHeader } from '@/components/admin/tabbed-header';

@@ -60,13 +60,19 @@ jobs:
       - name: Build Next.js & Service Artifacts on Host
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Continue'
           Set-Location "C:\Users\Shadow\Documents\SMM"
           Write-Host "Running Host Standalone Build (Next.js 16 Webpack + Bot + Worker)..."
           npm run build
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Build failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
 
       - name: Deploy Docker Containers
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Continue'
           Set-Location "C:\Users\Shadow\Documents\SMM"
           $restartAll = "${{ github.event.inputs.restart_all }}"
           
@@ -76,6 +82,10 @@ jobs:
           } else {
             Write-Host "Deploying web, worker, and bot containers..."
             docker compose up -d --build web worker bot
+          }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Docker compose failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
           }
 
       - name: Healthcheck & Smoke Verification
