@@ -11,6 +11,8 @@ const ALLOWED_HOST_DOMAINS = [
   '127.0.0.1'
 ];
 
+export const ALLOWED_TUNNEL_SUFFIXES = ['.ts.net', '.trycloudflare.com'] as const;
+
 export function isAllowedHost(host: string): boolean {
   if (!host) return false;
   const cleanHost = host.split(':')[0].toLowerCase();
@@ -20,6 +22,7 @@ export function isAllowedHost(host: string): boolean {
     cleanHost.endsWith('.smmplan.pro') ||
     cleanHost.endsWith('.smmflux.ru') ||
     cleanHost.endsWith('.ts.net') ||
+    cleanHost.endsWith('.trycloudflare.com') ||
     cleanHost === 'desktop-25m6el7.tailbb9d28.ts.net'
   );
 }
@@ -125,7 +128,8 @@ export function getBaseUrlSync(reqHost?: string | null, reqProto?: string | null
     }
     if (isAllowedHost(host)) {
       const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
-      const proto = reqProto || (isLocal ? "http" : (process.env.NODE_ENV === "production" ? "https" : "http"));
+      const isTunnel = host.includes(".ts.net") || host.includes(".trycloudflare.com");
+      const proto = isTunnel ? "https" : (reqProto || (isLocal ? "http" : (process.env.NODE_ENV === "production" ? "https" : "http")));
       return `${proto}://${host}`;
     }
   }
