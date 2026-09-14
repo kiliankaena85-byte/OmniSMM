@@ -58,6 +58,8 @@ export function PlanFullscreenCheckout({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.history.pushState({ smmplan_fullscreen_checkout: true }, '', window.location.href);
@@ -67,6 +69,19 @@ export function PlanFullscreenCheckout({
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // On desktop: scroll checkout form into view on open (mount-only).
+  // The form renders at the TOP of the page but the user may be scrolled to
+  // the service grid below. Without this, the user's scroll position stays at
+  // the service grid, leaving them looking at the payment button or empty space.
+  // Runs EXACTLY ONCE on mount — never fires again on input/checkbox re-renders.
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
+    if (containerRef.current) {
+      const top = containerRef.current.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
   }, []);
 
   useEffect(() => {
@@ -90,6 +105,7 @@ export function PlanFullscreenCheckout({
       safeFocus(linkInputRef.current);
     }
   }, []);
+
 
   const minQty = selectedService.minQty || 100;
   const maxQty = selectedService.maxQty || 1000000;
@@ -119,7 +135,7 @@ export function PlanFullscreenCheckout({
   };
 
   return (
-    <div className="w-full flex flex-col items-center py-2 sm:py-6 px-2 sm:px-4 animate-in fade-in duration-300">
+    <div ref={containerRef} className="w-full flex flex-col items-center py-2 sm:py-6 px-2 sm:px-4 animate-in fade-in duration-300">
       <PlanCheckoutHeader
         selectedService={selectedService}
         activeNetwork={activeNetwork}

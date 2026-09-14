@@ -67,8 +67,13 @@ export function useMobileWizard(engine: OrderEngine) {
 
 
   // Single effect to synchronize browser history outside of React render/setState updaters (B3)
+  // CRITICAL: On desktop (>=768px) we must NEVER push/replace hash anchors like #step-4
+  // because the browser will auto-scroll to that element ID, causing parasitic page jumps.
   useEffect(() => {
     if (typeof window === 'undefined' || !mounted) return;
+    // Desktop guard: MobileWizard history navigation is mobile-only
+    if (window.innerWidth >= 768) return;
+
     const prevStep = prevStepRef.current;
     if (prevStep === activeStepRaw) return;
     prevStepRef.current = activeStepRaw;
@@ -175,12 +180,14 @@ export function useMobileWizard(engine: OrderEngine) {
 
     if (selectedService && selectedService.id !== prevSelectedServiceIdRef.current) {
       prevSelectedServiceIdRef.current = selectedService.id;
-      // On mobile viewports (<768px), scroll to step 4; on desktop, update state without scroll hijack
+      // On mobile viewports (<768px), scroll to step 4; on desktop, do NOT change wizard step
+      // (the fullscreen checkout overlay handles service selection display on desktop,
+      // and calling setActiveStepRaw(4) causes DOM layout shifts that make the browser
+      // auto-scroll to #step-4 element, producing a parasitic scroll-down effect)
       if (typeof window !== 'undefined' && window.innerWidth < 768) {
         setActiveStep(4);
-      } else {
-        setActiveStepRaw(4);
       }
+      // Desktop: no step change needed — PlanFullscreenCheckout renders as an overlay
     } else if (!selectedService) {
       prevSelectedServiceIdRef.current = null;
     }
