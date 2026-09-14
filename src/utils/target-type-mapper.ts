@@ -99,18 +99,26 @@ export function inferTargetTypeFromName(name: string | null | undefined): Target
   if (!name) return TargetTypeEnum.POST;
   // Sanitize vendor/brand names that contain keywords like "boost" (e.g. vexboost, smmboost)
   const n = name.toLowerCase().replace(/vexboost/gi, '').replace(/smmboost/gi, '');
+  const nNoPunct = n.replace(/[^a-zа-яё0-9]/gi, '');
 
   // Auto / Future / Subscription services / Last-N-posts packages
   if (
-    n.includes('автопросмотр') ||
-    n.includes('автолайк') ||
-    n.includes('автореакци') ||
-    n.includes('авторепост') ||
+    nNoPunct.includes('автопросмотр') ||
+    nNoPunct.includes('автолайк') ||
+    nNoPunct.includes('автореакци') ||
+    nNoPunct.includes('авторепост') ||
+    nNoPunct.includes('автоактивно') ||
+    nNoPunct.includes('autoview') ||
+    nNoPunct.includes('autolike') ||
+    nNoPunct.includes('autoreact') ||
+    nNoPunct.includes('autoshare') ||
+    nNoPunct.includes('autorepost') ||
+    nNoPunct.includes('futureview') ||
+    nNoPunct.includes('futurelike') ||
+    (n.includes('подписка') && !n.includes('подписчик') && !n.includes('участник')) ||
     n.includes('будущие просмотры') ||
+    n.includes('будущих постов') ||
     n.includes('массовые просмотры') ||
-    n.includes('подписка на') ||
-    n.includes('auto view') ||
-    n.includes('future view') ||
     n.includes('channel posts') ||
     // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
     n.includes('последних пост') ||

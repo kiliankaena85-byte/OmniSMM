@@ -102,10 +102,15 @@ export function MobileStep4Checkout({
   const onOrderClick = () => {
     if (!url || url.trim().length < 3) {
       setLocalError("Пожалуйста, укажите ссылку для продвижения");
-      setActiveStep(1);
       setTimeout(() => {
-        const urlInput = document.getElementById("standard-url-input");
-        if (urlInput) safeFocus(urlInput, true);
+        const step4UrlInput = document.getElementById("mobile-checkout-url-input");
+        if (step4UrlInput) {
+          safeFocus(step4UrlInput, true);
+        } else {
+          setActiveStep(1);
+          const urlInput = document.getElementById("standard-url-input");
+          if (urlInput) safeFocus(urlInput, true);
+        }
       }, 120);
       return;
     }

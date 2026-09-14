@@ -33,6 +33,11 @@ describe('TargetTypeMapper & Normalization Layer (Stage 2 Core Logic)', () => {
     expect(inferTargetTypeFromName('Просмотры последних 10 постов')).toBe(TargetTypeEnum.CHANNEL_POSTS);
     expect(inferTargetTypeFromName('Пакет охвата канала')).toBe(TargetTypeEnum.CHANNEL_POSTS);
     expect(inferTargetTypeFromName('Пакет просмотров на канал')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+    // [AUTO-SERVICES with hyphens/spaces and subscriptions]
+    expect(inferTargetTypeFromName('Telegram Авто - Просмотры [Подписка] [От 10]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+    expect(inferTargetTypeFromName('Telegram Микс позитивных реакций [👍 ❤️ 🔥 🎉 😁] + Просмотры [Подписка]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+    expect(inferTargetTypeFromName('🇷🇺 Telegram Авто - Просмотры в статистику [Россия]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+    expect(inferTargetTypeFromName('Telegram Подписчики [7 Дней без списаний♻️]')).toBe(TargetTypeEnum.CHANNEL);
   });
 
   it('correctly checks compatibility between URL types and Service types', () => {

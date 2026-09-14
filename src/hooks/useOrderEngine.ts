@@ -431,13 +431,23 @@ export function useOrderEngine(
                         } else {
                            setCategoryId("");
                         }
-                     } else {
-                        const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
-                        if (!isCurrentCompatible) {
-                           setCategoryId(filteredCats[0].id);
-                           setSelectedService(null);
-                        }
-                     }
+                      } else if (selectedServiceRef.current) {
+                         const currentSvc = selectedServiceRef.current;
+                         const svcTargetType = resolveServiceTargetType(currentSvc);
+                         const isSvcCompatible = !analysisData.type || isLinkServiceCompatible(analysisData.type, svcTargetType);
+                         
+                         const isCurrentCatCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
+                         if (!isCurrentCatCompatible && !isSvcCompatible) {
+                            setCategoryId(filteredCats[0].id);
+                            setSelectedService(null);
+                         }
+                      } else {
+                         const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
+                         if (!isCurrentCompatible) {
+                            setCategoryId(filteredCats[0].id);
+                            setSelectedService(null);
+                         }
+                      }
                   }
                }
             }
@@ -508,6 +518,14 @@ export function useOrderEngine(
            if (availableCats.length > 0 && !availableCats.some(c => c.id === categoryId)) {
               if (url.trim().length >= 5 && !selectedServiceRef.current) {
                  setCategoryId("");
+              } else if (selectedServiceRef.current) {
+                 const currentSvc = selectedServiceRef.current;
+                 const svcTargetType = resolveServiceTargetType(currentSvc);
+                 const isSvcCompatible = !detectedType || isLinkServiceCompatible(detectedType, svcTargetType);
+                 if (!isSvcCompatible) {
+                    setCategoryId(availableCats[0].id);
+                    setSelectedService(null);
+                 }
               } else {
                  setCategoryId(availableCats[0].id);
                  setSelectedService(null);
@@ -879,7 +897,19 @@ export function useOrderEngine(
   const isMatchingAutodetected = activeNetwork && activePlatform && activePlatform !== IntelligencePlatform.OTHER && activeNetwork.slug.toLowerCase().includes(activePlatform.toLowerCase());
 
   if (isMatchingAutodetected && (suggestedCategories.length > 0 || detectedType) && url.trim().length >= 5) {
-    const filteredCats = availableCategories.filter(c => matchesSuggestedCategory(c.name, suggestedCategories, c.analyzerTags, detectedType));
+    const filteredCats = availableCategories.filter(c => {
+      if (!matchesSuggestedCategory(c.name, suggestedCategories, c.analyzerTags, detectedType)) {
+        return false;
+      }
+      // Zero Dead-End Invariant: If category services are in cache, verify >= 1 is compatible with detectedType
+      if (detectedType && categoryServicesCache.current[c.id]) {
+        const cached = categoryServicesCache.current[c.id];
+        if (cached.length > 0) {
+          return cached.some(s => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+        }
+      }
+      return true;
+    });
     availableCategories = filteredCats;
   }
   

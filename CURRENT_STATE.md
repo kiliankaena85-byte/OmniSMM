@@ -1,4 +1,22 @@
 # CURRENT_STATE.md
+- [x] Глобальный рефакторинг визарда заказов: устранение выкидывания с шага 4 и тупиковых категорий (100% COMPLETE & VERIFIED):
+  * 🎯 **Инлайн-редактирование ссылки на Шаге 4 (`MobileCheckoutLinkField.tsx`):**
+    - Полностью искоренен вызов `setActiveStep(1)` со строк 42 и 54 (ранее любое касание ссылки откатывало визард на Шаг 1).
+    - Внедрен интерактивный инлайн-режим редактирования прямо на Шаге 4: клик по ссылке или кнопке «Изменить» открывает инпут с кнопкой «Готово», кнопкой быстрой очистки (крестик) и поддержкой Enter без потери контекста формы.
+    - В `MobileStep4Checkout.tsx` при отсутствии ссылки фокус направляется на `mobile-checkout-url-input` на Шаге 4 без переключения экрана.
+  * 🛡️ **Защита стейта заказа (`useOrderEngine.ts`):**
+    - При редактировании ссылки на чекауте `selectedService` сохраняется, если текущая услуга совместима с новым URL/targetType (`isSvcCompatible`).
+    - Исключен неконтролируемый вызов `setSelectedService(null)`, приводивший к демонтажу Шага 4 (`if (!selectedService) return null`).
+  * 🧩 **Ликвидация категорий-тупиков (Zero Dead-End Rule & Hardening):**
+    - В `useOrderEngine.ts` добавлен фильтр категорий по кэшу услуг: категории с 0 совместимых тарифов для текущей ссылки отсекаются.
+    - В `target-type-mapper.ts` нормализовано распознавание услуг с дефисами/пробелами (`Авто - Просмотры` $\to$ `CHANNEL_POSTS`, `[Подписка]` $\to$ `CHANNEL_POSTS`).
+    - В БД PostgreSQL для тенанта `smmplan` выполнен апдейт `targetType`: 115 услуг подписчиков переведены в `CHANNEL`, 25 авто-услуг в `CHANNEL_POSTS`, 21 услуга бустов в `CHANNEL`.
+  * 🚀 **Чистая пересборка и деплой (Zero-Defect Pipeline):**
+    - Локальная сборка на хосте `npm run build` (Next.js 16 webpack, standalone) завершена успешно за 2.2 мин.
+    - Бандл-секреты: 0 утечек. TypeScript: 0 ошибок.
+    - Docker web контейнер `smmplan_web` пересобран (`docker compose up -d --build web`) в статусе `healthy`.
+    - Публичный HTTPS-доступ через Tailscale Funnel: `https://smmplan.tailbb9d28.ts.net` (HTTP 200 OK).
+    - Автотесты: `target-type-compatibility.test.ts` (4/4 PASS), `mobile-wizard-smoke.test.tsx` (16/16 PASS), `order-wizard-cro-and-dripfeed.test.ts` (8/8 PASS) — 100% PASS.
 - [x] Развертывание и настройка официального Tailscale Funnel в Docker (`smmplan.tailbb9d28.ts.net`) — (100% COMPLETE & VERIFIED):
   * 🌐 **Постоянный публичный HTTPS-доступ (Let's Encrypt):**
     - Развернут контейнер `tailscale/tailscale:latest` внутри Docker-сети `smm_default` без необходимости прав администратора Windows или UAC.

@@ -1,7 +1,7 @@
 'use client';
 
-import React from "react";
-import { Link2, Pencil } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Link2, Pencil, Check, X } from "lucide-react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { DynamicPayloadWarnings } from "../DynamicPayloadWarnings";
 
@@ -13,16 +13,30 @@ export interface MobileCheckoutLinkFieldProps {
     placeholder?: string;
     hint?: string;
   };
-  setActiveStep: (step: 1 | 2 | 3 | 4) => void;
+  setActiveStep?: (step: 1 | 2 | 3 | 4) => void;
 }
 
 export function MobileCheckoutLinkField({
   engine,
   linkConfig,
-  setActiveStep,
 }: MobileCheckoutLinkFieldProps) {
   const { url, setUrl, validationErrors } = engine;
   const isLinkReady = url.trim().length >= 5;
+  const [isEditing, setIsEditing] = useState(!isLinkReady);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEditing = () => {
+    setIsEditing(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  };
+
+  const finishEditing = () => {
+    if (url.trim().length >= 5) {
+      setIsEditing(false);
+    }
+  };
 
   return (
     <div className="space-y-1.5">
@@ -33,27 +47,40 @@ export function MobileCheckoutLinkField({
           <span className="text-destructive">*</span>
         </label>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">
-            {linkConfig.badge}
-          </span>
+          {linkConfig.badge && (
+            <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">
+              {linkConfig.badge}
+            </span>
+          )}
           {isLinkReady && (
-            <button
-              type="button"
-              onClick={() => setActiveStep(1)}
-              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer min-h-[44px] min-w-[44px] px-2"
-            >
-              <Pencil className="w-3 h-3 shrink-0" />
-              <span>Изменить</span>
-            </button>
+            isEditing ? (
+              <button
+                type="button"
+                onClick={finishEditing}
+                className="text-[11px] font-bold text-emerald-500 hover:text-emerald-400 flex items-center gap-1 cursor-pointer min-h-[44px] min-w-[44px] px-2"
+              >
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                <span>Готово</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={startEditing}
+                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer min-h-[44px] min-w-[44px] px-2"
+              >
+                <Pencil className="w-3 h-3 shrink-0" />
+                <span>Изменить</span>
+              </button>
+            )
           )}
         </div>
       </div>
 
-      {isLinkReady ? (
+      {isLinkReady && !isEditing ? (
         <div
-          onClick={() => setActiveStep(1)}
+          onClick={startEditing}
           className="p-3 rounded-2xl bg-content2/80 border border-border/60 hover:border-primary/50 transition-all flex items-center justify-between gap-2.5 cursor-pointer group"
-          title="Нажмите, чтобы изменить ссылку"
+          title="Нажмите, чтобы изменить ссылку на этом шаге"
         >
           <div className="flex flex-col min-w-0 flex-1">
             <span className="text-xs font-bold text-foreground font-mono break-all leading-relaxed select-all">
@@ -70,21 +97,44 @@ export function MobileCheckoutLinkField({
         </div>
       ) : (
         <div>
-          <input
-            id="mobile-checkout-url-input"
-            type="text"
-            inputMode="url"
-            autoComplete="url"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            aria-describedby={validationErrors?.link ? "step4-url-error" : undefined}
-            placeholder={linkConfig.placeholder}
-            className={`w-full h-11 px-4 rounded-2xl border bg-background text-base sm:text-sm text-foreground outline-none transition-all ${
-              validationErrors?.link
-                ? 'border-destructive focus:border-destructive ring-2 ring-destructive/30'
-                : 'border-border focus:border-primary focus:ring-2 ring-primary/30'
-            }`}
-          />
+          <div className="relative flex items-center">
+            <input
+              ref={inputRef}
+              id="mobile-checkout-url-input"
+              type="text"
+              inputMode="url"
+              autoComplete="url"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  finishEditing();
+                }
+              }}
+              aria-describedby={validationErrors?.link ? "step4-url-error" : undefined}
+              placeholder={linkConfig.placeholder}
+              className={`w-full h-11 pl-4 pr-10 rounded-2xl border bg-background text-base sm:text-sm text-foreground outline-none transition-all ${
+                validationErrors?.link
+                  ? 'border-destructive focus:border-destructive ring-2 ring-destructive/30'
+                  : 'border-border focus:border-primary focus:ring-2 ring-primary/30'
+              }`}
+            />
+            {url.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setUrl('');
+                  inputRef.current?.focus();
+                }}
+                className="absolute right-2.5 p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-content2 cursor-pointer transition-colors"
+                title="Очистить поле"
+                aria-label="Очистить ссылку"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           {linkConfig.hint && !validationErrors?.link && (
             <p className="text-[11px] text-muted-foreground pl-1 mt-1 font-medium">
               {linkConfig.hint}
