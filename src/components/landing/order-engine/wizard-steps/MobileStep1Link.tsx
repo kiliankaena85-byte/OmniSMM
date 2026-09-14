@@ -70,7 +70,7 @@ export function MobileStep1Link({
   }
 
   return (
-    <div ref={step1Ref} className="space-y-2 scroll-mt-20">
+    <div id="step-1" ref={step1Ref} className="space-y-2 scroll-mt-20">
       <div className="flex items-center justify-between pl-1">
         <label htmlFor="standard-url-input" className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider">
           1. Введите ссылку на канал, профиль или пост

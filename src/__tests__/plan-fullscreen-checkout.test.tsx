@@ -225,5 +225,56 @@ describe('PlanFullscreenCheckout Component Tests', () => {
 
     expect(handleCheckout).toHaveBeenCalledWith('yookassa');
   });
+
+  it('SIL-2026: window.scrollTo is called strictly once on desktop mount and NEVER on re-renders with new onClose reference', () => {
+    const scrollToSpy = vi.fn();
+    window.scrollTo = scrollToSpy;
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
+
+    const engine = createMockEngine({ url: 'https://t.me/channel', email: 'buyer@test.com' });
+    const { rerender } = render(
+      <PlanFullscreenCheckout
+        engine={engine}
+        selectedService={mockService}
+        onClose={() => {}}
+        handleCheckout={vi.fn()}
+      />
+    );
+
+    // Initial mount on desktop (innerWidth = 1024) should scroll once
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+
+    // Re-render with new onClose reference (simulating typing, state updates)
+    rerender(
+      <PlanFullscreenCheckout
+        engine={engine}
+        selectedService={mockService}
+        onClose={() => {}}
+        handleCheckout={vi.fn()}
+      />
+    );
+
+    // Must STILL be 1 — no extra scroll!
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('SIL-2026: window.scrollTo is completely suppressed on mobile viewports (< 768px)', () => {
+    const scrollToSpy = vi.fn();
+    window.scrollTo = scrollToSpy;
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
+
+    const engine = createMockEngine({ url: 'https://t.me/channel', email: 'buyer@test.com' });
+    render(
+      <PlanFullscreenCheckout
+        engine={engine}
+        selectedService={mockService}
+        onClose={() => {}}
+        handleCheckout={vi.fn()}
+      />
+    );
+
+    // Mobile should NOT trigger desktop fullscreen checkout scroll
+    expect(scrollToSpy).not.toHaveBeenCalled();
+  });
 });
 

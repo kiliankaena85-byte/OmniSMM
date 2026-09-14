@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Link2, ChevronDown } from "lucide-react";
 
 interface MobileStep1SummaryProps {
@@ -10,7 +10,7 @@ interface MobileStep1SummaryProps {
 export function MobileStep1Summary({ url, setActiveStep, step1Ref }: MobileStep1SummaryProps) {
   if (url.trim().length >= 5) {
     return (
-      <div ref={step1Ref} className="scroll-mt-20">
+      <div id="step-1" ref={step1Ref} className="scroll-mt-20">
         <button
           type="button"
           onClick={() => setActiveStep(1)}
@@ -29,7 +29,7 @@ export function MobileStep1Summary({ url, setActiveStep, step1Ref }: MobileStep1
   }
 
   return (
-    <div ref={step1Ref} className="scroll-mt-20">
+    <div id="step-1" ref={step1Ref} className="scroll-mt-20">
       <button
         type="button"
         onClick={() => setActiveStep(1)}

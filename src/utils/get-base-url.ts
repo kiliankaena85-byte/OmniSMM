@@ -11,11 +11,31 @@ const ALLOWED_HOST_DOMAINS = [
   '127.0.0.1'
 ];
 
-function isAllowedHost(host: string): boolean {
+export const ALLOWED_TUNNEL_SUFFIXES = [
+  '.ts.net',
+  '.trycloudflare.com',
+  '.loca.lt',
+  '.ngrok-free.app',
+  '.ngrok.app',
+  '.ngrok.io',
+  '.lhr.life',
+  '.serveo.net',
+  '.pinggy-free.link',
+  '.pinggy.link',
+  '.free.pinggy.net',
+  '.pinggy.net',
+];
+
+export function isAllowedHost(host: string): boolean {
   if (!host) return false;
   const cleanHost = host.split(':')[0].toLowerCase();
   if (cleanHost === '0.0.0.0' || cleanHost === 'host.docker.internal') return false;
-  return ALLOWED_HOST_DOMAINS.includes(cleanHost) || cleanHost.endsWith('.smmplan.pro') || cleanHost.endsWith('.smmflux.ru');
+  return (
+    ALLOWED_HOST_DOMAINS.includes(cleanHost) ||
+    cleanHost.endsWith('.smmplan.pro') ||
+    cleanHost.endsWith('.smmflux.ru') ||
+    ALLOWED_TUNNEL_SUFFIXES.some(suffix => cleanHost.endsWith(suffix))
+  );
 }
 
 export async function getBaseUrlAsync(reqHost?: string | null, reqProto?: string | null): Promise<string> {
@@ -34,7 +54,10 @@ export async function getBaseUrlAsync(reqHost?: string | null, reqProto?: string
           : "localhost:3000";
       }
       if (isAllowedHost(host)) {
-        return `${proto}://${host}`;
+        const cleanHost = host.split(':')[0].toLowerCase();
+        const isTunnelOrProd = cleanHost.endsWith('.ts.net') || cleanHost.endsWith('.trycloudflare.com') || cleanHost.endsWith('.smmplan.pro') || cleanHost.endsWith('.smmflux.ru');
+        const resolvedProto = isTunnelOrProd ? 'https' : proto;
+        return `${resolvedProto}://${host}`;
       }
     }
   } catch {
@@ -55,7 +78,9 @@ export async function getBaseUrlAsync(reqHost?: string | null, reqProto?: string
         : "localhost:3000";
     }
     if (isAllowedHost(host)) {
-      const proto = reqProto || (process.env.NODE_ENV === "production" ? "https" : "http");
+      const cleanHost = host.split(':')[0].toLowerCase();
+      const isTunnelOrProd = cleanHost.endsWith('.ts.net') || cleanHost.endsWith('.trycloudflare.com') || cleanHost.endsWith('.smmplan.pro') || cleanHost.endsWith('.smmflux.ru');
+      const proto = isTunnelOrProd ? 'https' : (reqProto || (process.env.NODE_ENV === "production" ? "https" : "http"));
       return `${proto}://${host}`;
     }
   }
@@ -79,7 +104,9 @@ export function getBaseUrlSync(reqHost?: string | null, reqProto?: string | null
         : "localhost:3000";
     }
     if (isAllowedHost(host)) {
-      const proto = reqProto || (process.env.NODE_ENV === "production" ? "https" : "http");
+      const cleanHost = host.split(':')[0].toLowerCase();
+      const isTunnelOrProd = cleanHost.endsWith('.ts.net') || cleanHost.endsWith('.trycloudflare.com') || cleanHost.endsWith('.smmplan.pro') || cleanHost.endsWith('.smmflux.ru');
+      const proto = isTunnelOrProd ? 'https' : (reqProto || (process.env.NODE_ENV === "production" ? "https" : "http"));
       return `${proto}://${host}`;
     }
   }

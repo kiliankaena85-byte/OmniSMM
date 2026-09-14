@@ -55,15 +55,28 @@ export function PlanFullscreenCheckout({
 
   const activeCategory = activeNetwork?.categories.find(c => c.id === selectedService.categoryId) || null;
 
+  const hasMountedScrollRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // Desktop only guard: run once on mount for desktop viewports
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+    if (isDesktop && !hasMountedScrollRef.current) {
+      hasMountedScrollRef.current = true;
       window.scrollTo({ top: 0, behavior: 'instant' });
       window.history.pushState({ smmplan_fullscreen_checkout: true }, '', window.location.href);
     }
-    const handlePopState = () => onClose();
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [onClose]);
+    const handlePopState = () => {
+      if (isDesktop) {
+        onCloseRef.current();
+      }
+    };
+    if (isDesktop) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, []);
 
   useEffect(() => {
     getAvailableGatewaysAction().then((res) => {

@@ -65,6 +65,10 @@ export function SmartLinkLanding({
 
   const orchestrator = useCheckoutOrchestrator({ engine, desktopEmailInputRef, mobileEmailInputRef });
 
+  const handleCloseFullscreenCheckout = React.useCallback(() => {
+    setSelectedService(null);
+  }, [setSelectedService]);
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col relative overflow-x-clip">
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-primary/5 to-background pointer-events-none z-0 select-none overflow-hidden" />
@@ -104,7 +108,7 @@ export function SmartLinkLanding({
                 <PlanFullscreenCheckout
                   engine={engine}
                   selectedService={selectedService}
-                  onClose={() => setSelectedService(null)}
+                  onClose={handleCloseFullscreenCheckout}
                   onOpenDocument={setActiveLegalSlug}
                   userBalanceCents={userBalanceCents}
                   handleCheckout={orchestrator.handleCheckout}
