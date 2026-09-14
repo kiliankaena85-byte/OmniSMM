@@ -190,3 +190,12 @@ flowchart TD
 - [ ] **Сохранение всех услуг:** общее число активных услуг в БД до и после миграции совпадает (`COUNT(Service) = const`).
 - [ ] **Проверка целостности заказов:** `npx vitest run src/__tests__/order-flow.test.ts` (100% PASS).
 - [ ] **Визуальный аудит в браузере (BGS-2026):** сайдбар каталога выглядит компактно, отцентрованно, без скролл-баров и горизонтальных переломов.
+
+---
+
+## 9. Known Lessons Learned & Architecture Evolution
+
+### [LESSON-2026-09-14-SIL-C] declarative-link-specs-catalog-enrichment
+- **Контекст:** При импорте услуг (`importServices()`) из внешних API (JustAnotherPanel, SMMPanel и др.) для Rutube, Дзен, Likee, Discord система не должна сваливаться в generic-заглушки.
+- **Инвариант:** Каждая импортируемая услуга получает детерминированные `linkPlaceholder`, `linkHint`, `linkValidatorRegex` и требования к клиенту (`clientRequirement`) из единого реестра `getUnifiedLinkSpecification(platform, targetType, activityType)`.
+- **Защита:** Запрещено допускать `null` или сырые пустые поля валидации у поддерживаемых платформ.

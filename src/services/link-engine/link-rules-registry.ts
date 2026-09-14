@@ -102,6 +102,20 @@ export const UNIFIED_REGEX = {
 
   MAX: {
     CHANNEL: /^https?:\/\/(?:www\.)?max\.ru\/(?:c\/(?:-?\d+(?:\/[a-zA-Z0-9_-]+)?|[a-zA-Z0-9_.-]+)|[a-zA-Z0-9_.-]+)\/?$/i,
+  },
+
+  DZEN: {
+    POST: /^https?:\/\/(?:www\.)?(?:dzen\.ru|zen\.yandex\.ru)\/(?:a\/|b\/|shorts\/|video\/watch\/|media\/(?:[\w.-]+\/)?)[a-zA-Z0-9_-]+/i,
+    CHANNEL: /^https?:\/\/(?:www\.)?(?:dzen\.ru|zen\.yandex\.ru)\/(?:id\/[a-zA-Z0-9_-]+|u\/[a-zA-Z0-9_.-]+|channel\/[a-zA-Z0-9_-]+|@?[a-zA-Z0-9_.-]+)\/?/i,
+  },
+
+  LIKEE: {
+    POST: /^https?:\/\/(?:l\.likee\.video\/v\/[\w-]+|(?:likee\.video|likee\.com)\/@[\w.]+\/video\/\d+)/i,
+    CHANNEL: /^https?:\/\/(?:l\.likee\.video\/p\/[\w-]+|(?:likee\.video|likee\.com)\/@[\w.]+)\/?/i,
+  },
+
+  DISCORD: {
+    CHANNEL: /^https?:\/\/(?:www\.)?(?:discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9_-]+/i,
   }
 };
 
@@ -256,6 +270,21 @@ export function getUnifiedLinkValidator(platform: string, targetType: string): z
 
     case 'MAX':
       return z.string().regex(UNIFIED_REGEX.MAX.CHANNEL, "Укажите ссылку на профиль или канал мессенджера МАКС.");
+
+    case 'DZEN':
+      if (normTarget === 'POST') {
+        return z.string().regex(UNIFIED_REGEX.DZEN.POST, "Укажите ссылку на публикацию или видео в Дзене.");
+      }
+      return z.string().regex(UNIFIED_REGEX.DZEN.CHANNEL, "Укажите ссылку на канал в Дзене.");
+
+    case 'LIKEE':
+      if (normTarget === 'POST') {
+        return z.string().regex(UNIFIED_REGEX.LIKEE.POST, "Укажите ссылку на видео Likee.");
+      }
+      return z.string().regex(UNIFIED_REGEX.LIKEE.CHANNEL, "Укажите ссылку на профиль Likee.");
+
+    case 'DISCORD':
+      return z.string().regex(UNIFIED_REGEX.DISCORD.CHANNEL, "Укажите ссылку-приглашение на Discord сервер (discord.gg/...).");
   }
 
   // Universal Fallback validator
@@ -491,6 +520,98 @@ export function getUnifiedLinkSpecification(
       hint: 'Ссылка на видео в TikTok',
       regex: '^https?:\\/\\/(?:www\\.|m\\.)?tiktok\\.com\\/@[a-zA-Z0-9_.]+\\/(?:video|photo)\\/\\d+|^https?:\\/\\/(?:vm|vt)\\.tiktok\\.com\\/[a-zA-Z0-9_]+',
       clientRequirement: 'Видео должно быть общедоступным',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 6. Rutube
+  if (net.includes('rutube')) {
+    if (target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'CHANNEL',
+        placeholder: 'https://rutube.ru/channel/123456/ или https://rutube.ru/u/channel_name/',
+        hint: 'Ссылка на канал Rutube',
+        regex: '^https?:\\/\\/(?:www\\.)?rutube\\.ru\\/(?:channel\\/\\d+|u\\/[a-zA-Z0-9_.-]+)',
+        clientRequirement: 'Канал Rutube должен быть открыт',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'VIDEO',
+      placeholder: 'https://rutube.ru/video/CODE32/ или https://rutube.ru/shorts/CODE32/',
+      hint: 'Ссылка на видеозапись или Shorts в Rutube',
+      regex: '^https?:\\/\\/(?:www\\.)?rutube\\.ru\\/(?:video|shorts|play\\/embed)\\/[a-zA-Z0-9_-]+',
+      clientRequirement: 'Видео должно быть доступно по прямой ссылке',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 7. Dzen
+  if (net.includes('dzen') || net.includes('zen')) {
+    if (target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'CHANNEL',
+        placeholder: 'https://dzen.ru/channel_name или https://dzen.ru/id/12345',
+        hint: 'Ссылка на канал в Дзене',
+        regex: '^https?:\\/\\/(?:www\\.)?(?:dzen\\.ru|zen\\.yandex\\.ru)\\/(?:id\\/[a-zA-Z0-9_-]+|channel\\/[a-zA-Z0-9_-]+|@?[a-zA-Z0-9_.-]+)',
+        clientRequirement: 'Канал должен быть опубликован',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'POST',
+      placeholder: 'https://dzen.ru/a/CODE или https://dzen.ru/video/watch/CODE',
+      hint: 'Ссылка на публикацию или видео в Дзене',
+      regex: '^https?:\\/\\/(?:www\\.)?(?:dzen\\.ru|zen\\.yandex\\.ru)\\/(?:a\\/|b\\/|shorts\\/|video\\/watch\\/|media\\/)[a-zA-Z0-9_-]+',
+      clientRequirement: 'Публикация должна быть открыта',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 8. Likee
+  if (net.includes('likee')) {
+    if (target === 'PROFILE' || target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'PROFILE',
+        placeholder: 'https://likee.video/@username или https://l.likee.video/p/CODE',
+        hint: 'Ссылка на профиль в Likee',
+        regex: '^https?:\\/\\/(?:l\\.likee\\.video\\/p\\/[\\w-]+|(?:likee\\.video|likee\\.com)\\/@[\\w.]+)',
+        clientRequirement: 'Профиль должен быть общедоступным',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'VIDEO',
+      placeholder: 'https://likee.video/@user/video/12345 или https://l.likee.video/v/CODE',
+      hint: 'Ссылка на видео в Likee',
+      regex: '^https?:\\/\\/(?:l\\.likee\\.video\\/v\\/[\\w-]+|(?:likee\\.video|likee\\.com)\\/@[\\w.]+\\/video\\/\\d+)',
+      clientRequirement: 'Видео должно быть открыто',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 9. Discord
+  if (net.includes('discord')) {
+    return {
+      targetType: 'CHANNEL',
+      placeholder: 'https://discord.gg/invite_code',
+      hint: 'Бессрочная ссылка-приглашение на Discord-сервер',
+      regex: '^https?:\\/\\/(?:www\\.)?(?:discord\\.gg|discord\\.com\\/invite)\\/[a-zA-Z0-9_-]+',
+      clientRequirement: 'Ссылка-приглашение должна быть активна и без лимита использований',
       requiresBotAdmin: false,
       isMediaGroupAware: false,
       customDataType: 'NONE',

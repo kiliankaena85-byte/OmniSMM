@@ -117,3 +117,13 @@ description: Комплексный протокол непрерывного с
 - **Files Affected:** `src/utils/link-normalizer.ts`
 - **Verified Fix Commit:** SIL-2026-09-14
 - **Verified Date:** 2026-09-14
+
+### [LESSON-2026-09-14-SIL-C] declarative-link-specs-catalog-enrichment (HIGH)
+- **Trigger Condition:** При импорте услуг от провайдеров для Rutube, Dzen, Likee, Discord генератор спецификаций ссылок сваливался в `Universal Fallback` (`https://...`), лишая чекаут нативных плейсхолдеров, подсказок и валидаторов.
+- **Root Cause:** Реестр `link-rules-registry.ts` содержал строгие правила только для Top-5 сетей (TG, VK, YT, IG, TT), а нишевые и суверенные РФ платформы не имели канонических декларативных спецификаций.
+- **Enforced Solution Pattern:** Все поддерживаемые каталогом платформы обязаны быть декларативно описаны в `UNIFIED_REGEX` и `getUnifiedLinkSpecification()` с ReDoS-safe паттернами, локализованными подсказками и строгими валидаторами формата ссылок.
+- **Anti-Pattern:** Падение в `DEFAULT_SPEC` для валидных платформ каталога.
+- **Correct Pattern:** Канонические регулярные выражения и спецификации для всех 10+ поддерживаемых провайдерами платформ (включая Rutube, Dzen, Likee, Discord).
+- **Files Affected:** `src/services/link-engine/link-rules-registry.ts`, `src/services/admin/catalog.service.ts`
+- **Verified Date:** 2026-09-14
+

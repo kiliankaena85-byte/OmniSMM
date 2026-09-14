@@ -111,6 +111,44 @@ describe('Unified Link Rules Registry & Specification Engine', () => {
     });
   });
 
+  describe('Rutube, Dzen, Likee, Discord Link Specifications', () => {
+    it('generates correct specs for Rutube channel and video', () => {
+      const ch = getUnifiedLinkSpecification('rutube', 'CHANNEL', 'SUBSCRIBERS');
+      expect(ch.targetType).toBe('CHANNEL');
+      expect(ch.placeholder).toContain('rutube.ru/channel');
+
+      const vid = getUnifiedLinkSpecification('rutube', 'VIDEO', 'VIEWS');
+      expect(vid.targetType).toBe('VIDEO');
+      expect(vid.placeholder).toContain('rutube.ru/video');
+    });
+
+    it('generates correct specs for Dzen channel and publication', () => {
+      const ch = getUnifiedLinkSpecification('dzen', 'CHANNEL', 'SUBSCRIBERS');
+      expect(ch.targetType).toBe('CHANNEL');
+      expect(ch.placeholder).toContain('dzen.ru');
+
+      const post = getUnifiedLinkSpecification('dzen', 'POST', 'VIEWS');
+      expect(post.targetType).toBe('POST');
+      expect(post.placeholder).toContain('dzen.ru/a/');
+    });
+
+    it('generates correct specs for Likee profile and video', () => {
+      const prof = getUnifiedLinkSpecification('likee', 'PROFILE', 'SUBSCRIBERS');
+      expect(prof.targetType).toBe('PROFILE');
+      expect(prof.placeholder).toContain('likee.video/@');
+
+      const vid = getUnifiedLinkSpecification('likee', 'VIDEO', 'VIEWS');
+      expect(vid.targetType).toBe('VIDEO');
+      expect(vid.placeholder).toContain('likee.video/@user/video');
+    });
+
+    it('generates correct specs for Discord invite', () => {
+      const spec = getUnifiedLinkSpecification('discord', 'CHANNEL', 'SUBSCRIBERS');
+      expect(spec.targetType).toBe('CHANNEL');
+      expect(spec.placeholder).toContain('discord.gg');
+    });
+  });
+
   describe('Fallback Link Specifications', () => {
     it('provides safe fallback for unknown platforms', () => {
       const spec = getUnifiedLinkSpecification('unknown_metaverse', 'POST', 'VIEWS');
