@@ -330,7 +330,9 @@ export function useOrderEngine(
   const networkIdRef = useRef(networkId);
   const categoryIdRef = useRef(categoryId);
   const serviceRequestIdRef = useRef(0);
-  const categoryServicesCache = useRef<Record<string, PublicService[]>>({});
+  const categoryServicesCache = useRef<Record<string, PublicService[]>>(
+    initialCategoryId && initialServices.length > 0 ? { [initialCategoryId]: initialServices } : {}
+  );
   
   useEffect(() => {
     selectedServiceRef.current = selectedService;
@@ -420,46 +422,36 @@ export function useOrderEngine(
           
           const activePlatformStr = analysisData.platform !== IntelligencePlatform.OTHER ? analysisData.platform.toLowerCase() : null;
           
-          // Auto-select network
-          if (activePlatformStr) {
+          // Auto-select network and category ONLY when no service is selected (catalog browsing mode).
+          // Once a service is selected (checkout mode), entering/pasting a URL must NEVER deselect the service.
+          if (!selectedServiceRef.current && activePlatformStr) {
             const matchedNet = catalog.find(n => n.slug.toLowerCase().includes(activePlatformStr) || activePlatformStr.includes(n.slug.toLowerCase()));
             if (matchedNet) {
-                if (matchedNet.id !== networkIdRef.current || !selectedServiceRef.current) {
-                   setNetworkId(matchedNet.id);
-                   const catsForNet = matchedNet.categories;
-                   let filteredCats = catsForNet;
-                   if (analysisData.suggestedCategories && analysisData.suggestedCategories.length > 0) {
-                       const f = catsForNet.filter(c => matchesSuggestedCategory(c.name, analysisData.suggestedCategories, c.analyzerTags, analysisData.type));
-                       if (f.length > 0) filteredCats = f;
-                   }
-                   if (filteredCats.length > 0) {
-                      // Smart Adaptive Flow: If link is entered and no service selected
-                      if (url.trim().length >= 5 && !selectedServiceRef.current) {
-                         // SRS Rule 1.3: Smart Auto-Select when N=1
-                         if (filteredCats.length === 1) {
-                            setCategoryId(filteredCats[0].id);
-                         } else {
-                            setCategoryId("");
-                         }
-                       } else if (selectedServiceRef.current) {
-                          const currentSvc = selectedServiceRef.current;
-                          const svcTargetType = resolveServiceTargetType(currentSvc);
-                          const isSvcCompatible = !analysisData.type || isLinkServiceCompatible(analysisData.type, svcTargetType);
-                          
-                          const isCurrentCatCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
-                          if (!isCurrentCatCompatible && !isSvcCompatible) {
-                             setCategoryId(filteredCats[0].id);
-                             setSelectedService(null);
-                          }
-                       } else {
-                          const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
-                          if (!isCurrentCompatible) {
-                             setCategoryId(filteredCats[0].id);
-                             setSelectedService(null);
-                          }
-                       }
-                   }
+              if (matchedNet.id !== networkIdRef.current) {
+                setNetworkId(matchedNet.id);
+              }
+              const catsForNet = matchedNet.categories;
+              let filteredCats = catsForNet;
+              if (analysisData.suggestedCategories && analysisData.suggestedCategories.length > 0) {
+                const f = catsForNet.filter(c => matchesSuggestedCategory(c.name, analysisData.suggestedCategories, c.analyzerTags, analysisData.type));
+                if (f.length > 0) filteredCats = f;
+              }
+              if (filteredCats.length > 0) {
+                // Smart Adaptive Flow: If link is entered and no service selected
+                if (url.trim().length >= 5) {
+                  // SRS Rule 1.3: Smart Auto-Select when N=1
+                  if (filteredCats.length === 1) {
+                    setCategoryId(filteredCats[0].id);
+                  } else {
+                    setCategoryId("");
+                  }
+                } else {
+                  const isCurrentCompatible = filteredCats.some(c => c.id === categoryIdRef.current);
+                  if (!isCurrentCompatible) {
+                    setCategoryId(filteredCats[0].id);
+                  }
                 }
+              }
             }
           }
         } else {
@@ -519,8 +511,10 @@ export function useOrderEngine(
     }
   }, [platform, manualPlatform, catalog, suggestedCategories, categoryId, url]);
 
-  // Handle cascaded selections (Network -> Category) manually
+  // Handle cascaded selections (Network -> Category) manually (only in catalog browsing mode)
   useEffect(() => {
+     // If user has already selected a service (checkout mode), do NOT auto-switch category or clear service
+     if (selectedServiceRef.current) return;
      if (networkId && catalog.length > 0) {
         // Reset media group URL when switching networks
         setMediaGroupUrl("");
@@ -532,19 +526,10 @@ export function useOrderEngine(
               : [];
            const availableCats = matchedCats.length > 0 ? matchedCats : catsForNet;
            if (availableCats.length > 0 && !availableCats.some(c => c.id === categoryId)) {
-              if (url.trim().length >= 5 && !selectedServiceRef.current) {
+              if (url.trim().length >= 5) {
                  setCategoryId("");
-              } else if (selectedServiceRef.current) {
-                 const currentSvc = selectedServiceRef.current;
-                 const svcTargetType = resolveServiceTargetType(currentSvc);
-                 const isSvcCompatible = !detectedType || isLinkServiceCompatible(detectedType, svcTargetType);
-                 if (!isSvcCompatible) {
-                    setCategoryId(availableCats[0].id);
-                    setSelectedService(null);
-                 }
               } else {
                  setCategoryId(availableCats[0].id);
-                 setSelectedService(null);
               }
            }
         }
@@ -556,6 +541,7 @@ export function useOrderEngine(
     // If we already pre-fetched services during SSR for the initial default category, reuse them instantly
     if (isInitialServicesMount.current && categoryId === defaultCat?.id && initialServices.length > 0) {
       isInitialServicesMount.current = false;
+      categoryServicesCache.current[categoryId] = initialServices;
       if (initialServiceId && !selectedServiceRef.current) {
         const found = initialServices.find(s => s.id === initialServiceId);
         if (found) setSelectedService(found);
@@ -566,7 +552,9 @@ export function useOrderEngine(
 
     if (!categoryId) {
       setServices([]);
-      setSelectedService(null);
+      if (!selectedServiceRef.current) {
+        setSelectedService(null);
+      }
       setIsLoading(false);
       setIsServicesLoading(false);
       setDripFeedEnabled(false);
@@ -581,11 +569,10 @@ export function useOrderEngine(
     const cachedSvcs = categoryServicesCache.current[categoryId];
     if (cachedSvcs && cachedSvcs.length > 0) {
       let finalSvcs = cachedSvcs;
-      if (detectedType && isLinkFilled) {
+      // Only filter catalog services if user has NOT selected a service yet
+      if (detectedType && isLinkFilled && !selectedServiceRef.current) {
         finalSvcs = cachedSvcs.filter(s =>
-          // FIX: s.targetType is always "POST" by default (Prisma schema),
-          // so the || operator would never invoke inferTargetTypeFromName.
-          // resolveServiceTargetType() correctly overrides "POST" with name-inferred type.
+          // FIX: resolveServiceTargetType() correctly overrides "POST" with name-inferred type.
           isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
         );
       }
@@ -599,9 +586,11 @@ export function useOrderEngine(
       return;
     }
 
-    // Clear and set loading state for fresh category fetch
+    // Clear and set loading state for fresh category fetch (preserve selectedService if user is checking out)
     setServices([]);
-    setSelectedService(null);
+    if (!selectedServiceRef.current) {
+      setSelectedService(null);
+    }
 
     const currentRequestId = ++serviceRequestIdRef.current;
 
@@ -623,12 +612,10 @@ export function useOrderEngine(
 
         categoryServicesCache.current[categoryId] = sortedSvcs;
 
-        // ZERO-DEAD-END INVARIANT: If detectedType is active, strictly filter compatible services
+        // ZERO-DEAD-END INVARIANT: If detectedType is active and user is in catalog browsing mode, filter compatible services
         let finalSvcs = sortedSvcs;
-        if (detectedType && isLinkFilled) {
+        if (detectedType && isLinkFilled && !selectedServiceRef.current) {
           const compatibleSvcs = sortedSvcs.filter(s =>
-            // FIX: resolveServiceTargetType() overrides Prisma's default "POST" with
-            // name-inferred type (e.g., "Подписчики Telegram" → CHANNEL).
             isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
           );
           finalSvcs = compatibleSvcs;
@@ -640,17 +627,17 @@ export function useOrderEngine(
            const found = finalSvcs.find(s => s.id === initialServiceId);
            if (found) {
               setSelectedService(found);
-           } else {
-              setSelectedService(null);
            }
-        } else {
+        } else if (!selectedServiceRef.current) {
            setSelectedService(null);
         }
       } catch (err) {
         if (currentRequestId !== serviceRequestIdRef.current) return;
         console.error("Failed to load services:", err);
         setServices([]);
-        setSelectedService(null);
+        if (!selectedServiceRef.current) {
+          setSelectedService(null);
+        }
         toast.error("Не удалось загрузить услуги. Проверьте подключение к сети.");
       } finally {
         if (currentRequestId === serviceRequestIdRef.current) {

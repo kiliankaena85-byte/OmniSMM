@@ -136,3 +136,16 @@ description: Комплексный протокол непрерывного с
 - **Files Affected:** `src/actions/admin/catalog/services.ts`, `src/app/admin/catalog/components/service-edit-form.tsx`, `src/app/admin/catalog/new/page.tsx`
 - **Verified Date:** 2026-09-14
 
+### [LESSON-2026-09-14-SIL-E] checkout-session-link-retention-invariant (CRITICAL)
+- **Trigger Condition:** Вставка или ввод URL в поле оформления заказа (`PlanFullscreenCheckout`) сбрасывала `selectedService` в `null`, что приводило к внезапному закрытию формы заказа и принудительному выбросу пользователя обратно в каталог услуг.
+- **Root Cause:** Тройная регрессия в `useOrderEngine.ts`:
+  1. `analyzeUrl` при несовпадении `targetType` ссылки вызывал `setSelectedService(null)` и переключал `categoryId`.
+  2. Эффект 2 (каскадный выбор категорий) при несовместимости `detectedType` вызывал `setSelectedService(null)`.
+  3. Эффект 3 (загрузка услуг) зависел от `url.trim().length >= 5` и `detectedType`, и при пустом кэше SSR вызывал `setSelectedService(null)` при любом вводе символа в поле URL.
+- **Enforced Solution Pattern:** Железный инвариант удержания сессии чекаута (Checkout Session Retention Invariant — CSR-2026): как только пользователь выбрал услугу (`selectedServiceRef.current` установлен), любые манипуляции со ссылкой (вставка, стирание, редактирование, ReDoS/incompatible link) ОБЯЗАНЫ сохранять `selectedService`. Ошибки и несовместимости ссылки должны отображаться строго в виде предупреждений/валидаторов внутри формы (`linkCompatibilityWarning`), а не приводить к демонтажу компонента чекаута.
+- **Anti-Pattern:** Вызов `setSelectedService(null)` из асинхронных эффектов анализа URL или смены категорий при активном чекауте.
+- **Correct Pattern:** Ограждение `if (!selectedServiceRef.current)` для всех автоматических переключений сети, категорий и очистки выбранной услуги; кэширование `initialServices` при инициализации.
+- **Files Affected:** `src/hooks/useOrderEngine.ts`, `src/__tests__/checkout-link-retention.test.ts`
+- **Verified Date:** 2026-09-14
+
+
