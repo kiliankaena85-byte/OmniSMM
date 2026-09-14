@@ -2,6 +2,7 @@ import {
   TargetTypeEnum,
   normalizeTargetType,
   inferTargetTypeFromName,
+  resolveServiceTargetType,
   isTargetTypeCompatible,
   type ServiceTargetType
 } from './target-type-mapper';
@@ -10,6 +11,7 @@ export {
   TargetTypeEnum,
   normalizeTargetType,
   inferTargetTypeFromName,
+  resolveServiceTargetType,
   isTargetTypeCompatible,
   type ServiceTargetType
 };

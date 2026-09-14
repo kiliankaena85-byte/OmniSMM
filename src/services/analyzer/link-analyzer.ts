@@ -6,6 +6,7 @@ interface IntelligenceLinkMetadata {
     isLive?: boolean;
     context?: string;
     isPrivate?: boolean;
+    isPrivateInvite?: boolean;
     isAlbum?: boolean;
     isMediaGroupCandidate?: boolean;
     advice?: string;
@@ -178,6 +179,7 @@ export class IntelligenceLinkAnalyzer {
                     metadata: {
                         isLive: decodedUrl.includes('/live/') || decodedUrl.includes('/reel/'),
                         context: rule.context,
+                        isPrivateInvite: rule.context === 'private_invite' || decodedUrl.includes('/joinchat/') || decodedUrl.includes('/+'),
                         isAlbum: isSinglePhoto,
                         isMediaGroupCandidate: isTgPost,
                         advice

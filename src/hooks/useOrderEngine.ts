@@ -297,6 +297,7 @@ export function useOrderEngine(
 
 
   const isImmediateRef = useRef(false);
+  const currentRequestIdRef = useRef(0);
 
   const handleSetUrl = useCallback((newUrl: string, immediate = false) => {
     if (immediate) isImmediateRef.current = true;
@@ -380,10 +381,12 @@ export function useOrderEngine(
   // 2. Analyze URL (Debounced)
   useEffect(() => {
     if (!url || url.length < 5) {
+      currentRequestIdRef.current++;
       setPlatform(null);
       setManualPlatform(null);
       setSuggestedCategories([]);
       setDetectedType(null);
+      setUrlHint(null);
       setIsLoading(false);
       return;
     }
@@ -394,14 +397,15 @@ export function useOrderEngine(
     let stale = false;
     const delay = isImmediateRef.current ? 0 : 350;
     isImmediateRef.current = false;
+    const requestId = ++currentRequestIdRef.current;
 
     const handler = setTimeout(async () => {
-      if (stale) return;
+      if (stale || requestId !== currentRequestIdRef.current) return;
       setIsLoading(true);
       setError(null);
       try {
         const res = await analyzeUrl(url.trim());
-        if (stale) return; // effect was cleaned up during fetch
+        if (stale || requestId !== currentRequestIdRef.current) return; // effect was cleaned up or newer request dispatched
         if (res.userHint) {
           setUrlHint(res.userHint);
         } else {
@@ -468,9 +472,9 @@ export function useOrderEngine(
       } catch (err) {
         console.error("URL analysis failed:", err);
       } finally {
-        if (!stale) setIsLoading(false);
+        if (!stale && requestId === currentRequestIdRef.current) setIsLoading(false);
       }
-    }, 350);
+    }, delay);
 
     return () => { stale = true; clearTimeout(handler); };
      

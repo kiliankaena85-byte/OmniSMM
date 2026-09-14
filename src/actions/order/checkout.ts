@@ -18,7 +18,7 @@ import { getBaseUrlSync } from "@/utils/get-base-url";
 import { featureFlagService } from "@/services/system/feature-flag.service";
 import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
 import { validateProhibitedContent } from '@/validators/prohibited-content';
-import { inferTargetTypeFromCategory, normalizeTargetType, TargetTypeEnum } from '@/utils/target-type';
+import { inferTargetTypeFromCategory, normalizeTargetType, resolveServiceTargetType, TargetTypeEnum } from '@/utils/target-type';
 import { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } from '@/constants/link-service-compatibility';
 import { safeUrlForLog } from '@/lib/log-safe';
 import { SmartDripService } from '@/services/dripfeed/smart-drip.service';
@@ -279,9 +279,10 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
         throw new Error("Неверный формат ссылки.", { cause: e });
       }
     } else {
-      const resolvedTargetType = service.targetType
-        ? normalizeTargetType(service.targetType)
-        : inferTargetTypeFromCategory(service.category?.name);
+      const resolvedTargetTypeStr = resolveServiceTargetType(service);
+      const resolvedTargetType = normalizeTargetType(
+        resolvedTargetTypeStr || inferTargetTypeFromCategory(service.category?.name)
+      );
 
       // Deep Domain Compatibility Check (Backend Defense Guard)
       let detectedLinkType = 'generic_link';
@@ -301,7 +302,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
         throw new Error(errorMsg);
       }
 
-      if (resolvedTargetType === TargetTypeEnum.CUSTOM || service.targetType === 'CUSTOM') {
+      if (resolvedTargetType === TargetTypeEnum.CUSTOM || resolvedTargetTypeStr === 'CUSTOM' || service.targetType === 'CUSTOM') {
         const { getCustomValidator } = await import('@/validators/link-mutators');
         const customValidator = getCustomValidator(service.customDataType);
         const customValue = customData || link;

@@ -7,6 +7,7 @@ import { safeUrlForLog } from "@/lib/log-safe";
 
 import { IntelligenceAnalysisResult } from "@/services/analyzer/link-analyzer";
 
+const MAX_ANALYZE_CACHE_ENTRIES = 1000;
 const analyzeCache = new Map<string, { data: IntelligenceAnalysisResult; expiresAt: number }>();
 
 function isUrlSafeForFetch(urlString: string): boolean {
@@ -79,8 +80,11 @@ export async function analyzeUrl(url: string): Promise<{
     }
 
     const cached = analyzeCache.get(url);
-    if (cached && cached.expiresAt > Date.now()) {
-      return { success: true, data: cached.data };
+    if (cached) {
+      if (cached.expiresAt > Date.now()) {
+        return { success: true, data: cached.data };
+      }
+      analyzeCache.delete(url);
     }
 
     const analyzer = new IntelligenceLinkAnalyzer();
@@ -100,6 +104,10 @@ export async function analyzeUrl(url: string): Promise<{
       };
     }
 
+    if (analyzeCache.size >= MAX_ANALYZE_CACHE_ENTRIES) {
+      const oldestKey = analyzeCache.keys().next().value;
+      if (oldestKey) analyzeCache.delete(oldestKey);
+    }
     analyzeCache.set(url, { data: result, expiresAt: Date.now() + 60000 });
 
     return { success: true, data: result };

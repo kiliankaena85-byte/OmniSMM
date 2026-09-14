@@ -111262,8 +111262,15 @@ var init_link_rules = __esm({
       },
       {
         platform: "TELEGRAM" /* TELEGRAM */,
+        type: "story",
+        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/([\w-]+)\/s\/(\d+)\/?(?:\?.*)?$/i,
+        suggestedCategories: [CATEGORY_LABELS.STORIES, CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.REACTIONS],
+        context: "temporary_story"
+      },
+      {
+        platform: "TELEGRAM" /* TELEGRAM */,
         type: "post",
-        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/(?:s\/)?(\d+)\/?(?:\?.*)?$/i,
+        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/(?:topic\/|\d+\/)?(\d+)\/?(?:\?.*)?$/i,
         suggestedCategories: [CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.REACTIONS, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.REPOSTS, CATEGORY_LABELS.STARS],
         context: "engagement"
       },
@@ -111277,7 +111284,14 @@ var init_link_rules = __esm({
       {
         platform: "TELEGRAM" /* TELEGRAM */,
         type: "channel",
-        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)?(?:s\/)?@?([\w-]+)\/?(?:\?.*)?$|web\.telegram\.org\/(?:k|a)\/#@?([\w-]+)/i,
+        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)([\w-]+)\/?(?:\?.*)?$/i,
+        suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS],
+        context: "private_invite"
+      },
+      {
+        platform: "TELEGRAM" /* TELEGRAM */,
+        type: "channel",
+        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?@?([\w-]+)\/?(?:\?.*)?$|web\.telegram\.org\/(?:k|a)\/#@?([\w-]+)/i,
         suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS, CATEGORY_LABELS.PREMIUM, CATEGORY_LABELS.BOOSTS, CATEGORY_LABELS.GROUPS, CATEGORY_LABELS.STORIES, CATEGORY_LABELS.STARS, CATEGORY_LABELS.AUTO_VIEWS, CATEGORY_LABELS.AUTO_REACTIONS, CATEGORY_LABELS.AUTO_REPOSTS],
         context: "global_search_optimization"
       },
@@ -112175,6 +112189,7 @@ var init_link_analyzer = __esm({
               metadata: {
                 isLive: decodedUrl.includes("/live/") || decodedUrl.includes("/reel/"),
                 context: rule.context,
+                isPrivateInvite: rule.context === "private_invite" || decodedUrl.includes("/joinchat/") || decodedUrl.includes("/+"),
                 isAlbum: isSinglePhoto,
                 isMediaGroupCandidate: isTgPost,
                 advice
@@ -112356,7 +112371,8 @@ __export2(target_type_exports, {
   isCompatible: () => isCompatible,
   isHybridViewCategory: () => isHybridViewCategory,
   isTargetTypeCompatible: () => isTargetTypeCompatible,
-  normalizeTargetType: () => normalizeTargetType
+  normalizeTargetType: () => normalizeTargetType,
+  resolveServiceTargetType: () => resolveServiceTargetType
 });
 function isCompatible(serviceType, linkType) {
   return isTargetTypeCompatible(linkType, serviceType);

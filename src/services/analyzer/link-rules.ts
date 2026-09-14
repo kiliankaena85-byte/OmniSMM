@@ -59,8 +59,15 @@ export const LINK_RULES: LinkRule[] = [
   },
   {
       platform: IntelligencePlatform.TELEGRAM,
+      type: 'story',
+      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/([\w-]+)\/s\/(\d+)\/?(?:\?.*)?$/i,
+      suggestedCategories: [CATEGORY_LABELS.STORIES, CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.REACTIONS],
+      context: 'temporary_story'
+  },
+  {
+      platform: IntelligencePlatform.TELEGRAM,
       type: 'post',
-      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/[\w-]+\/(?:s\/)?(\d+)\/?(?:\?.*)?$/i,
+      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/(?:topic\/|\d+\/)?(\d+)\/?(?:\?.*)?$/i,
       suggestedCategories: [CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.REACTIONS, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.REPOSTS, CATEGORY_LABELS.STARS],
       context: 'engagement'
   },
@@ -74,7 +81,14 @@ export const LINK_RULES: LinkRule[] = [
   {
       platform: IntelligencePlatform.TELEGRAM,
       type: 'channel',
-      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)?(?:s\/)?@?([\w-]+)\/?(?:\?.*)?$|web\.telegram\.org\/(?:k|a)\/#@?([\w-]+)/i,
+      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)([\w-]+)\/?(?:\?.*)?$/i,
+      suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS],
+      context: 'private_invite'
+  },
+  {
+      platform: IntelligencePlatform.TELEGRAM,
+      type: 'channel',
+      pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?@?([\w-]+)\/?(?:\?.*)?$|web\.telegram\.org\/(?:k|a)\/#@?([\w-]+)/i,
       suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS, CATEGORY_LABELS.PREMIUM, CATEGORY_LABELS.BOOSTS, CATEGORY_LABELS.GROUPS, CATEGORY_LABELS.STORIES, CATEGORY_LABELS.STARS, CATEGORY_LABELS.AUTO_VIEWS, CATEGORY_LABELS.AUTO_REACTIONS, CATEGORY_LABELS.AUTO_REPOSTS],
       context: 'global_search_optimization'
   },
