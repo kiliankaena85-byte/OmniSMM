@@ -4,6 +4,8 @@ export const SHORT_LINK_HOSTS = new Set([
   'bit.ly',
   'youtu.be',
   'vm.tiktok.com',
+  // NOTE: vt.tiktok.com is NOT here — it's handled directly by LINK_RULES pattern
+  // without needing HTTP resolution (adding it here would cause real HTTP fetches in tests)
   't.co',
   'cutt.ly',
   'clck.ru',

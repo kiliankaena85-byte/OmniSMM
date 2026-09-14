@@ -19,14 +19,14 @@ export function stripQueryParams(url: string): string {
     const parsed = new URL(trimmed);
     const searchParams = parsed.searchParams;
     
-    // Prefix list of parameters to drop
-    const blackListPrefixes = [
-      "igsh", "igshid", "utm_", "fbclid", "gclid", "yclid", "ttref", "feature", "si", "ref"
-    ];
+    // BUG-3 fix (SIL-2026): split into exact-match set and prefix-match list
+    // Prevents "si" from greedily matching sidebar/size/signal on third-party sites
+    const exactBlocklist = new Set(["igsh", "igshid", "fbclid", "gclid", "yclid", "ttref", "feature", "si", "ref"]);
+    const prefixBlocklist = ["utm_"];
 
     const keysToDelete: string[] = [];
     searchParams.forEach((_, key) => {
-      if (blackListPrefixes.some(p => key.startsWith(p))) {
+      if (exactBlocklist.has(key) || prefixBlocklist.some(p => key.startsWith(p))) {
         keysToDelete.push(key);
       }
     });

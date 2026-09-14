@@ -213,14 +213,16 @@ export const LINK_RULES: LinkRule[] = [
   {
       platform: IntelligencePlatform.TWITTER,
       type: 'post',
-      pattern: /(?:twitter\.com|x\.com)\/([\w]+)\/status\/(\d+)/,
+      // BUG-FIX (SIL-2026): anchor host with (?:^|[./]) to prevent substring match inside yandex.com etc.
+      pattern: /(?:(?:^|[./])twitter\.com|(?:^|[./])x\.com)\/([\w]+)\/status\/(\d+)/,
       suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.REPOSTS, CATEGORY_LABELS.VIEWS, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.BOOKMARKS],
       context: 'social_reach'
   },
   {
       platform: IntelligencePlatform.TWITTER,
       type: 'profile',
-      pattern: /(?:twitter\.com|x\.com)\/([\w]+)/,
+      // BUG-FIX (SIL-2026): anchor host with (?:^|[./]) to prevent substring match inside yandex.com etc.
+      pattern: /(?:(?:^|[./])twitter\.com|(?:^|[./])x\.com)\/([\w]+)/,
       suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS, CATEGORY_LABELS.AUTO_VIEWS],
       context: 'social_presence'
   },

@@ -97,3 +97,23 @@ description: Комплексный протокол непрерывного с
 - **Trigger Condition:** Ручной запуск изолированных скриптов проверки без единого координатора приводил к пропуску шагов проверки верстки или секретов.
 - **Enforced Solution Pattern:** Использование единого оркестратора `scripts/self-improving-orchestrator.ts` (`npm run loop:self-improve`), агрегирующего все 5 фаз в единую матрицу готовности.
 - **Verified Date:** 2026-09-14
+
+### [LESSON-2026-09-14-SIL-A] link-rules-substring-domain-trap (CRITICAL)
+- **Trigger Condition:** SIL мутационный тест-вектор `music.yandex.com` обнаружил, что паттерн `(?:twitter\.com|x\.com)` матчит `x.com` как подстроку внутри `yandex.com` → все Яндекс-ссылки неверно классифицировались как TWITTER.
+- **Root Cause:** Regex без хост-якоря (`(?:^|[./])`) позволяет короткому домену (`x.com`) совпадать внутри более длинного (`yandex.com`). Паттерн работает на нормализованном URL-строке, не на parsed hostname.
+- **Enforced Solution Pattern:** Все платформенные regex-паттерны в `LINK_RULES` для коротких/ambiguous доменов (особенно TLD-like: `x.com`, `t.co`, `is.gd`) ОБЯЗАНЫ использовать якорь-префикс `(?:^|[./])` перед доменом.
+- **Anti-Pattern:** `/(x\.com)\//` — ловит yandex.com, marx.com, linux.com
+- **Correct Pattern:** `/(?:^|[./])x\.com\//` — только точное совпадение хоста
+- **Files Affected:** `src/services/analyzer/link-rules.ts`
+- **Verified Fix Commit:** SIL-2026-09-14
+- **Verified Date:** 2026-09-14
+
+### [LESSON-2026-09-14-SIL-B] query-param-striplist-greedy-prefix (MEDIUM)
+- **Trigger Condition:** SIL аудит выявил, что `si` в blacklist через `startsWith()` удаляет query-параметры `size`, `sidebar`, `signal`, `side` у сторонних сайтов.
+- **Root Cause:** Использование единого `prefixBlocklist` со `startsWith()` для коротких ключей без prefix (2 буквы `si`) — избыточно жадно.
+- **Enforced Solution Pattern:** Разделить tracking-список на два: `exactBlocklist` (Set, full-key match) для `si`, `ref`, `igsh` и `prefixBlocklist` (array, startsWith) только для `utm_`.
+- **Anti-Pattern:** `blackListPrefixes.some(p => key.startsWith(p))` с `si` в списке
+- **Correct Pattern:** `exactBlocklist.has(key) || prefixBlocklist.some(p => key.startsWith(p))`
+- **Files Affected:** `src/utils/link-normalizer.ts`
+- **Verified Fix Commit:** SIL-2026-09-14
+- **Verified Date:** 2026-09-14
