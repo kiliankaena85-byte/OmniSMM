@@ -15,9 +15,20 @@ export enum TargetTypeEnum {
   COMMENTS = 'COMMENTS',
   BOT = 'BOT',
   CUSTOM = 'CUSTOM',
+
+  // === Псевдонимы обратной совместимости с Движком №1 (Legacy ServiceTargetType) ===
+  POST_INTERACTION = 'POST',
+  VIDEO_INTERACTION = 'VIDEO',
+  STORY_INTERACTION = 'STORY',
+  POLL_VOTES = 'POLL',
+  BOT_STARTS = 'BOT',
 }
 
+export const LinkType = TargetTypeEnum;
+export type LinkType = TargetTypeEnum;
+
 export type ServiceTargetType =
+  | TargetTypeEnum
   | 'CHANNEL'
   | 'POST'
   | 'PROFILE'
@@ -27,7 +38,12 @@ export type ServiceTargetType =
   | 'COMMENTS'
   | 'CHANNEL_POSTS'
   | 'BOT'
-  | 'CUSTOM';
+  | 'CUSTOM'
+  | 'POST_INTERACTION'
+  | 'VIDEO_INTERACTION'
+  | 'STORY_INTERACTION'
+  | 'POLL_VOTES'
+  | 'BOT_STARTS';
 
 /**
  * Normalizes any detected link type string into canonical uppercase TargetTypeEnum.
@@ -41,6 +57,12 @@ export function normalizeTargetType(rawType: string | null | undefined): TargetT
     case 'CHANNEL':
     case 'GROUP':
     case 'CHAT':
+    case 'PUBLIC':
+    case 'COMMUNITY':
+    case 'COMMUNITIES':
+    case 'SUBSCRIBERS':
+    case 'MEMBERS':
+    case 'BOOST':
       return TargetTypeEnum.CHANNEL;
 
     case 'POST':
@@ -49,11 +71,21 @@ export function normalizeTargetType(rawType: string | null | undefined): TargetT
     case 'WALL':
     case 'TWEET':
     case 'STATUS':
+    case 'TRACK':
+    case 'POST_INTERACTION':
+    case 'LIKES':
+    case 'REACTIONS':
+    case 'VIEWS':
+    case 'REPOSTS':
+    case 'SHARES':
       return TargetTypeEnum.POST;
 
     case 'PROFILE':
     case 'USER':
     case 'ACCOUNT':
+    case 'ARTIST':
+    case 'FOLLOWERS':
+    case 'FRIENDS':
       return TargetTypeEnum.PROFILE;
 
     case 'VIDEO':
@@ -65,28 +97,46 @@ export function normalizeTargetType(rawType: string | null | undefined): TargetT
     case 'VK_VIDEO':
     case 'VK_CLIP':
     case 'VK_PLAY':
+    case 'PHOTO_MODE':
+    case 'VIDEO_INTERACTION':
+    case 'WATCH_TIME':
+    case 'LIVESTREAM':
       return TargetTypeEnum.VIDEO;
 
     case 'STORY':
     case 'STORIES':
+    case 'HIGHLIGHT':
+    case 'HIGHLIGHTS':
+    case 'STORY_INTERACTION':
       return TargetTypeEnum.STORY;
 
     case 'POLL':
     case 'VOTE':
+    case 'VOTES':
+    case 'POLL_VOTES':
       return TargetTypeEnum.POLL;
 
     case 'COMMENT':
     case 'COMMENTS':
+    case 'REVIEWS':
       return TargetTypeEnum.COMMENTS;
 
     case 'BOT':
+    case 'REFERRAL':
+    case 'BOT_STARTS':
       return TargetTypeEnum.BOT;
 
     case 'CHANNEL_POSTS':
     case 'AUTO_POSTS':
+    case 'AUTO_VIEWS':
+    case 'AUTO_LIKES':
     case 'AUTO':
       return TargetTypeEnum.CHANNEL_POSTS;
 
+    case 'CUSTOM':
+    case 'GENERIC_LINK':
+    case 'OTHER':
+    case 'UNKNOWN':
     default:
       return TargetTypeEnum.CUSTOM;
   }
@@ -213,11 +263,80 @@ export function resolveServiceTargetType(service: { name?: string; targetType?: 
 }
 
 /**
+ * Unified Compatibility Truth Table (10x10 Matrix according to SPEC-2026-09-14)
+ */
+const UNIFIED_COMPATIBILITY_MAP: Record<TargetTypeEnum, Set<TargetTypeEnum>> = {
+  [TargetTypeEnum.CHANNEL]: new Set([
+    TargetTypeEnum.CHANNEL,
+    TargetTypeEnum.CHANNEL_POSTS,
+    TargetTypeEnum.PROFILE,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.PROFILE]: new Set([
+    TargetTypeEnum.PROFILE,
+    TargetTypeEnum.CHANNEL,
+    TargetTypeEnum.CHANNEL_POSTS, // Anomaly 1.3: IG/TikTok profile post monitoring
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.POST]: new Set([
+    TargetTypeEnum.POST,
+    TargetTypeEnum.VIDEO,
+    TargetTypeEnum.COMMENTS,
+    TargetTypeEnum.POLL, // Anomaly 1.2: TG/VK polls inside posts
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.VIDEO]: new Set([
+    TargetTypeEnum.VIDEO,
+    TargetTypeEnum.POST,
+    TargetTypeEnum.COMMENTS, // Anomaly 1.1: Comments on videos/clips
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.STORY]: new Set([
+    TargetTypeEnum.STORY,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.POLL]: new Set([
+    TargetTypeEnum.POLL,
+    TargetTypeEnum.POST,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.BOT]: new Set([
+    TargetTypeEnum.BOT,
+    TargetTypeEnum.CHANNEL,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.COMMENTS]: new Set([
+    TargetTypeEnum.COMMENTS,
+    TargetTypeEnum.POST,
+    TargetTypeEnum.VIDEO,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.CHANNEL_POSTS]: new Set([
+    TargetTypeEnum.CHANNEL_POSTS,
+    TargetTypeEnum.CHANNEL,
+    TargetTypeEnum.PROFILE,
+    TargetTypeEnum.CUSTOM,
+  ]),
+  [TargetTypeEnum.CUSTOM]: new Set([
+    TargetTypeEnum.CHANNEL,
+    TargetTypeEnum.PROFILE,
+    TargetTypeEnum.POST,
+    TargetTypeEnum.VIDEO,
+    TargetTypeEnum.STORY,
+    TargetTypeEnum.POLL,
+    TargetTypeEnum.BOT,
+    TargetTypeEnum.COMMENTS,
+    TargetTypeEnum.CHANNEL_POSTS,
+    TargetTypeEnum.CUSTOM,
+  ]),
+};
+
+/**
  * Checks whether a detected URL link target type is compatible with a Service target type.
  */
 export function isTargetTypeCompatible(
-  detectedLinkType: string | null | undefined,
-  serviceTargetType: string | null | undefined
+  detectedLinkType: TargetTypeEnum | string | null | undefined,
+  serviceTargetType: TargetTypeEnum | string | null | undefined
 ): boolean {
   if (!detectedLinkType || !serviceTargetType) return true;
 
@@ -227,46 +346,57 @@ export function isTargetTypeCompatible(
   if (detected === TargetTypeEnum.CUSTOM || service === TargetTypeEnum.CUSTOM) return true;
   if (detected === service) return true;
 
-  switch (detected) {
-    case TargetTypeEnum.CHANNEL:
-      return (
-        service === TargetTypeEnum.CHANNEL ||
-        service === TargetTypeEnum.CHANNEL_POSTS ||
-        service === TargetTypeEnum.PROFILE
-      );
+  const allowedTargets = UNIFIED_COMPATIBILITY_MAP[detected];
+  if (!allowedTargets) return true;
 
-    case TargetTypeEnum.POST:
-      return (
-        service === TargetTypeEnum.POST ||
-        service === TargetTypeEnum.VIDEO ||
-        service === TargetTypeEnum.COMMENTS
-      );
+  return allowedTargets.has(service);
+}
 
-    case TargetTypeEnum.PROFILE:
-      return (
-        service === TargetTypeEnum.PROFILE ||
-        service === TargetTypeEnum.CHANNEL
-      );
+/**
+ * Alias for 100% backward compatibility with Engine 1 imports
+ */
+export const isLinkServiceCompatible = isTargetTypeCompatible;
 
-    case TargetTypeEnum.VIDEO:
-      return (
-        service === TargetTypeEnum.VIDEO ||
-        service === TargetTypeEnum.POST
-      );
+/**
+ * Human-readable, educational error messages for incompatible combinations.
+ */
+export function getCompatibilityError(
+  rawLinkType: TargetTypeEnum | string | null | undefined,
+  rawTargetType: TargetTypeEnum | string | null | undefined,
+  serviceName?: string
+): string {
+  const link = normalizeTargetType(rawLinkType);
+  const target = normalizeTargetType(rawTargetType);
 
-    case TargetTypeEnum.STORY:
-      return service === TargetTypeEnum.STORY;
+  const prefix = serviceName ? `Услуга «${serviceName}»` : 'Выбранная услуга';
 
-    case TargetTypeEnum.POLL:
-      return service === TargetTypeEnum.POLL || service === TargetTypeEnum.POST;
-
-    case TargetTypeEnum.BOT:
-      return service === TargetTypeEnum.BOT || service === TargetTypeEnum.CHANNEL;
-
-    case TargetTypeEnum.CHANNEL_POSTS:
-      return service === TargetTypeEnum.CHANNEL_POSTS || service === TargetTypeEnum.CHANNEL;
-
-    default:
-      return true;
+  if (link === TargetTypeEnum.PROFILE && target === TargetTypeEnum.POST) {
+    return `${prefix} предназначена для публикаций (лайки/просмотры/реакции). Для ее выполнения укажите прямую ссылку на конкретный пост или фото, а не на страницу профиля.`;
   }
+
+  if (link === TargetTypeEnum.CHANNEL && target === TargetTypeEnum.POST) {
+    return `${prefix} применяется к конкретным записям. Укажите ссылку на отдельный пост в канале (например, https://t.me/channel/123), а не на канал целиком.`;
+  }
+
+  if (link === TargetTypeEnum.POST && target === TargetTypeEnum.CHANNEL) {
+    return `${prefix} предназначена для привлечения подписчиков в канал/группу. Пожалуйста, укажите ссылку на сам канал (например, https://t.me/channel), а не на отдельную публикацию.`;
+  }
+
+  if (link === TargetTypeEnum.POST && target === TargetTypeEnum.PROFILE) {
+    return `${prefix} предназначена для подписчиков на аккаунт/профиль. Укажите ссылку на страницу профиля, а не на отдельный пост.`;
+  }
+
+  if (link === TargetTypeEnum.POST && target === TargetTypeEnum.CHANNEL_POSTS) {
+    return `${prefix} — это пакет авто-активностей на будущие публикации канала. Для ее запуска требуется ссылка на канал целиком, а не на разовый пост.`;
+  }
+
+  if (link === TargetTypeEnum.STORY && target !== TargetTypeEnum.STORY) {
+    return `${prefix} не совместима со ссылками на Истории (Stories). Для историй доступны только просмотры и реакции на сториз.`;
+  }
+
+  if (link !== TargetTypeEnum.STORY && target === TargetTypeEnum.STORY) {
+    return `${prefix} работает исключительно со ссылками на Истории (Stories). Укажите прямую ссылку на активную историю.`;
+  }
+
+  return `${prefix} (тип цели: ${target}) несовместима с указанным типом ссылки (${link}). Пожалуйста, проверьте формат ссылки.`;
 }

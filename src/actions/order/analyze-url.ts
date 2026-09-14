@@ -58,12 +58,16 @@ export async function analyzeUrl(url: string): Promise<{
        return { success: false, error: "Too many URL analysis requests." };
     }
 
-    const cached = analyzeCache.get(url);
+    const normalizedCacheKey = url.trim().toLowerCase().replace(/\/+$/, '');
+    const cached = analyzeCache.get(normalizedCacheKey);
     if (cached) {
       if (cached.expiresAt > Date.now()) {
+        // True LRU: move to most-recently-used position on hit
+        analyzeCache.delete(normalizedCacheKey);
+        analyzeCache.set(normalizedCacheKey, cached);
         return { success: true, data: cached.data };
       }
-      analyzeCache.delete(url);
+      analyzeCache.delete(normalizedCacheKey);
     }
 
     const analyzer = new IntelligenceLinkAnalyzer();
@@ -87,7 +91,7 @@ export async function analyzeUrl(url: string): Promise<{
       const oldestKey = analyzeCache.keys().next().value;
       if (oldestKey) analyzeCache.delete(oldestKey);
     }
-    analyzeCache.set(url, { data: result, expiresAt: Date.now() + 60000 });
+    analyzeCache.set(normalizedCacheKey, { data: result, expiresAt: Date.now() + 60000 });
 
     return { success: true, data: result };
   } catch (error) {

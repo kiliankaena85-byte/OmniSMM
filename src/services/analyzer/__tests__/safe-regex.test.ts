@@ -67,7 +67,7 @@ describe('SafeRegexValidator - ReDoS Audit & Benchmarks', () => {
     const mask = 't.me/{channel}/{postId}';
     const regex = SafeRegexValidator.maskToRegex(mask);
 
-    expect(regex).toBe('t\\.me\\/([a-zA-Z0-9_.-]+)\\/(\\d+)');
+    expect(regex).toBe('t\\.me\\/([-_a-zA-Z0-9.]+)\\/(\\d+)');
 
     const testRes = SafeRegexValidator.testPattern(regex, 't.me/my_channel/105');
     expect(testRes.isMatch).toBe(true);

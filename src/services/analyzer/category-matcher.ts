@@ -102,6 +102,20 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+interface PrecompiledCanonical {
+  key: string;
+  regex: RegExp;
+  synonymsLower: string[];
+}
+
+const PRECOMPILED_CANONICAL_MAP: PrecompiledCanonical[] = Object.entries(CANONICAL_MAP).map(
+  ([key, synonyms]) => ({
+    key: key.toLowerCase(),
+    regex: new RegExp('(^|[\\s/,-])' + escapeRegex(key.toLowerCase()) + '([\\s/,-]|$)', 'i'),
+    synonymsLower: synonyms.map((s) => s.toLowerCase()),
+  })
+);
+
 /**
  * Matches a database category string like '👨‍👩‍👧‍👦 Подписчики / Участники'
  * against an array of suggested short categories like ['Подписчики', 'Автоактивности']
@@ -184,21 +198,11 @@ export function matchesSuggestedCategory(
       if (suggestedNormalized === dbNameNormalized) return true;
     }
     
-    // 4. Canonical map lookup
-    for (const [key, synonyms] of Object.entries(CANONICAL_MAP)) {
-      try {
-        const escapedKey = escapeRegex(key.toLowerCase());
-        const keyRegex = new RegExp('(^|[\\s/,-])' + escapedKey + '([\\s/,-]|$)', 'i');
-        if (keyRegex.test(suggestedNormalized)) {
-          for (const syn of synonyms) {
-            if (dbNameNormalized.includes(syn.toLowerCase())) return true;
-          }
-        }
-      } catch {
-        if (suggestedNormalized.includes(key.toLowerCase())) {
-          for (const syn of synonyms) {
-            if (dbNameNormalized.includes(syn.toLowerCase())) return true;
-          }
+    // 4. Canonical map lookup (O(1) precompiled regexes)
+    for (const item of PRECOMPILED_CANONICAL_MAP) {
+      if (item.regex.test(suggestedNormalized) || suggestedNormalized.includes(item.key)) {
+        for (const syn of item.synonymsLower) {
+          if (dbNameNormalized.includes(syn)) return true;
         }
       }
     }

@@ -1,20 +1,35 @@
+/**
+ * UNIFIED LINK & SERVICE TARGET TYPE CONTRACT (Tier 1 Core)
+ * Single Source of Truth for URL target recognition and service compatibility.
+ * Defined in SPEC-2026-09-14.
+ */
+
 import {
   TargetTypeEnum,
+  LinkType,
   normalizeTargetType,
   inferTargetTypeFromName,
   resolveServiceTargetType,
   isTargetTypeCompatible,
-  type ServiceTargetType
+  isLinkServiceCompatible,
+  getCompatibilityError,
+  type ServiceTargetType,
 } from './target-type-mapper';
 
 export {
   TargetTypeEnum,
+  LinkType,
   normalizeTargetType,
   inferTargetTypeFromName,
   resolveServiceTargetType,
   isTargetTypeCompatible,
-  type ServiceTargetType
+  isLinkServiceCompatible,
+  getCompatibilityError,
+  type ServiceTargetType,
 };
+
+/** Alias for LinkTargetType */
+export type LinkTargetType = TargetTypeEnum;
 
 /**
  * Checks compatibility between Service Target Type and Link Target Type.
@@ -42,4 +57,3 @@ export function inferTargetTypeFromCategory(categoryName: string | null | undefi
   }
   return inferTargetTypeFromName(categoryName);
 }
-
