@@ -102,13 +102,16 @@ export class SelfImprovingOrchestrator {
     const phase3Start = Date.now();
     console.log('▶ [PHASE 3] Adversarial TDD & Critical Regression Gate...');
     const criticalTests = options.quick
-      ? ['src/__tests__/security/vulnerability-vectors-remediation.test.ts']
+      ? [
+          'src/__tests__/security/vulnerability-vectors-remediation.test.ts',
+          'src/__tests__/security/sensitive-data-filter.test.ts'
+        ]
       : [
           'src/__tests__/security/vulnerability-vectors-remediation.test.ts',
-          'src/services/analyzer/__tests__/strict-domain-validator.test.ts',
-          'src/services/analyzer/__tests__/target-type-compatibility.test.ts'
+          'src/__tests__/security/sensitive-data-filter.test.ts',
+          'src/__tests__/security/p0-threat-matrix.test.ts'
         ];
-    const testTimeout = options.quick ? 45000 : 240000;
+    const testTimeout = 60000;
     const vitestRes = this.runCommand('npx', ['dotenv', '-e', '.env.test', '--', 'vitest', 'run', ...criticalTests], testTimeout);
     const phase3Passed = vitestRes.status === 0;
     phases.push({
