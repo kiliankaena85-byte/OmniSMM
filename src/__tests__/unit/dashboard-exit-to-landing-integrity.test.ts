@@ -18,24 +18,24 @@ describe("Целостность навигации и выхода на гла�
   it("Classic SidebarNav обязан содержать явный визуальный элемент/кнопку перехода на главный сайт (href=\"/\")", () => {
     const content = fs.readFileSync(sidebarNavPath, "utf-8");
     expect(content).toContain("href=\"/\"");
-    expect(content).toMatch(/На сайт|На главную витрину|Перейти на сайт/);
+    expect(content).toMatch(/На главную|На сайт|На главную витрину/);
   });
 
   it("FluxDashboardShell обязан иметь ссылку на главный экран (href=\"/\") в логотипе или шапке", () => {
     const content = fs.readFileSync(fluxShellPath, "utf-8");
     expect(content).toContain("href=\"/\"");
-    expect(content).toMatch(/На сайт|Перейти на сайт|На главную/);
+    expect(content).toMatch(/На главную|На сайт|Перейти на сайт/);
   });
 
   it("ClassicDashboardShell в мобильной шапке обязан содержать понятный переход на главный сайт (href=\"/\")", () => {
     const content = fs.readFileSync(classicShellPath, "utf-8");
     expect(content).toContain("href=\"/\"");
-    expect(content).toMatch(/На сайт|Перейти на сайт|На главную/);
+    expect(content).toMatch(/На главную|На сайт|Перейти на сайт/);
   });
 
   it("UserCommandMenu обязан содержать команду быстрого перехода на публичный сайт/витрину (href=\"/\")", () => {
     const content = fs.readFileSync(commandMenuPath, "utf-8");
     expect(content).toContain("handleSelect('/')");
-    expect(content).toMatch(/На сайт|главный сайт|Витрина услуг/);
+    expect(content).toMatch(/На главную|На сайт|Витрина услуг/);
   });
 });

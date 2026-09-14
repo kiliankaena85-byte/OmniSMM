@@ -54,11 +54,11 @@ export function SidebarNav({
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 shrink-0"
-          title="Перейти на главный экран (Витрина услуг)"
-          aria-label="На сайт"
+          title="Перейти на главную страницу (Витрина услуг)"
+          aria-label="На главную"
         >
           <ExternalLink className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span>На сайт</span>
+          <span>На главную</span>
         </Link>
       </div>
 

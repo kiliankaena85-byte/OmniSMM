@@ -18,22 +18,22 @@ export function DashboardBreadcrumbs({ items, className = "" }: DashboardBreadcr
       <Link
         href="/"
         className="inline-flex items-center gap-1 hover:text-foreground transition-colors p-1 rounded-md hover:bg-secondary/60"
-        title="Главный сайт"
-        aria-label="Главный сайт"
+        title="Главная страница сайта"
+        aria-label="Главная"
       >
         <Home className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Сайт</span>
+        <span className="hidden sm:inline">Главная</span>
       </Link>
       <ChevronRight className="w-3 h-3 text-muted-foreground/60 shrink-0" />
       
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1 hover:text-foreground transition-colors p-1 rounded-md hover:bg-secondary/60"
-        title="Кабинет"
-        aria-label="Кабинет"
+        title="Дашборд кабинета"
+        aria-label="Дашборд"
       >
         <LayoutDashboard className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Кабинет</span>
+        <span className="hidden sm:inline">Дашборд</span>
       </Link>
 
       {items.map((item, index) => {

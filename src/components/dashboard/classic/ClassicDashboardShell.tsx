@@ -33,13 +33,13 @@ export function ClassicDashboardShell({
         <Link
           href="/"
           className="flex items-center gap-2 font-black text-foreground shrink-0 min-h-[44px] hover:opacity-90 active:scale-95 transition-all"
-          title="Перейти на главный сайт (Витрина)"
-          aria-label="На сайт"
+          title="Перейти на главную страницу (Витрина)"
+          aria-label="На главную"
         >
           <TenantLogo tenantId="smmplan" className="w-7 h-7 shrink-0" iconClassName="w-3.5 h-3.5" />
           <span className="truncate tracking-tight font-bold text-sm sm:text-base min-w-0">SMMplan</span>
           <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/60">
-            На сайт
+            На главную
           </span>
         </Link>
         <div className="flex items-center gap-2 shrink-0">

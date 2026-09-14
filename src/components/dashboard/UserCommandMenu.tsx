@@ -83,13 +83,13 @@ export function UserCommandMenu() {
           <CommandGroup heading="Навигация">
             <CommandItem onSelect={() => handleSelect('/')}>
               <Globe className="mr-2 h-4 w-4 text-emerald-500" />
-              <span>Перейти на главный сайт (Витрина услуг)</span>
+              <span>На главную (Витрина услуг)</span>
               <CommandShortcut>⌘S</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect('/dashboard')}>
               <LayoutDashboard className="mr-2 h-4 w-4 text-primary" />
-              <span>Главная страница (Дашборд)</span>
-              <CommandShortcut>⌘H</CommandShortcut>
+              <span>Дашборд кабинета</span>
+              <CommandShortcut>⌘D</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect('/dashboard/new-order')}>
               <ShoppingCart className="mr-2 h-4 w-4 text-primary" />

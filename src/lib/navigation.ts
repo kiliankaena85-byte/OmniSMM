@@ -21,8 +21,8 @@ export interface NavItem {
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
   {
-    name: 'Главная',
-    label: 'Главная',
+    name: 'Дашборд',
+    label: 'Дашборд',
     href: '/dashboard',
     icon: LayoutDashboard,
     exact: true,
@@ -67,8 +67,8 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
 
 export const MOBILE_BOTTOM_NAV_ITEMS: NavItem[] = [
   {
-    name: 'Главная',
-    label: 'Главная',
+    name: 'Дашборд',
+    label: 'Дашборд',
     href: '/dashboard',
     icon: LayoutDashboard,
     exact: true,
