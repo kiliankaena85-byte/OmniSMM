@@ -163,6 +163,13 @@ export function FluxCyberFooter({
           <p className="text-xs text-neutral-400 font-medium">
             Информационно-техническая платформа
           </p>
+          {contactSettings?.LEGAL_INN && (
+            <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+              {contactSettings.COMPANY_NAME || brandName} · ИНН: {contactSettings.LEGAL_INN}
+              {contactSettings.LEGAL_OGRNIP && ` · ОГРНИП: ${contactSettings.LEGAL_OGRNIP}`}
+              {contactSettings.LEGAL_ADDRESS && ` · ${contactSettings.LEGAL_ADDRESS}`}
+            </p>
+          )}
         </div>
         
         <p className="flex items-center gap-1.5 text-neutral-300 font-medium">

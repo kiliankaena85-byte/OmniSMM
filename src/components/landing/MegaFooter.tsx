@@ -136,6 +136,13 @@ export function MegaFooter({
           <p className="text-xs text-foreground/70 font-medium">
             Информационно-техническая платформа
           </p>
+          {contactSettings?.LEGAL_INN && (
+            <p className="text-[11px] text-foreground/60 font-mono mt-0.5">
+              {contactSettings.COMPANY_NAME || brandName} · ИНН: {contactSettings.LEGAL_INN}
+              {contactSettings.LEGAL_OGRNIP && ` · ОГРНИП: ${contactSettings.LEGAL_OGRNIP}`}
+              {contactSettings.LEGAL_ADDRESS && ` · ${contactSettings.LEGAL_ADDRESS}`}
+            </p>
+          )}
         </div>
       </div>
     </footer>

@@ -31,10 +31,11 @@ export const TENANT_CONFIG: Record<string, TenantConfig> = {
     domain: 'smmplan.pro',
     url: 'https://smmplan.pro',
     legal: {
-      name: 'SMMplan',
-      inn: '',
-      ogrn: '',
-      email: 'support@smmplan.pro'
+      name: 'ИП Соколов Артём Андреевич',
+      inn: '695006320024',
+      ogrn: '310695218000138',
+      email: 'support@smmplan.pro',
+      address: 'г. Тверь'
     }
   },
   flux: {
