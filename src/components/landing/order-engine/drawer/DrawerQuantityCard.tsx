@@ -5,7 +5,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Plus, Minus, Lock } from "lucide-react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
-import { getServiceFlags } from "@/utils/url-analyzer";
+import { getServiceFlags } from "@/utils/service-flags";
 import { formatPricePerUnit } from "@/utils/format-price";
 
 interface DrawerQuantityCardProps {

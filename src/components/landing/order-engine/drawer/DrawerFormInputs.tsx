@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { X, Mail, Ticket, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { suggestEmailCorrection } from "@/lib/email-typo-guard";
 import { OrderEngine } from "@/hooks/useOrderEngine";
-import { getServiceFlags } from "@/utils/url-analyzer";
+import { getServiceFlags } from "@/utils/service-flags";
 
 interface DrawerFormInputsProps {
   email: string;

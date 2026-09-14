@@ -116,6 +116,23 @@ const PRECOMPILED_CANONICAL_MAP: PrecompiledCanonical[] = Object.entries(CANONIC
   })
 );
 
+// LRU cache for dynamic category regexes (O(1) fast lookup, avoids allocating RegExp in hot-loop)
+const DYNAMIC_REGEX_CACHE = new Map<string, RegExp>();
+const MAX_DYNAMIC_REGEX_CACHE = 500;
+
+function getCachedDynamicRegex(escapedTerm: string): RegExp {
+  let re = DYNAMIC_REGEX_CACHE.get(escapedTerm);
+  if (!re) {
+    if (DYNAMIC_REGEX_CACHE.size >= MAX_DYNAMIC_REGEX_CACHE) {
+      const oldestKey = DYNAMIC_REGEX_CACHE.keys().next().value;
+      if (oldestKey) DYNAMIC_REGEX_CACHE.delete(oldestKey);
+    }
+    re = new RegExp('(^|[\\s/,-])' + escapedTerm + '([\\s/,-]|$)', 'i');
+    DYNAMIC_REGEX_CACHE.set(escapedTerm, re);
+  }
+  return re;
+}
+
 /**
  * Matches a database category string like '👨‍👩‍👧‍👦 Подписчики / Участники'
  * against an array of suggested short categories like ['Подписчики', 'Автоактивности']
@@ -192,7 +209,7 @@ export function matchesSuggestedCategory(
     // 3. Contains match (suggested includes dbName)
     try {
       const escaped = escapeRegex(dbNameNormalized);
-      const regex = new RegExp('(^|[\\s/,-])' + escaped + '([\\s/,-]|$)', 'i');
+      const regex = getCachedDynamicRegex(escaped);
       if (regex.test(suggestedNormalized)) return true;
     } catch {
       if (suggestedNormalized === dbNameNormalized) return true;

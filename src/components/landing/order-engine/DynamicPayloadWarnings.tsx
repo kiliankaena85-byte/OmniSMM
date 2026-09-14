@@ -3,8 +3,8 @@ import { CheckCircle2 } from "lucide-react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { PlatformLinkGuideDrawer } from "./PlatformLinkGuideDrawer";
 import { getLinkValidator } from "@/validators/link-mutators";
-import { inferTargetTypeFromCategory } from "@/utils/target-type";
-import { getUrlFlags, getServiceFlags } from "@/utils/url-analyzer";
+import { inferTargetTypeFromCategory, TargetTypeEnum } from "@/utils/target-type";
+import { getServiceFlags } from "@/utils/service-flags";
 import { IntelligencePlatform } from "@/services/analyzer/link-rules";
 
 // Warnings Components
@@ -81,7 +81,44 @@ export function DynamicPayloadWarnings({ engine, minimalMode }: DynamicPayloadWa
     && !activeCategory?.name?.toLowerCase().includes('будущ')
     && selectedService?.targetType !== 'CHANNEL';
 
-  const { isPrivateTelegramPost, isVkPhotoOrVideo, isPostUrl, isChannelUrl, isChannelCategory, isPostCategory } = getUrlFlags(engine.url, activeCategory);
+  const detectedType = engine.detectedType;
+  const platform = engine.platform;
+  const urlLower = engine.url.toLowerCase().trim();
+
+  // 1. Приватный пост Telegram (t.me/c/123/456)
+  const isPrivateTelegramPost = detectedType === 'private_post' 
+    || urlLower.includes('t.me/c/') 
+    || urlLower.includes('telegram.me/c/');
+
+  // 2. Медиа VK (фото или видео)
+  const isVkPhotoOrVideo = (platform === IntelligencePlatform.VK && (detectedType === 'video' || detectedType === 'post'))
+    || urlLower.includes('vk.com/photo') 
+    || urlLower.includes('vk.com/video') 
+    || urlLower.includes('vk.ru/photo') 
+    || urlLower.includes('vk.ru/video') 
+    || urlLower.includes('vkvideo.ru/');
+
+  // 3. Ссылка на публикацию (пост/видео)
+  const isPostUrl = detectedType === 'post' 
+    || detectedType === 'video' 
+    || detectedType === 'private_post'
+    || urlLower.includes('/p/') 
+    || urlLower.includes('/reel/') 
+    || urlLower.includes('/shorts/')
+    || urlLower.includes('watch?v=');
+
+  // 4. Ссылка на канал / профиль
+  const isChannelUrl = ((detectedType === 'channel' || detectedType === 'profile') && !isPostUrl)
+    || (urlLower.length > 5 && !isPostUrl && (
+      (urlLower.includes('t.me/') && !urlLower.includes('/')) ||
+      urlLower.includes('instagram.com/') ||
+      urlLower.includes('youtube.com/@')
+    ));
+
+  // 5. Семантический анализ категории через единый движок типов
+  const categoryTargetType = activeCategory ? inferTargetTypeFromCategory(activeCategory.name) : TargetTypeEnum.CUSTOM;
+  const isChannelCategory = categoryTargetType === TargetTypeEnum.CHANNEL || categoryTargetType === TargetTypeEnum.PROFILE;
+  const isPostCategory = categoryTargetType === TargetTypeEnum.POST || categoryTargetType === TargetTypeEnum.VIDEO;
 
   let swapSuggestion: { text: string; categoryId: string; categoryName: string } | null = null;
 

@@ -4,6 +4,8 @@
  * Unauthorized copying of this file is strictly prohibited.
  */
 
+import { GEO_MAP } from '@/constants/geo-registry';
+
 interface ProcurementMetrics {
     quality: 'PREMIUM' | 'HIGH' | 'MEDIUM' | 'LOW' | 'BOTS' | 'UNKNOWN';
     velocity: number | null; // Max items per day
@@ -106,19 +108,8 @@ export class NameTokenizerService {
             hasRefill = true;
         }
 
-        // 5. Geo Detection
-        const geoMap: Record<string, string[]> = {
-            'RU': ['россия', 'рф', 'ru', '🇷🇺', 'русские'],
-            'USA': ['сша', 'usa', '🇺🇸', 'english'],
-            'KZ': ['казахстан', 'кз', 'kz', '🇰🇿'],
-            'UZ': ['узбекистан', 'uz', '🇺🇿'],
-            'UA': ['украина', 'ua', '🇺🇦'],
-            'TR': ['турция', 'tr', '🇹🇷', 'turkey'],
-            'IN': ['индия', 'in', '🇮🇳', 'india'],
-            'BR': ['бразилия', 'br', '🇧🇷'],
-            'AR': ['араб', 'arabic', '🇦🇪']
-        };
-        for (const [code, keywords] of Object.entries(geoMap)) {
+        // 5. Geo Detection (SIL-2026: using shared canonical GEO_MAP)
+        for (const [code, keywords] of Object.entries(GEO_MAP)) {
             if (keywords.some(k => lowerName.includes(k) || lowerCat.includes(k))) {
                 geo = code;
                 break;

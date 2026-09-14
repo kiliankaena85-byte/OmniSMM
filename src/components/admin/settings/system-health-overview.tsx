@@ -14,10 +14,14 @@ import {
   CheckCircle2, 
   XCircle,
   HelpCircle,
-  Zap
+  Zap,
+  Activity,
+  Database,
+  Server
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { syncCBRExchangeRateAction } from '@/actions/admin/cbr-sync';
+import { getSystemHealthReportAction, type SystemHealthReport } from '@/actions/admin/health';
 
 interface SystemHealthOverviewProps {
   settings: {
@@ -65,9 +69,29 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
   };
 
   const [isClient, setIsClient] = React.useState(false);
+  const [healthReport, setHealthReport] = React.useState<SystemHealthReport | null>(null);
+  const [isLoadingHealth, setIsLoadingHealth] = React.useState(false);
+
+  const fetchHealthReport = React.useCallback(async () => {
+    setIsLoadingHealth(true);
+    try {
+      const res = await getSystemHealthReportAction();
+      if (res && res.success && res.data) {
+        setHealthReport(res.data);
+      }
+    } catch (e) {
+      console.error('Failed to load system health report:', e);
+    } finally {
+      setIsLoadingHealth(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     setIsClient(true);
-  }, []);
+    fetchHealthReport();
+    const interval = setInterval(fetchHealthReport, 30000); // 30s auto-refresh
+    return () => clearInterval(interval);
+  }, [fetchHealthReport]);
 
   const formatTime = (d?: Date | string | null) => {
     if (!d) return 'Не синхронизировался';
@@ -264,6 +288,69 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Infrastructure Core Subsystem Pulse (PostgreSQL, Redis, BullMQ) */}
+      <div className="mt-4 pt-4 border-t border-border/40 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono">
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* DB Status */}
+          <div className="flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 text-primary" />
+            <span className="text-muted-foreground">PostgreSQL:</span>
+            {healthReport ? (
+              <span className={`font-bold ${healthReport.database.status === 'connected' ? 'text-success' : 'text-destructive'}`}>
+                {healthReport.database.status === 'connected' ? `${healthReport.database.latencyMs}ms` : 'Error'}
+              </span>
+            ) : (
+              <span className="text-muted-foreground animate-pulse">Опрос...</span>
+            )}
+          </div>
+
+          {/* Redis Status */}
+          <div className="flex items-center gap-1.5">
+            <Server className="w-3.5 h-3.5 text-primary" />
+            <span className="text-muted-foreground">Redis:</span>
+            {healthReport ? (
+              <span className={`font-bold ${healthReport.redis.status === 'connected' ? 'text-success' : 'text-destructive'}`}>
+                {healthReport.redis.status === 'connected' ? `${healthReport.redis.latencyMs}ms` : 'Error'}
+              </span>
+            ) : (
+              <span className="text-muted-foreground animate-pulse">Опрос...</span>
+            )}
+          </div>
+
+          {/* BullMQ Worker Status */}
+          <div className="flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-primary" />
+            <span className="text-muted-foreground">Воркер:</span>
+            {healthReport ? (
+              <span className={`font-bold ${healthReport.worker.status === 'alive' ? 'text-success' : healthReport.worker.status === 'stale' ? 'text-warning' : 'text-muted-foreground'}`}>
+                {healthReport.worker.status === 'alive' ? 'Online' : healthReport.worker.status === 'stale' ? 'Stale' : 'Idle'}
+              </span>
+            ) : (
+              <span className="text-muted-foreground animate-pulse">Опрос...</span>
+            )}
+          </div>
+
+          {/* Queues & Stuck Orders */}
+          {healthReport && (healthReport.queues.waitingOrders > 0 || healthReport.stuckOrders.pendingOlderThan15m > 0) && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-warning/10 border border-warning/20 text-warning text-[10px]">
+              <AlertTriangle className="w-3 h-3" />
+              <span>Очередь: {healthReport.queues.waitingOrders} | Зависло: {healthReport.stuckOrders.pendingOlderThan15m}</span>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={fetchHealthReport}
+          disabled={isLoadingHealth}
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+          title="Обновить метрики инфраструктуры"
+        >
+          <RefreshCw className={`w-3 h-3 ${isLoadingHealth ? 'animate-spin' : ''}`} />
+          <span>Обновить пульс</span>
+        </button>
       </div>
     </Card>
   );

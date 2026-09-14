@@ -56,6 +56,7 @@ export async function ensureTaxonomyTenantAccess(categoryId: string): Promise<{ 
 import { SecuritySanitizer } from '@/utils/security-sanitizer';
 import { SmartAnalyzerLogic } from '@/services/providers/smart-analyzer.logic';
 import { sanitizeServiceDescription } from '@/lib/sanitize';
+import { getUnifiedLinkSpecification } from '@/services/link-engine/link-rules-registry';
 
 // ── Category auto-creation helpers (CATEGORY-FIX) ──────────────────────────
 
@@ -1445,6 +1446,12 @@ class AdminCatalogService {
         })();
 
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || '';
+        const effectiveTargetType = shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || '');
+        const linkSpec = getUnifiedLinkSpecification(
+          shadowExt.platform || fallbackCategoryRecord?.network?.slug || '',
+          effectiveTargetType,
+          shadowExt.normalizedCategory || fallbackCategoryRecord?.activityType || ''
+        );
 
         servicesToCreate.push({
           tenantId: tId,
@@ -1467,9 +1474,9 @@ class AdminCatalogService {
           features: {
             platform: shadowExt.platform,
             category: shadowExt.normalizedCategory,
-            targetType: shadowExt.targetType,
-            customDataType: shadowExt.customDataType,
-            isMediaGroupAware: shadowExt.isMediaGroupAware,
+            targetType: effectiveTargetType,
+            customDataType: linkSpec.customDataType || shadowExt.customDataType || 'NONE',
+            isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
             isPrivate: shadowExt.isPrivate,
             warranty: shadowExt.warranty,
             geo: shadowExt.geo,
@@ -1477,10 +1484,18 @@ class AdminCatalogService {
             anomalyScore: shadowExt.anomalyScore
           },
           anomalyScore: shadowExt.anomalyScore || 0,
-          targetType: shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || ''),
+          targetType: effectiveTargetType,
 
-          customDataType: shadowExt.customDataType || 'NONE',
-          isMediaGroupAware: shadowExt.isMediaGroupAware || false,
+          // Declarative Link Rules from Unified Link Engine (SIL-2026)
+          linkPlaceholder: linkSpec.placeholder,
+          linkHint: linkSpec.hint,
+          linkValidatorRegex: linkSpec.regex,
+          clientRequirement: linkSpec.clientRequirement || (shadowExt.isPrivate ? 'Требуется доступ к объекту' : 'Объект продвижения должен быть открытым'),
+          requiresBotAdmin: linkSpec.requiresBotAdmin || false,
+
+          customDataType: linkSpec.customDataType || shadowExt.customDataType || 'NONE',
+          customDataLabel: linkSpec.customDataLabel || null,
+          isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
           isActive: true,
           isDripFeedEnabled: Boolean(liveExt.dripfeed),
           isRefillEnabled: Boolean(liveExt.refill),

@@ -279,3 +279,234 @@ export function getUnifiedCustomValidator(customDataType?: string | null): z.Zod
   }
   return z.string().trim().min(1, "Поле не может быть пустым");
 }
+
+export interface LinkSpecificationDTO {
+  targetType: string;
+  placeholder: string;
+  hint: string;
+  regex?: string;
+  clientRequirement?: string;
+  requiresBotAdmin: boolean;
+  isMediaGroupAware: boolean;
+  customDataType: 'NONE' | 'TEXTAREA' | 'NUMBER';
+  customDataLabel?: string;
+}
+
+/**
+ * Generates declarative link placeholder, validation hint, and regex for catalog service import.
+ * Single Source of Truth connecting provider catalog import to link engine rules (SIL-2026).
+ */
+export function getUnifiedLinkSpecification(
+  platform: string,
+  targetType: string,
+  activityType: string = 'OTHER'
+): LinkSpecificationDTO {
+  const net = (platform || '').toLowerCase();
+  const target = (targetType || '').toUpperCase();
+  const act = (activityType || '').toUpperCase();
+
+  // 1. Telegram
+  if (net.includes('telegram') || net === 'tg') {
+    if (target === 'CHANNEL' || act.includes('SUBSCRIBER') || act.includes('MEMBER') || act.includes('BOOST') || act.includes('GROUP')) {
+      return {
+        targetType: 'CHANNEL',
+        placeholder: 'https://t.me/channel_name или https://t.me/+joinchat_hash',
+        hint: 'Ссылка на публичный или закрытый Telegram канал/чат',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/)?@?[\\w-]+',
+        clientRequirement: 'Канал/группа должны быть доступны (если закрытый — ссылка с + или joinchat)',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    if (target === 'STORY' || act.includes('STOR')) {
+      return {
+        targetType: 'STORY',
+        placeholder: 'https://t.me/channel_name/s/12',
+        hint: 'Ссылка на историю Telegram канала (действует 24–48 часов)',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/[\\w-]+\\/s\\/\\d+',
+        clientRequirement: 'История должна быть активна на момент запуска заказа',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    if (target === 'POLL' || act.includes('POLL') || act.includes('VOTE')) {
+      return {
+        targetType: 'POLL',
+        placeholder: 'https://t.me/channel_name/1234',
+        hint: 'Ссылка на публикацию с опросом в Telegram (укажите номер варианта)',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+',
+        clientRequirement: 'Опрос должен быть открытым для голосования',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NUMBER',
+        customDataLabel: 'Номер варианта ответа (например: 1, 2 или 3)',
+      };
+    }
+    if (target === 'COMMENT' || target === 'COMMENTS' || act.includes('COMMENT')) {
+      return {
+        targetType: 'COMMENTS',
+        placeholder: 'https://t.me/channel_name/1234',
+        hint: 'Ссылка на пост в Telegram для публикации комментариев',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+',
+        clientRequirement: 'В канале должны быть включены комментарии/обсуждения',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'TEXTAREA',
+        customDataLabel: 'Текст комментариев (каждый комментарий с новой строки)',
+      };
+    }
+    if (target === 'BOT' || act.includes('BOT') || act.includes('REFERRAL')) {
+      return {
+        targetType: 'BOT',
+        placeholder: 'https://t.me/my_bot или https://t.me/my_bot?start=ref123',
+        hint: 'Ссылка на Telegram-бота (с реферальным кодом при необходимости)',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/[\\w-]+_bot',
+        clientRequirement: 'Бот должен быть активен и принимать команду /start',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'POST',
+      placeholder: 'https://t.me/channel_name/1234',
+      hint: 'Прямая ссылка на пост или публикацию в Telegram',
+      regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:s\\/)?[\\w-]+\\/(?:topic\\/)?\\d+',
+      clientRequirement: 'Пост должен быть опубликован в открытом канале/группе',
+      requiresBotAdmin: false,
+      isMediaGroupAware: true,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 2. VKontakte
+  if (net.includes('vk') || net === 'vkontakte') {
+    if (target === 'PROFILE' || target === 'CHANNEL' || act.includes('SUBSCRIBER') || act.includes('FRIEND') || act.includes('GROUP')) {
+      return {
+        targetType: target === 'PROFILE' ? 'PROFILE' : 'CHANNEL',
+        placeholder: 'https://vk.com/username или https://vk.com/public12345',
+        hint: 'Ссылка на страницу, группу или паблик ВКонтакте',
+        regex: '^https?:\\/\\/(?:m\\.)?vk\\.(?:com|ru)\\/(?:public\\d+|club\\d+|id\\d+|[a-zA-Z0-9_.]+)',
+        clientRequirement: 'Профиль или сообщество должны быть открыты для всех',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: target === 'VIDEO' ? 'VIDEO' : 'POST',
+      placeholder: 'https://vk.com/wall-12345_67890 или https://vk.com/video-12345_67890',
+      hint: 'Ссылка на конкретную запись, видео или клип ВКонтакте',
+      regex: '^https?:\\/\\/(?:m\\.)?(?:vk\\.(?:com|ru)|vkvideo\\.ru)\\/(?:wall|video|clip|photo)-?\\d+_\\d+',
+      clientRequirement: 'Запись должна быть публичной',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 3. YouTube
+  if (net.includes('youtube') || net === 'yt') {
+    if (target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'CHANNEL',
+        placeholder: 'https://youtube.com/@channel_name',
+        hint: 'Ссылка на YouTube-канал (формат @handle или channel/UC...)',
+        regex: '^https?:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/(@[a-zA-Z0-9_.-]+|channel\\/UC[a-zA-Z0-9_.-]+)',
+        clientRequirement: 'Канал должен быть открыт для отображения подписчиков',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'VIDEO',
+      placeholder: 'https://youtube.com/watch?v=dQw4w9WgXcQ или https://youtube.com/shorts/dQw4w9WgXcQ',
+      hint: 'Ссылка на видео, Shorts или трансляцию YouTube',
+      regex: '^https?:\\/\\/(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:watch\\?.*v=|shorts\\/|live\\/|embed\\/)|youtu\\.be\\/)[a-zA-Z0-9_-]+',
+      clientRequirement: 'Видео должно быть доступно по открытой ссылке',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 4. Instagram
+  if (net.includes('instagram') || net === 'inst' || net === 'ig') {
+    if (target === 'PROFILE' || target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'PROFILE',
+        placeholder: 'https://instagram.com/username',
+        hint: 'Ссылка на профиль Instagram',
+        regex: '^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/@?[a-zA-Z0-9_.]+',
+        clientRequirement: 'Профиль Instagram должен быть открытым (не приватным)',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    if (target === 'STORY' || act.includes('STOR')) {
+      return {
+        targetType: 'STORY',
+        placeholder: 'https://instagram.com/stories/username/1234567890/',
+        hint: 'Ссылка на историю Instagram',
+        regex: '^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/stories\\/[a-zA-Z0-9_.]+\\/\\d+',
+        clientRequirement: 'История должна быть активна (24 часа с момента публикации)',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'POST',
+      placeholder: 'https://instagram.com/p/CODE/ или https://instagram.com/reel/CODE/',
+      hint: 'Ссылка на публикацию или Reels в Instagram',
+      regex: '^https?:\\/\\/(?:www\\.|m\\.)?instagram\\.com\\/(?:p|reel|reels|tv|share\\/[a-zA-Z0-9_-]+)\\/[a-zA-Z0-9_-]+',
+      clientRequirement: 'Публикация должна быть в открытом профиле',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // 5. TikTok
+  if (net.includes('tiktok') || net === 'tt') {
+    if (target === 'PROFILE' || target === 'CHANNEL' || act.includes('SUBSCRIBER')) {
+      return {
+        targetType: 'PROFILE',
+        placeholder: 'https://tiktok.com/@username',
+        hint: 'Ссылка на профиль TikTok',
+        regex: '^https?:\\/\\/(?:www\\.|m\\.)?tiktok\\.com\\/@?[a-zA-Z0-9_.]+',
+        clientRequirement: 'Аккаунт TikTok должен быть открыт',
+        requiresBotAdmin: false,
+        isMediaGroupAware: false,
+        customDataType: 'NONE',
+      };
+    }
+    return {
+      targetType: 'VIDEO',
+      placeholder: 'https://tiktok.com/@user/video/1234567890 или https://vm.tiktok.com/CODE',
+      hint: 'Ссылка на видео в TikTok',
+      regex: '^https?:\\/\\/(?:www\\.|m\\.)?tiktok\\.com\\/@[a-zA-Z0-9_.]+\\/(?:video|photo)\\/\\d+|^https?:\\/\\/(?:vm|vt)\\.tiktok\\.com\\/[a-zA-Z0-9_]+',
+      clientRequirement: 'Видео должно быть общедоступным',
+      requiresBotAdmin: false,
+      isMediaGroupAware: false,
+      customDataType: 'NONE',
+    };
+  }
+
+  // Universal Fallback
+  return {
+    targetType: target || 'POST',
+    placeholder: 'https://...',
+    hint: 'Вставьте прямую публичную ссылку на объект продвижения',
+    regex: '^https?:\\/\\/.+',
+    clientRequirement: 'Объект продвижения должен быть общедоступным',
+    requiresBotAdmin: false,
+    isMediaGroupAware: false,
+    customDataType: 'NONE',
+  };
+}
+

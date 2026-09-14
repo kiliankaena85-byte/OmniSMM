@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireStaffPermission } from '@/lib/server/rbac';
+import { getUnifiedLinkSpecification } from '@/services/link-engine/link-rules-registry';
 
 export interface ShadowServiceSearchResult {
   id: string;
@@ -37,147 +38,24 @@ export interface LinkSpecification {
 }
 
 /**
- * Returns link validation and placeholder rules based on targetType and networkSlug
+ * @deprecated Use `getUnifiedLinkSpecification` from `@/services/link-engine/link-rules-registry` directly.
+ * Kept for full backward compatibility across legacy actions and components.
  */
 export function getLinkSpecification(
   targetType: string,
   networkSlug: string = 'telegram',
   activityType: string = 'OTHER'
 ): LinkSpecification {
-  const net = networkSlug.toLowerCase();
-  const target = targetType.toUpperCase();
-  const act = activityType.toUpperCase();
-
-  // 1. Telegram Rules
-  if (net.includes('telegram') || net === 'tg') {
-    if (target === 'CHANNEL' || act === 'FOLLOWERS' || act === 'MEMBERS') {
-      return {
-        targetType: 'CHANNEL',
-        placeholder: 'https://t.me/channel_username или https://t.me/+joinchat_hash',
-        hint: 'Ссылка на публичный или закрытый Telegram канал/группу',
-        regex: '^https?:\\/\\/t\\.me\\/([a-zA-Z0-9_+]+|joinchat\\/[a-zA-Z0-9_-]+)',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'NONE',
-      };
-    }
-    if (target === 'POST' || act === 'VIEWS' || act === 'REACTIONS') {
-      return {
-        targetType: 'POST',
-        placeholder: 'https://t.me/channel_name/1234',
-        hint: 'Прямая ссылка на пост или альбом в Telegram',
-        regex: '^https?:\\/\\/t\\.me\\/[a-zA-Z0-9_]+\\/[0-9]+',
-        requiresBotAdmin: false,
-        isMediaGroupAware: true,
-        customDataType: 'NONE',
-      };
-    }
-    if (act === 'POLL' || act === 'VOTES' || target === 'POLL') {
-      return {
-        targetType: 'POLL',
-        placeholder: 'https://t.me/channel_name/1234',
-        hint: 'Ссылка на пост с опросом в Telegram (укажите номер варианта)',
-        regex: '^https?:\\/\\/t\\.me\\/[a-zA-Z0-9_]+\\/[0-9]+',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'NUMBER',
-        customDataLabel: 'Номер варианта ответа (например: 1 или 2)',
-      };
-    }
-    if (act === 'COMMENTS' || target === 'COMMENT') {
-      return {
-        targetType: 'COMMENT',
-        placeholder: 'https://t.me/channel_name/1234',
-        hint: 'Ссылка на пост в Telegram для публикации комментариев',
-        regex: '^https?:\\/\\/t\\.me\\/[a-zA-Z0-9_]+\\/[0-9]+',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'TEXTAREA',
-        customDataLabel: 'Текст комментариев (каждый с новой строки)',
-      };
-    }
-  }
-
-  // 2. VK Rules
-  if (net.includes('vk') || net === 'vkontakte') {
-    if (target === 'PROFILE' || target === 'CHANNEL' || act === 'FOLLOWERS') {
-      return {
-        targetType: 'PROFILE',
-        placeholder: 'https://vk.com/username или https://vk.com/public12345',
-        hint: 'Ссылка на страницу, группу или паблик ВКонтакте',
-        regex: '^https?:\\/\\/vk\\.com\\/[a-zA-Z0-9_.]+',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'NONE',
-      };
-    }
-    return {
-      targetType: 'POST',
-      placeholder: 'https://vk.com/wall-12345_67890',
-      hint: 'Ссылка на конкретную запись на стене ВКонтакте',
-      regex: '^https?:\\/\\/vk\\.com\\/wall-?[0-9]+_[0-9]+',
-      requiresBotAdmin: false,
-      isMediaGroupAware: false,
-      customDataType: 'NONE',
-    };
-  }
-
-  // 3. YouTube Rules
-  if (net.includes('youtube') || net === 'yt') {
-    if (target === 'CHANNEL' || act === 'FOLLOWERS' || act === 'SUBSCRIBERS') {
-      return {
-        targetType: 'CHANNEL',
-        placeholder: 'https://youtube.com/@channel_name',
-        hint: 'Ссылка на YouTube-канал',
-        regex: '^https?:\\/\\/(www\\.)?youtube\\.com\\/(@[a-zA-Z0-9_.-]+|channel\\/[a-zA-Z0-9_-]+)',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'NONE',
-      };
-    }
-    return {
-      targetType: 'VIDEO',
-      placeholder: 'https://youtube.com/watch?v=dQw4w9WgXcQ или https://youtu.be/dQw4w9WgXcQ',
-      hint: 'Ссылка на видео, Shorts или трансляцию YouTube',
-      regex: '^https?:\\/\\/(www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/|youtube\\.com\\/shorts\\/)[a-zA-Z0-9_-]+',
-      requiresBotAdmin: false,
-      isMediaGroupAware: false,
-      customDataType: 'NONE',
-    };
-  }
-
-  // 4. Instagram Rules
-  if (net.includes('instagram') || net === 'inst') {
-    if (target === 'PROFILE' || act === 'FOLLOWERS') {
-      return {
-        targetType: 'PROFILE',
-        placeholder: 'https://instagram.com/username',
-        hint: 'Ссылка на профиль Instagram (аккаунт должен быть открыт)',
-        regex: '^https?:\\/\\/(www\\.)?instagram\\.com\\/[a-zA-Z0-9_.]+',
-        requiresBotAdmin: false,
-        isMediaGroupAware: false,
-        customDataType: 'NONE',
-      };
-    }
-    return {
-      targetType: 'POST',
-      placeholder: 'https://instagram.com/p/CODE/ или https://instagram.com/reel/CODE/',
-      hint: 'Ссылка на пост, Reels или публикацию в Instagram',
-      regex: '^https?:\\/\\/(www\\.)?instagram\\.com\\/(p|reel|tv)\\/[a-zA-Z0-9_-]+',
-      requiresBotAdmin: false,
-      isMediaGroupAware: false,
-      customDataType: 'NONE',
-    };
-  }
-
-  // Default Fallback
+  const unified = getUnifiedLinkSpecification(networkSlug, targetType, activityType);
   return {
-    targetType: target || 'POST',
-    placeholder: 'https://...',
-    hint: 'Вставьте прямую публичную ссылку на объект продвижения',
-    requiresBotAdmin: false,
-    isMediaGroupAware: false,
-    customDataType: 'NONE',
+    targetType: unified.targetType,
+    placeholder: unified.placeholder,
+    hint: unified.hint,
+    regex: unified.regex,
+    requiresBotAdmin: unified.requiresBotAdmin,
+    isMediaGroupAware: unified.isMediaGroupAware,
+    customDataType: unified.customDataType,
+    customDataLabel: unified.customDataLabel,
   };
 }
 

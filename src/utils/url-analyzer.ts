@@ -1,29 +1,13 @@
-export function getServiceFlags(selectedService: { name?: string | null; customDataType?: string | null; customDataLabel?: string | null; features?: unknown; [key: string]: unknown } | null | undefined) {
-  const sName = selectedService?.name?.toLowerCase() || "";
-  const cType = selectedService?.customDataType;
-  
-  const isCustomComments = cType === 'TEXTAREA' || sName.includes('свои') || sName.includes('свой текст');
-  const isKeywords = cType === 'TEXT' || sName.includes('ключево');
-  const isPoll = cType === 'NUMBER' || (sName.includes('опрос') && !sName.includes('просмотр')) || sName.includes('голосование');
-  const isLiveStream = sName.includes('зрител') || sName.includes('эфир') || sName.includes('трансляц');
-  const isPrivateChannel = sName.includes('закрыт');
+/**
+ * @deprecated Use `getServiceFlags` from `@/utils/service-flags` instead.
+ * Legacy url-analyzer module preserved for backward-compatibility.
+ */
 
-  const customFieldLabel = selectedService?.customDataLabel?.trim() || (
-    isCustomComments ? 'Ваши комментарии (по одному в строке)' 
-    : isKeywords ? 'Ключевые слова (через запятую)' 
-    : isPoll ? 'Номер варианта ответа' 
-    : null
-  );
+export { getServiceFlags, type ServiceFlagsDTO } from './service-flags';
 
-  return {
-    isCustomComments,
-    isPoll,
-    isLiveStream,
-    isPrivateChannel,
-    customFieldLabel
-  };
-}
-
+/**
+ * @deprecated Prefer using `analysisResult` from `useOrderEngine` instead of heuristic regexes.
+ */
 export function getUrlFlags(url: string, activeCategory?: { name: string }) {
   const urlLower = url.toLowerCase();
   

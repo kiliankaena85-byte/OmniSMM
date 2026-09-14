@@ -231,20 +231,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
     OTHER: []
 };
 
-const GEO_MAP: Record<string, string[]> = {
-    'RU': ['россия', 'рф', 'ru', '🇷🇺', 'русские'],
-    'USA': ['сша', 'usa', '🇺🇸', 'english', 'worldwide'],
-    'KZ': ['казахстан', 'кз', 'kz', '🇰🇿'],
-    'UZ': ['узбекистан', 'uz', '🇺🇿'],
-    'UA': ['украина', 'ua', '🇺🇦'],
-    'TR': ['турция', 'tr', '🇹🇷', 'turkey'],
-    'IN': ['индия', 'in', '🇮🇳', 'india'],
-    'BR': ['бразилия', 'br', '🇧🇷'],
-    'IL': ['израиль', 'il', '🇮🇱'],
-    'AR': ['араб', 'arabic', '🇦🇪'],
-    'CN': ['китай', 'china', '🇨🇳'],
-};
-
+import { GEO_MAP } from '@/constants/geo-registry';
 import { NameTokenizerService } from './name-tokenizer.service';
 import { compileServiceMetrics, normalizeGeo } from '@/utils/translation-dictionary';
 
