@@ -123,7 +123,10 @@ describe('PREM-01: SSRF Guard', () => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(mockResponse);
 
       const res = await safeFetch('https://api.provider.com/v2/services');
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.provider.com/v2/services', undefined);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.provider.com/v2/services',
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
       expect(res.status).toBe(200);
     });
   });

@@ -99,7 +99,7 @@ export async function assertSafeOutboundUrl(rawUrl: string): Promise<SsrfCheckRe
     return { ok: false, reason: `host-${hostname}-blocked` };
   }
 
-  // Trusted system services: payment gateways, Telegram Bot API, AI endpoints
+  // Trusted system services: payment gateways, Telegram Bot API, AI endpoints, and verified provider gateways
   const TRUSTED_SYSTEM_DOMAINS = [
     'api.yookassa.ru',
     'yookassa.ru',
@@ -110,6 +110,14 @@ export async function assertSafeOutboundUrl(rawUrl: string): Promise<SsrfCheckRe
     'auth.robokassa.ru',
     'merchant.roboxchange.com',
     'generativelanguage.googleapis.com',
+    // Verified official provider gateways
+    'vexboost.ru',
+    'api.vexboost.ru',
+    'soc-rocket.ru',
+    'stream-promotion.ru',
+    'likedrom.com',
+    'smmprime.com',
+    'smmpanelus.com',
   ];
   if (TRUSTED_SYSTEM_DOMAINS.some(d => hostname === d || hostname.endsWith(`.${d}`))) {
     return { ok: true, ip: 'trusted-gateway', hostname };

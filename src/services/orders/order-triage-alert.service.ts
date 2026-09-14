@@ -80,18 +80,30 @@ export class OrderTriageAlertService {
       };
     }
 
-    // 2. Private Profile / Restricted Content
+    // 2. Private Profile / Restricted Content (strictly client/target social content)
+    const isNetworkOrSsrf =
+      lower.includes('private ip') ||
+      lower.includes('ssrf') ||
+      lower.includes('private network') ||
+      lower.includes('blocked url') ||
+      (lower.includes('private') && (lower.includes('ip') || lower.includes('host') || lower.includes('address') || lower.includes('gateway')));
+
     if (
-      lower.includes('private') ||
-      lower.includes('closed') ||
-      lower.includes('hidden') ||
-      lower.includes('приватный') ||
-      lower.includes('закрытый') ||
-      lower.includes('restricted') ||
-      lower.includes('account is private') ||
-      lower.includes('profile is private') ||
-      lower.includes('channel is private') ||
-      lower.includes('group is private')
+      !isNetworkOrSsrf &&
+      (lower.includes('account is private') ||
+        lower.includes('profile is private') ||
+        lower.includes('channel is private') ||
+        lower.includes('group is private') ||
+        lower.includes('target is private') ||
+        lower.includes('is private') ||
+        lower.includes('closed profile') ||
+        lower.includes('profile is closed') ||
+        lower.includes('hidden') ||
+        lower.includes('приватный') ||
+        lower.includes('закрытый') ||
+        (lower.includes('restricted') && !lower.includes('ip')) ||
+        (lower.includes('private') && !lower.includes('network') && !lower.includes('ip') && !lower.includes('host')) ||
+        (lower.includes('closed') && !lower.includes('connection') && !lower.includes('socket')))
     ) {
       return {
         type: 'PRIVATE_ACCOUNT',
@@ -170,20 +182,29 @@ export class OrderTriageAlertService {
       };
     }
 
-    // 6. Network Timeout
+    // 6. Network Timeout & SSRF Gateway Security Blocks
     if (
       lower.includes('timeout') ||
       lower.includes('etimedout') ||
       lower.includes('econnreset') ||
       lower.includes('socket hang up') ||
-      lower.includes('eai_again')
+      lower.includes('eai_again') ||
+      lower.includes('private ip') ||
+      lower.includes('ssrf') ||
+      lower.includes('blocked url') ||
+      lower.includes('private network')
     ) {
+      const isSsrf = lower.includes('private ip') || lower.includes('ssrf') || lower.includes('blocked url') || lower.includes('private network');
       return {
         type: 'TIMEOUT_OR_NETWORK',
-        tag: '[NETWORK_TIMEOUT]',
-        title: '⏱️ Сетевой таймаут / Обрыв связи',
-        explanation: 'Поставщик не ответил за отведённое время (HTTP Timeout / Network Glitch).',
-        supportAction: 'Заказ находится на проверке. Убедитесь в кабинете поставщика, что заказ не был создан, после чего повторите отправку.',
+        tag: isSsrf ? '[GATEWAY_SSRF_BLOCKED]' : '[NETWORK_TIMEOUT]',
+        title: isSsrf ? '🛡️ Сетевая блокировка шлюза (SSRF / Private IP)' : '⏱️ Сетевой таймаут / Обрыв связи',
+        explanation: isSsrf
+          ? 'Запрос к шлюзу поставщика заблокирован встроенным экраном безопасности SSRF (адрес шлюза разрешается в закрытый/приватный IP).'
+          : 'Поставщик не ответил за отведённое время (HTTP Timeout / Network Glitch).',
+        supportAction: isSsrf
+          ? 'Проверьте корректность URL шлюза поставщика в админке, DNS-резолв или работу сетевого прокси-сервера Clash/Mihomo.'
+          : 'Заказ находится на проверке. Убедитесь в кабинете поставщика, что заказ не был создан, после чего повторите отправку.',
         isBalanceRelated: false,
       };
     }

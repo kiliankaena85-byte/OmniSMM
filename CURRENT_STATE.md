@@ -1,3 +1,17 @@
+- [x] ⚡ [SIL-2026] CDD-TDD: Устранение ложной классификации приватности ссылок (Private IP vs Private Channel) и харденинг SSRF-шлюзов (100% COMPLETE & VERIFIED):
+  * 🛡️ **Ликвидация ложных срабатываний классификатора ошибок (False Positive Semantic Drift):**
+    - В `src/lib/order-error-classifier.ts` добавлен код `ERR_GATEWAY_SSRF` в категорию `GATEWAY`. Сетевые маркеры (`private ip`, `ssrf`, `blocked url`, `loopback`, `metadata`, `private network`) теперь перехватываются ДО анализа приватности ссылок.
+    - Определение `ERR_LINK_PRIVATE` строго ограничено целевыми контекстными фразами (`account is private`, `channel is private`, `закрытый профиль` и др.).
+    - В `src/services/orders/order-triage-alert.service.ts` сетевые ошибки SSRF выделены в `[GATEWAY_SSRF_BLOCKED]` с точными инструкциями для оператора по проверке URL шлюза, DNS и прокси Clash/Mihomo.
+  * 🌐 **Харденинг сетевого шлюза SSRF (`src/lib/security/ssrf-guard.ts`):**
+    - В `TRUSTED_SYSTEM_DOMAINS` добавлены официальные домены поставщиков (`vexboost.ru`, `api.vexboost.ru`, `soc-rocket.ru`, `stream-promotion.ru`, `likedrom.com`, `smmprime.com`, `smmpanelus.com`).
+  * 🧪 **CDD-TDD & Регрессионная верификация:**
+    - Создана спецификация `docs/specs/SPEC-2026-09-14-ssrf-guard-and-order-error-classifier.md`.
+    - Разработан TDD-сьют `src/__tests__/unit/order-error-classifier-ssrf-disambiguation.test.ts` (Red Phase $\to$ Green Phase, 5/5 PASS).
+    - Пройден сьют триажа заказов `src/__tests__/orders/order-triage-and-autoflush-logic.test.ts` (10/10 PASS).
+    - Пройден сьют сетевой безопасности `src/lib/security/__tests__/ssrf-guard.test.ts` (13/13 PASS).
+    - `npx tsc --noEmit` — 0 ошибок типов.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [SIL-2026] Заказы в админ-панели: Интерактивная сортировка (ASC / DESC) колонок таблицы (100% COMPLETE & VERIFIED):
   * 🎛️ **Интерактивные заголовки колонок (`OrderSortableHeader`):**
     - Внедрен компонент `OrderSortableHeader` с иконками `ArrowUpDown`, `ArrowUp` (ASC) и `ArrowDown` (DESC), семантическими подсказками и `aria-sort`.

@@ -112,6 +112,15 @@ export const ERROR_TAXONOMY: Record<string, Omit<ClassifiedOrderError, 'code'>> 
     badgeText: 'text-red-700 dark:text-red-300',
     badgeBorder: 'border-red-500/30'
   },
+  ERR_GATEWAY_SSRF: {
+    category: 'GATEWAY',
+    titleRu: 'Сетевая блокировка шлюза (SSRF / Private IP)',
+    descriptionRu: 'Запрос к API поставщика заблокирован встроенным сетевым экраном SSRF (адрес шлюза разрешается в закрытый/приватный IP).',
+    recommendedAction: 'Проверить URL шлюза поставщика в настройках, DNS-маршрутизацию или работу прокси-сервера Clash/Mihomo.',
+    badgeBg: 'bg-rose-500/10',
+    badgeText: 'text-rose-700 dark:text-rose-300',
+    badgeBorder: 'border-rose-500/30'
+  },
 
   // ── LIMIT & QUANTITY ERRORS ──
   ERR_LIMIT_MIN_QTY: {
@@ -184,13 +193,40 @@ export function classifyOrderError(rawError: string | null | undefined): Classif
 
   const lower = str.toLowerCase();
 
-  // 1. Private / Access / Link errors
+  // 0. SSRF & Gateway Network Security errors (must precede private content check)
   if (
-    lower.includes('private') || 
-    lower.includes('closed') || 
-    lower.includes('restricted') || 
+    lower.includes('private ip') ||
+    lower.includes('ssrf') ||
+    lower.includes('blocked url') ||
+    lower.includes('loopback') ||
+    lower.includes('metadata') ||
+    lower.includes('private network') ||
+    (lower.includes('ip-') && lower.includes('private')) ||
+    (lower.includes('private') && (lower.includes('ip') || lower.includes('host') || lower.includes('address') || lower.includes('gateway') || lower.includes('dns')))
+  ) {
+    return { code: 'ERR_GATEWAY_SSRF', ...ERROR_TAXONOMY.ERR_GATEWAY_SSRF };
+  }
+
+  // 1. Private / Access / Link errors (strictly for social media targets)
+  if (
+    lower.includes('account is private') ||
+    lower.includes('profile is private') ||
+    lower.includes('channel is private') ||
+    lower.includes('group is private') ||
+    lower.includes('target is private') ||
+    lower.includes('is private') ||
+    lower.includes('this account is private') ||
+    lower.includes('closed profile') ||
+    lower.includes('profile is closed') ||
     lower.includes('аккаунт закрыт') ||
-    lower.includes('закрытый профиль')
+    lower.includes('закрытый профиль') ||
+    lower.includes('закрытый аккаунт') ||
+    lower.includes('приватный канал') ||
+    lower.includes('приватный аккаунт') ||
+    lower.includes('приватная группа') ||
+    (lower.includes('private') && !lower.includes('network') && !lower.includes('ip') && !lower.includes('host')) ||
+    (lower.includes('closed') && !lower.includes('connection') && !lower.includes('socket')) ||
+    (lower.includes('restricted') && !lower.includes('ip'))
   ) {
     return { code: 'ERR_LINK_PRIVATE', ...ERROR_TAXONOMY.ERR_LINK_PRIVATE };
   }
