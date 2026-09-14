@@ -199,3 +199,8 @@ flowchart TD
 - **Контекст:** При импорте услуг (`importServices()`) из внешних API (JustAnotherPanel, SMMPanel и др.) для Rutube, Дзен, Likee, Discord система не должна сваливаться в generic-заглушки.
 - **Инвариант:** Каждая импортируемая услуга получает детерминированные `linkPlaceholder`, `linkHint`, `linkValidatorRegex` и требования к клиенту (`clientRequirement`) из единого реестра `getUnifiedLinkSpecification(platform, targetType, activityType)`.
 - **Защита:** Запрещено допускать `null` или сырые пустые поля валидации у поддерживаемых платформ.
+
+### [LESSON-2026-09-14-SIL-D] manual-provider-service-creation-parity
+- **Контекст:** При ручном добавлении услуги (`createServiceAction` / `/admin/catalog/new`) оператор не должен вручную заполнять регулярные выражения валидации ссылок, подсказки и технические требования.
+- **Инвариант:** Форма ручного добавления обязана иметь 100% паритет с пакетным импортом (`importServices`): авто-обогащение из `getUnifiedLinkSpecification()` и доступ к кэшу API провайдера через `ProviderServiceSearchModal`.
+- **Защита:** Запрещено сохранять услугу с пустыми правилами ссылок, если они определены для данной соцсети и типа цели.

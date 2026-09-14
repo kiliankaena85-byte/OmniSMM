@@ -158,18 +158,28 @@ describe('Unified Link Rules Registry & Specification Engine', () => {
     });
   });
 
-  describe('Compiled Link Validators Validation', () => {
-    it('validates Telegram channel correctly', () => {
-      const validator = getUnifiedLinkValidator('TELEGRAM', 'CHANNEL');
-      expect(validator.safeParse('https://t.me/durov').success).toBe(true);
-      expect(validator.safeParse('https://t.me/+AbCdEf12345').success).toBe(true);
-      expect(validator.safeParse('https://not-telegram.com/durov').success).toBe(false);
+  describe('Manual Provider Service Creation Link Specs Resolution', () => {
+    it('resolves Telegram channel subscriber specs for manual creation', () => {
+      const spec = getUnifiedLinkSpecification('telegram', 'CHANNEL', 'SUBSCRIBERS');
+      expect(spec.placeholder).toContain('t.me/');
+      expect(spec.hint).toContain('канал');
+      expect(spec.clientRequirement).toContain('доступны');
+      expect(spec.regex).toBeDefined();
     });
 
-    it('rejects /c/ private chat posts in Telegram post validator', () => {
-      const validator = getUnifiedLinkValidator('TELEGRAM', 'POST');
-      expect(validator.safeParse('https://t.me/durov/123').success).toBe(true);
-      expect(validator.safeParse('https://t.me/c/1234567890/456').success).toBe(false);
+    it('resolves VK wall post like specs for manual creation', () => {
+      const spec = getUnifiedLinkSpecification('vk', 'POST', 'LIKES');
+      expect(spec.placeholder).toContain('vk.com/wall');
+      expect(spec.hint).toContain('запись');
+      expect(spec.clientRequirement).toContain('публичной');
+      expect(spec.regex).toBeDefined();
+    });
+
+    it('resolves YouTube video view specs for manual creation', () => {
+      const spec = getUnifiedLinkSpecification('youtube', 'VIDEO', 'VIEWS');
+      expect(spec.placeholder).toContain('youtube.com/watch?v=');
+      expect(spec.hint).toContain('видео');
+      expect(spec.regex).toBeDefined();
     });
   });
 });

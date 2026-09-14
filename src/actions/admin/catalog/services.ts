@@ -12,6 +12,7 @@ import { applyBeautifulRounding } from "@/lib/financial-constants";
 import { inferTargetTypeFromCategory } from "@/utils/target-type";
 import { validateRegexSafetyAndSmoke } from "@/validators/link-mutators";
 import { normalizeIconDescriptor } from "@/lib/icons/safe-svg";
+import { getUnifiedLinkSpecification } from "@/services/link-engine/link-rules-registry";
 
 export async function ensureTaxonomyTenantAccess(categoryId: string) {
   return requireStaffPermission('CATALOG', 'edit', async (admin) => {
@@ -99,7 +100,8 @@ export async function createServiceAction(rawData: unknown) {
 
     // Verify category exists and ensure taxonomy is accessible to all tenants
     const category = await db.category.findUnique({
-      where: { id: data.categoryId }
+      where: { id: data.categoryId },
+      include: { network: true }
     });
     if (!category) {
       return { success: false as const, error: 'Указанная категория не найдена' };
@@ -132,9 +134,25 @@ export async function createServiceAction(rawData: unknown) {
       targetType = inferTargetTypeFromCategory(category.name);
     }
 
+    // Unified Link Engine auto-specification (SIL-2026)
+    const linkSpec = getUnifiedLinkSpecification(
+      category.network?.slug || '',
+      targetType,
+      category.activityType || ''
+    );
+
+    const effectiveLinkValidatorRegex = data.linkValidatorRegex || linkSpec.regex || null;
+    const effectiveLinkPlaceholder = data.linkPlaceholder || linkSpec.placeholder || null;
+    const effectiveLinkHint = data.linkHint || linkSpec.hint || null;
+    const effectiveClientRequirement = data.clientRequirement || linkSpec.clientRequirement || null;
+    const effectiveRequiresBotAdmin = data.requiresBotAdmin || linkSpec.requiresBotAdmin || false;
+    const effectiveCustomDataType = data.customDataType !== "NONE" ? data.customDataType : (linkSpec.customDataType || "NONE");
+    const effectiveCustomDataLabel = data.customDataLabel || linkSpec.customDataLabel || null;
+    const effectiveIsMediaGroupAware = data.isMediaGroupAware || (linkSpec.isMediaGroupAware ?? false);
+
     // Validate link regex safety (ReDoS check)
-    if (data.linkValidatorRegex) {
-      const regexAudit = validateRegexSafetyAndSmoke(data.linkValidatorRegex);
+    if (effectiveLinkValidatorRegex) {
+      const regexAudit = validateRegexSafetyAndSmoke(effectiveLinkValidatorRegex);
       if (!regexAudit.isValid) {
         return { success: false as const, error: regexAudit.error || 'Некорректное или небезопасное регулярное выражение' };
       }
@@ -169,20 +187,20 @@ export async function createServiceAction(rawData: unknown) {
           externalId: data.externalId,
           targetType: targetType,
           qualityTier: data.qualityTier,
-          customDataType: data.customDataType,
-          customDataLabel: data.customDataLabel,
-          isMediaGroupAware: data.isMediaGroupAware,
-          linkValidatorRegex: data.linkValidatorRegex,
-          linkPlaceholder: data.linkPlaceholder,
-          linkHint: data.linkHint,
-          requiresBotAdmin: data.requiresBotAdmin,
+          customDataType: effectiveCustomDataType,
+          customDataLabel: effectiveCustomDataLabel,
+          isMediaGroupAware: effectiveIsMediaGroupAware,
+          linkValidatorRegex: effectiveLinkValidatorRegex,
+          linkPlaceholder: effectiveLinkPlaceholder,
+          linkHint: effectiveLinkHint,
+          requiresBotAdmin: effectiveRequiresBotAdmin,
           isDripFeedEnabled: data.isDripFeedEnabled,
           isRefillEnabled: data.isRefillEnabled,
           isCancelEnabled: data.isCancelEnabled,
           isActive: data.isActive,
           requireWarning: data.requireWarning,
           warningMessage: data.warningMessage,
-          clientRequirement: data.clientRequirement,
+          clientRequirement: effectiveClientRequirement,
           clientConfirmation: data.clientConfirmation,
           providerCurrency,
           pricePer1000Cents

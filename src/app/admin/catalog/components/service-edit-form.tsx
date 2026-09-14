@@ -3,12 +3,13 @@
 import React, { useState, useTransition, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Loader2, Layers, ShieldCheck, Target, AlertTriangle, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Layers, ShieldCheck, Target, AlertTriangle, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { updateServiceAction } from '@/actions/admin/catalog/services';
+import { updateServiceAction, createServiceAction } from '@/actions/admin/catalog/services';
 import { applyBeautifulRounding, SAFETY_FLOOR_MARKUP } from '@/lib/financial-constants';
 import { IconPicker } from '@/components/admin/icon-picker/IconPicker';
+import { ProviderServiceSearchModal } from '@/components/admin/catalog/provider-service-search-modal';
 import {
   TargetTypeEnum,
   inferTargetTypeFromName,
@@ -165,39 +166,104 @@ export function ServiceEditForm({
   const retailPricePerUnitRub = Number((retailPricePer1000Rub / 1000).toFixed(4));
   const isBelowSafety = markupMultiplier < 1 + SAFETY_FLOOR_MARKUP;
 
+  const isCreateMode = !initialData.id;
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // When an external service is selected from the provider API search modal
+  const handleSelectProviderService = (svc: any) => {
+    if (!svc) return;
+    if (svc.service) {
+      setExternalId(String(svc.service));
+    }
+    if (!name && svc.name) {
+      setName(svc.name);
+    }
+    if (svc.rate) {
+      setRate(parseFloat(svc.rate) || 0.01);
+    }
+    if (svc.min) {
+      setMinQty(parseInt(String(svc.min), 10) || 10);
+    }
+    if (svc.max) {
+      setMaxQty(parseInt(String(svc.max), 10) || 10000);
+    }
+    if (svc.targetType) {
+      setTargetType(svc.targetType);
+    } else if (svc.name) {
+      setTargetType(inferTargetTypeFromName(svc.name));
+    }
+    if (svc.refill !== undefined) {
+      setIsRefillEnabled(Boolean(svc.refill));
+    }
+    if (svc.cancel !== undefined) {
+      setIsCancelEnabled(Boolean(svc.cancel));
+    }
+    toast.success(`Данные услуги #${svc.service} успешно загружены из API провайдера`);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!initialData.id) return;
 
     startTransition(async () => {
       try {
-        const res = await updateServiceAction(initialData.id!, {
-          name,
-          description: description || null,
-          icon,
-          categoryId,
-          targetType,
-          providerId: providerId || null,
-          externalId: externalId || null,
-          rate,
-          markup: markupMultiplier,
-          minQty,
-          maxQty,
-          isActive,
-          isRefillEnabled,
-          isCancelEnabled,
-          isDripFeedEnabled: true,
-          qualityTier: 'STANDARD',
-          linkPlaceholder: linkPlaceholder || null,
-          linkHint: linkHint || null,
-        });
+        if (isCreateMode) {
+          const res = await createServiceAction({
+            name,
+            description: description || null,
+            icon,
+            categoryId,
+            targetType,
+            providerId: providerId || null,
+            externalId: externalId || null,
+            rate,
+            markup: markupMultiplier,
+            minQty,
+            maxQty,
+            isActive,
+            isRefillEnabled,
+            isCancelEnabled,
+            isDripFeedEnabled: true,
+            qualityTier: 'STANDARD',
+            linkPlaceholder: linkPlaceholder || null,
+            linkHint: linkHint || null,
+          });
 
-        if (res.success) {
-          toast.success('Услуга успешно обновлена');
-          router.push(effectiveReturnUrl);
-          router.refresh();
+          if (res.success) {
+            toast.success('Услуга успешно создана!');
+            router.push(effectiveReturnUrl);
+            router.refresh();
+          } else {
+            toast.error(res.error || 'Ошибка при создании услуги');
+          }
         } else {
-          toast.error(res.error || 'Ошибка при сохранении');
+          const res = await updateServiceAction(initialData.id!, {
+            name,
+            description: description || null,
+            icon,
+            categoryId,
+            targetType,
+            providerId: providerId || null,
+            externalId: externalId || null,
+            rate,
+            markup: markupMultiplier,
+            minQty,
+            maxQty,
+            isActive,
+            isRefillEnabled,
+            isCancelEnabled,
+            isDripFeedEnabled: true,
+            qualityTier: 'STANDARD',
+            linkPlaceholder: linkPlaceholder || null,
+            linkHint: linkHint || null,
+          });
+
+          if (res.success) {
+            toast.success('Услуга успешно обновлена');
+            router.push(effectiveReturnUrl);
+            router.refresh();
+          } else {
+            toast.error(res.error || 'Ошибка при сохранении');
+          }
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Сетевая ошибка');
@@ -206,50 +272,57 @@ export function ServiceEditForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Link
-            href={effectiveReturnUrl}
-            className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            title="Вернуться в каталог"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Редактирование услуги</h1>
-            <p className="text-xs text-muted-foreground">ID: #{initialData.id?.slice(-6)} • Изменение параметров и наценки</p>
+    <>
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <Link
+              href={effectiveReturnUrl}
+              className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              title="Вернуться в каталог"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">
+                {isCreateMode ? 'Добавление новой услуги' : 'Редактирование услуги'}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {isCreateMode
+                  ? 'Ручное добавление услуги в каталог платформы и привязка к API провайдера'
+                  : `ID: #${initialData.id?.slice(-6)} • Изменение параметров и наценки`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!isCreateMode && initialData.id && (
+              <Link
+                href={`/admin/services/${initialData.id}/routing`}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all border border-primary/20"
+              >
+                <span>⚡</span> Маршрутизация & Резерв
+              </Link>
+            )}
+            <Button
+              type="button"
+              onClick={() => router.push(effectiveReturnUrl)}
+              disabled={isPending}
+              className="text-xs bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              Отмена
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="text-xs font-bold gap-1.5 cursor-pointer"
+            >
+              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              {isCreateMode ? 'Создать услугу' : 'Сохранить изменения'}
+            </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {initialData.id && (
-            <Link
-              href={`/admin/services/${initialData.id}/routing`}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all border border-primary/20"
-            >
-              <span>⚡</span> Маршрутизация & Резерв
-            </Link>
-          )}
-          <Button
-            type="button"
-            onClick={() => router.push('/admin/catalog')}
-            disabled={isPending}
-            className="text-xs bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-          >
-            Отмена
-          </Button>
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="text-xs font-bold gap-1.5 cursor-pointer"
-          >
-            {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Сохранить изменения
-          </Button>
-        </div>
-      </div>
 
       {/* Main Settings Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -630,7 +703,22 @@ export function ServiceEditForm({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">ID услуги у провайдера</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-foreground block">ID услуги у провайдера</label>
+                {providerId && providerId !== '' && (
+                  <Button
+                    type="button"
+                    intent="outline"
+                    size="sm"
+                    onClick={() => setIsSearchModalOpen(true)}
+                    className="h-6 px-2 text-[11px] font-bold text-primary flex items-center gap-1 cursor-pointer bg-primary/5 hover:bg-primary/10 border-primary/20"
+                    title="Найти услугу в кэше API провайдера и заполнить форму"
+                  >
+                    <Search className="w-3 h-3" />
+                    <span>Выбрать из API</span>
+                  </Button>
+                )}
+              </div>
               <input
                 type="text"
                 value={externalId}
@@ -658,5 +746,14 @@ export function ServiceEditForm({
         </div>
       </div>
     </form>
+
+    {/* Provider API Cache Search Modal */}
+    <ProviderServiceSearchModal
+      isOpen={isSearchModalOpen}
+      onOpenChange={setIsSearchModalOpen}
+      providerId={providerId || null}
+      onSelect={handleSelectProviderService}
+    />
+  </>
   );
 }

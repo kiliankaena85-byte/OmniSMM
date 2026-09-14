@@ -127,3 +127,12 @@ description: Комплексный протокол непрерывного с
 - **Files Affected:** `src/services/link-engine/link-rules-registry.ts`, `src/services/admin/catalog.service.ts`
 - **Verified Date:** 2026-09-14
 
+### [LESSON-2026-09-14-SIL-D] manual-provider-service-creation-parity (HIGH)
+- **Trigger Condition:** При ручном создании услуги через `/admin/catalog/new` или `createServiceAction` поля правил валидации ссылок оставались пустыми, приводя к деградации интерфейса чекаута.
+- **Root Cause:** Метод создания услуги не обращался к `getUnifiedLinkSpecification()` и требовал от оператора ручного ввода регулярных выражений и подсказок.
+- **Enforced Solution Pattern:** Все точки входа добавления услуг (как пакетный импорт, так и ручное создание) обязаны вызывать канонический резолвер `getUnifiedLinkSpecification(platform, targetType, activityType)`, предзаполняя валидаторы, плейсхолдеры, подсказки и технические требования.
+- **Anti-Pattern:** Создание услуги с `linkValidatorRegex: null` при наличии канонических правил для целевой платформы.
+- **Correct Pattern:** Автоматическое обогащение через Unified Link Engine с сохранением возможности ручного оверрайда оператором.
+- **Files Affected:** `src/actions/admin/catalog/services.ts`, `src/app/admin/catalog/components/service-edit-form.tsx`, `src/app/admin/catalog/new/page.tsx`
+- **Verified Date:** 2026-09-14
+

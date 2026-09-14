@@ -154,6 +154,12 @@ describe('Manual Service Import & Editing CRUD Tests', () => {
     // Auto inferred targetType: category contains "Подписчики" -> CHANNEL!
     expect(created?.targetType).toBe('CHANNEL');
 
+    // Auto enriched link specification from Unified Link Engine (SIL-2026)
+    expect(created?.linkValidatorRegex).toBeDefined();
+    expect(created?.linkPlaceholder).toContain('t.me/');
+    expect(created?.linkHint).toContain('канал');
+    expect(created?.clientRequirement).toContain('доступны');
+
     // Denormalized retail price in cents calculation: 
     // rate 0.8 * markup 4.0 * exchangeRate 100 = 320.00 RUB -> 32000 cents
     expect(created?.pricePer1000Cents).toBe(32000);
