@@ -68,14 +68,16 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
     return;
   }
 
-  // TEST ORDER GUARD — prevents dispatching mock test orders to real providers
+  // TEST ORDER GUARD — prevents dispatching mock test orders to real providers in PRODUCTION
   const isMockProvider = await SettingsManager.isMockProviderEnabled();
-  if (order.isTest && !isMockProvider) {
-    log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production or hybrid mode. Failing safely.`);
+  const envMode = await SettingsManager.getEnvironmentMode();
+  
+  if (order.isTest && !isMockProvider && envMode !== 'HYBRID') {
+    log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);
     const { orderService } = await import('../../services/core/order.service');
     await orderService.failOrderTerminal(
       orderId,
-      'SYSTEM_GUARD: Попытка отправки тестового заказа реальному провайдеру прервана.'
+      'SYSTEM_GUARD: Попытка отправки тестового заказа реальному провайдеру в боевом режиме прервана.'
     );
     return;
   }
