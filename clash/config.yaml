@@ -29,6 +29,19 @@ dns:
   nameserver:
     - 8.8.8.8
     - 1.1.1.1
+  nameserver-policy:
+    'geosite:category-ru':
+      - 77.88.8.8
+      - 77.88.8.1
+    '+.yookassa.ru':
+      - 77.88.8.8
+      - 77.88.8.1
+    '+.yoomoney.ru':
+      - 77.88.8.8
+      - 77.88.8.1
+    '+.ru':
+      - 77.88.8.8
+      - 77.88.8.1
   fake-ip-filter:
     - "+.yookassa.ru"
     - "+.yoomoney.ru"
@@ -4910,6 +4923,8 @@ rule-providers:
     interval: 86400
     path: ./ruleset/whitelist.yaml
 rules:
+  - DOMAIN-SUFFIX,yookassa.ru,DIRECT
+  - DOMAIN-SUFFIX,yoomoney.ru,DIRECT
   - DOMAIN,panel.smmtoolbox.ru,DIRECT
   - DOMAIN-SUFFIX,smmtoolbox.ru,DIRECT
   - DOMAIN,primelike.happydesk.ru,DIRECT
