@@ -1,3 +1,18 @@
+- [x] ⚡ [CDD-TDD-2026] Комплексный харденинг режимов окружения (SANDBOX/HYBRID/ACQUIRING_TEST/PRODUCTION) и авто-сверки платежей (100% COMPLETE & VERIFIED):
+  * 📐 **Спецификация и архитектура:**
+    - Разработана и утверждена спецификация [`docs/specs/SPEC-2026-09-15-environment-modes-and-reconciliation-hardening.md`](file:///e:/SMM/docs/specs/SPEC-2026-09-15-environment-modes-and-reconciliation-hardening.md).
+    - Расширен [`ADR-2026-18`](file:///e:/SMM/docs/architecture/ADR-2026-18-ENVIRONMENT-MODES-AND-SANDBOX-HYBRID-ARCHITECTURE.md) до 7 закрытых архитектурных зазоров.
+  * 🛡️ **Реализация защиты от сбоев (Fail-Closed & Mode Invariants):**
+    - **1. Cold Cache Resilience (`src/lib/settings.ts` & `schema.prisma`):** Добавлено поле `environmentMode` в `SystemSettings`, исключающее деградацию `HYBRID` и `ACQUIRING_TEST` при перезапуске Redis.
+    - **2. Mock Payment Isolation (`src/services/financial/payment-gateway.service.ts` & `src/actions/order/checkout.ts`):** `PaymentGatewayFactory.getGateway` принимает флаг `isMockPayment`. В `SANDBOX` и `HYBRID` любые внешние шлюзы изолируются через `MockGateway` без сетевых вызовов.
+    - **3. Авто-сверка платежей (`src/workers/payment-reconciliation.ts`):** Устранена утечка боевых ключей; демон динамически считывает Live/Test ключи по `tenantId` и передает актуальный `isTestMode` в `confirmPayment`.
+    - **4. Диспетчеризация воркера (`src/workers/processors/order.processor.ts`):** Проверка `isMockProviderEnabled()` вместо бинарного `isTestMode`, разрешающая отправку реальным поставщикам в режиме `HYBRID`.
+    - **5. Демо-платежи (`src/actions/order/demo-payment.action.ts`):** Блокировка вызова в `ACQUIRING_TEST` и `PRODUCTION` через `isMockPaymentEnabled()`.
+  * 🧪 **Верификация & CI-гейты:**
+    - Новый TDD-сьют `src/__tests__/unit/environment-modes-reconciliation.test.ts` — 4/4 PASS (35ms).
+    - E2E сьют жизненного цикла `src/__tests__/unit/user-journey-order-payment-lifecycle.test.ts` — 6/6 PASS (371ms).
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [E2E-LIFECYCLE-2026] Комплексное тестирование пользовательских путей (Заказ, Оплата, Отмена, Возврат, Баланс) по стандартам 2026 года (100% COMPLETE & VERIFIED):
   * 🗄️ **Инфраструктура и настройка платежного шлюза:**
     - Развернута и синхронизирована тестовая PostgreSQL база данных `smmplan_test` на порту `5435` с актуальной Prisma-схемой.
