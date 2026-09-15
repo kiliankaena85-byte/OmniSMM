@@ -14,7 +14,7 @@ Write a >500 words SEO article in Russian about VK dog accounts and algorithmic 
 - >500 words
 - Russian language
 - Exact path: d:\SMM_plan_2\src\data\knowledge\vk_deleted_followers_dogs.md
-- Technical, B2B-focused, expert tone
+- Technical, API-focused, expert tone
 - Include specific mechanics: TargetType, Drip-Feed, PENDING_CHECK, PARTIAL, Refill/Гарантия
 
 ## Current Parent

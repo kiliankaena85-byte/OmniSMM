@@ -159,7 +159,7 @@ model User {
   smartCampaigns  SmartCampaign[]
   promoCodeUsages PromoCodeUsage[]
 
-  // B2B & Accounting Fields
+  // API & Accounting Fields
   companyName  String?
   inn          String?
   kpp          String?
@@ -174,19 +174,19 @@ model User {
   staffRoleId String?
   staffRole   StaffRole? @relation(fields: [staffRoleId], references: [id], onDelete: SetNull)
 
-  b2bConfig B2bConfig?
+  apiConfig ApiConfig?
   userNotes     UserNote[] @relation("UserNotes")
   authoredNotes UserNote[] @relation("AuthorNotes")
 }
 
-model B2bConfig {
+model ApiConfig {
   id               String  @id @default(cuid())
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isB2b            Boolean @default(true)
+  isApiEnabled            Boolean @default(true)
   prioritySupport  Boolean @default(true) // Выделение и приоритетная поддержка
   webhookUrl       String? // Webhook URL для синхронизации тикетов
-  webhookSecret    String? // Секретный ключ подписи вебхуков B2B
+  webhookSecret    String? // Секретный ключ подписи вебхуков API
   customLimitCents Int? // Кастомный лимит компенсаций (если null — лимит не применяется!)
 
   createdAt DateTime @default(now())
@@ -533,7 +533,7 @@ model Payment {
   @@index([gatewayId])
 }
 
-// ── B2B Accounting ──
+// ── API Accounting ──
 model Invoice {
   id        String   @id @default(cuid())
   userId    String

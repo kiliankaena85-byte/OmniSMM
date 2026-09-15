@@ -1,7 +1,7 @@
 # Project: SMMplan Security & Business Logic Audit
 
 ## Architecture
-- B2B SMM panel that resells services from providers.
+- API SMM panel that resells services from providers.
 - Tech Stack: Next.js 16, React 19, Prisma 5 (PostgreSQL), BullMQ, Redis, TypeScript 5.7+
 - All financial balances are stored as integers/BigInt in cents (kopeeks).
 

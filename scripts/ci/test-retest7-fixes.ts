@@ -1,6 +1,6 @@
 import { db } from '../../src/lib/db';
 import { verifySession, createSession } from '../../src/lib/session';
-import { verifyB2BKey } from '../../src/lib/b2b-auth';
+import { verifyAPIKey } from '../../src/lib/api-auth';
 import { resolveCanonicalHost, getTenantHost } from '../../src/lib/seo-helpers';
 import crypto from 'crypto';
 
@@ -49,20 +49,20 @@ async function runRetest7Tests() {
   }
 
   // =========================================================================
-  // 2. F-7.2: B2B Key Tenant Binding & Non-Empty Catalog
+  // 2. F-7.2: API Key Tenant Binding & Non-Empty Catalog
   // =========================================================================
-  console.log('\n--- 2. Testing F-7.2: B2B Key Tenant Isolation ---');
-  const b2bKey = 'pentest7_b2b_testkey_8492049281';
+  console.log('\n--- 2. Testing F-7.2: API Key Tenant Isolation ---');
+  const apiKey = 'pentest7_api_testkey_8492049281';
 
   // Smmplan user on smmplan contour
-  const validUser = await verifyB2BKey(b2bKey, 'smmplan');
-  assert(!!validUser && validUser.email === 'pentest7-user@smmplan.pro', `B2B Key accepted on its own tenant ("smmplan")`);
+  const validUser = await verifyAPIKey(apiKey, 'smmplan');
+  assert(!!validUser && validUser.email === 'pentest7-user@smmplan.pro', `API Key accepted on its own tenant ("smmplan")`);
 
   // Cross-tenant attempt: Smmplan user on flux contour
-  const crossTenantUser = await verifyB2BKey(b2bKey, 'flux');
-  assert(!crossTenantUser, `B2B Key STRICTLY REJECTED on cross-tenant domain ("flux") -> returns 401`);
+  const crossTenantUser = await verifyAPIKey(apiKey, 'flux');
+  assert(!crossTenantUser, `API Key STRICTLY REJECTED on cross-tenant domain ("flux") -> returns 401`);
 
-  // Check services catalog for B2B user
+  // Check services catalog for API user
   const userTenant = validUser?.tenantId || 'smmplan';
   const services = await db.service.findMany({
     where: {
@@ -71,7 +71,7 @@ async function runRetest7Tests() {
       category: { tenantId: { in: [userTenant, 'all'] } }
     }
   });
-  assert(services.length > 0, `B2B Services catalog is non-empty (${services.length} active services available)`);
+  assert(services.length > 0, `API Services catalog is non-empty (${services.length} active services available)`);
 
   // =========================================================================
   // 3. F-7.4: Maintenance Gate on Production smmplan.pro
@@ -121,13 +121,13 @@ async function runRetest7Tests() {
   // 5. F-7.3: Strict Contour Isolation (test vs prod vs flux)
   // =========================================================================
   console.log('\n--- 5. Testing F-7.3: Contour Isolation (test vs prod vs flux) ---');
-  // B2B key issued for test account on test contour
-  const validTestKey = await verifyB2BKey(b2bKey, 'smmplan', 'test');
-  assert(!!validTestKey, `Test B2B key valid on test contour ("test")`);
+  // API key issued for test account on test contour
+  const validTestKey = await verifyAPIKey(apiKey, 'smmplan', 'test');
+  assert(!!validTestKey, `Test API key valid on test contour ("test")`);
 
-  // B2B key issued for test account attempted on production contour
-  const prodTestKey = await verifyB2BKey(b2bKey, 'smmplan', 'prod');
-  assert(!prodTestKey, `Test B2B key STRICTLY REJECTED on production contour ("prod")`);
+  // API key issued for test account attempted on production contour
+  const prodTestKey = await verifyAPIKey(apiKey, 'smmplan', 'prod');
+  assert(!prodTestKey, `Test API key STRICTLY REJECTED on production contour ("prod")`);
 
   // Contour resolution tests
   const { resolveContourFromHost } = await import('../../src/lib/tenant-resolver-edge');

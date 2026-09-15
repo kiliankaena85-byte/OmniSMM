@@ -115,7 +115,7 @@ async function runSwarm() {
     console.log(🎯 ФОКУС: );
     console.log(======================================================);
 
-    const userPrompt = Проведи детальный аудит доступности финансовых проводок для роли SUPPORT в SaaS/B2B платформе OmniSMM (SMMplan / SMMflux).
+    const userPrompt = Проведи детальный аудит доступности финансовых проводок для роли SUPPORT в SaaS/API платформе OmniSMM (SMMplan / SMMflux).
 Что саппорт ОБЯЗАН видеть для работы, а что КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО показывать? Оформи экспертное заключение с четкими списками и рекомендациями.;
 
     const verdict = await callOpenRouter(exp.model, exp.systemPrompt, userPrompt, exp.fallbackModels);

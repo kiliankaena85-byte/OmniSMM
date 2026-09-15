@@ -176,9 +176,9 @@ export async function GET(request: Request) {
           ];
         }
 
-        if (filter === 'b2b') {
+        if (filter === 'api') {
           where.OR = [
-            { b2bConfig: { isB2b: true } },
+            { apiConfig: { isApiEnabled: true } },
             { inn: { not: null } },
             { companyName: { not: null } }
           ];

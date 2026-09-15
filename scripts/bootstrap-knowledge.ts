@@ -103,7 +103,7 @@ const entries: KnowledgeEntry[] = [
     tags: ['ui', 'ux', 'density', 'landing', 'app-router', 'design-system'],
     content: `## UI & UX Density Rules: App Interface vs Landing Page
 1. **App Interface (User Dashboard & Admin Panel)**:
-   - **Visual Style**: Sleek B2B design (inspired by Stripe/Vercel), dark mode first, high data density.
+   - **Visual Style**: Sleek API design (inspired by Stripe/Vercel), dark mode first, high data density.
    - **Data Density**: Compact tables, zero unnecessary whitespace, clear borders (using tone contrast instead of 1px solid lines), and multi-column info blocks to reduce vertical scrolling.
    - **Typography**: Small, crisp font sizes, tighter line heights for fast data scanning.
    - **Interactions**: Instant feedback, micro-animations, keyboard-friendly navigation.
@@ -111,7 +111,7 @@ const entries: KnowledgeEntry[] = [
    - **Visual Style**: Clean, modern, conversion-focused layout (optimized for RuNet visual culture).
    - **Whitespace**: Generous margins and paddings, large headings (Outfit/Inter), readable Cyrillic typography (with +15-20% text expansion accounted for).
    - **Interactions**: Smooth scroll-based animations, engaging hover states, clear CTAs (Call to Actions) with conversion triggers (e.g. secure payment badges).
-   - **Goal**: High emotional trust and conversion. Avoid B2B dashboard complexity; keep layouts simple and visual.`
+   - **Goal**: High emotional trust and conversion. Avoid API dashboard complexity; keep layouts simple and visual.`
   }
 ];
 

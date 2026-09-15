@@ -116,7 +116,7 @@ export const apiClusters: ClusterArticle[] = [
       },
     ],
     contentHtml: `
-      <p>Реселлинг SMM-услуг — готовая модель B2B-бизнеса. Руководство по интеграции читайте в статье <a href="/knowledge/smm-api-guide">SMM API для агентств и реселлеров</a> и <a href="/knowledge/glossary/markup">Термине Наценка</a>.</p>
+      <p>Реселлинг SMM-услуг — готовая модель API-бизнеса. Руководство по интеграции читайте в статье <a href="/knowledge/smm-api-guide">SMM API для агентств и реселлеров</a> и <a href="/knowledge/glossary/markup">Термине Наценка</a>.</p>
 
       <h2>Преимущества партнерской модели SMMplan</h2>
       <p>Мы берем на себя автоматический контроль цен, систему Карантина (<a href="/knowledge/glossary/quarantine">Quarantine</a>) и поддержку бесперебойной сети.</p>

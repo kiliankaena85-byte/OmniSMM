@@ -336,7 +336,7 @@ export interface PendingOrderSnapshot {
 ## 4. UI/UX Спецификация модального окна (`CheckoutAuthModal`)
 
 ### 4.1. Визуальный дизайн и токенизация (HeroUI & Tailwind CSS 4)
-Компонент модального окна реализуется в соответствии с дизайн-системой OmniSMM 1.0 (Dual-Brand: SMMplan B2B / SMMflux Aurora) без использования сырых или inline-цветов:
+Компонент модального окна реализуется в соответствии с дизайн-системой OmniSMM 1.0 (Dual-Brand: SMMplan API / SMMflux Aurora) без использования сырых или inline-цветов:
 - Контейнер: `bg-card text-foreground border border-border/80 shadow-2xl rounded-3xl backdrop-blur-xl`.
 - Оверлей: `bg-background/80 backdrop-blur-md`.
 - Инпуты: Компоненты UI Арсенала (`FluxInput` для Flux / стандартные стилизованные поля для Plan) с семантическими токенами `bg-content2 border-border focus:border-primary text-foreground`.

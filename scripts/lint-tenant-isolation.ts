@@ -70,7 +70,7 @@ export class TenantIsolationLinter {
     const isSystemInfrastructure =
       normPath.includes('src/lib/server/rbac') ||
       normPath.includes('src/lib/operator/rbac') ||
-      normPath.includes('src/lib/b2b-auth') ||
+      normPath.includes('src/lib/api-auth') ||
       normPath.includes('src/lib/auth/require-session') ||
       normPath.includes('src/lib/alerts/') ||
       normPath.includes('src/lib/session') ||

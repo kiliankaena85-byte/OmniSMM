@@ -85,7 +85,7 @@
 | `tabs/security-login-logs.tsx` | 67 | Таблица логов входа |
 | `tabs/payments-tab.tsx` | 134 | Таблица платежей клиента |
 | `tabs/payments-refund-modal.tsx` | 203 | Модалка возврата средств |
-| `tabs/b2b-tab.tsx` | 177 | B2B профиль |
+| `tabs/api-tab.tsx` | 177 | API профиль |
 | `tabs/notes-tab.tsx` | 145 | Заметки и скидки |
 
 ### ADM-16 — Кэш счётчика аномалий в layout

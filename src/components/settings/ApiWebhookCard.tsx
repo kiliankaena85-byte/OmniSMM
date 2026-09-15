@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { updateB2bWebhookAction } from '@/actions/user/settings-extra';
+import { updateApiWebhookAction } from '@/actions/user/settings-extra';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { B2bWebhookInput, UpdateB2bWebhookResult } from '@/actions/user/settings-extra.types';
+import type { ApiWebhookInput, UpdateApiWebhookResult } from '@/actions/user/settings-extra.types';
 import { Webhook, Copy, CheckCheck, RefreshCw, Save, ShieldCheck, Power } from 'lucide-react';
 import { toast } from 'sonner';
 
-export interface B2bWebhookCardProps {
+export interface ApiWebhookCardProps {
   initialData?: {
     webhookUrl?: string | null;
     webhookSecret?: string | null;
@@ -16,7 +16,7 @@ export interface B2bWebhookCardProps {
   };
 }
 
-export default function B2bWebhookCard({ initialData }: B2bWebhookCardProps) {
+export default function ApiWebhookCard({ initialData }: ApiWebhookCardProps) {
   const [isPending, startTransition] = useTransition();
   const [webhookUrl, setWebhookUrl] = useState(initialData?.webhookUrl || '');
   const [webhookSecret, setWebhookSecret] = useState(initialData?.webhookSecret || '');
@@ -47,7 +47,7 @@ export default function B2bWebhookCard({ initialData }: B2bWebhookCardProps) {
 
     startTransition(async () => {
       try {
-        const res = await updateB2bWebhookAction({
+        const res = await updateApiWebhookAction({
           webhookUrl: trimmedUrl,
           isWebhookActive: targetActiveState,
           regenerateSecret,
@@ -69,7 +69,7 @@ export default function B2bWebhookCard({ initialData }: B2bWebhookCardProps) {
         if (regenerateSecret) {
           toast.success('Новый секретный ключ вебхука сгенерирован!');
         } else {
-          toast.success('Настройки B2B-вебхука успешно сохранены!');
+          toast.success('Настройки API-вебхука успешно сохранены!');
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Неизвестная ошибка';

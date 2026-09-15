@@ -154,7 +154,7 @@
 // adminRevokeUserSessionsAction, approveQuarantineAction,
 // rejectQuarantineAction, updateBalanceAction, requestCardRefundAction
 //   → requireStaffPermission('finance', 'edit', ...)
-// updateUserB2bAction → requireStaffPermission('clients', 'edit', ...)  // единственный
+// updateUserApiAction → requireStaffPermission('clients', 'edit', ...)  // единственный
 ```
 
 Карточка клиента (`client-detail-client.tsx`, 1435 строк) активно вызывает эти экшены. Денежные операции (баланс, возвраты) на `finance` — обоснованно; но бан, пароль, email, сессии, удаление и impersonation — это клиентские операции и должны жить в `clients`. Дополнительно: `loginAsAction` (имперсонация!) вообще стоит рассматривать как минимум OWNER/ADMIN-уровня, а не «finance:edit».
@@ -370,4 +370,4 @@ const SECTION_MAP = {
 
 ## 8. Границы аудита
 
-Аудит статический, выполнялся на ветке `fix/audit-stage4-hygiene`. Разделы заказов/финансов проверялись на корректность RBAC и целостность операций; глубокий аудит денежной логики (возвраты, эскроу, сверка) уже частично покрыт внутренними документами репозитория (`FISCAL_AUDIT_54FZ_REPORT.md`, `payment_audit_report.md`, тесты `test/integration/*`) и не дублировался. Публичная витрина, чекаут и API v2 — вне настоящего охвата (частично покрыты `CLIENT_UX_AUDIT_REPORT.md`, `B2B_API_V2_AUDIT_REPORT.md`).
+Аудит статический, выполнялся на ветке `fix/audit-stage4-hygiene`. Разделы заказов/финансов проверялись на корректность RBAC и целостность операций; глубокий аудит денежной логики (возвраты, эскроу, сверка) уже частично покрыт внутренними документами репозитория (`FISCAL_AUDIT_54FZ_REPORT.md`, `payment_audit_report.md`, тесты `test/integration/*`) и не дублировался. Публичная витрина, чекаут и API v2 — вне настоящего охвата (частично покрыты `CLIENT_UX_AUDIT_REPORT.md`, `API_API_V2_AUDIT_REPORT.md`).

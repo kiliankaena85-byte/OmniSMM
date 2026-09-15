@@ -96,7 +96,7 @@ async function auditRuServices() {
             issueType: 'DEPRECATED_NAME_ACTIVE',
             description: `Активная услуга содержит маркер архива/депрекации в названии: "${name}"`,
             currentValues: { name: s.name, isActive: s.isActive },
-            recommendation: `Деактивировать услугу (isActive: false) или переименовать в понятное для B2C/B2B клиентов имя.`
+            recommendation: `Деактивировать услугу (isActive: false) или переименовать в понятное для B2C/API клиентов имя.`
           });
         }
 

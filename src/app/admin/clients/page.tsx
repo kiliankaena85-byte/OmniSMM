@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 type Props = {
   searchParams: Promise<{
     q?: string;
-    filter?: 'all' | 'b2b' | 'balance' | 'banned' | 'vip';
+    filter?: 'all' | 'api' | 'balance' | 'banned' | 'vip';
     cursor?: string;
     page?: string;
     pageSize?: string;
@@ -70,7 +70,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
 
   const filterTabs = [
     { id: 'all', label: 'Все клиенты', icon: Users, count: stats.total },
-    { id: 'b2b', label: 'B2B Партнеры', icon: Building2 },
+    { id: 'api', label: 'API Партнеры', icon: Building2 },
     { id: 'balance', label: 'С балансом', icon: Wallet },
     { id: 'vip', label: 'VIP (Gold/Plat)', icon: Sparkles },
     { id: 'banned', label: 'Забаненные', icon: ShieldAlert, count: stats.banned },
@@ -209,7 +209,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
               companyName: u.companyName,
               inn: u.inn,
               createdAt: u.createdAt,
-              b2bConfig: u.b2bConfig,
+              apiConfig: u.apiConfig,
             }))}
           />
 

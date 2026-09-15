@@ -16,9 +16,9 @@ Requirements:
   - Button "Запросить бесплатную докрутку" (Refill) with backend request creation.
   - Display Drip-Feed progress: `Запуск 2 из 5 (следующий через 15 мин)`.
   - Detailed breakdown of charge using CBR exchange rate and discount.
-- R3. Advanced Profile & Security Settings (152-ФЗ consent card with timestamp/IP, B2B Webhooks & Settings, Tax/Company requisites ИНН/КПП, API KeyHash gen/reset) in `settings`.
+- R3. Advanced Profile & Security Settings (152-ФЗ consent card with timestamp/IP, API Webhooks & Settings, Tax/Company requisites ИНН/КПП, API KeyHash gen/reset) in `settings`.
   - 152-ФЗ & Consents: card with date & IP of TOS acceptance (`tosAcceptedAt`, `tosAcceptedIp`).
-  - B2B Webhooks & Settings: `Webhook URL`, `Webhook Secret` and B2B connection status.
+  - API Webhooks & Settings: `Webhook URL`, `Webhook Secret` and API connection status.
   - Tax/Company Requisites (for legal entities): `Название компании`, `ИНН`, `КПП`, `Юридический адрес`.
   - Generation and reset of API Key (`apiKeyHash`).
 - R4. Promo Codes & Vouchers in Balance Deposit (`deposit` form).
@@ -30,7 +30,7 @@ Acceptance Criteria:
 - `clientConfirmation` checkbox blocks order submission with highlight animation.
 - Refill click sends Refill creation request and shows `PENDING` status.
 - INN, KPP, Company Name saved and displayed in profile.
-- Webhook URL saved for B2B integrations.
+- Webhook URL saved for API integrations.
 
 ## 2026-07-27T14:49:51Z
 

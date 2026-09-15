@@ -153,7 +153,7 @@ export function TelegramLinkGuideModal({
         {/* ── MAIN INTERACTIVE GRID: HIGH-FIDELITY PHONE + INTERACTIVE STEPS ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           
-          {/* 📱 LEFT: B2B TELEGRAM PHONE SCREEN WITH EXPLICIT DEMO BADGE (5 cols) */}
+          {/* 📱 LEFT: API TELEGRAM PHONE SCREEN WITH EXPLICIT DEMO BADGE (5 cols) */}
           <div className="lg:col-span-5 flex flex-col items-center">
             <div className="w-full max-w-[290px] sm:max-w-[315px] rounded-[2.8rem] p-4 bg-neutral-950 border-[5px] border-neutral-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] text-white font-sans relative overflow-hidden ring-1 ring-neutral-700/50">
               

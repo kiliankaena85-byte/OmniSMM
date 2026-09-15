@@ -9,7 +9,7 @@ The content contains sections detailing how VK's anti-fraud works ("Spike detect
 ## Logic Chain
 1. The requirement asks for word count > 500 words. The article is roughly 850 words, satisfying the requirement.
 2. The requirement asks for the text to be in Russian. The article is fully written in Russian.
-3. The requirement asks for a technical, B2B-focused, and expert tone without "AI water". The text uses terms like "graceful degradation", "обфускация всплесков", and "velocity check" instead of generic marketing fluff, fulfilling the tone requirement.
+3. The requirement asks for a technical, API-focused, and expert tone without "AI water". The text uses terms like "graceful degradation", "обфускация всплесков", and "velocity check" instead of generic marketing fluff, fulfilling the tone requirement.
 4. The requirement asks to integrate `TargetType`, `Drip-Feed`, `PENDING_CHECK`, `PARTIAL`, and `Refill`. All five are explicitly mentioned and logically tied to specific VK anti-fraud mechanisms (e.g., `Drip-Feed` counters `Spike detection`).
 5. The requirement asks for proper Markdown frontmatter (`title`, `category` (VK), `seo_keywords`). The file starts with a YAML frontmatter block containing exactly these fields.
 

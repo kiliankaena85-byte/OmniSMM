@@ -11,7 +11,7 @@
 ## Logic Chain
 1. The requirement of > 500 words is met (actual count: 1085 words).
 2. The language requirement is met (Russian).
-3. The tone avoids 'AI fluff' and correctly adopts an expert, B2B, technical style.
+3. The tone avoids 'AI fluff' and correctly adopts an expert, API, technical style.
 4. All required Smmplan mechanics (`TargetType`, `Drip-Feed`, `PENDING_CHECK`, `PARTIAL`, `Refill`) are meaningfully integrated as solutions to VK's anti-fraud algorithms.
 5. The frontmatter contains the required metadata.
 

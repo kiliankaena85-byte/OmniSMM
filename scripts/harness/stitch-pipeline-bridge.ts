@@ -43,7 +43,7 @@ export class StitchPipelineBridge {
       visualStyle = 'Dark Neon Radiant Aurora theme with deep obsidian background (#090d16), frosted glass blur (24px), border-beam neon glow accents (cyan #00f2fe to purple #4facfe), 3D interactive tilt cards, and vibrant status badges.';
       designTokens = 'Tailwind 4 @theme semantic tokens: bg-background, bg-card/80, text-foreground, text-primary (#00f2fe), border-border with subtle neon glow.';
     } else {
-      visualStyle = 'Enterprise Clean B2B SaaS theme (Linear/Vercel aesthetic) with high-density data presentation, 280px left collapsible sidebar, HUD top navbar with instant wallet balance, fluid 12-column grid, and tabular data tables.';
+      visualStyle = 'Enterprise Clean API SaaS theme (Linear/Vercel aesthetic) with high-density data presentation, 280px left collapsible sidebar, HUD top navbar with instant wallet balance, fluid 12-column grid, and tabular data tables.';
       designTokens = 'Tailwind 4 @theme tokens: bg-card (#ffffff / #12161f in dark), border-border, text-foreground, high WCAG 2.2 AA contrast, 48px touch targets.';
     }
 

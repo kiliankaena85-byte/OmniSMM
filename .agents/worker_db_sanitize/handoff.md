@@ -50,7 +50,7 @@ async function main() {
     { name: 'Refill', model: prisma.refill },
     { name: 'Order', model: prisma.order },
     { name: 'Payment', model: prisma.payment },
-    { name: 'B2bConfig', model: prisma.b2bConfig },
+    { name: 'ApiConfig', model: prisma.apiConfig },
   ];
 
   const deletionCounts: Record<string, number> = {};
@@ -247,7 +247,7 @@ async function main() {
     { name: 'Refill', model: prisma.refill },
     { name: 'Order', model: prisma.order },
     { name: 'Payment', model: prisma.payment },
-    { name: 'B2bConfig', model: prisma.b2bConfig },
+    { name: 'ApiConfig', model: prisma.apiConfig },
   ];
 
   console.log('\n--- 1. Transactional Tables Verification ---');
@@ -414,7 +414,7 @@ Starting database production sanitization...
 [EMPTY] Table Refill: deleted 0 records.
 [EMPTY] Table Order: deleted 0 records.
 [EMPTY] Table Payment: deleted 0 records.
-[EMPTY] Table B2bConfig: deleted 0 records.
+[EMPTY] Table ApiConfig: deleted 0 records.
 [TRIGGER] Re-enabled no_update_delete_ledger trigger on LedgerEntry.
 [DELETE] Users table: deleted 0 non-staff users.
 [UPDATE] Global SystemSettings: no local URLs detected.
@@ -449,7 +449,7 @@ Deletion counts by table:
   "Refill": 0,
   "Order": 0,
   "Payment": 0,
-  "B2bConfig": 0
+  "ApiConfig": 0
 }
 Deleted Non-Staff Users: 0
 Updated Global SystemSettings: 0
@@ -492,7 +492,7 @@ Starting DB state verification...
 [PASS] Table Refill is empty (0 records).
 [PASS] Table Order is empty (0 records).
 [PASS] Table Payment is empty (0 records).
-[PASS] Table B2bConfig is empty (0 records).
+[PASS] Table ApiConfig is empty (0 records).
 
 --- 2. Users Verification ---
 [PASS] Users list contains ONLY OWNER or ADMIN users (3 total).

@@ -28,19 +28,19 @@ const INVARIANT_CHECKS: InvariantCheck[] = [
     }
   },
   {
-    id: 'F72_B2B_TENANT_BINDING',
-    name: 'B2B API Key Tenant Binding',
+    id: 'F72_API_TENANT_BINDING',
+    name: 'Panel API Key Tenant Binding',
     category: 'MULTI_TENANCY',
-    description: 'Ensure B2B authentication binds API keys strictly to tenantId',
+    description: 'Ensure API authentication binds API keys strictly to tenantId',
     checker: (rootDir) => {
-      const b2bAuthPath = path.join(rootDir, 'src', 'lib', 'b2b-auth.ts');
-      if (!fs.existsSync(b2bAuthPath)) return { passed: false, details: 'src/lib/b2b-auth.ts not found' };
-      const content = fs.readFileSync(b2bAuthPath, 'utf8');
+      const apiAuthPath = path.join(rootDir, 'src', 'lib', 'api-auth.ts');
+      if (!fs.existsSync(apiAuthPath)) return { passed: false, details: 'src/lib/api-auth.ts not found' };
+      const content = fs.readFileSync(apiAuthPath, 'utf8');
       const hasTenantBinding = content.includes('tenantId: { in: [currentTenant, \'all\'] }') || content.includes('tenantId');
       if (hasTenantBinding) {
-        return { passed: true, details: 'B2B authentication enforces tenantId match on apiKey lookups' };
+        return { passed: true, details: 'API authentication enforces tenantId match on apiKey lookups' };
       }
-      return { passed: false, details: 'Missing tenantId constraint in B2B apiKey lookup' };
+      return { passed: false, details: 'Missing tenantId constraint in API apiKey lookup' };
     }
   },
   {

@@ -4,7 +4,7 @@
 
 ---
 
-## 🎨 БЛОК A: Клиентский интерфейс и пользовательский опыт (B2C/B2B UI/UX)
+## 🎨 БЛОК A: Клиентский интерфейс и пользовательский опыт (B2C/API UI/UX)
 
 ### 📌 ЧАНК 1: Главный лендинг и мастер заказа (Order Wizard UX)
 - **Файлы:**
@@ -22,7 +22,7 @@
   - `src/app/dashboard/finance/`, `src/app/dashboard/deposit/`, `src/app/dashboard/add-funds/`
   - `src/app/dashboard/orders/`, `src/app/dashboard/referrals/`, `src/app/dashboard/settings/`
 - **Фокус аудита:**
-  - **UX:** Калькулятор бонусов при пополнении (СБП, Карты РФ, CryptoBot), генератор B2B-счетов.
+  - **UX:** Калькулятор бонусов при пополнении (СБП, Карты РФ, CryptoBot), генератор API-счетов.
   - **Рефералы:** Шкала уровней 5–15%, мгновенная генерация QR-кода и ссылок для шеринга в TG/VK.
   - **Профиль:** Smart Bind Telegram в 1 клик через QR, тумблеры мгновенных уведомлений, согласие 152-ФЗ.
 
@@ -36,7 +36,7 @@
 
 ---
 
-## 🖥️ БЛОК B: Панель управления SMMpanel 1.0 (Enterprise B2B UX)
+## 🖥️ БЛОК B: Панель управления SMMpanel 1.0 (Enterprise API UX)
 
 ### 📌 ЧАНК 4: Управление заказами оператора (Admin Orders Hub)
 - **Файлы:**
@@ -112,7 +112,7 @@
 - **Фокус аудита:**
   - Суммы строго в BigInt (копейках), уровень транзакций Serializable, idempotencyKey, timingSafeEqual для HMAC подписей.
 
-### 📌 ЧАНК 13: B2B Реселлер API v2 и Vault Шифрование
+### 📌 ЧАНК 13: API Реселлер API v2 и Vault Шифрование
 - **Файлы:**
   - `src/app/api/v2/route.ts`, `src/actions/user/settings-extra.ts`, `src/services/security/vault.service.ts`
 - **Фокус аудита:**

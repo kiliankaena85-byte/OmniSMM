@@ -234,7 +234,7 @@ export function AcademyClient({ manualHtml, supportManualHtml, sidebarItems }: A
     if (matrixLtv === 'VIP' || matrixLtv === 'REGULAR') {
       return {
         action: 'VIP Goodwill: Частичная компенсация 50% + персональная скидка 7%',
-        policy: 'Сохранение доходного B2B-клиента с высоким LTV.',
+        policy: 'Сохранение доходного API-клиента с высоким LTV.',
         script: '«Здравствуйте! Мы ценим сотрудничество с вами. Несмотря на то, что тариф без гарантии, мы в качестве исключения компенсировали 50% на ваш баланс и подключили для вашего аккаунта постоянную скидку 7% на все надежные тарифы с гарантией!»',
         badge: 'VIP Goodwill (50% + Скидка)',
         badgeColor: 'bg-amber-500/10 text-amber-600 border-amber-500/20'
@@ -665,7 +665,7 @@ export function AcademyClient({ manualHtml, supportManualHtml, sidebarItems }: A
 
               {/* Category Filter Pills */}
               <div className="flex items-center gap-1 flex-wrap pb-1">
-                {(['ALL', 'SECURITY', 'ORDERS', 'FINANCE', 'LEGAL', 'B2B'] as const).map(cat => (
+                {(['ALL', 'SECURITY', 'ORDERS', 'FINANCE', 'LEGAL', 'API'] as const).map(cat => (
                   <button
                     key={cat}
                     type="button"

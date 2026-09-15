@@ -20,8 +20,8 @@ type AdminUserRow = {
   inn: string | null;
   createdAt: Date;
   tenantId: string;
-  b2bConfig?: {
-    isB2b: boolean;
+  apiConfig?: {
+    isApiEnabled: boolean;
     prioritySupport: boolean;
     webhookUrl: string | null;
   } | null;
@@ -92,7 +92,7 @@ class AdminUserService {
     cursor?: string;
     page?: number;
     search?: string;
-    filter?: 'all' | 'b2b' | 'balance' | 'banned' | 'vip';
+    filter?: 'all' | 'api' | 'balance' | 'banned' | 'vip';
     pageSize?: number;
     tenantId?: string;
     sortBy?: UserSortField;
@@ -115,9 +115,9 @@ class AdminUserService {
       where.tenantId = params.tenantId;
     }
 
-    if (params.filter === 'b2b') {
+    if (params.filter === 'api') {
       where.OR = [
-        { b2bConfig: { isB2b: true } },
+        { apiConfig: { isApiEnabled: true } },
         { inn: { not: null } },
         { companyName: { not: null } }
       ];
@@ -152,9 +152,9 @@ class AdminUserService {
       where,
       orderBy,
       include: {
-        b2bConfig: {
+        apiConfig: {
           select: {
-            isB2b: true,
+            isApiEnabled: true,
             prioritySupport: true,
             webhookUrl: true,
           }
@@ -165,13 +165,13 @@ class AdminUserService {
   }
 
   /**
-   * Full user card with recent orders, tickets, payments and B2B config.
+   * Full user card with recent orders, tickets, payments and API config.
    */
   async getUserCard(userId: string): Promise<UserCard> {
     const user = await db.user.findUniqueOrThrow({
       where: { id: userId },
       include: {
-        b2bConfig: true,
+        apiConfig: true,
         _count: { select: { orders: true, tickets: true } },
         orders: {
           take: 20,

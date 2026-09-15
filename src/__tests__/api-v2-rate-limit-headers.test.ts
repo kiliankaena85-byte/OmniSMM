@@ -5,7 +5,7 @@ import { RateLimitService } from '@/services/core/rate-limit.service';
 
 vi.mock('@/lib/db', () => ({
   db: {
-    b2bRequestLog: { create: vi.fn().mockResolvedValue({}) },
+    apiRequestLog: { create: vi.fn().mockResolvedValue({}) },
     user: { 
       findFirst: vi.fn(),
       findUnique: vi.fn().mockResolvedValue({ id: 'user-123', balance: BigInt(100000), tenantId: 'smmplan' })
@@ -14,8 +14,8 @@ vi.mock('@/lib/db', () => ({
   }
 }));
 
-vi.mock('@/lib/b2b-auth', () => ({
-  verifyB2BKey: vi.fn().mockResolvedValue({
+vi.mock('@/lib/api-auth', () => ({
+  verifyAPIKey: vi.fn().mockResolvedValue({
     id: 'user-123',
     role: 'USER',
     tenantId: 'smmplan',

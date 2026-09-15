@@ -1,7 +1,7 @@
 # Справочник 01: Матрица Канонической Таксономии и Правила Сортировки
 
 > **Компонент скилла:** `provider-catalog-importer`  
-> **Стандарт:** OmniSMM 1.0 (B2B SMM Platform)
+> **Стандарт:** OmniSMM 1.0 (API SMM Platform)
 
 ---
 

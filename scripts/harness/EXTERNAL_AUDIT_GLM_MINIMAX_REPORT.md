@@ -33,21 +33,21 @@ N/A
 
 ---
 
-## F-7.2: B2B API Key Cross-Tenant Rejection
+## F-7.2: Panel API Key Cross-Tenant Rejection
 
 **VERDICT: FAIL (Contour Bypass + Tenant Spoofing via Header)**
 
 ### Findings:
 
-1. **CRITICAL — Tenant Requirement is Optional**: `verifyB2BKey(key, requiredTenantId?)` — if `requiredTenantId` is not passed (or is null/undefined), the cross-tenant check is **completely skipped**. The B2B v2 route must always pass `resolveTenantFromRequest(request)` as the required tenant. Audit shows this is imported, but I cannot verify it is unconditionally threaded into `verifyB2BKey` in all code paths. The header `x-tenant-id` is stripped by the proxy, but `resolveTenantFromRequest` may fall back to `request.headers.get('x-tenant-id')` — and since the proxy `requestHeaders.set('x-tenant-id', finalTenantId)` re-injects it, the **resolved tenant is attacker-influenced** in dev/QA mode via the `x_tenant` cookie.
+1. **CRITICAL — Tenant Requirement is Optional**: `verifyAPIKey(key, requiredTenantId?)` — if `requiredTenantId` is not passed (or is null/undefined), the cross-tenant check is **completely skipped**. The API v2 route must always pass `resolveTenantFromRequest(request)` as the required tenant. Audit shows this is imported, but I cannot verify it is unconditionally threaded into `verifyAPIKey` in all code paths. The header `x-tenant-id` is stripped by the proxy, but `resolveTenantFromRequest` may fall back to `request.headers.get('x-tenant-id')` — and since the proxy `requestHeaders.set('x-tenant-id', finalTenantId)` re-injects it, the **resolved tenant is attacker-influenced** in dev/QA mode via the `x_tenant` cookie.
 
 2. **CRITICAL — Test/Prod Contour Account Reuse**: `requiredContour === 'prod'` check only blocks accounts whose email **contains literal strings** `'pentest'` or `'test_'`. This is a string-match blacklist:
    - `test+prod@evil.com` → bypasses
    - `pentester.real@target.io` → bypasses
    - Any account not following naming convention → **cross-contour accepted**
-   - The blocklist is brittle and assumes all pentest/test accounts have those substrings. A legitimate B2B user created in test contour without those substrings can authenticate against prod.
+   - The blocklist is brittle and assumes all pentest/test accounts have those substrings. A legitimate API user created in test contour without those substrings can authenticate against prod.
 
-3. **MEDIUM — `requiredContour` is Optional in the API**: If `resolveContourFromHost` returns `null` or is not passed to `verifyB2BKey`, no contour check occurs at all. The host detection depends on the `host` header which (per F-7.5 below) is spoofable.
+3. **MEDIUM — `requiredContour` is Optional in the API**: If `resolveContourFromHost` returns `null` or is not passed to `verifyAPIKey`, no contour check occurs at all. The host detection depends on the `host` header which (per F-7.5 below) is spoofable.
 
 4. **MEDIUM — Timing Attack on API Key Lookup**: `db.user.findFirst` with `apiKeyHash` is constant-time at DB level, but the `if (!key || key.length < 10) return null` early return is not constant-time relative to valid key prefixes, enabling key-length enumeration.
 
@@ -59,7 +59,7 @@ N/A
 
 ### Findings:
 
-1. **HIGH — `resolveContourFromHost` Depends on Spoofable Host**: The contour resolution relies on host header parsing. Combined with F-7.5 findings below, an attacker can claim `host: smmplan.pro` while the request is actually destined elsewhere. The `contour` is then stamped into the JWT at creation — but if the user was created in test contour and the attacker spoofs host to prod at request time, the contour check at B2B verification fails only on the brittle email substring filter.
+1. **HIGH — `resolveContourFromHost` Depends on Spoofable Host**: The contour resolution relies on host header parsing. Combined with F-7.5 findings below, an attacker can claim `host: smmplan.pro` while the request is actually destined elsewhere. The `contour` is then stamped into the JWT at creation — but if the user was created in test contour and the attacker spoofs host to prod at request time, the contour check at API verification fails only on the brittle email substring filter.
 
 2. **HIGH — `contour` is Not Cryptographically Bound to Tenant**: The JWT contains both `tenantId` and `contour` as separate claims. There is no enforcement that `tenantId === resolveContourToTenant(contour)`. A JWT minted on `test.smmplan.pro` with `contour: 'test'` and `tenantId: 'smmplan'` (the test tenant) could be replayed if prod's JWT signing key matches (which it does in this code — single `JWT_SECRET`).
 
@@ -127,12 +127,12 @@ N/A
 | V-01 | CRITICAL | JWT secret shared across all contours (single `JWT_SECRET`). Test/QA token replayable to prod if secret is identical. | `src/lib/session-edge.ts: getEncodedKey()` |
 | V-02 | CRITICAL | `x-forwarded-host` trusted without proxy chain validation → tenant/contour hijack. | `src/proxy.ts`, `src/app/api/auth/logout/route.ts` |
 | V-03 | HIGH | Logout open-redirect via attacker-controlled `host` header. | `src/app/api/auth/logout/route.ts` |
-| V-04 | HIGH | API key cross-tenant check bypassable by omitting `requiredTenantId`. | `src/lib/b2b-auth.ts` |
-| V-05 | HIGH | Pentest/test account blocklist uses brittle substring matching. | `src/lib/b2b-auth.ts` |
+| V-04 | HIGH | API key cross-tenant check bypassable by omitting `requiredTenantId`. | `src/lib/api-auth.ts` |
+| V-05 | HIGH | Pentest/test account blocklist uses brittle substring matching. | `src/lib/api-auth.ts` |
 | V-06 | MEDIUM | JWT (24h TTL) remains valid after DB session deletion → replay window. | `src/app/api/auth/logout/route.ts`, `src/lib/session.ts` |
 | V-07 | MEDIUM | `/logout` UI route clears cookie only, does not delete DB session. | `src/proxy.ts` |
 | V-08 | MEDIUM | `RateLimit-*` headers hardcoded to `49` remaining in all responses (rate limiter may be a no-op). | `src/app/api/v2/route.ts` |
 | V-09 | MEDIUM | Content-length check uses `request.headers?.get` (optional chaining suggests code path may bypass DoS protection). | `src/app/api/v2/route.ts` |
 | V-10 | MEDIUM | `resolveTenantFromRequest` likely uses `x-tenant-id` (which proxy re-injects from untrusted cookie in dev/QA). | `src/lib/tenant-resolver-edge.ts` |
 | V-11 | MEDIUM | No CSRF token on logout `POST` (only `sec-fetch-site` heuristic, which is non-standard and spoofable in some browsers/extensions). | `src/app/api/auth/logout/route.ts` |
-| V-12 | LOW | `b2bRequestLog.create` is fire-and-forget — could be DoS'd to fill DB, and unauthenticated logging paths may exist. | `src/app/api/v2/route.ts
+| V-12 | LOW | `apiRequestLog.create` is fire-and-forget — could be DoS'd to fill DB, and unauthenticated logging paths may exist. | `src/app/api/v2/route.ts

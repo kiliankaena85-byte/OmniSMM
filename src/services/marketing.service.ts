@@ -240,10 +240,10 @@ class MarketingService {
   }
 
   /**
-   * Evaluates volume discount for an array of services and formats them for B2B API Standards.
+   * Evaluates volume discount for an array of services and formats them for Panel API Standards.
    * Protects pricing from dropping below the safety floor.
    */
-  async getB2BFormattedServices(
+  async getAPIFormattedServices(
     user: { totalSpent: number | bigint; personalDiscount?: number | null },
     services: {
       numericId: number;

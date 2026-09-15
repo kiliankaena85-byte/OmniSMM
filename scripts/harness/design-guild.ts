@@ -12,10 +12,10 @@
  *  7.  🎨 Color-Token-Guardian          (Семантические токены Tailwind 4, запрет сырых hex/rgb)
  *  8.  ♿ WCAG-Accessibility-Guard       (Контраст >= 4.5:1, aria-label, focus-visible, Escape-key)
  *  9.  📱 Mobile-Ergonomics-Lead        (Thumb Zone, overflow-x-clip, visualViewport, safe-area)
- *  10. 🎭 Dual-Brand-Isolationist       (Изоляция брендов: SMMplan B2B vs SMMflux Aurora, No Lovable)
+ *  10. 🎭 Dual-Brand-Isolationist       (Изоляция брендов: SMMplan API vs SMMflux Aurora, No Lovable)
  *  11. 🌓 Dark-Light-Contrast-Enforcer  (Двухрежимная читаемость: dark/light theme integrity)
  *  12. 🧱 UI-Arsenal-Component-Linter   (Использование канонических компонентов @/components/ui & HeroUI v3)
- *  13. 💎 Elevation-Shadow-Director     (Глубина, слои z-index, диффузные неоновые тени vs B2B тени)
+ *  13. 💎 Elevation-Shadow-Director     (Глубина, слои z-index, диффузные неоновые тени vs API тени)
  *  14. 🧬 Design-Token-Validator        (@theme директива Tailwind 4, запрет устаревших классов v3)
  */
 
@@ -135,7 +135,7 @@ export class DesignGuildOrchestrator {
           agentIcon: '🅰️',
           severity: 'WARNING',
           ruleId: 'TYPO-01-TRACKING',
-          message: `Крупный заголовок на строке ${idx + 1} не имеет tracking-tight. Заголовки > 24px требуют сжатия трекинга для премиального B2B вида.`,
+          message: `Крупный заголовок на строке ${idx + 1} не имеет tracking-tight. Заголовки > 24px требуют сжатия трекинга для премиального API вида.`,
           line: idx + 1,
           fixSnippet: 'Добавьте класс `tracking-tight`'
         });
@@ -405,7 +405,7 @@ export class DesignGuildOrchestrator {
       });
     }
 
-    // Check style leakage: SMMflux components inside SMMplan B2B area
+    // Check style leakage: SMMflux components inside SMMplan API area
     if (this.filePath.includes('/admin/') && !this.filePath.includes('flux-')) {
       if (raw.includes('BorderBeam') || raw.includes('TiltCard') || raw.includes('Confetti')) {
         findings.push({
@@ -413,7 +413,7 @@ export class DesignGuildOrchestrator {
           agentIcon: '🎭',
           severity: 'SUGGESTION',
           ruleId: 'BRAND-02-STYLE-LEAK',
-          message: 'В строгом B2B разделе обнаружены неоновые микроэффекты SMMflux (TiltCard/BorderBeam). Рекомендуется использовать сдержанные PlanCard/PlanTable.',
+          message: 'В строгом API разделе обнаружены неоновые микроэффекты SMMflux (TiltCard/BorderBeam). Рекомендуется использовать сдержанные PlanCard/PlanTable.',
         });
       }
     }
@@ -423,7 +423,7 @@ export class DesignGuildOrchestrator {
       agentIcon: '🎭',
       severity: 'PASS',
       ruleId: 'BRAND-00-OK',
-      message: 'Изоляция брендов SMMplan (B2B Classic) и SMMflux (Radiant Aurora) соблюдена.'
+      message: 'Изоляция брендов SMMplan (API Classic) и SMMflux (Radiant Aurora) соблюдена.'
     });
   }
 
@@ -654,7 +654,7 @@ async function main() {
 
   const normalized = target.toLowerCase().trim();
   if (normalized === 'smmplan' || normalized === 'plan') {
-    console.log('📦 Пакетный аудит экосистемы SMMPLAN (B2B Classic):');
+    console.log('📦 Пакетный аудит экосистемы SMMPLAN (API Classic):');
     targetFiles = [
       'src/components/landing/Header.tsx',
       'src/components/landing/MegaFooter.tsx',
@@ -681,7 +681,7 @@ async function main() {
       'src/components/ui/FluxCard.tsx',
     ];
   } else if (normalized === 'admin' || normalized === 'админ' || normalized === 'админка') {
-    console.log('📦 Пакетный аудит экосистемы ADMIN PANEL (Enterprise B2B / Calm Design):');
+    console.log('📦 Пакетный аудит экосистемы ADMIN PANEL (Enterprise API / Calm Design):');
     targetFiles = [
       'src/app/admin/layout.tsx',
       'src/app/admin/dashboard/page.tsx',

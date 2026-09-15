@@ -31,7 +31,7 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
       expect(typeof result.data?.sbp).toBe('boolean');
       expect(result.data?.robokassa).toBe(false);
       expect(result.data?.cryptobot).toBe(false);
-      expect(typeof result.data?.b2b).toBe('boolean');
+      expect(typeof result.data?.api).toBe('boolean');
     });
 
     it('identifies valid Robokassa and CryptoBot when actual production/test credentials are provided', async () => {
@@ -71,7 +71,7 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
       expect(result.data?.yookassa).toBe(false);
       expect(result.data?.robokassa).toBe(false);
       expect(result.data?.cryptobot).toBe(false);
-      expect(typeof result.data?.b2b).toBe('boolean');
+      expect(typeof result.data?.api).toBe('boolean');
     });
   });
 

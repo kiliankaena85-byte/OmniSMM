@@ -4,7 +4,7 @@
  * Единый автоматизированный харнес для создания, валидации и проверки UI-экранов:
  * - `npx tsx scripts/harness/ui-forge.ts list` -> Вывод всех доступных компонентов UI Арсенала (Flux & Plan)
  * - `npx tsx scripts/harness/ui-forge.ts validate` -> Проверка токенов и правил дизайн-системы
- * - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>` -> Генерация B2B-страницы для SMMplan
+ * - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>` -> Генерация API-страницы для SMMplan
  * - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=flux <slug>` -> Генерация неоновой страницы для SMMflux
  */
 
@@ -25,7 +25,7 @@ const FLUX_COMPONENTS = [
 ];
 
 const PLAN_COMPONENTS = [
-  { name: 'PlanButton', description: 'Строгие B2B-кнопки (primary, secondary, outline, ghost, danger) со скруглением rounded-xl' },
+  { name: 'PlanButton', description: 'Строгие API-кнопки (primary, secondary, outline, ghost, danger) со скруглением rounded-xl' },
   { name: 'PlanCard', description: 'Карточки с четкой рамкой border-border и мягкой тенью shadow-layered' },
   { name: 'PlanBadge', description: 'Контрастные чипы для статусов, очередей и HTTP-методов (GET, POST)' },
   { name: 'PlanTable', description: 'Высокоплотная таблица для прайс-листов, истории заказов и API-ответов' },
@@ -44,7 +44,7 @@ function listArsenal() {
     console.log(`  ${idx + 1}. \x1b[35m<${c.name} />\x1b[0m — ${c.description}`);
   });
 
-  console.log('\n🏛️ [SMMplan] Classic B2B Fintech Arsenal (@/components/ui/plan):\n');
+  console.log('\n🏛️ [SMMplan] Classic API Fintech Arsenal (@/components/ui/plan):\n');
   PLAN_COMPONENTS.forEach((c, idx) => {
     console.log(`  ${idx + 1}. \x1b[34m<${c.name} />\x1b[0m — ${c.description}`);
   });
@@ -106,7 +106,7 @@ export default function ${pascalName}Page() {
               <Zap className="w-4 h-4" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
-              SMMplan <span className="text-xs text-primary font-bold px-2 py-0.5 rounded bg-primary/10 uppercase">B2B</span>
+              SMMplan <span className="text-xs text-primary font-bold px-2 py-0.5 rounded bg-primary/10 uppercase">API</span>
             </span>
           </Link>
 
@@ -119,17 +119,17 @@ export default function ${pascalName}Page() {
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 relative z-10 w-full">
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <PlanBadge variant="primary" size="md">
-            SMMplan B2B Решения
+            SMMplan API Решения
           </PlanBadge>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground">
             ${pageName}
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Высоконагруженная B2B-инфраструктура для агентств, реселлеров и разработчиков.
+            Высоконагруженная API-инфраструктура для агентств, реселлеров и разработчиков.
           </p>
         </div>
 
-        {/* B2B Table & Card */}
+        {/* API Table & Card */}
         <PlanCard variant="bordered" padding="lg" className="mb-8">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
@@ -225,7 +225,7 @@ export default function ${pascalName}Page() {
 `;
 
   fs.writeFileSync(targetFile, template, 'utf-8');
-  console.log(`✅ Шаблон страницы (${isPlan ? 'SMMplan B2B' : 'SMMflux Neon'}) успешно создан: \x1b[32m${targetFile}\x1b[0m`);
+  console.log(`✅ Шаблон страницы (${isPlan ? 'SMMplan API' : 'SMMflux Neon'}) успешно создан: \x1b[32m${targetFile}\x1b[0m`);
 }
 
 // CLI Routing
@@ -250,7 +250,7 @@ switch (command) {
     console.log('Команды UI Forge Harness:');
     console.log('  npx tsx scripts/harness/ui-forge.ts list                                  — Список компонентов');
     console.log('  npx tsx scripts/harness/ui-forge.ts validate                              — Проверка дизайн-токенов');
-    console.log('  npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>      — Создать B2B-страницу SMMplan');
+    console.log('  npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>      — Создать API-страницу SMMplan');
     console.log('  npx tsx scripts/harness/ui-forge.ts scaffold --brand=flux <slug>         — Создать страницу SMMflux\n');
     break;
 }

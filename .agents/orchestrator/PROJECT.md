@@ -2,7 +2,7 @@
 
 ## Architecture
 - Framework: Next.js 16.0.10, React 19.0.0, Tailwind CSS 4.0.0, HeroUI v3, Prisma 5 (PostgreSQL), BullMQ, Redis, TypeScript 5.7+
-- Domain: B2B SMM panel with multi-tenant client dashboards (SMMplan & SMMflux)
+- Domain: API SMM panel with multi-tenant client dashboards (SMMplan & SMMflux)
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |

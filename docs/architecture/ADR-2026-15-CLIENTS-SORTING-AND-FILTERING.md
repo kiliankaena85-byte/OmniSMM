@@ -18,7 +18,7 @@
 ## 1. Executive Summary & As-Is Audit
 
 ### 1.1. Контекст и бизнес-проблема
-Раздел управления клиентами платформы OmniSMM 1.0 (`/admin/clients`) является ключевым операционным центром для сотрудников ролей `OWNER`, `ADMIN`, `MANAGER` и `SUPPORT`. Через данный интерфейс осуществляется мониторинг финансового состояния клиентской базы, оценка обязательств платформы (Liability), выявление высокодоходных B2B-партнеров (Whales), контроль активности и реактивация «спящих» пользователей, а также аудит подозрительных балансов и блокировок.
+Раздел управления клиентами платформы OmniSMM 1.0 (`/admin/clients`) является ключевым операционным центром для сотрудников ролей `OWNER`, `ADMIN`, `MANAGER` и `SUPPORT`. Через данный интерфейс осуществляется мониторинг финансового состояния клиентской базы, оценка обязательств платформы (Liability), выявление высокодоходных API-партнеров (Whales), контроль активности и реактивация «спящих» пользователей, а также аудит подозрительных балансов и блокировок.
 
 В текущей версии платформы экран клиентов страдает от ряда критических архитектурных и интерфейсных дефектов, которые делают невозможной эффективную аналитическую и оперативную работу сотрудников при масштабировании базы свыше нескольких сотен пользователей.
 
@@ -178,7 +178,7 @@ interface SortableHeaderProps {
 
 | № | Колонка | Поле БД | Сортируемая? | Ширина | Выравнивание | Описание отображения |
 | :- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **1** | **Email / Клиент** | `email` | ✅ Да (`asc`/`desc`) | `w-[220px] max-w-[240px]` | Слева | Email (ссылка), B2B-бейдж, ID, Telegram, Название компании (`truncate`). |
+| **1** | **Email / Клиент** | `email` | ✅ Да (`asc`/`desc`) | `w-[220px] max-w-[240px]` | Слева | Email (ссылка), API-бейдж, ID, Telegram, Название компании (`truncate`). |
 | **2** | **Бренд** | `tenantId` | ❌ Нет | `w-[85px]` | По центру | Компактный бейдж `SMMplan` / `SMMflux`. |
 | **3** | **Роль** | `role` | ✅ Да (`desc`/`asc`) | `w-[90px]` | По центру | Роль пользователя (`OWNER`, `ADMIN`, `USER` и др.). |
 | **4** | **Баланс** | `balance` | ✅ Да (`desc`/`asc`) | `w-[110px]` | Справа | Баланс в рублях (ExactMath), индикатор карантина 🔒 при наличии. |
@@ -218,7 +218,7 @@ export interface ListUsersParams {
   page?: number;
   pageSize?: number;
   search?: string;
-  filter?: 'all' | 'b2b' | 'balance' | 'banned' | 'vip';
+  filter?: 'all' | 'api' | 'balance' | 'banned' | 'vip';
   tenantId?: string;
   sortBy?: UserSortField;
   sortOrder?: SortOrder;
@@ -313,9 +313,9 @@ async listUsers(params: ListUsersParams): Promise<PaginatedResult<AdminUserRow>>
   }
 
   // 3. Фасетные фильтры
-  if (params.filter === 'b2b') {
+  if (params.filter === 'api') {
     where.OR = [
-      { b2bConfig: { isB2b: true } },
+      { apiConfig: { isApiEnabled: true } },
       { inn: { not: null } },
       { companyName: { not: null } }
     ];
@@ -337,9 +337,9 @@ async listUsers(params: ListUsersParams): Promise<PaginatedResult<AdminUserRow>>
     where,
     orderBy,
     include: {
-      b2bConfig: {
+      apiConfig: {
         select: {
-          isB2b: true,
+          isApiEnabled: true,
           prioritySupport: true,
           webhookUrl: true,
         }
@@ -379,9 +379,9 @@ case 'users': {
     ];
   }
 
-  if (filter === 'b2b') {
+  if (filter === 'api') {
     where.OR = [
-      { b2bConfig: { isB2b: true } },
+      { apiConfig: { isApiEnabled: true } },
       { inn: { not: null } },
       { companyName: { not: null } }
     ];
@@ -402,7 +402,7 @@ case 'users': {
     take: 10000,
     include: { 
       _count: { select: { orders: true } },
-      b2bConfig: { select: { isB2b: true } }
+      apiConfig: { select: { isApiEnabled: true } }
     },
   });
 
@@ -411,7 +411,7 @@ case 'users': {
     users.map(u => [
       u.email,
       u.role,
-      (u.b2bConfig?.isB2b || u.inn) ? 'B2B' : 'B2C',
+      (u.apiConfig?.isApiEnabled || u.inn) ? 'API' : 'B2C',
       (Number(u.balance) / 100).toFixed(2),
       (Number(u.totalSpent) / 100).toFixed(2),
       String(u._count.orders),

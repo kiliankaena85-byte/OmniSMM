@@ -28,7 +28,7 @@ const DOMAINS: Record<string, DomainConfig> = {
       'src/workers/processors/payment-sync.ts'
     ],
     directories: [],
-    prismaModels: ['User', 'Payment', 'LedgerEntry', 'Invoice', 'PromoCode', 'PromoCodeUsage', 'B2bConfig']
+    prismaModels: ['User', 'Payment', 'LedgerEntry', 'Invoice', 'PromoCode', 'PromoCodeUsage', 'ApiConfig']
   },
   providers: {
     name: 'Providers & Catalog Sync',

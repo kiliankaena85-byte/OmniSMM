@@ -43,7 +43,7 @@ Direct observations made in the codebase:
 - **File:** `src/actions/support/ticket.ts` (lines 590–595)
 - **Code:**
 ```typescript
-      if (totalToRefundCents > 0 && !isB2bClient) {
+      if (totalToRefundCents > 0 && !isApiEnabledClient) {
         const currentSpentToday = await getAdminSpentToday(admin.id, tx);
         const limitLeft = admin.supportLimitCents - currentSpentToday;
         if (totalToRefundCents > limitLeft) {
@@ -51,7 +51,7 @@ Direct observations made in the codebase:
         }
       }
 ```
-- **B2B Bypass:** Verified that clients with `isB2bClient = true` are excluded from the limit constraint checks.
+- **API Bypass:** Verified that clients with `isApiEnabledClient = true` are excluded from the limit constraint checks.
 - **Spending Calculation:** `getAdminSpentToday(adminId, tx)` (lines 645–664) sums the absolute values of all ledger entry amounts created by that operator (`adminId`) starting from MSK midnight today (`getMSKMidnightUTC()`).
 - **Escrow Guard:** Manual balance adjustments check trust limits in `src/services/admin/escrow.service.ts` (lines 96–115). If the daily budget is exceeded, it redirects the funds into `quarantineBalance` with a `QUARANTINE` status, requiring Owner approval.
 

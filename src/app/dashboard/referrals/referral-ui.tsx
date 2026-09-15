@@ -143,7 +143,7 @@ export function ReferralUi({
   };
 
   const shareTelegram = () => {
-    const text = `Продвигай каналы и соцсети по лучшим B2B-ценам на SMMplan: ${referralLink}`;
+    const text = `Продвигай каналы и соцсети по лучшим API-ценам на SMMplan: ${referralLink}`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 

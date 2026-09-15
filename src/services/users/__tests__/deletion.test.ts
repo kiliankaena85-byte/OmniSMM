@@ -94,7 +94,7 @@ describe('User Account Soft-Deletion Flow', () => {
         phoneHash: 'phone-hash-value',
         apiKeyHash: 'api-key-hash-value',
         referralCode: 'ref-code-value',
-        companyName: 'B2B Company LLC',
+        companyName: 'API Company LLC',
         inn: '123456789012',
         kpp: '123456789',
         legalAddress: '123 Business Rd',

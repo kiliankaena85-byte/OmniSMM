@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import {
   updateCompanyRequisitesAction,
-  updateB2bWebhookAction,
+  updateApiWebhookAction,
   confirm152FzConsentAction,
   getTelegramBindDetailsAction,
   updateTelegramNotificationSettingsAction,
@@ -106,25 +106,25 @@ describe('Settings Extra Server Actions', () => {
     });
   });
 
-  describe('updateB2bWebhookAction', () => {
+  describe('updateApiWebhookAction', () => {
     it('should return error if unauthenticated', async () => {
       vi.mocked(verifySession).mockResolvedValue(null);
-      const res = await updateB2bWebhookAction({ webhookUrl: 'https://example.com/webhook' });
+      const res = await updateApiWebhookAction({ webhookUrl: 'https://example.com/webhook' });
       expect(res.success).toBe(false);
     });
 
     it('should reject non-HTTPS URLs', async () => {
       const user = await createTestUser();
       vi.mocked(verifySession).mockResolvedValue({ userId: user.id });
-      const res = await updateB2bWebhookAction({ webhookUrl: 'http://insecure.com/webhook' });
+      const res = await updateApiWebhookAction({ webhookUrl: 'http://insecure.com/webhook' });
       expect(res.success).toBe(false);
       expect(res.error).toContain('https://');
     });
 
-    it('should create b2bConfig and generate secret for valid HTTPS URL', async () => {
+    it('should create apiConfig and generate secret for valid HTTPS URL', async () => {
       const user = await createTestUser();
       vi.mocked(verifySession).mockResolvedValue({ userId: user.id });
-      const res = await updateB2bWebhookAction({ webhookUrl: 'https://example.com/webhook' });
+      const res = await updateApiWebhookAction({ webhookUrl: 'https://example.com/webhook' });
       expect(res.success).toBe(true);
       expect(res.webhookUrl).toBe('https://example.com/webhook');
       expect(res.webhookSecret).toBeDefined();
@@ -135,10 +135,10 @@ describe('Settings Extra Server Actions', () => {
     it('should regenerate secret when requested', async () => {
       const user = await createTestUser();
       vi.mocked(verifySession).mockResolvedValue({ userId: user.id });
-      const res1 = await updateB2bWebhookAction({ webhookUrl: 'https://example.com/webhook' });
+      const res1 = await updateApiWebhookAction({ webhookUrl: 'https://example.com/webhook' });
       const secret1 = res1.webhookSecret;
 
-      const res2 = await updateB2bWebhookAction({
+      const res2 = await updateApiWebhookAction({
         webhookUrl: 'https://example.com/webhook',
         regenerateSecret: true,
       });

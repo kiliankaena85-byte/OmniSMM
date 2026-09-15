@@ -312,7 +312,7 @@ export async function generateMetadata() {
   
   return {
     title: `Продвижение подписчиков и просмотров в Telegram, Instagram, VK | ${siteName}`,
-    description: settings.SITE_DESCRIPTION || "Оптовая B2B платформа продвижения в соцсетях. Надежно и конфиденциально. Мгновенный старт.",
+    description: settings.SITE_DESCRIPTION || "Оптовая API платформа продвижения в соцсетях. Надежно и конфиденциально. Мгновенный старт.",
     alternates: { canonical: '/' },
     openGraph: {
       title: `${siteName} — Продвижение в соцсетях`,
@@ -565,7 +565,7 @@ export function MegaFooter({ tenantId, contactSettings }: { tenantId?: string, c
             {isLovable ? <Heart className="w-5 h-5 text-primary" /> : <Zap className="w-5 h-5 text-primary" />}
             <span className="text-2xl font-black text-foreground">{siteName}</span>
           </div>
-          <p className="text-sm text-muted-foreground">Платформа нового поколения для B2B продвижения.</p>
+          <p className="text-sm text-muted-foreground">Платформа нового поколения для API продвижения.</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 border-t border-border/40 pt-8 text-xs text-foreground/80">

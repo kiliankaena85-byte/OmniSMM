@@ -57,7 +57,7 @@ async function main() {
 
   const proxyCode = fs.readFileSync('src/proxy.ts', 'utf8').slice(0, 3500);
   const sessionCode = fs.readFileSync('src/lib/session.ts', 'utf8').slice(0, 2500);
-  const b2bCode = fs.readFileSync('src/app/api/v2/route.ts', 'utf8').slice(0, 3000);
+  const apiCode = fs.readFileSync('src/app/api/v2/route.ts', 'utf8').slice(0, 3000);
   const logoutCode = fs.readFileSync('src/app/api/auth/logout/route.ts', 'utf8');
 
   const context = `
@@ -71,8 +71,8 @@ ${proxyCode}
 2. SESSION ENFORCEMENT & VERIFICATION (src/lib/session.ts):
 ${sessionCode}
 
-3. B2B API V2 WITH TENANT BINDING (src/app/api/v2/route.ts):
-${b2bCode}
+3. Panel API V2 WITH TENANT BINDING (src/app/api/v2/route.ts):
+${apiCode}
 
 4. LOGOUT ROUTE WITH PHYSICAL DB SESSION DELETION (src/app/api/auth/logout/route.ts):
 ${logoutCode}
@@ -81,7 +81,7 @@ ${logoutCode}
   const pentestPrompt = `Conduct an exhaustive adversarial penetration test and security audit of the above code.
 Specifically analyze:
 1. Logout Session Invalidation: Does /api/auth/logout correctly delete the session in DB, and can a stolen JWT still access /dashboard?
-2. B2B API /api/v2: Is the API key strictly bound to its host tenant? Can a key for smmplan.pro be used on smmflux.ru?
+2. Panel API /api/v2: Is the API key strictly bound to its host tenant? Can a key for smmplan.pro be used on smmflux.ru?
 3. Production Maintenance Gate: On smmplan.pro, can an attacker bypass maintenance to access /login, /dashboard, or /api/v2?
 4. Host Header & x-forwarded-host: Is there any remaining vulnerability to host header injection or cache poisoning?
 5. Rate Limiting & Auth Brute Force: Are limits enforced in Redis?

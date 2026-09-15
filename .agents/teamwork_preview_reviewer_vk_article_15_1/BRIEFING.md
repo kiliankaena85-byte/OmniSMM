@@ -28,7 +28,7 @@ Review and audit the VK SEO article for word count, AI water, and Smmplan mechan
 - **Review criteria**: Correct word count, no AI water, proper mechanic integrations, correct frontmatter
 
 ## Key Decisions Made
-- Detected "AI water" in the intro and conclusion sections. Replaced those sections using `multi_replace_file_content` to make the tone more technical and strictly B2B.
+- Detected "AI water" in the intro and conclusion sections. Replaced those sections using `multi_replace_file_content` to make the tone more technical and strictly API.
 
 ## Review Checklist
 - **Items reviewed**: `d:\SMM_plan_2\src\data\knowledge\vk_group_seo_yandex_google.md`

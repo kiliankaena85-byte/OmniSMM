@@ -285,7 +285,7 @@
 
 ---
 
-## ЧАСТЬ II. B2B АДМИН-ПАНЕЛЬ (16 Разделов = 16 Итераций)
+## ЧАСТЬ II. API АДМИН-ПАНЕЛЬ (16 Разделов = 16 Итераций)
 
 ### Базовая структура основного экрана админа (Admin Frame)
 ```
@@ -313,7 +313,7 @@
           └── List of stuck orders highlighted in red, alongside USD exchange rates
     ```
 *   **Системный промпт для Figma AI (Copy-Paste)**:
-    `Generate an executive B2B administrative dashboard named "/admin/dashboard". The design utilizes high data density (compact paddings, small fonts, minimal visual borders). At the top, include a horizontal panel containing the page title and a toggle selector switch labeled "Схема УСН: Доходы (6%) / Доходы-Расходы (15%)". Render a 4-column financial grid of compact cards (bg: #17212b, rounded-xl) displaying: Revenue (₽ 950,000), YooKassa fees (-₽ 28,500), COGS (-₽ 450,000), and Net Profit (styled in emerald green #4ab976 showing ₽ 471,500). Below, add an alert widget listing stuck orders highlighted in transparent red.`
+    `Generate an executive API administrative dashboard named "/admin/dashboard". The design utilizes high data density (compact paddings, small fonts, minimal visual borders). At the top, include a horizontal panel containing the page title and a toggle selector switch labeled "Схема УСН: Доходы (6%) / Доходы-Расходы (15%)". Render a 4-column financial grid of compact cards (bg: #17212b, rounded-xl) displaying: Revenue (₽ 950,000), YooKassa fees (-₽ 28,500), COGS (-₽ 450,000), and Net Profit (styled in emerald green #4ab976 showing ₽ 471,500). Below, add an alert widget listing stuck orders highlighted in transparent red.`
 
 ---
 
@@ -333,7 +333,7 @@
                └── [Last 5 orders list with small buttons: "Restart" and "Refund"]
     ```
 *   **Системный промпт для Figma AI (Copy-Paste)**:
-    `Generate a B2B split-screen ticket support desk view named "/admin/tickets" with height 700px. It has a horizontal auto-layout split. Left panel (w: 250px, bg: #17212b, border-right: #101924) shows a queue list of waiting tickets sorted by oldest time, with yellow flags showing wait time. The center area (w: Fill, bg: #0e1621) is the chat message pane. The right panel (w: 250px, bg: #17212b, border-left: #101924) is the ClientProfileSidebar showing client avatar, email, current balance (₽ 500.00), and a table of last 5 client orders with quick button controls "Restart" (blue) and "Refund" (red).`
+    `Generate a API split-screen ticket support desk view named "/admin/tickets" with height 700px. It has a horizontal auto-layout split. Left panel (w: 250px, bg: #17212b, border-right: #101924) shows a queue list of waiting tickets sorted by oldest time, with yellow flags showing wait time. The center area (w: Fill, bg: #0e1621) is the chat message pane. The right panel (w: 250px, bg: #17212b, border-left: #101924) is the ClientProfileSidebar showing client avatar, email, current balance (₽ 500.00), and a table of last 5 client orders with quick button controls "Restart" (blue) and "Refund" (red).`
 
 ---
 
@@ -390,7 +390,7 @@
 ---
 
 ### Итерации 16-26: Системные и вспомогательные панели администрирования
-Отрисовать компактные специализированные B2B-интерфейсы:
+Отрисовать компактные специализированные API-интерфейсы:
 *   **Итерация 16: Провайдеры API (`/admin/providers`)**: Grid of provider cards showing status "Connected" and USD wallet balances.
 *   **Итерация 17: Заказы системы (`/admin/orders`)**: Dense table showing all app orders with bulk checkbox control toolbar.
 *   **Итерация 18: Услуги и карантин (`/admin/services`)**: Table of retail services with margins and Quarantine Alerts (orange color #ffb300).

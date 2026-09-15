@@ -12,7 +12,7 @@ type Props = {
     q?: string;
     status?: string;
     source?: string;
-    isB2b?: string;
+    isApiEnabled?: string;
     page?: string;
     ticketId?: string;
     tenant?: string;
@@ -28,7 +28,7 @@ export default async function AdminTicketsPage({ searchParams }: Props) {
   const search = params.q || '';
   const statusFilter = params.status || 'ALL';
   const sourceFilter = params.source || 'ALL';
-  const isB2bFilter = params.isB2b === 'true';
+  const isApiEnabledFilter = params.isApiEnabled === 'true';
   const currentPage = Math.max(1, parseInt(params.page || '1', 10));
   const activeTicketId = params.ticketId || null;
 
@@ -50,7 +50,7 @@ export default async function AdminTicketsPage({ searchParams }: Props) {
       search: search || undefined,
       status: statusFilter,
       source: sourceFilter,
-      isB2b: isB2bFilter,
+      isApiEnabled: isApiEnabledFilter,
       pageSize: 20, // compact size for two-panel scrollbars
       page: currentPage,
       tenantId: effectiveTenant !== 'all' ? effectiveTenant : undefined,
@@ -118,7 +118,7 @@ export default async function AdminTicketsPage({ searchParams }: Props) {
           supportSpentTodayCents={supportSpentTodayCents}
           currentStatus={statusFilter}
           currentSource={sourceFilter}
-          currentIsB2b={isB2bFilter}
+          currentIsApi={isApiEnabledFilter}
           currentSearch={search}
           canSeeRates={canSeeRates}
           userRole={user?.role || 'SUPPORT'}

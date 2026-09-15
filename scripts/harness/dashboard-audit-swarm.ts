@@ -67,7 +67,7 @@ async function runDashboardSwarm() {
   const roadmapDocument = `
 # SMMplan & SMMflux Client Dashboard (Личный Кабинет) Comprehensive Audit & Testing Roadmap
 
-## 1. ОБЗОР ЭКРАНОВ И ВКЛАДОК (ДВА ТЕНАНТА: SMMplan B2B / SMMflux Radiant Aurora)
+## 1. ОБЗОР ЭКРАНОВ И ВКЛАДОК (ДВА ТЕНАНТА: SMMplan API / SMMflux Radiant Aurora)
 - **Вкладка 1: Главная (/dashboard)**
   - Кнопки: «Быстрый заказ», «Пополнить баланс», «Повторить заказ», «Подробнее о заказе», переключатель валют/тем.
   - Математика: Баланс (RUB / Kopecks), сумма расходов за 30 дней, активные заказы, тикеты в ожидании.

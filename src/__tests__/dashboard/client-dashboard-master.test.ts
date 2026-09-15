@@ -32,7 +32,7 @@ describe('🏛️ Client Dashboard Comprehensive Master Suite (8 Tabs & Financia
     });
 
     it('1.3 enforces tenant separation between SMMplan and SMMflux', () => {
-      const smmplanUser = { id: 'u1', tenantId: 'smmplan', email: 'b2b@company.ru' };
+      const smmplanUser = { id: 'u1', tenantId: 'smmplan', email: 'api@company.ru' };
       const fluxUser = { id: 'u2', tenantId: 'flux', email: 'creator@aurora.io' };
 
       expect(smmplanUser.tenantId).toBe('smmplan');

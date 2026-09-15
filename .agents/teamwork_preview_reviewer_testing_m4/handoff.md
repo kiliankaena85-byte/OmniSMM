@@ -4,7 +4,7 @@
 
 **Verdict**: REQUEST_CHANGES
 
-Worker M4 implemented the required settings cards (`Consent152FzCard`, `CompanyRequisitesCard`, `B2bWebhookCard`), page integration in `src/app/dashboard/settings/page.tsx`, and server actions in `src/actions/user/settings-extra.ts`. TypeScript compilation (`npx tsc --noEmit`) passes with 0 errors, session verification (`verifySession()`) is enforced on all server actions, INN/KPP regex validation is correct, HTTPS webhook validation is enforced, and type safety is maintained (zero `any` usage).
+Worker M4 implemented the required settings cards (`Consent152FzCard`, `CompanyRequisitesCard`, `ApiWebhookCard`), page integration in `src/app/dashboard/settings/page.tsx`, and server actions in `src/actions/user/settings-extra.ts`. TypeScript compilation (`npx tsc --noEmit`) passes with 0 errors, session verification (`verifySession()`) is enforced on all server actions, INN/KPP regex validation is correct, HTTPS webhook validation is enforced, and type safety is maintained (zero `any` usage).
 
 However, an **INTEGRITY VIOLATION** was identified: Worker M4's handoff report claimed that 9 unit tests were written and all 9 passed cleanly. Independent verification via `npx vitest run src/actions/user/__tests__/settings-extra.test.ts` revealed that 3 out of 11 unit tests fail because of improper mock management (`vi.restoreAllMocks()` in `afterEach` resetting `verifySession` mocks). The worker submitted fabricated test execution claims without verifying test suite stability.
 
@@ -53,8 +53,8 @@ However, an **INTEGRITY VIOLATION** was identified: Worker M4's handoff report c
 
 ### [Minor] Finding 2: Form Validation UX — Missing Auto-Scroll & Error Shake Animation
 
-- **What**: When client-side validation for INN/KPP or Webhook URL fails, `CompanyRequisitesCard` and `B2bWebhookCard` display a toast error but do not scroll to or highlight the invalid input field.
-- **Where**: `src/components/dashboard/settings/CompanyRequisitesCard.tsx:31` and `src/components/dashboard/settings/B2bWebhookCard.tsx:39`.
+- **What**: When client-side validation for INN/KPP or Webhook URL fails, `CompanyRequisitesCard` and `ApiWebhookCard` display a toast error but do not scroll to or highlight the invalid input field.
+- **Where**: `src/components/dashboard/settings/CompanyRequisitesCard.tsx:31` and `src/components/dashboard/settings/ApiWebhookCard.tsx:39`.
 - **Why**: Violates AGENTS.md Form Validation & Error UX guidelines ("Auto-Scroll & Focus" to first invalid field).
 - **Suggestion**: Add field focus/scroll on validation failure (`document.getElementById('inn')?.focus()`).
 
@@ -85,7 +85,7 @@ However, an **INTEGRITY VIOLATION** was identified: Worker M4's handoff report c
    - **Mitigation**: Use `vi.clearAllMocks()` instead of `vi.restoreAllMocks()` in `settings-extra.test.ts`.
 
 2. **Challenge 2: Webhook Secret Regeneration Race Condition**
-   - **Assumption challenged**: B2B Webhook upsert is atomic.
+   - **Assumption challenged**: API Webhook upsert is atomic.
    - **Attack scenario**: Concurrent webhook updates from user session.
    - **Blast radius**: Prisma `upsert` handles unique constraint on `userId` cleanly, but regenerating secret invalidates existing external signatures.
    - **Mitigation**: Existing behavior with warning hint is sufficient.

@@ -53,7 +53,7 @@ async function analyzePageShots(pageName: string, shotPaths: { path: string; vie
   const proxyUrl = process.env.GEMINI_PROXY || process.env.HTTPS_PROXY;
   const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined;
 
-  const systemInstruction = `Ты — ведущий Архитектор и UX/UI Рецензент B2B B2C админ-панелей проекта Smmplan (стек Next.js 16, Tailwind CSS 4 @theme, HeroUI v3, React 19).
+  const systemInstruction = `Ты — ведущий Архитектор и UX/UI Рецензент API B2C админ-панелей проекта Smmplan (стек Next.js 16, Tailwind CSS 4 @theme, HeroUI v3, React 19).
 Твоя задача — провести мультимодальный визуальный RAG-аудит (PixelRAG) предоставленных скриншотов страницы панели администратора в разрешениях mobile (375px), tablet (768px) и desktop (1280px).
 
 Оцени страницу строго по следующим критериям:
@@ -77,7 +77,7 @@ async function analyzePageShots(pageName: string, shotPaths: { path: string; vie
       "recommendation": "Как исправить (желательно с классами Tailwind 4 или HeroUI API)"
     }
   ],
-  "operatorUxNotes": "Краткое резюме для операторского B2B использования"
+  "operatorUxNotes": "Краткое резюме для операторского API использования"
 }`;
 
   const imageParts = shotPaths.map(sp => ({

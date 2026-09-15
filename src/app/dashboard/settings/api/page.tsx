@@ -7,7 +7,7 @@ import { ApiDashboardClient } from '@/components/dashboard/settings/api/ApiDashb
 
 export const metadata = {
   title: 'API-доступ | SMMplan',
-  description: 'Управляйте вашим B2B API-ключом и изучайте стандартизированные интеграционные руководства.',
+  description: 'Управляйте вашим Panel API-ключом и изучайте стандартизированные интеграционные руководства.',
 };
 
 export default async function ApiSettingsPage() {

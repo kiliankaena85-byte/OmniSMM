@@ -45,7 +45,7 @@
   ```
 - **Gemini Model Choice & Prompt Enforcement**: Line 22 (`const model = process.env.GEMINI_MODEL || 'gemini-3-flash';`), using REST HTTP POST request on line 156 (`const url = https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent;`).
 - **Prompt Rules**: Prompt instructions (lines 119-133) enforce:
-  - B2B sells list format.
+  - API sells list format.
   - Russian markdown list (`**Скорость**`, `**Гарантия**`, `**Лимиты**`, `**Особенности**`).
   - Spam and stopwords filter (removing URL, Telegram username, stop words like "накрутка").
   - Anti-Liar (compliance with provider guarantee, refill, launch speed).

@@ -2,7 +2,7 @@
 
 > **Версия реестра:** 1.0.0 (Производственный стандарт платформы OmniSMM 1.0)  
 > **Целевой стек:** Next.js 16 (App Router, Standalone Webpack), React 19, Tailwind CSS 4, Prisma 5 (PostgreSQL), BullMQ, Redis 7+, TypeScript 5.7+ (Strict Mode), Vitest 4, Playwright.  
-> **Обслуживаемые бренды и витрины:** SMMplan (`smmplan.pro` — Classic B2B) и SMMflux (`smmflux.ru` — Radiant Aurora), архитектура динамического масштабирования на $N$ тенантов.
+> **Обслуживаемые бренды и витрины:** SMMplan (`smmplan.pro` — Classic API) и SMMflux (`smmflux.ru` — Radiant Aurora), архитектура динамического масштабирования на $N$ тенантов.
 
 ---
 

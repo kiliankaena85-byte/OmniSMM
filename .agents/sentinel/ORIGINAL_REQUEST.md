@@ -114,13 +114,13 @@ Please generate EXACTLY the 50 articles listed below, maintaining the minimum 50
 39. Ограничения и лимиты соцсетей: сколько можно крутить в день.
 40. Разница между серверами: почему цена на "одинаковые" услуги отличается.
 
-### Блок 6: Финансы, B2B и Реселлинг (10 статей)
+### Блок 6: Финансы, API и Реселлинг (10 статей)
 41. Как пополнить баланс Smmplan банковской картой РФ, СБП или Yookassa.
 42. Инструкция по пополнению криптой (USDT/Bitcoin) без скрытых комиссий.
 43. Реферальная программа: как зарабатывать пассивный доход на приглашениях.
 44. API Smmplan: Подробное руководство для реселлеров.
 45. Как открыть свою SMM-панель и подключить нас как провайдера.
-46. Уровни цен и скидок: как получить статус оптовика (B2B).
+46. Уровни цен и скидок: как получить статус оптовика (API).
 47. Возвраты средств (Refunds): политика отмены неверных заказов.
 48. Что делать, если платеж завис или не поступил на баланс.
 49. Бонусная система: как получить +5% к каждому пополнению.
@@ -131,7 +131,7 @@ Please acknowledge receipt of this message and ensure the team is writing files 
 ## Follow-up — 2026-06-07T07:22:08Z
 
 URGENT ADDITION FROM USER (TELEGRAM CLUSTER):
-The user has requested to add the following highly specialized topics to the Telegram block. These are crucial for B2B and arbitrage clients. Please add them to your backlog of articles to write (making it 53 articles total, or replacing 3 generic ones):
+The user has requested to add the following highly specialized topics to the Telegram block. These are crucial for API and arbitrage clients. Please add them to your backlog of articles to write (making it 53 articles total, or replacing 3 generic ones):
 
 51. Как продвигаются Телеграм-каналы с нуля: органический поиск (Global Search) и привлечение аудитории.
 52. Как люди ищут и попадают в Телеграм-каналы (SEO внутри мессенджера, каталоги, инвайты).

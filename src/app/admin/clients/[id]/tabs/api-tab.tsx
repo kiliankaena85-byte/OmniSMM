@@ -2,34 +2,34 @@
 
 import React, { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { updateUserB2bAction } from '@/actions/admin/users';
+import { updateUserApiAction } from '@/actions/admin/users';
 import { Building2 } from 'lucide-react';
 import { UserDTO } from './types';
 
-interface B2bTabProps {
+interface ApiTabProps {
   user: UserDTO;
 }
 
-export function B2bTab({ user }: B2bTabProps) {
-  // B2B fields
-  const [isB2b, setIsB2b] = useState(user.b2bConfig?.isB2b ?? Boolean(user.inn));
+export function ApiTab({ user }: ApiTabProps) {
+  // API fields
+  const [isApiEnabled, setIsApi] = useState(user.apiConfig?.isApiEnabled ?? Boolean(user.inn));
   const [prioritySupport, setPrioritySupport] = useState(
-    user.b2bConfig?.prioritySupport ?? false
+    user.apiConfig?.prioritySupport ?? false
   );
   const [companyName, setCompanyName] = useState(user.companyName);
   const [inn, setInn] = useState(user.inn);
   const [kpp, setKpp] = useState(user.kpp);
   const [legalAddress, setLegalAddress] = useState(user.legalAddress);
-  const [webhookUrl, setWebhookUrl] = useState(user.b2bConfig?.webhookUrl ?? '');
-  const [isPendingB2b, startB2bTransition] = useTransition();
+  const [webhookUrl, setWebhookUrl] = useState(user.apiConfig?.webhookUrl ?? '');
+  const [isPendingApi, startApiTransition] = useTransition();
 
-  // Helper for B2B save
-  const handleB2bSubmit = (e: React.FormEvent) => {
+  // Helper for API save
+  const handleApiSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    startB2bTransition(async () => {
+    startApiTransition(async () => {
       const fd = new FormData();
       fd.append('userId', user.id);
-      fd.append('isB2b', isB2b ? 'true' : 'false');
+      fd.append('isApiEnabled', isApiEnabled ? 'true' : 'false');
       fd.append('prioritySupport', prioritySupport ? 'true' : 'false');
       fd.append('companyName', companyName);
       fd.append('inn', inn);
@@ -37,11 +37,11 @@ export function B2bTab({ user }: B2bTabProps) {
       fd.append('legalAddress', legalAddress);
       fd.append('webhookUrl', webhookUrl);
 
-      const res = await updateUserB2bAction(fd);
+      const res = await updateUserApiAction(fd);
       if (res.success) {
-        toast.success(res.message || 'B2B реквизиты обновлены');
+        toast.success(res.message || 'API реквизиты обновлены');
       } else {
-        toast.error(res.error || 'Ошибка при сохранении B2B данных');
+        toast.error(res.error || 'Ошибка при сохранении API данных');
       }
     });
   };
@@ -53,30 +53,30 @@ export function B2bTab({ user }: B2bTabProps) {
           <span className="bg-primary/10 text-primary p-1 rounded-md">
             <Building2 className="w-3.5 h-3.5" />
           </span>
-          B2B-Конфигурация & Юридические реквизиты
+          API-Конфигурация & Юридические реквизиты
         </h3>
-        {isB2b && (
+        {isApiEnabled && (
           <span className="px-2.5 py-0.5 bg-warning/15 text-warning-text border border-warning/30 rounded-full text-xs font-black uppercase">
-            B2B Партнер
+            API Партнер
           </span>
         )}
       </div>
 
-      <form onSubmit={handleB2bSubmit} className="space-y-4">
+      <form onSubmit={handleApiSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center gap-2.5 p-3 bg-background/60 border border-border/60 rounded-xl">
             <input
               type="checkbox"
-              id="isB2bToggle"
-              checked={isB2b}
-              onChange={e => setIsB2b(e.target.checked)}
+              id="isApiEnabledToggle"
+              checked={isApiEnabled}
+              onChange={e => setIsApi(e.target.checked)}
               className="w-4 h-4 text-primary rounded cursor-pointer"
             />
             <label
-              htmlFor="isB2bToggle"
+              htmlFor="isApiEnabledToggle"
               className="text-xs font-bold text-foreground cursor-pointer select-none"
             >
-              Активировать B2B-профиль
+              Активировать API-профиль
             </label>
           </div>
 
@@ -166,10 +166,10 @@ export function B2bTab({ user }: B2bTabProps) {
 
         <button
           type="submit"
-          disabled={isPendingB2b}
+          disabled={isPendingApi}
           className="px-5 h-9 rounded-xl text-xs font-bold bg-primary text-primary-foreground shadow-xs hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
-          {isPendingB2b ? 'Сохранение...' : 'Сохранить B2B-реквизиты'}
+          {isPendingApi ? 'Сохранение...' : 'Сохранить API-реквизиты'}
         </button>
       </form>
     </div>

@@ -186,11 +186,11 @@
 - ❌ **ЗАПРЕЩЕНО** писать сырые `<button>` и `<input>` в пользовательском UI.
 - ✅ **ВСЕГДА** используй компоненты UI Арсенала из `@/components/ui`:
   - **SMMflux (Radiant Aurora):** `<FluxButton>`, `<FluxInput>`, `<FluxCard>`, `<FluxBadge>`, `<NumberTicker>`, `<BorderBeam>`, `<TiltCard>`, `<Marquee>`, `<Confetti>`.
-  - **SMMplan (Classic B2B):** `<PlanButton>`, `<PlanCard>`, `<PlanBadge>`, `<PlanTable>`, `<PlanTableHeader>`, `<PlanTableRow>`, `<PlanTableCell>`.
+  - **SMMplan (Classic API):** `<PlanButton>`, `<PlanCard>`, `<PlanBadge>`, `<PlanTable>`, `<PlanTableHeader>`, `<PlanTableRow>`, `<PlanTableCell>`.
 - ⚡ **UI Forge Harness CLI:** Агенты обязаны использовать харнес для автоматизации:
   - `npx tsx scripts/harness/ui-forge.ts list` — просмотр доступных компонентов
   - `npx tsx scripts/harness/ui-forge.ts validate` — проверка токенов кодовой базы
-  - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>` — генерация B2B-страницы для SMMplan
+  - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=smmplan <slug>` — генерация API-страницы для SMMplan
   - `npx tsx scripts/harness/ui-forge.ts scaffold --brand=flux <slug>` — генерация страницы для SMMflux
 - ✅ **ВСЕГДА** используй семантические токены из `globals.css`: `text-foreground`, `bg-background`, `bg-card`, `text-primary`, `text-muted-foreground`, `border-border`.
 - Все интерактивные элементы обязаны иметь `transition-all duration-200`. Компоненты декомпозируются (до 150–200 строк).

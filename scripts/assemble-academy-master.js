@@ -11,7 +11,7 @@ const modules = [
   'mod03_finance_54fz.md',
   'mod04_security_152fz.md',
   'mod05_legal_defense.md',
-  'mod06_b2b_resellers.md',
+  'mod06_api_resellers.md',
   'mod07_platform_traps.md',
   'mod08_antifraud_escalation.md',
   'mod09_loyalty_paradox.md',

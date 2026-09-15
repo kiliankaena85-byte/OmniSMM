@@ -182,7 +182,7 @@ ownerHubWizard.action('owner_smm', async (ctx) => {
     `👥 <b>Зарегистрировано пользователей:</b> <b>${activeUsers}</b>\n` +
     `🛒 <b>Всего обработано заказов:</b> <b>${totalOrders}</b>\n\n` +
     `🏢 <b>Мульти-Тенантность (Изоляция брендов):</b>\n` +
-    `  • <b>SMMplan</b> (<code>smmplan.pro</code>) — 🟢 B2B Классика (Онлайн)\n` +
+    `  • <b>SMMplan</b> (<code>smmplan.pro</code>) — 🟢 API Классика (Онлайн)\n` +
     `  • <b>SMMflux</b> (<code>smmflux.ru</code>) — 🟢 Radiant Aurora (Онлайн)\n\n` +
     `💳 <b>Боевые Провайдеры & Шлюзы:</b>\n` +
     `  • <b>Основной поставщик (API 1):</b> 🟢 <b>${primaryProviderBalance}</b>\n` +

@@ -141,9 +141,9 @@ describe('Services Lifecycle Management — Enterprise QA Suite', () => {
     });
   });
 
-  describe('3. Customer Groups & B2B Access Control', () => {
+  describe('3. Customer Groups & API Access Control', () => {
     it('manages customer groups and isolates service visibility', async () => {
-      const groupSlug = `vip-b2b-${Date.now()}`;
+      const groupSlug = `vip-api-${Date.now()}`;
       const group = await servicesLifecycleService.createCustomerGroup(
         {
           name: 'VIP Реселлеры',

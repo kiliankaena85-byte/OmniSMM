@@ -14,7 +14,7 @@ Review the generated article about VK deleted followers and Smmplan mechanics.
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
 - Check for integrity violations
-- Verify word count, Russian language, B2B tone, Smmplan mechanics integration, and frontmatter.
+- Verify word count, Russian language, API tone, Smmplan mechanics integration, and frontmatter.
 
 ## Current Parent
 - Conversation ID: 0c41c75f-13bc-47f9-93cc-66785e74a39e

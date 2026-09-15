@@ -10,7 +10,7 @@
 ## 2. Logic Chain
 - The word count of 929 words satisfies the strict > 500 words requirement.
 - The Russian language requirement is met.
-- Contextualization of Smmplan mechanics aligns correctly with the technical, B2B nature of the article.
+- Contextualization of Smmplan mechanics aligns correctly with the technical, API nature of the article.
 - The presence of "AI water" violated the AI Marketer Audit constraint. A `multi_replace_file_content` tool call was executed to replace the intro and conclusion paragraphs with strictly technical terminology. This successfully removed the fluff while keeping the word count well above the threshold (929 words).
 - The frontmatter format matches standard Markdown frontmatter requirements.
 

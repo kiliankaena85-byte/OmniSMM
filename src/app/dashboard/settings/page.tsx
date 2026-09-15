@@ -12,7 +12,7 @@ import LogoutCard from '@/components/dashboard/settings/LogoutCard';
 import TelegramCard from '@/components/dashboard/settings/TelegramCard';
 import Consent152FzCard from '@/components/dashboard/settings/Consent152FzCard';
 import CompanyRequisitesCard from '@/components/dashboard/settings/CompanyRequisitesCard';
-import B2bWebhookCard from '@/components/dashboard/settings/B2bWebhookCard';
+import ApiWebhookCard from '@/components/dashboard/settings/ApiWebhookCard';
 import ApiKeyManager from './api/ApiKeyManager';
 import { formatBalance } from '@/lib/utils';
 import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
@@ -51,7 +51,7 @@ export default async function ClientSettingsPage() {
       kpp: true,
       ogrn: true,
       legalAddress: true,
-      b2bConfig: {
+      apiConfig: {
         select: {
           webhookUrl: true,
           webhookSecret: true,
@@ -94,7 +94,7 @@ export default async function ClientSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Профиль и настройки</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Управление безопасностью, интеграцией с Telegram, реквизитами организации и B2B API
+          Управление безопасностью, интеграцией с Telegram, реквизитами организации и Panel API
         </p>
       </div>
 
@@ -190,12 +190,12 @@ export default async function ClientSettingsPage() {
         }}
       />
 
-      {/* B2B Webhook Settings */}
-      <B2bWebhookCard
+      {/* API Webhook Settings */}
+      <ApiWebhookCard
         initialData={{
-          webhookUrl: user.b2bConfig?.webhookUrl,
-          webhookSecret: user.b2bConfig?.webhookSecret,
-          isWebhookActive: user.b2bConfig?.isWebhookActive,
+          webhookUrl: user.apiConfig?.webhookUrl,
+          webhookSecret: user.apiConfig?.webhookSecret,
+          isWebhookActive: user.apiConfig?.isWebhookActive,
         }}
       />
 
@@ -207,7 +207,7 @@ export default async function ClientSettingsPage() {
           </div>
           <div>
             <h2 className="font-semibold text-foreground text-sm">
-              Управление API-ключами B2B
+              Управление API-ключами API
             </h2>
             <p className="text-[10px] text-muted-foreground">
               Ключ авторизации для программного создания заказов через API SMMplan
@@ -334,7 +334,7 @@ export default async function ClientSettingsPage() {
           </div>
           <div>
             <div className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-              B2B API
+              Panel API
             </div>
             <div className="text-xs text-muted-foreground">Документация и полное управление API-ключами</div>
           </div>

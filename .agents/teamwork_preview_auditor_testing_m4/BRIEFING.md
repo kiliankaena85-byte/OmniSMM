@@ -25,7 +25,7 @@ Forensic audit of Milestone 4 Requirement R3 (Profile & Security Settings in set
   - `src/actions/user/settings-extra.ts`
   - `src/components/dashboard/settings/Consent152FzCard.tsx`
   - `src/components/dashboard/settings/CompanyRequisitesCard.tsx`
-  - `src/components/dashboard/settings/B2bWebhookCard.tsx`
+  - `src/components/dashboard/settings/ApiWebhookCard.tsx`
   - `src/app/dashboard/settings/page.tsx`
 - **Profile loaded**: General Project / Forensic Integrity Check
 - **Audit type**: Forensic integrity check & static code analysis

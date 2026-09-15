@@ -389,7 +389,7 @@ export const LINK_RULES: LinkRule[] = [
       type: 'post',
       pattern: /linkedin\.com\/(?:posts|feed\/update)\/([\w.-]+)/i,
       suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.REPOSTS],
-      context: 'b2b_engagement'
+      context: 'api_engagement'
   },
   {
       platform: IntelligencePlatform.LINKEDIN,

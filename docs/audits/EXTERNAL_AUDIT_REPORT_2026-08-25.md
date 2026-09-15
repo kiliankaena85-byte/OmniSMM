@@ -119,7 +119,7 @@
 
 | Файл | BLOCK | Сценариев | Покрытие |
 |---|---|---|---|
-| `e2e/07-mass-orders-and-b2b-api.spec.ts` | 7 | 10 | Массовые заказы, B2B API v2 аутентификация, rate-limiting, TOCTOU |
+| `e2e/07-mass-orders-and-api-api.spec.ts` | 7 | 10 | Массовые заказы, Panel API v2 аутентификация, rate-limiting, TOCTOU |
 | `e2e/08-dripfeed-and-refills.spec.ts` | 8 | 7 | Drip-feed создание, таски, refill запросы, статусы, дубликаты |
 | `e2e/09-referrals-and-loyalty.spec.ts` | 9 | 10 | Реферальная программа, комиссии, обратный расчёт, тиеры, идемпотентность |
 | `e2e/10-proxy-pool-and-resilience.spec.ts` | 10 | 10 | Vault шифрование, CRUD прокси, Circuit Breaker, хеширование |
@@ -128,16 +128,16 @@
 
 ### Детали по блокам
 
-#### BLOCK 7: Mass Orders & B2B API v2 (10 сценариев)
+#### BLOCK 7: Mass Orders & Panel API v2 (10 сценариев)
 
-1. B2B API — аутентификация (отсутствующий/невалидный/валидный ключ)
-2. B2B API — список сервисов с tenant-scoping
-3. B2B API — создание заказа (успешный путь)
-4. B2B API — недостаточно средств
-5. B2B API — проверка статуса заказа
-6. B2B API — отмена с возвратом + защита от повторной отмены
-7. B2B API — пакетное создание (add_multi)
-8. B2B API — rate limiting (429 после 50/min)
+1. Panel API — аутентификация (отсутствующий/невалидный/валидный ключ)
+2. Panel API — список сервисов с tenant-scoping
+3. Panel API — создание заказа (успешный путь)
+4. Panel API — недостаточно средств
+5. Panel API — проверка статуса заказа
+6. Panel API — отмена с возвратом + защита от повторной отмены
+7. Panel API — пакетное создание (add_multi)
+8. Panel API — rate limiting (429 после 50/min)
 9. Идемпотентность повторного запроса
 10. Валидация границ количества (min/max)
 
@@ -197,7 +197,7 @@
 | Блок | Тестов | Ожидаемое время | Статус |
 |---|---|---|---|
 | 01-06 (существующие) | 26 | ~3 мин | ✅ 100% зелёные |
-| 07 Mass Orders & B2B | 10 | ~2 мин | ✅ Новый |
+| 07 Mass Orders & API | 10 | ~2 мин | ✅ Новый |
 | 08 Drip-Feed & Refills | 7 | ~1 мин | ✅ Новый |
 | 09 Referrals & Loyalty | 10 | ~1.5 мин | ✅ Новый |
 | 10 Proxy & Resilience | 10 | ~1 мин | ✅ Новый |
@@ -236,7 +236,7 @@ smmplan-audit-2026-08-25/
 ├── AUDIT_REPORT.md                          (этот файл)
 ├── changes.patch                            (git diff исправлений)
 ├── e2e/
-│   ├── 07-mass-orders-and-b2b-api.spec.ts   (новый, 10 тестов)
+│   ├── 07-mass-orders-and-api-api.spec.ts   (новый, 10 тестов)
 │   ├── 08-dripfeed-and-refills.spec.ts      (новый, 7 тестов)
 │   ├── 09-referrals-and-loyalty.spec.ts     (новый, 10 тестов)
 │   ├── 10-proxy-pool-and-resilience.spec.ts (новый, 10 тестов)

@@ -4,7 +4,7 @@ import { verifySession } from '@/lib/session';
 import { 
   updateBalanceAction, 
   requestCardRefundAction, 
-  updateUserB2bAction 
+  updateUserApiAction 
 } from '../users';
 
 // Mock cookies and headers
@@ -104,7 +104,7 @@ describe('Client CRM & FinTech Balance Safety Test Suite (Get Shit Done)', () =>
         await db.manualBalanceAdjustment.deleteMany({ where: { userId: clientUser.id } });
         await db.supportFinancialAction.deleteMany({ where: { targetUserId: clientUser.id } });
         await db.ledgerEntry.deleteMany({ where: { userId: clientUser.id } });
-        await db.b2bConfig.deleteMany({ where: { userId: clientUser.id } });
+        await db.apiConfig.deleteMany({ where: { userId: clientUser.id } });
         await db.user.deleteMany({ where: { id: clientUser.id } });
       }
       if (supportStaff) await db.user.deleteMany({ where: { id: supportStaff.id } });
@@ -287,8 +287,8 @@ describe('Client CRM & FinTech Balance Safety Test Suite (Get Shit Done)', () =>
     expect(userCheck2.balance).toBe(BigInt(60000));
   });
 
-  // TEST 7: B2B CONFIGURATION
-  it('should update B2B details, INN, KPP, and Priority Support', async () => {
+  // TEST 7: API CONFIGURATION
+  it('should update API details, INN, KPP, and Priority Support', async () => {
     (verifySession as any).mockResolvedValue({
       userId: ownerUser.id,
       email: ownerUser.email,
@@ -297,7 +297,7 @@ describe('Client CRM & FinTech Balance Safety Test Suite (Get Shit Done)', () =>
 
     const fd = new FormData();
     fd.append('userId', clientUser.id);
-    fd.append('isB2b', 'true');
+    fd.append('isApiEnabled', 'true');
     fd.append('prioritySupport', 'true');
     fd.append('companyName', 'ООО «Технологии Продвижения»');
     fd.append('inn', '7701234567');
@@ -305,18 +305,18 @@ describe('Client CRM & FinTech Balance Safety Test Suite (Get Shit Done)', () =>
     fd.append('legalAddress', 'г. Москва, ул. Арбат, 10');
     fd.append('webhookUrl', 'https://api.tech.ru/smm-webhook');
 
-    const res = await updateUserB2bAction(fd);
+    const res = await updateUserApiAction(fd);
     expect(res.success).toBe(true);
 
     const updatedUser = await db.user.findUniqueOrThrow({
       where: { id: clientUser.id },
-      include: { b2bConfig: true }
+      include: { apiConfig: true }
     });
 
     expect(updatedUser.companyName).toBe('ООО «Технологии Продвижения»');
     expect(updatedUser.inn).toBe('7701234567');
-    expect(updatedUser.b2bConfig?.isB2b).toBe(true);
-    expect(updatedUser.b2bConfig?.prioritySupport).toBe(true);
-    expect(updatedUser.b2bConfig?.webhookUrl).toBe('https://api.tech.ru/smm-webhook');
+    expect(updatedUser.apiConfig?.isApiEnabled).toBe(true);
+    expect(updatedUser.apiConfig?.prioritySupport).toBe(true);
+    expect(updatedUser.apiConfig?.webhookUrl).toBe('https://api.tech.ru/smm-webhook');
   });
 });

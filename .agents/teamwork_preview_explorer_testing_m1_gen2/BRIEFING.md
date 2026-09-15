@@ -24,7 +24,7 @@ Explore and analyze Smmplan's codebase and testing infrastructure, mapping out e
   - `vitest.config.ts`, `vitest.unit.config.ts`, `playwright.config.ts`, `package.json`
   - `test/setup.ts`, `test/unit/provider-universal.test.ts`, `test/unit/tc-fin-hedge.test.ts`
   - `src/services/system/cbr-rate.service.ts`, `src/services/financial/currency.service.ts`, `src/services/financial/unified-payment.service.ts`
-  - `src/actions/auth/request-magic-link.ts`, `src/lib/session.ts`, `src/lib/b2b-auth.ts`
+  - `src/actions/auth/request-magic-link.ts`, `src/lib/session.ts`, `src/lib/api-auth.ts`
   - `src/utils/target-type.ts`, `src/validators/link-mutators.ts`, `src/services/analyzer/link-rules.ts`
   - `src/app/admin/catalog/page.tsx`, `src/actions/admin/catalog/services.ts`, `src/lib/admin-audit.ts`, `src/actions/admin/finance/ledger.ts`
   - `src/workers/processors/order.processor.ts`, `src/services/core/order.service.ts`

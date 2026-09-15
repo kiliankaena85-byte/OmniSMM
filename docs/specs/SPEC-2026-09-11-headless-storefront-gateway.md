@@ -7,7 +7,7 @@
 - Собственные веб-витрины (Next.js, Nuxt, SvelteKit, Astro, Shopify/WooCommerce плагины).
 - Мобильные приложения (iOS / Android на Flutter или React Native).
 - Telegram Mini Apps (TMA) и Telegram Web Apps ботов.
-- Закрытые VIP-клубы и B2B-порталы с индивидуальной ценовой политикой.
+- Закрытые VIP-клубы и Panel APIы с индивидуальной ценовой политикой.
 
 Storefront Gateway проектируется как **чистый REST/JSON API**, изолированный от устаревшего SMM Panel API v2 (`application/x-www-form-urlencoded`), с криптографической аутентификацией, автоматическим скоупингом через **Prisma Tenant Enforcer** (`AsyncLocalStorage`), защитой от утечек данных поставщиков (Information Disclosure) и юридическим барьером по ст. 54.1 НК РФ.
 

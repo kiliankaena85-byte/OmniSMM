@@ -55,7 +55,7 @@ export interface SecurityAuditReport {
 const AUTH_GUARD_PATTERNS = [
   'verifySession', 'requireAdmin', 'requireStaffPermission',
   'requireOwnerPermission', 'requireRole', 'requireOperatorPermission',
-  'authGuard', 'jwtVerify', 'verifyB2BKey', 'decryptSessionToken',
+  'authGuard', 'jwtVerify', 'verifyAPIKey', 'decryptSessionToken',
   'enforcePageRole', 'enforceSectionAccess',
 ];
 

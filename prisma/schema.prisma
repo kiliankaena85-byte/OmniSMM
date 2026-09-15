@@ -68,7 +68,7 @@ model User {
   smartCampaigns  SmartCampaign[]
   promoCodeUsages PromoCodeUsage[]
 
-  // B2B & Accounting Fields
+  // API & Accounting Fields
   companyName  String?
   inn          String?
   kpp          String?
@@ -89,7 +89,7 @@ model User {
   staffRoleId String?
   staffRole   StaffRole? @relation(fields: [staffRoleId], references: [id], onDelete: SetNull)
 
-  b2bConfig B2bConfig?
+  apiConfig ApiConfig?
   userNotes     UserNote[] @relation("UserNotes")
   authoredNotes UserNote[] @relation("AuthorNotes")
 
@@ -125,19 +125,21 @@ model User {
   @@index([tenantId, createdAt(sort: Desc), id(sort: Desc)])
 }
 
-model B2bConfig {
+model ApiConfig {
   id               String  @id @default(cuid())
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isB2b            Boolean @default(true)
-  prioritySupport  Boolean @default(true) // Выделение и приоритетная поддержка
+  isApiEnabled     Boolean @default(true)
+  prioritySupport  Boolean @default(true) // Выделенная и приоритетная поддержка
   webhookUrl       String? // Webhook URL для синхронизации тикетов
-  webhookSecret    String? // Секретный ключ подписи вебхуков B2B
+  webhookSecret    String? // Секретный ключ вебхука API
   isWebhookActive  Boolean @default(false) // Toggle for webhook status
-  customLimitCents Int? // Кастомный лимит компенсаций (если null — лимит не применяется!)
+  customLimitCents Int? // Кастомный лимит списаний (если null - без лимита!)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ApiConfig")
 }
 
 model PromoCode {
@@ -648,7 +650,7 @@ model Payment {
   @@index([createdAt])
 }
 
-// ── B2B Accounting ──
+// ── API Accounting ──
 model Invoice {
   id        String   @id @default(cuid())
   userId    String
@@ -1690,7 +1692,7 @@ model SupportFinancialAction {
   @@index([tenantId, createdAt])
 }
 
-model B2bRequestLog {
+model ApiRequestLog {
   id          String   @id @default(cuid())
   apiKeyHash  String   @map("api_key_hash")
   action      String
@@ -1703,7 +1705,7 @@ model B2bRequestLog {
 
   @@index([apiKeyHash, createdAt])
   @@index([createdAt])
-  @@map("b2b_request_log")
+  @@map("api_request_log")
 }
 
 model StaffShift {

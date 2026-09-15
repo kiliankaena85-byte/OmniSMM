@@ -10,8 +10,8 @@ import { SettingsProvider } from '@/lib/settings';
 import type {
   CompanyRequisitesInput,
   UpdateCompanyRequisitesResult,
-  B2bWebhookInput,
-  UpdateB2bWebhookResult,
+  ApiWebhookInput,
+  UpdateApiWebhookResult,
   Confirm152FzConsentResult,
   ApiKeyActionResult,
   TelegramBindDetailsResult,
@@ -34,7 +34,7 @@ const taxRequisitesSchema = z.object({
   legalAddress: z.string().max(500, 'Юридический адрес не должен превышать 500 символов').nullable().optional(),
 });
 
-const b2bWebhookSchema = z.object({
+const apiWebhookSchema = z.object({
   webhookUrl: z.string().refine(val => {
     if (!val || val.trim() === '') return true;
     try {
@@ -54,7 +54,7 @@ const telegramNotificationsSchema = z.object({
 });
 
 /**
- * Updates tax/company B2B requisites (companyName, inn, kpp, ogrn, legalAddress).
+ * Updates tax/company API requisites (companyName, inn, kpp, ogrn, legalAddress).
  */
 export async function updateTaxRequisitesAction(
   data: CompanyRequisitesInput
@@ -109,17 +109,17 @@ export async function updateCompanyRequisitesAction(
 }
 
 /**
- * Updates B2B Webhook URL, connection status toggle (isWebhookActive), and manages webhookSecret in B2bConfig.
+ * Updates API Webhook URL, connection status toggle (isWebhookActive), and manages webhookSecret in ApiConfig.
  */
-export async function updateB2bWebhookAction(
-  data: B2bWebhookInput
-): Promise<UpdateB2bWebhookResult> {
+export async function updateApiWebhookAction(
+  data: ApiWebhookInput
+): Promise<UpdateApiWebhookResult> {
   const session = await verifySession();
   if (!session?.userId) {
     return { success: false, error: 'Авторизуйтесь для выполнения этого действия' };
   }
 
-  const parsed = b2bWebhookSchema.safeParse(data);
+  const parsed = apiWebhookSchema.safeParse(data);
   if (!parsed.success) {
     return {
       success: false,
@@ -130,7 +130,7 @@ export async function updateB2bWebhookAction(
   const rawUrl = parsed.data.webhookUrl?.trim() || null;
 
   try {
-    const existingConfig = await db.b2bConfig.findUnique({
+    const existingConfig = await db.apiConfig.findUnique({
       where: { userId: session.userId },
     });
 
@@ -142,11 +142,11 @@ export async function updateB2bWebhookAction(
 
     const isWebhookActive = data.isWebhookActive ?? (existingConfig?.isWebhookActive ?? (!!rawUrl));
 
-    const updatedConfig = await db.b2bConfig.upsert({
+    const updatedConfig = await db.apiConfig.upsert({
       where: { userId: session.userId },
       create: {
         userId: session.userId,
-        isB2b: true,
+        isApiEnabled: true,
         prioritySupport: true,
         webhookUrl: rawUrl,
         webhookSecret,
@@ -168,7 +168,7 @@ export async function updateB2bWebhookAction(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Неизвестная ошибка';
-    console.error('[updateB2bWebhookAction] Error:', message);
+    console.error('[updateApiWebhookAction] Error:', message);
     return { success: false, error: 'Не удалось сохранить настройки вебхука' };
   }
 }
@@ -212,7 +212,7 @@ export async function confirm152FzConsentAction(): Promise<Confirm152FzConsentRe
 }
 
 /**
- * Generates initial B2B API Key, stores SHA-256 hash in User.apiKeyHash, and returns raw key ONLY ONCE.
+ * Generates initial Panel API Key, stores SHA-256 hash in User.apiKeyHash, and returns raw key ONLY ONCE.
  */
 export async function generateApiKeyAction(): Promise<ApiKeyActionResult> {
   const session = await verifySession();

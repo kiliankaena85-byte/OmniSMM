@@ -119,7 +119,7 @@ export default async function KnowledgePage({ searchParams }: PageProps) {
     );
   }
 
-  // Classic UI for SMMplan: B2B Blueprint
+  // Classic UI for SMMplan: API Blueprint
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col relative overflow-x-clip">
       <div className="absolute top-0 inset-x-0 h-[600px] z-[-1] pointer-events-none overflow-hidden premium-grid-backdrop" />

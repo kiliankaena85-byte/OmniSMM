@@ -10,7 +10,7 @@ export interface AdminTicketItem {
   user: {
     id: string;
     email: string;
-    b2bConfig?: { isB2b?: boolean } | null;
+    apiConfig?: { isApiEnabled?: boolean } | null;
   };
   _count: { messages: number };
   messages: { text: string; createdAt: Date; sender: string }[];
@@ -65,8 +65,8 @@ export interface ActiveTicketUser {
   balance: number | bigint;
   totalSpent: number | bigint;
   createdAt: string;
-  b2bConfig: {
-    isB2b: boolean;
+  apiConfig: {
+    isApiEnabled: boolean;
     prioritySupport: boolean;
     webhookUrl: string | null;
   } | null;

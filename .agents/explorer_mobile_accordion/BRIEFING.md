@@ -7,7 +7,7 @@ Explore MobileWizard progressive disclosure, run plan density linter, and analyz
 - Archetype: Teamwork Explorer
 - Roles: Read-only Investigator
 - Working directory: d:\SMM_plan_2\.agents\explorer_mobile_accordion
-- Original parent: 64f88c82-fd79-4c01-94b3-db9e6b2b4c23
+- Original parent: 64f88c82-fd79-4c01-94b3-db9e6api4c23
 - Milestone: mobile_accordion
 
 ## 🔒 Key Constraints
@@ -18,7 +18,7 @@ Explore MobileWizard progressive disclosure, run plan density linter, and analyz
 - Output findings in handoff.md and notify the parent orchestrator via send_message
 
 ## Current Parent
-- Conversation ID: 64f88c82-fd79-4c01-94b3-db9e6b2b4c23
+- Conversation ID: 64f88c82-fd79-4c01-94b3-db9e6api4c23
 - Updated: 2026-06-10T04:42:56Z
 
 ## Investigation State

@@ -26,7 +26,7 @@ import {
 
 const TIERS = [
   {
-    name: "Старт (B2B Lite)",
+    name: "Старт (API Lite)",
     spend: "от 10 000 ₽ / мес",
     discount: "5%",
     badge: "Для начинающих",
@@ -121,7 +121,7 @@ export default function WholesalePage() {
             Оптовые цены и прямые шлюзы SMM
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Полноценная B2B-инфраструктура для бизнеса. Закрывающие документы через ЭДО, стабильный Uptime 99.98% и прогрессивная шкала скидок до 30%.
+            Полноценная API-инфраструктура для бизнеса. Закрывающие документы через ЭДО, стабильный Uptime 99.98% и прогрессивная шкала скидок до 30%.
           </p>
         </div>
 
@@ -215,7 +215,7 @@ export default function WholesalePage() {
           </div>
         </PlanCard>
 
-        {/* B2B Guarantees Table */}
+        {/* API Guarantees Table */}
         <PlanCard variant="bordered" padding="lg" className="mb-12">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
@@ -252,7 +252,7 @@ export default function WholesalePage() {
 
       {/* Footer */}
       <footer className="bg-card border-t border-border/80 py-8 text-center text-xs text-muted-foreground mt-20">
-        <p>© {new Date().getFullYear()} SMMplan B2B Wholesale. Все права защищены.</p>
+        <p>© {new Date().getFullYear()} SMMplan API Wholesale. Все права защищены.</p>
       </footer>
     </div>
   );

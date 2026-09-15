@@ -50,7 +50,7 @@ export function SmmPlanFullApp({ initialTab = 'dashboard' }: { initialTab?: Plan
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; bonusText: string } | null>(null);
 
-  // B2B & Legal Requisites States (R3)
+  // API & Legal Requisites States (R3)
   const [companyName, setCompanyName] = useState('ООО "СММ ПЛАН"');
   const [inn, setInn] = useState('7701984210');
   const [kpp, setKpp] = useState('77010101');
@@ -1196,7 +1196,7 @@ export function SmmPlanFullApp({ initialTab = 'dashboard' }: { initialTab?: Plan
                 </div>
               </div>
 
-              {/* B2B Legal Requisites (R3) */}
+              {/* API Legal Requisites (R3) */}
               <div className="space-y-3 pt-4 border-t border-[#e2e8f0]">
                 <h3 className="font-heading text-base font-bold text-[#0e131a]">Бухгалтерские реквизиты (Юрлицам)</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1245,9 +1245,9 @@ export function SmmPlanFullApp({ initialTab = 'dashboard' }: { initialTab?: Plan
                 </button>
               </div>
 
-              {/* B2B Webhook Integration (R3) */}
+              {/* API Webhook Integration (R3) */}
               <div className="space-y-3 pt-4 border-t border-[#e2e8f0]">
-                <h3 className="font-heading text-base font-bold text-[#0e131a]">B2B Вебхуки для разработчиков</h3>
+                <h3 className="font-heading text-base font-bold text-[#0e131a]">API Вебхуки для разработчиков</h3>
                 <div className="space-y-2">
                   <div>
                     <label className="block text-[#414a59] font-bold mb-1">Webhook URL</label>

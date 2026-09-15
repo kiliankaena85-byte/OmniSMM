@@ -24,7 +24,7 @@ Review Milestone 4 (Requirement R3: Profile & Security Settings in `settings`) c
   - `src/actions/user/settings-extra.ts`
   - `src/components/dashboard/settings/Consent152FzCard.tsx`
   - `src/components/dashboard/settings/CompanyRequisitesCard.tsx`
-  - `src/components/dashboard/settings/B2bWebhookCard.tsx`
+  - `src/components/dashboard/settings/ApiWebhookCard.tsx`
   - `src/app/dashboard/settings/page.tsx`
   - `src/actions/user/__tests__/settings-extra.test.ts`
 - **Interface contracts**: PROJECT.md / AGENTS.md
@@ -46,7 +46,7 @@ Review Milestone 4 (Requirement R3: Profile & Security Settings in `settings`) c
   - `src/actions/user/settings-extra.ts` (Passed logic, session check & type safety)
   - `src/components/dashboard/settings/Consent152FzCard.tsx` (Passed UI & transition state)
   - `src/components/dashboard/settings/CompanyRequisitesCard.tsx` (Passed INN/KPP validation)
-  - `src/components/dashboard/settings/B2bWebhookCard.tsx` (Passed HTTPS validation & secret management)
+  - `src/components/dashboard/settings/ApiWebhookCard.tsx` (Passed HTTPS validation & secret management)
   - `src/app/dashboard/settings/page.tsx` (Passed page integration & session check)
   - `src/actions/user/__tests__/settings-extra.test.ts` (Failed - 3/11 failing unit tests)
 - **Verdict**: REQUEST_CHANGES

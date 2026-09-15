@@ -16,7 +16,7 @@ vi.mock('@/actions/order/catalog', async (importOriginal) => {
     getServicesByCategoryAction: vi.fn().mockResolvedValue([
       {
         id: 'srv-101',
-        name: 'Telegram Подписчики Живые B2B',
+        name: 'Telegram Подписчики Живые API',
         pricePerUnitRub: 0.05,
         minQty: 100,
         maxQty: 10000,
@@ -240,9 +240,9 @@ describe('PlanSlideOrderClient & LayoutVariantToggle Tests', () => {
 
     // 3. Click service
     await waitFor(() => {
-      expect(screen.getByText(/Telegram Подписчики Живые B2B/i)).toBeDefined();
+      expect(screen.getByText(/Telegram Подписчики Живые API/i)).toBeDefined();
     });
-    fireEvent.click(screen.getByText(/Telegram Подписчики Живые B2B/i));
+    fireEvent.click(screen.getByText(/Telegram Подписчики Живые API/i));
 
     // 4. Now on checkout step: field-link MUST exist and be rendered
     await waitFor(() => {

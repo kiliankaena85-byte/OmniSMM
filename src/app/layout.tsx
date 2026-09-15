@@ -81,14 +81,14 @@ export async function generateMetadata(): Promise<Metadata> {
           url: '/images/og-smmplan.png',
           width: 1200,
           height: 630,
-          alt: 'SMMplan — B2B Платформа продвижения',
+          alt: 'SMMplan — API Платформа продвижения',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
       title: 'SMMplan — продвижение в социальных сетях',
-      description: 'B2B платформа продвижения: продвижение подписчиков, лайков, просмотров.',
+      description: 'API платформа продвижения: продвижение подписчиков, лайков, просмотров.',
       images: ['/images/og-smmplan.png'],
     },
     robots: {

@@ -40,7 +40,7 @@ async function main() {
     { name: 'Refill', model: prisma.refill },
     { name: 'Order', model: prisma.order },
     { name: 'Payment', model: prisma.payment },
-    { name: 'B2bConfig', model: prisma.b2bConfig },
+    { name: 'ApiConfig', model: prisma.apiConfig },
   ];
 
   const deletionCounts: Record<string, number> = {};

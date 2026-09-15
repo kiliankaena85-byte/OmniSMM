@@ -13,8 +13,8 @@ export interface UserDTO {
   inn: string;
   kpp: string;
   legalAddress: string;
-  b2bConfig: {
-    isB2b: boolean;
+  apiConfig: {
+    isApiEnabled: boolean;
     prioritySupport: boolean;
     webhookUrl: string;
   } | null;

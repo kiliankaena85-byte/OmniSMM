@@ -75,7 +75,7 @@ export function SmmFluxFullApp({ initialTab = 'dashboard' }: { initialTab?: Flux
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; bonusText: string } | null>(null);
 
-  // B2B & Requisites States (R3)
+  // API & Requisites States (R3)
   const [companyName, setCompanyName] = useState('ИП "Аврора СММ"');
   const [inn, setInn] = useState('7702981144');
   const [kpp, setKpp] = useState('');
@@ -1008,7 +1008,7 @@ export function SmmFluxFullApp({ initialTab = 'dashboard' }: { initialTab?: Flux
                 </div>
               </div>
 
-              {/* B2B Legal Requisites (R3) */}
+              {/* API Legal Requisites (R3) */}
               <div className="space-y-3 pt-4 border-t border-[#ece9f5]">
                 <h3 className="font-heading text-base font-bold text-[#100d18]">Реквизиты юридического лица</h3>
                 <div className="space-y-2">
@@ -1044,9 +1044,9 @@ export function SmmFluxFullApp({ initialTab = 'dashboard' }: { initialTab?: Flux
                 </button>
               </div>
 
-              {/* B2B Webhook URL (R3) */}
+              {/* API Webhook URL (R3) */}
               <div className="space-y-2 pt-4 border-t border-[#ece9f5]">
-                <h3 className="font-heading text-base font-bold text-[#100d18]">B2B Webhook Интеграция</h3>
+                <h3 className="font-heading text-base font-bold text-[#100d18]">API Webhook Интеграция</h3>
                 <input
                   type="url"
                   placeholder="https://..."

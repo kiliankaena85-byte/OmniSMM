@@ -11,13 +11,13 @@ export interface UpdateCompanyRequisitesResult {
   error?: string;
 }
 
-export interface B2bWebhookInput {
+export interface ApiWebhookInput {
   webhookUrl?: string | null;
   isWebhookActive?: boolean;
   regenerateSecret?: boolean;
 }
 
-export interface UpdateB2bWebhookResult {
+export interface UpdateApiWebhookResult {
   success: boolean;
   error?: string;
   webhookSecret?: string | null;

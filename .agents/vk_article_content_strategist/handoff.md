@@ -19,7 +19,7 @@
 
 ## 3. Caveats
 - This is a strategy and outline document. The final >500-word Russian article must be written and placed in `d:\SMM_plan_2\src\data\knowledge\vk_deleted_followers_dogs.md` by the implementer.
-- The tone should be technical yet accessible (B2B/operator-centric), avoiding generic marketing clichés.
+- The tone should be technical yet accessible (API/operator-centric), avoiding generic marketing clichés.
 
 ## 4. Conclusion
 Below is the proposed strategy and outline for the implementer to follow:

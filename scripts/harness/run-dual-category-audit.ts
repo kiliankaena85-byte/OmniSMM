@@ -43,7 +43,7 @@ async function main() {
   const categoryManagerUI = fs.readFileSync('src/app/admin/catalog/categories/components/category-manager.tsx', 'utf8');
 
   const context = `
-ПРОЕКТ: OmniSMM 1.0 (B2B/B2C SMM платформа: smmplan.pro и smmflux.ru)
+ПРОЕКТ: OmniSMM 1.0 (API/B2C SMM платформа: smmplan.pro и smmflux.ru)
 ОБЪЕКТ АУДИТА: Экран и логика управления соцсетями и категориями (/admin/catalog/categories).
 
 КОД КОМПОНЕНТОВ:

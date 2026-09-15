@@ -3,11 +3,11 @@ import { logger } from '@/lib/logger';
 import { safeFetch } from '@/lib/security/ssrf-guard';
 import crypto from 'crypto';
 
-const log = logger.child({ component: 'B2bWebhookDispatcher' });
+const log = logger.child({ component: 'ApiWebhookDispatcher' });
 
-export class B2bWebhookDispatcher {
+export class ApiWebhookDispatcher {
   /**
-   * Dispatches order status updates to B2B clients who configured webhooks.
+   * Dispatches order status updates to API clients who configured webhooks.
    */
   static async dispatchOrderStatusUpdate(orderId: string, status: string) {
     try {
@@ -27,11 +27,11 @@ export class B2bWebhookDispatcher {
 
       if (!order) return;
 
-      const b2bConfig = await db.b2bConfig.findUnique({
+      const apiConfig = await db.apiConfig.findUnique({
         where: { userId: order.userId }
       });
 
-      if (!b2bConfig || !b2bConfig.isB2b || !b2bConfig.isWebhookActive || !b2bConfig.webhookUrl) {
+      if (!apiConfig || !apiConfig.isApiEnabled || !apiConfig.isWebhookActive || !apiConfig.webhookUrl) {
         return;
       }
 
@@ -49,39 +49,39 @@ export class B2bWebhookDispatcher {
         }
       });
 
-      const signature = b2bConfig.webhookSecret
-        ? crypto.createHmac('sha256', b2bConfig.webhookSecret).update(payload).digest('hex')
+      const signature = apiConfig.webhookSecret
+        ? crypto.createHmac('sha256', apiConfig.webhookSecret).update(payload).digest('hex')
         : '';
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'User-Agent': 'SMMplan-B2B-Webhook/2.0'
+        'User-Agent': 'SMMplan-API-Webhook/2.0'
       };
 
       if (signature) {
         headers['X-SMMplan-Signature'] = signature;
       }
 
-      const response = await safeFetch(b2bConfig.webhookUrl, {
+      const response = await safeFetch(apiConfig.webhookUrl, {
         method: 'POST',
         headers,
         body: payload,
         signal: AbortSignal.timeout(5000) // 5s timeout guard
       });
 
-      await db.b2bRequestLog.create({
+      await db.apiRequestLog.create({
         data: {
           apiKeyHash: 'webhook_dispatch',
           action: 'order.status_update',
-          params: { orderId, status, endpoint: b2bConfig.webhookUrl },
+          params: { orderId, status, endpoint: apiConfig.webhookUrl },
           httpStatus: response.status,
           latencyMs: 0
         }
       }).catch(() => {});
 
-      log.info(`[B2B Webhook] Dispatched status update for order ${order.numericId} to ${b2bConfig.webhookUrl} (Status: ${response.status})`);
+      log.info(`[API Webhook] Dispatched status update for order ${order.numericId} to ${apiConfig.webhookUrl} (Status: ${response.status})`);
     } catch (err) {
-      log.error(`[B2B Webhook] Failed to dispatch webhook for order ${orderId}:`, { error: (err as Error).message });
+      log.error(`[API Webhook] Failed to dispatch webhook for order ${orderId}:`, { error: (err as Error).message });
     }
   }
 }

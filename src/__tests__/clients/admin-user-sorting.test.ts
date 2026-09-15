@@ -33,7 +33,7 @@ describe('Admin User Dynamic Sorting & Deterministic Pagination (SPEC-2026-15)',
         inn: '7701234567',
         createdAt: new Date('2026-01-01'),
         tenantId: 'smmplan',
-        b2bConfig: { isB2b: true, prioritySupport: true, webhookUrl: null },
+        apiConfig: { isApiEnabled: true, prioritySupport: true, webhookUrl: null },
         _count: { orders: 120, tickets: 3 },
       },
     ]);

@@ -257,9 +257,9 @@ async function runAdversarialPricingSuite() {
   }
 
   // ===========================================================================
-  // TEST SUITE 5: B2B Formatted Services Safety Floor Enforcement
+  // TEST SUITE 5: API Formatted Services Safety Floor Enforcement
   // ===========================================================================
-  const suite5 = '5. B2B Formatted Services Floor Enforcement';
+  const suite5 = '5. API Formatted Services Floor Enforcement';
   console.log(`\n--- Running ${suite5} ---`);
 
   try {
@@ -270,25 +270,25 @@ async function runAdversarialPricingSuite() {
       { numericId: 3, name: 'MicroRate', rate: 0.0001, markup: 3.0, minQty: 1, maxQty: 1000, providerCurrency: 'USD', isDripFeedEnabled: false, isRefillEnabled: false, isCancelEnabled: false, category: { name: 'Cat' } },
     ];
 
-    const b2bResult = await marketingService.getB2BFormattedServices(mockUser, services);
+    const apiResult = await marketingService.getAPIFormattedServices(mockUser, services);
     const usdToRub = 100.0; // from settings mock
 
     for (let i = 0; i < services.length; i++) {
       const s = services[i];
-      const res = b2bResult[i];
+      const res = apiResult[i];
       const rateNum = parseFloat(res.rate);
       const minExpectedFloor = (s.rate * usdToRub * (1 + SAFETY_FLOOR_MARKUP)) / (1 - TOTAL_MANDATORY_DEDUCTIONS);
       
       const passed = rateNum >= parseFloat(minExpectedFloor.toFixed(4)) - 0.0001;
       recordTest(
         suite5,
-        `B2B service ${s.name} (rate: ${res.rate} >= floor: ${minExpectedFloor.toFixed(4)})`,
+        `API service ${s.name} (rate: ${res.rate} >= floor: ${minExpectedFloor.toFixed(4)})`,
         passed,
         `Got rate ${res.rate}, expected floor ${minExpectedFloor.toFixed(4)}`
       );
     }
   } catch (err: any) {
-    recordTest(suite5, 'B2B Formatted Services check', false, err.message);
+    recordTest(suite5, 'API Formatted Services check', false, err.message);
   }
 
   // ===========================================================================

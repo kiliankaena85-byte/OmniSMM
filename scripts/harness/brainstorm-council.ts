@@ -31,13 +31,13 @@ const DOMAIN_SPECIALISTS = [
   { keyword: /sec|auth|idor|owasp|безопасн|уязвим|взлом/i, role: '🛡️ PenTester & CyberSec (OWASP Top 10, IDOR, Trust Boundaries, XSS)' },
 
   // 3. Дизайн-системы и UX
-  { keyword: /design|token|токен|стил|кнопк|палитр|theme/i, role: '🎨 Dual-Brand Architect (SMMplan B2B vs SMMflux Neon, @theme токены)' },
+  { keyword: /design|token|токен|стил|кнопк|палитр|theme/i, role: '🎨 Dual-Brand Architect (SMMplan API vs SMMflux Neon, @theme токены)' },
   { keyword: /motion|анимац|confetti|framer|эффект|beam/i, role: '🪐 Motion & Physics Lead (Framer Motion v12, Canvas Confetti, BorderBeam)' },
   { keyword: /mobile|touch|wcag|контраст|адаптив|экран/i, role: '📱 Mobile & WCAG Auditor (Touch targets >= 44px, контраст >= 4.5:1)' },
 
   // 4. Маркетинг, CRO и рост
   { keyword: /cro|конверс|воронк|клик|продаж|silent/i, role: '🎯 CRO Funnel Psychologist (Психология клика, Silent Provisioning, микрокопирайтинг)' },
-  { keyword: /b2b|wholesale|опт|партнер|реселлер|скидк/i, role: '💼 B2B Wholesale Lead (Оптовые скидки, REST API v2, ЭДО Диадок, SLA)' },
+  { keyword: /api|wholesale|опт|партнер|реселлер|скидк/i, role: '💼 API Wholesale Lead (Оптовые скидки, REST API v2, ЭДО Диадок, SLA)' },
   { keyword: /seo|canonical|яндекс|google|schema|индекс/i, role: '🔍 Multi-Tenant SEO Lead (Canonical URLs, Schema.org, исключение каннибализации)' },
 ];
 
@@ -61,15 +61,15 @@ const INTENTIONAL_TRIGGER_SCENARIOS = [
   },
   {
     title: '3. Масштабный редизайн ключевой воронки (Dual-Brand UX & CRO)',
-    example: '«Разделение логики заказа для SMMplan (B2B счет/таблицы) и SMMflux (Гостевой заказ в 1 клик)»',
-    why: 'Конфликт между жесткими B2B-требованиями (договора, закрывающие акты) и розничной конверсией (минимум кликов, мобильный UI).',
-    council: ['🎨 Dual-Brand Architect', '🎯 CRO Funnel Psychologist', '📱 Mobile & WCAG Auditor', '💼 B2B Wholesale Lead'],
+    example: '«Разделение логики заказа для SMMplan (API счет/таблицы) и SMMflux (Гостевой заказ в 1 клик)»',
+    why: 'Конфликт между жесткими API-требованиями (договора, закрывающие акты) и розничной конверсией (минимум кликов, мобильный UI).',
+    council: ['🎨 Dual-Brand Architect', '🎯 CRO Funnel Psychologist', '📱 Mobile & WCAG Auditor', '💼 API Wholesale Lead'],
   },
   {
     title: '4. Pre-Mortem аудит безопасности перед публичным релизом',
     example: '«Запуск публичного REST API v2 для оптовых клиентов и реселлеров»',
     why: 'Угроза перебора IDOR, атак подделки баланса, параллельных Race Conditions и исчерпания лимитов.',
-    council: ['🛡️ PenTester & CyberSec', '🗄️ Prisma & DB Specialist', '💼 B2B Wholesale Lead', '🎭 Red Team Critic'],
+    council: ['🛡️ PenTester & CyberSec', '🗄️ Prisma & DB Specialist', '💼 API Wholesale Lead', '🎭 Red Team Critic'],
   },
   {
     title: '5. Разрешение конфликта метрик (Visual Wow vs Core Web Vitals)',

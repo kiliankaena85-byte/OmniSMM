@@ -119,7 +119,7 @@ const manifest = {
     {
       id: 'mod3-sec2-payment-methods',
       module: 'МОДУЛЬ 3: Финансовая безопасность, Эквайринг и Налоги',
-      section: '3.2 Платежные методы (СБП, Карты МИР, Зарубежные карты, Crypto, B2B р/с)',
+      section: '3.2 Платежные методы (СБП, Карты МИР, Зарубежные карты, Crypto, API р/с)',
       status: 'PENDING',
       file: 'modules/mod03_finance_54fz.md'
     },
@@ -193,18 +193,18 @@ const manifest = {
 
     // МОДУЛЬ 6
     {
-      id: 'mod6-sec1-b2b-invoices-vat',
-      module: 'МОДУЛЬ 6: B2B, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)',
+      id: 'mod6-sec1-corporate-invoices-vat',
+      module: 'МОДУЛЬ 6: API, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)',
       section: '6.1 Автоматическое выставление счетов юрлицам/ИП по ИНН (DaData) с НДС 22% / УСН',
       status: 'PENDING',
-      file: 'modules/mod06_b2b_resellers.md'
+      file: 'modules/mod06_api_resellers.md'
     },
     {
-      id: 'mod6-sec2-b2b-diadoc-api',
-      module: 'МОДУЛЬ 6: B2B, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)',
+      id: 'mod6-sec2-api-diadoc-api',
+      module: 'МОДУЛЬ 6: API, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)',
       section: '6.2 Обмен УПД в Диадок/СБИС и подключение реселлеров по API v2',
       status: 'PENDING',
-      file: 'modules/mod06_b2b_resellers.md'
+      file: 'modules/mod06_api_resellers.md'
     }
   ]
 };

@@ -1,12 +1,12 @@
 /**
  * (c) 2024-2026 SMMplan. All rights reserved.
- * B2B Client Profile Service with AES-256 VaultService Encryption (P3-21).
+ * API Client Profile Service with AES-256 VaultService Encryption (P3-21).
  */
 
 import { db } from '@/lib/db';
 import { VaultService } from '@/lib/vault';
 
-export interface B2BRequisitesInput {
+export interface APIRequisitesInput {
   companyName?: string | null;
   inn?: string | null;
   kpp?: string | null;
@@ -15,11 +15,11 @@ export interface B2BRequisitesInput {
   legalAddress?: string | null;
 }
 
-export class B2BClientProfileService {
+export class APIClientProfileService {
   /**
-   * Encrypts sensitive B2B fields before persisting to database.
+   * Encrypts sensitive API fields before persisting to database.
    */
-  static encryptB2BFields(input: B2BRequisitesInput) {
+  static encryptAPIFields(input: APIRequisitesInput) {
     return {
       ...(input.companyName !== undefined ? { companyName: input.companyName?.trim() || null } : {}),
       ...(input.inn !== undefined ? { inn: input.inn ? VaultService.encrypt(input.inn.trim()) : null } : {}),
@@ -31,9 +31,9 @@ export class B2BClientProfileService {
   }
 
   /**
-   * Decrypts sensitive B2B fields when reading from database.
+   * Decrypts sensitive API fields when reading from database.
    */
-  static decryptB2BFields(user: Record<string, any>) {
+  static decryptAPIFields(user: Record<string, any>) {
     if (!user) return null;
     return {
       ...user,

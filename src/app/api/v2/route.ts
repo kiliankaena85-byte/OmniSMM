@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyB2BKey } from '@/lib/b2b-auth';
+import { verifyAPIKey } from '@/lib/api-auth';
 import { marketingService } from '@/services/marketing.service';
 import { orderService } from '@/services/core/order.service';
 import { RateLimitService } from '@/services/core/rate-limit.service';
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       const ip = request?.headers?.get?.('x-forwarded-for')?.split(',')[0] || request?.headers?.get?.('x-real-ip') || null;
       const userAgent = request?.headers?.get?.('user-agent') || null;
 
-      db.b2bRequestLog.create({
+      db.apiRequestLog.create({
         data: {
           apiKeyHash: currentHashedKey,
           action: currentAction || 'unknown',
@@ -128,14 +128,14 @@ export async function POST(request: NextRequest) {
     const incomingTenant = resolveTenantFromRequest(request.headers);
     const hostHeader = request.headers.get('host') || request.headers.get('x-forwarded-host') || '';
     const incomingContour = resolveContourFromHost(hostHeader);
-    const user = await verifyB2BKey(key, incomingTenant, incomingContour);
+    const user = await verifyAPIKey(key, incomingTenant, incomingContour);
     if (!user) {
-      const isFailedAllowed = await RateLimitService.checkCustomKey(`b2b_failed_auth:${ip}`, 10, 60);
-      const burstCountKey = `b2b_401_burst:${ip}`;
+      const isFailedAllowed = await RateLimitService.checkCustomKey(`api_failed_auth:${ip}`, 10, 60);
+      const burstCountKey = `api_401_burst:${ip}`;
       const isBurstAllowed = await RateLimitService.checkCustomKey(burstCountKey, 5, 60);
 
       const severity = !isFailedAllowed ? 'CRITICAL' : (!isBurstAllowed ? 'HIGH' : 'WARNING');
-      const eventName = !isBurstAllowed ? 'B2B_AUTH_401_BURST' : 'B2B_AUTH_FAILED';
+      const eventName = !isBurstAllowed ? 'API_AUTH_401_BURST' : 'API_AUTH_FAILED';
 
       await SecurityAlertService.record({
         event: eventName,
@@ -202,7 +202,7 @@ async function handleServices(user: User, formData: FormData) {
     skip: safeSkip
   });
 
-  const finalFormatted = await marketingService.getB2BFormattedServices(user, services);
+  const finalFormatted = await marketingService.getAPIFormattedServices(user, services);
   return NextResponse.json(finalFormatted);
 }
 
@@ -344,7 +344,7 @@ async function handleAdd(user: User, formData: FormData) {
     return NextResponse.json({ error: 'Quantity out of bounds' }, { status: 400 });
   }
 
-  // B2B panels standard: for DripFeed, "quantity" parameter is quantity *per run*.
+  // API panels standard: for DripFeed, "quantity" parameter is quantity *per run*.
   // Our DB schema requires order.quantity to be the *total* overall quantity.
   const totalQuantity = (runs && runs > 0) ? quantity * runs : quantity;
 

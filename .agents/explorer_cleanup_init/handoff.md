@@ -67,7 +67,7 @@ Scanning using grep search for `require(` patterns.
     *   `scripts/qa-simulator-p2.ts` uses dynamic require to dynamically load API handlers and actions (e.g. `const { POST } = require('../src/app/api/webhooks/crypto/route');` on line 40, `const { checkoutCore } = require('../src/actions/order/checkout');` on line 107).
 *   **ESM JS files** (using standard `import`):
     *   `scripts/visual-qa.js`
-    *   `test/load/b2b-api.js`
+    *   `test/load/api-api.js`
 
 ### 1.4 Test Run & Potential Network Leaks
 Test command executed: `npm run test` (runs `dotenv -e .env.test -- vitest run`).

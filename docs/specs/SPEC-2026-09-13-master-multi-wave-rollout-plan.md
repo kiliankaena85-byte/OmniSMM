@@ -12,7 +12,7 @@
 
 | Волна | Контур | Целевые модули и экраны | Метод проверки | Критерий готовности (Definition of Done) |
 |---|---|---|---|---|
-| **Волна 1** | **Client Dashboard (B2C/B2B ЛК)** | `/dashboard`, `/dashboard/orders`, `/dashboard/finance` (`/add-funds`), `/dashboard/referrals`, `/dashboard/settings` | Playwright Chromium (:3005) под ролью `USER` (1366px, 1920px, 375px, 390px) | 100% PASS, 0px overflow, Touch >= 44px, Zero Console Errors |
+| **Волна 1** | **Client Dashboard (B2C/API ЛК)** | `/dashboard`, `/dashboard/orders`, `/dashboard/finance` (`/add-funds`), `/dashboard/referrals`, `/dashboard/settings` | Playwright Chromium (:3005) под ролью `USER` (1366px, 1920px, 375px, 390px) | 100% PASS, 0px overflow, Touch >= 44px, Zero Console Errors |
 | **Волна 2** | **Catalog & Legal Multi-Tenant** | `/services` (каталог услуг), `/knowledge` (база знаний), `/legal/terms` (оферта), `/legal/privacy` (политика 152-ФЗ) | Playwright + cURL проверка канонических URL и реквизитов | Изоляция ИП/ООО (ст. 54.1 НК РФ), 0 фантомных брендов, tenant-aware кэш |
 | **Волна 3** | **Financial Core & Webhooks** | `WalletOps` (credit, debit, refund, charge), вебхуки ЮKassa, Robokassa, CryptoBot, 54-ФЗ фискализация | Vitest сьют стресс-тестов на TOCTOU и идемпотентность | Row-level locking, Ledger-First, ExactMath копейки, vat_code: 1 / 10 |
 | **Волна 4** | **Production Go-Live Preflight** | Все контейнеры Docker, preflight health, `check-bundle-secrets.mjs`, `tsc --noEmit` | Preflight runner + Smoke test live container | 0 ошибок сборки, 0 утечек секретов, статус healthy всех контейнеров |

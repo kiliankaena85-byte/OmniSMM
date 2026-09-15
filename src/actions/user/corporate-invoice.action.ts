@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { verifySession } from "@/lib/session";
 import { z } from "zod";
 
-const b2bInvoiceSchema = z.object({
+const apiInvoiceSchema = z.object({
   amountRub: z.number().min(3000, "Минимальная сумма счета для юрлиц — 3 000 ₽").max(10000000, "Максимальная сумма счета — 10 000 000 ₽"),
   companyName: z.string().min(2, "Укажите название компании или ИП").max(200),
   inn: z.string().regex(/^(\d{10}|\d{12})$/, "ИНН должен состоять из 10 (для ООО) или 12 цифр (для ИП)"),
@@ -12,13 +12,13 @@ const b2bInvoiceSchema = z.object({
   legalAddress: z.string().max(300).optional(),
 });
 
-export type B2bInvoiceInput = z.infer<typeof b2bInvoiceSchema>;
+export type ApiInvoiceInput = z.infer<typeof apiInvoiceSchema>;
 
-export async function createB2bInvoiceAction(input: B2bInvoiceInput) {
+export async function createApiInvoiceAction(input: ApiInvoiceInput) {
   const session = await verifySession();
   if (!session) throw new Error("Необходима авторизация");
 
-  const validated = b2bInvoiceSchema.safeParse(input);
+  const validated = apiInvoiceSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.errors[0]?.message || "Некорректные данные для выставления счета");
   }
@@ -39,16 +39,16 @@ export async function createB2bInvoiceAction(input: B2bInvoiceInput) {
       },
     });
 
-    // 2. Ensure B2B config exists
-    await tx.b2bConfig.upsert({
+    // 2. Ensure API config exists
+    await tx.apiConfig.upsert({
       where: { userId: session.userId },
       create: {
         userId: session.userId,
-        isB2b: true,
+        isApiEnabled: true,
         prioritySupport: true,
       },
       update: {
-        isB2b: true,
+        isApiEnabled: true,
       },
     });
 
@@ -59,7 +59,7 @@ export async function createB2bInvoiceAction(input: B2bInvoiceInput) {
         amount: amountCents,
         currency: "RUB",
         status: "PENDING",
-        gateway: "b2b_invoice",
+        gateway: "api_invoice",
       },
     });
 

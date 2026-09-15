@@ -25,7 +25,7 @@ Implement the console description rewriter script and unit tests according to th
 - Pass the local name/description and provider name/description to Gemini model `gemini-3-flash` or `gemini-3-flash-preview` (use these names exactly).
 - Gemini system instruction/prompt must enforce:
   1. **Honesty (No Lying)**: Align strictly with the technical specifications of the provider (no promising 'no drop' if the provider has no refill; state start delays like 'start up to 12-24h' if slow).
-  2. **B2B Selling Structure**: Clean Russian Markdown lists (Скорость, Гарантия, Лимиты, Особенности).
+  2. **API Selling Structure**: Clean Russian Markdown lists (Скорость, Гарантия, Лимиты, Особенности).
   3. **No Spam/Spam Filtering**: Remove links, URLs, contacts, @usernames, and blacklisted SMM terms like 'накрутка', 'накрутить'.
 - Call Gemini via standard REST fetch to `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` with the system instruction and user content separate, specifying JSON output format (`responseMimeType: "application/json"`).
 - Check if Gemini response contains changes compared to current `name` or `description`. If yes (and not in `--dry-run` mode):

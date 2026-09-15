@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { B2BClientProfileService } from '@/services/b2b/client-profile.service';
+import { APIClientProfileService } from '@/services/api/client-profile.service';
 
-describe('B2B VaultService Field Encryption Suite (P3-21)', () => {
+describe('API VaultService Field Encryption Suite (P3-21)', () => {
   beforeAll(() => {
     process.env.DATA_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
   });
-  it('encrypts sensitive B2B tax fields (inn, kpp, ogrn, directorName, legalAddress) and decrypts accurately', () => {
+  it('encrypts sensitive API tax fields (inn, kpp, ogrn, directorName, legalAddress) and decrypts accurately', () => {
     const rawInput = {
       companyName: 'ООО Ромашка',
       inn: '7701234567',
@@ -15,7 +15,7 @@ describe('B2B VaultService Field Encryption Suite (P3-21)', () => {
       legalAddress: 'г. Москва, ул. Тверская, д. 1',
     };
 
-    const encrypted = B2BClientProfileService.encryptB2BFields(rawInput);
+    const encrypted = APIClientProfileService.encryptAPIFields(rawInput);
 
     expect(encrypted.companyName).toBe('ООО Ромашка');
     expect(encrypted.inn).not.toBe('7701234567');
@@ -24,7 +24,7 @@ describe('B2B VaultService Field Encryption Suite (P3-21)', () => {
     expect(encrypted.ogrn).not.toBe('1234567890123');
     expect(encrypted.directorName).not.toBe('Иванов Иван Иванович');
 
-    const decrypted = B2BClientProfileService.decryptB2BFields(encrypted);
+    const decrypted = APIClientProfileService.decryptAPIFields(encrypted);
 
     expect(decrypted?.companyName).toBe('ООО Ромашка');
     expect(decrypted?.inn).toBe('7701234567');

@@ -809,7 +809,7 @@ export function useOrderWizard(options: UseOrderWizardOptions = {}) {
 }
 
 
-/* Custom minimal scrollbar for B2B (Pillar 6) */
+/* Custom minimal scrollbar for API (Pillar 6) */
 @layer utilities {
   .shadow-layered {
     box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.04);
@@ -2110,7 +2110,7 @@ export function LovableWhyUs({ companyName = "SMMplan" }: { companyName?: string
           Платформа нового поколения
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-medium text-pretty">
-          Более 10 000 клиентов доверяют {companyName} своё продвижение не просто так. Мы переосмыслили B2B опыт продвижения.
+          Более 10 000 клиентов доверяют {companyName} своё продвижение не просто так. Мы переосмыслили API опыт продвижения.
         </p>
       </div>
 
@@ -2162,7 +2162,7 @@ export function LovableWhyUs({ companyName = "SMMplan" }: { companyName?: string
           </div>
         </div>
 
-        {/* Card 4: Large B2B Reseller Suite & API Hub Card */}
+        {/* Card 4: Large API Reseller Suite & API Hub Card */}
         <div className="md:col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[2.5rem] p-6 pb-8 md:p-10 md:pb-12 relative overflow-hidden group shadow-2xl shadow-slate-900/20 transition-all duration-300 min-h-[380px]">
           {/* Background Ambient Glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 -translate-y-1/3 translate-x-1/3" />
@@ -2173,7 +2173,7 @@ export function LovableWhyUs({ companyName = "SMMplan" }: { companyName?: string
                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm group-hover:scale-110 transition-transform">
                   <Terminal className="w-6 h-6" strokeWidth={1.5} />
                 </div>
-                <span className="text-xs font-bold text-white/80 uppercase tracking-widest">B2B Интеграция</span>
+                <span className="text-xs font-bold text-white/80 uppercase tracking-widest">API Интеграция</span>
               </div>
               <h3 className="text-3xl font-bold text-white mb-6 tracking-tight">Решения для Реселлеров & API Hub</h3>
               
@@ -2211,7 +2211,7 @@ export function LovableWhyUs({ companyName = "SMMplan" }: { companyName?: string
                 Запустите свой SMM-бизнес за 5 минут без требований к минимальному балансу.
               </p>
               <Link 
-                href="/login?promo=B2BSTART"
+                href="/login?promo=APISTART"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-slate-900 text-sm font-extrabold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shrink-0"
               >
                 <span>Кабинет Реселлера</span>
@@ -2369,7 +2369,7 @@ export function LovableFAQ({ companyName = "SMMplan" }: { companyName?: string }
     },
     {
       q: 'Есть ли скидки для крупных заказов и доступно ли API?',
-      a: 'Да, наша B2B-платформа предоставляет скидки по промокодам и полностью документированное API для автоматической интеграции и реселлеров. Вы можете получить свой персональный API-ключ в настройках профиля после первой авторизации.',
+      a: 'Да, наша API-платформа предоставляет скидки по промокодам и полностью документированное API для автоматической интеграции и реселлеров. Вы можете получить свой персональный API-ключ в настройках профиля после первой авторизации.',
     },
     {
       q: 'Как удалить свой аккаунт с платформы?',
@@ -2656,7 +2656,7 @@ export function MegaFooter({
             <span className="text-2xl font-black tracking-tight text-foreground">{siteName}</span>
           </div>
           <p className="text-base text-muted-foreground leading-relaxed max-w-sm">
-            Платформа нового поколения для B2B продвижения. Мгновенный запуск, строгая конфиденциальность и официальная работа с гарантиями.
+            Платформа нового поколения для API продвижения. Мгновенный запуск, строгая конфиденциальность и официальная работа с гарантиями.
           </p>
           <div className="pt-4 flex flex-wrap items-center gap-5 text-muted-foreground/40 select-none border-t border-border/10 max-w-sm">
             {/* SBP */}
@@ -2750,7 +2750,7 @@ export function MegaFooter({
           </p>
           <p className="text-xs opacity-80">Адрес: {address}</p>
         </div>
-        <p className="flex items-center gap-1">Designed with <span className="text-destructive/70">❤</span> for B2B Growth</p>
+        <p className="flex items-center gap-1">Designed with <span className="text-destructive/70">❤</span> for API Growth</p>
       </div>
     </footer>
   );

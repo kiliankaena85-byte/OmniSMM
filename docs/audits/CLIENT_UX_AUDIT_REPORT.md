@@ -1,6 +1,6 @@
 # Аудит клиентского UX/UI и пути заказа SMMplan
 
-**Продукт**: SMMplan B2B/B2C Платформа продвижения  
+**Продукт**: SMMplan API/B2C Платформа продвижения  
 **Дата аудита**: Июль 2026 года  
 **Аудитор**: Senior Frontend UX/UI Auditor & Next.js/React Specialist  
 

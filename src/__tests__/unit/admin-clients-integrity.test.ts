@@ -65,27 +65,27 @@ describe('Admin Clients & Financial Liability Integrity (Step 9)', () => {
     expect(formatted).toBe('7\u00A0000'); // Non-breaking space in ru-RU locale
   });
 
-  it('should verify B2B filter detection logic', () => {
+  it('should verify API filter detection logic', () => {
     type UserStub = {
       inn: string | null;
       companyName: string | null;
-      b2bConfig: { isB2b: boolean } | null;
+      apiConfig: { isApiEnabled: boolean } | null;
     };
 
-    function isB2bClient(user: UserStub): boolean {
-      return Boolean(user.b2bConfig?.isB2b || user.inn || user.companyName);
+    function isApiEnabledClient(user: UserStub): boolean {
+      return Boolean(user.apiConfig?.isApiEnabled || user.inn || user.companyName);
     }
 
     // Normal client
-    expect(isB2bClient({ inn: null, companyName: null, b2bConfig: null })).toBe(false);
+    expect(isApiEnabledClient({ inn: null, companyName: null, apiConfig: null })).toBe(false);
 
-    // B2B flag set
-    expect(isB2bClient({ inn: null, companyName: null, b2bConfig: { isB2b: true } })).toBe(true);
+    // API flag set
+    expect(isApiEnabledClient({ inn: null, companyName: null, apiConfig: { isApiEnabled: true } })).toBe(true);
 
     // Has legal entity INN
-    expect(isB2bClient({ inn: '7701234567', companyName: null, b2bConfig: null })).toBe(true);
+    expect(isApiEnabledClient({ inn: '7701234567', companyName: null, apiConfig: null })).toBe(true);
 
     // Has company name
-    expect(isB2bClient({ inn: null, companyName: 'ООО Ромашка', b2bConfig: null })).toBe(true);
+    expect(isApiEnabledClient({ inn: null, companyName: 'ООО Ромашка', apiConfig: null })).toBe(true);
   });
 });

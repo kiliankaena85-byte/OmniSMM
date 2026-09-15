@@ -187,7 +187,7 @@ function askQuestion(query: string): Promise<string> {
 // ── System Prompt for Batch Classification ─────────────────────────────────
 
 const AI_IMPORT_SYSTEM_PROMPT = `
-Вы — Старший AI Архитектор и Куратор Каталога B2B SMM платформы OmniSMM 1.0 (SMMplan / SMMflux).
+Вы — Старший AI Архитектор и Куратор Каталога API SMM платформы OmniSMM 1.0 (SMMplan / SMMflux).
 Ваша задача — обработать массив грязных услуг от внешних SMM-провайдеров и вернуть СТРОГО JSON-массив структурированных объектов без лишнего текста и без обертки markdown.
 
 Правила классификации и систематизации:

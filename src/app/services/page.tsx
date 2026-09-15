@@ -95,7 +95,7 @@ export default async function ServicesCatalogPage() {
     );
   }
 
-  // Classic B2B Blueprint UI for SMMplan
+  // Classic API Blueprint UI for SMMplan
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col relative overflow-x-clip">
       <Header initialEmail={userEmail} siteName={siteName} tenantId={tenantId} activePath={undefined} />

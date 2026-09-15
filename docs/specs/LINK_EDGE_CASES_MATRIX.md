@@ -114,7 +114,7 @@ Below is the complete taxonomic truth table covering all 37 supported platforms,
 | **21. Trovo** | Channel / Stream (`STREAM`) | `trovo.live/streamer` | `https://trovo.live/streamer` | `duration`: minutes | **Major (P2)** | Livestream viewers and followers. |
 | **22. Kwai** | Video / Profile (`POST_INTERACTION`) | `kwai.com/@user/video/123`<br>`s.kwai.app/s/short` | `https://kwai.com/@user/video/123` | None | **Major (P2)** | Unrolls short-links. |
 | **23. Steam** | Community Group / Profile (`CHANNEL`) | `steamcommunity.com/groups/slug`<br>`steamcommunity.com/id/vanity` | `https://steamcommunity.com/groups/slug` | None | **Major (P2)** | Group members vs profile comments/awards. |
-| **24. LinkedIn** | Post / Company Page (`POST_INTERACTION`) | `linkedin.com/posts/activity-123`<br>`linkedin.com/company/slug` | `https://www.linkedin.com/posts/activity-123` | None | **Major (P2)** | B2B post likes and company page followers. |
+| **24. LinkedIn** | Post / Company Page (`POST_INTERACTION`) | `linkedin.com/posts/activity-123`<br>`linkedin.com/company/slug` | `https://www.linkedin.com/posts/activity-123` | None | **Major (P2)** | API post likes and company page followers. |
 | **25. Snapchat** | Profile / Story (`PROFILE`) | `snapchat.com/add/username` | `https://www.snapchat.com/add/username` | None | **Minor (P3)** | Friend additions. |
 | **26. Vimeo** | Video (`VIDEO_INTERACTION`) | `vimeo.com/123456789` | `https://vimeo.com/123456789` | None | **Minor (P3)** | Video views and likes. |
 | **27. Rumble** | Video (`VIDEO_INTERACTION`) | `rumble.com/v12345-video-title.html` | `https://rumble.com/v12345-video-title.html` | None | **Major (P2)** | Video views. |

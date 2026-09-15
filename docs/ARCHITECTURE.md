@@ -23,7 +23,7 @@
 ```mermaid
 flowchart TD
     Req[Входящий HTTP-запрос] --> MW[Next.js Middleware: getTenantHost]
-    MW -->|smmplan.pro| T1[Тенант: smmplan (B2B SaaS Theme)]
+    MW -->|smmplan.pro| T1[Тенант: smmplan (API SaaS Theme)]
     MW -->|smmflux.ru| T2[Тенант: flux (Prism Cyberpunk Theme)]
     T1 --> DB[(PostgreSQL: изолированные строки email_tenantId)]
     T2 --> DB

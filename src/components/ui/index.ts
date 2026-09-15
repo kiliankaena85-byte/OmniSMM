@@ -9,6 +9,6 @@ export * from "./TiltCard";
 export * from "./Marquee";
 export * from "./Confetti";
 
-// SMMplan B2B Classic Arsenal
+// SMMplan API Classic Arsenal
 export * from "./plan";
 export * from "./Pagination";

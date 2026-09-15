@@ -17,8 +17,8 @@ export type ClientColumn = {
   companyName: string | null;
   inn: string | null;
   createdAt: Date | string;
-  b2bConfig?: {
-    isB2b: boolean;
+  apiConfig?: {
+    isApiEnabled: boolean;
     prioritySupport: boolean;
     webhookUrl: string | null;
   } | null;
@@ -42,7 +42,7 @@ export const columns: ColumnDef<ClientColumn>[] = [
     header: () => <SortableHeader title="Email / Клиент" field="email" defaultOrder="asc" />,
     cell: ({ row }) => {
       const u = row.original;
-      const isB2b = u.b2bConfig?.isB2b || Boolean(u.inn);
+      const isApiEnabled = u.apiConfig?.isApiEnabled || Boolean(u.inn);
       return (
         <div className="flex flex-col gap-0.5 py-0.5 max-w-[170px]">
           <div className="flex items-center gap-1.5 truncate">
@@ -53,9 +53,9 @@ export const columns: ColumnDef<ClientColumn>[] = [
             >
               {u.email}
             </Link>
-            {isB2b && (
+            {isApiEnabled && (
               <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.2 bg-warning/15 text-warning-text border border-warning/30 rounded text-[9px] font-black uppercase tracking-wider">
-                <Building2 className="w-2.5 h-2.5" /> B2B
+                <Building2 className="w-2.5 h-2.5" /> API
               </span>
             )}
           </div>

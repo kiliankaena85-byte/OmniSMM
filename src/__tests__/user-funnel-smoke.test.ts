@@ -218,7 +218,7 @@ describe('🚀 Dual-Brand User Funnel & Order Journey Smoke Suite', () => {
   describe('Step 3: Multi-Tenant Brand Isolation (SMMplan vs SMMflux)', () => {
     it('strictly isolates catalog and user accounts between SMMplan and SMMflux', async () => {
       mockServices.push(
-        { id: 'svc_plan_1', name: 'B2B Wholesale Channel Boost', tenantId: 'smmplan', isActive: true },
+        { id: 'svc_plan_1', name: 'API Wholesale Channel Boost', tenantId: 'smmplan', isActive: true },
         { id: 'svc_flux_1', name: 'Instant 1-Click Likes Aurora', tenantId: 'flux', isActive: true }
       );
 
@@ -227,7 +227,7 @@ describe('🚀 Dual-Brand User Funnel & Order Journey Smoke Suite', () => {
 
       expect(planServices.length).toBe(1);
       expect(fluxServices.length).toBe(1);
-      expect(planServices[0].name).toContain('B2B Wholesale');
+      expect(planServices[0].name).toContain('API Wholesale');
       expect(fluxServices[0].name).toContain('Instant 1-Click');
     });
   });

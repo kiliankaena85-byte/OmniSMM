@@ -10,7 +10,7 @@
 
 ## 2. Бизнес-цели и Архитектурный контекст
 Платформа OmniSMM 1.0 обслуживает различные бренды с контрастными дизайн-ДНК:
-1. **SMMplan (`smmplan.pro`):** Classic B2B SaaS (High-Density, Swiss Kinetic, палитры Slate/Sky, строгий контраст, tabular-nums).
+1. **SMMplan (`smmplan.pro`):** Classic API SaaS (High-Density, Swiss Kinetic, палитры Slate/Sky, строгий контраст, tabular-nums).
 2. **SMMflux (`smmflux.ru`):** Radiant Aurora / Obsidian Monolith (Neon accents, Glassmorphism, темный монохром, градиентные микро-грани).
 
 ### Проблематика 2026 года:

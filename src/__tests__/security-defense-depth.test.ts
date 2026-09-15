@@ -8,7 +8,7 @@ import {
   hashBackupCode,
   verifyAndConsumeBackupCode
 } from '@/lib/auth/2fa';
-import { ApiKeyService } from '@/services/b2b/api-key.service';
+import { ApiKeyService } from '@/services/api/api-key.service';
 import { RateLimitService } from '@/services/core/rate-limit.service';
 import { SecurityAuditLogger } from '@/lib/security/audit-logger';
 
@@ -79,7 +79,7 @@ describe('Defense-in-Depth Security Suite (2FA, Rate Limiting, API Keys, SIEM)',
     });
   });
 
-  describe('2. B2B API Key SHA-256 Hashing & Lifecycle', () => {
+  describe('2. Panel API Key SHA-256 Hashing & Lifecycle', () => {
     it('creates API key with prefix, stores SHA-256 hash in DB and never stores plaintext', async () => {
       const { plainKey, maskedKey } = await ApiKeyService.assignNewKeyToUser(testUserId);
 

@@ -67,7 +67,7 @@ interface UnifiedTicketsWorkspaceProps {
   supportSpentTodayCents?: number;
   currentStatus: string;
   currentSource: string;
-  currentIsB2b: boolean;
+  currentIsApi: boolean;
   currentSearch: string;
   canSeeRates?: boolean;
   canSeeFinances?: boolean;
@@ -87,7 +87,7 @@ export function UnifiedTicketsWorkspace({
   supportSpentTodayCents = 0,
   currentStatus,
   currentSource,
-  currentIsB2b,
+  currentIsApi,
   currentSearch,
   canSeeRates = true,
   canSeeFinances = canSeeRates,
@@ -198,12 +198,12 @@ export function UnifiedTicketsWorkspace({
     router.push(`/admin/tickets?${params.toString()}`);
   };
 
-  const handleB2bToggle = (isB2b: boolean) => {
+  const handleApiToggle = (isApiEnabled: boolean) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (isB2b) {
-      params.set('isB2b', 'true');
+    if (isApiEnabled) {
+      params.set('isApiEnabled', 'true');
     } else {
-      params.delete('isB2b');
+      params.delete('isApiEnabled');
     }
     params.delete('page'); // Reset pagination on filter change
     router.push(`/admin/tickets?${params.toString()}`);
@@ -311,8 +311,8 @@ export function UnifiedTicketsWorkspace({
         handleStatusFilter={handleStatusFilter}
         currentSource={currentSource}
         handleSourceFilter={handleSourceFilter}
-        currentIsB2b={currentIsB2b}
-        handleB2bToggle={handleB2bToggle}
+        currentIsApi={currentIsApi}
+        handleApiToggle={handleApiToggle}
         tickets={tickets}
         handleSelectTicket={handleSelectTicket}
         totalPages={totalPages}
@@ -379,9 +379,9 @@ export function UnifiedTicketsWorkspace({
                           <ExternalLink className="w-3 h-3 shrink-0" />
                           <span>Все заказы</span>
                         </a>
-                        {activeTicket.user.b2bConfig?.isB2b && (
-                          <span className="px-1.5 py-0.5 bg-warning/10 text-warning-text border border-warning/20 rounded text-[9px] font-black uppercase shrink-0 animate-pulse select-none" title="Приоритетный B2B клиент">
-                            B2B
+                        {activeTicket.user.apiConfig?.isApiEnabled && (
+                          <span className="px-1.5 py-0.5 bg-warning/10 text-warning-text border border-warning/20 rounded text-[9px] font-black uppercase shrink-0 animate-pulse select-none" title="Приоритетный API клиент">
+                            API
                           </span>
                         )}
                       </div>
@@ -528,12 +528,12 @@ export function UnifiedTicketsWorkspace({
                   </div>
                 )}
 
-                {/* B2B Attached Orders Grid (Multiple parsed orders) */}
+                {/* API Attached Orders Grid (Multiple parsed orders) */}
                 {activeTicket.attachedOrders && activeTicket.attachedOrders.length > 0 && (
                   <AttachedOrdersGrid 
                     orders={activeTicket.attachedOrders}
                     ticketId={activeTicket.id}
-                    isB2bClient={!!activeTicket.user.b2bConfig?.isB2b}
+                    isApiEnabledClient={!!activeTicket.user.apiConfig?.isApiEnabled}
                   />
                 )}
 

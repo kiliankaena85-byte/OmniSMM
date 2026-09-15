@@ -17,7 +17,7 @@ import {
 import { UserDTO, PaymentDTO, OrderDTO, LoginLogDTO, ClientLedgerEntryDTO, ClientLedgerSummaryDTO, UserNoteDTO } from './tabs/types';
 import { BalanceTab } from './tabs/balance-tab';
 import { PaymentsTab } from './tabs/payments-tab';
-import { B2bTab } from './tabs/b2b-tab';
+import { ApiTab } from './tabs/api-tab';
 import { NotesTab } from './tabs/notes-tab';
 import { SecurityTab } from './tabs/security-tab';
 import { SupportCommandCenter } from './support-command-center';
@@ -49,9 +49,9 @@ export function ClientDetailClient({
   operatorRole 
 }: Props) {
   // Navigation tabs (only for non-SUPPORT operators)
-  const [activeTab, setActiveTab] = useState<'balance' | 'b2b' | 'payments' | 'security' | 'notes'>('balance');
+  const [activeTab, setActiveTab] = useState<'balance' | 'api' | 'payments' | 'security' | 'notes'>('balance');
 
-  const isB2b = user.b2bConfig?.isB2b ?? Boolean(user.inn);
+  const isApiEnabled = user.apiConfig?.isApiEnabled ?? Boolean(user.inn);
 
   // SUPPORT gets a compact single-pane command center
   if (operatorRole === 'SUPPORT') {
@@ -75,7 +75,7 @@ export function ClientDetailClient({
         {[
           { id: 'balance', label: 'Баланс & Начисление', icon: Wallet },
           { id: 'payments', label: `Платежи & Возвраты (${payments.length})`, icon: CreditCard },
-          { id: 'b2b', label: 'B2B & Реквизиты', icon: Building2, badge: isB2b ? 'B2B' : null },
+          { id: 'api', label: 'API & Реквизиты', icon: Building2, badge: isApiEnabled ? 'API' : null },
           { id: 'notes', label: 'Скидки & Заметки', icon: Percent },
           { id: 'security', label: 'Безопасность', icon: Shield },
         ].map(t => {
@@ -122,7 +122,7 @@ export function ClientDetailClient({
           ledgerSummary={ledgerSummary}
         />
       )}
-      {activeTab === 'b2b' && <B2bTab user={user} />}
+      {activeTab === 'api' && <ApiTab user={user} />}
       {activeTab === 'notes' && <NotesTab user={user} canSeeFinances={canSeeFinances} initialNotes={initialNotes} />}
       {activeTab === 'security' && <SecurityTab user={user} loginLogs={loginLogs} />}
     </div>

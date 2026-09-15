@@ -45,7 +45,7 @@ To create a high-quality, deeply technical SEO article that avoids typical AI fl
    - Комбинация Drip-Feed и белой таргетированной рекламы.
 
 ### Strategy
-- **Tone**: Technical, analytical, B2B-focused. No emotional "AI water" like "В современном мире соцсетей...".
+- **Tone**: Technical, analytical, API-focused. No emotional "AI water" like "В современном мире соцсетей...".
 - **Focus**: Treat VK's algorithm as a software constraint and Smmplan as the architectural solution.
 - **SEO**: Use natural keywords related to VK drops, shadowbans, and safe promotion.
 

@@ -12,7 +12,7 @@
   - Production Build Health (`npm run build`): Passed with 0 errors.
 
 ## 2. Logic Chain
-- **Step 1 (Functional completeness)**: The rewriter script implements all requirements specified in the follow-up request (active selection, caching, B2B Russian Markdown lists, spam filtering, audit logging, and `--dry-run` mode).
+- **Step 1 (Functional completeness)**: The rewriter script implements all requirements specified in the follow-up request (active selection, caching, API Russian Markdown lists, spam filtering, audit logging, and `--dry-run` mode).
 - **Step 2 (Robustness and quality)**: Verification commands confirm there are no type errors, style lint violations, or compilation breaks during production builds.
 - **Step 3 (Test coverage)**: The unit tests verify the main rewriter execution, cache hits, cache misses with provider fallbacks, dry-run output matching, and key-missing abort paths, confirming coverage is complete.
 - **Step 4 (Integrity)**: The forensic auditor independently verified that the implementation is genuine (no mocks in production path, standard spy/mock assertions in tests) and contains no hardcoded secrets or bypasses.

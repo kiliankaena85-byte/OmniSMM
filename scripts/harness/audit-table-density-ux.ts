@@ -2,7 +2,7 @@
  * Table Density Architecture & UX Dialectic Audit (OpenRouter Swarm)
  * 
  * Conducts multi-expert analysis on Option 2 (Developing full-fledged Table Density feature):
- * 1. B2B UX / Enterprise Design Architect (Visual hierarchy & density ergonomics)
+ * 1. API UX / Enterprise Design Architect (Visual hierarchy & density ergonomics)
  * 2. Frontend Systems Engineer (Tailwind 4, CSS variables & zero layout shift)
  * 3. Product & Operations Director (Admin ergonomics & per-tab utility)
  */
@@ -71,13 +71,13 @@ async function main() {
 
   console.log('🤖 Опрос экспертов через OpenRouter AI Swarm...\n');
 
-  // 1. Lead B2B UX & Design System Architect
-  console.log('[1/3] 🎨 Запрос к Lead B2B UX / Enterprise Design Architect (meta-llama/llama-3.3-70b-instruct:free)...');
+  // 1. Lead API UX & Design System Architect
+  console.log('[1/3] 🎨 Запрос к Lead API UX / Enterprise Design Architect (meta-llama/llama-3.3-70b-instruct:free)...');
   let uxAnalysis = '';
   try {
     uxAnalysis = await callOpenRouter(
       'meta-llama/llama-3.3-70b-instruct:free',
-      'Ты — Главный UX-архитектор B2B enterprise-систем (Stripe, Linear, Datadog). Твоя задача — составить детальную спецификацию визуальных различий между Comfortable и Compact режимами для всех таблиц.',
+      'Ты — Главный UX-архитектор API enterprise-систем (Stripe, Linear, Datadog). Твоя задача — составить детальную спецификацию визуальных различий между Comfortable и Compact режимами для всех таблиц.',
       contextData
     );
   } catch (e: any) {

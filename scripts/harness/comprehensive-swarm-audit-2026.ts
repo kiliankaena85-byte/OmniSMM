@@ -76,7 +76,7 @@ async function runComprehensiveSwarmAudit() {
     recentChanges: [
       {
         area: 'Payment Gateway Consolidation & Dynamic Filtering',
-        description: 'Single gateway entry for YooKassa (Cards + SBP combined), strict hide of unconfigured Robokassa/CryptoBot, B2B enabled only if LEGAL_INN is valid. Applied across all 5 payment UI surfaces.'
+        description: 'Single gateway entry for YooKassa (Cards + SBP combined), strict hide of unconfigured Robokassa/CryptoBot, API enabled only if LEGAL_INN is valid. Applied across all 5 payment UI surfaces.'
       },
       {
         area: 'P0 Security Vulnerabilities Fixes',

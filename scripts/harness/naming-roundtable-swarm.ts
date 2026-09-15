@@ -122,7 +122,7 @@ Live Sample Data:
 ${contextData}
 `;
 
-  let uxOutput = await callModel('google/gemini-2.0-flash-001', 'You are an elite B2B/B2C SaaS UX Director specializing in e-commerce and SMM conversion psychology.', uxPrompt);
+  let uxOutput = await callModel('google/gemini-2.0-flash-001', 'You are an elite API/B2C SaaS UX Director specializing in e-commerce and SMM conversion psychology.', uxPrompt);
 
   if (!uxOutput) {
     uxOutput = `

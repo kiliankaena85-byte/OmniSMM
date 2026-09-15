@@ -8,7 +8,7 @@
 
 | Бренд | Идентификатор (`tenantId`) | Боевой хост | Дизайн-система и стилистика |
 | :--- | :---: | :---: | :--- |
-| **SMMplan** | `smmplan` | `smmplan.pro` | **Classic B2B Enterprise:** Спокойные тона, высокая плотность информации, строгие таблицы и карточки (`<PlanButton>`, `<PlanCard>`). |
+| **SMMplan** | `smmplan` | `smmplan.pro` | **Classic API Enterprise:** Спокойные тона, высокая плотность информации, строгие таблицы и карточки (`<PlanButton>`, `<PlanCard>`). |
 | **SMMflux** | `flux` | `smmflux.ru` | **Radiant Aurora:** Неоновый градиентный стиль, карточки со свечением, динамические микроанимации (`<FluxButton>`, `<BorderBeam>`). |
 
 > ⚠️ **Критическое правило:** Бренда Lovable не существует. Алиас `normalizeTenantId('lovable') -> 'flux'` сохранён исключительно для обратной совместимости.
@@ -20,7 +20,7 @@
 ### 🔹 Способ 1: Мгновенное переключение в браузере (Dev Switcher)
 Для тестировщиков и разработчиков предусмотрены быстрые ссылки переключения активного бренда через Cookie:
 
-* **Включить SMMplan (B2B):**
+* **Включить SMMplan (API):**
   👉 [https://test.smmplan.pro/api/dev/switch-tenant?tenant=smmplan](https://test.smmplan.pro/api/dev/switch-tenant?tenant=smmplan)
 * **Включить SMMflux (Aurora):**
   👉 [https://test.smmplan.pro/api/dev/switch-tenant?tenant=flux](https://test.smmplan.pro/api/dev/switch-tenant?tenant=flux)

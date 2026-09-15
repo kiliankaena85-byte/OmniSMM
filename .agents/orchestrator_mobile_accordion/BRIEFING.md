@@ -63,8 +63,8 @@ Redesign the mobile order wizard in MobileWizard.tsx to implement a progressive 
 - Successor: not yet spawned
 
 ## Active Timers
-- Heartbeat cron: 64f88c82-fd79-4c01-94b3-db9e6b2b4c23/task-30
-- Safety timer: 64f88c82-fd79-4c01-94b3-db9e6b2b4c23/task-100
+- Heartbeat cron: 64f88c82-fd79-4c01-94b3-db9e6api4c23/task-30
+- Safety timer: 64f88c82-fd79-4c01-94b3-db9e6api4c23/task-100
 
 ## Artifact Index
 - d:\SMM_plan_2\.agents\orchestrator_mobile_accordion\plan.md — Implementation and verification plan

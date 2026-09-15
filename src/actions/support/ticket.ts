@@ -701,11 +701,11 @@ export async function bulkRefundOrdersAction(ticketId: string, orderIds: string[
     });
     if (!ticket) throw new Error('Тикет не найден');
 
-    // Check B2bConfig profile to see if the user is a B2B reseller
-    const b2bConfig = await db.b2bConfig.findUnique({
+    // Check ApiConfig profile to see if the user is a API reseller
+    const apiConfig = await db.apiConfig.findUnique({
       where: { userId: ticket.userId }
     });
-    const isB2bClient = !!b2bConfig && b2bConfig.isB2b;
+    const isApiEnabledClient = !!apiConfig && apiConfig.isApiEnabled;
 
     let processedCount = 0;
     let totalRefundedCents = 0;
@@ -744,7 +744,7 @@ export async function bulkRefundOrdersAction(ticketId: string, orderIds: string[
         }
       }
 
-      if (totalToRefundCents > 0 && !isB2bClient) {
+      if (totalToRefundCents > 0 && !isApiEnabledClient) {
         const currentSpentToday = await getAdminSpentToday(admin.id, tx);
         const limitLeft = admin.supportLimitCents - currentSpentToday;
         if (totalToRefundCents > limitLeft) {

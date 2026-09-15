@@ -24,7 +24,7 @@
 - The scope requires a rewriter script that:
   - Connects to the database and selects all active services with external IDs.
   - Resolves specs from Redis or queries the provider API and caches the result for 24 hours.
-  - Queries Gemini (supporting `gemini-3-flash`) for rewriting, requesting B2B list format, Russian localization, spam filtering, and honesty (Anti-Liar rules).
+  - Queries Gemini (supporting `gemini-3-flash`) for rewriting, requesting API list format, Russian localization, spam filtering, and honesty (Anti-Liar rules).
   - Logs the audit in `AdminAuditLog` under action `SERVICE_AUTO_FIX`.
   - Supports `--dry-run` flag to preview changes without saving them.
 - I implemented all requirements inside `scripts/marketing-description-rewriter.ts` and exported the core function `rebrandServices`.
@@ -38,7 +38,7 @@
 - The script relies on the environment variable `GEMINI_API_KEY` being set in production/runtime.
 
 ## 4. Conclusion
-The SMM service marketing description rewriter script and corresponding unit tests are fully implemented, verified, linted, and typechecked. The script correctly conforms to the Anti-Liar, spam filtering, and B2B list requirements.
+The SMM service marketing description rewriter script and corresponding unit tests are fully implemented, verified, linted, and typechecked. The script correctly conforms to the Anti-Liar, spam filtering, and API list requirements.
 
 ## 5. Verification Method
 Verify the implementation using the following commands in the workspace root:

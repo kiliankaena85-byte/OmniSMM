@@ -82,7 +82,7 @@ const PLATFORM_PRIORITY: Record<string, number> = {
   'MAX':        40,  // 🔴 Мессенджер MAX — важная платформа
   'SOUNDCLOUD': 15,  // Музыканты
   'TROVO':      15,  // Стриминг, нишевый
-  'LINKEDIN':   15,  // B2B маркетинг
+  'LINKEDIN':   15,  // API маркетинг
   // === ДОПОЛНИТЕЛЬНЫЕ: Западные (5-14) ===
   'THREADS':    10,
   'PINTEREST':  10,

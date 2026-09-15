@@ -63,7 +63,7 @@ flowchart TD
         L_Hook --> L_Orch
     end
 
-    subgraph Dashboard_Flow ["КОНТУР ЛИЧНОГО КАБИНЕТА (Dashboard B2B / Flux)"]
+    subgraph Dashboard_Flow ["КОНТУР ЛИЧНОГО КАБИНЕТА (Dashboard API / Flux)"]
         D_UI["SmmplanOrderWizard / FluxDashboardOrderWizard"]
         D_Hero["DashboardHeroLinkInput.tsx"]
         D_Norm["Локальный normalizeUrl() + ad-hoc Regex"]
@@ -139,7 +139,7 @@ flowchart TD
   * Унифицированный чекаут (`submitOrder`) с поддержкой всех шлюзов (Баланс, ЮKassa, CryptoBot).
 - **View Layer (Тонкие презентационные адаптеры):**
   * `LandingOrderView` (десктопная сетка тарифов + `MobileWizard` со шторками).
-  * `DashboardOrderView` (B2B 4-шаговый визард SMMplan с отображением баланса и скидок).
+  * `DashboardOrderView` (API 4-шаговый визард SMMplan с отображением баланса и скидок).
   * `FluxDashboardOrderView` (Cyber/Aurora стиль SMMflux с анимациями Framer Motion).
 
 ### 3.2. Архитектурная диаграмма To-Be
@@ -148,7 +148,7 @@ flowchart TD
 flowchart TD
     subgraph Presentation_Layer ["VIEW LAYER (Thin Presentation Components)"]
         V_Landing["LandingOrderView / MobileWizard\n(smmplan.pro Landing)"]
-        V_Dashboard["DashboardOrderView\n(SMMplan B2B Cabinet)"]
+        V_Dashboard["DashboardOrderView\n(SMMplan API Cabinet)"]
         V_Flux["FluxDashboardOrderView\n(SMMflux Aurora Cabinet)"]
     end
 

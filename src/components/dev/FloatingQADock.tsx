@@ -90,7 +90,7 @@ export function FloatingQADock() {
 
   const handleSwitchTenant = (tenant: "smmplan" | "flux") => {
     document.cookie = `x_tenant=${tenant}; path=/; max-age=2592000; SameSite=Lax`;
-    toast.success(`Переключение бренда на ${tenant === "smmplan" ? "SMMplan (B2B)" : "SMMflux (Aurora)"}...`);
+    toast.success(`Переключение бренда на ${tenant === "smmplan" ? "SMMplan (API)" : "SMMflux (Aurora)"}...`);
     setTimeout(() => {
       window.location.href = `${window.location.pathname}?tenant=${tenant}`;
     }, 300);

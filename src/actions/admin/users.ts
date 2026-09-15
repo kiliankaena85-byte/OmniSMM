@@ -358,12 +358,12 @@ export async function requestCardRefundAction(formData: FormData) {
 }
 
 /**
- * Update client B2B configuration and company accounting fields.
+ * Update client API configuration and company accounting fields.
  */
-export async function updateUserB2bAction(formData: FormData) {
+export async function updateUserApiAction(formData: FormData) {
   return requireStaffPermission('clients', 'edit', async (admin) => {
     const userId = formData.get('userId') as string;
-    const isB2b = formData.get('isB2b') === 'true';
+    const isApiEnabled = formData.get('isApiEnabled') === 'true';
     const prioritySupport = formData.get('prioritySupport') === 'true';
     const companyName = (formData.get('companyName') as string)?.trim() || null;
     const inn = (formData.get('inn') as string)?.trim() || null;
@@ -387,17 +387,17 @@ export async function updateUserB2bAction(formData: FormData) {
         },
       });
 
-      // 2. Upsert B2B config
-      await tx.b2bConfig.upsert({
+      // 2. Upsert API config
+      await tx.apiConfig.upsert({
         where: { userId },
         create: {
           userId,
-          isB2b,
+          isApiEnabled,
           prioritySupport,
           webhookUrl,
         },
         update: {
-          isB2b,
+          isApiEnabled,
           prioritySupport,
           webhookUrl,
         },
@@ -408,16 +408,16 @@ export async function updateUserB2bAction(formData: FormData) {
     await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
-      action: 'UPDATE_CLIENT_B2B',
+      action: 'UPDATE_CLIENT_API',
       target: userId,
       targetType: 'USER',
-      newValue: { isB2b, prioritySupport, companyName, inn, kpp, webhookUrl },
+      newValue: { isApiEnabled, prioritySupport, companyName, inn, kpp, webhookUrl },
       ipAddress,
     });
 
     revalidatePath(`/admin/clients/${userId}`);
     revalidatePath('/admin/clients');
-    return { success: true as const, message: 'B2B реквизиты успешно сохранены' };
+    return { success: true as const, message: 'API реквизиты успешно сохранены' };
   });
 }
 

@@ -11,7 +11,7 @@
 
 /** Все допустимые значения transactionType в LedgerEntry */
 export const LEDGER_TRANSACTION_TYPES = [
-  'TOPUP',        // 💳 Пополнение баланса (ЮKassa, СБП, CryptoBot, B2B)
+  'TOPUP',        // 💳 Пополнение баланса (ЮKassa, СБП, CryptoBot, API)
   'ORDER_CHARGE', // 🛒 Оплата/списание при создании заказа
   'ORDER_CANCEL', // 🚫 Возврат при отмене заказа администратором
   'REFUND',       // ↩️ Авто-возврат (ошибка провайдера, TTL, DLQ)

@@ -1,7 +1,7 @@
 /**
  * End-to-End Comprehensive Verification of all 3 screens:
  * 1. Holding / Prelaunch Screen (Заглушка)
- * 2. SMMplan Classic B2B Storefront (Основной сайт)
+ * 2. SMMplan Classic API Storefront (Основной сайт)
  * 3. SMMflux Radiant Aurora Storefront (Витрина Flux)
  */
 

@@ -14,7 +14,7 @@ async function main() {
   const artifactDir = 'C:/Users/Артём/.gemini/antigravity/brain/94b4db79-7a02-4bc2-a8e3-43afbae751e5';
   if (!fs.existsSync(artifactDir)) fs.mkdirSync(artifactDir, { recursive: true });
 
-  // 1. SMMplan Classic B2B
+  // 1. SMMplan Classic API
   console.log('1. Navigating to SMMplan (http://localhost:3000)...');
   await page.goto('http://localhost:3000', { waitUntil: 'networkidle', timeout: 30000 });
   await page.waitForTimeout(2000);

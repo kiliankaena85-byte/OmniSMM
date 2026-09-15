@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { createTopUpPaymentAction } from '@/actions/user/top-up.action';
 import { activatePromoCodeAction } from '@/actions/user/promo';
-import { createB2bInvoiceAction } from '@/actions/user/b2b-invoice.action';
+import { createApiInvoiceAction } from '@/actions/user/corporate-invoice.action';
 import { getAvailableGatewaysAction } from '@/actions/order/checkout';
 import {
   CreditCard,
@@ -30,7 +30,7 @@ const PRESETS = [
   { value: 25000, label: '25 000 ₽' },
 ];
 
-export type PaymentMethodId = 'yookassa' | 'cryptobot' | 'robokassa' | 'b2b';
+export type PaymentMethodId = 'yookassa' | 'cryptobot' | 'robokassa' | 'api';
 
 const METHODS: Array<{
   id: PaymentMethodId;
@@ -67,8 +67,8 @@ const METHODS: Array<{
     commission: '0%',
   },
   {
-    id: 'b2b',
-    label: 'Безналичный расчёт (B2B)',
+    id: 'api',
+    label: 'Безналичный расчёт (API)',
     badge: 'Для ИП и ООО',
     badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
     icon: Building2,
@@ -90,7 +90,7 @@ export default function AddFundsForm() {
     yookassa: boolean;
     robokassa: boolean;
     cryptobot: boolean;
-    b2b?: boolean;
+    api?: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -101,31 +101,31 @@ export default function AddFundsForm() {
           yookassa: Boolean(data.yookassa),
           robokassa: Boolean(data.robokassa),
           cryptobot: Boolean(data.cryptobot),
-          b2b: Boolean(data.b2b)
+          api: Boolean(data.api)
         });
 
         const isCurrentActive =
           (method === 'yookassa' && data.yookassa) ||
           (method === 'cryptobot' && data.cryptobot) ||
           (method === 'robokassa' && data.robokassa) ||
-          (method === 'b2b' && data.b2b);
+          (method === 'api' && data.api);
 
         if (!isCurrentActive) {
           if (data.yookassa) setMethod('yookassa');
           else if (data.cryptobot) setMethod('cryptobot');
           else if (data.robokassa) setMethod('robokassa');
-          else if (data.b2b) setMethod('b2b');
+          else if (data.api) setMethod('api');
         }
       }
     });
   }, [method]);
 
-  // B2B state
-  const [b2bCompanyName, setB2bCompanyName] = useState('');
-  const [b2bInn, setB2bInn] = useState('');
-  const [b2bKpp, setB2bKpp] = useState('');
-  const [b2bLegalAddress, setB2bLegalAddress] = useState('');
-  const [b2bInvoiceCreated, setB2bInvoiceCreated] = useState<{
+  // API state
+  const [apiCompanyName, setApiCompanyName] = useState('');
+  const [apiInn, setApiInn] = useState('');
+  const [apiKpp, setApiKpp] = useState('');
+  const [apiLegalAddress, setApiLegalAddress] = useState('');
+  const [apiInvoiceCreated, setApiInvoiceCreated] = useState<{
     invoiceId: string;
     amountRub: number;
     companyName: string;
@@ -161,20 +161,20 @@ export default function AddFundsForm() {
       return;
     }
 
-    if (method === 'b2b') {
+    if (method === 'api') {
       if (amount < 3000) {
         setError('Минимальная сумма безналичного счета для юрлиц — 3 000 ₽');
         return;
       }
-      if (!b2bCompanyName.trim()) {
+      if (!apiCompanyName.trim()) {
         setError('Укажите наименование организации или ИП');
         return;
       }
-      if (!/^\d{10}$|^\d{12}$/.test(b2bInn.trim())) {
+      if (!/^\d{10}$|^\d{12}$/.test(apiInn.trim())) {
         setError('ИНН должен содержать ровно 10 (ООО) или 12 (ИП) цифр');
         return;
       }
-      if (b2bKpp.trim() && !/^\d{9}$/.test(b2bKpp.trim())) {
+      if (apiKpp.trim() && !/^\d{9}$/.test(apiKpp.trim())) {
         setError('КПП должен содержать 9 цифр');
         return;
       }
@@ -184,19 +184,19 @@ export default function AddFundsForm() {
 
       startTransition(async () => {
         try {
-          const res = await createB2bInvoiceAction({
+          const res = await createApiInvoiceAction({
             amountRub: amount,
-            companyName: b2bCompanyName.trim(),
-            inn: b2bInn.trim(),
-            kpp: b2bKpp.trim() || undefined,
-            legalAddress: b2bLegalAddress.trim() || undefined,
+            companyName: apiCompanyName.trim(),
+            inn: apiInn.trim(),
+            kpp: apiKpp.trim() || undefined,
+            legalAddress: apiLegalAddress.trim() || undefined,
           });
 
           if (res.success && res.invoice) {
-            setB2bInvoiceCreated(res.invoice);
+            setApiInvoiceCreated(res.invoice);
           }
         } catch (e: unknown) {
-          setError(e instanceof Error ? e.message : 'Ошибка создания B2B счета');
+          setError(e instanceof Error ? e.message : 'Ошибка создания API счета');
         }
       });
       return;
@@ -249,8 +249,8 @@ export default function AddFundsForm() {
   }
 
   const copyInvoiceDetails = async () => {
-    if (!b2bInvoiceCreated) return;
-    const text = `Счёт на оплату № ${b2bInvoiceCreated.invoiceId.slice(-6).toUpperCase()}\nПлательщик: ${b2bInvoiceCreated.companyName} (ИНН ${b2bInvoiceCreated.inn})\nСумма: ${b2bInvoiceCreated.amountRub.toLocaleString('ru-RU')} ₽\nНазначение: Оплата информационно-технологических услуг по счёту ${b2bInvoiceCreated.invoiceId.slice(-6).toUpperCase()}`;
+    if (!apiInvoiceCreated) return;
+    const text = `Счёт на оплату № ${apiInvoiceCreated.invoiceId.slice(-6).toUpperCase()}\nПлательщик: ${apiInvoiceCreated.companyName} (ИНН ${apiInvoiceCreated.inn})\nСумма: ${apiInvoiceCreated.amountRub.toLocaleString('ru-RU')} ₽\nНазначение: Оплата информационно-технологических услуг по счёту ${apiInvoiceCreated.invoiceId.slice(-6).toUpperCase()}`;
     try {
       await navigator.clipboard.writeText(text);
       setCopiedInvoice(true);
@@ -325,7 +325,7 @@ export default function AddFundsForm() {
               }}
               onBlur={() => {
                 if (!amount || amount < 10) {
-                  setAmount(method === 'b2b' ? 3000 : 500);
+                  setAmount(method === 'api' ? 3000 : 500);
                 }
               }}
               min={10}
@@ -377,7 +377,7 @@ export default function AddFundsForm() {
               if (id === 'yookassa') return Boolean(availableGateways.yookassa);
               if (id === 'cryptobot') return Boolean(availableGateways.cryptobot);
               if (id === 'robokassa') return Boolean(availableGateways.robokassa);
-              if (id === 'b2b') return Boolean(availableGateways.b2b);
+              if (id === 'api') return Boolean(availableGateways.api);
               return false;
             }).map(({ id, label, badge, badgeColor, icon: Icon, note }) => {
               const isSelected = method === id;
@@ -441,8 +441,8 @@ export default function AddFundsForm() {
           </div>
         </div>
 
-        {/* B2B Requisites Form (Conditional if B2B selected) */}
-        {method === 'b2b' && (
+        {/* API Requisites Form (Conditional if API selected) */}
+        {method === 'api' && (
           <div className="bg-secondary/40 border border-indigo-500/30 rounded-2xl p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center gap-2.5 text-indigo-600 dark:text-indigo-400">
               <Building2 className="w-5 h-5" />
@@ -457,8 +457,8 @@ export default function AddFundsForm() {
                 <label className="text-xs font-bold text-foreground">Наименование компании или ИП *</label>
                 <input
                   type="text"
-                  value={b2bCompanyName}
-                  onChange={(e) => setB2bCompanyName(e.target.value)}
+                  value={apiCompanyName}
+                  onChange={(e) => setApiCompanyName(e.target.value)}
                   placeholder='ООО "Диджитал Агентство" или ИП Иванов И.И.'
                   className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm bg-background text-foreground outline-none focus:border-primary"
                 />
@@ -468,8 +468,8 @@ export default function AddFundsForm() {
                 <label className="text-xs font-bold text-foreground">ИНН * (10 или 12 цифр)</label>
                 <input
                   type="text"
-                  value={b2bInn}
-                  onChange={(e) => setB2bInn(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                  value={apiInn}
+                  onChange={(e) => setApiInn(e.target.value.replace(/\D/g, '').slice(0, 12))}
                   placeholder="7701234567"
                   className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
                 />
@@ -479,8 +479,8 @@ export default function AddFundsForm() {
                 <label className="text-xs font-bold text-foreground">КПП (для ООО)</label>
                 <input
                   type="text"
-                  value={b2bKpp}
-                  onChange={(e) => setB2bKpp(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                  value={apiKpp}
+                  onChange={(e) => setApiKpp(e.target.value.replace(/\D/g, '').slice(0, 9))}
                   placeholder="770101001"
                   className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm font-mono bg-background text-foreground outline-none focus:border-primary"
                 />
@@ -490,8 +490,8 @@ export default function AddFundsForm() {
                 <label className="text-xs font-bold text-foreground">Юридический адрес</label>
                 <input
                   type="text"
-                  value={b2bLegalAddress}
-                  onChange={(e) => setB2bLegalAddress(e.target.value)}
+                  value={apiLegalAddress}
+                  onChange={(e) => setApiLegalAddress(e.target.value)}
                   placeholder="г. Москва, ул. Ленина, д. 1"
                   className="w-full border border-border rounded-xl px-3.5 py-2.5 text-base sm:text-sm bg-background text-foreground outline-none focus:border-primary"
                 />
@@ -500,8 +500,8 @@ export default function AddFundsForm() {
           </div>
         )}
 
-        {/* B2B Generated Invoice Modal/Preview */}
-        {b2bInvoiceCreated && (
+        {/* API Generated Invoice Modal/Preview */}
+        {apiInvoiceCreated && (
           <div className="bg-card border-2 border-indigo-500/40 rounded-2xl p-5 space-y-4 shadow-lg animate-in zoom-in-95 duration-300">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -509,7 +509,7 @@ export default function AddFundsForm() {
                   Счёт успешно сформирован
                 </span>
                 <h4 className="text-base font-black text-foreground mt-1">
-                  Счёт № СЧ-{b2bInvoiceCreated.invoiceId.slice(-6).toUpperCase()}
+                  Счёт № СЧ-{apiInvoiceCreated.invoiceId.slice(-6).toUpperCase()}
                 </h4>
               </div>
               <button
@@ -523,9 +523,9 @@ export default function AddFundsForm() {
             </div>
 
             <div className="text-xs space-y-1 text-muted-foreground bg-secondary/40 rounded-xl p-3 font-mono">
-              <div><strong>Сумма к оплате:</strong> {b2bInvoiceCreated.amountRub.toLocaleString('ru-RU')} ₽</div>
-              <div><strong>Плательщик:</strong> {b2bInvoiceCreated.companyName} (ИНН {b2bInvoiceCreated.inn})</div>
-              <div><strong>Назначение:</strong> Оплата услуг по счёту СЧ-{b2bInvoiceCreated.invoiceId.slice(-6).toUpperCase()}</div>
+              <div><strong>Сумма к оплате:</strong> {apiInvoiceCreated.amountRub.toLocaleString('ru-RU')} ₽</div>
+              <div><strong>Плательщик:</strong> {apiInvoiceCreated.companyName} (ИНН {apiInvoiceCreated.inn})</div>
+              <div><strong>Назначение:</strong> Оплата услуг по счёту СЧ-{apiInvoiceCreated.invoiceId.slice(-6).toUpperCase()}</div>
             </div>
 
             <div className="flex gap-2">
@@ -560,7 +560,7 @@ export default function AddFundsForm() {
         >
           {isPending ? (
             <span>⟳ Подготовка платежа...</span>
-          ) : method === 'b2b' ? (
+          ) : method === 'api' ? (
             <>
               <FileText className="w-5 h-5" />
               <span>Выставить счёт на {amount.toLocaleString('ru-RU')} ₽</span>

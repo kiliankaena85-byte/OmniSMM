@@ -6,7 +6,7 @@ import { marketingService } from '../src/services/marketing.service';
  * 1. Pricing math
  * 2. Order creation (AWAITING_PAYMENT flow)
  * 3. Payment confirmation → Order activation
- * 4. Balance-based B2B checkout race condition
+ * 4. Balance-based API checkout race condition
  */
 async function runValidations() {
   console.log("==================================================");
@@ -37,7 +37,7 @@ async function runValidations() {
     testUser = await db.user.create({
       data: {
         email: `test_${Date.now()}@example.com`,
-        balance: 100_00, // 100 RUB (for B2B tests)
+        balance: 100_00, // 100 RUB (for API tests)
       }
     });
     
@@ -131,8 +131,8 @@ async function runValidations() {
     const confirmedPayment = await db.payment.findUnique({ where: { id: payment.id } });
     assert(confirmedPayment?.status === 'SUCCEEDED', `Payment marked as SUCCEEDED`);
 
-    // --- TEST 3: B2B Balance Race Condition ---
-    console.log("--- 3. B2B Balance Race Condition ---");
+    // --- TEST 3: API Balance Race Condition ---
+    console.log("--- 3. API Balance Race Condition ---");
     
     // testUser has 100_00 (100 RUB). 10 concurrent orders at 15 RUB each.
     // Max affordable: floor(100/15) = 6

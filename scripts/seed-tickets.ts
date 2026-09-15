@@ -5,27 +5,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding rich set of mock tickets...');
 
-  // 1. Get or create a B2B user
-  let b2bUser = await prisma.user.findFirst({
-    where: { email: 'b2b_client@smmplan.pro' },
-    include: { b2bConfig: true }
+  // 1. Get or create a API user
+  let apiUser = await prisma.user.findFirst({
+    where: { email: 'api_client@smmplan.pro' },
+    include: { apiConfig: true }
   });
-  if (!b2bUser) {
-    b2bUser = await prisma.user.create({
+  if (!apiUser) {
+    apiUser = await prisma.user.create({
       data: {
-        email: 'b2b_client@smmplan.pro',
+        email: 'api_client@smmplan.pro',
         role: 'USER',
         balance: 4500000, // 45,000 RUB
         totalSpent: 12500000, // 125,000 RUB
-        b2bConfig: {
+        apiConfig: {
           create: {
-            isB2b: true,
+            isApiEnabled: true,
             prioritySupport: true,
-            webhookUrl: 'https://webhook.site/b2b-test'
+            webhookUrl: 'https://webhook.site/api-test'
           }
         }
       },
-      include: { b2bConfig: true }
+      include: { apiConfig: true }
     });
   }
 
@@ -47,7 +47,7 @@ async function main() {
   // Clear existing tickets for both test users to avoid duplicates
   await prisma.ticket.deleteMany({
     where: {
-      userId: { in: [b2bUser.id, normalUser.id] }
+      userId: { in: [apiUser.id, normalUser.id] }
     }
   });
 
@@ -56,7 +56,7 @@ async function main() {
   // Seed 12 tickets
   const ticketData = [
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Заказ #4521 завис в статусе В работе',
       status: 'OPEN' as const,
       source: 'WEB' as const,
@@ -67,7 +67,7 @@ async function main() {
       ]
     },
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Вопрос по пополнению через USDT',
       status: 'PENDING' as const,
       source: 'TELEGRAM' as const,
@@ -91,13 +91,13 @@ async function main() {
       ]
     },
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Счета-фактуры и закрывающие документы за май',
       status: 'OPEN' as const,
       source: 'EMAIL' as const,
       createdAt: new Date(now - 1000 * 60 * 60 * 4), // 4 hours ago
       messages: [
-        { sender: 'USER' as const, text: 'Добрый день! Вышлите закрывающие документы по договору B2B за прошлый месяц. ИНН компании 7701234567.' }
+        { sender: 'USER' as const, text: 'Добрый день! Вышлите закрывающие документы по договору API за прошлый месяц. ИНН компании 7701234567.' }
       ]
     },
     {
@@ -122,13 +122,13 @@ async function main() {
       ]
     },
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Не пришли средства при оплате по СБП',
       status: 'OPEN' as const,
       source: 'WEB' as const,
       createdAt: new Date(now - 1000 * 60 * 60 * 1), // 1 hour ago
       messages: [
-        { sender: 'USER' as const, text: 'Оплатил 15 000 рублей по СБП 20 минут назад. Деньги на баланс кабинета b2b_client@smmplan.pro до сих пор не зачислились.' }
+        { sender: 'USER' as const, text: 'Оплатил 15 000 рублей по СБП 20 минут назад. Деньги на баланс кабинета api_client@smmplan.pro до сих пор не зачислились.' }
       ]
     },
     {
@@ -156,7 +156,7 @@ async function main() {
       ]
     },
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Проблема с автоплатежом с корпоративной карты',
       status: 'PENDING' as const,
       source: 'EMAIL' as const,
@@ -167,7 +167,7 @@ async function main() {
       ]
     },
     {
-      userId: b2bUser.id,
+      userId: apiUser.id,
       subject: 'Накрутка просмотров на пост не запускается',
       status: 'OPEN' as const,
       source: 'TELEGRAM' as const,

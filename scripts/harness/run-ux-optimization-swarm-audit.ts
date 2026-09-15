@@ -54,7 +54,7 @@ async function runSwarm() {
 АРХИТЕКТУРНЫЙ И UX-ПРОФИЛЬ OMNISMM 1.0:
 
 1. МУЛЬТИ-БРЕНДИНГ И ПОЗИЦИОНИРОВАНИЕ:
-   - SMMplan (smmplan.pro): Классический строгий B2B-интерфейс для оптовиков, реселлеров и агентств (PlanCard, PlanButton, плотные таблицы, ExactMath в копейках).
+   - SMMplan (smmplan.pro): Классический строгий API-интерфейс для оптовиков, реселлеров и агентств (PlanCard, PlanButton, плотные таблицы, ExactMath в копейках).
    - SMMflux (smmflux.ru): Современный потребительский B2C-интерфейс (Radiant Aurora, анимации, геймификация, FluxOrderClient, мгновенный чекаут).
 
 2. КЛЮЧЕВЫЕ ПОЛЬЗОВАТЕЛЬСКИЕ СЦЕНАРИИ:

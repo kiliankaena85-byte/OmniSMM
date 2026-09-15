@@ -70,9 +70,9 @@ export default async function ClientDetailPage({ params }: Props) {
       inn: true,
       kpp: true,
       legalAddress: true,
-      b2bConfig: {
+      apiConfig: {
         select: {
-          isB2b: true,
+          isApiEnabled: true,
           prioritySupport: true,
           webhookUrl: true,
         },
@@ -247,10 +247,10 @@ export default async function ClientDetailPage({ params }: Props) {
     inn: user.inn ?? '',
     kpp: user.kpp ?? '',
     legalAddress: user.legalAddress ?? '',
-    b2bConfig: user.b2bConfig ? {
-      isB2b: user.b2bConfig.isB2b,
-      prioritySupport: user.b2bConfig.prioritySupport,
-      webhookUrl: user.b2bConfig.webhookUrl ?? '',
+    apiConfig: user.apiConfig ? {
+      isApiEnabled: user.apiConfig.isApiEnabled,
+      prioritySupport: user.apiConfig.prioritySupport,
+      webhookUrl: user.apiConfig.webhookUrl ?? '',
     } : null,
     createdAt: user.createdAt.toISOString(),
     ordersCount,

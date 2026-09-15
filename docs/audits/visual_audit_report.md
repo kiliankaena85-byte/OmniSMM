@@ -16,7 +16,7 @@ Based on the 9 pillars of the `gsd-premium-audit` criteria, SMMplan receives an 
 *   **Pillar 5: Layout Alignment & Grids** — **95%**: Highly consistent, modern CSS grid and flexbox layout. Bento box designs are clean and visually balanced.
 *   **Pillar 6: Components Consistency** — **85%**: Excellent uniformity of rounded corners (`rounded-xl` / `rounded-[2.5rem]`), but form input elements and interactive buttons vary in padding and height across pages.
 *   **Pillar 7: Empty States Quality** — **90%**: Well-formatted empty states for orders and wallet lists, featuring clean iconography and messaging.
-*   **Pillar 8: Content Density & Cognitive Load** — **92%**: Excellent operational data density matching enterprise B2B standards. First-viewport interactive options remain within the recommended ≤ 3-5 limit.
+*   **Pillar 8: Content Density & Cognitive Load** — **92%**: Excellent operational data density matching enterprise API standards. First-viewport interactive options remain within the recommended ≤ 3-5 limit.
 *   **Pillar 9: Mobile Responsiveness** — **95%**: Strong mobile-first execution. Horizontal viewport overflow is avoided; layouts adapt seamlessly to 375px widths.
 
 ### Core Issues Identified:

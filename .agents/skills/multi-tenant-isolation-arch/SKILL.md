@@ -9,7 +9,7 @@ description: >
   (unstable_cache с тегами catalog-${tenantId}, префиксы Redis ${tenantId}:*), разделение платежных шлюзов
   (ЮKassa, Robokassa, CryptoBot per-tenant), фискализации и онлайн-касс (54-ФЗ, базовая ставка НДС 22%
   по 425-ФЗ, лимит УСН 20 млн ₽ по 176-ФЗ / ст. 145 НК РФ), а также токены дизайн-системы UI (<Plan*>
-  для SMMplan Classic B2B vs <Flux*> для SMMflux Radiant Aurora) для полного исключения смешения брендов
+  для SMMplan Classic API vs <Flux*> для SMMflux Radiant Aurora) для полного исключения смешения брендов
   (Brand Bleeding). Включает строгие защитные контуры против рисков «дробления бизнеса» по ст. 54.1 НК РФ.
 ---
 
@@ -18,7 +18,7 @@ description: >
 ## Назначение и зона ответственности скилла
 
 Материнский движок **OmniSMM 1.0** спроектирован как высокопроизводительное мульти-арендное (multi-tenant) ядро, обслуживающее независимые цифровые витрины и бренды:
-- **SMMplan (`smmplan.pro`):** Строгий Classic B2B-портал для реселлеров, агентств и оптовых заказчиков (дизайн-токены `<Plan*>`, табличный интерфейс высокой плотности, фокус на API-интеграции).
+- **SMMplan (`smmplan.pro`):** Строгий Classic Panel API для реселлеров, агентств и оптовых заказчиков (дизайн-токены `<Plan*>`, табличный интерфейс высокой плотности, фокус на API-интеграции).
 - **SMMflux (`smmflux.ru`):** Динамичная витрина в стиле Radiant Aurora для розничных создателей контента и блогеров (дизайн-токены `<Flux*>`, интерактивные анимации, калькуляторы и визуальные виджеты).
 - **Архитектура N-Tenants:** Возможность бесшовного развертывания новых витрин без изменения базового кода ядра.
 
@@ -93,7 +93,7 @@ description: >
                        ┌──────────────────────────────────────────┐
                        │  ШАГ 6: Уровень Отображения (UI Tokens)  │
                        ├──────────────────────────────────────────┤
-                       │ SMMplan: Classic B2B (<Plan*>, Gray-900) │
+                       │ SMMplan: Classic API (<Plan*>, Gray-900) │
                        │ SMMflux: Radiant Aurora (<Flux*>, Glow)  │
                        │ Запрет Brand Bleeding в одном интерфейсе │
                        └──────────────────────────────────────────┘
@@ -138,7 +138,7 @@ description: >
 
 ```typescript
 // ❌ АНТИПАТТЕРН: Поиск заказа только по ID позволяет злоумышленнику с smmflux.ru
-// просматривать или отменять заказы B2B-клиентов с smmplan.pro (BOLA / IDOR)
+// просматривать или отменять заказы API-клиентов с smmplan.pro (BOLA / IDOR)
 export async function badGetOrder(orderId: string) {
   return await db.order.findUnique({
     where: { id: orderId } // ❌ Уязвимость! Нет проверки принадлежности тенанту!
@@ -208,7 +208,7 @@ await runWithTenantBypass('System cron sync across all tenants', async () => {
 
 ```typescript
 // ❌ АНТИПАТТЕРН: Общий кэш-ключ. Первый пользователь прогревает кэш ценами SMMplan,
-// после чего розничные покупатели SMMflux видят оптовые цены B2B!
+// после чего розничные покупатели SMMflux видят оптовые цены API!
 export const getBadCatalog = unstable_cache(
   async () => {
     return await db.service.findMany({ where: { isActive: true } });
@@ -278,7 +278,7 @@ export async function getTenantPaymentContext(tenantId: string): Promise<TenantP
     };
   }
 
-  // SMMplan B2B Context
+  // SMMplan API Context
   return {
     tenantId: 'smmplan',
     legalCompanyName: process.env.PLAN_LEGAL_COMPANY_NAME || 'ООО «СММ План Корпорейт»',
@@ -334,7 +334,7 @@ export default async function SafePublicPage() {
 > **Ключевой инвариант архитектуры брендов OmniSMM 1.0:**
 > - Материнская платформа / ядро администрирования называется строго **OmniSMM 1.0** (в шапке, сайдбаре, системных уведомлениях и заголовках).
 > - Платформа OmniSMM 1.0 обслуживает **СТРОГО** две витрины:
->   1. **`smmplan`** — портал `smmplan.pro` (Classic B2B).
+>   1. **`smmplan`** — портал `smmplan.pro` (Classic API).
 >   2. **`smmflux`** — витрина `smmflux.ru` (Radiant Aurora).
 > - Брендов **`Lovable`** и **`SMMboost`** в системе **НЕ СУЩЕСТВУЕТ**. Их использование расценивается как критический дефект «Brand Ghosting» (фантомные бренды).
 > - Вспомогательный алиас `normalizeTenantId('lovable') -> 'flux'` в `src/lib/tenant.ts` сохранен **ИСКЛЮЧИТЕЛЬНО** для обратной совместимости с историческими внешними ссылками/вебхуками и не должен тиражироваться. Все компоненты `Lovable*` окончательно переименованы в `Flux*` (`<FluxButton>`, `<FluxCard>`).
@@ -368,7 +368,7 @@ export function safeGenerateMetadata(rawTenant: string, path: string = '') {
     smmplan: {
       name: 'SMMplan',
       host: getTenantHost('smmplan'), // smmplan.pro
-      title: 'SMMplan — Профессиональная B2B-панель SMM-услуг',
+      title: 'SMMplan — Профессиональная API-панель SMM-услуг',
     },
     flux: {
       name: 'SMMflux',

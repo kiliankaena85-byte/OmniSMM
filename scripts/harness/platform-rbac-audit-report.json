@@ -1793,7 +1793,7 @@
     },
     {
       "file": "src/actions/admin/users.ts",
-      "actionName": "updateUserB2bAction",
+      "actionName": "updateUserApiAction",
       "hasGuard": true,
       "guardType": "requireStaffPermission"
     },
@@ -2254,8 +2254,8 @@
       "guardType": "requireStaffPermission"
     },
     {
-      "file": "src/actions/user/b2b-invoice.action.ts",
-      "actionName": "createB2bInvoiceAction",
+      "file": "src/actions/user/corporate-invoice.action.ts",
+      "actionName": "createApiInvoiceAction",
       "hasGuard": true,
       "guardType": "requireAuth / verifySession"
     },
@@ -2285,7 +2285,7 @@
     },
     {
       "file": "src/actions/user/settings-extra.ts",
-      "actionName": "updateB2bWebhookAction",
+      "actionName": "updateApiWebhookAction",
       "hasGuard": true,
       "guardType": "requireAuth / verifySession"
     },

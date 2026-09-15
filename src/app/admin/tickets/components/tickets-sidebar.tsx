@@ -64,8 +64,8 @@ export interface TicketsSidebarProps {
   handleStatusFilter: (status: string) => void;
   currentSource: string;
   handleSourceFilter: (source: string) => void;
-  currentIsB2b: boolean;
-  handleB2bToggle: (isB2b: boolean) => void;
+  currentIsApi: boolean;
+  handleApiToggle: (isApiEnabled: boolean) => void;
   tickets: AdminTicketItem[];
   handleSelectTicket: (id: string) => void;
   totalPages: number;
@@ -84,8 +84,8 @@ export function TicketsSidebar({
   handleStatusFilter,
   currentSource,
   handleSourceFilter,
-  currentIsB2b,
-  handleB2bToggle,
+  currentIsApi,
+  handleApiToggle,
   tickets,
   handleSelectTicket,
   totalPages,
@@ -158,7 +158,7 @@ export function TicketsSidebar({
           })}
         </div>
 
-        {/* Inline Search & B2B / Source Row */}
+        {/* Inline Search & API / Source Row */}
         <div className="flex items-center gap-2">
           {/* Search */}
           <form onSubmit={handleSearchSubmit} className="relative flex-grow min-w-0">
@@ -172,17 +172,17 @@ export function TicketsSidebar({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           </form>
 
-          {/* B2B Filter Toggle */}
+          {/* API Filter Toggle */}
           <button
             type="button"
-            onClick={() => handleB2bToggle(!currentIsB2b)}
+            onClick={() => handleApiToggle(!currentIsApi)}
             className={`px-3 h-10 text-xs font-black rounded-lg transition-all border whitespace-nowrap cursor-pointer select-none uppercase shrink-0 flex items-center justify-center ${
-              currentIsB2b
+              currentIsApi
                 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 shadow-xs'
                 : 'bg-muted text-muted-foreground hover:text-foreground border-border'
             }`}
           >
-            B2B
+            API
           </button>
 
           {/* Source Filter Dropdown */}
@@ -244,9 +244,9 @@ export function TicketsSidebar({
                       <span className="text-[11px] font-bold text-foreground truncate max-w-[100px] sm:max-w-[145px]" title={ticket.user.email || "Аноним"}>
                         {ticket.user.email || "Аноним"}
                       </span>
-                      {ticket.user.b2bConfig?.isB2b && (
+                      {ticket.user.apiConfig?.isApiEnabled && (
                         <span className="px-1.5 py-0.5 bg-warning/10 text-warning-text border border-warning/20 rounded text-[8px] font-black uppercase shrink-0 select-none">
-                          Priority B2B
+                          Priority API
                         </span>
                       )}
                     </div>

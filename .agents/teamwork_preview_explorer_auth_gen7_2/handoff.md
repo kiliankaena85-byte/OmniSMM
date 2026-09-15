@@ -15,7 +15,7 @@
   - We need a new action: `setPasswordAction` for existing authenticated users. It would accept a new password, hash it, and update their `passwordHash`.
   - We need a `verifyEmailAction` (or reuse the Magic Link verification logic) to handle the verification token click after a password registration.
 - **Do we need to verify their email?**
-  - **Yes, absolutely.** Allowing password registration without email verification is a severe security risk. An attacker could register the email of an administrator or a legitimate B2B client.
+  - **Yes, absolutely.** Allowing password registration without email verification is a severe security risk. An attacker could register the email of an administrator or a legitimate API client.
   - **Implementation using existing schema:** `registerWithPasswordAction` should create the user with `isActive: false` and generate an `AuthToken`. It should then send a verification email containing the token link. Once the token is clicked, we set `isActive: true` and authenticate them.
   - **The SMTP Downtime Paradox:** The plan implies we want users to sign up when SMTP is down. However, if SMTP is down, users fundamentally cannot verify email ownership. We cannot securely bypass email verification just because SMTP is down. If SMTP is down, new user registration must fail gracefully. To protect existing users from SMTP downtime, we must proactively prompt them to set a password via the Dashboard *while SMTP is operational*.
 

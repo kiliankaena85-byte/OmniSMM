@@ -7,7 +7,7 @@ tags: [yandex, gravity-ui, yandex-cloud, enterprise-ui, design-system, react-19,
 # yandex-gravity-ui-steward — Yandex Gravity UI Design System Standard
 
 ## 1. Концепция: Enterprise-стандарт Яндекса
-**Gravity UI** — открытая дизайн-система и библиотека React-компонентов, созданная Яндексом для Yandex Cloud, DataLens, Tracker и высоконагруженных B2B-сервисов.
+**Gravity UI** — открытая дизайн-система и библиотека React-компонентов, созданная Яндексом для Yandex Cloud, DataLens, Tracker и высоконагруженных API-сервисов.
 
 ### Главные преимущества:
 - Экстремальная информационная плотность (High Density UI) без визуального шума.

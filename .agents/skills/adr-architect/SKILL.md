@@ -153,7 +153,7 @@ const orderCostKopecks = ExactMath.calculateOrderCostKopecks({
 > 📜 **Статус:** ACCEPTED & LOCKED (OmniSMM Platform Architecture).  
 > ❌ **ТАБУ:** Хардкодить домены (`smmplan.pro`, `smmflux.ru`) или добавлять фантомные бренды (`Lovable`, `SMMboost`)!  
 > **Контекст:** Платформа OmniSMM 1.0 управляет двумя брендами из единой кодовой базы:
-> 1. **SMMplan (`smmplan.pro`):** Классическая B2B-панель для оптовиков и агентств (стиль B2B Classic, компоненты `<PlanButton>`, `<PlanCard>`).
+> 1. **SMMplan (`smmplan.pro`):** Классическая API-панель для оптовиков и агентств (стиль API Classic, компоненты `<PlanButton>`, `<PlanCard>`).
 > 2. **SMMflux (`smmflux.ru`):** Ритейл-витрина для блогеров и инфлюенсеров (стиль Radiant Aurora, компоненты `<FluxButton>`, `<FluxCard>`).
 > 
 > **Инварианты:**

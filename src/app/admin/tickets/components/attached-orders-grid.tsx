@@ -14,10 +14,10 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 export interface AttachedOrdersGridProps {
   orders: Array<{ id: string; numericId: number; status: import("@prisma/client").OrderStatus; charge: number; remains: number; quantity: number; link: string; createdAt: string; serviceName: string }>;
   ticketId: string;
-  isB2bClient: boolean;
+  isApiEnabledClient: boolean;
 }
 
-export function AttachedOrdersGrid({ orders, ticketId, isB2bClient }: AttachedOrdersGridProps) {
+export function AttachedOrdersGrid({ orders, ticketId, isApiEnabledClient }: AttachedOrdersGridProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -95,10 +95,10 @@ export function AttachedOrdersGrid({ orders, ticketId, isB2bClient }: AttachedOr
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-xs font-black text-foreground flex items-center gap-2">
-              <span>📦 Прикрепленные заказы B2B ({orders.length})</span>
-              {isB2bClient && (
+              <span>📦 Прикрепленные заказы API ({orders.length})</span>
+              {isApiEnabledClient && (
                 <span className="px-1.5 py-0.5 bg-warning/10 text-warning-text border border-warning/20 rounded text-[9px] font-black uppercase select-none animate-pulse">
-                  B2B Безлимит
+                  API Безлимит
                 </span>
               )}
             </span>

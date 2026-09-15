@@ -1,6 +1,6 @@
 /**
  * (c) 2024-2026 SMMplan. All rights reserved.
- * B2B API Key Management Service: Secure SHA-256 Hashing, Generation & Revocation.
+ * Panel API Key Management Service: Secure SHA-256 Hashing, Generation & Revocation.
  */
 
 import crypto from 'crypto';

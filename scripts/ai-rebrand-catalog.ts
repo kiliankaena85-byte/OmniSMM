@@ -31,7 +31,7 @@ const PROMPT_FILE = path.join(process.cwd(), '..', '..', 'C:', 'Users', 'Арт�
 
 // We fallback to hardcoded if prompt file location is tricky
 const SYSTEM_PROMPT = `
-Вы — Старший AI Архитектор и Копирайтер B2B SMM Панели.
+Вы — Старший AI Архитектор и Копирайтер API SMM Панели.
 Ваша задача — структурировать массив грязных услуг. Возвращайте СТРОГО массив JSON без markdown-кода \`\`\`json.
 Формат массива: [{"original_id": "...", "newName": "...", "newDescription": "...", "extractedMeta": {"geo": "...", "warrantyDays": 0, "quality": "...", "speed": "...", "start": "..."}}]
 В newDescription обязательно используйте маркированные списки с эмодзи (⚡️ Запуск, 🚀 Скорость, 💧 Качество, 🛡 Гарантия).

@@ -32,7 +32,7 @@ Please perform the following tasks:
        - `Refill`
        - `Order`
        - `Payment`
-       - `B2bConfig`
+       - `ApiConfig`
      - Delete all `User` records EXCEPT those with role `OWNER` or `ADMIN`. (You can execute `DELETE FROM "User" WHERE role NOT IN ('OWNER', 'ADMIN');` or via Prisma client).
    - Update all settings in `SystemSettings` (row with id='global') and `SystemSetting` key-value table:
      - Search for any string fields containing `http://localhost:3000` or `http://127.0.0.1:3000` and replace that part with `https://smmplan.pro`.

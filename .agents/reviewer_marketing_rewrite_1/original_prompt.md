@@ -13,7 +13,7 @@ Perform an independent code and quality review of the newly implemented SMM mark
   - It correctly queries Redis cache `provider:${providerId}:catalog` for provider specifications.
   - On a cache miss, it instantiates the provider client via `providerService.getProviderInstance(provider)` (which decrypts credentials) and calls `getServices()`, caching the results back to Redis for 24 hours (86400s).
   - It constructs prompts for Gemini using the exact models `gemini-3-flash` or `gemini-3-flash-preview`.
-  - It enforces prompt rules: B2B sells list format, Russian markdown, spam filter, and Anti-Liar (honest parameters).
+  - It enforces prompt rules: API sells list format, Russian markdown, spam filter, and Anti-Liar (honest parameters).
   - It calls Gemini using REST HTTP fetch.
   - On differences, it updates the service table and records audit log entries via `auditAdminAwaitable` with action `SERVICE_AUTO_FIX` and email `system@smmplan.pro`.
   - It supports the `--dry-run` flag to display diffs in the console without updating DB/auditing.

@@ -63,7 +63,7 @@
     - Полностью удален компонент `UniversalOrderForm.tsx`, модалка `MassConfirmEmailModal.tsx`, хук `useMultiOrderEngine.ts`, детектор `mass-order-detector.ts` и серверный экшен `src/actions/order/mass.ts`.
     - Дашборд (`SmmplanOrderWizard.tsx`) очищен от вкладок `WizardTab` (`activeTab`) и теперь монолитно обслуживает только одиночные заказы.
     - В `HeroInput.tsx` и `MobileStep1Link.tsx` обновлены тост-уведомления при вставке нескольких ссылок: *"Оставлена 1 первая ссылка. Пожалуйста, оформляйте заказы по одному."*.
-    - Из `e2e/07-mass-orders-and-b2b-api.spec.ts` вырезаны сценарии массовых заказов с сохранением тестов B2B API v2.
+    - Из `e2e/07-mass-orders-and-api-api.spec.ts` вырезаны сценарии массовых заказов с сохранением тестов Panel API v2.
     - В служебных скриптах (`build-w2-orders-package.ts`, `capture-qa-bug-report.ts`, `prepare-audit-chunks.ts`, `full-project-swarm.ts`) удалены хардкодные пути к удаленному `mass.ts`.
     - Обновлена документация базы знаний `src/data/knowledge/mass-order-guide.md`.
   * 🛠️ **Стабилизация тестового и staging-окружения:**
@@ -364,7 +364,7 @@
   * 🛡️ **Иммунитет сортировки и защита обязательств Liability:**
     - Зафиксирована валидация параметров сортировки по белому списку `USER_SORT_FIELDS` (`createdAt`, `balance`, `totalSpent`, `orders`, `email`, `role`) с детерминированным тай-брейкером `{ id: 'desc' }`.
     - Проверена строгая изоляция финансовой сводки (`canSeeFinances`): общие обязательства платформы Liability (`stats.totalLiability`) и балансы скрыты от несанкционированных ролей.
-    - Проверена классификация клиентов по тирам объема (`getVolumeTier`: Regular, Bronze, Silver, Gold, Platinum) и B2B детектор.
+    - Проверена классификация клиентов по тирам объема (`getVolumeTier`: Regular, Bronze, Silver, Gold, Platinum) и API детектор.
   * 🎨 **Нормализация дизайн-токенов верстки:**
     - Кнопка экспорта CSV, карточка фильтрации, поисковое поле с кнопкой, селектор сортировки `ClientQuickSort`, контейнер таблицы и кнопка перехода в карточку переведены на канонические токены `rounded-lg border-border/70 shadow-xs`.
   * 🧪 **TDD & Регрессионная верификация:**
@@ -1388,7 +1388,7 @@
 - [x] Волна 1: Ритейл-матрица цен каталога OmniSMM 1.0 (83 услуги Vexboost) с рыночной наценкой (+550% – +1500%) (100% COMPLETE & VERIFIED):
   - **Рыночная калибровка по директиве заказчика:** Ликвидирован оптовый демпинг (+85%). Проанализированы бенчмарки прямых конкурентов: минимум +660% (7.6x) и в среднем +1000% (11.0x).
   - **Тарифная сетка для SMMplan и SMMflux:**
-    * *SMMplan (Основной B2B/B2C ритейл):* Наценка +550% – +850% (7.8x) на стандартные услуги (подписчики, лайки), до +1300% (14x) на микро-услуги (просмотры, реакции) с низкой базой себестоимости.
+    * *SMMplan (Основной API/B2C ритейл):* Наценка +550% – +850% (7.8x) на стандартные услуги (подписчики, лайки), до +1300% (14x) на микро-услуги (просмотры, реакции) с низкой базой себестоимости.
     * *SMMflux (Премиум B2C экспресс):* Наценка +750% – +1100% (10.6x) на стандартные услуги, до +1900% (20x) на быстрые просмотры и реакции.
   - **Чистая маржинальность CM1:** Достигнута средняя чистая маржа CM1 **81.4%** на SMMplan и **86.2%** на SMMflux с гарантированным вычетом эквайринга ЮKassa (3.5%) и страхового резерва списаний/гарантии (5.0%).
   - **Сформированный артефакт:** Полная поштучная и 1k-матрица для всех 83 активных услуг сохранена в [`docs/pricing/WAVE1_TARGET_CATALOG_PRICING_2026.md`](file:///d:/SMM_plan_2/docs/pricing/WAVE1_TARGET_CATALOG_PRICING_2026.md).
@@ -1464,8 +1464,8 @@
   - **Статус локального сервиса:** Docker Desktop восстановлен, контейнер `smmplan_web` на порту 3000 работает и здоров.
   - **Live верификация:** Все маршруты возвращают HTTP 200 OK при прямом обращении через Tailscale Funnel без внешних прокси.
 
-- [x] Полная зачистка позиционирования «Опт / B2B», устранение избыточных отступов и деплой Docker Web (100% COMPLETE & LIVE VERIFIED):
-  - **Зачистка B2B и оптовых текстов:** Полностью удален бейдж `Прямой оптовый доступ` в `PlanSlideOrderClient.tsx`, вычищены упоминания оптовых шлюзов и тарифов в `SmartLinkLanding.tsx` (заменено на нейтральное «Удобный сервис для продвижения социальных сетей»), в `WhyUs.tsx` (заголовок «Автоматизированное продвижение», убраны «оптовые тарифы без посредников»), в каталоге `FullscreenMasterCatalog.tsx` («Подписчики (Мир)»), в `api-docs/page.tsx` и валидаторах пополнения `top-up.action.ts`.
+- [x] Полная зачистка позиционирования «Опт / API», устранение избыточных отступов и деплой Docker Web (100% COMPLETE & LIVE VERIFIED):
+  - **Зачистка API и оптовых текстов:** Полностью удален бейдж `Прямой оптовый доступ` в `PlanSlideOrderClient.tsx`, вычищены упоминания оптовых шлюзов и тарифов в `SmartLinkLanding.tsx` (заменено на нейтральное «Удобный сервис для продвижения социальных сетей»), в `WhyUs.tsx` (заголовок «Автоматизированное продвижение», убраны «оптовые тарифы без посредников»), в каталоге `FullscreenMasterCatalog.tsx` («Подписчики (Мир)»), в `api-docs/page.tsx` и валидаторах пополнения `top-up.action.ts`.
   - **Компактная верстка и сжатие отступов:** Устранен избыточный зазор между хедерами и контентом в `SmartLinkLanding.tsx` — паддинг в `<main>` уменьшен с `pt-28` сначала до `pt-8`, а затем до ультра-компактного `pt-2`, что устранило пустое пространство и прижало блок заказа к верхней панели.
   - **Сборка и перезапуск Docker Web:** Выполнен полный продакшен-билд `npm run build` (Next.js standalone + бот + воркер + CI-гейты секретов 100% PASS), пересобран образ и перезапущен рабочий контейнер `smmplan_web`. Проверено живым запросом: упоминания «оптов», «шлюзам», «Прямой оптовый доступ» в HTML-ответе `localhost:3000` полностью отсутствуют.
 
@@ -1579,7 +1579,7 @@
   - **Тесты и верификация:** 5/5 тестов в `src/__tests__/financial/balance-payment-notifications-and-ux.test.ts` (100% PASS), проверка типов `npx tsc --noEmit` — 0 ошибок.
 
 - [x] Умная фильтрация категорий в Личном кабинете по типу ссылки и архитектурная унификация Headless Order Engine (100% COMPLETE & VERIFIED):
-  - **Устранение бага отображения невалидных категорий:** При вводе ссылки на Telegram-канал (`https://t.me/smmMarket69`) в дашборде B2B на Шаге 2 отображаются строго совместимые категории («👥 Подписчики на канал и в группу», «🚀 Бусты канала (Stories & Levels)»). Невалидные категории (просмотры постов, реакции, комментарии, боты) автоматически скрываются.
+  - **Устранение бага отображения невалидных категорий:** При вводе ссылки на Telegram-канал (`https://t.me/smmMarket69`) в дашборде API на Шаге 2 отображаются строго совместимые категории («👥 Подписчики на канал и в группу», «🚀 Бусты канала (Stories & Levels)»). Невалидные категории (просмотры постов, реакции, комментарии, боты) автоматически скрываются.
   - **Изоляция вендорных брендов:** В `target-type-mapper.ts` добавлена санитарная обработка вендорных названий (например, `vexboost`, `smmboost`), предотвращающая ложное распознавание ключевого слова `boost` в названии поставщика услуг как канала бустов.
   - **UI/UX Step 2:** Добавлен адаптивный баннер с бейджем распознанного типа объекта (`formatDetectedTargetName`) и переключателем «Показать все категории (N)» / «← Показать только подходящие». При показе всех категорий на совместимых выводится бейдж «Подходит».
   - **Архитектурный отчёт и спецификация (ADR-2026-09 / SAD & BRD):** Подготовлен подробный документ перехода к единому `useUnifiedOrderEngine` как Single Source of Truth в `docs/architecture/ADR-2026-09-UNIFIED-ORDER-ENGINE.md`.
@@ -1860,7 +1860,7 @@
     19. `src/lib/session.ts` & `logout/route.ts`: Защита `httpOnly: true` и серверный блэклист сессий в Redis (`session:blacklist:{id}`). Добавлен `logout-security-and-blacklist.test.ts`.
     20. `src/bot/index.ts`: Аудит-лог в `adminAuditLog` при каждом входе в Owner Hub.
   - **P3 (Low / Info):**
-    21. `src/services/b2b/client-profile.service.ts`: Шифрование ИНН, КПП, ОГРН через `VaultService` (AES-256-GCM). Добавлен `b2b-vault-encryption.test.ts`.
+    21. `src/services/api/client-profile.service.ts`: Шифрование ИНН, КПП, ОГРН через `VaultService` (AES-256-GCM). Добавлен `api-vault-encryption.test.ts`.
     22. `.env.example` & `session-edge.ts`: Замена плейсхолдеров на `CHANGE_ME_INSECURE_REPLACE_IN_PRODUCTION` и fail-closed abort в production. Добавлен `insecure-secret-startup-guard.test.ts`.
     23. `src/lib/redis.ts`: Предупреждение о необходимости TLS (`rediss://`) для внешних Redis в production. Добавлен `redis-tls-production-check.test.ts`.
     24. `src/lib/db.ts`: Полный запрет `ALLOW_UNSAFE_PURGE` в production с алертом безопасности. Добавлен `db-purge-production-guard.test.ts`.
@@ -2377,7 +2377,7 @@
 
 - **Unified Payment Methods Consolidation & Strict Inactive Gateways Filter (100% COMPLETE & VERIFIED):**
   - **1. Единый шлюз ЮKassa:** В кабинете пополнения ([`/dashboard/add-funds`](file:///d:/SMM_plan_2/src/app/dashboard/add-funds/client-page.tsx)) методы «СБП» и «Карты РФ» объединены в один официальный пункт «Банковские карты РФ и СБП (ЮKassa)», исключая дублирование.
-  - **2. Строгий фильтр B2B и ненастроенных шлюзов:** В `getAvailableGatewaysAction()` безналичный расчёт B2B активируется ТОЛЬКО при наличии заполненного ИНН компании (`LEGAL_INN`). Ненастроенные шлюзы (Робокасса, CryptoBot) скрыты во всех 5 интерфейсах.
+  - **2. Строгий фильтр API и ненастроенных шлюзов:** В `getAvailableGatewaysAction()` безналичный расчёт API активируется ТОЛЬКО при наличии заполненного ИНН компании (`LEGAL_INN`). Ненастроенные шлюзы (Робокасса, CryptoBot) скрыты во всех 5 интерфейсах.
   - **3. Живой автоматизированный смок-тест контейнера:** Разработан скрипт `scripts/smoke-live-container.ts` (**15/15 PASS**), подтвердивший корректность работы HTTP, переключения Sandbox/Production, защиты от недоплат (`PAYMENT_AMOUNT_MISMATCH`) и целостности леджера.
 
 - **Mobile Wizard v2.0 Refactoring & High-Density UX (100% COMPLETE & VERIFIED):**
@@ -2514,7 +2514,7 @@
     - В `src/services/financial/payment-gateway.service.ts` шлюзы ЮKassa, Robokassa и CryptoBot теперь строго валидируют наличие не-заглушечных ключей и генерируют прямые внешние URL эквайринга либо выбрасывают типизированную ошибку (Fail-Closed).
   - **2. Динамическая фильтрация доступных шлюзов (UI):**
     - В личном кабинете (`src/app/dashboard/add-funds/client-page.tsx`), Step-by-Step визарде (`src/components/landing/catalog/StepByStepWizard.tsx`), Drawer заказа (`DrawerPaymentSelector.tsx`) и модалках оплаты интегрирован вызов `getAvailableGatewaysAction()`.
-    - Ненастроенные платёжные системы (Робокасса, CryptoBot с dummy-токенами) **полностью скрываются из пользовательского интерфейса**. Отображаются исключительно 100% настроенные и активные шлюзы (ЮKassa: СБП и Карты РФ, а также B2B безналичный расчёт).
+    - Ненастроенные платёжные системы (Робокасса, CryptoBot с dummy-токенами) **полностью скрываются из пользовательского интерфейса**. Отображаются исключительно 100% настроенные и активные шлюзы (ЮKassa: СБП и Карты РФ, а также API безналичный расчёт).
   - **3. Сквозные End-to-End тесты и верификация:**
     - Новый E2E сьют: `src/__tests__/financial/payment-e2e-and-gateway-filtering.test.ts` (**7/7 PASS**).
     - Полная батарея финансовых тестов: `src/services/financial/__tests__/` + `unified-payment.service.test.ts` (**22/22 PASS, 100% GREEN**).
@@ -2560,7 +2560,7 @@
 - **Universal Numbered Pagination for Orders & Clients (100% COMPLETE & VERIFIED):**
   - **1. Reusable Component (`NumberedPagination.tsx`):** Создан универсальный модульный компонент с нумерованными кнопками, умным многоточием (`1, 2 ... 10 11 12 ... 50`), кнопками «В начало» / «В конец», инпутом быстрого перехода на любую страницу (Jump-to-page) и селектором размера страниц (`20`, `50`, `100`, `200`).
   - **2. Orders Screen (`/admin/orders`):** Заменена 2-кнопочная курсорная пагинация на полноценную нумерованную оффсет-пагинацию с сохранением всех 14 поисковых фильтров.
-  - **3. Clients Screen (`/admin/clients`):** Заменена 2-кнопочная пагинация на нумерованную с поддержкой пресетов (`VIP`, `B2B`, `С балансом`, `Заблокированные`).
+  - **3. Clients Screen (`/admin/clients`):** Заменена 2-кнопочная пагинация на нумерованную с поддержкой пресетов (`VIP`, `API`, `С балансом`, `Заблокированные`).
   - **4. Backend Offset Queries (`order.service.ts`, `user.service.ts`, `pagination.ts`):** `paginatedQuery` производит точный расчёт `totalPages`, `currentPage`, `totalCount` и срезку `skip / take`.
   - **5. Тестирование и верификация:** 
     - Новый юнит-сьют: `src/__tests__/orders-clients-pagination.test.ts` (**4/4 PASS**).
@@ -2644,7 +2644,7 @@
   - **SEC-01 (API v2 Real RateLimit RFC 9331 Headers):** Внедрен метод `RateLimitService.checkCustomKeyDetail` возвращающий реальные счетчики Redis/Postgres. Заголовки `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, `RateLimit-Policy` выставляются на всех 200 и 429 ответах. Сьют: `src/__tests__/api-v2-rate-limit-headers.test.ts` (2/2 PASS).
   - **SEC-02 (`security.txt` Prod Contour Allowlist):** В `src/proxy.ts` добавлен ранний allowlist `isSecurityTxt`, позволяющий ботам и секьюрити-сканерам получать RFC 9116 манифест на боевых доменах без блокировки. Сьют: `src/__tests__/auth/logout-and-proxy-redirects.test.ts` (9/9 PASS).
   - **SEC-03 (`?tenant=` Override Staff Auth Guard):** В `src/proxy.ts` query-параметр `?tenant=...` на боевом контуре (`prod`) разрешен СТРОГО для аутентифицированных сотрудников (`OWNER`, `ADMIN`, `MANAGER`, `SUPPORT`, `OPERATOR`) через `decryptSessionToken`. Обычные пользователи и гости не могут подменить тенант. Сьют: `src/__tests__/proxy-tenant-override-auth.test.ts` (4/4 PASS).
-  - **SEC-04 (B2B API v2 Link Validation & Sanitization):** В `src/app/api/v2/route.ts` внедрена строгая валидация входящих ссылок `sanitizeAndValidateApiLink` (блокировка опасных схем `javascript:`, `data:`, очистка control characters, лимит 2048 симв.) и проверка соответствия категории через `getLinkValidator` + `mutateLink` для single и multi заказов. Сьют: `src/__tests__/api-v2-link-validation.test.ts` (5/5 PASS).
+  - **SEC-04 (Panel API v2 Link Validation & Sanitization):** В `src/app/api/v2/route.ts` внедрена строгая валидация входящих ссылок `sanitizeAndValidateApiLink` (блокировка опасных схем `javascript:`, `data:`, очистка control characters, лимит 2048 симв.) и проверка соответствия категории через `getLinkValidator` + `mutateLink` для single и multi заказов. Сьют: `src/__tests__/api-v2-link-validation.test.ts` (5/5 PASS).
   - **SEC-05 (15k Anti-Fraud Limit for Robokassa):** В `src/actions/order/checkout.ts` и `src/actions/user/top-up.action.ts` платежный шлюз `robokassa` включен в обязательную проверку привязки Telegram-аккаунта для сумм свыше 15 000 ₽ наряду с YooKassa и СБП. CryptoBot безопасно освобожден от лимита (0 чарджбэков). Сьют: `src/__tests__/robokassa-15k-anti-fraud.test.ts` (3/3 PASS).
   - **SEC-06 (`isInternalHost` Pattern Hardening):** В `src/proxy.ts` неточная проверка подстроки `h.includes('docker')` заменена на строгий поиск по Set `INTERNAL_HOSTS` (`localhost`, `127.0.0.1`, `0.0.0.0`, `host.docker.internal`), исключая вектор обхода `evil-docker.com`. Сьют: `src/__tests__/internal-hosts-hardening.test.ts` (3/3 PASS).
   - **SEC-07 (Cloudflare Tunnel IP Trust & `utils/ip.ts`):** В `src/utils/ip.ts` добавлен env-флаг `TRUST_CF_CONNECTING_IP`. При `true` (режим Cloudflare Tunnel) приоритет отдается `cf-connecting-ip`; при `false` (прямой Nginx в РФ) — `x-real-ip` для защиты от спуфинга. Сьют: `src/__tests__/ip-cloudflare-tunnel-trust.test.ts` (3/3 PASS).
@@ -2652,11 +2652,11 @@
 
 - **Мульти-модельный пентест платформы (Multi-AI Pentest Swarm 2026):**
   - Проведено состязательное тестирование на проникновение против живого контейнера `smmplan_web` по методологии OWASP Top 10:2025 и Ornith-1.0 SQP.
-  - **10/10 Активных защитных рубежей пройдены:** Host Spoofing Shield (`F91`), Multi-Contour JWT изоляция, B2B API-ключи, RFC 9116 security.txt, Robots.txt Non-Disclosure, Fail-Closed YooKassa, Timing-Safe CryptoBot HMAC (`crypto.timingSafeEqual`), Prelaunch Burst Rate-Limiting (HTTP 429), Zero-Trust Operator RBAC (307 redirect), Client Bundle Secrets AST Scanner (0 утечек).
+  - **10/10 Активных защитных рубежей пройдены:** Host Spoofing Shield (`F91`), Multi-Contour JWT изоляция, Panel API-ключи, RFC 9116 security.txt, Robots.txt Non-Disclosure, Fail-Closed YooKassa, Timing-Safe CryptoBot HMAC (`crypto.timingSafeEqual`), Prelaunch Burst Rate-Limiting (HTTP 429), Zero-Trust Operator RBAC (307 redirect), Client Bundle Secrets AST Scanner (0 утечек).
   - **Экспертный вердикт роя:** Immunity Score **100%**, вердикт **ГОТОВ К ПРОДАКШЕНУ (PRODUCTION READY)**. Полный отчет: `PENTEST_REPORT_2026.md`.
 
 - **Пакет фиксов Hardening v6 (Audit #10 Follow-ups & Post-Launch Security):**
-  - **Деактивация пентест-арсенала (D1–D6):** 4 пентест-аккаунта (`pentest7-user@smmplan.pro`, `pentest7-operator@smmplan.pro`, `pentest7-admin@smmplan.pro`, `pentest7-flux@smmflux.ru`) переведены в `isActive: false`, `isDeleted: true`, `passwordHash: null`, `apiKeyHash: null`. Все 5 сессий удалены, B2B API-ключи отозваны (401 Unauthorized). Секрет `JWT_SECRET` сохранен без разлогина боевых пользователей.
+  - **Деактивация пентест-арсенала (D1–D6):** 4 пентест-аккаунта (`pentest7-user@smmplan.pro`, `pentest7-operator@smmplan.pro`, `pentest7-admin@smmplan.pro`, `pentest7-flux@smmflux.ru`) переведены в `isActive: false`, `isDeleted: true`, `passwordHash: null`, `apiKeyHash: null`. Все 5 сессий удалены, Panel API-ключи отозваны (401 Unauthorized). Секрет `JWT_SECRET` сохранен без разлогина боевых пользователей.
   - **N-10.3 (Cross-Contour / Host-only Spoofing Shield):** Внедрен `TRUSTED_CONTOUR_MAP` в `src/proxy.ts`. Матрица приёмки H1–H7 блокирует 8 направлений подделки заголовка Host с HTTP 403 Forbidden.
   - **N-10.5 (Мёртвый/чужой токен на prod):** Перенаправление с HTTP 307 строго на форму `/login` с немедленным сбросом куки `session_token` (`Max-Age=0`).
   - **Панель OPERATOR (O1–O4):** Гвард `/operator` и RBAC поддерживают роль `OPERATOR` для секций заказов, тикетов, транзакций и клиентов. Обычные пользователи и гости перенаправляются на `/dashboard` или `/login`.
@@ -2675,8 +2675,8 @@
 - **Статус экранов:** 28/28 экранов реализованы и верифицированы (100%).
 - **Закрытие замечаний Пентест-Отчета Ре-теста №7 (Security & Isolation Fixes):**
   - **F-7.1 (HIGH):** Устранена проблема неубиваемого JWT после logout на `/dashboard`. В `src/proxy.ts` снят ранний перехват `/api/auth/logout`, что гарантирует выполнение `src/app/api/auth/logout/route.ts` и физическое удаление записи сессии из PostgreSQL (`db.session.deleteMany`). Любой реплей токена на `/dashboard` немедленно находит `session === null` в DB и перенаправляет на `/login` (307).
-  - **F-7.2 (MEDIUM):** В `src/lib/b2b-auth.ts` и `src/app/api/v2/route.ts` внедрен строгий биндинг B2B API-ключей к тенанту запроса (`resolveTenantFromRequest(headers)`). Попытка использования ключа `smmplan` на домене `flux` (или наоборот) немедленно отклоняется с HTTP 401. Исправлена выборка каталога B2B (`tenantId: { in: [userTenantId, 'all'] }`).
-  - **F-7.3 (MEDIUM):** Внедрена строгая **Multi-Contour изоляция** (`resolveContourFromHost` $\rightarrow$ `test` vs `prod` vs `flux`). В JWT сессии зашивается claim `contour`. Токены и тестовые учетные записи, выданные в песочнице `test.smmplan.pro`, строго отклоняются при попытке входа на продакшен `smmplan.pro`, гарантируя невозможность рендера прод-дашборда или исполнения B2B-запросов из тестовой среды.
+  - **F-7.2 (MEDIUM):** В `src/lib/api-auth.ts` и `src/app/api/v2/route.ts` внедрен строгий биндинг Panel API-ключей к тенанту запроса (`resolveTenantFromRequest(headers)`). Попытка использования ключа `smmplan` на домене `flux` (или наоборот) немедленно отклоняется с HTTP 401. Исправлена выборка каталога API (`tenantId: { in: [userTenantId, 'all'] }`).
+  - **F-7.3 (MEDIUM):** Внедрена строгая **Multi-Contour изоляция** (`resolveContourFromHost` $\rightarrow$ `test` vs `prod` vs `flux`). В JWT сессии зашивается claim `contour`. Токены и тестовые учетные записи, выданные в песочнице `test.smmplan.pro`, строго отклоняются при попытке входа на продакшен `smmplan.pro`, гарантируя невозможность рендера прод-дашборда или исполнения API-запросов из тестовой среды.
   - **F-7.4 (MEDIUM):** В `src/proxy.ts` внедрен строгий Production Maintenance Gate для хоста `smmplan.pro`. Все входящие запросы на `/login`, `/dashboard`, `/operator`, `/admin` и `/api/v2` блокируются (503 Service Unavailable / редирект на Prelaunch), за исключением разрешенных `/api/health`, `/api/maintenance-status`, `/api/prelaunch/subscribe`, `/robots.txt`, `/sitemap.xml`, `/.well-known/security.txt`.
   - **F-7.5 (LOW / INFO-1):** Во всех точках разрешения канонических хостов (`robots.ts`, `sitemap.ts`, `layout.tsx`, `logout/route.ts`, `proxy.ts`) заголовок `Host` установлен абсолютным приоритетом перед `x-forwarded-host`, исключая сброс тенанта в дефолт при манипуляциях со сторонними прокси.
   - **Нормализация каталога и сохранение эмодзи:** Из базы вычищены все 71 мусорная услуга вида «Тариф #...» и моки. Настроены 6 канонических категорий в Telegram, ВКонтакте, YouTube, TikTok и Instagram. В `CategoryIcon.tsx` функция `cleanCategoryName` очищена от вырезания эмодзи (`👍`, `🔥`, `❤️`, `🎉`, `🥰`, `👏`).
@@ -2858,7 +2858,7 @@
 ---
 
 ## 12 Критических Правил и Инвариантов Проекта
-1. **Multi-Tenant (Строго 2 равноправных бренда, No B2B Classification):** `smmplan` (`smmplan.pro`) и `flux` (`smmflux.ru`). Деления на B2B и B2C нет — это две независимые витрины. Переключение в шапке через `<GlobalSiteSwitcher />` (кука `x_admin_tenant`).
+1. **Multi-Tenant (Строго 2 равноправных бренда, No API Classification):** `smmplan` (`smmplan.pro`) и `flux` (`smmflux.ru`). Деления на API и B2C нет — это две независимые витрины. Переключение в шапке через `<GlobalSiteSwitcher />` (кука `x_admin_tenant`).
 2. **UI Pricing Contract:** Цена за 1 штуку (`pricePerUnitRub`) с подписью `₽ / шт`. Запрещено умножать на 1000 на клиенте.
 3. **Shadow Catalog & Cherry-Pick:** Сырые каталоги (5000+ услуг) буферизуются в Redis (`provider:{id}:catalog`). В PostgreSQL `Service` попадают только проверенные услуги.
 4. **No Horizontal Scroll Rule:** Таблицы на 100% ширины видимого экрана без обрезания колонок и скрытых кнопок.
@@ -2877,11 +2877,11 @@
 1. **[RESOLVED] [BUG-PROMO-CALC] Ошибка пересчета суммы при вводе промокода на витрине:**
    - **Причина:** `MarketingService.calculatePrice()` применял формулу `calculateSafetyFloorCents(providerCostCents)` со статической наценкой 300% (`SAFETY_FLOOR_MARKUP = 3.0`), из-за чего floor себестоимости с налогами оказывался выше розничной цены витрины. При вводе любого промокода инициировался серверный пересчет `calculatePriceAction`, завышавший итоговую сумму (например, 12 ₽ → 18.16 ₽).
    - **Решение:** В `marketing.service.ts` расчет защитного пола ограничен реальным break-even порогом `providerCostCents / (1 - TOTAL_MANDATORY_DEDUCTIONS)` с верхней границей `min(originalTotalCents, rawBreakEvenCents)`. Розничная цена больше не завышается, а скидки не загоняют заказ в минус ниже себестоимости и обязательных налогов/комиссий.
-2. **[REFACTOR-B2B-CLEANUP] Удаление упоминаний B2B и унификация терминологии:**
-   - Очистить код и документацию от упоминаний термина `b2b`.
-   - Заменить `b2b-auth` $\rightarrow$ `api-auth` / `panel-auth`.
-   - Заменить `b2bRequestLog` $\rightarrow$ `apiRequestLog`.
-   - Заменить в текстах и комментариях «B2B-портал / B2B API» на «Panel API / SMM API v2» и «витрина SMMplan».
+2. **[REFACTOR-API-CLEANUP] Удаление упоминаний API и унификация терминологии:**
+   - Очистить код и документацию от упоминаний термина `api`.
+   - Заменить `api-auth` $\rightarrow$ `api-auth` / `panel-auth`.
+   - Заменить `apiRequestLog` $\rightarrow$ `apiRequestLog`.
+   - Заменить в текстах и комментариях «Panel API / Panel API» на «Panel API / SMM API v2» и «витрина SMMplan».
 3. **[RESOLVED] [UX-CATALOG-FILTER-PERSIST] Сохранение фильтров каталога при возврате после редактирования услуги и кнопка сброса:**
    - **Решение:**
      - В `CatalogTable` (`EditServiceModal` и строка таблицы) текущий query-state (`searchParams.toString()`) кодируется в параметр `?returnUrl=...`.
