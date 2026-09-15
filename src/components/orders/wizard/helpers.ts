@@ -1,4 +1,5 @@
-import { inferTargetTypeFromCategory, inferTargetTypeFromName } from '@/utils/target-type';
+import { inferTargetTypeFromCategory } from '@/utils/target-type';
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 import { PublicService } from '@/actions/order/catalog';
 
 export function formatDetectedTargetName(t: string | null | undefined): string {
@@ -53,12 +54,16 @@ export function getTargetTypeHint(catName?: string, srvTargetType?: string | nul
   }
 }
 
+// [FIX AGENTS.md §4.1] Use resolveServiceTargetType to correctly handle services
+// where targetType='POST' (default) but the service is actually for channels.
+// NEVER use `s.targetType || inferTargetTypeFromName(s.name)` — the default 'POST'
+// prevents inferTargetTypeFromName from ever running.
 export const isChannelSrv = (s: PublicService) => {
-  const t = s.targetType || inferTargetTypeFromName(s.name);
+  const t = resolveServiceTargetType(s);
   return t === 'CHANNEL' || t === 'CHANNEL_POSTS';
 };
 
 export const isPostSrv = (s: PublicService) => {
-  const t = s.targetType || inferTargetTypeFromName(s.name);
+  const t = resolveServiceTargetType(s);
   return t === 'POST' || t === 'VIDEO' || t === 'COMMENTS';
 };

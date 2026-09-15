@@ -24,9 +24,20 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
     const trimmedLink = w.link.trim();
     if (!trimmedLink || trimmedLink.length < 3) {
       newErrors.link = 'Введите корректную ссылку для выполнения заказа';
-    } else if (trimmedLink.includes(' ')) {
-      const m = trimmedLink.match(/(https?:\/\/[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}\/[^\s]*)/i);
-      if (m) w.setLink(m[0]); else newErrors.link = 'Ссылка не должна содержать пробелы';
+    } else {
+      // [T1-8] Use getLinkValidator instead of naive regex for accurate format check
+      const linkFormatError = w.validateLinkFormat();
+      if (linkFormatError) {
+        newErrors.link = linkFormatError;
+      } else if (w.detectedType && w.selectedService && w.selectedNetwork) {
+        // [T1-8] isLinkServiceCompatible guard: catch incompatible link/service combos before backend
+        const { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } = await import('@/constants/link-service-compatibility');
+        const { resolveServiceTargetType } = await import('@/utils/target-type-mapper');
+        const svcTargetType = normalizeServiceTargetType(resolveServiceTargetType(w.selectedService));
+        if (!isLinkServiceCompatible(w.detectedType, svcTargetType)) {
+          newErrors.link = getCompatibilityError(w.detectedType, svcTargetType, w.selectedService.name);
+        }
+      }
     }
     if (w.selectedService) {
       if (!w.quantity || w.quantity < w.selectedService.minQty) {
@@ -34,8 +45,13 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
       } else if (w.quantity > w.selectedService.maxQty) {
         newErrors.quantity = 'Максимальное количество для этой услуги: ' + w.selectedService.maxQty + ' шт.';
       } else if (w.isDripFeedEnabled) {
-        const dCheck = validateDripFeedLimits(w.quantity, w.dripRuns, w.selectedService.minQty, w.selectedService.maxQty);
-        if (!dCheck.isValid) newErrors.quantity = dCheck.error;
+        // [T1-8] Block submission if Drip-Feed Floor is violated (mirrors backend checkoutAction)
+        if (w.dripFloorWarning) {
+          newErrors.quantity = w.dripFloorWarning;
+        } else {
+          const dCheck = validateDripFeedLimits(w.quantity, w.dripRuns, w.selectedService.minQty, w.selectedService.maxQty);
+          if (!dCheck.isValid) newErrors.quantity = dCheck.error;
+        }
       }
     }
     if (w.selectedService?.customDataType && w.selectedService.customDataType !== 'NONE' && !w.customData.trim()) {
@@ -52,6 +68,7 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
       setTimeout(() => { if (w.errorRef.current) w.errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
       return;
     }
+
     w.setIsSubmitting(true);
     trackEvent('payment_clicked', { serviceId: w.selectedService!.id, serviceName: w.selectedService!.name, gateway: w.gateway, quantity: w.totalQuantity, priceRub: w.calculatedPriceRub });
     try {

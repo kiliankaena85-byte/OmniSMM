@@ -8,7 +8,8 @@ import { trackEvent } from '@/lib/analytics';
 import { analyzeUrl } from '@/actions/order/analyze-url';
 import { matchesSuggestedCategory } from '@/services/analyzer/category-matcher';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
-import { inferTargetTypeFromName } from '@/utils/target-type';
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
+import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
 import { WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
 import { isChannelSrv, isPostSrv, normalizeUrl } from './helpers';
 
@@ -24,6 +25,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const [promoMessage, setPromoMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null); const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [gateway, setGateway] = useState<PaymentGateway>('balance'); const [availableGateways, setAvailableGateways] = useState<AvailableGateways | null>(null);
   const [isDripFeedEnabled, setIsDripFeedEnabled] = useState(false); const [dripRuns, setDripRuns] = useState(5); const [dripInterval, setDripInterval] = useState(60);
+  const [isSmartDrip, setIsSmartDrip] = useState(false);
   const [customData, setCustomData] = useState(''); const [isRequirementsConfirmed, setIsRequirementsConfirmed] = useState(false);
   const [isTgGuideOpen, setIsTgGuideOpen] = useState(false); const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false); const [shakeKey, setShakeKey] = useState(0);
@@ -31,7 +33,29 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const [searchNetwork, setSearchNetwork] = useState(''); const [searchCategory, setSearchCategory] = useState('');
   const [detectedType, setDetectedType] = useState<string | null>(null); const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
   const [showAllCategories, setShowAllCategories] = useState(false); const [tariffSubtypeFilter, setTariffSubtypeFilter] = useState<TariffSubtypeFilter>('auto');
-  const analyzeRequestIdRef = useRef(0); const formRef = useRef<HTMLFormElement>(null); const errorRef = useRef<HTMLDivElement>(null); const hasRestoredUrlRef = useRef(false);
+  const analyzeRequestIdRef = useRef(0);
+  const serviceRequestIdRef = useRef(0);
+  const priceRequestIdRef = useRef(0);
+  const formRef = useRef<HTMLFormElement>(null); const errorRef = useRef<HTMLDivElement>(null); const hasRestoredUrlRef = useRef(false);
+
+  // [T2-1] Restore sessionStorage draft on mount (no email/promo per PCI DSS)
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('smmplan_draft');
+      if (saved) {
+        const draft = JSON.parse(saved) as { link?: string; quantity?: number };
+        if (draft.link && typeof draft.link === 'string' && draft.link.length >= 5) setLink(draft.link);
+        if (draft.quantity && typeof draft.quantity === 'number' && draft.quantity > 0) setQuantity(draft.quantity);
+      }
+    } catch { /* sessionStorage unavailable (SSR/incognito) */ }
+  }, []);
+
+  // [T2-1] Persist draft to sessionStorage on changes
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('smmplan_draft', JSON.stringify({ link, networkId: selectedNetwork?.id, categoryId: selectedCategory?.id, quantity }));
+    } catch { /* sessionStorage unavailable */ }
+  }, [link, selectedNetwork?.id, selectedCategory?.id, quantity]);
 
   useEffect(() => {
     getAvailableGatewaysAction().then((res) => {
@@ -88,7 +112,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
       const parsed = parseInt(pStep, 10);
       if (parsed >= 1 && parsed <= 4) {
         const netId = p.get('networkId'); const catId = p.get('categoryId'); const srvId = p.get('serviceId');
-        let foundNet = netId ? networks.find(n => n.id === netId) || null : (catId ? networks.find(n => n.categories.some(c => c.id === catId)) || null : selectedNetwork);
+        const foundNet = netId ? networks.find(n => n.id === netId) || null : (catId ? networks.find(n => n.categories.some(c => c.id === catId)) || null : selectedNetwork);
         if (foundNet) {
           setSelectedNetwork(foundNet);
           if (catId) { const foundCat = foundNet.categories.find(c => c.id === catId) || null; if (foundCat) setSelectedCategory(foundCat); }
@@ -119,13 +143,16 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     }).catch(console.error).finally(() => setIsLoadingCatalog(false));
   }, [initialReorderData, tenantId]);
 
+  // [T1-2 + T1-6] resolveServiceTargetType in filter + requestId race-condition guard
   useEffect(() => {
     if (!selectedCategory) { setServices([]); return; }
+    const currentRequestId = ++serviceRequestIdRef.current;
     setIsLoadingServices(true);
     getServicesByCategoryAction(selectedCategory.id, tenantId).then(servs => {
+      if (currentRequestId !== serviceRequestIdRef.current) return;
       let finalServs = servs;
       if (detectedType && link.trim().length >= 5) {
-        const comp = servs.filter(s => isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name)));
+        const comp = servs.filter(s => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
         if (comp.length > 0) finalServs = comp;
       }
       setServices(finalServs);
@@ -138,22 +165,37 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
           if (searchParams.get('step') === '4' || initialReorderData) setStep(4);
         }
       }
-    }).catch(console.error).finally(() => setIsLoadingServices(false));
+    }).catch(console.error).finally(() => {
+      if (currentRequestId === serviceRequestIdRef.current) setIsLoadingServices(false);
+    });
   }, [selectedCategory, initialReorderData, searchParams, detectedType, link, tenantId]);
 
   const totalQuantity = isDripFeedEnabled ? quantity * dripRuns : quantity;
+
+  // [T1-7] Drip-Feed Floor Invariant warning
+  const dripFloorWarning: string | null = (() => {
+    if (!isDripFeedEnabled || !selectedService || dripRuns < 2) return null;
+    const perRun = Math.floor(quantity / dripRuns);
+    if (perRun < selectedService.minQty) {
+      const minTotal = selectedService.minQty * dripRuns;
+      return `Минимальный объём на 1 запуск: ${selectedService.minQty} шт. Установите количество >= ${minTotal} для ${dripRuns} запусков.`;
+    }
+    return null;
+  })();
+
   const handleSelectService = (srv: PublicService) => {
-    setSelectedService(srv); setQuantity(srv.minQty || 100); setIsDripFeedEnabled(false);
+    setSelectedService(srv); setQuantity(srv.minQty || 100); setIsDripFeedEnabled(false); setIsSmartDrip(false);
     setDripRuns(5); setDripInterval(60); setCustomData(''); setIsRequirementsConfirmed(false); setErrors({});
     trackEvent('service_selected', { serviceId: srv.id, serviceName: srv.name, price: srv.pricePerUnitRub });
     changeStep(4, srv.id, selectedCategory?.id, selectedNetwork?.id);
   };
 
+  // [T1-4] Pass isSmartDrip to calculatePriceAction
   const handleApplyPromo = async () => {
     const code = promoCodeInput.trim().toUpperCase(); if (!code || !selectedService) return;
     setIsApplyingPromo(true); setPromoMessage(null);
     try {
-      const res = await calculatePriceAction(selectedService.id, totalQuantity, code);
+      const res = await calculatePriceAction(selectedService.id, totalQuantity, code, isDripFeedEnabled ? dripRuns : undefined, isSmartDrip);
       if (res.success && res.data && res.data.discountCents > 0) {
         const base = res.data.originalTotalCents || res.data.totalCents; const disc = Math.round((res.data.discountCents / base) * 100);
         setAppliedPromo(code); setCalculatedPriceRub(res.data.totalCents / 100);
@@ -166,24 +208,54 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
 
   const handleRemovePromo = () => { setAppliedPromo(''); setPromoCodeInput(''); setPromoMessage(null); };
 
+  // [T1-4 + T1-5] isSmartDrip in price calc + requestId stale guard
   useEffect(() => {
     if (!selectedService || !quantity) { setCalculatedPriceRub(null); return; }
-    let cancelled = false; setIsCalculatingPrice(true);
-    calculatePriceAction(selectedService.id, totalQuantity, appliedPromo || undefined).then(res => {
-      if (!cancelled && res.success && res.data) setCalculatedPriceRub(res.data.totalCents / 100);
-      else if (!cancelled) setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity);
-    }).catch(() => { if (!cancelled) setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity); })
-      .finally(() => { if (!cancelled) setIsCalculatingPrice(false); });
-    return () => { cancelled = true; };
-  }, [selectedService, quantity, totalQuantity, appliedPromo]);
+    const currentRequestId = ++priceRequestIdRef.current;
+    setIsCalculatingPrice(true);
+    calculatePriceAction(selectedService.id, totalQuantity, appliedPromo || undefined, isDripFeedEnabled ? dripRuns : undefined, isSmartDrip)
+      .then(res => {
+        if (currentRequestId !== priceRequestIdRef.current) return;
+        if (res.success && res.data) setCalculatedPriceRub(res.data.totalCents / 100);
+        else setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity);
+      })
+      .catch(() => { if (currentRequestId === priceRequestIdRef.current) setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity); })
+      .finally(() => { if (currentRequestId === priceRequestIdRef.current) setIsCalculatingPrice(false); });
+  }, [selectedService, quantity, totalQuantity, appliedPromo, isSmartDrip, dripRuns, isDripFeedEnabled]);
 
   const addQuantity = (delta: number) => { if (!selectedService) return; setQuantity(Math.min(selectedService.maxQty, Math.max(selectedService.minQty, (quantity || 0) + delta))); };
 
-  const handleBlurLink = () => { if (link) setLink(normalizeUrl(link)); };
+  // [T1-3] Apply mutateLink on blur for auto-correction
+  const handleBlurLink = () => {
+    if (!link) return;
+    const normalized = normalizeUrl(link);
+    if (!selectedService || !selectedNetwork) { setLink(normalized); return; }
+    const targetType = resolveServiceTargetType(selectedService);
+    const platformSlug = selectedNetwork.slug.toUpperCase();
+    try {
+      const mutated = mutateLink(normalized, platformSlug, targetType);
+      if (mutated !== link) { setLink(mutated); toast.info('Ссылка скорректирована автоматически'); }
+    } catch { setLink(normalized); }
+  };
+
+  // [T1-3] Validator exposed for submit guard in SmmplanOrderWizard.tsx
+  const validateLinkFormat = (): string | null => {
+    if (!selectedService || !selectedNetwork || !link) return null;
+    const targetType = resolveServiceTargetType(selectedService);
+    const platformSlug = selectedNetwork.slug.toUpperCase();
+    try {
+      const mutated = mutateLink(link, platformSlug, targetType);
+      const validator = getLinkValidator(platformSlug, targetType);
+      const result = validator.safeParse(mutated);
+      if (!result.success) return result.error.errors[0].message;
+    } catch { return null; }
+    return null;
+  };
+
   const filteredNetworks = networks.filter(n => n.name.toLowerCase().includes(searchNetwork.toLowerCase()));
   const isLinkActive = link.trim().length >= 5;
   const hasSmartFilter = isLinkActive && Boolean(detectedType || (suggestedCategories && suggestedCategories.length > 0));
-  const matchedCategories = selectedNetwork ? selectedNetwork.categories.filter(c => !hasSmartFilter || matchesSuggestedCategory(c.name, suggestedCategories, (c as any).analyzerTags, detectedType)) : [];
+  const matchedCategories = selectedNetwork ? selectedNetwork.categories.filter(c => !hasSmartFilter || matchesSuggestedCategory(c.name, suggestedCategories, (c as { analyzerTags?: string }).analyzerTags ?? null, detectedType)) : [];
   const effectiveCategories = (!hasSmartFilter || showAllCategories || matchedCategories.length === 0) ? (selectedNetwork?.categories || []) : matchedCategories;
   const filteredCategories = effectiveCategories.filter(c => c.name.toLowerCase().includes(searchCategory.toLowerCase()));
   const channelServicesCount = services.filter(isChannelSrv).length; const postServicesCount = services.filter(isPostSrv).length;
@@ -192,6 +264,25 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const displayedServices = services.filter(s => (!hasMultipleSubtypes || effectiveSubtype === 'all') ? true : (effectiveSubtype === 'channel' ? isChannelSrv(s) : isPostSrv(s)));
 
   return {
-    router, networks, filteredNetworks, isLoadingCatalog, step, setStep, changeStep, selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory, services, isLoadingServices, selectedService, setSelectedService, handleSelectService, link, setLink, handleBlurLink, quantity, setQuantity, addQuantity, totalQuantity, email, setEmail, promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage, isApplyingPromo, showPromo, setShowPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway, availableGateways, isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval, customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed, isTgGuideOpen, setIsTgGuideOpen, errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey, calculatedPriceRub, isCalculatingPrice, searchNetwork, setSearchNetwork, searchCategory, setSearchCategory, detectedType, showAllCategories, setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter, formRef, errorRef, hasSmartFilter, matchedCategories, filteredCategories, channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices
+    router, networks, filteredNetworks, isLoadingCatalog, step, setStep, changeStep,
+    selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory,
+    services, isLoadingServices, selectedService, setSelectedService, handleSelectService,
+    link, setLink, handleBlurLink, validateLinkFormat,
+    quantity, setQuantity, addQuantity, totalQuantity,
+    email, setEmail,
+    promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage, isApplyingPromo,
+    showPromo, setShowPromo, handleApplyPromo, handleRemovePromo,
+    gateway, setGateway, availableGateways,
+    isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval,
+    isSmartDrip, setIsSmartDrip, dripFloorWarning,
+    customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed,
+    isTgGuideOpen, setIsTgGuideOpen,
+    errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey,
+    calculatedPriceRub, isCalculatingPrice,
+    searchNetwork, setSearchNetwork, searchCategory, setSearchCategory,
+    detectedType, showAllCategories, setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter,
+    formRef, errorRef,
+    hasSmartFilter, matchedCategories, filteredCategories,
+    channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices
   };
 }
