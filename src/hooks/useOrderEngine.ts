@@ -702,7 +702,8 @@ export function useOrderEngine(
           selectedService.id, 
           quantity, 
           promoCode, 
-          dripFeedEnabled ? runs : undefined
+          dripFeedEnabled ? runs : undefined,
+          isSmartDrip
         );
         if (stale) return;
         if (res.success && res.data) {

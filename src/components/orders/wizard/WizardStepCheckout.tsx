@@ -20,7 +20,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
     setDripInterval, isRequirementsConfirmed, setIsRequirementsConfirmed, quantity, setQuantity,
     addQuantity, totalQuantity, email, setEmail, showPromo, setShowPromo, promoCodeInput, setPromoCodeInput,
     appliedPromo, promoMessage, isApplyingPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway,
-    userBalanceCents, availableGateways, isCalculatingPrice, calculatedPriceRub, isSubmitting,
+    userBalanceCents, availableGateways, isCalculatingPrice, calculatedPriceRub, dripFloorWarning, isSubmitting,
     onBackToServices, onSubmit, setErrors
   } = props;
 
@@ -86,7 +86,19 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         </div>
       )}
 
-      <CheckoutDripFeed selectedService={selectedService} isDripFeedEnabled={isDripFeedEnabled} setIsDripFeedEnabled={setIsDripFeedEnabled} quantity={quantity} setQuantity={setQuantity} dripRuns={dripRuns} setDripRuns={setDripRuns} dripInterval={dripInterval} setDripInterval={setDripInterval} totalQuantity={totalQuantity} />
+      <CheckoutDripFeed
+        selectedService={selectedService}
+        isDripFeedEnabled={isDripFeedEnabled}
+        setIsDripFeedEnabled={setIsDripFeedEnabled}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        dripRuns={dripRuns}
+        setDripRuns={setDripRuns}
+        dripInterval={dripInterval}
+        setDripInterval={setDripInterval}
+        totalQuantity={totalQuantity}
+        dripFloorWarning={dripFloorWarning}
+      />
 
       {(selectedService.clientRequirement || selectedService.clientConfirmation || selectedService.requireWarning) && (
         <div className={`p-4 rounded-2xl border transition-all ${isRequirementsConfirmed ? 'bg-green-500/10 border-green-500/30' : errors.requirement ? 'bg-destructive/10 border-destructive/40 animate-shake' : 'bg-amber-500/10 border-amber-500/30'}`}>

@@ -222,6 +222,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (rawBody.event === 'payment.canceled' && rawBody.object) {
+      const gatewayId = rawBody.object.id;
+      if (typeof gatewayId !== 'string' || gatewayId.trim().length === 0) {
+        return NextResponse.json({ error: 'Invalid gatewayId' }, { status: 400 });
+      }
+      try {
+        const result = await MutexManager.withLock(`webhook_payment_${gatewayId}`, 15000, 10000, async () => {
+          const success = await paymentService.cancelPayment(gatewayId);
+          return NextResponse.json({ success, status: 'Payment canceled' }, { status: 200 });
+        });
+        return result;
+      } catch (lockError) {
+        console.error(`[YooKassa Webhook] Failed to acquire lock for payment ${gatewayId}:`, lockError);
+        return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
+      }
+    }
+
     if (rawBody.event === 'payment.succeeded' && rawBody.object) {
       const gatewayId = rawBody.object.id;
       if (typeof gatewayId !== 'string' || gatewayId.trim().length === 0) {

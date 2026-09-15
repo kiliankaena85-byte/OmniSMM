@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertTriangle } from 'lucide-react';
 import { PublicService } from '@/actions/order/catalog';
 
 interface CheckoutDripFeedProps {
@@ -14,11 +14,12 @@ interface CheckoutDripFeedProps {
   dripInterval: number;
   setDripInterval: (i: number) => void;
   totalQuantity: number;
+  dripFloorWarning?: string | null;
 }
 
 export function CheckoutDripFeed({
   selectedService, isDripFeedEnabled, setIsDripFeedEnabled, quantity, setQuantity,
-  dripRuns, setDripRuns, dripInterval, setDripInterval, totalQuantity,
+  dripRuns, setDripRuns, dripInterval, setDripInterval, totalQuantity, dripFloorWarning,
 }: CheckoutDripFeedProps) {
   if (!selectedService.isDripFeedEnabled) return null;
   return (
@@ -56,6 +57,12 @@ export function CheckoutDripFeed({
           <p className="col-span-2 text-xs text-muted-foreground font-medium">
             Заказ выполнится за {dripRuns} запусков по {quantity} шт. Всего: <strong className="text-foreground">{totalQuantity} шт.</strong>
           </p>
+          {dripFloorWarning && (
+            <div className="col-span-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs text-amber-700 dark:text-amber-300 animate-in fade-in duration-200">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div className="leading-snug font-medium">{dripFloorWarning}</div>
+            </div>
+          )}
         </div>
       )}
     </div>

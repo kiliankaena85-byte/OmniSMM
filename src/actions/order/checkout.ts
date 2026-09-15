@@ -43,7 +43,8 @@ export async function calculatePriceAction(
   serviceId: string,
   quantity: number,
   promoCodeStr?: string,
-  runs?: number
+  runs?: number,
+  isSmartDrip?: boolean
 ): Promise<{ success: boolean; data?: PricingResult; error?: string }> {
   try {
     const isAllowed = await RateLimitService.check("priceCalc", 60, 60, true);
@@ -70,17 +71,27 @@ export async function calculatePriceAction(
       totalQuantity,
       promoCodeStr
     );
-    
-    const multiplier = runs && runs > 1 ? runs : 1;
+
+    let markupMultiplier = 1;
+    if (isSmartDrip) {
+      const smartConfig = await db.serviceSmartConfig.findUnique({ where: { serviceId } });
+      if (smartConfig && smartConfig.isEnabled) {
+        markupMultiplier = 1 + smartConfig.markup;
+      }
+    }
 
     // SECURITY FIX: Data Leak Prevention. Do NOT return providerCostCents to the client.
-    const safeResult = {
-      totalCents: Math.round(result.totalCents * multiplier),
-      originalTotalCents: Math.round(result.originalTotalCents * multiplier),
-      discountCents: Math.round(result.discountCents * multiplier)
+    const safeResult: PricingResult = {
+      totalCents: Math.round(result.totalCents * markupMultiplier),
+      originalTotalCents: Math.round(result.originalTotalCents * markupMultiplier),
+      discountCents: Math.round(result.discountCents * markupMultiplier),
+      discountPercent: result.discountPercent,
+      providerCostCents: 0,
+      safetyFloorCents: Math.round(result.safetyFloorCents * markupMultiplier),
+      tier: result.tier,
     };
 
-    return { success: true, data: safeResult as unknown as PricingResult };
+    return { success: true, data: safeResult };
   } catch (error: unknown) {
     const localized = handleServerError(error);
     return { success: false, error: localized.message };
@@ -530,10 +541,9 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
           secondOrderId = secondOrder.id;
         }
 
-        // Consume Promo Code immediately ONLY if paid via balance.
-        // For external gateways (YooKassa, Robokassa, CryptoBot), consumePromoCode is called
-        // upon payment confirmation in paymentService.confirmPayment.
-        if (gateway === 'balance' && normalizedPromo) {
+        // Reserve Promo Code immediately for all gateways to prevent TOCTOU abuse
+        // (Usage will be released by cleanup.processor.ts if payment expires/cancels)
+        if (normalizedPromo) {
           await marketingService.consumePromoCode(tx, normalizedPromo);
         }
 
@@ -967,19 +977,44 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
     const isTestMode = await SettingsManager.isTestMode();
 
     // Update existing payment or create new
-    const result = await runSerializableTransaction<{ paymentId: string; remainingBalanceCents?: number | null }>(async (tx) => {
+    const result = await runSerializableTransaction<{ paymentId: string; remainingBalanceCents?: number | null; totalPaymentAmount: number; linkedOrderIds: string[] }>(async (tx) => {
+      const existingPayment = order.payment || await tx.payment.findUnique({ where: { orderId: order.id } });
+      
+      let ordersToProcess = [order];
+      if (existingPayment) {
+        const linkedOrders = await tx.order.findMany({
+          where: { paymentId: existingPayment.id, status: 'AWAITING_PAYMENT' }
+        });
+        if (linkedOrders.length > 0) {
+          const orderMap = new Map();
+          orderMap.set(order.id, order);
+          for (const lo of linkedOrders) {
+            orderMap.set(lo.id, lo);
+          }
+          ordersToProcess = Array.from(orderMap.values());
+        }
+      }
+
+      let totalChargeCents = 0;
+      for (const o of ordersToProcess) {
+        totalChargeCents += Number(o.charge);
+      }
+
+      let paymentAmount = totalChargeCents;
+      if (gateway !== 'balance' && paymentAmount < 1000) {
+        paymentAmount = 1000;
+      }
+
       let balanceChargeResult = null;
       // If gateway is balance, atomically deduct balance first
       if (gateway === 'balance') {
-        balanceChargeResult = await WalletOps.charge(tx, order.userId, Number(order.charge), `Оплата заказа с баланса`, {
+        balanceChargeResult = await WalletOps.charge(tx, order.userId, paymentAmount, `Оплата заказа с баланса`, {
           idempotencyKey: `balance-charge-retry-${order.id}`
         });
       }
 
       const orderStatus = gateway === 'balance' ? 'PENDING' : undefined;
       const paymentStatus = gateway === 'balance' ? 'SUCCEEDED' : 'PENDING';
-
-      const existingPayment = order.payment || await tx.payment.findUnique({ where: { orderId: order.id } });
 
       let processedPaymentId: string;
 
@@ -994,18 +1029,18 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
           data: {
             userId: order.userId,
             orderId: order.id,
-            amount: order.charge,
+            amount: paymentAmount,
             currency: 'RUB',
             status: paymentStatus,
             gateway,
             consentIp,
             consentUserAgent,
-            orders: { connect: [{ id: order.id }] }
+            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) }
           }
         });
 
-        await tx.order.update({
-          where: { id: order.id },
+        await tx.order.updateMany({
+          where: { id: { in: ordersToProcess.map(o => o.id) } },
           data: { paymentId: newPayment.id }
         });
 
@@ -1016,18 +1051,17 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
           data: { 
             status: paymentStatus,
             gateway,
+            amount: paymentAmount,
             consentIp,
             consentUserAgent
           }
         });
 
         // Самовосстановление связи, если она была утеряна из-за старой архитектуры
-        if (!order.paymentId) {
-          await tx.order.update({
-            where: { id: order.id },
-            data: { paymentId: updatedPayment.id }
-          });
-        }
+        await tx.order.updateMany({
+          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          data: { paymentId: updatedPayment.id }
+        });
 
         processedPaymentId = updatedPayment.id;
       } else {
@@ -1035,29 +1069,36 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
           data: {
             userId: order.userId,
             orderId: order.id,
-            amount: order.charge,
+            amount: paymentAmount,
             currency: 'RUB',
             status: paymentStatus,
             gateway,
             consentIp,
             consentUserAgent,
-            orders: { connect: [{ id: order.id }] } // Правильное связывание
+            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) } // Правильное связывание
           }
+        });
+        
+        await tx.order.updateMany({
+          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          data: { paymentId: newPayment.id }
         });
 
         processedPaymentId = newPayment.id;
       }
 
       if (orderStatus) {
-        await tx.order.update({
-          where: { id: order.id },
+        await tx.order.updateMany({
+          where: { id: { in: ordersToProcess.map(o => o.id) } },
           data: { status: orderStatus }
         });
       }
 
       return { 
         paymentId: processedPaymentId,
-        remainingBalanceCents: balanceChargeResult ? Number(balanceChargeResult.balance) : null
+        remainingBalanceCents: balanceChargeResult ? Number(balanceChargeResult.balance) : null,
+        totalPaymentAmount: paymentAmount,
+        linkedOrderIds: ordersToProcess.map(o => o.id)
       };
     });
 
@@ -1102,13 +1143,15 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
     // Direct fulfillment for balance retry payments
     if (gateway === 'balance') {
       const { ordersQueue } = await import('@/lib/queue-manager');
-      await ordersQueue.add('order-dispatch', { orderId: order.id }, { jobId: `dispatch-${order.id}`, delay: 3 * 60 * 1000 });
+      for (const linkedId of result.linkedOrderIds) {
+        await ordersQueue.add('order-dispatch', { orderId: linkedId }, { jobId: `dispatch-${linkedId}`, delay: 3 * 60 * 1000 });
+      }
 
       void sendOrderBalanceDebitMail({
         email: order.user.email,
         orderId: order.numericId.toString(),
         serviceName: order.service.name,
-        chargedCents: Number(order.charge),
+        chargedCents: result.totalPaymentAmount,
         remainingBalanceCents: result.remainingBalanceCents,
         tenantId: order.tenantId
       }).catch((err: unknown) => console.error('[H1] sendOrderBalanceDebitMail balance retry failed', err));
@@ -1136,7 +1179,7 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
         orderId: order.id,
         userId: order.userId,
         tenantId: order.tenantId,
-        amountRub: Number(order.charge) / 100,
+        amountRub: result.totalPaymentAmount / 100,
         email: order.email || order.user.email,
         successUrl,
         description: `Оплата заказа #${order.numericId} (${order.tenantId === 'flux' ? 'SMMflux' : 'SMMplan'})`,
@@ -1166,8 +1209,8 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
           data: { status: 'CANCELED' }
         }).catch(e => console.error('[RetryCheckout] Failed to cancel payment:', e)),
         
-        db.order.update({
-          where: { id: order.id },
+        db.order.updateMany({
+          where: { id: { in: result.linkedOrderIds } },
           data: { status: 'ERROR', error: errMsg }
         }).catch(e => console.error('[RetryCheckout] Failed to error order:', e))
       ];

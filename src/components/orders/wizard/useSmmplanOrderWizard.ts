@@ -9,7 +9,8 @@ import { analyzeUrl } from '@/actions/order/analyze-url';
 import { matchesSuggestedCategory } from '@/services/analyzer/category-matcher';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
 import { resolveServiceTargetType } from '@/utils/target-type-mapper';
-import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
+import { mutateLink } from '@/validators/link-mutators';
+import { validateDripFeedFloor, validateBaseOrderLink, saveOrderDraftToStorage, loadOrderDraftFromStorage } from '@/hooks/useBaseOrderValidation';
 import { WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
 import { isChannelSrv, isPostSrv, normalizeUrl } from './helpers';
 
@@ -40,21 +41,16 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
 
   // [T2-1] Restore sessionStorage draft on mount (no email/promo per PCI DSS)
   useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem('smmplan_draft');
-      if (saved) {
-        const draft = JSON.parse(saved) as { link?: string; quantity?: number };
-        if (draft.link && typeof draft.link === 'string' && draft.link.length >= 5) setLink(draft.link);
-        if (draft.quantity && typeof draft.quantity === 'number' && draft.quantity > 0) setQuantity(draft.quantity);
-      }
-    } catch { /* sessionStorage unavailable (SSR/incognito) */ }
+    const draft = loadOrderDraftFromStorage<{ link?: string; quantity?: number }>('smmplan_draft');
+    if (draft) {
+      if (draft.link && typeof draft.link === 'string' && draft.link.length >= 5) setLink(draft.link);
+      if (draft.quantity && typeof draft.quantity === 'number' && draft.quantity > 0) setQuantity(draft.quantity);
+    }
   }, []);
 
   // [T2-1] Persist draft to sessionStorage on changes
   useEffect(() => {
-    try {
-      sessionStorage.setItem('smmplan_draft', JSON.stringify({ link, networkId: selectedNetwork?.id, categoryId: selectedCategory?.id, quantity }));
-    } catch { /* sessionStorage unavailable */ }
+    saveOrderDraftToStorage('smmplan_draft', { link, networkId: selectedNetwork?.id, categoryId: selectedCategory?.id, quantity });
   }, [link, selectedNetwork?.id, selectedCategory?.id, quantity]);
 
   useEffect(() => {
@@ -172,15 +168,16 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
 
   const totalQuantity = isDripFeedEnabled ? quantity * dripRuns : quantity;
 
-  // [T1-7] Drip-Feed Floor Invariant warning
+  // [T1-7] Drip-Feed Floor Invariant warning via shared validation engine
   const dripFloorWarning: string | null = (() => {
-    if (!isDripFeedEnabled || !selectedService || dripRuns < 2) return null;
-    const perRun = Math.floor(quantity / dripRuns);
-    if (perRun < selectedService.minQty) {
-      const minTotal = selectedService.minQty * dripRuns;
-      return `Минимальный объём на 1 запуск: ${selectedService.minQty} шт. Установите количество >= ${minTotal} для ${dripRuns} запусков.`;
-    }
-    return null;
+    if (!isDripFeedEnabled || !selectedService) return null;
+    const res = validateDripFeedFloor({
+      isDripFeedEnabled,
+      quantity,
+      runs: dripRuns,
+      minQty: selectedService.minQty,
+    });
+    return res.warningMessage;
   })();
 
   const handleSelectService = (srv: PublicService) => {
@@ -238,18 +235,12 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     } catch { setLink(normalized); }
   };
 
-  // [T1-3] Validator exposed for submit guard in SmmplanOrderWizard.tsx
+  // [T1-3 + T2-3] Validator exposed for submit guard via shared validation engine
   const validateLinkFormat = (): string | null => {
     if (!selectedService || !selectedNetwork || !link) return null;
     const targetType = resolveServiceTargetType(selectedService);
     const platformSlug = selectedNetwork.slug.toUpperCase();
-    try {
-      const mutated = mutateLink(link, platformSlug, targetType);
-      const validator = getLinkValidator(platformSlug, targetType);
-      const result = validator.safeParse(mutated);
-      if (!result.success) return result.error.errors[0].message;
-    } catch { return null; }
-    return null;
+    return validateBaseOrderLink(link, platformSlug, targetType);
   };
 
   const filteredNetworks = networks.filter(n => n.name.toLowerCase().includes(searchNetwork.toLowerCase()));

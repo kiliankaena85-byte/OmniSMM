@@ -1,3 +1,33 @@
+- [x] ⚡ [CDD-TDD 2026] Комплексный харденинг формы заказа и Drip-Feed Floor Invariant (100% COMPLETE & VERIFIED):
+  * 🛡️ **Защита чекаута и биллинга (Fail-Closed & ExactMath Invariants):**
+    - Устранено дублирующее умножение цены на `runs` в `calculatePriceAction` (`checkout.ts`).
+    - Внедрен параметр `isSmartDrip` в `calculatePriceAction` для гарантии серверного применения +20% наценки при промокодах.
+    - В `retryCheckoutAction` интегрирован лимит минимального платежа 10 ₽ (1000 коп.) по эквайрингу и сбор всех связанных заказов корзины (медиагруппы).
+  * 🎯 **Харденинг визарда дашборда и ликвидация запрещенных паттернов:**
+    - В `helpers.ts` и `useSmmplanOrderWizard.ts` запрещенный паттерн `inferTargetTypeFromName` заменен на `resolveServiceTargetType` (соответствие AGENTS.md §4.1).
+    - В `useSmmplanOrderWizard.ts` и `SmmplanOrderWizard.tsx` подключены `mutateLink`, Zod `getLinkValidator` и guard `isLinkServiceCompatible` с понятными локализованными ошибками до запроса на бэкенд.
+    - Устранены race-condition эффекты загрузки услуг и цен через инкрементные `requestId`.
+    - Подключено автоматическое сохранение и восстановление черновика формы заказа (`smmplan_draft`) в `sessionStorage` (без секретов/email, PCI DSS safe).
+  * 📐 **CDD-TDD: Inline-предупреждение Drip-Feed Floor и общий валидационный слой (`useBaseOrderValidation`):**
+    - Создана спецификация `docs/specs/SPEC-2026-09-15-order-wizard-drip-floor-and-base-validation.md`.
+    - Создан TDD-сьют `src/__tests__/unit/order-base-validation.test.ts` (7/7 PASS).
+    - Реализован модуль `src/hooks/useBaseOrderValidation.ts` с функциями `validateDripFeedFloor`, `validateBaseOrderLink`, `saveOrderDraftToStorage`, `loadOrderDraftFromStorage`.
+    - В `CheckoutDripFeed.tsx` и `WizardStepCheckout.tsx` добавлен реактивный amber-баннер предупреждения о нарушении лимита $\lfloor Q / N \rfloor < \text{minQty}$.
+  * 🧪 **Верификация:**
+    - `npx vitest run -c vitest.unit.config.ts src/__tests__/unit/order-base-validation.test.ts` — 7/7 PASS.
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+- [x] ⚡ [SIL-2026] Защита от TOCTOU-эксплойта промокодов при внешней оплате (100% COMPLETE & VERIFIED):
+  * 🛑 **Устранение критической уязвимости параллельного использования одноразовых промокодов:**
+    - В `src/actions/order/checkout.ts` вызов `marketingService.consumePromoCode(tx, normalizedPromo)` переведен на немедленное атомарное списание/бронирование внутри транзакции `runSerializableTransaction` для ВСЕХ платежных шлюзов (а не только `balance`).
+    - Исключен сценарий параллельного открытия десятков ссылок на оплату со скидкой в обход лимита `maxUses`.
+    - В `src/services/financial/payment.service.ts` внедрен метод `cancelPayment(gatewayId)`: при отмене платежа заказы `AWAITING_PAYMENT` отменяются, а счетчик `promoCode.uses` атомарно декрементируется с защитой `uses: { gt: 0 }`.
+    - В `src/app/api/webhooks/yookassa/route.ts` подключена обработка вебхука `payment.canceled` с блокировкой через мьютекс `MutexManager.withLock` для немедленного возврата забронированного промокода клиенту.
+    - Для неподдерживающих вебхук отмены шлюзов возврат промокода гарантированно выполняет `cleanup.processor.ts` по таймауту.
+  * 🧪 **Верификация:**
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Обновлен тестовый сьют `src/__tests__/security/vulnerability-vectors-remediation.test.ts`.
 - [x] ⚡ [SIL-2026] Полное удаление массового заказа (Mass Order Deprecation) и стабилизация инфраструктуры тестов (100% COMPLETE & VERIFIED):
   * 🛑 **Полное удаление "Массового заказа" из платформы:**
     - Полностью удален компонент `UniversalOrderForm.tsx`, модалка `MassConfirmEmailModal.tsx`, хук `useMultiOrderEngine.ts`, детектор `mass-order-detector.ts` и серверный экшен `src/actions/order/mass.ts`.

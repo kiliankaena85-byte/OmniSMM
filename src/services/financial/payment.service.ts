@@ -217,15 +217,6 @@ export class PaymentService {
               data: { status: 'PENDING' }
             });
             await logPromoCodeUsageIfNeeded(tx, linkedOrderId, targetUserId);
-            if (order.promoCodeId) {
-              const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-              if (promo) {
-                const { marketingService } = await import('@/services/marketing.service');
-                await marketingService.consumePromoCode(tx, promo.code).catch((err) => {
-                  console.warn(`[MARKETING] Could not consume promo code ${promo.code} on payment confirmation:`, err);
-                });
-              }
-            }
             activatedOrders.push({ 
               id: order.id, 
               isDripFeed: order.isDripFeed, 
@@ -277,15 +268,6 @@ export class PaymentService {
                 numericId: order.numericId 
               });
               await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
-              if (order.promoCodeId) {
-                const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-                if (promo) {
-                  const { marketingService } = await import('@/services/marketing.service');
-                  await marketingService.consumePromoCode(tx, promo.code).catch((err) => {
-                    console.warn(`[MARKETING] Could not consume basket promo code ${promo.code} on payment confirmation:`, err);
-                  });
-                }
-              }
            }
 
             // Credit full expected paid amount first to currentPayment.userId
@@ -384,6 +366,49 @@ export class PaymentService {
       return true;
     } catch (e: unknown) {
       console.error('[PaymentService] Error confirming payment:', (e instanceof Error ? e.message : String(e)));
+      return false;
+    }
+  }
+
+  /**
+   * Explicitly cancels a payment and rolls back reserved resources (e.g. promo codes).
+   */
+  async cancelPayment(gatewayId: string): Promise<boolean> {
+    try {
+      return await runSerializableTransaction(async (tx) => {
+        const payment = await tx.payment.findUnique({ where: { gatewayId } });
+        if (!payment || payment.status !== 'PENDING') return false;
+
+        const updated = await tx.payment.updateMany({
+          where: { id: payment.id, status: 'PENDING' },
+          data: { status: 'CANCELED' }
+        });
+
+        if (updated.count === 0) return false;
+
+        const orders = await tx.order.findMany({
+          where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' }
+        });
+
+        if (orders.length > 0) {
+          await tx.order.updateMany({
+            where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' },
+            data: { status: 'CANCELED' }
+          });
+
+          for (const order of orders) {
+            if (order.promoCodeId) {
+              await tx.promoCode.updateMany({
+                where: { id: order.promoCodeId, uses: { gt: 0 } },
+                data: { uses: { decrement: 1 } }
+              });
+            }
+          }
+        }
+        return true;
+      });
+    } catch (e: unknown) {
+      console.error('[PaymentService] Error canceling payment:', (e instanceof Error ? e.message : String(e)));
       return false;
     }
   }

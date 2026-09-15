@@ -77,6 +77,7 @@ export interface WizardStepCheckoutProps {
   availableGateways: AvailableGateways | null;
   isCalculatingPrice: boolean;
   calculatedPriceRub: number | null;
+  dripFloorWarning?: string | null;
   isSubmitting: boolean;
   onBackToServices: () => void;
   onSubmit: (e: React.FormEvent) => void;

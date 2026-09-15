@@ -149,7 +149,7 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
                 promoMessage={w.promoMessage} isApplyingPromo={w.isApplyingPromo} handleApplyPromo={w.handleApplyPromo}
                 handleRemovePromo={w.handleRemovePromo} gateway={w.gateway} setGateway={w.setGateway}
                 userBalanceCents={userBalanceCents} availableGateways={w.availableGateways} isCalculatingPrice={w.isCalculatingPrice}
-                calculatedPriceRub={w.calculatedPriceRub} isSubmitting={w.isSubmitting} onBackToServices={() => w.changeStep(3)}
+                calculatedPriceRub={w.calculatedPriceRub} dripFloorWarning={w.dripFloorWarning} isSubmitting={w.isSubmitting} onBackToServices={() => w.changeStep(3)}
                 onSubmit={handleSubmitOrder} setErrors={w.setErrors}
               />
             </div>
