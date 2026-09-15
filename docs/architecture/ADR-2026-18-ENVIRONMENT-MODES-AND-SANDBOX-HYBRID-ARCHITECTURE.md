@@ -61,6 +61,66 @@
 - **Текущее поведение:** В `SystemSettings` для тенанта `smmplan` поля `yookassaTestShopId` и `yookassaTestSecretKey` содержали `null`, перекладывая ответственность на переменные окружения хоста (`.env`).
 - **Требование 2026 года:** Реквизиты тестового эквайринга обязаны быть изолированы на уровне тенанта в зашифрованном хранилище (`VaultService`) в `SystemSettings`.
 
+### Зазор №4: Конфликт `isTestMode` и режима `HYBRID` в фоновом воркере `OrderProcessor`
+- **Текущее поведение:** В `src/workers/processors/order.processor.ts:72-80`:
+  ```typescript
+  const isTestMode = await SettingsManager.isTestMode();
+  if (order.isTest && !isTestMode) {
+    log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);
+    await orderService.failOrderTerminal(orderId, 'SYSTEM_GUARD: Попытка отправки тестового заказа реальному провайдеру прервана.');
+    return;
+  }
+  ```
+- **Проблема:** В режиме `HYBRID` флаг `isTestMode === true` (так как `mode !== 'PRODUCTION'`), но сам заказ `order.isTest` не должен блокироваться, а наоборот — должен уходить к **реальному провайдеру** (согласно определению режима `HYBRID`). В то же время диспетчер провайдера в `order.processor.ts:264` вызывает:
+  ```typescript
+  const provider = await providerService.getWorkerProviderInstance(route.provider);
+  ```
+  Который проверяет `isMockProviderEnabled(tenantId)`. Для `HYBRID` он возвращает `false` (провайдер реальный), а для `ACQUIRING_TEST` и `SANDBOX` — `true` (mock).
+- **Узкое место:** Проверка `order.isTest` опирается на бинарный `isTestMode`, а не на семантику `isMockProviderEnabled()`. Если заказ помечен `order.isTest = true` в режиме `HYBRID`, он может либо случайно уйти реальному провайдеру без явного аудита оператором, либо быть сброшен при переключении режима на лету.
+
+### Зазор №5: Утечка боевых реквизитов и отсутствие режима `isTestMode` в демоне сверки `PaymentReconciliation`
+- **Текущее поведение:** В `src/workers/payment-reconciliation.ts:57-61`:
+  ```typescript
+  const secrets = await SettingsManager.getPaymentSecrets().catch(() => null);
+  const authHeader = (secrets?.yookassaShopId && secrets?.yookassaSecretKey)
+    ? 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64')
+    : 'Basic mock_auth';
+  ```
+  И далее в строке 100:
+  ```typescript
+  await paymentService.confirmPayment(
+    payment.gatewayId,
+    realAmount,
+    payment.userId,
+    false, // <-- ХАРДКОД isTest = false!
+    'yookassa',
+    payment.id
+  );
+  ```
+- **Критический дефект:** 
+  1. Демон авто-сверки зависших платежей всегда использует **боевые ключи** (`yookassaShopId`, `yookassaSecretKey`), даже если в платформе активен режим `ACQUIRING_TEST` или `SANDBOX`. При проверке тестового платежа через API ЮKassa боевые ключи вернут `401 Unauthorized` или `404 Not Found`, что приведет к ложному учету платежа как сироты (`report.orphans += 1`).
+  2. В вызове `confirmPayment` флаг `isTest` жестко захардкожен в `false`. Если тестовый платеж будет подхвачен демоном авто-сверки, он будет подтвержден как **боевой**!
+
+### Зазор №6: Ограничение `createDemoPaymentAction` устаревшим флагом `isTestMode`
+- **Текущее поведение:** В `src/actions/order/demo-payment.action.ts:29-39`:
+  ```typescript
+  const isProd = process.env.NODE_ENV === 'production';
+  let isTestMode = false;
+  try {
+    const { SettingsManager } = await import('@/lib/settings');
+    isTestMode = await SettingsManager.isTestMode();
+  } catch {}
+  if (isProd && !isTestMode) {
+    throw new Error('Демо-платежи доступны только в тестовом режиме');
+  }
+  ```
+- **Проблема:** Экшен проверяет только бинарный `isTestMode`. В режиме `ACQUIRING_TEST` (`isTestMode === true`) создание демо-платежа разрешено, хотя в `ACQUIRING_TEST` платежи должны проходить через **реальный тестовый эквайринг ЮKassa**, а не генерировать фейковые демо-ссылки в обход шлюза. Проверка должна учитывать `isMockPaymentEnabled()`.
+
+### Зазор №7: Сетевой барьер DNS-резолюции `api.yookassa.ru` на хосте разработки (Clash Verge FakeIP)
+- **Текущее поведение:** На хосте разработки запущен прокси-клиент Clash Verge (порт 7890, режим TUN/FakeIP).
+- **Симптом:** DNS-запросы к `api.yookassa.ru` перехватываются внутренним DNS Clash и разрешаются в Fake IP `198.18.0.140`. Прямые HTTPS-запросы к этому IP зависают, так как прокси пытается маршрутизировать российский защищенный хост ЮKassa через внешний туннель вместо прямого соединения (`DIRECT`).
+- **Следствие:** Любой реальный запрос от Node.js или curl к `api.yookassa.ru` на хосте разработки падает по таймауту 10 сек, пока в активном профиле Clash Verge не будет применено правило `DOMAIN-SUFFIX,yookassa.ru,DIRECT`.
+
 ---
 
 ## 4. Decision Outcome (Архитектурное решение и целевое состояние)
@@ -72,11 +132,14 @@
 2. **Инвариант шлюзов в `PaymentGatewayFactory`:**
    - Фабрика платежных шлюзов обязана учитывать флаг `isMockPayment`. Если активен `isMockPaymentEnabled` и не включен режим прямого теста эквайринга, фабрика отдает `MockGateway`.
    - В режимах `ACQUIRING_TEST` и `PRODUCTION` фабрика использует реальный `YooKassaGateway`.
-3. **Разделение ключей Live / Test в `YooKassaGateway`:**
-   - При `isTestMode: true` шлюз обязан использовать `yookassaTestShopId` / `yookassaTestSecretKey` (префикс `test__`).
+3. **Разделение ключей Live / Test в `YooKassaGateway` и `PaymentReconciliation`:**
+   - При `isTestMode: true` шлюз и демон авто-сверки обязаны использовать `yookassaTestShopId` / `yookassaTestSecretKey` (префикс `test__`).
    - Использование боевых ключей в тестовом режиме категорически заблокировано на уровне валидатора.
+   - В `PaymentReconciliation` параметр `isTest` обязан динамически разрешаться через `SettingsManager.isTestMode(payment.tenantId)`.
 4. **Безопасность фискализации (54-ФЗ):**
    - В тестовом режиме ЮKassa чеки формируются с корректными признаками расчета (ФФД 1.2, ставки НДС), но не передаются оператором фискальных данных в ФНС РФ, исключая налоговые обязательства.
+5. **Нормализация DNS-маршрутизации (DIRECT bypass):**
+   - Домены эквайринга РФ (`api.yookassa.ru`, `yoomoney.ru`, `auth.robokassa.ru`) зафиксированы в `IMMUTABLE_DIRECT_PATTERNS` и обязаны идти напрямую минуя любые туннели.
 
 ---
 
