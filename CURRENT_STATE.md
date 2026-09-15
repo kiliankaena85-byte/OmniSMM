@@ -1,3 +1,18 @@
+- [x] ⚡ [E2E-LIFECYCLE-2026] Комплексное тестирование пользовательских путей (Заказ, Оплата, Отмена, Возврат, Баланс) по стандартам 2026 года (100% COMPLETE & VERIFIED):
+  * 🗄️ **Инфраструктура и настройка платежного шлюза:**
+    - Развернута и синхронизирована тестовая PostgreSQL база данных `smmplan_test` на порту `5435` с актуальной Prisma-схемой.
+    - В `.env` сконфигурированы тестовые реквизиты YooKassa (`Shop ID: 1155074`, `Secret Key: test__...`), активирован `TEST_MODE_ENABLED=true`.
+    - В `clash/config.yaml` настроена маршрутизация с `DIRECT` и Yandex DNS для доменов `yookassa.ru`, `yoomoney.ru`.
+  * 🧪 **Сквозной сьют E2E-жизненного цикла (`src/__tests__/unit/user-journey-order-payment-lifecycle.test.ts`):**
+    - **1. Happy Path (Баланс):** Создание заказа, списание средств через `WalletOps.charge`, запись в `LedgerEntry` со статусом `APPROVED` и типом `ORDER_CHARGE`, перевод заказа в `IN_PROGRESS`.
+    - **2. Negative Path (Недостаток средств):** Блокировка заказа при нулевом или малом балансе, выброс `WalletInsufficientFundsError`, неизменность баланса.
+    - **3. Happy Path (Внешний эквайринг):** Подтверждение вебхука шлюза `confirmPayment` (`test_yoo_tx_*`), перевод платежа в `SUCCEEDED`, а заказа из `AWAITING_PAYMENT` в `IN_PROGRESS`.
+    - **4. Happy & Negative Path (Отмена платежа и промокод):** Отмена неоплаченного заказа и платежа `cancelPayment` (`test_yoo_cancel_*`), статус `CANCELED`, откат счетчика `promoCode.uses`, защита от повторной отмены.
+    - **5. Order Cancellation & Refund:** Отмена заказа и полный возврат средств пользователю через `WalletOps.refund` с созданием неизменяемой записи `REFUND` в `LedgerEntry`.
+  * 🛡️ **CI-Gates & Качество кода:**
+    - `npx vitest run -c vitest.unit.config.ts src/__tests__/unit/user-journey-order-payment-lifecycle.test.ts` — 6/6 PASS (371ms).
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов в бандле и скриптах.
 - [x] ⚡ [CDD-TDD 2026] Комплексный харденинг формы заказа и Drip-Feed Floor Invariant (100% COMPLETE & VERIFIED):
   * 🛡️ **Защита чекаута и биллинга (Fail-Closed & ExactMath Invariants):**
     - Устранено дублирующее умножение цены на `runs` в `calculatePriceAction` (`checkout.ts`).
