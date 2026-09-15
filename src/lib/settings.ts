@@ -525,6 +525,13 @@ export class SettingsProvider {
   static async getEnvironmentMode(tenantId?: string): Promise<EnvironmentMode> {
     const activeTenantId = tenantId || await this.getTenantId();
     try {
+      const settings = await this.get(activeTenantId);
+      if (settings && settings.environmentMode) {
+        return settings.environmentMode as EnvironmentMode;
+      }
+    } catch { /* fallback */ }
+
+    try {
       const { redis } = await import('./redis');
       const cachedMode = await redis.get(`settings:${activeTenantId}:environmentMode`);
       if (cachedMode && ['SANDBOX', 'HYBRID', 'ACQUIRING_TEST', 'PRODUCTION'].includes(cachedMode)) {
@@ -546,8 +553,8 @@ export class SettingsProvider {
 
     await db.systemSettings.upsert({
       where: { id: activeTenantId },
-      update: { isTestMode: isTest },
-      create: { id: activeTenantId, isTestMode: isTest }
+      update: { isTestMode: isTest, environmentMode: mode },
+      create: { id: activeTenantId, isTestMode: isTest, environmentMode: mode }
     });
 
     try {

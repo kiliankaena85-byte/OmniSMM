@@ -68,10 +68,10 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
     return;
   }
 
-  // TEST ORDER GUARD — prevents dispatching test orders to real providers
-  const isTestMode = await SettingsManager.isTestMode();
-  if (order.isTest && !isTestMode) {
-    log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);
+  // TEST ORDER GUARD — prevents dispatching mock test orders to real providers
+  const isMockProvider = await SettingsManager.isMockProviderEnabled();
+  if (order.isTest && !isMockProvider) {
+    log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production or hybrid mode. Failing safely.`);
     const { orderService } = await import('../../services/core/order.service');
     await orderService.failOrderTerminal(
       orderId,

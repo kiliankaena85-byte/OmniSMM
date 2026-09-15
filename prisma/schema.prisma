@@ -706,6 +706,7 @@ model SystemSettings {
   id              String    @id
   tenant          Tenant    @relation(fields: [id], references: [id], onDelete: Cascade)
   isTestMode      Boolean   @default(false)
+  environmentMode String    @default("PRODUCTION") // SANDBOX | HYBRID | ACQUIRING_TEST | PRODUCTION
   taxRate         Float     @default(6.0) // % tax rate
   usnScheme       UsnScheme @default(INCOME_EXPENSES)
   opexMonthly     Int       @default(0) // Fixed operational expenses sum in Cents

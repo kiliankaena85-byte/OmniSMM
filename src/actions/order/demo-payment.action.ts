@@ -25,21 +25,20 @@ export async function createDemoPaymentAction({
     throw new Error("Минимальная сумма к оплате — 10 ₽");
   }
 
-  // CHK-03: demo payments must never reach real gateways in production
-  const isProd = process.env.NODE_ENV === 'production';
-  let isTestMode = false;
-  try {
-    const { SettingsManager } = await import('@/lib/settings');
-    isTestMode = await SettingsManager.isTestMode();
-  } catch {
-    // settings unavailable — treat as production
-  }
-  if (isProd && !isTestMode) {
-    throw new Error('Демо-платежи доступны только в тестовом режиме');
-  }
-
+  // CHK-03: demo payments are only permitted in SANDBOX or HYBRID modes (where mock payment is enabled)
   const reqHeaders = await headers();
   const tenantId = reqHeaders.get('x-tenant-id') || 'smmplan';
+
+  let isMockPayment = false;
+  try {
+    const { SettingsManager } = await import('@/lib/settings');
+    isMockPayment = await SettingsManager.isMockPaymentEnabled(tenantId);
+  } catch {
+    // settings unavailable — fail-closed
+  }
+  if (!isMockPayment) {
+    throw new Error('Демо-платежи доступны только в режимах тестирования без реального эквайринга (Песочница / Гибридный)');
+  }
 
   // Find or create demo user
   let demoUser = await db.user.findFirst({

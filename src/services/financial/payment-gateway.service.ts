@@ -776,8 +776,15 @@ class MockGateway extends BasePaymentGateway {
 }
 
 export class PaymentGatewayFactory {
-  static getGateway(gatewayName: string): BasePaymentGateway {
-    switch (gatewayName.toLowerCase()) {
+  static getGateway(gatewayName: string, options?: { isMockPayment?: boolean }): BasePaymentGateway {
+    const normalizedName = gatewayName.toLowerCase();
+    
+    // In SANDBOX or HYBRID modes, route all external gateways to MockGateway to prevent network leakage
+    if (options?.isMockPayment && normalizedName !== 'balance') {
+      return new MockGateway();
+    }
+
+    switch (normalizedName) {
       case 'yookassa':
       case 'sbp':
       case 'card':

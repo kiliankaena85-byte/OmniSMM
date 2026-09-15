@@ -54,11 +54,6 @@ export async function reconcileStalePayments(): Promise<ReconciliationReport> {
 
     log.info(`Found ${stalePayments.length} stale PENDING payments for reconciliation`);
 
-    const secrets = await SettingsManager.getPaymentSecrets().catch(() => null);
-    const authHeader = (secrets?.yookassaShopId && secrets?.yookassaSecretKey)
-      ? 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64')
-      : 'Basic mock_auth';
-
     const reconciledItems: Array<{
       id: string;
       gatewayId: string;
@@ -76,6 +71,12 @@ export async function reconcileStalePayments(): Promise<ReconciliationReport> {
 
       if (payment.gateway === 'yookassa') {
         try {
+          const secrets = await SettingsManager.getPaymentSecrets(payment.tenantId).catch(() => null);
+          const isTestMode = await SettingsManager.isTestMode(payment.tenantId);
+          const authHeader = (secrets?.yookassaShopId && secrets?.yookassaSecretKey)
+            ? 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64')
+            : 'Basic mock_auth';
+
           const res = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
             method: 'GET',
             headers: { Authorization: authHeader },
@@ -97,7 +98,7 @@ export async function reconcileStalePayments(): Promise<ReconciliationReport> {
                 payment.gatewayId,
                 realAmount,
                 payment.userId,
-                false,
+                isTestMode,
                 'yookassa',
                 payment.id
               );

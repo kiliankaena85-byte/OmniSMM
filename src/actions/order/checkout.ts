@@ -757,8 +757,9 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     }
 
     try {
+      const isMockPayment = await SettingsProvider.isMockPaymentEnabled(tenantId);
       const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
-      const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa');
+      const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa', { isMockPayment });
       const gatewayResult = await gatewaySvc.createPayment({
         paymentId: result.paymentId,
         orderId: result.orderId,
@@ -1171,8 +1172,9 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 
     try {
       const isTestMode = await SettingsManager.isTestMode(order.tenantId);
+      const isMockPayment = await SettingsManager.isMockPaymentEnabled(order.tenantId);
       const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
-      const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa');
+      const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa', { isMockPayment });
       
       const gatewayResult = await gatewaySvc.createPayment({
         paymentId: result.paymentId,
