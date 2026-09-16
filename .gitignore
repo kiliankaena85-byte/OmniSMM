@@ -33,6 +33,7 @@ pin.html
 *.html
 *.png
 *.txt
+strix_runs/
 
 # ── Harness artifacts & reports ──
 .antigravity/reports/
