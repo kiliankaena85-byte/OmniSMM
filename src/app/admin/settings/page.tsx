@@ -159,7 +159,7 @@ export default async function AdminSettingsPage({
   const regularUsers = users.filter((u) => u.id !== admin.id);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full min-w-0 animate-in fade-in duration-300 ease-out px-1 sm:px-4 min-h-full pb-16">
+    <div className="space-y-6 w-full max-w-full min-w-0 animate-in fade-in duration-300 ease-out px-2 sm:px-6 min-h-full pb-16">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-1">
         <AdminTabbedHeader
           icon={Settings}

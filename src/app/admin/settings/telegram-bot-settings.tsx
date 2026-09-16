@@ -81,7 +81,7 @@ export type TelegramSubTab =
   | 'security';
 
 export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: TelegramBotSettingsProps) {
-  const [activeTab, setActiveTab] = useState<TelegramSubTab>('bots');
+  const [activeTab, setActiveTab] = useState<TelegramSubTab>('general');
   const [diagnostics, setDiagnostics] = useState<TelegramBotDiagnostics | null>(null);
   const [loadingDiag, setLoadingDiag] = useState(false);
   const [isPendingReset, startTransitionReset] = useTransition();
@@ -325,6 +325,32 @@ export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: Telegram
       <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-muted/30 border border-border/60 overflow-x-auto w-full min-w-0 no-scrollbar snap-x snap-mandatory">
         <button
           type="button"
+          onClick={() => setActiveTab('general')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
+            activeTab === 'general'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Settings2 className="w-3.5 h-3.5" />
+          <span>1. Подключение</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('menu')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
+            activeTab === 'menu'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>2. Кнопки Меню</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('bots')}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
             activeTab === 'bots'
@@ -334,33 +360,7 @@ export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: Telegram
         >
           <Bot className="w-3.5 h-3.5" />
           <span>Конструктор ботов</span>
-          <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white font-mono font-extrabold">NEW</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('general')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'general'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Settings2 className="w-3.5 h-3.5 text-blue-400" />
-          <span>1. Подключение</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('menu')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'menu'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Smartphone className="w-3.5 h-3.5 text-primary" />
-          <span>2. Кнопки Меню</span>
+          <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-extrabold">NEW</span>
         </button>
 
         <button

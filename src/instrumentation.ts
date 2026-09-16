@@ -34,6 +34,10 @@ export async function register() {
           launchBot().catch((botErr) => {
             console.warn('[Instrumentation] Telegram bot startup error:', botErr);
           });
+          const { multiBotManager } = await import('@/bot/manager/multi-bot-manager');
+          multiBotManager.initPool().catch((poolErr) => {
+            console.warn('[Instrumentation] Multi-bot pool init error:', poolErr);
+          });
         } catch (botImportErr) {
           console.warn('[Instrumentation] Failed to load bot module:', botImportErr);
         }

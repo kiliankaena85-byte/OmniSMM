@@ -82,6 +82,8 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
   const [supportEmail, setSupportEmail] = useState<string>(settings.contactSupportEmail || defaultEmail);
   const [privacyEmail, setPrivacyEmail] = useState<string>(settings.contactPrivacyEmail || defaultPrivacyEmail);
   const [telegramBot, setTelegramBot] = useState<string>(settings.contactTelegramBot || '');
+  const [telegramBotToken, setTelegramBotToken] = useState<string>('');
+  const [telegramChannel, setTelegramChannel] = useState<string>(settings.contactTelegramChannel || '');
   const [companyName, setCompanyName] = useState<string>(settings.legalCompanyName || defaultSiteName);
   const [companyInn, setCompanyInn] = useState<string>(settings.legalCompanyInn || '');
   const [companyOgrnip, setCompanyOgrnip] = useState<string>(settings.legalCompanyOgrnip || '');
@@ -94,6 +96,8 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
     setSupportEmail(settings.contactSupportEmail || (tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro'));
     setPrivacyEmail(settings.contactPrivacyEmail || (tenantId === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro'));
     setTelegramBot(settings.contactTelegramBot || '');
+    setTelegramBotToken('');
+    setTelegramChannel(settings.contactTelegramChannel || '');
     setCompanyName(settings.legalCompanyName || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan'));
     setCompanyInn(settings.legalCompanyInn || '');
     setCompanyOgrnip(settings.legalCompanyOgrnip || '');
@@ -107,10 +111,11 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
       try {
         const res = await disconnectTelegramBotAction(tenantId);
         if (res.success) {
-          setTelegramBot('');
           toast.success(res.message);
-        } else if ('error' in res) {
-          toast.error(res.error || 'Ошибка при отвязке бота');
+          setTelegramBot('');
+          setTelegramBotToken('');
+        } else {
+          toast.error('error' in res ? res.error : 'Ошибка отвязки бота');
         }
       } catch (err) {
         toast.error(String(err));
@@ -135,7 +140,12 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
     setIsTestingBot(true);
     setBotTestResult(null);
     try {
-      const res = await fetch('/api/admin/test-telegram-bot', { cache: 'no-store' });
+      const url = new URL('/api/admin/test-telegram-bot', window.location.origin);
+      url.searchParams.set('tenant', tenantId);
+      if (telegramBotToken && telegramBotToken.trim().length > 10 && !telegramBotToken.includes('•••')) {
+        url.searchParams.set('token', telegramBotToken.trim());
+      }
+      const res = await fetch(url.toString(), { cache: 'no-store' });
       const data = await res.json();
       setBotTestResult(data);
       if (data.success) {
@@ -623,6 +633,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
               value={telegramBot}
               onChange={(e) => setTelegramBot(e.target.value)}
               placeholder={tenantId === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot'}
+              className="font-mono text-xs"
             />
             <p className="text-[11px] text-muted-foreground">
               {telegramBot ? (
@@ -635,32 +646,81 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
 
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Статус подключения бота
+              Официальный Telegram-канал
             </Label>
-            <div className="p-3 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-between text-xs min-h-[46px]">
-              {telegramBot ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-bold text-foreground">@{telegramBot}</span>
-                  </div>
-                  <a
-                    href={`https://t.me/${telegramBot}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline font-bold text-[11px] flex items-center gap-1"
-                  >
-                    Открыть в Telegram ↗
-                  </a>
-                </>
-              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-500" />
-                  <span>Бот не привязан к {tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}</span>
-                </div>
-              )}
-            </div>
+            <Input
+              name="contactTelegramChannel"
+              value={telegramChannel}
+              onChange={(e) => setTelegramChannel(e.target.value)}
+              placeholder={tenantId === 'flux' ? '@smmflux_news' : '@smmplan_news'}
+              className="font-mono text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Канал для новостей и акций бренда, отображаемый в футере и виджетах.
+            </p>
           </div>
+        </div>
+
+        {/* Telegram Bot Token Input Field (AES-256 Vault) */}
+        <div className="space-y-2 pt-2 border-t border-border/40">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Токен Telegram Бота (API Token)
+            </Label>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              AES-256-GCM Vault
+            </span>
+          </div>
+          <Input
+            name="telegramBotToken"
+            type="password"
+            value={telegramBotToken}
+            onChange={(e) => setTelegramBotToken(e.target.value)}
+            placeholder={settings.telegramBotToken ? '••••••••••••••••' : 'Вставьте токен от @BotFather (например: 123456:ABC-DEF...)'}
+            className="font-mono text-xs"
+            autoComplete="new-password"
+          />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-muted-foreground">
+            <p>
+              Токен шифруется в защищенном хранилище БД (Vault) и имеет приоритет над переменными окружения.
+            </p>
+            <a
+              href="/admin/settings?tab=telegram"
+              className="text-primary hover:underline font-bold inline-flex items-center gap-1 shrink-0"
+            >
+              <span>Центр управления ботом (меню, CSAT, конструктор) →</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Bot Status & Link Preview */}
+        <div className="p-3 rounded-2xl bg-muted/20 border border-border/60 flex items-center justify-between text-xs min-h-[46px]">
+          {telegramBot ? (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-foreground font-mono">@{telegramBot}</span>
+                {settings.telegramBotToken && (
+                  <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Токен сохранен
+                  </span>
+                )}
+              </div>
+              <a
+                href={`https://t.me/${telegramBot}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-bold text-[11px] flex items-center gap-1"
+              >
+                Открыть в Telegram ↗
+              </a>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 text-muted-foreground font-medium">
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-500" />
+              <span>Бот не привязан к {tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}</span>
+            </div>
+          )}
         </div>
 
         {/* Live Diagnostics Card */}

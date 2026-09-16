@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { RBAC_SECTIONS, RbacSectionId } from '@/lib/rbac-sections';
+import { revalidatePath } from 'next/cache';
 
 const SECTION_IDS = RBAC_SECTIONS.map(s => s.id) as [RbacSectionId, ...RbacSectionId[]];
 
@@ -139,6 +140,8 @@ export async function createRoleAction(input: z.input<typeof createRoleSchema>) 
       }
     });
 
+    revalidatePath('/admin/settings');
+    revalidatePath('/admin/settings/roles');
     return { success: true, role: newRole };
   });
 }
@@ -250,6 +253,8 @@ export async function updateRoleAction(input: z.input<typeof updateRoleSchema>) 
       }
     });
 
+    revalidatePath('/admin/settings');
+    revalidatePath('/admin/settings/roles');
     return { success: true, role: updatedRole };
   });
 }
@@ -319,6 +324,8 @@ export async function cloneRoleAction(input: z.infer<typeof cloneRoleSchema>) {
       }
     });
 
+    revalidatePath('/admin/settings');
+    revalidatePath('/admin/settings/roles');
     return { success: true, role: cloned };
   });
 }
@@ -381,6 +388,8 @@ export async function deleteRoleAction(input: z.infer<typeof deleteRoleSchema>) 
       newValue: null
     });
 
+    revalidatePath('/admin/settings');
+    revalidatePath('/admin/settings/roles');
     return { success: true, id };
   });
 }

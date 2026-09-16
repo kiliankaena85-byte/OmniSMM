@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import { requestCardRefundAction } from '@/actions/admin/users';
@@ -113,6 +113,7 @@ describe('🏆 YooKassa Enterprise QA Test Suite (Dual-Custody, 54-FZ & FinTech 
   });
 
   afterEach(async () => {
+    await db.staffRole.deleteMany({ where: { name: { startsWith: 'Supervisor_' } } }).catch(() => {});
     const userIds = [ownerUser?.id, financierUser?.id, supportStaff?.id, clientUser?.id].filter(Boolean);
     if (userIds.length > 0) {
       await db.manualBalanceAdjustment.deleteMany({ where: { OR: [{ userId: { in: userIds } }, { requestedBy: { in: userIds } }, { approvedBy: { in: userIds } }, { rejectedBy: { in: userIds } }] } }).catch(() => {});
@@ -121,6 +122,10 @@ describe('🏆 YooKassa Enterprise QA Test Suite (Dual-Custody, 54-FZ & FinTech 
       await db.adminAuditLog.deleteMany({ where: { adminId: { in: userIds } } }).catch(() => {});
       await db.user.deleteMany({ where: { id: { in: userIds } } }).catch(() => {});
     }
+  });
+
+  afterAll(async () => {
+    await db.staffRole.deleteMany({ where: { name: { startsWith: 'Supervisor_' } } }).catch(() => {});
   });
 
   // ==========================================
