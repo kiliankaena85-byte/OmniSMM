@@ -387,6 +387,8 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
           where: { id: order.id },
           data: {
             status: 'PENDING_CHECK',
+            providerId: route.providerId,
+            providerServiceId: route.providerServiceId,
             error: formattedError
           }
         });
@@ -406,6 +408,9 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
             providerName: route.provider.name,
           }, originalError, route.provider.name);
         } catch { /* ignore */ }
+
+        // Clear mutex so order can be restarted or autoflushed without duplicate dispatch deadlock
+        await connection.del(redisKey).catch(() => {});
 
         throw new UnrecoverableError(`Manual failover mode: operator triage required`);
       }
@@ -453,6 +458,9 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
         }, holdMessage, candidateRoutes[0]?.provider?.name);
       } catch { /* ignore */ }
 
+      // Clear mutex so order can be restarted or updated without duplicate dispatch deadlock
+      await connection.del(redisKey).catch(() => {});
+
       throw new UnrecoverableError(`Price Drift Hold: ${holdMessage}`);
     }
 
@@ -473,6 +481,8 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
       where: { id: order.id },
       data: {
         status: 'PENDING_CHECK',
+        providerId: candidateRoutes[0]?.providerId || order.providerId,
+        providerServiceId: candidateRoutes[0]?.providerServiceId || order.providerServiceId,
         error: formattedError
       }
     });
@@ -492,6 +502,9 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
         providerName: candidateRoutes[0]?.provider?.name,
       }, lastError, candidateRoutes[0]?.provider?.name);
     } catch { /* ignore */ }
+
+    // Clear mutex so order can be restarted or autoflushed without duplicate dispatch deadlock
+    await connection.del(redisKey).catch(() => {});
 
     throw new UnrecoverableError(`Order moved to PENDING_CHECK: ${lastError}`);
   }

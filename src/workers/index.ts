@@ -144,6 +144,7 @@ async function handleDeadLetter(
       });
 
       // 🔥 Safe State Handling: PENDING_CHECK orders are parked for triage/autoflush and MUST NOT be auto-failed
+      let isParkedForTriage = false;
       if (queueName === 'ordersQueue') {
         const payload = job.data as { orderId?: string; refillId?: string };
         if (payload?.orderId) {
@@ -153,6 +154,7 @@ async function handleDeadLetter(
           });
           if (currentOrder && (currentOrder.status === 'PENDING_CHECK' || currentOrder.status === 'IN_PROGRESS')) {
             log.info(`[WORKER] Order #${currentOrder.numericId} (${payload.orderId}) is in '${currentOrder.status}'. Skipping auto-fail to allow operator triage / balance autoflush.`);
+            isParkedForTriage = true;
           } else {
             await orderService.failOrderTerminal(payload.orderId, err.message);
             log.info(`Auto-refunded dead-letter order ${payload.orderId}`);
@@ -161,7 +163,7 @@ async function handleDeadLetter(
       }
 
       if (queueName === 'refillQueue') {
-                const payload = job.data as { orderId?: string; refillId?: string };
+        const payload = job.data as { orderId?: string; refillId?: string };
         if (payload?.refillId) {
           await db.refill.update({
             where: { id: payload.refillId },
@@ -174,13 +176,13 @@ async function handleDeadLetter(
       // ── Smart Alert Triage (P0 Critical vs P1 Maintenance with Deduplication) ─────
       const isFinancialQueue = ['ordersQueue', 'paymentSyncQueue', 'paymentGatewayQueue', 'refillQueue'].includes(queueName);
       
-      if (isFinancialQueue) {
+      if (isFinancialQueue && !isParkedForTriage) {
         // P0: Always alert immediately for customer money and orders
         await sendAdminAlert(
           `🪦 *Dead Letter Job (P0 Финансовый)*\n\nОчередь: \`${queueName}\`\nJob ID: \`${job.id}\`\nПопыток: ${job.attemptsMade}/${maxAttempts}\n\nОшибка: ${err.message}`,
           'CRITICAL'
         );
-      } else {
+      } else if (!isParkedForTriage) {
         // P1: Deduplicate maintenance queues (catalog, articles, etc.) to prevent Telegram alert floods
         const { P0AlertDebouncer } = await import('@/lib/alerts/p0-alert-debouncer');
         const errKey = `dlq:${queueName}:${err.name || 'Error'}`;

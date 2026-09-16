@@ -161,11 +161,12 @@ export class BalanceAutoFlushService {
         };
       }
 
-      // 5. Query candidate PENDING_CHECK orders for this provider
+      // 5. Query candidate PENDING_CHECK orders for this provider (capped at 5 retries to prevent infinite loops)
       const candidateOrders = await db.order.findMany({
         where: {
           providerId,
           status: 'PENDING_CHECK',
+          retryCount: { lt: 5 },
         },
         orderBy: { createdAt: 'asc' },
         take: this.BATCH_LIMIT,
@@ -198,9 +199,22 @@ export class BalanceAutoFlushService {
 
       const skippedCount = candidateOrders.length - eligibleOrders.length;
       let flushedCount = 0;
+      let remainingLiquidityRub = balanceData.balanceRub;
 
-      // 7. Atomic reset and queue push
+      // 7. Atomic reset and queue push with Batch Liquidity check
       for (const order of eligibleOrders) {
+        const orderCostRub = order.providerCost ? Number(order.providerCost) : 0;
+        if (orderCostRub > 0 && remainingLiquidityRub < orderCostRub) {
+          // Break early if remaining balance cannot cover the next order
+          break;
+        }
+        if (orderCostRub > 0) {
+          remainingLiquidityRub -= orderCostRub;
+        }
+
+        // Clear duplicate dispatch mutex in case it was set previously
+        await redis.del(`order:dispatched:${order.id}`).catch(() => {});
+
         await db.order.update({
           where: { id: order.id },
           data: {
@@ -213,6 +227,23 @@ export class BalanceAutoFlushService {
         const jobId = `dispatch-${order.id}-${Date.now()}`;
         await ordersQueue.add('order-dispatch', { orderId: order.id }, { jobId });
         flushedCount++;
+      }
+
+      // Unfreeze services of this provider that were put in cooldown due to API failures
+      if (flushedCount > 0) {
+        try {
+          await db.service.updateMany({
+            where: {
+              providerId,
+              cooldownReason: 'HIGH_API_FAILURES',
+              cooldownUntil: { gt: new Date() }
+            },
+            data: {
+              cooldownUntil: null,
+              cooldownReason: null
+            }
+          });
+        } catch { /* ignore */ }
       }
 
       // 8. Audit Log & Team Alert

@@ -189,6 +189,15 @@ export class UniversalProvider implements BaseProvider {
         const text = await response.text();
         try {
           const data = JSON.parse(text) as T;
+          // 🛡️ Circuit Breaker Guard: Do NOT record success if provider returned an error payload disguised as HTTP 200
+          if (data && typeof data === 'object' && 'error' in data && (data as { error?: unknown }).error) {
+            const errStr = String((data as { error?: unknown }).error).toLowerCase();
+            const isSystemic = errStr.includes('balance') || errStr.includes('maintenance') || errStr.includes('down') || errStr.includes('busy');
+            if (isSystemic) {
+              await CircuitBreaker.recordFailure(this.apiUrl);
+            }
+            return data;
+          }
           await CircuitBreaker.recordSuccess(this.apiUrl);
           return data;
         } catch (jsonErr: unknown) {

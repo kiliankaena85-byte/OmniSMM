@@ -19,6 +19,7 @@ import { adminOrderService } from '@/services/admin/order.service';
 import { WalletOps } from '@/services/financial/wallet-ops';
 import { orderIdSchema } from '@/validators/admin.validators';
 import { ordersQueue } from '@/lib/queue-manager';
+import { redis } from '@/lib/redis';
 import { SettingsManager } from '@/lib/settings';
 import { CompensationService } from '@/services/financial/compensation.service';
 
@@ -622,7 +623,9 @@ export async function manualRerouteOrder(orderId: string, newRouteId: string, ac
     });
 
     // После транзакции — отправка в BullMQ
-    const jobId = `dispatch-${orderId}`;
+    // Clear duplicate dispatch mutex and ensure unique BullMQ jobId with timestamp
+    await redis.del(`order:dispatched:${orderId}`).catch(() => {});
+    const jobId = `dispatch-${orderId}-${Date.now()}`;
     await ordersQueue.add('order-dispatch', { orderId }, { jobId });
 
     // Запись аудита администратора

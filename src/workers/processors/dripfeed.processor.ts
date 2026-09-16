@@ -303,10 +303,30 @@ export async function runSmartDripfeedTick() {
         `[Dripfeed Worker] Задача ${task.id} успешно отправлена провайдеру. External ID: ${extOrderId}`
       );
     } catch (err: unknown) {
-      log.error(`[Dripfeed Worker] Ошибка обработки задачи ${task.id}:`, (err instanceof Error ? err.message : String(err)));
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      log.error(`[Dripfeed Worker] Ошибка обработки задачи ${task.id}:`, errorMsg);
+
+      const isBalanceError = errorMsg.toLowerCase().includes('balance') ||
+                            errorMsg.toLowerCase().includes('not enough') ||
+                            errorMsg.toLowerCase().includes('low balance') ||
+                            errorMsg.toLowerCase().includes('insufficient');
+
+      if (isBalanceError) {
+        log.warn(`[Dripfeed Worker] Провайдер исчерпал баланс. Откладываем задачу ${task.id} на 20 минут.`);
+        await prisma.smartTask.update({
+          where: { id: task.id },
+          data: {
+            status: SmartTaskStatus.PLANNED,
+            runAt: new Date(Date.now() + 20 * 60 * 1000),
+            error: `Отложено из-за баланса поставщика: ${errorMsg}`,
+          },
+        });
+        continue;
+      }
+
       await prisma.smartTask.update({
         where: { id: task.id },
-        data: { status: SmartTaskStatus.ERROR, error: (err instanceof Error ? err.message : String(err)) },
+        data: { status: SmartTaskStatus.ERROR, error: errorMsg },
       });
       await checkAndCompleteCampaign(task.campaignId);
     }

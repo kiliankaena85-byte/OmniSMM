@@ -29,8 +29,14 @@ export class MarginGuard {
     bufferPercent: number = 0.05
   ): Promise<MarginCheckResult> {
     const usdToRub = await SettingsProvider.getExchangeRateUSD();
-    const isForeign = providerCurrency.toUpperCase() === 'USD';
-    const rateMultiplier = isForeign ? usdToRub * (1 + bufferPercent) : 1.0;
+    const currUpper = providerCurrency.toUpperCase();
+    let exchangeRate = 1.0;
+    if (currUpper === 'USD') {
+      exchangeRate = usdToRub;
+    } else if (currUpper === 'EUR') {
+      exchangeRate = usdToRub * 1.08;
+    }
+    const rateMultiplier = currUpper !== 'RUB' ? exchangeRate * (1 + bufferPercent) : 1.0;
 
     // Total cost in RUB
     const costRub = (providerRate * rateMultiplier / 1000) * quantity;
