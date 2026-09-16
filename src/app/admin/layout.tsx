@@ -19,9 +19,10 @@ import { cookies } from 'next/headers';
 import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
 
 // ADM-16: catalog anomaly badge — cached for 60s instead of a COUNT on every admin page load
-const getCachedAnomalyCount = unstable_cache(
+const getCachedAnomalyCount = (tenantId: string) => unstable_cache(
   async () => db.service.count({
     where: {
+      tenantId,
       OR: [
         { isQuarantined: true },
         { cooldownReason: 'ZOMBIE_AUTO_DISABLED', isActive: false },
@@ -29,9 +30,9 @@ const getCachedAnomalyCount = unstable_cache(
       ]
     }
   }),
-  ['admin-catalog-anomaly-count-v1'],
-  { revalidate: 60, tags: ['catalog', 'anomaly-count'] }
-);
+  [`admin-catalog-anomaly-count-v1-${tenantId}`],
+  { revalidate: 60, tags: ['catalog', 'anomaly-count', `catalog-${tenantId}`] }
+)();
 
 // Cached count of OPEN tickets requiring staff response
 const getCachedOpenTicketCount = unstable_cache(
@@ -91,7 +92,27 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect('/dashboard/new-order');
   }
 
-  const anomalyCount = await getCachedAnomalyCount();
+  const cookieStore = await cookies();
+  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+
+  // Check server-side session in Redis first, then cookie, then user tenant
+  let serverSessionTenant: string | null = null;
+  try {
+    const { redis } = await import('@/lib/redis');
+    serverSessionTenant = await redis.get(`staff:${user.id}:active_tenant`);
+  } catch {}
+
+  const isOwner = user.role === 'OWNER';
+  const userAllowedTenants = isOwner
+    ? undefined
+    : (user.allowedTenants && user.allowedTenants.length > 0 ? user.allowedTenants : [user.tenantId || 'smmplan']);
+
+  let activeTenantId = normalizeTenantId(serverSessionTenant || cookieTenant) || user.tenantId || 'smmplan';
+  if (!isOwner && userAllowedTenants && !userAllowedTenants.includes(activeTenantId)) {
+    activeTenantId = userAllowedTenants[0] || user.tenantId || 'smmplan';
+  }
+
+  const anomalyCount = await getCachedAnomalyCount(activeTenantId);
   const openTicketCount = await getCachedOpenTicketCount();
 
   // Filter navigation based on canonical RBAC sections
@@ -120,25 +141,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   })).filter(group => group.items.length > 0);
 
   const roleInfo = ROLE_LABELS[user.role] || { label: user.role, color: 'bg-muted text-foreground' };
-  const cookieStore = await cookies();
-  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
-
-  // Check server-side session in Redis first, then cookie, then user tenant
-  let serverSessionTenant: string | null = null;
-  try {
-    const { redis } = await import('@/lib/redis');
-    serverSessionTenant = await redis.get(`staff:${user.id}:active_tenant`);
-  } catch {}
-
-  const isOwner = user.role === 'OWNER';
-  const userAllowedTenants = isOwner
-    ? undefined
-    : (user.allowedTenants && user.allowedTenants.length > 0 ? user.allowedTenants : [user.tenantId || 'smmplan']);
-
-  let activeTenantId = normalizeTenantId(serverSessionTenant || cookieTenant) || user.tenantId || 'smmplan';
-  if (!isOwner && userAllowedTenants && !userAllowedTenants.includes(activeTenantId)) {
-    activeTenantId = userAllowedTenants[0] || user.tenantId || 'smmplan';
-  }
 
   const canEditSettings = user.role === 'OWNER' || user.role === 'ADMIN' || Boolean(
     user.staffRole?.permissions?.some((p: { section: string; canEdit: boolean }) => p.section.toUpperCase() === 'SETTINGS' && p.canEdit)

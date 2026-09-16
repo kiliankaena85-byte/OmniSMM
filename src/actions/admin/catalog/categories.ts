@@ -177,7 +177,7 @@ export async function deleteCategory(rawId: string) {
         success: false, 
         hasServices: true,
         serviceCount: category._count.services,
-        error: `Категория содержит ${category._count.services} услуг. Вы можете скрыть все услуги или объединить категорию с другой.` 
+        error: `Невозможно удалить. Категория содержит ${category._count.services} скрытых услуг или услуг из других проектов.`
       };
     }
 

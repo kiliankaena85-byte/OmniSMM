@@ -407,7 +407,7 @@ describe.sequential('Milestone 5: Catalog CRUD & Categories Operations Test Suit
 
       const result = await deleteCategory(cat.id);
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Категория содержит 1 услуг');
+      expect(result.error).toContain('Невозможно удалить. Категория содержит 1 скрытых услуг или услуг из других проектов.');
     });
 
     it('should fail category creation for non-admin user (RBAC protection)', async () => {

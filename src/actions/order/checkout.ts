@@ -417,28 +417,6 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
         throw new Error("Лимит использований промокода исчерпан");
       }
 
-      // Check single-use per user
-      if (user?.id) {
-        const existingUsage = await db.promoCodeUsage.findFirst({
-          where: {
-            promoCodeId: promo.id,
-            userId: user.id
-          }
-        });
-        if (existingUsage) {
-          throw new Error("Вы уже использовали данный промокод");
-        }
-        const voucherUsed = await db.ledgerEntry.findFirst({
-          where: {
-            idempotencyKey: `promo-${normalizedPromo}-${user.id}`,
-            ...(tenantId ? { tenantId } : {})
-          }
-        });
-        if (voucherUsed) {
-          throw new Error("Вы уже использовали данный промокод");
-        }
-      }
-
       promoCodeId = promo.id;
     }
 
@@ -516,6 +494,44 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
                 where: { id: existingOrder.id },
                 data: { idempotencyKey: `${effectiveIdempotencyKey}_failed_${existingOrder.id}` }
               });
+            }
+          }
+
+          // 1.5. Prevent TOCTOU single-use promo code exploits
+          if (promoCodeId && user?.id) {
+            // Check completed usages
+            const existingUsage = await tx.promoCodeUsage.findFirst({
+              where: {
+                promoCodeId,
+                userId: user.id
+              }
+            });
+            if (existingUsage) {
+              throw new Error("Вы уже использовали данный промокод");
+            }
+            
+            // Check vouchers
+            const voucherUsed = await tx.ledgerEntry.findFirst({
+              where: {
+                idempotencyKey: `promo-${normalizedPromo}-${user.id}`,
+                ...(tenantId ? { tenantId } : {})
+              }
+            });
+            if (voucherUsed) {
+              throw new Error("Вы уже использовали данный промокод");
+            }
+
+            // Check if user is abusing concurrent checkouts
+            const pendingOrdersWithPromo = await tx.order.findFirst({
+              where: {
+                promoCodeId,
+                userId: user.id,
+                status: { in: ['AWAITING_PAYMENT', 'PENDING'] },
+                ...(effectiveIdempotencyKey ? { idempotencyKey: { not: effectiveIdempotencyKey } } : {})
+              }
+            });
+            if (pendingOrdersWithPromo) {
+               throw new Error("У вас уже есть неоплаченный заказ с этим промокодом. Оплатите или отмените его перед новым заказом.");
             }
           }
 

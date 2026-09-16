@@ -49,7 +49,10 @@ export default async function CategoriesAdminPage({ searchParams }: Props) {
       _count: {
         select: {
           services: {
-            where: tenantFilter ? { tenantId: tenantFilter } : undefined
+            where: {
+              isActive: true,
+              ...(tenantFilter ? { tenantId: tenantFilter } : {})
+            }
           }
         }
       }

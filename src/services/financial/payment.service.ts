@@ -396,13 +396,12 @@ export class PaymentService {
             data: { status: 'CANCELED' }
           });
 
-          for (const order of orders) {
-            if (order.promoCodeId) {
-              await tx.promoCode.updateMany({
-                where: { id: order.promoCodeId, uses: { gt: 0 } },
-                data: { uses: { decrement: 1 } }
-              });
-            }
+          const uniquePromoCodes = new Set(orders.map(o => o.promoCodeId).filter(Boolean) as string[]);
+          for (const promoId of uniquePromoCodes) {
+            await tx.promoCode.updateMany({
+              where: { id: promoId, uses: { gt: 0 } },
+              data: { uses: { decrement: 1 } }
+            });
           }
         }
         return true;

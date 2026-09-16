@@ -321,226 +321,217 @@ export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: Telegram
         </div>
       </Card>
 
-      {/* ── 2. INNER NAVIGATION TABS (ENTERPRISE SUBTABS) ── */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-muted/30 border border-border/60 overflow-x-auto w-full min-w-0 no-scrollbar snap-x snap-mandatory">
-        <button
-          type="button"
-          onClick={() => setActiveTab('general')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'general'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Settings2 className="w-3.5 h-3.5" />
-          <span>1. Подключение</span>
-        </button>
+      {/* ── 2. VERTICAL SIDEBAR & WORKSPACE (12 COLUMNS) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Sidebar Menu (3 cols) */}
+        <div className="lg:col-span-3 flex flex-col gap-1.5 p-2 rounded-2xl bg-muted/20 border border-border/60 sticky top-6">
+          <button
+            type="button"
+            onClick={() => setActiveTab('general')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'general'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Settings2 className="w-4 h-4" />
+            <span>1. Подключение</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setActiveTab('menu')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'menu'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>2. Кнопки Меню</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('menu')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'menu'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Smartphone className="w-3.5 h-3.5" />
-          <span>2. Кнопки Меню</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('bots')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'bots'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Bot className="w-4 h-4" />
+            <span className="flex-1">Конструктор ботов</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-extrabold shrink-0">NEW</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('bots')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'bots'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Bot className="w-3.5 h-3.5" />
-          <span>Конструктор ботов</span>
-          <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-extrabold">NEW</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('templates')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'templates'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 text-indigo-400" />
+            <span>3. Шаблоны Ответов</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('templates')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'templates'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
-          <span>3. Шаблоны Ответов</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('csat')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'csat'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <span>4. Причины Оценок</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('csat')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'csat'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-          <span>4. Причины Оценок</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('feedback')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'feedback'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 text-emerald-400" />
+            <span>5. Журнал Отзывов</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('feedback')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'feedback'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
-          <span>5. Журнал Отзывов</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('proxy')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'proxy'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-cyan-400" />
+            <span>6. Прокси</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('proxy')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'proxy'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Globe className="w-3.5 h-3.5 text-cyan-400" />
-          <span>6. Прокси</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('statistics')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'statistics'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Activity className="w-4 h-4 text-purple-400" />
+            <span>7. Статистика</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('statistics')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'statistics'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Activity className="w-3.5 h-3.5 text-purple-400" />
-          <span>7. Статистика</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('errors')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'errors'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <span>8. Сбои</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('errors')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'errors'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-          <span>8. Сбои</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 snap-start whitespace-nowrap ${
-            activeTab === 'security'
-              ? 'bg-card text-foreground shadow-sm border border-border/80'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Shield className="w-3.5 h-3.5 text-emerald-400" />
-          <span>9. Безопасность</span>
-        </button>
-      </div>
-
-      {/* ── 3. BOT CONSTRUCTOR (FULL WIDTH) OR TWO-COLUMN WORKSPACE ── */}
-      {activeTab === 'bots' ? (
-        <BotConstructorTab tenantId={tenantId} />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* TAB 1: CONNECTION & DIAGNOSTICS */}
-            {activeTab === 'general' && (
-            <ConnectionPanel 
-              settings={settings} 
-              tenantId={tenantId}
-              diagnostics={diagnostics} 
-              onRefresh={fetchDiagnostics} 
-            />
-          )}
-
-          {/* TAB 2: MENU BUILDER */}
-          {activeTab === 'menu' && (
-            <TelegramMenuTab
-              initialButtons={menuButtons}
-              onButtonsChange={setMenuButtons}
-              tenantId={tenantId}
-            />
-          )}
-
-          {/* TAB 3: MESSAGE TEMPLATES */}
-          {activeTab === 'templates' && (
-            <TelegramTemplatesTab
-              initialTemplates={templates}
-              onTemplatesChange={setTemplates}
-              tenantId={tenantId}
-            />
-          )}
-
-          {/* TAB 4: CSAT RATING REASONS */}
-          {activeTab === 'csat' && (
-            <TelegramCsatTab
-              initialReasons={ratingReasons}
-              onReasonsChange={setRatingReasons}
-              tenantId={tenantId}
-            />
-          )}
-
-          {/* TAB 5: FEEDBACK CRM */}
-          {activeTab === 'feedback' && (
-            <TelegramFeedbackListTab />
-          )}
-
-          {/* TAB 6: PROXY CONFIGURATION */}
-          {activeTab === 'proxy' && (
-            <ProxyConfig diagnostics={diagnostics} onRefresh={fetchDiagnostics} />
-          )}
-
-          {/* TAB 7: DAILY STATISTICS */}
-          {activeTab === 'statistics' && (
-            <StatisticsPanel />
-          )}
-
-          {/* TAB 8: ERROR TRACKER */}
-          {activeTab === 'errors' && (
-            <ErrorTracker />
-          )}
-
-          {/* TAB 9: SECURITY CONFIGURATION (OWASP TOP 10) */}
-          {activeTab === 'security' && (
-            <SecurityPanel 
-              settings={settings} 
-              diagnostics={diagnostics} 
-              onRefresh={fetchDiagnostics} 
-            />
-          )}
+          <button
+            type="button"
+            onClick={() => setActiveTab('security')}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+              activeTab === 'security'
+                ? 'bg-card text-foreground shadow-sm border border-border/80'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Shield className="w-4 h-4 text-emerald-400" />
+            <span>9. Безопасность</span>
+          </button>
         </div>
 
-        {/* Right Column: Live Interactive iPhone Dark Simulator (5 cols) */}
-        <div className="lg:col-span-5 sticky top-6">
-          <TelegramLivePreview
-            botUsername={botUsername}
-            siteName={settings.siteName || 'SMMplan'}
-            menuButtons={menuButtons}
-            ratingReasons={ratingReasons}
-            templates={templates}
-          />
+        {/* Right Content Area (9 cols) */}
+        <div className="lg:col-span-9 space-y-6">
+          {activeTab === 'bots' ? (
+            <BotConstructorTab tenantId={tenantId} />
+          ) : (
+            <>
+              {/* TAB 1: CONNECTION & DIAGNOSTICS */}
+              {activeTab === 'general' && (
+                <ConnectionPanel 
+                  settings={settings} 
+                  tenantId={tenantId}
+                  diagnostics={diagnostics} 
+                  onRefresh={fetchDiagnostics} 
+                />
+              )}
+
+              {/* TAB 2: MENU BUILDER */}
+              {activeTab === 'menu' && (
+                <TelegramMenuTab
+                  initialButtons={menuButtons}
+                  onButtonsChange={setMenuButtons}
+                  tenantId={tenantId}
+                />
+              )}
+
+              {/* TAB 3: MESSAGE TEMPLATES */}
+              {activeTab === 'templates' && (
+                <TelegramTemplatesTab
+                  initialTemplates={templates}
+                  onTemplatesChange={setTemplates}
+                  tenantId={tenantId}
+                />
+              )}
+
+              {/* TAB 4: CSAT RATING REASONS */}
+              {activeTab === 'csat' && (
+                <TelegramCsatTab
+                  initialReasons={ratingReasons}
+                  onReasonsChange={setRatingReasons}
+                  tenantId={tenantId}
+                />
+              )}
+
+              {/* TAB 5: FEEDBACK CRM */}
+              {activeTab === 'feedback' && (
+                <TelegramFeedbackListTab />
+              )}
+
+              {/* TAB 6: PROXY CONFIGURATION */}
+              {activeTab === 'proxy' && (
+                <ProxyConfig diagnostics={diagnostics} onRefresh={fetchDiagnostics} />
+              )}
+
+              {/* TAB 7: DAILY STATISTICS */}
+              {activeTab === 'statistics' && (
+                <StatisticsPanel />
+              )}
+
+              {/* TAB 8: ERROR TRACKER */}
+              {activeTab === 'errors' && (
+                <ErrorTracker />
+              )}
+
+              {/* TAB 9: SECURITY CONFIGURATION (OWASP TOP 10) */}
+              {activeTab === 'security' && (
+                <SecurityPanel 
+                  settings={settings} 
+                  diagnostics={diagnostics} 
+                  onRefresh={fetchDiagnostics} 
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
-      )}
     </div>
   );
 }

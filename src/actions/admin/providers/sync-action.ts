@@ -111,6 +111,9 @@ export async function approveQuarantinedService(serviceId: string) {
           pendingRate: null,
           quarantineReason: null,
           quarantinedAt: null,
+          isActive: true,
+          cooldownReason: null,
+          cooldownUntil: null,
         },
       });
 
@@ -142,7 +145,15 @@ export async function rejectQuarantinedService(serviceId: string) {
   return requireStaffPermission('catalog', 'edit', async (admin) => {
     await db.service.update({
       where: { id: serviceId },
-      data: { isQuarantined: false, pendingRate: null, quarantineReason: null, quarantinedAt: null },
+      data: { 
+        isQuarantined: false, 
+        pendingRate: null, 
+        quarantineReason: null, 
+        quarantinedAt: null,
+        isActive: true,
+        cooldownReason: null,
+        cooldownUntil: null,
+      },
     });
 
     auditAdmin({
@@ -191,6 +202,9 @@ export async function approveAllQuarantined() {
             pendingRate: null,
             quarantineReason: null,
             quarantinedAt: null,
+            isActive: true,
+            cooldownReason: null,
+            cooldownUntil: null,
           },
         });
 
@@ -457,6 +471,8 @@ export async function applyQuarantineResolutionAction(params: {
             quarantineReason: null,
             quarantinedAt: null,
             isActive: true,
+            cooldownReason: null,
+            cooldownUntil: null,
           }
         });
 
@@ -516,6 +532,8 @@ export async function applyQuarantineResolutionAction(params: {
           quarantineReason: null,
           quarantinedAt: null,
           isActive: true,
+          cooldownReason: null,
+          cooldownUntil: null,
         }
       });
 

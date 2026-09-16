@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useActionState, useTransition, useState, useEffect } from 'react';
 import { Loader2, Send, RotateCcw, Radio, ExternalLink, Key, ShieldCheck, CheckCircle, AlertCircle, Wifi, WifiOff, Server, AlertTriangle, Unlink, Trash2 } from 'lucide-react';
-import { updateGlobalSettings, disconnectTelegramBotAction } from '@/actions/admin/settings';
-import { sendTelegramTestAlertAction } from '@/actions/admin/telegram-bot';
+import { disconnectTelegramBotAction } from '@/actions/admin/settings';
+import { sendTelegramTestAlertAction, updateTelegramBotSettingsAction } from '@/actions/admin/telegram-bot';
 import type { TelegramBotDiagnostics } from '@/types/telegram';
 import type { SystemSettings } from '@prisma/client';
 import {
@@ -37,6 +37,8 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
   const [botName, setBotName] = useState(settings.contactTelegramBot || '');
   const [channelName, setChannelName] = useState(settings.contactTelegramChannel || '');
 
+  const [isEditingToken, setIsEditingToken] = useState(false);
+
   useEffect(() => {
     setBotName(settings.contactTelegramBot || '');
     setChannelName(settings.contactTelegramChannel || '');
@@ -45,7 +47,7 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
   const [state, formAction, isPendingSave] = useActionState(
     async (prevState: unknown, formData: FormData) => {
       try {
-        const res = await updateGlobalSettings(formData);
+        const res = await updateTelegramBotSettingsAction(formData);
         if (res && typeof res === 'object' && 'success' in res && !res.success) return res;
         return { success: true };
       } catch (err) {
@@ -56,7 +58,11 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
   const formState = state as { success?: boolean; error?: string } | null;
 
   useEffect(() => {
-    if (formState?.success) { toast.success('Настройки подключения сохранены'); onRefresh(); }
+    if (formState?.success) { 
+      toast.success('Настройки подключения сохранены'); 
+      setIsEditingToken(false);
+      onRefresh(); 
+    }
     else if (formState?.error) { toast.error(formState.error); }
   }, [formState]);
 
@@ -171,9 +177,29 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
                 AES-256-GCM Vault
               </span>
             </div>
-            <Input name="telegramBotToken" type="password"
-              placeholder={settings.telegramBotToken ? '••••••••••••••••' : 'Вставьте токен от @BotFather'}
-              className="font-mono text-xs" autoComplete="new-password" />
+            
+            {settings.telegramBotToken && !isEditingToken ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-xs font-bold flex-1">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Токен привязан (скрыт)</span>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsEditingToken(true)}
+                  className="font-bold text-xs h-9 cursor-pointer"
+                >
+                  Изменить
+                </Button>
+              </div>
+            ) : (
+              <Input name="telegramBotToken" type="password"
+                placeholder={settings.telegramBotToken ? '•••••••••••••••• (оставьте пустым для сохранения текущего)' : 'Вставьте токен от @BotFather'}
+                className="font-mono text-xs" autoComplete="new-password" />
+            )}
+            
             <p className="text-[10px] text-muted-foreground leading-relaxed">
               Токен шифруется в БД (AES-256-GCM) и имеет приоритет над .env
             </p>

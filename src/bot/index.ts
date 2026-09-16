@@ -433,20 +433,7 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
     .replace(/{userName}/g, escapeHtml(tgName))
     .replace(/{balance}/g, balanceStr);
 
-  const keyboard = await getDynamicKeyboard(tgId);
-  const isOwner = await isOwnerOrAdmin(tgId);
-  const inlineRows = [
-    [Markup.button.callback('🚀 Быстрый заказ по ссылке', 'start_fast_order')],
-    [Markup.button.callback('🛍 Каталог услуг', 'shop'), Markup.button.callback('💰 Пополнить баланс', 'deposit')],
-    [Markup.button.callback('👤 Личный кабинет', 'profile'), Markup.button.callback('📦 Мои заказы', 'my_orders')],
-    [Markup.button.callback('🔗 Привязать аккаунт', 'bind_account'), Markup.button.callback('🆘 Поддержка', 'support')]
-  ];
-
-  if (isOwner) {
-    inlineRows.unshift([Markup.button.callback('👑 Пульт Овнера / DevOps Hub', 'nav_owner_hub')]);
-  }
-
-  const startInline = Markup.inlineKeyboard(inlineRows);
+  const startInline = await getDynamicInlineKeyboard(tgId);
 
   if (isEdit) {
     try {
@@ -460,10 +447,20 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
     }
   }
 
-  // Send reply keyboard to guarantee bottom persistent keyboard in Telegram client
-  await ctx.reply('🤖 <i>Главное меню SMMplan</i>', {
+  // Clean up old bottom reply keyboards and set new persistent one
+  const persistentKeyboard = Markup.keyboard([
+    ['📱 Главное меню', '📦 Мои заказы'],
+    ['💰 Баланс', '🆘 Поддержка']
+  ]).resize().persistent();
+
+  await ctx.reply('🧹 <i>Обновление меню...</i>', {
     parse_mode: 'HTML',
-    ...keyboard
+    ...persistentKeyboard
+  }).then(m => {
+    // Optionally delete the cleanup message
+    setTimeout(() => {
+      ctx.telegram.deleteMessage(ctx.chat!.id, m.message_id).catch(() => {});
+    }, 1000);
   }).catch(() => {});
 
   return ctx.reply(formattedWelcome, {
@@ -472,13 +469,14 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
   });
 }
 
-async function getDynamicKeyboard(tgId?: string | number) {
+async function getDynamicInlineKeyboard(tgId?: string | number) {
   const isOwner = tgId ? await isOwnerOrAdmin(tgId) : false;
 
-  let baseGrid: string[][] = [
-    ['🚀 Заказать по ссылке', '🛍 Каталог услуг'],
-    ['💰 Пополнить', '👤 Профиль'],
-    ['🆘 Поддержка', '👥 Рефералы']
+  let baseRows: any[][] = [
+    [Markup.button.callback('🚀 Быстрый заказ по ссылке', 'start_fast_order')],
+    [Markup.button.callback('🛍 Каталог услуг', 'shop'), Markup.button.callback('💰 Пополнить баланс', 'deposit')],
+    [Markup.button.callback('👤 Личный кабинет', 'profile'), Markup.button.callback('📦 Мои заказы', 'my_orders')],
+    [Markup.button.callback('🔗 Привязать аккаунт', 'bind_account'), Markup.button.callback('🆘 Поддержка', 'support')]
   ];
 
   try {
@@ -493,40 +491,47 @@ async function getDynamicKeyboard(tgId?: string | number) {
           rowMap.get(r)!.push(btn);
         }
         const sortedRows = Array.from(rowMap.keys()).sort((a, b) => a - b);
-        const grid: string[][] = [];
+        const grid: any[][] = [];
         for (const r of sortedRows) {
           const rowBtns = rowMap.get(r)!.sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-          grid.push(rowBtns.map(b => b.label));
+          grid.push(rowBtns.map(b => Markup.button.callback(b.label, `menu_action_${b.id}`)));
         }
         if (grid.length > 0) {
-          baseGrid = grid;
+          baseRows = grid;
         }
       }
     }
   } catch { /* use default fallback */ }
 
   if (isOwner) {
-    return Markup.keyboard([
-      ['👑 Пульт Овнера'],
-      ...baseGrid
-    ]).resize();
+    baseRows.unshift([Markup.button.callback('👑 Пульт Овнера / DevOps Hub', 'nav_owner_hub')]);
   }
 
-  return Markup.keyboard(baseGrid).resize();
+  return Markup.inlineKeyboard(baseRows);
 }
 
-/**
- * Universal dynamic dispatcher for menu buttons configured via Admin Panel.
- * Handles CATALOG, ORDERS, REFILL, PROFILE, SUPPORT, REFERRALS, URL, TEXT_REPLY, COMMAND, WEB_APP.
- */
-export async function dispatchDynamicMenuAction(ctx: BotContext, text: string): Promise<boolean> {
-  const btn = await BotSettingsService.findButtonByText(text, botTenantId);
-  if (!btn) return false;
+
+bot.action(/^menu_action_(.+)$/, async (ctx: BotContext) => {
+  if (!ctx.match) return;
+  const btnId = ctx.match[1];
+  
+  const buttons = await BotSettingsService.getMenuButtons(botTenantId);
+  const btn = buttons.find(b => b.id === btnId);
+  
+  if (!btn) {
+    return ctx.answerCbQuery('Кнопка не найдена').catch(() => {});
+  }
+  
+  await ctx.answerCbQuery().catch(() => {});
 
   if (ctx.scene) {
     await ctx.scene.leave().catch(() => {});
   }
 
+  return executeDynamicAction(ctx, btn);
+});
+
+async function executeDynamicAction(ctx: BotContext, btn: any) {
   switch (btn.action) {
     case 'FAST_ORDER':
       await sendFastOrderPrompt(ctx);
@@ -579,7 +584,7 @@ export async function dispatchDynamicMenuAction(ctx: BotContext, text: string): 
         await ctx.reply('ℹ️ <b>Справка</b>\nИспользуйте кнопки меню для навигации или отправьте ссылку на соцсеть для быстрого заказа.', { parse_mode: 'HTML' });
         return true;
       }
-      return false;
+      return true;
     }
     case 'WEB_APP': {
       const webAppUrl = btn.value || `https://${botTenantId === 'flux' ? 'smmflux.ru' : 'test.smmplan.pro'}`;
@@ -592,9 +597,19 @@ export async function dispatchDynamicMenuAction(ctx: BotContext, text: string): 
       );
       return true;
     }
-    default:
-      return false;
   }
+  return false;
+}
+
+export async function dispatchDynamicMenuAction(ctx: BotContext, text: string): Promise<boolean> {
+  const trimmed = text.trim();
+  const buttons = await BotSettingsService.getMenuButtons(botTenantId);
+  const btn = buttons.find(b => b.label.toLowerCase() === trimmed.toLowerCase() || b.label.replace(/^[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim().toLowerCase() === trimmed.toLowerCase());
+  
+  if (btn) {
+    return executeDynamicAction(ctx, btn);
+  }
+  return false;
 }
 
 export async function sendNetworkCatalogMenu(ctx: BotContext, isEdit = false) {
@@ -671,6 +686,30 @@ bot.action('start_fast_order', async (ctx: BotContext) => {
 
 bot.hears(['🚀 Заказать по ссылке', 'Заказать по ссылке', 'Быстрый заказ', 'Ввести ссылку'], async (ctx: BotContext) => {
   return sendFastOrderPrompt(ctx);
+});
+
+bot.command('menu', async (ctx: BotContext) => {
+  return sendMainMenu(ctx, false);
+});
+
+bot.hears(/^(📱\s*)?Главное меню$/i, async (ctx: BotContext) => {
+  if (ctx.scene) await ctx.scene.leave().catch(() => {});
+  return sendMainMenu(ctx, false);
+});
+
+bot.hears(/^(📦\s*)?Мои заказы$/i, async (ctx: BotContext) => {
+  if (ctx.scene) await ctx.scene.leave().catch(() => {});
+  return sendUserOrders(ctx);
+});
+
+bot.hears(/^(💰\s*)?Баланс$/i, async (ctx: BotContext) => {
+  if (ctx.scene) await ctx.scene.leave().catch(() => {});
+  return sendUserProfile(ctx);
+});
+
+bot.hears(/^(🆘\s*)?Поддержка$/i, async (ctx: BotContext) => {
+  if (ctx.scene) await ctx.scene.leave().catch(() => {});
+  return sendSupportPrompt(ctx);
 });
 
 bot.action('cancel_fast_order', async (ctx: BotContext) => {
@@ -1075,7 +1114,7 @@ export async function sendUserOrders(ctx: BotContext) {
 
 // ── ROBUST MULTI-ALIAS MENU HANDLERS ──
 
-bot.hears(['💰 Пополнить', '💰 Пополнить баланс', 'Пополнить баланс', 'Пополнить', 'Баланс', /^(💰\s*Пополнить|Пополнить|Баланс)/i], async (ctx: BotContext) => {
+bot.hears(['💰 Пополнить', '💰 Пополнить баланс', 'Пополнить баланс', 'Пополнить', /^(💰\s*Пополнить|Пополнить)/i], async (ctx: BotContext) => {
   return ctx.scene.enter(DEPOSIT_WIZARD);
 });
 bot.command(['deposit', 'pay', 'balance'], async (ctx: BotContext) => {
@@ -1466,6 +1505,19 @@ export async function launchBot() {
       
       const me = await bot.telegram.getMe();
       console.info(`[Bot] ✅ Telegram bot @${me.username} (ID: ${me.id}) initialized.`);
+
+      try {
+        await bot.telegram.setMyCommands([
+          { command: 'menu', description: '📱 Главное меню' },
+          { command: 'orders', description: '📦 Мои заказы' },
+          { command: 'balance', description: '💰 Баланс и пополнение' },
+          { command: 'support', description: '🆘 Поддержка' },
+          { command: 'start', description: '🚀 Перезапуск бота' },
+        ]);
+        console.info('[Bot] Menu commands configured.');
+      } catch (err) {
+        console.warn('[Bot] Failed to set menu commands:', err);
+      }
 
       // Heartbeat for Docker healthcheck and Admin UI status monitor
       try {

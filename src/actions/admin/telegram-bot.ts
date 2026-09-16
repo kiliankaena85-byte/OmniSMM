@@ -1485,3 +1485,81 @@ export async function getTicketFeedbackListAction(params?: {
   });
 }
 
+export async function updateTelegramBotSettingsAction(formData: FormData) {
+  return requireOwnerPermission(async (admin) => {
+    const tenantId = formData.get('tenantId') as string || await getTenantId();
+    const botUsername = formData.get('contactTelegramBot') as string || '';
+    const botChannel = formData.get('contactTelegramChannel') as string || '';
+    const rawBotToken = formData.get('telegramBotToken') as string || '';
+    const telegramBotMode = formData.get('telegramBotMode') as string || 'polling';
+
+    let encryptedToken: string | undefined;
+    if (rawBotToken && rawBotToken.trim() && !rawBotToken.includes('••••')) {
+      const token = rawBotToken.trim();
+      
+      try {
+        const res = await safeTelegramFetch(`https://api.telegram.org/bot${token}/getMe`);
+        const data = await res.json();
+        
+        if (!data.ok) {
+          return { success: false, error: `Токен невалиден: ${data.description}` };
+        }
+      } catch (err) {
+        return { success: false, error: `Ошибка проверки токена: ${err instanceof Error ? err.message : String(err)}` };
+      }
+
+      const { VaultService } = await import('@/lib/vault');
+      encryptedToken = VaultService.encrypt(token);
+
+      try {
+        const { bot } = await import('@/bot/index');
+        
+        try {
+          bot.stop('Hot-Reload');
+        } catch (e) {
+          console.warn('[Bot Hot-Reload] Could not stop existing bot', e);
+        }
+
+        (bot.telegram as any).token = token;
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        bot.launch({ dropPendingUpdates: true }).catch(err => {
+          console.error('[Bot Hot-Reload] Failed to launch:', err);
+        });
+        
+        console.log(`[Bot Hot-Reload] Successfully reloaded daemon with new token for tenant ${tenantId}`);
+      } catch (err) {
+        console.error('[Bot Hot-Reload] Error during hot reload:', err);
+      }
+    }
+
+    const dataToUpdate: any = {
+      contactTelegramBot: botUsername.trim() || null,
+      contactTelegramChannel: botChannel.trim() || null,
+      telegramBotMode,
+    };
+    if (encryptedToken) {
+      dataToUpdate.telegramBotToken = encryptedToken;
+    }
+
+    await db.systemSettings.update({
+      where: { id: tenantId },
+      data: dataToUpdate,
+    });
+
+    const ipAddress = await getClientIp();
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_BOT_SETTINGS_UPDATE',
+      target: tenantId,
+      targetType: 'SETTINGS',
+      ipAddress
+    });
+
+    revalidatePath('/admin/settings');
+    return { success: true, message: 'Настройки Telegram бота сохранены и применены.' };
+  });
+}
+

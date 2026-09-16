@@ -449,14 +449,26 @@ class AdminOrderService {
 
       // R1-003 Fix: Roll back promo code uses if it was never paid
       if (order.status === 'AWAITING_PAYMENT' && order.promoCodeId) {
-        await tx.promoCode.updateMany({
+        // Prevent double decrement for media group checkouts when cancelled individually
+        const otherActiveOrdersCount = order.paymentId ? await tx.order.count({
           where: {
-            id: order.promoCodeId,
-            uses: { gt: 0 },
-            ...(order.tenantId ? { tenantId: order.tenantId } : {})
-          },
-          data: { uses: { decrement: 1 } }
-        });
+            paymentId: order.paymentId,
+            promoCodeId: order.promoCodeId,
+            id: { not: order.id },
+            status: 'AWAITING_PAYMENT'
+          }
+        }) : 0;
+
+        if (otherActiveOrdersCount === 0) {
+          await tx.promoCode.updateMany({
+            where: {
+              id: order.promoCodeId,
+              uses: { gt: 0 },
+              ...(order.tenantId ? { tenantId: order.tenantId } : {})
+            },
+            data: { uses: { decrement: 1 } }
+          });
+        }
       }
 
       if (refundCents > 0) {

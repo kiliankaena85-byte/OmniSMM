@@ -433,23 +433,23 @@ orderWizard.action('force_link', async (ctx: BotContext) => {
   orderData.link = orderData.tempLink;
   orderData.isLinkOverridden = true;
 
-  await ctx.reply(
+  await ctx.editMessageText(
     `🔢 <b>Введите количество</b> (от ${service.minQty.toLocaleString()} до ${service.maxQty.toLocaleString()}):\n\n` +
     `<i>Отправьте число в ответном сообщении:</i>`,
     {
       parse_mode: 'HTML',
       ...Markup.inlineKeyboard([[Markup.button.callback('❌ Отмена', 'cancel_wizard')]])
     }
-  );
+  ).catch(() => {});
   return ctx.wizard.selectStep(3);
 });
 
 orderWizard.action('retry_link', async (ctx: BotContext) => {
   await ctx.answerCbQuery();
-  await ctx.reply('🚀 <b>Пришлите новую ссылку:</b>', {
+  await ctx.editMessageText('🚀 <b>Пришлите новую ссылку:</b>', {
     parse_mode: 'HTML',
     ...Markup.inlineKeyboard([[Markup.button.callback('❌ Отмена', 'cancel_wizard')]])
-  });
+  }).catch(() => {});
   return ctx.wizard.selectStep(1);
 });
 
@@ -457,6 +457,7 @@ orderWizard.action('confirm_reqs', async (ctx: BotContext) => {
   await ctx.answerCbQuery();
   const orderData = getOrderData(ctx);
   orderData.requirementsConfirmed = true;
+  // Let showFinalConfirmation use editMessageText by passing ctx (it might need a flag if we want it to edit, but for now we'll leave showFinalConfirmation as is or modify it separately)
   return showFinalConfirmation(ctx);
 });
 
@@ -487,9 +488,9 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
         throw new Error(res.error || 'Ошибка оформления заказа');
       }
 
-      await ctx.reply(
+      await ctx.editMessageText(
         `🎉 <b>Заказ успешно оформлен!</b>\n\n` +
-        `🆔 Номер заказа: <b>#${res.orderId || '—'}</b>\\n` +
+        `🆔 Номер заказа: <b>#${res.orderId || '—'}</b>\n` +
         `📦 Услуга: <b>${escapeHtml(service.name)}</b>\n` +
         `📊 Статус: <b>В очереди на выполнение</b>\n\n` +
         `Следить за статусом можно в разделе /orders`,
@@ -500,10 +501,10 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
             [Markup.button.callback('🛒 Заказать ещё', 'shop'), Markup.button.callback('🏠 В главное меню', 'nav_start')]
           ])
         }
-      );
+      ).catch(() => {});
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      await ctx.reply(
+      await ctx.editMessageText(
         `❌ <b>Ошибка оформления заказа</b>\n────────────────────\n${errMsg}\n\n` +
         `<i>Если у вас возникли вопросы или списались средства, напишите нам:</i>`,
         {
@@ -513,7 +514,7 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
             [Markup.button.callback('🛒 Выбрать другую услугу', 'shop'), Markup.button.callback('🏠 В главное меню', 'nav_start')]
           ])
         }
-      );
+      ).catch(() => {});
 
       try {
         const { sendAdminAlert } = await import('@/lib/notifications');
@@ -559,7 +560,7 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
       throw new Error(payment.error || 'Не удалось сформировать ссылку на оплату');
     }
 
-    await ctx.reply(
+    await ctx.editMessageText(
       `💳 <b>Недостаточно средств на балансе</b>\n────────────────────\n` +
       `Сумма заказа: <b>${formatCents(totalCents)}₽</b>\n` +
       `Ваш баланс: <b>${formatCents(Number(user.balance))}₽</b>\n` +
@@ -572,10 +573,10 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
           [Markup.button.callback('❌ Отмена', 'cancel_wizard')]
         ])
       }
-    );
+    ).catch(() => {});
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    await ctx.reply(
+    await ctx.editMessageText(
       `❌ <b>Ошибка создания платежа</b>\n────────────────────\n${errMsg}\n\n` +
       `<i>Служба заботы на связи и поможет решить вопрос прямо сейчас:</i>`,
       {
@@ -585,7 +586,7 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
           [Markup.button.callback('🏠 В главное меню', 'nav_start')]
         ])
       }
-    );
+    ).catch(() => {});
 
     try {
       const { sendAdminAlert } = await import('@/lib/notifications');
@@ -605,12 +606,12 @@ orderWizard.action('confirm_order', async (ctx: BotContext) => {
 
 orderWizard.action('cancel_wizard', async (ctx: BotContext) => {
   await ctx.answerCbQuery('Заказ отменен').catch(() => {});
-  await ctx.reply('❌ <b>Оформление заказа отменено.</b>', {
+  await ctx.editMessageText('❌ <b>Оформление заказа отменено.</b>', {
     parse_mode: 'HTML',
     ...Markup.inlineKeyboard([
       [Markup.button.callback('🛍 Выбрать другую услугу', 'shop'), Markup.button.callback('🏠 В главное меню', 'nav_start')]
     ])
-  });
+  }).catch(() => {});
   return ctx.scene.leave();
 });
 

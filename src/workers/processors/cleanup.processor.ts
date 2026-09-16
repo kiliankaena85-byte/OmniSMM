@@ -215,10 +215,22 @@ export async function runCleanup(): Promise<void> {
 
           // R1-003 Fix: Roll back promo code uses if it was never paid
           if (zombie.promoCodeId) {
-            await tx.promoCode.updateMany({
-              where: { id: zombie.promoCodeId, uses: { gt: 0 } },
-              data: { uses: { decrement: 1 } }
-            });
+            // Prevent double-decrement for Media Group checkouts
+            let isFirstOrderOfPayment = true;
+            if (zombie.paymentId) {
+              const firstOrder = await tx.order.findFirst({
+                where: { paymentId: zombie.paymentId, promoCodeId: zombie.promoCodeId },
+                orderBy: { id: 'asc' },
+                select: { id: true }
+              });
+              isFirstOrderOfPayment = firstOrder?.id === zombie.id;
+            }
+            if (isFirstOrderOfPayment) {
+              await tx.promoCode.updateMany({
+                where: { id: zombie.promoCodeId, uses: { gt: 0 } },
+                data: { uses: { decrement: 1 } }
+              });
+            }
           }
 
           canceledCount++;
