@@ -1,5 +1,18 @@
+- [x] ⚡ [CDD-TDD-2026] Комплексный аудит и архитектурный харденинг статусов заказов (100% COMPLETE & VERIFIED):
+  * 📐 **Self-Loop Improving Архитектуры (Спецификация):**
+    - Разработана спецификация `docs/specs/SPEC-2026-09-16-order-status-architecture.md`.
+    - Выявлен и заблокирован Free Ride Exploit: удален ложный переход `ERROR -> PENDING/IN_PROGRESS` без списания средств (`WalletOps.charge`).
+  * 🛡️ **Бэкенд-защита (Ledger Delta & Provider Guard):**
+    - В `src/actions/admin/orders.ts` и `src/services/admin/order.service.ts` снята терминальная блокировка отмены `COMPLETED` заказов.
+    - Внедрена модель возвратов **Ledger Delta Refund**: платформа не может сделать овер-рефанд (вернуть больше, чем клиент заплатил), расчет идет по `refundCents = Math.max(0, calculatedRefundCents - alreadyRefunded)` из `LedgerEntry`.
+    - Добавлен **Provider ID Guard**: система блокирует перевод заказа в `COMPLETED` (а также `IN_PROGRESS`, `PARTIAL`), если провайдер назначен (`providerName !== null`), но `externalId` от провайдера не получен.
+    - Реализована жесткая синхронизация с `LoyaltyService`: при отмене возвращаются реферальные вознаграждения, при `PARTIAL` — частичный возврат.
+  * 🎨 **Харденинг UI (Order Details Modal & Standalone View):**
+    - Кнопка «Пометить выполненным / Завершить» теперь блокируется и показывает статус `Запрещено: нет ID провайдера`, если заказ отправлен провайдеру, но нет `externalId`.
+    - Разблокирована кнопка отмены `Отменить и вернуть` для заказов в статусе `COMPLETED`.
+  * 🧪 **Верификация:**
+    - Успешно пройдены TypeScript (`npx tsc --noEmit`) и Unit-тесты (`npx vitest run`).
 - [x] ⚡ [CDD-TDD-2026] Комплексный аудит формы заказа, защита «от дурака» (Fail-Closed) и максимизация CRO (100% COMPLETE & VERIFIED):
-  * 📐 **Спецификация и аналитический аудит:**
     - Разработана и утверждена спецификация [`docs/specs/SPEC-2026-09-16-order-wizard-foolproof-and-cro-hardening.md`](file:///e:/SMM/docs/specs/SPEC-2026-09-16-order-wizard-foolproof-and-cro-hardening.md).
     - Проведен сопоставительный аудит предложенного драфта: блокированы опасные антипаттерны (прямой SQL decrement баланса, расчет цены `/ 1000` в обход ExactMath, уничтожение функциональных query-параметров в ссылках).
   * 🛡️ **Реализация защиты Fail-Closed и оптимизация конверсии (CRO):**
