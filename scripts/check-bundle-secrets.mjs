@@ -34,7 +34,7 @@ const SCRIPTS_FORBIDDEN_PATTERNS = [
   // Robokassa merchant passwords
   { name: 'Robokassa MrchPass (hardcoded)', regex: /[Mm]rch[Pp]ass\s*[:=]\s*["'][^$][^"']{6,}["']/ },
   // Generic API keys assigned to string literals (exclude known pentest/test fixtures with safe prefix)
-  { name: 'Generic API key in assignment', regex: /(?:apiKey|api_key|apiSecret|api_secret)\s*[:=]\s*["'](?!pentest\d+_b2b_testkey_)[A-Za-z0-9_\-]{20,}["']/ },
+  { name: 'Generic API key in assignment', regex: /(?:apiKey|api_key|apiSecret|api_secret)\s*[:=]\s*["'](?!pentest\d+_(?:b2b|api)_testkey_)[A-Za-z0-9_\-]{20,}["']/ },
   // AWS credentials
   { name: 'AWS Secret Access Key', regex: /(?:aws_secret|AWS_SECRET_ACCESS_KEY)\s*[:=]\s*["'][A-Za-z0-9/+=]{40}["']/ },
   // RSA/EC private keys
