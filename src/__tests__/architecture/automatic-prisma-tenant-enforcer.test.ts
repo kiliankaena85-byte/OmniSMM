@@ -125,5 +125,35 @@ describe('Automatic Prisma Tenant Enforcer (SDD-TDD 2026)', () => {
         expect(mockQuery).toHaveBeenCalledWith(args);
       });
     });
+
+    it('should allow tenantVisibilityFilter object { in: [tenantId, "all"] } without error', async () => {
+      const mockQuery = vi.fn().mockResolvedValue([{ id: 'cat-1', tenantId: 'all' }]);
+      const extension = createTenantEnforcerExtension();
+
+      const categoryFindMany = extension.query?.category?.findMany;
+      expect(categoryFindMany).toBeDefined();
+
+      await runWithTenant('smmplan', async () => {
+        const args: any = { where: { tenantId: { in: ['smmplan', 'all'] } } };
+        await categoryFindMany!({ args, query: mockQuery });
+
+        expect(args.where.tenantId).toEqual({ in: ['smmplan', 'all'] });
+        expect(mockQuery).toHaveBeenCalledWith(args);
+      });
+    });
+
+    it('should block cross-tenant in-filter when requesting foreign tenant', async () => {
+      const mockQuery = vi.fn().mockResolvedValue([]);
+      const extension = createTenantEnforcerExtension();
+
+      const categoryFindMany = extension.query?.category?.findMany;
+
+      await runWithTenant('smmplan', async () => {
+        const args: any = { where: { tenantId: { in: ['flux'] } } };
+        await expect(
+          categoryFindMany!({ args, query: mockQuery })
+        ).rejects.toThrow(/SECURITY_TENANT_MISMATCH/);
+      });
+    });
   });
 });

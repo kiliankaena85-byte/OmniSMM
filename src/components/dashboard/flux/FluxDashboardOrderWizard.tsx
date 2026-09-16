@@ -13,7 +13,9 @@ import {
   Wallet,
   CheckCircle2,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Ticket,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getPublicCatalogAction, getServicesByCategoryAction } from "@/actions/order/catalog";
@@ -101,6 +103,15 @@ function FluxDashboardOrderWizardInner({
     userBalanceCents > 0 ? 'balance' : 'yookassa'
   );
   const [availableGateways, setAvailableGateways] = useState<{ yookassa: boolean; robokassa: boolean; cryptobot: boolean } | null>(null);
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showPromo, setShowPromo] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [originalServerPriceRub, setOriginalServerPriceRub] = useState<number | null>(null);
 
   useEffect(() => {
     import("@/actions/order/checkout").then(({ getAvailableGatewaysAction }) => {
@@ -350,6 +361,62 @@ function FluxDashboardOrderWizardInner({
   const rawPrice = selectedService ? (selectedService.pricePerUnitRub * qtyNum) : 0;
   const dripMultipliedPrice = isDripFeedEnabled ? rawPrice * dripRuns : rawPrice;
 
+  const handleApplyPromo = async () => {
+    const clean = promoCode.trim().toUpperCase();
+    if (!clean) {
+      setPromoMessage({ type: 'error', text: 'Введите промокод' });
+      return;
+    }
+    if (clean.length < 3 || clean.length > 32 || !/^[A-Z0-9_-]+$/.test(clean)) {
+      setPromoMessage({ type: 'error', text: 'Некорректный формат промокода' });
+      return;
+    }
+    if (!selectedService) return;
+
+    setIsApplyingPromo(true);
+    setPromoMessage(null);
+    try {
+      const calcQty = isDripFeedEnabled ? qtyNum * dripRuns : qtyNum;
+      const res = await calculatePriceAction(
+        selectedService.id,
+        calcQty > 0 ? calcQty : (selectedService.minQty || 10),
+        clean,
+        isDripFeedEnabled ? dripRuns : undefined
+      );
+      if (res.success && res.data) {
+        if (res.data.discountCents > 0) {
+          setAppliedPromo(clean);
+          setServerPriceRub(res.data.totalCents / 100);
+          setOriginalServerPriceRub(res.data.originalTotalCents / 100);
+          const percent = res.data.discountPercent || Math.round((res.data.discountCents / (res.data.originalTotalCents || res.data.totalCents)) * 100);
+          setDiscountPercent(percent);
+          const msg = `Промокод «${clean}» применен: скидка ${percent}%`;
+          setPromoMessage({ type: 'success', text: msg });
+          toast.success(msg);
+        } else {
+          setAppliedPromo('');
+          setPromoMessage({ type: 'error', text: 'Промокод не найден или скидка недоступна' });
+        }
+      } else {
+        setAppliedPromo('');
+        setPromoMessage({ type: 'error', text: res.error || 'Промокод не найден' });
+      }
+    } catch {
+      setAppliedPromo('');
+      setPromoMessage({ type: 'error', text: 'Не удалось проверить промокод' });
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo('');
+    setPromoCode('');
+    setPromoMessage(null);
+    setDiscountPercent(0);
+    setOriginalServerPriceRub(null);
+  };
+
   // FIX(BUG-B6): итоговая цена больше не считается только на клиенте —
   // сверяемся с серверным calculatePriceAction (промо, округления, серверная математика),
   // чтобы «Итого к оплате» не расходилось с фактическим списанием при чекауте.
@@ -357,20 +424,34 @@ function FluxDashboardOrderWizardInner({
   useEffect(() => {
     if (!selectedService || !qtyNum) {
       setServerPriceRub(null);
+      setOriginalServerPriceRub(null);
       return;
     }
     let cancelled = false;
-    calculatePriceAction(selectedService.id, isDripFeedEnabled ? qtyNum * dripRuns : qtyNum)
+    calculatePriceAction(
+      selectedService.id,
+      isDripFeedEnabled ? qtyNum * dripRuns : qtyNum,
+      appliedPromo || undefined,
+      isDripFeedEnabled ? dripRuns : undefined
+    )
       .then(res => {
         if (!cancelled && res.success && res.data) {
           setServerPriceRub(res.data.totalCents / 100);
+          if (res.data.discountCents > 0) {
+            setOriginalServerPriceRub(res.data.originalTotalCents / 100);
+            setDiscountPercent(res.data.discountPercent);
+          } else {
+            setOriginalServerPriceRub(null);
+            setDiscountPercent(0);
+          }
         } else if (!cancelled) {
           setServerPriceRub(null);
+          setOriginalServerPriceRub(null);
         }
       })
-      .catch(() => { if (!cancelled) setServerPriceRub(null); });
+      .catch(() => { if (!cancelled) { setServerPriceRub(null); setOriginalServerPriceRub(null); } });
     return () => { cancelled = true; };
-  }, [selectedService?.id, qtyNum, isDripFeedEnabled, dripRuns]);
+  }, [selectedService?.id, qtyNum, isDripFeedEnabled, dripRuns, appliedPromo]);
 
   const totalPriceRub = formatRubles(serverPriceRub ?? dripMultipliedPrice);
   const canPayFromBalance = userBalanceCents >= ((serverPriceRub ?? dripMultipliedPrice) * 100);
@@ -460,16 +541,19 @@ function FluxDashboardOrderWizardInner({
     setErrorField("");
 
     try {
+      const promoValue = appliedPromo || (promoCode.trim() ? promoCode.trim().toUpperCase() : undefined);
       const res = await checkoutAction({
         serviceId: selectedService.id,
         link: link.trim(),
         quantity: isDripFeedEnabled ? qtyNum * dripRuns : qtyNum,
         email: email.trim(),
+        promoCodeStr: promoValue || undefined,
         gateway: gateway,
         runs: isDripFeedEnabled ? dripRuns : undefined,
         interval: isDripFeedEnabled ? dripInterval : undefined,
         customData: selectedService.customDataType !== 'NONE' ? customData : undefined,
-        isRequirementsConfirmed: isRequirementsConfirmed
+        isRequirementsConfirmed: isRequirementsConfirmed,
+        tenantId: tenantId || 'flux'
       });
 
       if (res && res.success) {
@@ -1089,6 +1173,89 @@ function FluxDashboardOrderWizardInner({
                     />
                   </div>
 
+                  {/* Promo Code Field */}
+                  <div className="space-y-2">
+                    {!showPromo ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowPromo(true)}
+                        className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5 min-h-[44px] py-1 cursor-pointer transition-colors"
+                      >
+                        <Ticket className="w-4 h-4" />
+                        <span>+ У меня есть промокод</span>
+                      </button>
+                    ) : (
+                      <div className="space-y-2 p-3.5 rounded-2xl bg-muted/40 border border-border/70 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                            <Ticket className="w-3.5 h-3.5 text-primary" />
+                            <span>Промокод</span>
+                          </label>
+                          {appliedPromo && (
+                            <button
+                              type="button"
+                              onClick={handleRemovePromo}
+                              className="text-[11px] font-semibold text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
+                            >
+                              Удалить
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleApplyPromo();
+                              }
+                            }}
+                            placeholder="ВВЕДИТЕ КОД"
+                            disabled={Boolean(appliedPromo) || isApplyingPromo}
+                            className="flex-1 h-11 px-3.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono text-sm font-bold uppercase text-foreground disabled:opacity-60"
+                          />
+                          {!appliedPromo ? (
+                            <button
+                              type="button"
+                              onClick={handleApplyPromo}
+                              disabled={!promoCode.trim() || isApplyingPromo}
+                              className="h-11 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center shrink-0"
+                            >
+                              {isApplyingPromo ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                "Применить"
+                              )}
+                            </button>
+                          ) : (
+                            <div className="h-11 px-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 shrink-0 select-none">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Активен</span>
+                            </div>
+                          )}
+                        </div>
+                        {promoMessage && (
+                          <p
+                            className={`text-xs font-semibold flex items-center gap-1 mt-1 ${
+                              promoMessage.type === "success"
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-destructive"
+                            }`}
+                          >
+                            {promoMessage.type === "success" ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            ) : (
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span>{promoMessage.text}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Payment Method Selector */}
                   <div className="space-y-2 pt-2">
                     <label className="text-xs font-bold text-foreground">Способ оплаты</label>
@@ -1158,8 +1325,18 @@ function FluxDashboardOrderWizardInner({
                           : `(${qtyNum} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`}
                       </span>
                     </div>
-                    <div className="flex items-baseline gap-1.5 tabular-nums font-mono">
+                    <div className="flex items-baseline gap-2 tabular-nums font-mono">
                       <span className="text-2xl font-black text-foreground">{totalPriceRub}</span>
+                      {originalServerPriceRub && (
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatRubles(originalServerPriceRub)}
+                        </span>
+                      )}
+                      {discountPercent > 0 && (
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          -{discountPercent}%
+                        </span>
+                      )}
                     </div>
                   </div>
 

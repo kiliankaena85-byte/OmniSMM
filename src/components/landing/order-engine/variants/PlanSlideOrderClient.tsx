@@ -14,11 +14,15 @@ import {
   Wallet, 
   Coins, 
   AlertCircle,
-  X
+  X,
+  Ticket,
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { getServicesByCategoryAction, PublicNetwork, PublicCategory, PublicService } from "@/actions/order/catalog";
-import { checkoutAction, getAvailableGatewaysAction } from "@/actions/order/checkout";
+import { checkoutAction, getAvailableGatewaysAction, calculatePriceAction } from "@/actions/order/checkout";
+import type { PricingResult } from "@/services/marketing.service";
 import { formatEtaSpeedBadge } from "@/utils/format-eta";
 import { validateDripFeedDuration, DRIP_FEED_MAX_ERROR_MESSAGE, detectNetworkByUrl } from "@/hooks/useOrderWizard";
 import { analyzeUrl } from "@/actions/order/analyze-url";
@@ -138,6 +142,16 @@ function PlanSlideOrderClientInner({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalEmail, setAuthModalEmail] = useState("");
 
+  // Promo Code State & Handlers
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showPromo, setShowPromo] = useState(false);
+  const [serverPricing, setServerPricing] = useState<PricingResult | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
+
   // Restore pending order snapshot if returning via Magic Link (?auth_resume=1)
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -211,6 +225,59 @@ function PlanSlideOrderClientInner({
     }
   }, []);
 
+  const handleApplyPromo = async () => {
+    const clean = promoCode.trim().toUpperCase();
+    if (!clean) {
+      setPromoMessage({ type: 'error', text: 'Введите промокод' });
+      return;
+    }
+    if (clean.length < 3 || clean.length > 32 || !/^[A-Z0-9_-]+$/.test(clean)) {
+      setPromoMessage({ type: 'error', text: 'Некорректный формат промокода' });
+      return;
+    }
+    if (!selectedService) return;
+
+    setIsApplyingPromo(true);
+    setPromoMessage(null);
+    try {
+      const numericQuantity = typeof quantity === "string" ? (parseInt(quantity) || 0) : quantity;
+      const effectiveQuantity = isDripFeedEnabled ? numericQuantity * dripRuns : numericQuantity;
+      const res = await calculatePriceAction(
+        selectedService.id,
+        effectiveQuantity > 0 ? effectiveQuantity : (selectedService.minQty || 100),
+        clean,
+        isDripFeedEnabled ? dripRuns : undefined
+      );
+      if (res.success && res.data) {
+        if (res.data.discountCents > 0) {
+          setAppliedPromo(clean);
+          setServerPricing(res.data);
+          const percent = res.data.discountPercent || Math.round((res.data.discountCents / (res.data.originalTotalCents || res.data.totalCents)) * 100);
+          const msg = `Промокод «${clean}» применен: скидка ${percent}%`;
+          setPromoMessage({ type: 'success', text: msg });
+          toast.success(msg);
+        } else {
+          setAppliedPromo('');
+          setPromoMessage({ type: 'error', text: 'Промокод не найден или скидка недоступна' });
+        }
+      } else {
+        setAppliedPromo('');
+        setPromoMessage({ type: 'error', text: res.error || 'Промокод не найден' });
+      }
+    } catch {
+      setAppliedPromo('');
+      setPromoMessage({ type: 'error', text: 'Не удалось проверить промокод' });
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo('');
+    setPromoCode('');
+    setPromoMessage(null);
+  };
+
   interface OrderFormState { error: string; field: string; timestamp: number }
   const [formState, formAction, isPending] = useActionState(async (_prevState: OrderFormState, formData: FormData) => {
     const linkValue = (formData.get("link") as string) || link;
@@ -266,11 +333,13 @@ function PlanSlideOrderClientInner({
     }
 
     try {
+      const promoValue = appliedPromo || promoCode.trim().toUpperCase();
       const res = await checkoutAction({
         serviceId: selectedService.id,
         link: linkValue,
         quantity: qtyNum,
         email: emailValue,
+        promoCodeStr: promoValue || undefined,
         gateway: selectedGateway,
         runs: isDripFeedEnabled ? dripRuns : undefined,
         interval: isDripFeedEnabled ? dripInterval : undefined,
@@ -443,7 +512,43 @@ function PlanSlideOrderClientInner({
 
   const numericQuantity = typeof quantity === "string" ? (parseInt(quantity) || 0) : quantity;
   const effectiveQuantity = isDripFeedEnabled ? numericQuantity * dripRuns : numericQuantity;
-  const totalPrice = selectedService ? (selectedService.pricePerUnitRub * effectiveQuantity).toFixed(2) : "0.00";
+
+  // Sync server pricing with promo code and quantity
+  useEffect(() => {
+    if (!selectedService || effectiveQuantity <= 0) {
+      setServerPricing(null);
+      return;
+    }
+    let cancelled = false;
+    setIsCalculatingPrice(true);
+    calculatePriceAction(
+      selectedService.id,
+      effectiveQuantity,
+      appliedPromo || undefined,
+      isDripFeedEnabled ? dripRuns : undefined
+    )
+      .then((res) => {
+        if (!cancelled && res.success && res.data) {
+          setServerPricing(res.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsCalculatingPrice(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedService?.id, effectiveQuantity, appliedPromo, isDripFeedEnabled, dripRuns]);
+
+  const rawTotalRub = selectedService ? selectedService.pricePerUnitRub * effectiveQuantity : 0;
+  const totalPrice = serverPricing
+    ? (serverPricing.totalCents / 100).toFixed(2)
+    : rawTotalRub.toFixed(2);
+  const originalPrice = serverPricing && serverPricing.discountCents > 0
+    ? (serverPricing.originalTotalCents / 100).toFixed(2)
+    : null;
 
   return (
     <div className={`w-full max-w-4xl mx-auto flex flex-col items-center justify-center font-sans px-2 sm:px-4 relative overflow-visible ${step === 'link' ? 'pt-4 md:pt-8 pb-4' : 'min-h-[50vh] pt-2 pb-10'}`}>
@@ -1131,6 +1236,89 @@ function PlanSlideOrderClientInner({
                   />
                 </div>
 
+                {/* 5.5 Promo Code */}
+                <div id="field-promo" className="mb-5">
+                  {!showPromo ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowPromo(true)}
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5 min-h-[44px] py-2 cursor-pointer transition-colors"
+                    >
+                      <Ticket className="w-4 h-4" />
+                      <span>+ У меня есть промокод</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-2 p-3.5 rounded-2xl bg-muted/40 border border-border/70 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Ticket className="w-3.5 h-3.5 text-primary" />
+                          <span>Промокод</span>
+                        </label>
+                        {appliedPromo && (
+                          <button
+                            type="button"
+                            onClick={handleRemovePromo}
+                            className="text-[11px] font-semibold text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
+                          >
+                            Удалить
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleApplyPromo();
+                            }
+                          }}
+                          placeholder="ВВЕДИТЕ КОД"
+                          disabled={Boolean(appliedPromo) || isApplyingPromo}
+                          className="flex-1 h-11 px-3.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono text-sm font-bold uppercase text-foreground disabled:opacity-60"
+                        />
+                        {!appliedPromo ? (
+                          <button
+                            type="button"
+                            onClick={handleApplyPromo}
+                            disabled={!promoCode.trim() || isApplyingPromo}
+                            className="h-11 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center shrink-0"
+                          >
+                            {isApplyingPromo ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Применить"
+                            )}
+                          </button>
+                        ) : (
+                          <div className="h-11 px-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 shrink-0 select-none">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Активен</span>
+                          </div>
+                        )}
+                      </div>
+                      {promoMessage && (
+                        <p
+                          className={`text-xs font-semibold flex items-center gap-1 mt-1 ${
+                            promoMessage.type === "success"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-destructive"
+                          }`}
+                        >
+                          {promoMessage.type === "success" ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>{promoMessage.text}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* 6. Payment Gateways */}
                 <div className="mb-5">
                   <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-2">
@@ -1231,9 +1419,21 @@ function PlanSlideOrderClientInner({
                 <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-4">
                   <div>
                     <span className="text-[11px] text-muted-foreground block">Итого к оплате:</span>
-                    <span className="text-2xl font-black text-foreground font-mono">
-                      {totalPrice} ₽
-                    </span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-foreground font-mono">
+                        {totalPrice} ₽
+                      </span>
+                      {originalPrice && (
+                        <span className="text-xs text-muted-foreground line-through font-mono">
+                          {originalPrice} ₽
+                        </span>
+                      )}
+                      {serverPricing && serverPricing.discountPercent > 0 && (
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          -{serverPricing.discountPercent}%
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <button

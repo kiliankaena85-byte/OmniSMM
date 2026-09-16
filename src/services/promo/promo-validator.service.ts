@@ -72,6 +72,17 @@ export class PromoValidatorService {
       return { valid: false, error: 'Вы уже активировали данный промокод' };
     }
 
+    const alreadyUsedOrder = await db.promoCodeUsage.findFirst({
+      where: {
+        promoCodeId: promo.id,
+        userId,
+      },
+    });
+
+    if (alreadyUsedOrder) {
+      return { valid: false, error: 'Вы уже использовали данный промокод' };
+    }
+
     return {
       valid: true,
       promo: {

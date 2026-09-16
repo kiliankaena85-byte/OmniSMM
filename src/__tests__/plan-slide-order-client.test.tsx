@@ -34,6 +34,18 @@ vi.mock('@/actions/order/checkout', () => ({
     success: true,
     data: { yookassa: true, robokassa: true, cryptobot: true }
   }),
+  calculatePriceAction: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      totalCents: 500,
+      originalTotalCents: 500,
+      discountCents: 0,
+      discountPercent: 0,
+      providerCostCents: 0,
+      safetyFloorCents: 100,
+      tier: 'REGULAR',
+    }
+  }),
 }));
 
 vi.mock('@/actions/order/analyze-url', () => ({
@@ -244,12 +256,23 @@ describe('PlanSlideOrderClient & LayoutVariantToggle Tests', () => {
     });
     fireEvent.click(screen.getByText(/Telegram Подписчики Живые API/i));
 
-    // 4. Now on checkout step: field-link MUST exist and be rendered
+    // 4. Now on checkout step: field-link, field-email, field-promo MUST exist and be rendered
     await waitFor(() => {
       expect(screen.getByText(/Ссылка для заказа/i)).toBeDefined();
       expect(document.getElementById('field-link')).not.toBeNull();
       expect(document.getElementById('field-quantity')).not.toBeNull();
       expect(document.getElementById('field-email')).not.toBeNull();
+      expect(document.getElementById('field-promo')).not.toBeNull();
+      expect(screen.getByText(/У меня есть промокод/i)).toBeDefined();
+    });
+
+    // 5. Open promo code input
+    const promoBtn = screen.getByText(/У меня есть промокод/i);
+    fireEvent.click(promoBtn);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/ВВЕДИТЕ КОД/i)).toBeDefined();
+      expect(screen.getByRole('button', { name: /Применить/i })).toBeDefined();
     });
   });
 });

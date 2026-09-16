@@ -64,12 +64,29 @@ export async function calculatePriceAction(
       return { success: false, error: "Услуга не найдена или неактивна" };
     }
 
+    const cleanPromo = promoCodeStr ? promoCodeStr.trim().toUpperCase() : undefined;
+    if (cleanPromo) {
+      if (cleanPromo.length < 3 || cleanPromo.length > 32 || !/^[A-Z0-9_-]+$/.test(cleanPromo)) {
+        return { success: false, error: "Некорректный формат промокода" };
+      }
+      let clientIp = '127.0.0.1';
+      try {
+        clientIp = await getClientIp();
+      } catch {
+        // fallback
+      }
+      const isPromoRateAllowed = await RateLimitService.checkCustomKey(`promo_rate:${clientIp}`, 15, 60);
+      if (!isPromoRateAllowed) {
+        return { success: false, error: "Слишком много попыток ввода промокода. Подождите минуту." };
+      }
+    }
+
     const totalQuantity = quantity;
     const result = await marketingService.calculatePrice(
       null, // No user context needed for price preview
       serviceId,
       totalQuantity,
-      promoCodeStr
+      cleanPromo || promoCodeStr
     );
 
     let markupMultiplier = 1;
@@ -380,13 +397,49 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     
     let promoCodeId: string | null = null;
     if (normalizedPromo) {
+      // Anti-brute force rate limiting on checkout
+      const promoRateAllowed = await RateLimitService.checkCustomKey(`checkout_promo:${consentIp}`, 10, 60);
+      if (!promoRateAllowed) {
+        throw new Error("Слишком много попыток ввода промокода. Подождите минуту.");
+      }
+
       const promo = await db.promoCode.findUnique({
         where: { code: normalizedPromo },
-        select: { id: true }
+        select: { id: true, isActive: true, expiresAt: true, maxUses: true, uses: true }
       });
-      if (promo) {
-        promoCodeId = promo.id;
+      if (!promo || !promo.isActive) {
+        throw new Error("Промокод недействителен или не существует");
       }
+      if (promo.expiresAt && promo.expiresAt < new Date()) {
+        throw new Error("Срок действия промокода истёк");
+      }
+      if (promo.maxUses > 0 && promo.uses >= promo.maxUses) {
+        throw new Error("Лимит использований промокода исчерпан");
+      }
+
+      // Check single-use per user
+      if (user?.id) {
+        const existingUsage = await db.promoCodeUsage.findFirst({
+          where: {
+            promoCodeId: promo.id,
+            userId: user.id
+          }
+        });
+        if (existingUsage) {
+          throw new Error("Вы уже использовали данный промокод");
+        }
+        const voucherUsed = await db.ledgerEntry.findFirst({
+          where: {
+            idempotencyKey: `promo-${normalizedPromo}-${user.id}`,
+            ...(tenantId ? { tenantId } : {})
+          }
+        });
+        if (voucherUsed) {
+          throw new Error("Вы уже использовали данный промокод");
+        }
+      }
+
+      promoCodeId = promo.id;
     }
 
     const { SettingsProvider } = await import('@/lib/settings');

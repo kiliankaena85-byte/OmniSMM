@@ -171,10 +171,11 @@ services:
       - SKIP_BOT=true
       - HOSTNAME=0.0.0.0
       - PORT=3000
+      - ALLOWED_ORIGINS=http://26.178.208.222:3000,http://localhost:3000,http://127.0.0.1:3000
     volumes:
       - lite_uploads_data:/app/private/uploads
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     dns:
       - 77.88.8.8
       - 8.8.8.8

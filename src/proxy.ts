@@ -149,6 +149,7 @@ export function isInternalHost(h: string | null | undefined): boolean {
   if (/^10\.\d+\.\d+\.\d+$/.test(clean)) return true;
   if (/^192\.168\.\d+\.\d+$/.test(clean)) return true;
   if (/^100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\.\d+\.\d+$/.test(clean)) return true;
+  if (/^26\.\d+\.\d+\.\d+$/.test(clean)) return true;
   return false;
 }
 

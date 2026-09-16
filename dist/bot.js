@@ -14979,7 +14979,7 @@ function isTenantBypassActive() {
   const store = tenantStorage.getStore();
   return Boolean(store?.isBypass);
 }
-function resolveActiveTenantId() {
+async function resolveActiveTenantId() {
   const store = tenantStorage.getStore();
   if (store?.tenantId) {
     return store.tenantId;
@@ -14987,7 +14987,7 @@ function resolveActiveTenantId() {
   try {
     const { headers: headers2 } = require_headers3();
     if (typeof headers2 === "function") {
-      const h = headers2();
+      const h = await headers2();
       const tenantHeader = h.get("x-tenant-id");
       if (tenantHeader) {
         return tenantHeader;
@@ -15007,6 +15007,45 @@ var init_tenant_context = __esm({
 });
 
 // src/lib/prisma-tenant-enforcer.ts
+function applyTenantWhereClause(where, activeTenantId, model) {
+  if (!where.tenantId) {
+    if (model === "category" || model === "service") {
+      where.tenantId = { in: [activeTenantId, "all"] };
+    } else {
+      where.tenantId = activeTenantId;
+    }
+    return;
+  }
+  const requested = where.tenantId;
+  if (typeof requested === "string") {
+    if (requested !== activeTenantId && requested !== "all") {
+      throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested}`);
+    }
+    return;
+  }
+  if (typeof requested === "object" && requested !== null) {
+    if (Array.isArray(requested.in)) {
+      const hasCrossTenant = requested.in.some(
+        (t) => typeof t === "string" && t !== activeTenantId && t !== "all"
+      );
+      if (hasCrossTenant) {
+        throw new Error(
+          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${JSON.stringify(requested)}`
+        );
+      }
+      return;
+    }
+    if (typeof requested.equals === "string") {
+      if (requested.equals !== activeTenantId && requested.equals !== "all") {
+        throw new Error(
+          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested.equals}`
+        );
+      }
+      return;
+    }
+  }
+  where.tenantId = activeTenantId;
+}
 function createTenantEnforcerExtension(options = {}) {
   const queryExtensions = {};
   for (const model of TENANT_SCOPED_MODELS) {
@@ -15015,13 +15054,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== "all") {
-            throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${tenantId}, Requested: ${args.where.tenantId}`);
-          }
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15029,13 +15065,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== "all") {
-            throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${tenantId}, Requested: ${args.where.tenantId}`);
-          }
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15043,11 +15076,11 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (!tenantId) {
           return query(args);
         }
-        const scopedWhere = { ...args.where, tenantId };
+        const scopedWhere = model === "category" || model === "service" ? { ...args.where, tenantId: { in: [tenantId, "all"] } } : { ...args.where, tenantId };
         const scopedArgs = { ...args, where: scopedWhere };
         if (options.findFirstDelegate) {
           return options.findFirstDelegate(scopedArgs);
@@ -15061,10 +15094,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15072,13 +15105,15 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.data = args.data || {};
-          if (args.data.tenantId && args.data.tenantId !== tenantId) {
+          if (args.data.tenantId && args.data.tenantId !== tenantId && args.data.tenantId !== "all") {
             throw new Error(`SECURITY_TENANT_MISMATCH: Cannot create record for another tenant! Active: ${tenantId}, Given: ${args.data.tenantId}`);
           }
-          args.data.tenantId = tenantId;
+          if (!args.data.tenantId) {
+            args.data.tenantId = tenantId;
+          }
         }
         return query(args);
       },
@@ -15086,13 +15121,15 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId && Array.isArray(args.data)) {
           for (const item of args.data) {
-            if (item.tenantId && item.tenantId !== tenantId) {
+            if (item.tenantId && item.tenantId !== tenantId && item.tenantId !== "all") {
               throw new Error(`SECURITY_TENANT_MISMATCH: Batch creation contains record with mismatched tenant!`);
             }
-            item.tenantId = tenantId;
+            if (!item.tenantId) {
+              item.tenantId = tenantId;
+            }
           }
         }
         return query(args);
@@ -15101,10 +15138,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15112,10 +15149,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15123,10 +15160,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -15134,10 +15171,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       }
@@ -34142,6 +34179,13 @@ var init_settings = __esm({
       static async getEnvironmentMode(tenantId) {
         const activeTenantId = tenantId || await this.getTenantId();
         try {
+          const settings = await this.get(activeTenantId);
+          if (settings && settings.environmentMode) {
+            return settings.environmentMode;
+          }
+        } catch {
+        }
+        try {
           const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
           const cachedMode = await redis2.get(`settings:${activeTenantId}:environmentMode`);
           if (cachedMode && ["SANDBOX", "HYBRID", "ACQUIRING_TEST", "PRODUCTION"].includes(cachedMode)) {
@@ -34160,8 +34204,8 @@ var init_settings = __esm({
         delete localSettingsCache["flux"];
         await db.systemSettings.upsert({
           where: { id: activeTenantId },
-          update: { isTestMode: isTest },
-          create: { id: activeTenantId, isTestMode: isTest }
+          update: { isTestMode: isTest, environmentMode: mode },
+          create: { id: activeTenantId, isTestMode: isTest, environmentMode: mode }
         });
         try {
           const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
@@ -71367,7 +71411,7 @@ var init_link_rules = __esm({
         type: "post",
         pattern: /linkedin\.com\/(?:posts|feed\/update)\/([\w.-]+)/i,
         suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.REPOSTS],
-        context: "b2b_engagement"
+        context: "api_engagement"
       },
       {
         platform: "LINKEDIN" /* LINKEDIN */,
@@ -129996,10 +130040,6 @@ var init_anti_negative_margin = __esm({
 });
 
 // src/services/marketing.service.ts
-var marketing_service_exports = {};
-__export2(marketing_service_exports, {
-  marketingService: () => marketingService
-});
 var MarketingService, marketingService;
 var init_marketing_service = __esm({
   "src/services/marketing.service.ts"() {
@@ -130169,10 +130209,10 @@ var init_marketing_service = __esm({
         }
       }
       /**
-       * Evaluates volume discount for an array of services and formats them for B2B API Standards.
+       * Evaluates volume discount for an array of services and formats them for Panel API Standards.
        * Protects pricing from dropping below the safety floor.
        */
-      async getB2BFormattedServices(user, services) {
+      async getAPIFormattedServices(user, services) {
         const volumeTier = this.getVolumeTier(Number(user.totalSpent));
         let maxDiscountPercent = Math.max(user.personalDiscount || 0, volumeTier.discountPercent);
         if (maxDiscountPercent > MAX_TOTAL_DISCOUNT) {
@@ -131911,8 +131951,12 @@ var init_payment_gateway_service = __esm({
       }
     };
     PaymentGatewayFactory = class {
-      static getGateway(gatewayName) {
-        switch (gatewayName.toLowerCase()) {
+      static getGateway(gatewayName, options) {
+        const normalizedName = gatewayName.toLowerCase();
+        if (options?.isMockPayment && normalizedName !== "balance") {
+          return new MockGateway();
+        }
+        switch (normalizedName) {
           case "yookassa":
           case "sbp":
           case "card":
@@ -139742,7 +139786,7 @@ var init_owner_hub_wizard = __esm({
 \u{1F6D2} <b>\u0412\u0441\u0435\u0433\u043E \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043E \u0437\u0430\u043A\u0430\u0437\u043E\u0432:</b> <b>${totalOrders}</b>
 
 \u{1F3E2} <b>\u041C\u0443\u043B\u044C\u0442\u0438-\u0422\u0435\u043D\u0430\u043D\u0442\u043D\u043E\u0441\u0442\u044C (\u0418\u0437\u043E\u043B\u044F\u0446\u0438\u044F \u0431\u0440\u0435\u043D\u0434\u043E\u0432):</b>
-  \u2022 <b>SMMplan</b> (<code>smmplan.pro</code>) \u2014 \u{1F7E2} B2B \u041A\u043B\u0430\u0441\u0441\u0438\u043A\u0430 (\u041E\u043D\u043B\u0430\u0439\u043D)
+  \u2022 <b>SMMplan</b> (<code>smmplan.pro</code>) \u2014 \u{1F7E2} API \u041A\u043B\u0430\u0441\u0441\u0438\u043A\u0430 (\u041E\u043D\u043B\u0430\u0439\u043D)
   \u2022 <b>SMMflux</b> (<code>smmflux.ru</code>) \u2014 \u{1F7E2} Radiant Aurora (\u041E\u043D\u043B\u0430\u0439\u043D)
 
 \u{1F4B3} <b>\u0411\u043E\u0435\u0432\u044B\u0435 \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u044B & \u0428\u043B\u044E\u0437\u044B:</b>
@@ -140486,15 +140530,6 @@ var init_payment_service = __esm({
                   data: { status: "PENDING" }
                 });
                 await logPromoCodeUsageIfNeeded(tx, linkedOrderId, targetUserId);
-                if (order.promoCodeId) {
-                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-                  if (promo) {
-                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
-                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
-                      console.warn(`[MARKETING] Could not consume promo code ${promo.code} on payment confirmation:`, err);
-                    });
-                  }
-                }
                 activatedOrders.push({
                   id: order.id,
                   isDripFeed: order.isDripFeed,
@@ -140549,15 +140584,6 @@ var init_payment_service = __esm({
                   numericId: order.numericId
                 });
                 await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
-                if (order.promoCodeId) {
-                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-                  if (promo) {
-                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
-                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
-                      console.warn(`[MARKETING] Could not consume basket promo code ${promo.code} on payment confirmation:`, err);
-                    });
-                  }
-                }
               }
               await WalletOps.credit(
                 tx,
@@ -140645,6 +140671,43 @@ var init_payment_service = __esm({
           return true;
         } catch (e) {
           console.error("[PaymentService] Error confirming payment:", e instanceof Error ? e.message : String(e));
+          return false;
+        }
+      }
+      /**
+       * Explicitly cancels a payment and rolls back reserved resources (e.g. promo codes).
+       */
+      async cancelPayment(gatewayId) {
+        try {
+          return await runSerializableTransaction(async (tx) => {
+            const payment = await tx.payment.findUnique({ where: { gatewayId } });
+            if (!payment || payment.status !== "PENDING") return false;
+            const updated = await tx.payment.updateMany({
+              where: { id: payment.id, status: "PENDING" },
+              data: { status: "CANCELED" }
+            });
+            if (updated.count === 0) return false;
+            const orders = await tx.order.findMany({
+              where: { paymentId: payment.id, status: "AWAITING_PAYMENT" }
+            });
+            if (orders.length > 0) {
+              await tx.order.updateMany({
+                where: { paymentId: payment.id, status: "AWAITING_PAYMENT" },
+                data: { status: "CANCELED" }
+              });
+              for (const order of orders) {
+                if (order.promoCodeId) {
+                  await tx.promoCode.updateMany({
+                    where: { id: order.promoCodeId, uses: { gt: 0 } },
+                    data: { uses: { decrement: 1 } }
+                  });
+                }
+              }
+            }
+            return true;
+          });
+        } catch (e) {
+          console.error("[PaymentService] Error canceling payment:", e instanceof Error ? e.message : String(e));
           return false;
         }
       }

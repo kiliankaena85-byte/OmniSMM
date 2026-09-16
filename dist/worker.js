@@ -47024,7 +47024,7 @@ function isTenantBypassActive() {
   const store = tenantStorage.getStore();
   return Boolean(store?.isBypass);
 }
-function resolveActiveTenantId() {
+async function resolveActiveTenantId() {
   const store = tenantStorage.getStore();
   if (store?.tenantId) {
     return store.tenantId;
@@ -47032,7 +47032,7 @@ function resolveActiveTenantId() {
   try {
     const { headers: headers2 } = require_headers3();
     if (typeof headers2 === "function") {
-      const h = headers2();
+      const h = await headers2();
       const tenantHeader = h.get("x-tenant-id");
       if (tenantHeader) {
         return tenantHeader;
@@ -47052,6 +47052,45 @@ var init_tenant_context = __esm({
 });
 
 // src/lib/prisma-tenant-enforcer.ts
+function applyTenantWhereClause(where, activeTenantId, model) {
+  if (!where.tenantId) {
+    if (model === "category" || model === "service") {
+      where.tenantId = { in: [activeTenantId, "all"] };
+    } else {
+      where.tenantId = activeTenantId;
+    }
+    return;
+  }
+  const requested = where.tenantId;
+  if (typeof requested === "string") {
+    if (requested !== activeTenantId && requested !== "all") {
+      throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested}`);
+    }
+    return;
+  }
+  if (typeof requested === "object" && requested !== null) {
+    if (Array.isArray(requested.in)) {
+      const hasCrossTenant = requested.in.some(
+        (t) => typeof t === "string" && t !== activeTenantId && t !== "all"
+      );
+      if (hasCrossTenant) {
+        throw new Error(
+          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${JSON.stringify(requested)}`
+        );
+      }
+      return;
+    }
+    if (typeof requested.equals === "string") {
+      if (requested.equals !== activeTenantId && requested.equals !== "all") {
+        throw new Error(
+          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested.equals}`
+        );
+      }
+      return;
+    }
+  }
+  where.tenantId = activeTenantId;
+}
 function createTenantEnforcerExtension(options = {}) {
   const queryExtensions = {};
   for (const model of TENANT_SCOPED_MODELS) {
@@ -47060,13 +47099,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== "all") {
-            throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${tenantId}, Requested: ${args.where.tenantId}`);
-          }
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47074,13 +47110,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          if (args.where.tenantId && args.where.tenantId !== tenantId && args.where.tenantId !== "all") {
-            throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${tenantId}, Requested: ${args.where.tenantId}`);
-          }
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47088,11 +47121,11 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (!tenantId) {
           return query(args);
         }
-        const scopedWhere = { ...args.where, tenantId };
+        const scopedWhere = model === "category" || model === "service" ? { ...args.where, tenantId: { in: [tenantId, "all"] } } : { ...args.where, tenantId };
         const scopedArgs = { ...args, where: scopedWhere };
         if (options.findFirstDelegate) {
           return options.findFirstDelegate(scopedArgs);
@@ -47106,10 +47139,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47117,13 +47150,15 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.data = args.data || {};
-          if (args.data.tenantId && args.data.tenantId !== tenantId) {
+          if (args.data.tenantId && args.data.tenantId !== tenantId && args.data.tenantId !== "all") {
             throw new Error(`SECURITY_TENANT_MISMATCH: Cannot create record for another tenant! Active: ${tenantId}, Given: ${args.data.tenantId}`);
           }
-          args.data.tenantId = tenantId;
+          if (!args.data.tenantId) {
+            args.data.tenantId = tenantId;
+          }
         }
         return query(args);
       },
@@ -47131,13 +47166,15 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId && Array.isArray(args.data)) {
           for (const item of args.data) {
-            if (item.tenantId && item.tenantId !== tenantId) {
+            if (item.tenantId && item.tenantId !== tenantId && item.tenantId !== "all") {
               throw new Error(`SECURITY_TENANT_MISMATCH: Batch creation contains record with mismatched tenant!`);
             }
-            item.tenantId = tenantId;
+            if (!item.tenantId) {
+              item.tenantId = tenantId;
+            }
           }
         }
         return query(args);
@@ -47146,10 +47183,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47157,10 +47194,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47168,10 +47205,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       },
@@ -47179,10 +47216,10 @@ function createTenantEnforcerExtension(options = {}) {
         if (isTenantBypassActive()) {
           return query(args);
         }
-        const tenantId = resolveActiveTenantId();
+        const tenantId = await resolveActiveTenantId();
         if (tenantId) {
           args.where = args.where || {};
-          args.where.tenantId = tenantId;
+          applyTenantWhereClause(args.where, tenantId, model);
         }
         return query(args);
       }
@@ -103472,6 +103509,13 @@ var init_settings = __esm({
       static async getEnvironmentMode(tenantId) {
         const activeTenantId = tenantId || await this.getTenantId();
         try {
+          const settings = await this.get(activeTenantId);
+          if (settings && settings.environmentMode) {
+            return settings.environmentMode;
+          }
+        } catch {
+        }
+        try {
           const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
           const cachedMode = await redis2.get(`settings:${activeTenantId}:environmentMode`);
           if (cachedMode && ["SANDBOX", "HYBRID", "ACQUIRING_TEST", "PRODUCTION"].includes(cachedMode)) {
@@ -103490,8 +103534,8 @@ var init_settings = __esm({
         delete localSettingsCache["flux"];
         await db.systemSettings.upsert({
           where: { id: activeTenantId },
-          update: { isTestMode: isTest },
-          create: { id: activeTenantId, isTestMode: isTest }
+          update: { isTestMode: isTest, environmentMode: mode },
+          create: { id: activeTenantId, isTestMode: isTest, environmentMode: mode }
         });
         try {
           const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
@@ -111696,7 +111740,7 @@ var init_link_rules = __esm({
         type: "post",
         pattern: /linkedin\.com\/(?:posts|feed\/update)\/([\w.-]+)/i,
         suggestedCategories: [CATEGORY_LABELS.LIKES, CATEGORY_LABELS.COMMENTS, CATEGORY_LABELS.REPOSTS],
-        context: "b2b_engagement"
+        context: "api_engagement"
       },
       {
         platform: "LINKEDIN" /* LINKEDIN */,
@@ -128722,595 +128766,6 @@ var init_promo_automation_service = __esm({
   }
 });
 
-// src/lib/pricing/currency-invariant.ts
-var currency_invariant_exports = {};
-__export2(currency_invariant_exports, {
-  SUPPORTED_CURRENCIES: () => SUPPORTED_CURRENCIES,
-  buildCurrencySnapshot: () => buildCurrencySnapshot,
-  detectCurrencyChange: () => detectCurrencyChange,
-  getCostRub: () => getCostRub,
-  reconcileCurrencyBeforeSync: () => reconcileCurrencyBeforeSync,
-  resnapshotOnCurrencyChange: () => resnapshotOnCurrencyChange
-});
-function getCostRub(rate, currency, usdRate, crossRates) {
-  if (typeof rate !== "number" || !isFinite(rate) || rate < 0) {
-    throw new Error(`INVALID_RATE: rate must be a non-negative finite number, got ${rate}`);
-  }
-  if (!currency || typeof currency !== "string") {
-    throw new Error(`CURRENCY_UNSUPPORTED: currency is required (rate=${rate})`);
-  }
-  const normalized = currency.toUpperCase().trim();
-  let cost;
-  switch (normalized) {
-    case "RUB":
-      cost = rate;
-      break;
-    case "USD":
-      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
-        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
-      }
-      cost = rate * usdRate;
-      break;
-    case "EUR":
-      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
-        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
-      }
-      const eurFactor = crossRates?.eurToUsd && crossRates.eurToUsd > 0 ? crossRates.eurToUsd : 1.08;
-      cost = rate * eurFactor * usdRate;
-      break;
-    case "UAH":
-      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
-        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
-      }
-      const uahFactor = crossRates?.uahToUsd && crossRates.uahToUsd > 0 ? crossRates.uahToUsd : 0.027;
-      cost = rate * uahFactor * usdRate;
-      break;
-    case "KZT":
-      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
-        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
-      }
-      const kztFactor = crossRates?.kztToUsd && crossRates.kztToUsd > 0 ? crossRates.kztToUsd : 23e-4;
-      cost = rate * kztFactor * usdRate;
-      break;
-    default:
-      throw new Error(`CURRENCY_UNSUPPORTED: ${currency} (rate=${rate})`);
-  }
-  if (!isFinite(cost) || cost < 0) {
-    throw new Error(`CURRENCY_CONVERSION_INVALID: ${rate} ${currency} \u2192 ${cost} RUB`);
-  }
-  return Math.round(cost * 1e4) / 1e4;
-}
-async function buildCurrencySnapshot(rawRate, providerCurrency) {
-  if (!providerCurrency || typeof providerCurrency !== "string") {
-    throw new Error(`CURRENCY_UNSUPPORTED: providerCurrency is required (rate=${rawRate})`);
-  }
-  const currency = providerCurrency.toUpperCase().trim();
-  let usdRate = 95;
-  try {
-    const fetched = await SettingsProvider.getExchangeRateUSD();
-    if (fetched && fetched > 0) usdRate = fetched;
-  } catch {
-    usdRate = 95;
-  }
-  const costPer1kRub = getCostRub(rawRate, currency, usdRate);
-  if (!isFinite(costPer1kRub) || costPer1kRub <= 0) {
-    throw new Error(`CURRENCY_CONVERSION_INVALID: ${rawRate} ${currency} \u2192 ${costPer1kRub} RUB`);
-  }
-  return {
-    rawRate,
-    currency,
-    costPer1kRub,
-    usdRateAtCapture: usdRate,
-    capturedAt: /* @__PURE__ */ new Date()
-  };
-}
-async function detectCurrencyChange(providerId, newCurrency) {
-  const provider = await db.provider.findUnique({
-    where: { id: providerId },
-    select: { balanceCurrency: true }
-  });
-  const oldCurrency = provider?.balanceCurrency || null;
-  const normalizedNew = (newCurrency || "USD").toUpperCase().trim();
-  if (oldCurrency && oldCurrency.toUpperCase().trim() !== normalizedNew) {
-    const serviceCount = await db.service.count({
-      where: { providerId, isActive: true }
-    });
-    return { changed: true, oldCurrency, serviceCount };
-  }
-  return { changed: false, oldCurrency, serviceCount: 0 };
-}
-async function resnapshotOnCurrencyChange(providerId, oldCurrency, newCurrency) {
-  const services = await db.service.findMany({
-    where: { providerId, isActive: true },
-    select: { id: true, rate: true, providerCurrency: true, markup: true }
-  });
-  let updated = 0;
-  for (const svc of services) {
-    try {
-      const snapshot = await buildCurrencySnapshot(svc.rate, newCurrency);
-      await db.service.update({
-        where: { id: svc.id },
-        data: {
-          providerCurrency: newCurrency,
-          costPer1kRub: snapshot.costPer1kRub,
-          currencyCapturedAt: snapshot.capturedAt,
-          usdRateAtCapture: snapshot.usdRateAtCapture,
-          // Recompute retail from new base cost
-          pricePer1000Cents: Math.round(snapshot.costPer1kRub * svc.markup * 100)
-        }
-      });
-      updated++;
-    } catch (err) {
-      console.error(`[CurrencyResnapshot] Failed for service ${svc.id}:`, err);
-    }
-  }
-  await db.routingAuditLog.create({
-    data: {
-      serviceId: "SYSTEM",
-      action: "PROVIDER_CURRENCY_CHANGED",
-      reason: `Provider currency changed ${oldCurrency} \u2192 ${newCurrency}, resnapshotted ${updated} services`
-    }
-  });
-  return updated;
-}
-async function reconcileCurrencyBeforeSync(providerId, newBalanceCurrency) {
-  const change = await detectCurrencyChange(providerId, newBalanceCurrency);
-  if (!change.changed || !change.oldCurrency) {
-    return { resnapshotted: false, serviceCount: 0 };
-  }
-  const updated = await resnapshotOnCurrencyChange(providerId, change.oldCurrency, newBalanceCurrency);
-  return { resnapshotted: true, serviceCount: updated };
-}
-var SUPPORTED_CURRENCIES;
-var init_currency_invariant = __esm({
-  "src/lib/pricing/currency-invariant.ts"() {
-    "use strict";
-    init_db();
-    init_settings();
-    SUPPORTED_CURRENCIES = ["USD", "RUB", "EUR", "UAH", "KZT"];
-  }
-});
-
-// src/services/system/cbr-rate.service.ts
-var cbr_rate_service_exports = {};
-__export2(cbr_rate_service_exports, {
-  CBRRateService: () => CBRRateService
-});
-var CBRRateService;
-var init_cbr_rate_service = __esm({
-  "src/services/system/cbr-rate.service.ts"() {
-    "use strict";
-    init_settings();
-    CBRRateService = class {
-      static {
-        this.CBR_OFFICIAL_XML_URL = "https://www.cbr.ru/scripts/XML_daily.asp";
-      }
-      static {
-        this.CBR_JSON_MIRROR_URL = "https://www.cbr-xml-daily.ru/daily_json.js";
-      }
-      static {
-        this.GLOBAL_FX_API_URL = "https://open.er-api.com/v6/latest/USD";
-      }
-      static {
-        this.SPREAD_MULTIPLIER = 1.03;
-      }
-      // +3% Margin Safety Net (PB-003)
-      /**
-       * Fetches raw currency rates from CBR with multi-tiered fallback.
-       */
-      static async fetchRawRates() {
-        const parseVal = (str) => parseFloat(str.replace(",", "."));
-        try {
-          const response = await fetch(this.CBR_OFFICIAL_XML_URL, {
-            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) OmniSMM/1.0" },
-            signal: AbortSignal.timeout(6e3),
-            next: { revalidate: 3600 }
-          });
-          if (response.ok) {
-            const text = await response.text();
-            const usdMatch = text.match(/<Valute ID="R01235">[\s\S]*?<Value>([\d,]+)<\/Value>/);
-            const eurMatch = text.match(/<Valute ID="R01239">[\s\S]*?<Value>([\d,]+)<\/Value>/);
-            const uahMatch = text.match(/<Valute ID="R01720">[\s\S]*?<Nominal>(\d+)<\/Nominal>[\s\S]*?<Value>([\d,]+)<\/Value>/);
-            const kztMatch = text.match(/<Valute ID="R01335">[\s\S]*?<Nominal>(\d+)<\/Nominal>[\s\S]*?<Value>([\d,]+)<\/Value>/);
-            const usd = usdMatch ? parseVal(usdMatch[1]) : null;
-            if (usd && !isNaN(usd) && usd > 0) {
-              const eur = eurMatch ? parseVal(eurMatch[1]) : null;
-              const uah = uahMatch ? parseVal(uahMatch[2]) / parseInt(uahMatch[1], 10) : null;
-              const kzt = kztMatch ? parseVal(kztMatch[2]) / parseInt(kztMatch[1], 10) : null;
-              return { usdRate: usd, eurRate: eur, uahRate: uah, kztRate: kzt, source: "CBR_OFFICIAL_XML" };
-            }
-          }
-        } catch (err) {
-          console.warn("[CBRRateService] Tier 1 (CBR Official XML) fetch error:", err instanceof Error ? err.message : String(err));
-        }
-        try {
-          const response = await fetch(this.CBR_JSON_MIRROR_URL, {
-            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) OmniSMM/1.0" },
-            signal: AbortSignal.timeout(6e3),
-            next: { revalidate: 3600 }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const usd = data?.Valute?.USD?.Value;
-            if (typeof usd === "number" && !isNaN(usd) && usd > 0) {
-              const eur = data?.Valute?.EUR?.Value ?? null;
-              const uahNominal = data?.Valute?.UAH?.Nominal || 10;
-              const uahVal = data?.Valute?.UAH?.Value;
-              const uah = uahVal ? uahVal / uahNominal : null;
-              const kztNominal = data?.Valute?.KZT?.Nominal || 100;
-              const kztVal = data?.Valute?.KZT?.Value;
-              const kzt = kztVal ? kztVal / kztNominal : null;
-              return { usdRate: usd, eurRate: eur, uahRate: uah, kztRate: kzt, source: "CBR_JSON_MIRROR" };
-            }
-          }
-        } catch (err) {
-          console.warn("[CBRRateService] Tier 2 (CBR JSON Mirror) fetch error:", err instanceof Error ? err.message : String(err));
-        }
-        try {
-          const response = await fetch(this.GLOBAL_FX_API_URL, {
-            signal: AbortSignal.timeout(6e3),
-            next: { revalidate: 3600 }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const rub = data?.rates?.RUB;
-            if (typeof rub === "number" && !isNaN(rub) && rub > 0) {
-              const eur = data?.rates?.EUR ? 1 / data.rates.EUR : null;
-              const uah = data?.rates?.UAH ? rub / data.rates.UAH : null;
-              const kzt = data?.rates?.KZT ? rub / data.rates.KZT : null;
-              return { usdRate: rub, eurRate: eur, uahRate: uah, kztRate: kzt, source: "GLOBAL_FX_API" };
-            }
-          }
-        } catch (err) {
-          console.warn("[CBRRateService] Tier 3 (Global FX API) fetch error:", err instanceof Error ? err.message : String(err));
-        }
-        throw new Error("All exchange rate providers (CBR Official, Mirror, Global FX) are unreachable");
-      }
-      /**
-       * Fetches the latest USD, EUR, UAH, KZT exchange rates from CBR, applies a 3% safety spread, 
-       * and updates SystemSettings & Redis FX cache. If network fails, leaves the old rate.
-       * 
-       * @returns The combined payload: nominal rate, system rate (with spread), and update status.
-       */
-      static async syncCBRExchangeRate(tenantId) {
-        try {
-          let usdRate = null;
-          let eurRate = null;
-          let uahRate = null;
-          let kztRate = null;
-          let source = "CBR_OFFICIAL_XML";
-          try {
-            const fetched = await this.fetchRawRates();
-            usdRate = fetched.usdRate;
-            eurRate = fetched.eurRate;
-            uahRate = fetched.uahRate;
-            kztRate = fetched.kztRate;
-            source = fetched.source;
-          } catch (err) {
-            console.warn("[CBRRateService] Rate fetch error:", err instanceof Error ? err.message : String(err));
-          }
-          if (typeof usdRate !== "number" || isNaN(usdRate) || usdRate <= 0) {
-            const existingRate = await SettingsManager.getExchangeRateUSD(tenantId);
-            const fallbackCrossRates = {
-              usdToRub: existingRate || 95,
-              eurToUsd: 1.08,
-              uahToUsd: 0.027,
-              kztToUsd: 23e-4,
-              updatedAt: /* @__PURE__ */ new Date()
-            };
-            return { nominalRate: existingRate, systemRate: existingRate, crossRates: fallbackCrossRates, updated: false };
-          }
-          const systemRate = parseFloat((usdRate * this.SPREAD_MULTIPLIER).toFixed(2));
-          const eurToUsd = eurRate && usdRate ? parseFloat((eurRate / usdRate).toFixed(4)) : 1.08;
-          const uahToUsd = uahRate && usdRate ? parseFloat((uahRate / usdRate).toFixed(6)) : 0.027;
-          const kztToUsd = kztRate && usdRate ? parseFloat((kztRate / usdRate).toFixed(7)) : 23e-4;
-          const crossRates = {
-            usdToRub: systemRate,
-            eurToUsd,
-            uahToUsd,
-            kztToUsd,
-            updatedAt: /* @__PURE__ */ new Date()
-          };
-          try {
-            const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
-            await redis2.set("fx:cross_rates", JSON.stringify(crossRates), "EX", 86400);
-          } catch {
-          }
-          await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
-          return { nominalRate: usdRate, systemRate, crossRates, updated: true };
-        } catch (error) {
-          console.error("[CBRRateService] CBR sync failed:", error instanceof Error ? error.message : String(error));
-          const existingRate = await SettingsManager.getExchangeRateUSD(tenantId);
-          const fallbackCrossRates = {
-            usdToRub: existingRate || 95,
-            eurToUsd: 1.08,
-            uahToUsd: 0.027,
-            kztToUsd: 23e-4,
-            updatedAt: /* @__PURE__ */ new Date()
-          };
-          return { nominalRate: existingRate, systemRate: existingRate, crossRates: fallbackCrossRates, updated: false };
-        }
-      }
-      /**
-       * Retrieves cached live cross rates or falls back to system settings defaults.
-       */
-      static async getLiveCrossRates(tenantId) {
-        try {
-          const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
-          const cached = await redis2.get("fx:cross_rates");
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            parsed.updatedAt = new Date(parsed.updatedAt);
-            return parsed;
-          }
-        } catch {
-        }
-        const usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
-        if (!usdRate || usdRate <= 0 || !Number.isFinite(usdRate)) {
-          throw new Error("INVALID_USD_RATE: Exchange rate USD is not configured in SystemSettings");
-        }
-        return {
-          usdToRub: usdRate,
-          eurToUsd: 1.08,
-          uahToUsd: 0.027,
-          kztToUsd: 23e-4,
-          updatedAt: /* @__PURE__ */ new Date()
-        };
-      }
-    };
-  }
-});
-
-// src/lib/pricing/anti-negative-margin.ts
-function applyAntiNegativeMargin(costPer1kRub, rawRetailPer1kRub, minMarginPct = 5) {
-  if (!Number.isFinite(costPer1kRub) || costPer1kRub <= 0) {
-    throw new Error(`[AntiNegativeMargin] Invalid costPer1kRub: must be a positive finite number (got ${costPer1kRub})`);
-  }
-  const safeCost = costPer1kRub;
-  const minAcceptableRetail = safeCost * (1 + minMarginPct / 100);
-  let finalRetail = applyBeautifulRounding(rawRetailPer1kRub);
-  let wasFloored = false;
-  if (finalRetail < minAcceptableRetail) {
-    finalRetail = applyBeautifulRounding(minAcceptableRetail);
-    wasFloored = true;
-  }
-  if (finalRetail < safeCost) {
-    finalRetail = applyBeautifulRounding(safeCost);
-    wasFloored = true;
-  }
-  const finalCents = Math.ceil(finalRetail * 100);
-  finalRetail = finalCents / 100;
-  const marginPct = safeCost > 0 ? (finalRetail - safeCost) / safeCost * 100 : 0;
-  return {
-    finalRetailPer1kRub: finalRetail,
-    finalRetailPer1kCents: finalCents,
-    wasFloored,
-    originalRetailPer1kRub: rawRetailPer1kRub,
-    costPer1kRub: safeCost,
-    marginPct: Math.round(marginPct * 100) / 100
-  };
-}
-var init_anti_negative_margin = __esm({
-  "src/lib/pricing/anti-negative-margin.ts"() {
-    "use strict";
-    init_financial_constants();
-  }
-});
-
-// src/services/marketing.service.ts
-var marketing_service_exports = {};
-__export2(marketing_service_exports, {
-  marketingService: () => marketingService
-});
-var MarketingService, marketingService;
-var init_marketing_service = __esm({
-  "src/services/marketing.service.ts"() {
-    "use strict";
-    init_db();
-    init_financial_constants();
-    init_settings();
-    init_currency_invariant();
-    init_cbr_rate_service();
-    init_anti_negative_margin();
-    MarketingService = class {
-      /**
-       * Evaluates volume discount tier based on total spent.
-       * Returns generic tier names and their respective percent discount.
-       */
-      getVolumeTier(totalSpentCents) {
-        if (totalSpentCents >= 1e7) {
-          return { name: "PLATINUM", discountPercent: 15 };
-        }
-        if (totalSpentCents >= 25e5) {
-          return { name: "GOLD", discountPercent: 10 };
-        }
-        if (totalSpentCents >= 5e5) {
-          return { name: "SILVER", discountPercent: 5 };
-        }
-        if (totalSpentCents >= 1e5) {
-          return { name: "BRONZE", discountPercent: 2 };
-        }
-        return { name: "REGULAR", discountPercent: 0 };
-      }
-      /**
-       * Calculates the final price for an order, applying the maximum available discount
-       * between User Volume Tier, User Personal Discount, and Promo Code.
-       * 
-       * SAFETY GUARANTEES (ported from Legacy SMMplan):
-       * 1. MAX_TOTAL_DISCOUNT cap — скидки не могут превысить 30%
-       * 2. Safety Floor — итоговая цена никогда не падает ниже
-       *    cost × (1 + 100%) / (1 − 14.5%) ≈ cost × 2.34
-       *    (покрывает: УСН 6% + НДС 5% + Эквайринг 3.5% + 100% наценка)
-       */
-      async calculatePrice(userId, serviceId, quantity, promoCodeStr, preloadedContext) {
-        if (promoCodeStr) {
-          const clean = promoCodeStr.trim().toUpperCase();
-          promoCodeStr = clean.length <= 32 && /^[A-Z0-9_-]+$/.test(clean) ? clean : null;
-        } else {
-          promoCodeStr = null;
-        }
-        let user = null;
-        if (userId) {
-          user = preloadedContext && preloadedContext.user !== void 0 ? preloadedContext.user : await db.user.findUnique({ where: { id: userId } });
-        }
-        const service = preloadedContext && preloadedContext.service !== void 0 ? preloadedContext.service : await db.service.findUnique({ where: { id: serviceId } });
-        if (!service) throw new Error("Service not found");
-        if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(quantity)) {
-          throw new Error("\u041A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0446\u0435\u043B\u044B\u043C \u043F\u043E\u043B\u043E\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u043C \u0447\u0438\u0441\u043B\u043E\u043C");
-        }
-        if (quantity < service.minQty || quantity > service.maxQty) {
-          throw new Error(`Quantity must be between ${service.minQty} and ${service.maxQty}`);
-        }
-        const usdToRub = await SettingsProvider.getExchangeRateUSD();
-        const liveCrossRates = await CBRRateService.getLiveCrossRates().catch(() => void 0);
-        let costPer1kRub;
-        if (typeof service.costPer1kRub === "number" && Number.isFinite(service.costPer1kRub) && service.costPer1kRub > 0) {
-          costPer1kRub = service.costPer1kRub;
-        } else if (typeof service.rate === "number" && Number.isFinite(service.rate) && service.rate > 0) {
-          try {
-            costPer1kRub = getCostRub(service.rate, service.providerCurrency || "RUB", usdToRub, liveCrossRates);
-          } catch {
-            costPer1kRub = service.rate * (service.providerCurrency === "RUB" ? 1 : usdToRub);
-          }
-        } else if (typeof service.pricePer1000Cents === "number" && service.pricePer1000Cents > 0) {
-          costPer1kRub = service.pricePer1000Cents / 100 / (service.markup && service.markup > 0 ? service.markup : SAFETY_FLOOR_MARKUP);
-        } else {
-          costPer1kRub = 0.01;
-        }
-        if (!Number.isFinite(costPer1kRub) || costPer1kRub <= 0) {
-          costPer1kRub = 0.01;
-        }
-        const providerCostPer1000Cents = Math.round(costPer1kRub * 100);
-        const providerCostCents = quantity > 0 ? Math.max(1, Math.ceil(providerCostPer1000Cents / 1e3 * quantity)) : 0;
-        let retailPer1000Cents;
-        if (typeof service.pricePer1000Cents === "number" && service.pricePer1000Cents > 0) {
-          retailPer1000Cents = service.pricePer1000Cents;
-        } else {
-          const markup = service.markup && service.markup > 0 ? service.markup : SAFETY_FLOOR_MARKUP;
-          const rawRetailRub = applyBeautifulRounding(costPer1kRub * markup);
-          const antiLoss = applyAntiNegativeMargin(costPer1kRub, rawRetailRub);
-          retailPer1000Cents = antiLoss.finalRetailPer1kCents;
-        }
-        const originalTotalCents = quantity > 0 ? Math.max(1, Math.ceil(retailPer1000Cents / 1e3 * quantity)) : 0;
-        const volumeTier = user ? this.getVolumeTier(Number(user.totalSpent)) : { name: "REGULAR", discountPercent: 0 };
-        let promoDiscountPercent = 0;
-        const promoFixedDiscountCents = 0;
-        if (promoCodeStr) {
-          const promo = await db.promoCode.findUnique({ where: { code: promoCodeStr } });
-          if (promo && promo.isActive && (promo.maxUses === 0 || promo.uses < promo.maxUses)) {
-            if (!promo.expiresAt || promo.expiresAt > /* @__PURE__ */ new Date()) {
-              if (promo.type === "VOUCHER") {
-                throw new Error("VOUCHER_USE_BALANCE: \u042D\u0442\u043E \u0432\u0430\u0443\u0447\u0435\u0440 \u043D\u0430 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. \u0410\u043A\u0442\u0438\u0432\u0438\u0440\u0443\u0439\u0442\u0435 \u0435\u0433\u043E \u0432 \u0440\u0430\u0437\u0434\u0435\u043B\u0435 \xAB\u041C\u043E\u0439 \u0431\u0430\u043B\u0430\u043D\u0441\xBB, \u0430 \u0437\u0430\u0442\u0435\u043C \u043E\u043F\u043B\u0430\u0442\u0438\u0442\u0435 \u0437\u0430\u043A\u0430\u0437 \u0441 \u0431\u0430\u043B\u0430\u043D\u0441\u0430.");
-              } else {
-                promoDiscountPercent = promo.discountPercent;
-              }
-            }
-          }
-        }
-        let maxDiscountPercent = Math.max(
-          user?.personalDiscount || 0,
-          volumeTier.discountPercent,
-          promoDiscountPercent
-        );
-        if (maxDiscountPercent > MAX_TOTAL_DISCOUNT) {
-          maxDiscountPercent = MAX_TOTAL_DISCOUNT;
-        }
-        const percentDiscountCents = Math.round(originalTotalCents * maxDiscountPercent / 100);
-        const voucherCents = promoFixedDiscountCents;
-        let discountCents = percentDiscountCents + voucherCents;
-        let totalCents = originalTotalCents - discountCents;
-        const rawBreakEvenCents = Math.ceil(providerCostCents / (1 - TOTAL_MANDATORY_DEDUCTIONS));
-        const safetyFloorCents = Math.min(originalTotalCents, rawBreakEvenCents);
-        if (totalCents < safetyFloorCents) {
-          totalCents = safetyFloorCents;
-          discountCents = Math.max(0, originalTotalCents - totalCents);
-        }
-        if (quantity > 0 && totalCents < 1) {
-          totalCents = 1;
-          discountCents = Math.max(0, originalTotalCents - totalCents);
-        }
-        const finalDiscountPercent = originalTotalCents > 0 ? Math.round(discountCents / originalTotalCents * 100) : 0;
-        return {
-          totalCents,
-          originalTotalCents,
-          discountCents,
-          discountPercent: finalDiscountPercent,
-          providerCostCents,
-          safetyFloorCents,
-          tier: volumeTier.name
-        };
-      }
-      /**
-       * Applies the use of a promo code atomically if required.
-       */
-      async consumePromoCode(tx, promoCodeStr) {
-        if (!promoCodeStr) return;
-        const normalizedCode = promoCodeStr.trim().toUpperCase();
-        const promo = await tx.promoCode.findUnique({ where: { code: normalizedCode } });
-        if (!promo || !promo.isActive) {
-          throw new Error("\u041F\u0440\u043E\u043C\u043E\u043A\u043E\u0434 \u043D\u0435\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043B\u0435\u043D");
-        }
-        if (promo.type === "VOUCHER") {
-          throw new Error("VOUCHER_USE_BALANCE: \u0412\u0430\u0443\u0447\u0435\u0440 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0440\u0438\u043C\u0435\u043D\u0451\u043D \u043A \u0437\u0430\u043A\u0430\u0437\u0443 \u043D\u0430\u043F\u0440\u044F\u043C\u0443\u044E.");
-        }
-        if (promo.maxUses > 0 && promo.uses >= promo.maxUses) {
-          throw new Error("\u041B\u0438\u043C\u0438\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0439 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043D");
-        }
-        if (promo.expiresAt && promo.expiresAt < /* @__PURE__ */ new Date()) {
-          throw new Error("\u0421\u0440\u043E\u043A \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044F \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0442\u0451\u043A");
-        }
-        const updatedPromo = await tx.promoCode.updateMany({
-          where: {
-            id: promo.id,
-            ...promo.maxUses > 0 ? { uses: { lt: promo.maxUses } } : {}
-          },
-          data: { uses: { increment: 1 } }
-        });
-        if (updatedPromo.count === 0) {
-          throw new Error("\u041B\u0438\u043C\u0438\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0439 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043D");
-        }
-      }
-      /**
-       * Evaluates volume discount for an array of services and formats them for B2B API Standards.
-       * Protects pricing from dropping below the safety floor.
-       */
-      async getB2BFormattedServices(user, services) {
-        const volumeTier = this.getVolumeTier(Number(user.totalSpent));
-        let maxDiscountPercent = Math.max(user.personalDiscount || 0, volumeTier.discountPercent);
-        if (maxDiscountPercent > MAX_TOTAL_DISCOUNT) {
-          maxDiscountPercent = MAX_TOTAL_DISCOUNT;
-        }
-        const usdToRub = await SettingsProvider.getExchangeRateUSD();
-        return services.map((s) => {
-          const sExchangeRate = s.providerCurrency === "RUB" ? 1 : usdToRub;
-          const originalRatePer1000 = s.rate * s.markup * sExchangeRate;
-          const discountVal = originalRatePer1000 * maxDiscountPercent / 100;
-          let finalRatePer1000 = originalRatePer1000 - discountVal;
-          const safetyFloor = s.rate * sExchangeRate * (1 + SAFETY_FLOOR_MARKUP) / (1 - TOTAL_MANDATORY_DEDUCTIONS);
-          if (finalRatePer1000 < safetyFloor) {
-            finalRatePer1000 = safetyFloor;
-          }
-          return {
-            service: s.numericId,
-            name: s.name,
-            type: "Default",
-            category: s.category.name,
-            // Ensure rate matches the SMMplan schema (not cents) formatted strictly to 4 decimals
-            rate: Number(finalRatePer1000).toFixed(4),
-            min: s.minQty,
-            max: s.maxQty,
-            dripfeed: s.isDripFeedEnabled,
-            // TODO: set to s.isRefillEnabled when action=refill is implemented
-            refill: false,
-            cancel: s.isCancelEnabled
-          };
-        });
-      }
-    };
-    marketingService = new MarketingService();
-  }
-});
-
 // node_modules/dotenv/lib/main.js
 var require_main = __commonJS({
   "node_modules/dotenv/lib/main.js"(exports2, module2) {
@@ -138801,6 +138256,591 @@ var require_lib4 = __commonJS({
   }
 });
 
+// src/lib/pricing/currency-invariant.ts
+var currency_invariant_exports = {};
+__export2(currency_invariant_exports, {
+  SUPPORTED_CURRENCIES: () => SUPPORTED_CURRENCIES,
+  buildCurrencySnapshot: () => buildCurrencySnapshot,
+  detectCurrencyChange: () => detectCurrencyChange,
+  getCostRub: () => getCostRub,
+  reconcileCurrencyBeforeSync: () => reconcileCurrencyBeforeSync,
+  resnapshotOnCurrencyChange: () => resnapshotOnCurrencyChange
+});
+function getCostRub(rate, currency, usdRate, crossRates) {
+  if (typeof rate !== "number" || !isFinite(rate) || rate < 0) {
+    throw new Error(`INVALID_RATE: rate must be a non-negative finite number, got ${rate}`);
+  }
+  if (!currency || typeof currency !== "string") {
+    throw new Error(`CURRENCY_UNSUPPORTED: currency is required (rate=${rate})`);
+  }
+  const normalized = currency.toUpperCase().trim();
+  let cost;
+  switch (normalized) {
+    case "RUB":
+      cost = rate;
+      break;
+    case "USD":
+      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
+        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
+      }
+      cost = rate * usdRate;
+      break;
+    case "EUR":
+      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
+        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
+      }
+      const eurFactor = crossRates?.eurToUsd && crossRates.eurToUsd > 0 ? crossRates.eurToUsd : 1.08;
+      cost = rate * eurFactor * usdRate;
+      break;
+    case "UAH":
+      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
+        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
+      }
+      const uahFactor = crossRates?.uahToUsd && crossRates.uahToUsd > 0 ? crossRates.uahToUsd : 0.027;
+      cost = rate * uahFactor * usdRate;
+      break;
+    case "KZT":
+      if (typeof usdRate !== "number" || !isFinite(usdRate) || usdRate <= 0) {
+        throw new Error(`INVALID_USD_RATE: usdRate must be a positive number, got ${usdRate}`);
+      }
+      const kztFactor = crossRates?.kztToUsd && crossRates.kztToUsd > 0 ? crossRates.kztToUsd : 23e-4;
+      cost = rate * kztFactor * usdRate;
+      break;
+    default:
+      throw new Error(`CURRENCY_UNSUPPORTED: ${currency} (rate=${rate})`);
+  }
+  if (!isFinite(cost) || cost < 0) {
+    throw new Error(`CURRENCY_CONVERSION_INVALID: ${rate} ${currency} \u2192 ${cost} RUB`);
+  }
+  return Math.round(cost * 1e4) / 1e4;
+}
+async function buildCurrencySnapshot(rawRate, providerCurrency) {
+  if (!providerCurrency || typeof providerCurrency !== "string") {
+    throw new Error(`CURRENCY_UNSUPPORTED: providerCurrency is required (rate=${rawRate})`);
+  }
+  const currency = providerCurrency.toUpperCase().trim();
+  let usdRate = 95;
+  try {
+    const fetched = await SettingsProvider.getExchangeRateUSD();
+    if (fetched && fetched > 0) usdRate = fetched;
+  } catch {
+    usdRate = 95;
+  }
+  const costPer1kRub = getCostRub(rawRate, currency, usdRate);
+  if (!isFinite(costPer1kRub) || costPer1kRub <= 0) {
+    throw new Error(`CURRENCY_CONVERSION_INVALID: ${rawRate} ${currency} \u2192 ${costPer1kRub} RUB`);
+  }
+  return {
+    rawRate,
+    currency,
+    costPer1kRub,
+    usdRateAtCapture: usdRate,
+    capturedAt: /* @__PURE__ */ new Date()
+  };
+}
+async function detectCurrencyChange(providerId, newCurrency) {
+  const provider = await db.provider.findUnique({
+    where: { id: providerId },
+    select: { balanceCurrency: true }
+  });
+  const oldCurrency = provider?.balanceCurrency || null;
+  const normalizedNew = (newCurrency || "USD").toUpperCase().trim();
+  if (oldCurrency && oldCurrency.toUpperCase().trim() !== normalizedNew) {
+    const serviceCount = await db.service.count({
+      where: { providerId, isActive: true }
+    });
+    return { changed: true, oldCurrency, serviceCount };
+  }
+  return { changed: false, oldCurrency, serviceCount: 0 };
+}
+async function resnapshotOnCurrencyChange(providerId, oldCurrency, newCurrency) {
+  const services = await db.service.findMany({
+    where: { providerId, isActive: true },
+    select: { id: true, rate: true, providerCurrency: true, markup: true }
+  });
+  let updated = 0;
+  for (const svc of services) {
+    try {
+      const snapshot = await buildCurrencySnapshot(svc.rate, newCurrency);
+      await db.service.update({
+        where: { id: svc.id },
+        data: {
+          providerCurrency: newCurrency,
+          costPer1kRub: snapshot.costPer1kRub,
+          currencyCapturedAt: snapshot.capturedAt,
+          usdRateAtCapture: snapshot.usdRateAtCapture,
+          // Recompute retail from new base cost
+          pricePer1000Cents: Math.round(snapshot.costPer1kRub * svc.markup * 100)
+        }
+      });
+      updated++;
+    } catch (err) {
+      console.error(`[CurrencyResnapshot] Failed for service ${svc.id}:`, err);
+    }
+  }
+  await db.routingAuditLog.create({
+    data: {
+      serviceId: "SYSTEM",
+      action: "PROVIDER_CURRENCY_CHANGED",
+      reason: `Provider currency changed ${oldCurrency} \u2192 ${newCurrency}, resnapshotted ${updated} services`
+    }
+  });
+  return updated;
+}
+async function reconcileCurrencyBeforeSync(providerId, newBalanceCurrency) {
+  const change = await detectCurrencyChange(providerId, newBalanceCurrency);
+  if (!change.changed || !change.oldCurrency) {
+    return { resnapshotted: false, serviceCount: 0 };
+  }
+  const updated = await resnapshotOnCurrencyChange(providerId, change.oldCurrency, newBalanceCurrency);
+  return { resnapshotted: true, serviceCount: updated };
+}
+var SUPPORTED_CURRENCIES;
+var init_currency_invariant = __esm({
+  "src/lib/pricing/currency-invariant.ts"() {
+    "use strict";
+    init_db();
+    init_settings();
+    SUPPORTED_CURRENCIES = ["USD", "RUB", "EUR", "UAH", "KZT"];
+  }
+});
+
+// src/services/system/cbr-rate.service.ts
+var cbr_rate_service_exports = {};
+__export2(cbr_rate_service_exports, {
+  CBRRateService: () => CBRRateService
+});
+var CBRRateService;
+var init_cbr_rate_service = __esm({
+  "src/services/system/cbr-rate.service.ts"() {
+    "use strict";
+    init_settings();
+    CBRRateService = class {
+      static {
+        this.CBR_OFFICIAL_XML_URL = "https://www.cbr.ru/scripts/XML_daily.asp";
+      }
+      static {
+        this.CBR_JSON_MIRROR_URL = "https://www.cbr-xml-daily.ru/daily_json.js";
+      }
+      static {
+        this.GLOBAL_FX_API_URL = "https://open.er-api.com/v6/latest/USD";
+      }
+      static {
+        this.SPREAD_MULTIPLIER = 1.03;
+      }
+      // +3% Margin Safety Net (PB-003)
+      /**
+       * Fetches raw currency rates from CBR with multi-tiered fallback.
+       */
+      static async fetchRawRates() {
+        const parseVal = (str) => parseFloat(str.replace(",", "."));
+        try {
+          const response = await fetch(this.CBR_OFFICIAL_XML_URL, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) OmniSMM/1.0" },
+            signal: AbortSignal.timeout(6e3),
+            next: { revalidate: 3600 }
+          });
+          if (response.ok) {
+            const text = await response.text();
+            const usdMatch = text.match(/<Valute ID="R01235">[\s\S]*?<Value>([\d,]+)<\/Value>/);
+            const eurMatch = text.match(/<Valute ID="R01239">[\s\S]*?<Value>([\d,]+)<\/Value>/);
+            const uahMatch = text.match(/<Valute ID="R01720">[\s\S]*?<Nominal>(\d+)<\/Nominal>[\s\S]*?<Value>([\d,]+)<\/Value>/);
+            const kztMatch = text.match(/<Valute ID="R01335">[\s\S]*?<Nominal>(\d+)<\/Nominal>[\s\S]*?<Value>([\d,]+)<\/Value>/);
+            const usd = usdMatch ? parseVal(usdMatch[1]) : null;
+            if (usd && !isNaN(usd) && usd > 0) {
+              const eur = eurMatch ? parseVal(eurMatch[1]) : null;
+              const uah = uahMatch ? parseVal(uahMatch[2]) / parseInt(uahMatch[1], 10) : null;
+              const kzt = kztMatch ? parseVal(kztMatch[2]) / parseInt(kztMatch[1], 10) : null;
+              return { usdRate: usd, eurRate: eur, uahRate: uah, kztRate: kzt, source: "CBR_OFFICIAL_XML" };
+            }
+          }
+        } catch (err) {
+          console.warn("[CBRRateService] Tier 1 (CBR Official XML) fetch error:", err instanceof Error ? err.message : String(err));
+        }
+        try {
+          const response = await fetch(this.CBR_JSON_MIRROR_URL, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) OmniSMM/1.0" },
+            signal: AbortSignal.timeout(6e3),
+            next: { revalidate: 3600 }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const usd = data?.Valute?.USD?.Value;
+            if (typeof usd === "number" && !isNaN(usd) && usd > 0) {
+              const eur = data?.Valute?.EUR?.Value ?? null;
+              const uahNominal = data?.Valute?.UAH?.Nominal || 10;
+              const uahVal = data?.Valute?.UAH?.Value;
+              const uah = uahVal ? uahVal / uahNominal : null;
+              const kztNominal = data?.Valute?.KZT?.Nominal || 100;
+              const kztVal = data?.Valute?.KZT?.Value;
+              const kzt = kztVal ? kztVal / kztNominal : null;
+              return { usdRate: usd, eurRate: eur, uahRate: uah, kztRate: kzt, source: "CBR_JSON_MIRROR" };
+            }
+          }
+        } catch (err) {
+          console.warn("[CBRRateService] Tier 2 (CBR JSON Mirror) fetch error:", err instanceof Error ? err.message : String(err));
+        }
+        try {
+          const response = await fetch(this.GLOBAL_FX_API_URL, {
+            signal: AbortSignal.timeout(6e3),
+            next: { revalidate: 3600 }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const rub = data?.rates?.RUB;
+            if (typeof rub === "number" && !isNaN(rub) && rub > 0) {
+              const eur = data?.rates?.EUR ? 1 / data.rates.EUR : null;
+              const uah = data?.rates?.UAH ? rub / data.rates.UAH : null;
+              const kzt = data?.rates?.KZT ? rub / data.rates.KZT : null;
+              return { usdRate: rub, eurRate: eur, uahRate: uah, kztRate: kzt, source: "GLOBAL_FX_API" };
+            }
+          }
+        } catch (err) {
+          console.warn("[CBRRateService] Tier 3 (Global FX API) fetch error:", err instanceof Error ? err.message : String(err));
+        }
+        throw new Error("All exchange rate providers (CBR Official, Mirror, Global FX) are unreachable");
+      }
+      /**
+       * Fetches the latest USD, EUR, UAH, KZT exchange rates from CBR, applies a 3% safety spread, 
+       * and updates SystemSettings & Redis FX cache. If network fails, leaves the old rate.
+       * 
+       * @returns The combined payload: nominal rate, system rate (with spread), and update status.
+       */
+      static async syncCBRExchangeRate(tenantId) {
+        try {
+          let usdRate = null;
+          let eurRate = null;
+          let uahRate = null;
+          let kztRate = null;
+          let source = "CBR_OFFICIAL_XML";
+          try {
+            const fetched = await this.fetchRawRates();
+            usdRate = fetched.usdRate;
+            eurRate = fetched.eurRate;
+            uahRate = fetched.uahRate;
+            kztRate = fetched.kztRate;
+            source = fetched.source;
+          } catch (err) {
+            console.warn("[CBRRateService] Rate fetch error:", err instanceof Error ? err.message : String(err));
+          }
+          if (typeof usdRate !== "number" || isNaN(usdRate) || usdRate <= 0) {
+            const existingRate = await SettingsManager.getExchangeRateUSD(tenantId);
+            const fallbackCrossRates = {
+              usdToRub: existingRate || 95,
+              eurToUsd: 1.08,
+              uahToUsd: 0.027,
+              kztToUsd: 23e-4,
+              updatedAt: /* @__PURE__ */ new Date()
+            };
+            return { nominalRate: existingRate, systemRate: existingRate, crossRates: fallbackCrossRates, updated: false };
+          }
+          const systemRate = parseFloat((usdRate * this.SPREAD_MULTIPLIER).toFixed(2));
+          const eurToUsd = eurRate && usdRate ? parseFloat((eurRate / usdRate).toFixed(4)) : 1.08;
+          const uahToUsd = uahRate && usdRate ? parseFloat((uahRate / usdRate).toFixed(6)) : 0.027;
+          const kztToUsd = kztRate && usdRate ? parseFloat((kztRate / usdRate).toFixed(7)) : 23e-4;
+          const crossRates = {
+            usdToRub: systemRate,
+            eurToUsd,
+            uahToUsd,
+            kztToUsd,
+            updatedAt: /* @__PURE__ */ new Date()
+          };
+          try {
+            const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
+            await redis2.set("fx:cross_rates", JSON.stringify(crossRates), "EX", 86400);
+          } catch {
+          }
+          await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
+          return { nominalRate: usdRate, systemRate, crossRates, updated: true };
+        } catch (error) {
+          console.error("[CBRRateService] CBR sync failed:", error instanceof Error ? error.message : String(error));
+          const existingRate = await SettingsManager.getExchangeRateUSD(tenantId);
+          const fallbackCrossRates = {
+            usdToRub: existingRate || 95,
+            eurToUsd: 1.08,
+            uahToUsd: 0.027,
+            kztToUsd: 23e-4,
+            updatedAt: /* @__PURE__ */ new Date()
+          };
+          return { nominalRate: existingRate, systemRate: existingRate, crossRates: fallbackCrossRates, updated: false };
+        }
+      }
+      /**
+       * Retrieves cached live cross rates or falls back to system settings defaults.
+       */
+      static async getLiveCrossRates(tenantId) {
+        try {
+          const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
+          const cached = await redis2.get("fx:cross_rates");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            parsed.updatedAt = new Date(parsed.updatedAt);
+            return parsed;
+          }
+        } catch {
+        }
+        const usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
+        if (!usdRate || usdRate <= 0 || !Number.isFinite(usdRate)) {
+          throw new Error("INVALID_USD_RATE: Exchange rate USD is not configured in SystemSettings");
+        }
+        return {
+          usdToRub: usdRate,
+          eurToUsd: 1.08,
+          uahToUsd: 0.027,
+          kztToUsd: 23e-4,
+          updatedAt: /* @__PURE__ */ new Date()
+        };
+      }
+    };
+  }
+});
+
+// src/lib/pricing/anti-negative-margin.ts
+function applyAntiNegativeMargin(costPer1kRub, rawRetailPer1kRub, minMarginPct = 5) {
+  if (!Number.isFinite(costPer1kRub) || costPer1kRub <= 0) {
+    throw new Error(`[AntiNegativeMargin] Invalid costPer1kRub: must be a positive finite number (got ${costPer1kRub})`);
+  }
+  const safeCost = costPer1kRub;
+  const minAcceptableRetail = safeCost * (1 + minMarginPct / 100);
+  let finalRetail = applyBeautifulRounding(rawRetailPer1kRub);
+  let wasFloored = false;
+  if (finalRetail < minAcceptableRetail) {
+    finalRetail = applyBeautifulRounding(minAcceptableRetail);
+    wasFloored = true;
+  }
+  if (finalRetail < safeCost) {
+    finalRetail = applyBeautifulRounding(safeCost);
+    wasFloored = true;
+  }
+  const finalCents = Math.ceil(finalRetail * 100);
+  finalRetail = finalCents / 100;
+  const marginPct = safeCost > 0 ? (finalRetail - safeCost) / safeCost * 100 : 0;
+  return {
+    finalRetailPer1kRub: finalRetail,
+    finalRetailPer1kCents: finalCents,
+    wasFloored,
+    originalRetailPer1kRub: rawRetailPer1kRub,
+    costPer1kRub: safeCost,
+    marginPct: Math.round(marginPct * 100) / 100
+  };
+}
+var init_anti_negative_margin = __esm({
+  "src/lib/pricing/anti-negative-margin.ts"() {
+    "use strict";
+    init_financial_constants();
+  }
+});
+
+// src/services/marketing.service.ts
+var MarketingService, marketingService;
+var init_marketing_service = __esm({
+  "src/services/marketing.service.ts"() {
+    "use strict";
+    init_db();
+    init_financial_constants();
+    init_settings();
+    init_currency_invariant();
+    init_cbr_rate_service();
+    init_anti_negative_margin();
+    MarketingService = class {
+      /**
+       * Evaluates volume discount tier based on total spent.
+       * Returns generic tier names and their respective percent discount.
+       */
+      getVolumeTier(totalSpentCents) {
+        if (totalSpentCents >= 1e7) {
+          return { name: "PLATINUM", discountPercent: 15 };
+        }
+        if (totalSpentCents >= 25e5) {
+          return { name: "GOLD", discountPercent: 10 };
+        }
+        if (totalSpentCents >= 5e5) {
+          return { name: "SILVER", discountPercent: 5 };
+        }
+        if (totalSpentCents >= 1e5) {
+          return { name: "BRONZE", discountPercent: 2 };
+        }
+        return { name: "REGULAR", discountPercent: 0 };
+      }
+      /**
+       * Calculates the final price for an order, applying the maximum available discount
+       * between User Volume Tier, User Personal Discount, and Promo Code.
+       * 
+       * SAFETY GUARANTEES (ported from Legacy SMMplan):
+       * 1. MAX_TOTAL_DISCOUNT cap — скидки не могут превысить 30%
+       * 2. Safety Floor — итоговая цена никогда не падает ниже
+       *    cost × (1 + 100%) / (1 − 14.5%) ≈ cost × 2.34
+       *    (покрывает: УСН 6% + НДС 5% + Эквайринг 3.5% + 100% наценка)
+       */
+      async calculatePrice(userId, serviceId, quantity, promoCodeStr, preloadedContext) {
+        if (promoCodeStr) {
+          const clean = promoCodeStr.trim().toUpperCase();
+          promoCodeStr = clean.length <= 32 && /^[A-Z0-9_-]+$/.test(clean) ? clean : null;
+        } else {
+          promoCodeStr = null;
+        }
+        let user = null;
+        if (userId) {
+          user = preloadedContext && preloadedContext.user !== void 0 ? preloadedContext.user : await db.user.findUnique({ where: { id: userId } });
+        }
+        const service = preloadedContext && preloadedContext.service !== void 0 ? preloadedContext.service : await db.service.findUnique({ where: { id: serviceId } });
+        if (!service) throw new Error("Service not found");
+        if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(quantity)) {
+          throw new Error("\u041A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0446\u0435\u043B\u044B\u043C \u043F\u043E\u043B\u043E\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u043C \u0447\u0438\u0441\u043B\u043E\u043C");
+        }
+        if (quantity < service.minQty || quantity > service.maxQty) {
+          throw new Error(`Quantity must be between ${service.minQty} and ${service.maxQty}`);
+        }
+        const usdToRub = await SettingsProvider.getExchangeRateUSD();
+        const liveCrossRates = await CBRRateService.getLiveCrossRates().catch(() => void 0);
+        let costPer1kRub;
+        if (typeof service.costPer1kRub === "number" && Number.isFinite(service.costPer1kRub) && service.costPer1kRub > 0) {
+          costPer1kRub = service.costPer1kRub;
+        } else if (typeof service.rate === "number" && Number.isFinite(service.rate) && service.rate > 0) {
+          try {
+            costPer1kRub = getCostRub(service.rate, service.providerCurrency || "RUB", usdToRub, liveCrossRates);
+          } catch {
+            costPer1kRub = service.rate * (service.providerCurrency === "RUB" ? 1 : usdToRub);
+          }
+        } else if (typeof service.pricePer1000Cents === "number" && service.pricePer1000Cents > 0) {
+          costPer1kRub = service.pricePer1000Cents / 100 / (service.markup && service.markup > 0 ? service.markup : SAFETY_FLOOR_MARKUP);
+        } else {
+          costPer1kRub = 0.01;
+        }
+        if (!Number.isFinite(costPer1kRub) || costPer1kRub <= 0) {
+          costPer1kRub = 0.01;
+        }
+        const providerCostPer1000Cents = Math.round(costPer1kRub * 100);
+        const providerCostCents = quantity > 0 ? Math.max(1, Math.ceil(providerCostPer1000Cents / 1e3 * quantity)) : 0;
+        let retailPer1000Cents;
+        if (typeof service.pricePer1000Cents === "number" && service.pricePer1000Cents > 0) {
+          retailPer1000Cents = service.pricePer1000Cents;
+        } else {
+          const markup = service.markup && service.markup > 0 ? service.markup : SAFETY_FLOOR_MARKUP;
+          const rawRetailRub = applyBeautifulRounding(costPer1kRub * markup);
+          const antiLoss = applyAntiNegativeMargin(costPer1kRub, rawRetailRub);
+          retailPer1000Cents = antiLoss.finalRetailPer1kCents;
+        }
+        const originalTotalCents = quantity > 0 ? Math.max(1, Math.ceil(retailPer1000Cents / 1e3 * quantity)) : 0;
+        const volumeTier = user ? this.getVolumeTier(Number(user.totalSpent)) : { name: "REGULAR", discountPercent: 0 };
+        let promoDiscountPercent = 0;
+        const promoFixedDiscountCents = 0;
+        if (promoCodeStr) {
+          const promo = await db.promoCode.findUnique({ where: { code: promoCodeStr } });
+          if (promo && promo.isActive && (promo.maxUses === 0 || promo.uses < promo.maxUses)) {
+            if (!promo.expiresAt || promo.expiresAt > /* @__PURE__ */ new Date()) {
+              if (promo.type === "VOUCHER") {
+                throw new Error("VOUCHER_USE_BALANCE: \u042D\u0442\u043E \u0432\u0430\u0443\u0447\u0435\u0440 \u043D\u0430 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0431\u0430\u043B\u0430\u043D\u0441\u0430. \u0410\u043A\u0442\u0438\u0432\u0438\u0440\u0443\u0439\u0442\u0435 \u0435\u0433\u043E \u0432 \u0440\u0430\u0437\u0434\u0435\u043B\u0435 \xAB\u041C\u043E\u0439 \u0431\u0430\u043B\u0430\u043D\u0441\xBB, \u0430 \u0437\u0430\u0442\u0435\u043C \u043E\u043F\u043B\u0430\u0442\u0438\u0442\u0435 \u0437\u0430\u043A\u0430\u0437 \u0441 \u0431\u0430\u043B\u0430\u043D\u0441\u0430.");
+              } else {
+                promoDiscountPercent = promo.discountPercent;
+              }
+            }
+          }
+        }
+        let maxDiscountPercent = Math.max(
+          user?.personalDiscount || 0,
+          volumeTier.discountPercent,
+          promoDiscountPercent
+        );
+        if (maxDiscountPercent > MAX_TOTAL_DISCOUNT) {
+          maxDiscountPercent = MAX_TOTAL_DISCOUNT;
+        }
+        const percentDiscountCents = Math.round(originalTotalCents * maxDiscountPercent / 100);
+        const voucherCents = promoFixedDiscountCents;
+        let discountCents = percentDiscountCents + voucherCents;
+        let totalCents = originalTotalCents - discountCents;
+        const rawBreakEvenCents = Math.ceil(providerCostCents / (1 - TOTAL_MANDATORY_DEDUCTIONS));
+        const safetyFloorCents = Math.min(originalTotalCents, rawBreakEvenCents);
+        if (totalCents < safetyFloorCents) {
+          totalCents = safetyFloorCents;
+          discountCents = Math.max(0, originalTotalCents - totalCents);
+        }
+        if (quantity > 0 && totalCents < 1) {
+          totalCents = 1;
+          discountCents = Math.max(0, originalTotalCents - totalCents);
+        }
+        const finalDiscountPercent = originalTotalCents > 0 ? Math.round(discountCents / originalTotalCents * 100) : 0;
+        return {
+          totalCents,
+          originalTotalCents,
+          discountCents,
+          discountPercent: finalDiscountPercent,
+          providerCostCents,
+          safetyFloorCents,
+          tier: volumeTier.name
+        };
+      }
+      /**
+       * Applies the use of a promo code atomically if required.
+       */
+      async consumePromoCode(tx, promoCodeStr) {
+        if (!promoCodeStr) return;
+        const normalizedCode = promoCodeStr.trim().toUpperCase();
+        const promo = await tx.promoCode.findUnique({ where: { code: normalizedCode } });
+        if (!promo || !promo.isActive) {
+          throw new Error("\u041F\u0440\u043E\u043C\u043E\u043A\u043E\u0434 \u043D\u0435\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043B\u0435\u043D");
+        }
+        if (promo.type === "VOUCHER") {
+          throw new Error("VOUCHER_USE_BALANCE: \u0412\u0430\u0443\u0447\u0435\u0440 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0440\u0438\u043C\u0435\u043D\u0451\u043D \u043A \u0437\u0430\u043A\u0430\u0437\u0443 \u043D\u0430\u043F\u0440\u044F\u043C\u0443\u044E.");
+        }
+        if (promo.maxUses > 0 && promo.uses >= promo.maxUses) {
+          throw new Error("\u041B\u0438\u043C\u0438\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0439 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043D");
+        }
+        if (promo.expiresAt && promo.expiresAt < /* @__PURE__ */ new Date()) {
+          throw new Error("\u0421\u0440\u043E\u043A \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044F \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0442\u0451\u043A");
+        }
+        const updatedPromo = await tx.promoCode.updateMany({
+          where: {
+            id: promo.id,
+            ...promo.maxUses > 0 ? { uses: { lt: promo.maxUses } } : {}
+          },
+          data: { uses: { increment: 1 } }
+        });
+        if (updatedPromo.count === 0) {
+          throw new Error("\u041B\u0438\u043C\u0438\u0442 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0439 \u043F\u0440\u043E\u043C\u043E\u043A\u043E\u0434\u0430 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043D");
+        }
+      }
+      /**
+       * Evaluates volume discount for an array of services and formats them for Panel API Standards.
+       * Protects pricing from dropping below the safety floor.
+       */
+      async getAPIFormattedServices(user, services) {
+        const volumeTier = this.getVolumeTier(Number(user.totalSpent));
+        let maxDiscountPercent = Math.max(user.personalDiscount || 0, volumeTier.discountPercent);
+        if (maxDiscountPercent > MAX_TOTAL_DISCOUNT) {
+          maxDiscountPercent = MAX_TOTAL_DISCOUNT;
+        }
+        const usdToRub = await SettingsProvider.getExchangeRateUSD();
+        return services.map((s) => {
+          const sExchangeRate = s.providerCurrency === "RUB" ? 1 : usdToRub;
+          const originalRatePer1000 = s.rate * s.markup * sExchangeRate;
+          const discountVal = originalRatePer1000 * maxDiscountPercent / 100;
+          let finalRatePer1000 = originalRatePer1000 - discountVal;
+          const safetyFloor = s.rate * sExchangeRate * (1 + SAFETY_FLOOR_MARKUP) / (1 - TOTAL_MANDATORY_DEDUCTIONS);
+          if (finalRatePer1000 < safetyFloor) {
+            finalRatePer1000 = safetyFloor;
+          }
+          return {
+            service: s.numericId,
+            name: s.name,
+            type: "Default",
+            category: s.category.name,
+            // Ensure rate matches the SMMplan schema (not cents) formatted strictly to 4 decimals
+            rate: Number(finalRatePer1000).toFixed(4),
+            min: s.minQty,
+            max: s.maxQty,
+            dripfeed: s.isDripFeedEnabled,
+            // TODO: set to s.isRefillEnabled when action=refill is implemented
+            refill: false,
+            cancel: s.isCancelEnabled
+          };
+        });
+      }
+    };
+    marketingService = new MarketingService();
+  }
+});
+
 // src/services/financial/payment-gateway.service.ts
 var payment_gateway_service_exports = {};
 __export2(payment_gateway_service_exports, {
@@ -139395,8 +139435,12 @@ var init_payment_gateway_service = __esm({
       }
     };
     PaymentGatewayFactory = class {
-      static getGateway(gatewayName) {
-        switch (gatewayName.toLowerCase()) {
+      static getGateway(gatewayName, options) {
+        const normalizedName = gatewayName.toLowerCase();
+        if (options?.isMockPayment && normalizedName !== "balance") {
+          return new MockGateway();
+        }
+        switch (normalizedName) {
           case "yookassa":
           case "sbp":
           case "card":
@@ -142787,7 +142831,7 @@ var init_owner_hub_wizard = __esm({
 \u{1F6D2} <b>\u0412\u0441\u0435\u0433\u043E \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043E \u0437\u0430\u043A\u0430\u0437\u043E\u0432:</b> <b>${totalOrders}</b>
 
 \u{1F3E2} <b>\u041C\u0443\u043B\u044C\u0442\u0438-\u0422\u0435\u043D\u0430\u043D\u0442\u043D\u043E\u0441\u0442\u044C (\u0418\u0437\u043E\u043B\u044F\u0446\u0438\u044F \u0431\u0440\u0435\u043D\u0434\u043E\u0432):</b>
-  \u2022 <b>SMMplan</b> (<code>smmplan.pro</code>) \u2014 \u{1F7E2} B2B \u041A\u043B\u0430\u0441\u0441\u0438\u043A\u0430 (\u041E\u043D\u043B\u0430\u0439\u043D)
+  \u2022 <b>SMMplan</b> (<code>smmplan.pro</code>) \u2014 \u{1F7E2} API \u041A\u043B\u0430\u0441\u0441\u0438\u043A\u0430 (\u041E\u043D\u043B\u0430\u0439\u043D)
   \u2022 <b>SMMflux</b> (<code>smmflux.ru</code>) \u2014 \u{1F7E2} Radiant Aurora (\u041E\u043D\u043B\u0430\u0439\u043D)
 
 \u{1F4B3} <b>\u0411\u043E\u0435\u0432\u044B\u0435 \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u044B & \u0428\u043B\u044E\u0437\u044B:</b>
@@ -145559,15 +145603,6 @@ var init_payment_service = __esm({
                   data: { status: "PENDING" }
                 });
                 await logPromoCodeUsageIfNeeded(tx, linkedOrderId, targetUserId);
-                if (order.promoCodeId) {
-                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-                  if (promo) {
-                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
-                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
-                      console.warn(`[MARKETING] Could not consume promo code ${promo.code} on payment confirmation:`, err);
-                    });
-                  }
-                }
                 activatedOrders.push({
                   id: order.id,
                   isDripFeed: order.isDripFeed,
@@ -145622,15 +145657,6 @@ var init_payment_service = __esm({
                   numericId: order.numericId
                 });
                 await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
-                if (order.promoCodeId) {
-                  const promo = await tx.promoCode.findUnique({ where: { id: order.promoCodeId } });
-                  if (promo) {
-                    const { marketingService: marketingService2 } = await Promise.resolve().then(() => (init_marketing_service(), marketing_service_exports));
-                    await marketingService2.consumePromoCode(tx, promo.code).catch((err) => {
-                      console.warn(`[MARKETING] Could not consume basket promo code ${promo.code} on payment confirmation:`, err);
-                    });
-                  }
-                }
               }
               await WalletOps.credit(
                 tx,
@@ -145718,6 +145744,43 @@ var init_payment_service = __esm({
           return true;
         } catch (e) {
           console.error("[PaymentService] Error confirming payment:", e instanceof Error ? e.message : String(e));
+          return false;
+        }
+      }
+      /**
+       * Explicitly cancels a payment and rolls back reserved resources (e.g. promo codes).
+       */
+      async cancelPayment(gatewayId) {
+        try {
+          return await runSerializableTransaction(async (tx) => {
+            const payment = await tx.payment.findUnique({ where: { gatewayId } });
+            if (!payment || payment.status !== "PENDING") return false;
+            const updated = await tx.payment.updateMany({
+              where: { id: payment.id, status: "PENDING" },
+              data: { status: "CANCELED" }
+            });
+            if (updated.count === 0) return false;
+            const orders = await tx.order.findMany({
+              where: { paymentId: payment.id, status: "AWAITING_PAYMENT" }
+            });
+            if (orders.length > 0) {
+              await tx.order.updateMany({
+                where: { paymentId: payment.id, status: "AWAITING_PAYMENT" },
+                data: { status: "CANCELED" }
+              });
+              for (const order of orders) {
+                if (order.promoCodeId) {
+                  await tx.promoCode.updateMany({
+                    where: { id: order.promoCodeId, uses: { gt: 0 } },
+                    data: { uses: { decrement: 1 } }
+                  });
+                }
+              }
+            }
+            return true;
+          });
+        } catch (e) {
+          console.error("[PaymentService] Error canceling payment:", e instanceof Error ? e.message : String(e));
           return false;
         }
       }
@@ -157970,13 +158033,14 @@ async function orderProcessor(job) {
     log6.warn(`[OrderProcessor] Order ${orderId} is not PENDING. Skip.`);
     return;
   }
-  const isTestMode = await SettingsManager.isTestMode();
-  if (order.isTest && !isTestMode) {
+  const isMockProvider = await SettingsManager.isMockProviderEnabled();
+  const envMode = await SettingsManager.getEnvironmentMode();
+  if (order.isTest && !isMockProvider && envMode !== "HYBRID") {
     log6.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);
     const { orderService: orderService2 } = await Promise.resolve().then(() => (init_order_service(), order_service_exports));
     await orderService2.failOrderTerminal(
       orderId,
-      "SYSTEM_GUARD: \u041F\u043E\u043F\u044B\u0442\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0438 \u0442\u0435\u0441\u0442\u043E\u0432\u043E\u0433\u043E \u0437\u0430\u043A\u0430\u0437\u0430 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443 \u043F\u0440\u0435\u0440\u0432\u0430\u043D\u0430."
+      "SYSTEM_GUARD: \u041F\u043E\u043F\u044B\u0442\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0438 \u0442\u0435\u0441\u0442\u043E\u0432\u043E\u0433\u043E \u0437\u0430\u043A\u0430\u0437\u0430 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443 \u0432 \u0431\u043E\u0435\u0432\u043E\u043C \u0440\u0435\u0436\u0438\u043C\u0435 \u043F\u0440\u0435\u0440\u0432\u0430\u043D\u0430."
     );
     return;
   }
@@ -158754,8 +158818,6 @@ async function reconcileStalePayments() {
       return report;
     }
     log13.info(`Found ${stalePayments.length} stale PENDING payments for reconciliation`);
-    const secrets = await SettingsManager.getPaymentSecrets().catch(() => null);
-    const authHeader = secrets?.yookassaShopId && secrets?.yookassaSecretKey ? "Basic " + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString("base64") : "Basic mock_auth";
     const reconciledItems = [];
     for (const payment of stalePayments) {
       if (!payment.gatewayId) {
@@ -158765,6 +158827,9 @@ async function reconcileStalePayments() {
       }
       if (payment.gateway === "yookassa") {
         try {
+          const secrets = await SettingsManager.getPaymentSecrets(payment.tenantId).catch(() => null);
+          const isTestMode = await SettingsManager.isTestMode(payment.tenantId);
+          const authHeader = secrets?.yookassaShopId && secrets?.yookassaSecretKey ? "Basic " + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString("base64") : "Basic mock_auth";
           const res = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
             method: "GET",
             headers: { Authorization: authHeader },
@@ -158783,7 +158848,7 @@ async function reconcileStalePayments() {
                 payment.gatewayId,
                 realAmount,
                 payment.userId,
-                false,
+                isTestMode,
                 "yookassa",
                 payment.id
               );
