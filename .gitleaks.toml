@@ -1,0 +1,22 @@
+# Gitleaks configuration for SMMplan
+
+[allowlist]
+description = "Allowlist for test fixtures, mock data, and documentation examples"
+paths = [
+    '''(?i)\.env\.example''',
+    '''(?i)\.env\.test''',
+    '''(?i)\.env\.staging''',
+    '''(?i)test/.*''',
+    '''(?i)tests/.*''',
+    '''(?i)__tests__/.*''',
+    '''(?i)src/__tests__/.*''',
+    '''(?i)scripts/.*''',
+    '''(?i)docs/.*'''
+]
+regexes = [
+    '''(?i)test[-_]yookassa[-_]secret''',
+    '''(?i)ci[-_]test[-_]jwt[-_]secret''',
+    '''(?i)ci[-_]cron[-_]secret''',
+    '''0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef''',
+    '''test__Z7-CsqJkd02XarM6oGqIxGx5WSTcp4uym747FdQPl4'''
+]
