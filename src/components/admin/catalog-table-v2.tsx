@@ -313,10 +313,14 @@ export function CatalogTable({
     setRowPrices(prev => ({ ...prev, [s.id]: val }));
     const p = parseFloat(val);
     if (!isNaN(p) && p > 0 && s.rate > 0) {
-      let targetRate = s.rate;
-      if (currency === 'RUB') targetRate = s.rate * usdToRub;
-      if (volume === 'UNIT') targetRate = targetRate / 1000;
-      const newMarkup = p / targetRate;
+      // Обратная функция к calcDisplayPrice:
+      // vol='1K',  curr='RUB'  → markup = price / (rate * usdToRub)
+      // vol='1K',  curr='USD'  → markup = price / rate
+      // vol='UNIT', curr='RUB' → markup = (price * 1000) / (rate * usdToRub)
+      // vol='UNIT', curr='USD' → markup = (price * 1000) / rate
+      const effectivePrice = volume === 'UNIT' ? p * 1000 : p;
+      const effectiveRate = currency === 'RUB' ? s.rate * usdToRub : s.rate;
+      const newMarkup = effectivePrice / effectiveRate;
       setRowMarkups(prev => ({ ...prev, [s.id]: newMarkup }));
     }
   };
