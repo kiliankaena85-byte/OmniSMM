@@ -139,15 +139,22 @@ export async function setOrderStatusAction(
 
       let refundCents = 0;
       if (['CANCELED', 'ERROR', 'COMPLETED'].includes(newStatus) && !TERMINAL_REFUNDED_STATUSES.includes(oldStatus)) {
-        if (['PENDING', 'AWAITING_PAYMENT', 'PENDING_CHECK'].includes(oldStatus)) {
+        if (oldStatus === 'AWAITING_PAYMENT') {
+          // Unpaid orders must never generate refunds
+          refundCents = 0;
+        } else if (['PENDING', 'PENDING_CHECK'].includes(oldStatus)) {
           // Marking a pending order as COMPLETED means it was manually fulfilled. No refund.
           refundCents = newStatus === 'COMPLETED' ? 0 : Number(order.charge);
         } else {
           refundCents = calculatePartialRefund(order);
         }
       } else if (newStatus === 'PARTIAL' && !TERMINAL_REFUNDED_STATUSES.includes(oldStatus)) {
-        const orderForRefund = { ...order, remains: validatedRemains ?? order.remains };
-        refundCents = calculatePartialRefund(orderForRefund);
+        if (oldStatus === 'AWAITING_PAYMENT') {
+          refundCents = 0;
+        } else {
+          const orderForRefund = { ...order, remains: validatedRemains ?? order.remains };
+          refundCents = calculatePartialRefund(orderForRefund);
+        }
       }
 
       const newRemains = validatedRemains ?? order.remains;
@@ -203,12 +210,14 @@ export async function forceCompleteOrderAction(orderId: string) {
         throw new Error('Order is already in a terminal state');
       }
 
-      const refundCents = calculatePartialRefund(order);
+      // CRITICAL FIX: Unpaid orders in AWAITING_PAYMENT must never generate refunds
+      const refundCents = order.status === 'AWAITING_PAYMENT' ? 0 : calculatePartialRefund(order);
 
       await tx.order.update({
         where: { id: orderId },
         data: {
           status: 'COMPLETED',
+          remains: 0,
         },
       });
 
@@ -306,8 +315,11 @@ export async function bulkCancelOrdersAction(
             if (!safeOrder || ['COMPLETED', 'CANCELED'].includes(safeOrder.status)) return;
 
             // H-01 FIX: Prevent double-refund on orders that are already in ERROR status (already refunded at failure time)
+            // CRITICAL FIX: Unpaid orders in AWAITING_PAYMENT must NEVER generate a refund
             let refundCents = 0;
-            if (['PENDING', 'AWAITING_PAYMENT', 'PENDING_CHECK'].includes(safeOrder.status)) {
+            if (safeOrder.status === 'AWAITING_PAYMENT') {
+              refundCents = 0;
+            } else if (['PENDING', 'PENDING_CHECK'].includes(safeOrder.status)) {
               refundCents = Number(safeOrder.charge);
             } else if (['IN_PROGRESS', 'PARTIAL'].includes(safeOrder.status)) {
               refundCents = calculatePartialRefund(safeOrder);

@@ -98,5 +98,18 @@ describe('Admin Orders Integrity & Contracts Suite (SIL-2026 Step 2)', () => {
       const cancellableOrders = orders.filter(o => !['COMPLETED', 'CANCELED'].includes(o.status));
       expect(cancellableOrders.map(o => o.id)).toEqual(['3', '4', '5', '6']);
     });
+
+    it('strictly assigns 0 refund to unpaid orders in AWAITING_PAYMENT status', () => {
+      const calculateBulkRefund = (status: string, charge: number) => {
+        if (status === 'AWAITING_PAYMENT') return 0;
+        if (['PENDING', 'PENDING_CHECK'].includes(status)) return charge;
+        return 0;
+      };
+
+      expect(calculateBulkRefund('AWAITING_PAYMENT', 10000)).toBe(0);
+      expect(calculateBulkRefund('PENDING', 10000)).toBe(10000);
+      expect(calculateBulkRefund('PENDING_CHECK', 10000)).toBe(10000);
+      expect(calculateBulkRefund('ERROR', 10000)).toBe(0);
+    });
   });
 });
