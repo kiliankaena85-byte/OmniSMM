@@ -530,7 +530,7 @@ model Order {
   email             String? // Contact email for guest / notification
   customData        String? // Additional payload (comments, answer #, keywords)
   usdToRubRate      Float?  // Historical CBR exchange rate at checkout time to prevent margin drift
-
+  environmentMode   String  @default("PRODUCTION")
 
   // Drip-Feed specifics
   isDripFeed Boolean   @default(false)

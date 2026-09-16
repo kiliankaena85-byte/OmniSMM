@@ -9,7 +9,6 @@ import { Job, UnrecoverableError } from 'bullmq';
 import { db } from '../../lib/db';
 import { OrderJobPayload } from '@/lib/queue-manager';
 import { providerService } from '../../services/providers/provider.service';
-import { SettingsManager } from '../../lib/settings';
 import { getRedisConnection } from '../../lib/queue-manager';
 import { logger } from '../../lib/logger';
 import { SmartRoutingService, MarginGuard, PrioritizedRoute } from '../../services/providers/smart-routing.service';
@@ -69,8 +68,8 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
   }
 
   // TEST ORDER GUARD — prevents dispatching mock test orders to real providers in PRODUCTION
-  const isMockProvider = await SettingsManager.isMockProviderEnabled();
-  const envMode = await SettingsManager.getEnvironmentMode();
+  const envMode = order.environmentMode;
+  const isMockProvider = envMode === 'SANDBOX' || envMode === 'ACQUIRING_TEST';
   
   if (order.isTest && !isMockProvider && envMode !== 'HYBRID') {
     log.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);

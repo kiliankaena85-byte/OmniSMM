@@ -422,6 +422,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
 
     const { SettingsProvider } = await import('@/lib/settings');
     const currentUsdRate = await SettingsProvider.getExchangeRateUSD();
+    const envMode = await SettingsManager.getEnvironmentMode(tenantId);
 
     // Media Group: double the total for 2 orders
     const mediaGroupMultiplier = hasMediaGroup ? 2 : 1;
@@ -574,6 +575,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
             discountCents: BigInt(Math.round(pricing.discountCents || 0)),
             abVariant,
             usdToRubRate: currentUsdRate,
+            environmentMode: envMode,
             tenantId
           }
         });
@@ -604,6 +606,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
               discountCents: BigInt(Math.round(pricing.discountCents || 0)),
               abVariant,
               usdToRubRate: currentUsdRate,
+              environmentMode: envMode,
               tenantId
             }
           });
