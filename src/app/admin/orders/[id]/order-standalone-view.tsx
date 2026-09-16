@@ -265,26 +265,29 @@ export function OrderStandaloneView({
           </button>
 
           {/* Кнопка «Завершить» доступна ТОЛЬКО для заказов, которые уже в работе (IN_PROGRESS / PARTIAL) */}
-          {['IN_PROGRESS', 'PARTIAL'].includes(currentOrder.status) && (
-            <button
-              onClick={() => {
-                setConfirmAction('complete');
-                setConfirmOpen(true);
-              }}
-              disabled={isPending}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
-              title="Пометить как выполненный (если накрутка уже завершена вручную)"
-            >
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span>Пометить выполненным</span>
-            </button>
-          )}
+          {['IN_PROGRESS', 'PARTIAL'].includes(currentOrder.status) && (() => {
+            const isMissingExternalId = Boolean(currentOrder.providerName) && !currentOrder.externalId;
+            return (
+              <button
+                onClick={() => {
+                  setConfirmAction('complete');
+                  setConfirmOpen(true);
+                }}
+                disabled={isPending || isMissingExternalId}
+                className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                title={isMissingExternalId ? 'Запрещено: нет ID провайдера' : 'Пометить как выполненный (если накрутка уже завершена вручную)'}
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>Пометить выполненным</span>
+              </button>
+            );
+          })()}
 
           {/* Кнопка отмены с возвратом */}
           {(() => {
             const isPendingState = ['PENDING', 'PENDING_CHECK', 'AWAITING_PAYMENT'].includes(currentOrder.status);
             const isCancelAllowed = userRole !== 'SUPPORT' || isPendingState || currentOrder.service?.isCancelEnabled === true;
-            const canCancel = isCancelAllowed && !['COMPLETED', 'CANCELED'].includes(currentOrder.status);
+            const canCancel = isCancelAllowed && !['CANCELED'].includes(currentOrder.status); // Allow COMPLETED to be canceled
 
             if (!canCancel) return null;
             return (

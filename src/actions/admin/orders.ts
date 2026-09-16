@@ -125,9 +125,9 @@ export async function setOrderStatusAction(
         PENDING_CHECK: ['PENDING', 'IN_PROGRESS', 'CANCELED', 'ERROR'],
         IN_PROGRESS: ['COMPLETED', 'PARTIAL', 'CANCELED', 'ERROR'],
         PARTIAL: ['COMPLETED', 'CANCELED'],
-        COMPLETED: ['PARTIAL'],
+        COMPLETED: ['PARTIAL', 'CANCELED'],
         CANCELED: [],
-        ERROR: ['PENDING', 'IN_PROGRESS', 'CANCELED'],
+        ERROR: ['CANCELED'],
       };
 
       const allowedNextStatuses = VALID_STATUS_TRANSITIONS[oldStatus] || [];
@@ -135,26 +135,46 @@ export async function setOrderStatusAction(
         throw new Error(`Переход заказа из статуса "${oldStatus}" в "${newStatus}" не допускается бизнес-логикой`);
       }
 
-      const TERMINAL_REFUNDED_STATUSES = ['COMPLETED', 'CANCELED', 'ERROR', 'PARTIAL'];
+      // Защита от "пустых" завершений (Provider ID Constraint)
+      if (['COMPLETED', 'PARTIAL', 'IN_PROGRESS'].includes(newStatus)) {
+        if (order.providerId !== null && !order.externalId) {
+          throw new Error(`Заказ привязан к провайдеру, но ещё не был ему отправлен (отсутствует ID провайдера). Перевод в статус "Выполнен" невозможен. Дождитесь отправки провайдеру или выполните отмену заказа.`);
+        }
+      }
 
-      let refundCents = 0;
-      if (['CANCELED', 'ERROR', 'COMPLETED'].includes(newStatus) && !TERMINAL_REFUNDED_STATUSES.includes(oldStatus)) {
+      let calculatedRefundCents = 0;
+
+      if (['CANCELED', 'ERROR'].includes(newStatus)) {
         if (oldStatus === 'AWAITING_PAYMENT') {
-          // Unpaid orders must never generate refunds
-          refundCents = 0;
+          calculatedRefundCents = 0;
         } else if (['PENDING', 'PENDING_CHECK'].includes(oldStatus)) {
-          // Marking a pending order as COMPLETED means it was manually fulfilled. No refund.
-          refundCents = newStatus === 'COMPLETED' ? 0 : Number(order.charge);
+          calculatedRefundCents = Number(order.charge);
         } else {
-          refundCents = calculatePartialRefund(order);
+          const refundRemains = (oldStatus === 'COMPLETED' && validatedRemains === undefined) ? order.quantity : (validatedRemains ?? order.remains);
+          calculatedRefundCents = calculatePartialRefund({ ...order, remains: refundRemains });
         }
-      } else if (newStatus === 'PARTIAL' && !TERMINAL_REFUNDED_STATUSES.includes(oldStatus)) {
+      } else if (newStatus === 'PARTIAL') {
         if (oldStatus === 'AWAITING_PAYMENT') {
-          refundCents = 0;
+          calculatedRefundCents = 0;
         } else {
-          const orderForRefund = { ...order, remains: validatedRemains ?? order.remains };
-          refundCents = calculatePartialRefund(orderForRefund);
+          const refundRemains = validatedRemains ?? order.remains;
+          calculatedRefundCents = calculatePartialRefund({ ...order, remains: refundRemains });
         }
+      }
+
+      // Ledger Delta Check (Anti-Double-Refund Guard)
+      let refundCents = 0;
+      if (calculatedRefundCents > 0) {
+        const previousRefunds = await tx.ledgerEntry.aggregate({
+          where: {
+            userId: order.userId,
+            idempotencyKey: { startsWith: `refund_${order.id}_` },
+            status: 'APPROVED',
+          },
+          _sum: { amount: true },
+        });
+        const alreadyRefunded = Number(previousRefunds._sum.amount || 0);
+        refundCents = Math.max(0, calculatedRefundCents - alreadyRefunded);
       }
 
       const newRemains = validatedRemains ?? order.remains;
@@ -168,10 +188,20 @@ export async function setOrderStatusAction(
         },
       });
 
+      // Лояльность (Loyalty Sync)
+      const { LoyaltyService } = await import('@/services/users/loyalty.service');
+      if (['CANCELED', 'ERROR'].includes(newStatus)) {
+        await LoyaltyService.reverseCommission(tx, order.id);
+      } else if (newStatus === 'COMPLETED') {
+        await LoyaltyService.confirmCommission(tx, order.id);
+      } else if (newStatus === 'PARTIAL') {
+        await LoyaltyService.handlePartialCommission(tx, order.id, newRemains, order.quantity);
+      }
+
       if (refundCents > 0) {
         await WalletOps.refund(tx, order.userId, refundCents,
           `Ручная смена статуса заказа #${order.numericId}: ${oldStatus}→${newStatus}`,
-          { adminId: admin.id, idempotencyKey: `refund_${order.id}_${newStatus}` }
+          { adminId: admin.id, idempotencyKey: `refund_${order.id}_${newStatus}_${Date.now()}` }
         );
       }
 
@@ -210,6 +240,11 @@ export async function forceCompleteOrderAction(orderId: string) {
         throw new Error('Order is already in a terminal state');
       }
 
+      // Защита от "пустых" завершений (Provider ID Constraint)
+      if (order.providerId !== null && !order.externalId) {
+        throw new Error(`Заказ привязан к провайдеру, но ещё не был ему отправлен (отсутствует ID провайдера). Перевод в статус "Выполнен" невозможен. Дождитесь отправки провайдеру или выполните отмену заказа.`);
+      }
+
       // CRITICAL FIX: Unpaid orders in AWAITING_PAYMENT must never generate refunds
       const refundCents = order.status === 'AWAITING_PAYMENT' ? 0 : calculatePartialRefund(order);
 
@@ -220,6 +255,10 @@ export async function forceCompleteOrderAction(orderId: string) {
           remains: 0,
         },
       });
+
+      // Лояльность (Loyalty Sync)
+      const { LoyaltyService } = await import('@/services/users/loyalty.service');
+      await LoyaltyService.confirmCommission(tx, order.id);
 
       if (refundCents > 0) {
         await WalletOps.refund(tx, order.userId, refundCents,
@@ -273,15 +312,6 @@ export async function bulkCancelOrdersAction(
       return { success: false as const, error: 'Заказы не найдены' };
     }
 
-    // Fail-Closed Guard (Poka-Yoke): Reject if request attempts to cancel completed orders
-    const hasCompletedOrders = orders.some(o => o.status === 'COMPLETED');
-    if (hasCompletedOrders) {
-      return {
-        success: false as const,
-        error: 'Запрещено: среди выбранных заказов есть уже выполненные (COMPLETED). Двойной возврат средств заблокирован.'
-      };
-    }
-
     // RBAC & Anti-Sabotage Policy:
     // OWNER & ADMIN can bulk-cancel across all clients.
     // SUPPORT can bulk-cancel orders for single client or batch-cancel ERROR orders with audit log.
@@ -305,27 +335,32 @@ export async function bulkCancelOrdersAction(
     let count = 0;
 
     for (const order of orders) {
-      if (!['COMPLETED', 'CANCELED'].includes(order.status)) {
+      if (!['CANCELED'].includes(order.status)) { // Allow COMPLETED
         try {
           await runSerializableTransaction(async (tx) => {
             const safeOrder = await tx.order.findFirst({
               where: { id: order.id, tenantId: admin.tenantId ?? 'smmplan' }
             });
             
-            if (!safeOrder || ['COMPLETED', 'CANCELED'].includes(safeOrder.status)) return;
+            if (!safeOrder || ['CANCELED'].includes(safeOrder.status)) return; // Allow COMPLETED
 
-            // H-01 FIX: Prevent double-refund on orders that are already in ERROR status (already refunded at failure time)
-            // CRITICAL FIX: Unpaid orders in AWAITING_PAYMENT must NEVER generate a refund
-            let refundCents = 0;
+            let calculatedRefundCents = 0;
             if (safeOrder.status === 'AWAITING_PAYMENT') {
-              refundCents = 0;
+              calculatedRefundCents = 0;
             } else if (['PENDING', 'PENDING_CHECK'].includes(safeOrder.status)) {
-              refundCents = Number(safeOrder.charge);
-            } else if (['IN_PROGRESS', 'PARTIAL'].includes(safeOrder.status)) {
-              refundCents = calculatePartialRefund(safeOrder);
-            } else {
-              // ERROR or already terminal: 0 refund
-              refundCents = 0;
+              calculatedRefundCents = Number(safeOrder.charge);
+            } else if (['IN_PROGRESS', 'PARTIAL', 'COMPLETED'].includes(safeOrder.status)) {
+              const refundRemains = safeOrder.status === 'COMPLETED' ? safeOrder.quantity : safeOrder.remains;
+              calculatedRefundCents = calculatePartialRefund({ ...safeOrder, remains: refundRemains });
+            }
+
+            let refundCents = 0;
+            if (calculatedRefundCents > 0) {
+              const previousRefunds = await tx.ledgerEntry.aggregate({
+                where: { userId: safeOrder.userId, idempotencyKey: { startsWith: `refund_${safeOrder.id}_` }, status: 'APPROVED' },
+                _sum: { amount: true },
+              });
+              refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));
             }
 
             await tx.order.update({
@@ -333,10 +368,13 @@ export async function bulkCancelOrdersAction(
               data: { status: 'CANCELED' },
             });
 
+            const { LoyaltyService } = await import('@/services/users/loyalty.service');
+            await LoyaltyService.reverseCommission(tx, safeOrder.id);
+
             if (refundCents > 0) {
               await WalletOps.refund(tx, safeOrder.userId, refundCents,
                 `Массовая отмена заказа #${safeOrder.numericId}${reason ? ` (${reason})` : ''}`,
-                { adminId: admin.id, idempotencyKey: `refund_${safeOrder.id}_CANCELED` }
+                { adminId: admin.id, idempotencyKey: `refund_${safeOrder.id}_CANCELED_${Date.now()}` }
               );
             }
             totalRefunded += refundCents;

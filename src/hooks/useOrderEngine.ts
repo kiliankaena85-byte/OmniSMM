@@ -740,9 +740,7 @@ export function useOrderEngine(
     const activePlatform = currentNetwork?.slug || platform || manualPlatform || '';
     if (shouldMutate && selectedService && activePlatform) {
        const activeCat = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
-       const targetType = selectedService.targetType === 'POST'
-         ? inferTargetTypeFromCategory(activeCat?.name)
-         : (selectedService.targetType || inferTargetTypeFromCategory(activeCat?.name));
+       const targetType = resolveServiceTargetType({ ...selectedService, category: activeCat });
        const cleanUrl = mutateLink(currentUrl, activePlatform, targetType);
        if (cleanUrl !== currentUrl) {
            currentUrl = cleanUrl;
@@ -780,7 +778,7 @@ export function useOrderEngine(
       const activeCat2 = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
       const serviceTargetType = normalizeServiceTargetType(
         // FIX: use resolveServiceTargetType to avoid false errors when targetType = "POST" (default)
-        resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat2?.name)
+        resolveServiceTargetType({ ...selectedService, category: activeCat2 })
       );
       if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
         errors['link'] = getCompatibilityError(detectedType, serviceTargetType, selectedService.name);
@@ -790,7 +788,7 @@ export function useOrderEngine(
     // Advanced Link Format Regex Validator
     if (selectedService && activePlatform && currentUrl && !isLinkOverridden && !errors['link']) {
        const activeCat2 = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
-       const targetType = selectedService.targetType || inferTargetTypeFromCategory(activeCat2?.name);
+       const targetType = resolveServiceTargetType({ ...selectedService, category: activeCat2 });
        const cleanUrl = mutateLink(currentUrl, activePlatform, targetType);
        const validator = getLinkValidator(activePlatform, targetType);
        const linkResult = validator.safeParse(cleanUrl);
@@ -895,7 +893,7 @@ export function useOrderEngine(
       const activeCat = catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
       const serviceTargetType = normalizeServiceTargetType(
         // FIX: resolveServiceTargetType corrects Prisma's default "POST" using name inference
-        resolveServiceTargetType(selectedService) || inferTargetTypeFromCategory(activeCat?.name)
+        resolveServiceTargetType({ ...selectedService, category: activeCat })
       );
       if (!isLinkServiceCompatible(detectedType, serviceTargetType)) {
         return getCompatibilityError(detectedType, serviceTargetType, selectedService.name);

@@ -400,13 +400,13 @@ class AdminOrderService {
         include: { user: true, service: true },
       });
 
-      if (['COMPLETED', 'CANCELED', 'ERROR', 'PARTIAL'].includes(order.status)) {
+      if (['CANCELED', 'ERROR', 'PARTIAL'].includes(order.status)) { // Removed COMPLETED
         throw new Error(`Order ${order.numericId} is already in terminal state ${order.status} and cannot be canceled.`);
       }
 
       // Loss Prevention: Support cannot cancel active orders if upstream provider has disabled cancellations
       const isPendingState = ['PENDING', 'PENDING_CHECK'].includes(order.status);
-      if (!isPendingState && order.status !== 'AWAITING_PAYMENT' && !order.service.isCancelEnabled) {
+      if (!isPendingState && order.status !== 'AWAITING_PAYMENT' && order.status !== 'COMPLETED' && !order.service.isCancelEnabled) {
         const caller = await tx.user.findUniqueOrThrow({
           where: { id: admin.id },
           select: { role: true },
@@ -418,11 +418,25 @@ class AdminOrderService {
         }
       }
 
-      const refundCents = order.status === 'AWAITING_PAYMENT'
-        ? 0
-        : isPendingState
-        ? Number(order.charge)
-        : calculatePartialRefund(order);
+      let calculatedRefundCents = 0;
+      if (order.status === 'AWAITING_PAYMENT') {
+        calculatedRefundCents = 0;
+      } else if (isPendingState) {
+        calculatedRefundCents = Number(order.charge);
+      } else if (order.status === 'COMPLETED') {
+        calculatedRefundCents = calculatePartialRefund({ ...order, remains: order.quantity });
+      } else {
+        calculatedRefundCents = calculatePartialRefund(order);
+      }
+
+      let refundCents = 0;
+      if (calculatedRefundCents > 0) {
+        const previousRefunds = await tx.ledgerEntry.aggregate({
+          where: { userId: order.userId, idempotencyKey: { startsWith: `refund_${order.id}_` }, status: 'APPROVED' },
+          _sum: { amount: true },
+        });
+        refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));
+      }
 
       await tx.order.update({
         where: { id: orderId },
@@ -448,7 +462,7 @@ class AdminOrderService {
       if (refundCents > 0) {
         await WalletOps.refund(tx, order.userId, refundCents,
           `Отмена заказа ${order.numericId} администратором - Возврат средств`,
-          { adminId: admin.id, idempotencyKey: `refund_${order.id}_CANCELED` }
+          { adminId: admin.id, idempotencyKey: `refund_${order.id}_CANCELED_${Date.now()}` }
         );
       }
 

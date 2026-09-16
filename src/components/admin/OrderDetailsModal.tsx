@@ -931,23 +931,31 @@ export function OrderDetailsModal({
             </button>
 
             {/* Force Complete */}
-            <button
-              onClick={() => {
-                setConfirmAction('force_complete');
-                setConfirmOpen(true);
-              }}
-              disabled={isPending || currentOrder.status === 'COMPLETED'}
-              className="px-3.5 py-2 rounded-xl border border-success/30 bg-success/10 hover:bg-success/20 text-success-text font-bold text-xs transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            >
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span>Завершить</span>
-            </button>
+            {(() => {
+              const isMissingExternalId = Boolean(currentOrder.providerName) && !currentOrder.externalId;
+              const disableComplete = isPending || currentOrder.status === 'COMPLETED' || isMissingExternalId;
+              
+              return (
+                <button
+                  onClick={() => {
+                    setConfirmAction('force_complete');
+                    setConfirmOpen(true);
+                  }}
+                  disabled={disableComplete}
+                  title={isMissingExternalId ? 'Запрещено: нет ID провайдера' : 'Завершить заказ принудительно'}
+                  className="px-3.5 py-2 rounded-xl border border-success/30 bg-success/10 hover:bg-success/20 text-success-text font-bold text-xs transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span>Завершить</span>
+                </button>
+              );
+            })()}
 
             {/* Cancel & Refund */}
             {(() => {
               const isPendingState = ['PENDING', 'PENDING_CHECK', 'AWAITING_PAYMENT'].includes(currentOrder.status);
               const isCancelAllowed = userRole !== 'SUPPORT' || isPendingState || currentOrder.service?.isCancelEnabled === true;
-              const canCancel = isCancelAllowed && !['COMPLETED', 'CANCELED'].includes(currentOrder.status);
+              const canCancel = isCancelAllowed && !['CANCELED'].includes(currentOrder.status); // Allow COMPLETED to be canceled
 
               if (!canCancel) return null;
               return (

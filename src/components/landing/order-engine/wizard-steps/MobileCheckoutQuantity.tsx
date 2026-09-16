@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { PublicService } from "@/actions/order/catalog";
 import { DripFeedConfigurator } from "../DripFeedConfigurator";
+import { clampOrderQuantity } from "@/hooks/useBaseOrderValidation";
 
 export interface MobileCheckoutQuantityProps {
   engine: OrderEngine;
@@ -19,7 +20,9 @@ export function MobileCheckoutQuantity({
   const [showAdvancedParams, setShowAdvancedParams] = useState(false);
   const { quantity, setQuantity } = engine;
 
-  const minQty = selectedService.minQty || 10;
+  const dripMultiplier = engine.dripFeedEnabled ? engine.runs : (engine.isSmartDrip ? engine.smartDripDays : 1);
+  const baseMin = selectedService.minQty || 10;
+  const minQty = baseMin * dripMultiplier;
   const maxQty = selectedService.maxQty || 1000000;
 
   const handleStepQuantity = (delta: number) => {
@@ -72,9 +75,7 @@ export function MobileCheckoutQuantity({
               setQuantity(val);
             }}
             onBlur={() => {
-              if (!quantity || quantity < minQty) {
-                setQuantity(minQty);
-              }
+              setQuantity(clampOrderQuantity(quantity, baseMin, maxQty, dripMultiplier));
             }}
             className={`w-full h-11 px-3 text-center rounded-xl border bg-background text-base font-black tabular-nums text-foreground outline-none transition-all ${
               quantity < minQty

@@ -1,3 +1,20 @@
+- [x] ⚡ [CDD-TDD-2026] Комплексный аудит формы заказа, защита «от дурака» (Fail-Closed) и максимизация CRO (100% COMPLETE & VERIFIED):
+  * 📐 **Спецификация и аналитический аудит:**
+    - Разработана и утверждена спецификация [`docs/specs/SPEC-2026-09-16-order-wizard-foolproof-and-cro-hardening.md`](file:///e:/SMM/docs/specs/SPEC-2026-09-16-order-wizard-foolproof-and-cro-hardening.md).
+    - Проведен сопоставительный аудит предложенного драфта: блокированы опасные антипаттерны (прямой SQL decrement баланса, расчет цены `/ 1000` в обход ExactMath, уничтожение функциональных query-параметров в ссылках).
+  * 🛡️ **Реализация защиты Fail-Closed и оптимизация конверсии (CRO):**
+    - **1. Идемпотентность и защита от Double-Submit (`useCheckoutOrchestrator.ts`, `useSmmplanOrderWizard.ts`, `useBaseOrderValidation.ts`):** Внедрена генерация стабильного `idempotencyKey` на клиенте при конфигурации заказа с сохранением на повторные попытки (Retry) и сбросом строго после подтверждения заказа.
+    - **2. Безопасная санитизация ссылок (`useBaseOrderValidation.ts`, `useCheckoutOrchestrator.ts`, `useSmmplanOrderWizard.ts`):** Функция `sanitizeAndNormalizeOrderLink` блокирует протоколы XSS/SSRF (`javascript:`, `file:`, `data:`, `vbscript:`), очищает трекинговые UTM-метки и гарантированно сохраняет функциональные параметры соцсетей (`?v=`, `?start=`, `?reply=`, `?single`).
+    - **3. Соответствие Правилу 4.1 (Semantic TargetType Resolution):** В `useCheckoutOrchestrator.ts` и `useOrderEngine.ts` устранены устаревшие вызовы `inferTargetTypeFromCategory` и `selectedService.targetType || ...`, замененные на `resolveServiceTargetType({ ...selectedService, category })` из `@/utils/target-type-mapper`, что исключает ложные ошибки несовместимости ссылок каналов (`t.me/*`).
+    - **4. Авто-клампинг и защита объема (`useBaseOrderValidation.ts`, `WizardStepCheckout.tsx`, `MobileCheckoutQuantity.tsx`):** Функция `clampOrderQuantity` нормализует значение на событии `onBlur` с учетом множителя Drip-Feed Floor. Добавлены интерактивные кнопки-чипсы `Мин: X` и `Макс: Y`.
+    - **5. Smart Payment Recommendation (`CheckoutPaymentMethod.tsx`, `PaymentGatewaySelectionModal.tsx`):** При достаточном балансе способ «С баланса» выбирается по умолчанию со значком «Оплата в 1 клик». При нехватке отображается точная сумма дефицита («не хватает Y ₽») со свободным переключением на СБП/карты.
+    - **6. Actionable Error Shield (`SmmplanOrderWizard.tsx`, `useCheckoutOrchestrator.ts`):** Подключен парсер `parseActionableError` при обработке ошибок чекаута в дашборде и лендинге.
+  * 🧪 **Верификация & CI-гейты:**
+    - Новый TDD-сьют `src/__tests__/unit/order-foolproof-and-cro.test.ts` — 14/14 PASS.
+    - Базовый сьют валидации `src/__tests__/unit/order-base-validation.test.ts` — 7/7 PASS.
+    - E2E сьют жизненного цикла `src/__tests__/unit/user-journey-order-payment-lifecycle.test.ts` — 6/6 PASS.
+    - Финансовый сьют эквайринга и баланса `src/__tests__/financial/landing-balance-payment-security.test.ts` — 5/5 PASS.
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок типов (чистый билд).
 - [x] ⚡ [CDD-TDD-2026] Комплексный харденинг режимов окружения (SANDBOX/HYBRID/ACQUIRING_TEST/PRODUCTION) и авто-сверки платежей (100% COMPLETE & VERIFIED):
   * 📐 **Спецификация и архитектура:**
     - Разработана и утверждена спецификация [`docs/specs/SPEC-2026-09-15-environment-modes-and-reconciliation-hardening.md`](file:///e:/SMM/docs/specs/SPEC-2026-09-15-environment-modes-and-reconciliation-hardening.md).

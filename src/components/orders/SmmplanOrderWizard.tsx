@@ -12,6 +12,7 @@ import { WizardStepNetwork } from './wizard/WizardStepNetwork';
 import { WizardStepCategory } from './wizard/WizardStepCategory';
 import { WizardStepService } from './wizard/WizardStepService';
 import { WizardStepCheckout } from './wizard/WizardStepCheckout';
+import { parseActionableError } from '@/lib/errors/actionable-error';
 
 function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
   const { userEmail = '', userBalanceCents = 0, initialReorderData, tenantId = 'smmplan' } = props;
@@ -78,19 +79,23 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
         interval: w.isDripFeedEnabled ? w.dripInterval : undefined, customData: w.selectedService!.customDataType !== 'NONE' ? w.customData : undefined,
         isRequirementsConfirmed: w.isRequirementsConfirmed, gateway: w.gateway,
         tenantId: tenantId || 'smmplan',
-        idempotencyKey: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'bal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12),
+        idempotencyKey: w.idempotencyKey,
       });
       if (res.success && res.data) {
+        w.resetIdempotencyKey();
         if (w.gateway === 'balance' || !res.data.paymentUrl) {
           toast.success('Заказ #' + (res.data.orderId || '') + ' успешно запущен!', { description: 'Оплата произведена с вашего баланса.' });
           w.router.push((res.data as any).redirectUrl || '/dashboard/orders?success=1&orderId=' + (res.data.orderId || '') + '&payment=balance');
         } else { window.location.href = res.data.paymentUrl; }
       } else {
-        w.setErrors({ general: !res.success ? res.error : 'Ошибка при оформлении заказа. Попробуйте еще раз.' });
+        const errorMsg = !res.success ? res.error : 'Ошибка при оформлении заказа';
+        const actionable = parseActionableError(errorMsg, { serviceId: w.selectedService?.id });
+        w.setErrors({ general: actionable.message });
         w.setShakeKey(prev => prev + 1);
       }
     } catch (err: unknown) {
-      w.setErrors({ general: err instanceof Error ? err.message : 'Неизвестная ошибка при отправке' });
+      const actionable = parseActionableError(err, { serviceId: w.selectedService?.id });
+      w.setErrors({ general: actionable.message });
       w.setShakeKey(prev => prev + 1);
     } finally { w.setIsSubmitting(false); }
   };

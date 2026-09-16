@@ -31,6 +31,9 @@ export function PaymentGatewaySelectionModal({
 
   useEffect(() => {
     if (isOpen) {
+      if (isBalanceSufficient) {
+        setSelectedMethod("balance");
+      }
       import("@/actions/order/checkout").then(({ getAvailableGatewaysAction }) => {
         getAvailableGatewaysAction().then((res) => {
           if (res.success && res.data) {
@@ -48,7 +51,7 @@ export function PaymentGatewaySelectionModal({
         });
       });
     }
-  }, [isOpen]);
+  }, [isOpen, isBalanceSufficient]);
 
   if (!isOpen) return null;
 
@@ -61,11 +64,11 @@ export function PaymentGatewaySelectionModal({
       id: "balance",
       label: "Личный баланс",
       note: isBalanceSufficient
-        ? `Доступно: ${(userBalanceCents / 100).toFixed(2)} ₽`
-        : `Недостаточно: ${(userBalanceCents / 100).toFixed(2)} ₽ (нужно ${totalPriceFormatted} ₽)`,
+        ? `Доступно: ${(userBalanceCents / 100).toFixed(2)} ₽ (списание без комиссии)`
+        : `Доступно ${(userBalanceCents / 100).toFixed(2)} ₽ • не хватает ${((totalCents - userBalanceCents) / 100).toFixed(2)} ₽`,
       icon: Wallet,
       color: isBalanceSufficient ? "text-success bg-success/10 border-success/20" : "text-muted-foreground bg-content2 border-border/80 opacity-60",
-      badge: isBalanceSufficient ? "Без комиссии" : "Недостаточно",
+      badge: isBalanceSufficient ? "Рекомендуем: 1 клик" : "Недостаточно",
       disabled: !isBalanceSufficient,
     }] : []),
     {

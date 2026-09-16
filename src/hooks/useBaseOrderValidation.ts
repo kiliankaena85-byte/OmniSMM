@@ -1,6 +1,12 @@
-﻿'use client';
 import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
 import { normalizeUrl } from '@/components/orders/wizard/helpers';
+import { stripQueryParams } from '@/utils/link-normalizer';
+
+export interface SanitizeUrlResult {
+  cleanUrl: string;
+  isValid: boolean;
+  error?: string;
+}
 
 export interface DripFeedFloorParams {
   isDripFeedEnabled: boolean;
@@ -113,4 +119,76 @@ export function loadOrderDraftFromStorage<T>(key: string): T | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Безопасная санитизация ссылки: отсечение опасных протоколов,
+ * удаление трекинговых параметров и валидация через Zod-схему платформы.
+ */
+export function sanitizeAndNormalizeOrderLink(
+  rawUrl: string,
+  platformSlug?: string | null,
+  targetType?: string | null
+): SanitizeUrlResult {
+  const trimmed = rawUrl ? rawUrl.trim() : '';
+  if (!trimmed || trimmed.length < 3) {
+    return { cleanUrl: '', isValid: false, error: 'Введите корректную ссылку' };
+  }
+
+  // Защита от опасных протоколов (XSS / Local File Leak)
+  if (/^(javascript|data|file|vbscript):/i.test(trimmed)) {
+    return { cleanUrl: '', isValid: false, error: 'Недопустимый протокол ссылки' };
+  }
+
+  // Очистка UTM и трекинговых параметров без удаления функциональных (?v=, ?start=, ?reply=)
+  let clean = stripQueryParams(trimmed);
+
+  // Автодобавление https:// для доменных ссылок без протокола
+  if (!/^https?:\/\//i.test(clean) && (clean.includes('.') || clean.includes('/')) && !clean.includes(' ')) {
+    clean = `https://${clean}`;
+  }
+
+  if (!platformSlug || !targetType) {
+    return { cleanUrl: clean, isValid: true };
+  }
+
+  try {
+    const mutated = mutateLink(clean, platformSlug.toUpperCase(), targetType);
+    const validator = getLinkValidator(platformSlug.toUpperCase(), targetType);
+    const result = validator.safeParse(mutated);
+    if (!result.success && result.error.errors.length > 0) {
+      return { cleanUrl: mutated, isValid: false, error: result.error.errors[0].message };
+    }
+    return { cleanUrl: mutated, isValid: true };
+  } catch {
+    return { cleanUrl: clean, isValid: true };
+  }
+}
+
+/**
+ * Авто-ограничение диапазона объема заказа (Fool-Proof Clamping)
+ */
+export function clampOrderQuantity(
+  val: number,
+  minQty: number,
+  maxQty: number,
+  runs: number = 1
+): number {
+  const effectiveMin = Math.max(1, minQty * (runs > 1 ? runs : 1));
+  if (isNaN(val) || val <= 0) return effectiveMin;
+  const intVal = Math.floor(val);
+  return Math.min(Math.max(intVal, effectiveMin), maxQty);
+}
+
+/**
+ * Генерация стабильного Idempotency Key для сессии чекаута
+ */
+export function generateStableIdempotencyKey(existingKey?: string): string {
+  if (existingKey && existingKey.trim().length >= 10) {
+    return existingKey.trim();
+  }
+  const rand = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+    : Math.random().toString(36).substring(2, 14);
+  return `ord_${Date.now()}_${rand}`;
 }

@@ -11,6 +11,7 @@ import { WizardStepCheckoutProps } from './types';
 import { getTargetTypeHint } from './helpers';
 import { CheckoutDripFeed } from './sub/CheckoutDripFeed';
 import { CheckoutPaymentMethod } from './sub/CheckoutPaymentMethod';
+import { clampOrderQuantity } from '@/hooks/useBaseOrderValidation';
 
 export function WizardStepCheckout(props: WizardStepCheckoutProps) {
   const {
@@ -115,10 +116,53 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <label className="text-sm font-bold text-foreground flex items-center gap-1.5"><Hash className="w-4 h-4 text-primary shrink-0" /> <span>Количество</span> <span className="text-destructive">*</span></label>
-          <span className="text-xs text-muted-foreground font-medium">Лимиты: <strong>{selectedService.minQty}</strong> – <strong>{selectedService.maxQty.toLocaleString('ru-RU')}</strong> шт.</span>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+            <span>Лимиты:</span>
+            <button
+              type="button"
+              onClick={() => {
+                const runs = isDripFeedEnabled ? dripRuns : 1;
+                setQuantity(selectedService.minQty * runs);
+              }}
+              className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer"
+              title="Установить минимальный объем"
+            >
+              Мин: {selectedService.minQty * (isDripFeedEnabled ? dripRuns : 1)}
+            </button>
+            <button
+              type="button"
+              onClick={() => setQuantity(selectedService.maxQty)}
+              className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer"
+              title="Установить максимальный объем"
+            >
+              Макс: {selectedService.maxQty.toLocaleString('ru-RU')}
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <input type="text" inputMode="numeric" pattern="[0-9]*" value={quantity || ''} onFocus={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onClick={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setQuantity(val ? parseInt(val, 10) : 0); if (errors.quantity) setErrors(prev => ({ ...prev, quantity: undefined })); }} className={`w-full px-4 py-3 text-base sm:text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`} />
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={quantity || ''}
+            onFocus={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }}
+            onClick={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }}
+            onChange={e => {
+              const val = e.target.value.replace(/\D/g, '');
+              setQuantity(val ? parseInt(val, 10) : 0);
+              if (errors.quantity) setErrors(prev => ({ ...prev, quantity: undefined }));
+            }}
+            onBlur={() => {
+              if (selectedService) {
+                const runs = isDripFeedEnabled ? dripRuns : 1;
+                const clamped = clampOrderQuantity(quantity || 0, selectedService.minQty, selectedService.maxQty, runs);
+                if (clamped !== quantity) {
+                  setQuantity(clamped);
+                }
+              }
+            }}
+            className={`w-full px-4 py-3 text-base sm:text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`}
+          />
           <div className="flex items-center gap-2 shrink-0">
             <button type="button" aria-label="Уменьшить количество" onClick={() => addQuantity(-Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">–</button>
             <button type="button" aria-label="Увеличить количество" onClick={() => addQuantity(Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">+</button>
@@ -148,7 +192,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         )}
       </div>
 
-      <CheckoutPaymentMethod gateway={gateway} setGateway={setGateway} userBalanceCents={userBalanceCents} availableGateways={availableGateways} />
+      <CheckoutPaymentMethod gateway={gateway} setGateway={setGateway} userBalanceCents={userBalanceCents} calculatedPriceRub={calculatedPriceRub} availableGateways={availableGateways} />
 
       <div className="p-4 rounded-2xl bg-primary/5 border border-primary/15 flex items-start gap-3 text-xs text-muted-foreground leading-relaxed">
         <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />

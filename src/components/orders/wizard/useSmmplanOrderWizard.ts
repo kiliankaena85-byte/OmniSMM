@@ -10,12 +10,14 @@ import { matchesSuggestedCategory } from '@/services/analyzer/category-matcher';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
 import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 import { mutateLink } from '@/validators/link-mutators';
-import { validateDripFeedFloor, validateBaseOrderLink, saveOrderDraftToStorage, loadOrderDraftFromStorage } from '@/hooks/useBaseOrderValidation';
+import { validateDripFeedFloor, validateBaseOrderLink, saveOrderDraftToStorage, loadOrderDraftFromStorage, generateStableIdempotencyKey, sanitizeAndNormalizeOrderLink } from '@/hooks/useBaseOrderValidation';
 import { WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
 import { isChannelSrv, isPostSrv, normalizeUrl } from './helpers';
 
 export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tenantId = 'smmplan' }: SmmplanOrderWizardProps) {
   const router = useRouter(); const searchParams = useSearchParams();
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(() => generateStableIdempotencyKey());
+  const resetIdempotencyKey = () => setIdempotencyKey(generateStableIdempotencyKey());
   const [networks, setNetworks] = useState<PublicNetwork[]>([]);
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true); const [step, setStep] = useState<WizardStep>(1);
   const [selectedNetwork, setSelectedNetwork] = useState<PublicNetwork | null>(null); const [selectedCategory, setSelectedCategory] = useState<PublicCategory | null>(null);
@@ -222,17 +224,16 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
 
   const addQuantity = (delta: number) => { if (!selectedService) return; setQuantity(Math.min(selectedService.maxQty, Math.max(selectedService.minQty, (quantity || 0) + delta))); };
 
-  // [T1-3] Apply mutateLink on blur for auto-correction
+  // [T1-3] Apply sanitizeAndNormalizeOrderLink on blur for auto-correction & sanitization
   const handleBlurLink = () => {
     if (!link) return;
-    const normalized = normalizeUrl(link);
-    if (!selectedService || !selectedNetwork) { setLink(normalized); return; }
-    const targetType = resolveServiceTargetType(selectedService);
-    const platformSlug = selectedNetwork.slug.toUpperCase();
-    try {
-      const mutated = mutateLink(normalized, platformSlug, targetType);
-      if (mutated !== link) { setLink(mutated); toast.info('Ссылка скорректирована автоматически'); }
-    } catch { setLink(normalized); }
+    const targetType = selectedService ? resolveServiceTargetType(selectedService) : undefined;
+    const platformSlug = selectedNetwork?.slug ? selectedNetwork.slug.toUpperCase() : undefined;
+    const res = sanitizeAndNormalizeOrderLink(link, platformSlug, targetType);
+    if (res.cleanUrl && res.cleanUrl !== link) {
+      setLink(res.cleanUrl);
+      toast.info('Ссылка скорректирована автоматически');
+    }
   };
 
   // [T1-3 + T2-3] Validator exposed for submit guard via shared validation engine
@@ -268,6 +269,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     isSmartDrip, setIsSmartDrip, dripFloorWarning,
     customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed,
     isTgGuideOpen, setIsTgGuideOpen,
+    idempotencyKey, resetIdempotencyKey,
     errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey,
     calculatedPriceRub, isCalculatingPrice,
     searchNetwork, setSearchNetwork, searchCategory, setSearchCategory,

@@ -93,6 +93,7 @@ vi.mock('@/lib/settings', () => ({
   },
   SettingsProvider: {
     isTestMode: vi.fn().mockResolvedValue(true),
+    isMockPaymentEnabled: vi.fn().mockResolvedValue(false),
     getExchangeRateUSD: vi.fn().mockResolvedValue(90),
   },
 }));
@@ -114,6 +115,7 @@ vi.mock('@/lib/db', () => {
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     payment: {
       create: vi.fn(),

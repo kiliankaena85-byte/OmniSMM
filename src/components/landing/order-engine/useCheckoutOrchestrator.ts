@@ -24,13 +24,14 @@ export interface OrderCheckoutResultData {
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { OrderEngine } from '@/hooks/useOrderEngine';
-import { mutateLink, getLinkValidator } from '@/validators/link-mutators';
-import { inferTargetTypeFromCategory } from '@/utils/target-type';
+import { getLinkValidator } from '@/validators/link-mutators';
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 import { IntelligencePlatform } from '@/services/analyzer/link-rules';
 import { ABVariant } from '@/hooks/useABTest';
 import { executePaymentRedirect } from '@/utils/payment-redirect';
 import { parseActionableError } from '@/lib/errors/actionable-error';
 import { safeFocus } from '@/utils/scroll-helpers';
+import { generateStableIdempotencyKey, sanitizeAndNormalizeOrderLink } from '@/hooks/useBaseOrderValidation';
 
 interface CheckoutOrchestratorOptions {
   engine: OrderEngine;
@@ -46,6 +47,7 @@ export function useCheckoutOrchestrator({
   abVariant
 }: CheckoutOrchestratorOptions) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stableIdempotencyKey, setStableIdempotencyKey] = useState<string>(() => generateStableIdempotencyKey());
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkHasError, setLinkHasError] = useState(false);
   const [quantityHasError, setQuantityHasError] = useState(false);
@@ -134,6 +136,12 @@ export function useCheckoutOrchestrator({
       setShowLinkModal(true);
       return;
     }
+    if (/^(javascript|data|file|vbscript):/i.test(rawUrl)) {
+      setLinkHasError(true);
+      toast.error("Недопустимый протокол ссылки.", { position: 'top-center' });
+      setShowLinkModal(true);
+      return;
+    }
     if (rawUrl.includes(' ')) {
       setLinkHasError(true);
       toast.error("Ссылка не должна содержать пробелов.", { position: 'top-center' });
@@ -153,22 +161,17 @@ export function useCheckoutOrchestrator({
 
     if (!engine.isLinkOverridden && selectedService && activePlatform && activePlatform !== IntelligencePlatform.OTHER) {
       const activeCat = engine.catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
-      const targetType = selectedService.targetType === 'POST'
-        ? inferTargetTypeFromCategory(activeCat?.name)
-        : (selectedService.targetType || inferTargetTypeFromCategory(activeCat?.name));
+      const targetType = resolveServiceTargetType({ ...selectedService, category: activeCat });
 
-      const cleanUrl = mutateLink(finalUrl, activePlatform, targetType);
-      if (cleanUrl !== finalUrl) {
-        finalUrl = cleanUrl;
-        engine.setUrl(cleanUrl);
+      const sanitizeRes = sanitizeAndNormalizeOrderLink(finalUrl, activePlatform, targetType);
+      if (sanitizeRes.cleanUrl && sanitizeRes.cleanUrl !== finalUrl) {
+        finalUrl = sanitizeRes.cleanUrl;
+        engine.setUrl(sanitizeRes.cleanUrl);
       }
 
-      const validator = getLinkValidator(activePlatform, targetType);
-      const linkResult = validator.safeParse(finalUrl);
-      
-      if (!linkResult.success) {
+      if (!sanitizeRes.isValid) {
         // Format the error message with a hint that bypass is available
-        const baseMsg = linkResult.error.errors[0].message;
+        const baseMsg = sanitizeRes.error || 'Неверный формат ссылки.';
         const bypassHint = '\n\nЕсли ваша ссылка уже корректная — нажмите «Изменить ссылку» и включите «Использовать как есть».';
         setLinkHasError(true);
         toast.error(baseMsg + bypassHint, { position: 'top-center', duration: 6000 });
@@ -215,34 +218,33 @@ export function useCheckoutOrchestrator({
     const isLiveStream = sName.includes('зрител') || sName.includes('эфир') || sName.includes('трансляц');
     const isPrivateChannel = sName.includes('закрыт');
     
-    const urlLower = url.toLowerCase();
+    const urlLower = finalUrl.toLowerCase();
     const isPrivateTelegramPost = urlLower.includes('t.me/c/') || urlLower.includes('telegram.me/c/');
     const isVkPhotoOrVideo = urlLower.includes('vk.com/photo') || urlLower.includes('vk.com/video') || urlLower.includes('vk.ru/photo') || urlLower.includes('vk.ru/video') || urlLower.includes('vkvideo.ru/');
 
     const activeCategory = activeNetwork?.categories.find(c => c.id === engine.categoryId);
+    const resolvedTargetType = resolveServiceTargetType({ ...selectedService, category: activeCategory });
     const isTelegramViews = activeNetwork?.slug?.toLowerCase() === 'telegram'
       && activeCategory?.name?.toLowerCase().includes('просмотр')
       && !activeCategory?.name?.toLowerCase().includes('авто')
       && !activeCategory?.name?.toLowerCase().includes('auto')
       && !activeCategory?.name?.toLowerCase().includes('будущ')
-      && selectedService?.targetType !== 'CHANNEL';
+      && resolvedTargetType !== 'CHANNEL';
 
     // Validation message from validator
     let validationWarningActive = false;
-    if (url.trim().length > 3 && selectedService && activeNetwork) {
+    if (finalUrl.trim().length > 3 && selectedService && activeNetwork) {
       const activePlatform = engine.platform || engine.manualPlatform;
       const validationPlatform = (activePlatform && activePlatform !== IntelligencePlatform.OTHER)
         ? activePlatform
         : activeNetwork.slug.toUpperCase();
       
       const activeCatForVal = engine.catalog.flatMap(n => n.categories).find(c => c.id === selectedService.categoryId);
-      const targetType = selectedService.targetType === 'POST'
-        ? inferTargetTypeFromCategory(activeCatForVal?.name)
-        : (selectedService.targetType || inferTargetTypeFromCategory(activeCatForVal?.name));
+      const targetType = resolveServiceTargetType({ ...selectedService, category: activeCatForVal });
       
       try {
         const validator = getLinkValidator(validationPlatform, targetType);
-        const linkResult = validator.safeParse(url);
+        const linkResult = validator.safeParse(finalUrl);
         if (!linkResult.success) {
           validationWarningActive = true;
         }
@@ -365,7 +367,8 @@ export function useCheckoutOrchestrator({
       smartDripDays: engine.isSmartDrip ? engine.smartDripDays : undefined,
       runs: engine.dripFeedEnabled ? engine.runs : undefined,
       interval: engine.dripFeedEnabled ? engine.dripInterval : undefined,
-      abVariant: abVariant || undefined
+      abVariant: abVariant || undefined,
+      idempotencyKey: stableIdempotencyKey
     };
 
     if (resolvedGateway) {
@@ -377,6 +380,7 @@ export function useCheckoutOrchestrator({
           gateway: resolvedGateway
         });
         if (res.success) {
+          setStableIdempotencyKey(generateStableIdempotencyKey());
           if (res.data?.orderId && res.data?.guestOrderToken) {
             try {
               localStorage.setItem(`guest_order_${res.data.orderId}`, res.data.guestOrderToken);
@@ -492,7 +496,7 @@ export function useCheckoutOrchestrator({
         serviceId: pendingCheckoutParams.serviceId || "",
         runs: pendingCheckoutParams.runs,
         interval: pendingCheckoutParams.interval,
-        idempotencyKey: pendingCheckoutParams.idempotencyKey,
+        idempotencyKey: pendingCheckoutParams.idempotencyKey || stableIdempotencyKey,
         isLinkOverridden: pendingCheckoutParams.isLinkOverridden,
         isRequirementsConfirmed: pendingCheckoutParams.isRequirementsConfirmed,
         gateway
@@ -500,6 +504,7 @@ export function useCheckoutOrchestrator({
       setIsSubmitting(false);
       setShowPaymentModal(false);
       if (res.success) {
+        setStableIdempotencyKey(generateStableIdempotencyKey());
         if (res.data?.orderId && res.data?.guestOrderToken) {
           try {
             localStorage.setItem(`guest_order_${res.data.orderId}`, res.data.guestOrderToken);
