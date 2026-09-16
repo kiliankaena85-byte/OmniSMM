@@ -55,10 +55,10 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
   );
   const formState = state as { success?: boolean; error?: string } | null;
 
-  useState(() => {
+  useEffect(() => {
     if (formState?.success) { toast.success('Настройки подключения сохранены'); onRefresh(); }
     else if (formState?.error) { toast.error(formState.error); }
-  });
+  }, [formState]);
 
   const handleSendTestMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

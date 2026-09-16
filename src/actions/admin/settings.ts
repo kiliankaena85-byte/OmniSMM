@@ -174,8 +174,8 @@ export async function updateGlobalSettings(formData: FormData) {
     }
     
     // Branding
-    if (formData.has('siteLogoUrl')) dataToUpdate.siteLogoUrl = siteLogoUrl;
-    if (formData.has('siteFaviconUrl')) dataToUpdate.siteFaviconUrl = siteFaviconUrl;
+    if (formData.has('siteLogoUrl')) dataToUpdate.siteLogoUrl = siteLogoUrl ?? null;
+    if (formData.has('siteFaviconUrl')) dataToUpdate.siteFaviconUrl = siteFaviconUrl ?? null;
 
     // Catalog & Pricing
     if (formData.has('globalMarkup') && globalMarkup !== undefined) dataToUpdate.globalMarkup = globalMarkup;

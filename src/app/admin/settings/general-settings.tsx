@@ -102,6 +102,9 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
     setCompanyInn(settings.legalCompanyInn || '');
     setCompanyOgrnip(settings.legalCompanyOgrnip || '');
     setCompanyAddress(settings.legalCompanyAddress || '');
+    setUsnScheme(settings.usnScheme || 'INCOME_EXPENSES');
+    setTaxRate(settings.taxRate ?? (settings.usnScheme === 'INCOME' ? 6 : 15));
+    setOpexMonthly(settings.opexMonthly ? Math.round(settings.opexMonthly / 100) : 0);
   }, [settings, tenantId]);
 
   // Handle explicit bot disconnect
@@ -160,14 +163,18 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
     }
   };
 
-  // Tax and USN Scheme reactivity
-  const [taxRate, setTaxRate] = useState<number>(settings.taxRate ?? 6);
+  // Tax and USN Scheme reactivity (54-ФЗ / 152-ФЗ)
+  const [usnScheme, setUsnScheme] = useState<string>(settings.usnScheme || 'INCOME_EXPENSES');
+  const [taxRate, setTaxRate] = useState<number>(settings.taxRate ?? (settings.usnScheme === 'INCOME' ? 6 : 15));
+  const [opexMonthly, setOpexMonthly] = useState<number>(settings.opexMonthly ? Math.round(settings.opexMonthly / 100) : 0);
+
   const handleUsnChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const scheme = e.target.value;
+    setUsnScheme(scheme);
     if (scheme === 'INCOME') {
-      if (taxRate === 15) setTaxRate(6);
+      setTaxRate(6);
     } else if (scheme === 'INCOME_EXPENSES') {
-      if (taxRate === 6) setTaxRate(15);
+      setTaxRate(15);
     }
   };
 
@@ -244,8 +251,8 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
     <form key={settings.updatedAt?.toString() || 'general'} action={formAction} className="space-y-6">
       <input type="hidden" name="tenantId" value={tenantId} />
       <input type="hidden" name="_isGeneralSettings" value="1" />
-      {logoUrl && <input type="hidden" name="siteLogoUrl" value={logoUrl} />}
-      {faviconUrl && <input type="hidden" name="siteFaviconUrl" value={faviconUrl} />}
+      <input type="hidden" name="siteLogoUrl" value={logoUrl || ''} />
+      <input type="hidden" name="siteFaviconUrl" value={faviconUrl || ''} />
 
       {/* 1. Platform Core Status (Maintenance Kill-Switch) */}
       <Card className="rounded-3xl border border-border/60 shadow-lg bg-card/70 backdrop-blur-xl p-6 sm:p-8 space-y-6">
@@ -844,6 +851,73 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
               🛡️ Защита PII: если поле пустое, строка «Адрес» полностью исключается из договора-оферты.
             </p>
           </div>
+
+          {/* Fiscal 54-FZ & USN Settings */}
+          <div className="md:col-span-2 pt-4 border-t border-border/50">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="p-1 px-2 bg-primary/10 text-primary rounded text-[10px] font-bold">54-ФЗ</span>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Налогообложение & Фискализация (54-ФЗ / 176-ФЗ)
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Схема налогообложения
+                </Label>
+                <select
+                  name="usnScheme"
+                  value={usnScheme}
+                  onChange={handleUsnChange}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-none h-10"
+                >
+                  <option value="INCOME">УСН Доходы (6%)</option>
+                  <option value="INCOME_EXPENSES">УСН Доходы минус расходы (15%)</option>
+                </select>
+                <p className="text-[10px] text-muted-foreground">
+                  Базовая ставка по ст. 346.20 НК РФ
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Ставка налога (%)
+                </Label>
+                <Input
+                  name="taxRate"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                  className="font-mono text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Региональная льготная или стандартная ставка
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  OPEX в месяц (₽)
+                </Label>
+                <Input
+                  name="opexMonthly"
+                  type="number"
+                  step="1000"
+                  min="0"
+                  value={opexMonthly}
+                  onChange={(e) => setOpexMonthly(parseFloat(e.target.value) || 0)}
+                  placeholder="50000"
+                  className="font-mono text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Постоянные операционные расходы (сервера, софт)
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ── LIVE FOOTER & REQUISITES PREVIEW ── */}
@@ -871,6 +945,8 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
                 <div>ИНН: <strong>{companyInn || '—'}</strong></div>
                 <div>ОГРНИП: <strong>{companyOgrnip || '—'}</strong></div>
                 <div>Адрес: <strong>{companyAddress || '<скрыт по 152-ФЗ>'}</strong></div>
+                <div>Режим налогообложения: <strong>{usnScheme === 'INCOME' ? `УСН Доходы (${taxRate}%)` : `УСН Доходы-Расходы (${taxRate}%)`}</strong></div>
+                <div>OPEX: <strong>{opexMonthly ? `${opexMonthly.toLocaleString('ru-RU')} ₽ / мес` : 'Не задан'}</strong></div>
                 <div>Поддержка: <strong>{supportEmail || defaultEmail}</strong></div>
                 <div>ПДн (152-ФЗ): <strong>{privacyEmail || defaultPrivacyEmail}</strong></div>
               </div>

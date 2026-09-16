@@ -141,8 +141,8 @@ export const globalSettingsSchema = z.object({
   quarantineThreshold: z.coerce.number().min(0, "Порог не должен быть меньше 0%").max(100, "Порог не должен превышать 100%").optional(),
   globalMarkup: z.coerce.number().min(1.05, "Минимальная наценка: 1.05 (+5%)").max(100, "Наценка не должна превышать 100.0").optional(),
   safetyFloor: z.coerce.number().min(1.05, "Порог безопасности не должен быть меньше 1.05 (+5%)").max(100, "Порог безопасности не должен превышать 100.0").optional(),
-  siteLogoUrl: z.string().trim().max(500).nullable().optional(),
-  siteFaviconUrl: z.string().trim().max(500).nullable().optional(),
+  siteLogoUrl: z.string().trim().max(500).nullable().optional().transform((val) => (val === '' ? null : val)),
+  siteFaviconUrl: z.string().trim().max(500).nullable().optional().transform((val) => (val === '' ? null : val)),
   geminiApiKeys: z.string().trim().max(2000).nullable().optional(),
   geminiProxy: z.string().trim().max(500).nullable().optional(),
 });

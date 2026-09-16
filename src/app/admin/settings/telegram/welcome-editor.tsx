@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { Loader2, MessageSquare, Eye, Copy, RotateCcw } from 'lucide-react';
 import { updateGlobalSettings } from '@/actions/admin/settings';
 import type { SystemSettings } from '@prisma/client';
@@ -78,10 +78,10 @@ export function WelcomeEditor({ settings }: Props) {
     if (existing) existing.value = welcomeText;
   };
 
-  useState(() => {
+  useEffect(() => {
     if (formState?.success) { toast.success('Приветственное сообщение сохранено'); }
     else if (formState?.error) { toast.error(formState.error); }
-  });
+  }, [formState]);
 
   const previewText = welcomeText
     .replace(/{siteName}/g, settings.siteName || 'SMMplan')

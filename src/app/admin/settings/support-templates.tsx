@@ -87,38 +87,26 @@ export function SupportTemplatesSettings({ initialTemplates }: SupportTemplatesS
         formData.append('isActive', isActive ? 'true' : 'false');
         formData.append('sort', sort.toString());
 
-        await upsertTemplate(formData);
+        const res = await upsertTemplate(formData);
+        if (!res.success || !res.data) {
+          toast.error(res.error || 'Ошибка сохранения шаблона');
+          return;
+        }
 
         toast.success(editingTemplate ? 'Шаблон успешно обновлен' : 'Шаблон успешно создан');
         
-        // Refresh local lists
+        // Refresh local lists with verified DB object (guaranteeing valid CUID)
+        const savedTemplate = res.data;
         const updatedTemplates = [...templates];
         if (editingTemplate) {
-          const idx = updatedTemplates.findIndex(item => item.id === editingTemplate.id);
+          const idx = updatedTemplates.findIndex(item => item.id === savedTemplate.id);
           if (idx !== -1) {
-            updatedTemplates[idx] = {
-              ...editingTemplate,
-              label: label.trim(),
-              text: text.trim(),
-              shortcut: shortcut.trim().toLowerCase(),
-              category,
-              isActive,
-              sort
-            };
+            updatedTemplates[idx] = savedTemplate;
+          } else {
+            updatedTemplates.push(savedTemplate);
           }
         } else {
-          updatedTemplates.push({
-            id: Math.random().toString(),
-            label: label.trim(),
-            text: text.trim(),
-            shortcut: shortcut.trim().toLowerCase(),
-            category,
-            isActive,
-            sort,
-            useCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          });
+          updatedTemplates.push(savedTemplate);
         }
         
         // sort by sort field
@@ -146,7 +134,11 @@ export function SupportTemplatesSettings({ initialTemplates }: SupportTemplatesS
       try {
         const formData = new FormData();
         formData.append('id', id);
-        await deleteTemplate(formData);
+        const res = await deleteTemplate(formData);
+        if (!res.success) {
+          toast.error(res.error || 'Ошибка удаления шаблона');
+          return;
+        }
         toast.success('Шаблон удален');
         setTemplates(prev => prev.filter(t => t.id !== id));
       } catch (err) {

@@ -114,4 +114,37 @@ describe('Admin Settings Integrity & Contracts Suite (SIL-2026 Step 15)', () => 
       expect(MASK).not.toContain('bot');
     });
   });
+
+  describe('54-FZ Tax & Branding Schema Invariants', () => {
+    it('transforms empty siteLogoUrl and siteFaviconUrl to null', async () => {
+      const { globalSettingsSchema } = await import('@/validators/admin.validators');
+      const parsed = globalSettingsSchema.parse({
+        siteLogoUrl: '',
+        siteFaviconUrl: '',
+      });
+      expect(parsed.siteLogoUrl).toBeNull();
+      expect(parsed.siteFaviconUrl).toBeNull();
+    });
+
+    it('validates 54-FZ USN schemes and tax rates', async () => {
+      const { globalSettingsSchema } = await import('@/validators/admin.validators');
+      const parsed = globalSettingsSchema.parse({
+        usnScheme: 'INCOME',
+        taxRate: '6.0',
+        opexMonthly: '50000',
+      });
+      expect(parsed.usnScheme).toBe('INCOME');
+      expect(parsed.taxRate).toBe(6.0);
+      expect(parsed.opexMonthly).toBe(50000);
+    });
+
+    it('rejects invalid tax rates below 0 or above 100', async () => {
+      const { globalSettingsSchema } = await import('@/validators/admin.validators');
+      const resLow = globalSettingsSchema.safeParse({ taxRate: -5 });
+      expect(resLow.success).toBe(false);
+
+      const resHigh = globalSettingsSchema.safeParse({ taxRate: 105 });
+      expect(resHigh.success).toBe(false);
+    });
+  });
 });

@@ -1,3 +1,25 @@
+- [x] ⚡ [SETTINGS-FULLSTACK-2026] Комплексный аудит и устранение логических и визуальных дефектов вкладки /admin/settings (100% COMPLETE & VERIFIED):
+  * 📐 **Ликвидация «каши» и унификация форм («Кассы и Шлюзы»):**
+    - В `src/app/admin/settings/integrations-settings.tsx` удален устаревший дублирующий блок Telegram-бота с отдельной формой, заменен на навигационный баннер со ссылкой на специализированную вкладку `?tab=telegram`.
+    - Все 3 секции интеграций (Платёжные шлюзы, Почтовый сервис, Google Gemini AI) объединены в единую синхронную форму со сквозным сохранением и общим Sticky Action Bar внизу.
+  * ⚖️ **54-ФЗ и Налоговый комплаенс (`general-settings.tsx`):**
+    - Добавлены в форму Секции 4 недостающие поля: схема УСН (`usnScheme`: Доходы 6% / Доходы-Расходы 15%), ставка налога (`taxRate`) и ежемесячные расходы (`opexMonthly`).
+    - Обновлен блок Brand-First предпросмотра реквизитов оферты с отображением режима налогообложения и OPEX.
+  * 🎨 **Устранение бага сброса логотипа и фавикона:**
+    - В `general-settings.tsx`, `admin.validators.ts` и `settings.ts` реализована гарантированная очистка логотипа и фавикона (передача пустой строки с автоматической конвертацией в `null` в БД).
+  * 🔄 **Устранение бага React-жизненного цикла в Telegram-сабтабах:**
+    - В `welcome-editor.tsx` и `connection-panel.tsx` ошибочный `useState(() => { ... })` заменен на `useEffect(() => { ... }, [formState])`, что восстановило реактивные тосты и коллбэк `onRefresh()`.
+  * 🛡️ **Защита Server Actions и целостность ID в шаблонах ответов (`support-templates.tsx` & `template.ts`):**
+    - В `template.ts` экшены `upsertTemplate` и `deleteTemplate` переведены на типизированный контракт `{ success: true, data }` с ревалидацией пути `/admin/settings`.
+    - В `support-templates.tsx` ликвидирован генератор фейковых `Math.random()` ID: клиент берет реальный CUID созданного шаблона из базы данных.
+  * 📜 **Интерактивная детализация журнала аудита (`audit-logs-tab.tsx`):**
+    - Добавлено модальное окно просмотра полных деталей записи аудита с подсветкой JSON Diff (Old vs New payload), IP-адресом и целевым ID.
+  * 🧪 **Верификация & CI-гейты:**
+    - Новые тесты схемы 54-ФЗ и брендинга в `src/__tests__/unit/admin-settings-integrity.test.ts` — 9/9 PASS.
+    - Сьют ролей персонала `admin-roles-integrity.test.ts` — 5/5 PASS.
+    - Сьют конструктора Telegram-бота `multi-bot-constructor.test.ts` — 14/14 PASS.
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
 - [x] ⚡ [CDD-TDD-2026] Комплексный аудит и архитектурный харденинг статусов заказов (100% COMPLETE & VERIFIED):
   * 📐 **Self-Loop Improving Архитектуры (Спецификация):**
     - Разработана спецификация `docs/specs/SPEC-2026-09-16-order-status-architecture.md`.
