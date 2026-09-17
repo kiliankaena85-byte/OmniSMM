@@ -1,3 +1,25 @@
+- [x] ⚡ [CATALOG-PURGE-AND-ORDER-MODES-2026] Зачистка каталога услуг до первозданного состояния (Pristine Catalog), визуальное разделение режимов заказов и унификация тестирования (100% COMPLETE & VERIFIED):
+  * 🧟 **Безопасная зачистка каталога и ликвидация зомби-услуг:**
+    - Устранен баг несбрасываемого кулдауна: в `deleteOrArchiveServiceAction`, `bulkDeleteOrArchiveServicesAction` и `archiveZombieService` добавлен сброс `cooldownReason: null, cooldownUntil: null`.
+    - Добавлен оптимистичный колбэк `onDeleted` в `batch-action-bar.tsx` и `catalog-table-v2.tsx` для мгновенного исчезновения удаленных строк из UI.
+    - Проведена зачистка базы данных `smmplan_lite`:
+      - Тенант `flux`: безвозвратно удалены 311 проблемных услуг с 0 заказов (200 карантинных, 110 зомби, 1 сирота).
+      - Тенант `smmplan`: удалены 659 неактивных услуг без заказов, 62 исторические услуги с заказами переведены в чистый архив (`[АРХИВ]...`, `isActive: false`, `cooldownReason: null`).
+      - Вся история заказов и целостность финансовых транзакций сохранена на 100%.
+      - Очищен кэш в Redis: аномальные бейджи (`99+` в сайдбаре, `🧟 Зомби`, `⚠️ Карантин`) обнулились до 0.
+      - Каталог приведен в эталонное состояние: 128 активных услуг в `smmplan`, 583 в `flux`.
+  * 🏷️ **Визуальное разделение режимов заказов (Order Environment Modes):**
+    - Создан компонент `OrderEnvironmentBadge.tsx` и модуль классификации `src/utils/order-environment.ts` с поддержкой 4 режимов: «Песочница» (Mock), «Гибрид» (Live SMM), «Тест эквайринга», «Продакшн».
+    - Интегрированы бейджи в список заказов `columns.tsx`, `flux-orders-grid.tsx`, `flux-orders-kanban.tsx`, `OrderDetailsModal.tsx`, `order-standalone-view.tsx`.
+    - Добавлен фильтр по режимам в `orders-filter-form.tsx` и поддержка в `order.service.ts`.
+  * 🧪 **Унификация тестирования (Ghost Proxy & Platform Switcher):**
+    - `setTestMode()` синхронизирован с матрицей окружений `setEnvironmentMode()`.
+    - `adminClearTestData()` изолирован на удаление исключительно заказов в режиме `SANDBOX`.
+    - Жёлтый баннер в админке преобразован в информационный хаб с отсылкой к главному селектору режимов в шапке.
+  * 🧪 **Верификация:**
+    - Сьют `src/__tests__/unit/order-environment-mode.test.ts` — 16/16 PASS.
+    - Сьют `src/__tests__/unit/admin-orders-environment-filtering.test.ts` — 4/4 PASS.
+    - Полная пересборка Lean Docker контейнеров: `smmplan_web`, `smmplan_lite_worker`, `smmplan_bot` — все Up (healthy).
 - [x] ⚡ [INFRA-DB-SYNC-2026] Автоматическая синхронизация схемы БД при старте контейнеров и сборке (100% COMPLETE & VERIFIED):
   * 🛡️ **Zero-Drift Architecture & Авто-миграция БД:**
     - В `docker-entrypoint.sh` внедрена безопасная авто-синхронизация схемы (`node node_modules/prisma/build/index.js db push --skip-generate`) с перехватом некритичных сбоев.
