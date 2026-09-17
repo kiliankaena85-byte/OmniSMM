@@ -23,6 +23,7 @@ type AdminOrderRow = Order & {
     };
   };
   provider: { name: string; ticketUrl: string | null } | null;
+  payment: { id: string; gatewayId: string | null; gateway: string } | null;
 };
 
 type OrderSearchParams = {
@@ -55,6 +56,7 @@ type OrderSearchParams = {
   providerId?: string;
   sortField?: string;
   sortOrder?: 'asc' | 'desc';
+  environmentMode?: string;
 };
 
 const ACTIVITY_TYPE_KEYWORDS: Record<string, string[]> = {
@@ -278,6 +280,67 @@ class AdminOrderService {
       }
     }
 
+    // ── Environment Mode Filtering (SANDBOX vs HYBRID vs ACQUIRING_TEST vs PRODUCTION) ──
+    if (params.environmentMode && params.environmentMode !== 'ALL') {
+      const mode = params.environmentMode.toUpperCase();
+      if (mode === 'SANDBOX') {
+        andConditions.push({
+          OR: [
+            { environmentMode: { in: ['SANDBOX', 'MOCK'] } },
+            { isTest: true, environmentMode: { notIn: ['HYBRID', 'ACQUIRING_TEST'] } },
+          ],
+        });
+      } else if (mode === 'HYBRID') {
+        andConditions.push({
+          environmentMode: 'HYBRID',
+        });
+      } else if (mode === 'ACQUIRING_TEST') {
+        andConditions.push({
+          OR: [
+            { environmentMode: 'ACQUIRING_TEST' },
+            {
+              AND: [
+                { environmentMode: { notIn: ['SANDBOX', 'MOCK', 'HYBRID'] } },
+                { isTest: false },
+                {
+                  OR: [
+                    { payment: { gateway: { in: ['test', 'mock', 'sandbox'] } } },
+                    { payment: { gatewayId: { startsWith: 'mock_' } } },
+                    { payment: { gatewayId: { startsWith: 'test_' } } },
+                    { payment: { gatewayId: { startsWith: 'yoo_test_mock_' } } },
+                    { payment: { gatewayId: { startsWith: 'robo_test_mock_' } } },
+                    { payment: { gatewayId: { startsWith: 'crypto_test_mock_' } } },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+      } else if (mode === 'PRODUCTION') {
+        andConditions.push({
+          AND: [
+            { environmentMode: 'PRODUCTION' },
+            { isTest: false },
+            {
+              OR: [
+                { payment: null },
+                {
+                  AND: [
+                    { payment: { gateway: { notIn: ['test', 'mock', 'sandbox'] } } },
+                    { NOT: { payment: { gatewayId: { startsWith: 'mock_' } } } },
+                    { NOT: { payment: { gatewayId: { startsWith: 'test_' } } } },
+                    { NOT: { payment: { gatewayId: { startsWith: 'yoo_test_mock_' } } } },
+                    { NOT: { payment: { gatewayId: { startsWith: 'robo_test_mock_' } } } },
+                    { NOT: { payment: { gatewayId: { startsWith: 'crypto_test_mock_' } } } },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+      }
+    }
+
     if (params.noProvider) {
       where.providerId = null;
     } else if (params.providerId && params.providerId !== 'ALL') {
@@ -358,6 +421,11 @@ class AdminOrderService {
     // Dynamic sorting
     const orderBy = resolveOrderOrderBy(params.sortField, params.sortOrder);
 
+    // Merge multi-field AND conditions
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
     return paginatedQuery<AdminOrderRow>(db.order, {
       cursor,
       page,
@@ -367,6 +435,7 @@ class AdminOrderService {
       include: {
         user: { select: { id: true, email: true } },
         provider: { select: { name: true, ticketUrl: true } },
+        payment: { select: { id: true, gatewayId: true, gateway: true } },
         service: { 
           select: { 
             id: true, 

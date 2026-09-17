@@ -65,6 +65,14 @@ const ERROR_CATEGORIES: FilterOption[] = [
   { id: 'SERVICE', label: '⚡ Сбой услуги' },
 ];
 
+const ENVIRONMENT_MODE_OPTIONS: FilterOption[] = [
+  { id: 'ALL', label: '🌐 Все режимы' },
+  { id: 'PRODUCTION', label: '🚀 Продакшн' },
+  { id: 'SANDBOX', label: '🛡️ Песочница' },
+  { id: 'HYBRID', label: '⚡ Гибрид' },
+  { id: 'ACQUIRING_TEST', label: '💳 Тест эквайринга' },
+];
+
 export function OrdersFilterForm({ 
   networks = [],
   providers = []
@@ -84,6 +92,7 @@ export function OrdersFilterForm({
   const urlStatus = searchParams.get('status') || 'ALL';
   const urlProviderId = searchParams.get('providerId') || 'ALL';
   const urlErrorCategory = searchParams.get('errorCategory') || 'ALL';
+  const urlEnvironmentMode = searchParams.get('environmentMode') || 'ALL';
 
   // Optimistic local states for instantaneous response
   const [searchVal, setSearchVal] = useState(urlQ);
@@ -93,6 +102,7 @@ export function OrdersFilterForm({
   const [status, setStatus] = useState(urlStatus);
   const [providerId, setProviderId] = useState(urlProviderId);
   const [errorCategory, setErrorCategory] = useState(urlErrorCategory);
+  const [environmentMode, setEnvironmentMode] = useState(urlEnvironmentMode);
 
   // Sync if URL changes externally
   useEffect(() => {
@@ -103,7 +113,8 @@ export function OrdersFilterForm({
     setStatus(urlStatus);
     setProviderId(urlProviderId);
     setErrorCategory(urlErrorCategory);
-  }, [urlQ, urlNetworkSlug, urlActivityType, urlDatePreset, urlStatus, urlProviderId, urlErrorCategory]);
+    setEnvironmentMode(urlEnvironmentMode);
+  }, [urlQ, urlNetworkSlug, urlActivityType, urlDatePreset, urlStatus, urlProviderId, urlErrorCategory, urlEnvironmentMode]);
 
   const selectedNetwork = networks.find(n => n.slug === networkSlug);
   const networkCategories = selectedNetwork?.categories || [];
@@ -136,7 +147,8 @@ export function OrdersFilterForm({
     (datePreset && datePreset !== 'ALL') ||
     (status && status !== 'ALL') ||
     (providerId && providerId !== 'ALL') ||
-    (errorCategory && errorCategory !== 'ALL')
+    (errorCategory && errorCategory !== 'ALL') ||
+    (environmentMode && environmentMode !== 'ALL')
   );
 
   const applyFilter = (key: string, value: string) => {
@@ -154,6 +166,8 @@ export function OrdersFilterForm({
       setErrorCategory(value);
     } else if (key === 'datePreset') {
       setDatePreset(value);
+    } else if (key === 'environmentMode') {
+      setEnvironmentMode(value);
     } else if (key === 'q') {
       setSearchVal(value);
     }
@@ -188,6 +202,7 @@ export function OrdersFilterForm({
     setStatus('ALL');
     setProviderId('ALL');
     setErrorCategory('ALL');
+    setEnvironmentMode('ALL');
 
     startTransition(() => {
       router.replace(pathname, { scroll: false });
@@ -284,6 +299,15 @@ export function OrdersFilterForm({
           className="max-w-[125px]"
         />
 
+        {/* 8. Environment Mode Dropdown */}
+        <FilterDropdown
+          value={environmentMode}
+          options={ENVIRONMENT_MODE_OPTIONS}
+          onChange={(val) => applyFilter('environmentMode', val)}
+          ariaLabel="Режим окружения"
+          className="max-w-[140px]"
+        />
+
         {/* Loading Spinner Indicator */}
         {isPending && (
           <div className="flex items-center px-1.5 text-primary animate-spin" title="Обновление результатов...">
@@ -361,6 +385,14 @@ export function OrdersFilterForm({
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-foreground border border-border/60 rounded-lg text-xs font-medium">
               Период: {DATE_PRESETS.find(d => d.id === datePreset)?.label}
               <button type="button" onClick={() => removeFilter('datePreset')} className="hover:text-destructive cursor-pointer">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+          {environmentMode && environmentMode !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-foreground border border-border/60 rounded-lg text-xs font-medium">
+              Режим: {ENVIRONMENT_MODE_OPTIONS.find(m => m.id === environmentMode)?.label}
+              <button type="button" onClick={() => removeFilter('environmentMode')} className="hover:text-destructive cursor-pointer">
                 <X className="w-3 h-3" />
               </button>
             </span>

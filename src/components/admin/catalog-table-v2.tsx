@@ -360,6 +360,10 @@ export function CatalogTable({
               categories={categories}
               canEditFinance={canEditFinance}
               onClear={() => setSelectedIds([])}
+              onDeleted={(ids) => {
+                setDeletedIds(prev => [...prev, ...ids]);
+                setSelectedIds([]);
+              }}
             />
           )}
           {selectedIds.length === 0 && (

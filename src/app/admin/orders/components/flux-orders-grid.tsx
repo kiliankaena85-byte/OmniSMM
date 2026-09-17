@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { OrderColumn, RowActions, STATUS_LABELS, STATUS_STYLES, SPEED_CLASS_META } from './columns';
+import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode } from '@/utils/order-environment';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Copy, XCircle } from 'lucide-react';
@@ -59,7 +61,10 @@ export function FluxOrdersGrid({ data, canSeeRates, onSelect, selectedIds, onBul
                   onChange={(e) => onSelect(order.id, e.target.checked)}
                 />
                 <div>
-                  <h3 className="font-extrabold text-lg text-foreground tracking-tight">#{order.numericId}</h3>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-foreground tracking-tight">#{order.numericId}</h3>
+                    <OrderEnvironmentBadge mode={order.resolvedEnvironmentMode || resolveOrderEnvironmentMode(order)} size="sm" />
+                  </div>
                   <p className="text-xs text-muted-foreground font-medium">{dateStr}</p>
                 </div>
               </div>

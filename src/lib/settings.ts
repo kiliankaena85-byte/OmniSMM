@@ -454,26 +454,15 @@ export class SettingsProvider {
     }
   }
 
+  /**
+   * @deprecated Use setEnvironmentMode instead. Kept for backward compatibility.
+   * Automatically synchronizes environmentMode to eliminate brain-split bugs.
+   */
   static async setTestMode(enable: boolean, tenantId?: string) {
-    const activeTenantId = tenantId || await this.getTenantId();
-    delete localSettingsCache[activeTenantId];
-    await db.systemSettings.upsert({
-      where: { id: activeTenantId },
-      update: { isTestMode: enable },
-      create: { id: activeTenantId, isTestMode: enable }
-    });
-    try {
-      const { redis } = await import('./redis');
-      await redis.set(`settings:${activeTenantId}:isTestMode`, String(enable));
-    } catch {
-      // audit-ignore: Redis cache update is secondary to DB persistence
-    }
-    try {
-      revalidateTag('settings', 'default');
-    } catch (cacheErr) {
-      console.error('[SettingsProvider] Warning: Failed to invalidate cache tag:', cacheErr);
-    }
+    const mode: EnvironmentMode = enable ? 'SANDBOX' : 'PRODUCTION';
+    return this.setEnvironmentMode(mode, tenantId);
   }
+
 
   static async setMaintenanceMode(enable: boolean, tenantId?: string) {
     const activeTenantId = tenantId || await this.getTenantId();

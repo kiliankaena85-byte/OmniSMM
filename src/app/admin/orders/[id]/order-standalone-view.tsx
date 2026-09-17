@@ -31,6 +31,8 @@ import {
 import { formatKopecks } from '@/utils/format-kopecks';
 import { OrderModalColumn } from '@/components/admin/OrderDetailsModal';
 import { classifyOrderError } from '@/lib/order-error-classifier';
+import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode } from '@/utils/order-environment';
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string; borderCls: string }> = {
   AWAITING_PAYMENT: { label: 'Ожидает оплаты', cls: 'bg-muted text-muted-foreground', borderCls: 'border-border' },
@@ -223,6 +225,10 @@ export function OrderStandaloneView({
               <span className={`text-xs px-2.5 py-0.5 rounded-lg font-bold border ${statusInfo.cls} ${statusInfo.borderCls}`}>
                 {statusInfo.label}
               </span>
+              <OrderEnvironmentBadge 
+                mode={currentOrder.resolvedEnvironmentMode || resolveOrderEnvironmentMode(currentOrder)} 
+                size="md" 
+              />
             </div>
             <p className="text-xs font-semibold text-muted-foreground mt-1 truncate">
               {currentOrder.service?.category.network?.name ? `${currentOrder.service.category.network.name} · ` : ''}

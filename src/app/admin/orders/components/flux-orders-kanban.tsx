@@ -4,6 +4,8 @@ import { Package, Search, Filter, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatKopecks } from '@/utils/format-kopecks';
 import type { OrderColumn } from './columns';
+import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode } from '@/utils/order-environment';
 
 export function FluxOrdersKanban({ 
   initialOrders, 
@@ -85,9 +87,12 @@ function KanbanColumn({ title, count, orders, type }: { title: string, count: nu
               className="group bg-card hover:bg-muted/40 border border-border/50 hover:border-border transition-all duration-300 rounded-2xl p-4 shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing"
             >
               <div className="flex justify-between items-start mb-3">
-                <span className="text-[10px] font-mono text-muted-foreground/70 bg-muted/50 px-2 py-1 rounded-md">
-                  #{o.numericId}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-mono text-muted-foreground/70 bg-muted/50 px-2 py-1 rounded-md">
+                    #{o.numericId}
+                  </span>
+                  <OrderEnvironmentBadge mode={o.resolvedEnvironmentMode || resolveOrderEnvironmentMode(o)} size="sm" />
+                </div>
                 <span className="text-[10px] font-semibold text-muted-foreground">
                   {new Date(o.createdAt).toLocaleDateString('ru')}
                 </span>

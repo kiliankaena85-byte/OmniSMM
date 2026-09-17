@@ -7,6 +7,7 @@ import { OrdersFilterForm } from './components/orders-filter-form';
 import { NumberedPagination } from '@/components/admin/ui/numbered-pagination';
 import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
+import { resolveOrderEnvironmentMode } from '@/utils/order-environment';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,7 @@ type Props = {
     errorCategory?: string;
     dateFrom?: string;
     dateTo?: string;
+    environmentMode?: string;
   }>;
 };
 
@@ -140,6 +142,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     errorCategory: params.errorCategory || undefined,
     dateFrom: params.dateFrom || undefined,
     dateTo: params.dateTo || undefined,
+    environmentMode: params.environmentMode || undefined,
     staleMinutes: !isNaN(staleMinutes || NaN) ? staleMinutes : undefined,
     sortField: params.sort || params.sortBy || undefined,
     sortOrder: (params.order === 'asc' || params.order === 'desc' || params.sortOrder === 'asc' || params.sortOrder === 'desc')
@@ -156,6 +159,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         include: {
           user: { select: { id: true, email: true } },
           provider: { select: { name: true, ticketUrl: true } },
+          payment: { select: { id: true, gatewayId: true, gateway: true } },
           service: { 
             select: { 
               id: true, 
@@ -285,6 +289,14 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               currentRun: o.currentRun,
               error: o.error ?? null,
               tenantId: o.tenantId,
+              environmentMode: o.environmentMode,
+              isTest: o.isTest,
+              payment: o.payment ? {
+                id: o.payment.id,
+                gatewayId: o.payment.gatewayId ?? null,
+                gateway: o.payment.gateway,
+              } : null,
+              resolvedEnvironmentMode: resolveOrderEnvironmentMode(o),
               user: { email: o.user.email },
               providerName: o.provider?.name ?? null,
               providerTicketUrl: o.provider?.ticketUrl ?? null,

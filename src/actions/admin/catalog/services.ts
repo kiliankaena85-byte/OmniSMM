@@ -467,7 +467,9 @@ export async function deleteOrArchiveServiceAction(id: string) {
           where: { id },
           data: {
             isActive: false,
-            name: archivedName
+            name: archivedName,
+            cooldownReason: null,
+            cooldownUntil: null,
           }
         });
 
@@ -503,7 +505,9 @@ export async function deleteOrArchiveServiceAction(id: string) {
         where: { id },
         data: {
           isActive: false,
-          name: archivedName
+          name: archivedName,
+          cooldownReason: null,
+          cooldownUntil: null,
         }
       });
 
@@ -607,7 +611,9 @@ export async function bulkDeleteOrArchiveServicesAction(serviceIds: string[]) {
           where: { id },
           data: {
             isActive: false,
-            name: archivedName
+            name: archivedName,
+            cooldownReason: null,
+            cooldownUntil: null,
           }
         });
         archivedCount++;

@@ -1,9 +1,9 @@
 'use client';
 
 import { useTransition, useState } from 'react';
-import { adminToggleTestMode, adminClearTestData } from '@/actions/admin/test-mode.actions';
-
+import { adminClearTestData } from '@/actions/admin/test-mode.actions';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { Info, Trash2, ArrowUpRight } from 'lucide-react';
 
 interface TestModePanelProps {
   initialIsTestMode: boolean;
@@ -11,29 +11,13 @@ interface TestModePanelProps {
 }
 
 /**
- * Interactive Test Mode control panel.
- * Allows admin to toggle Ghost Proxy and clear test data.
+ * Unified Test Mode Information Card.
+ * Eliminates legacy duplicate toggle and guides operator to official Header Switcher.
  */
 export function TestModePanel({ initialIsTestMode, isTestEnvironment = false }: TestModePanelProps) {
-  const [isTestMode, setIsTestMode] = useState(initialIsTestMode);
-  const [isPending, startTransition] = useTransition();
   const [clearPending, startClearTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  function handleToggle() {
-    if (isTestEnvironment) return;
-    const newValue = !isTestMode;
-    startTransition(async () => {
-      const result = await adminToggleTestMode(newValue);
-      if ('success' in result && result.success) {
-        setIsTestMode(newValue);
-        setMessage((result as { message: string }).message);
-        // Force page reload to update the global banner
-        window.location.reload();
-      }
-    });
-  }
 
   function handleClearTestData() {
     setConfirmOpen(true);
@@ -52,71 +36,57 @@ export function TestModePanel({ initialIsTestMode, isTestEnvironment = false }: 
   }
 
   return (
-    <div className={`rounded-xl border-2 p-5 transition-all duration-300 ${
-      isTestMode 
-        ? 'border-amber-400 bg-warning/10/80 shadow-amber-100 shadow-lg' 
-        : 'border-emerald-200 bg-success/10/50'
-    }`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">{isTestMode ? '🧪' : '🟢'}</span>
-            <h3 className="font-bold text-foreground">
-              {isTestMode ? 'Тестовый режим АКТИВЕН' : 'Боевой режим'}
-            </h3>
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs transition-all">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0 mt-0.5">
+            <Info className="w-5 h-5" />
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {isTestMode 
-              ? 'Заказы НЕ отправляются реальным провайдерам. Все запросы перехватываются Ghost Proxy и направляются во внутренний эмулятор. Оплата через тестовые ключи Юкассы.'
-              : 'Все заказы отправляются реальным провайдерам. Оплата через боевые ключи Юкассы. Расходуются реальные средства.'
-            }
-          </p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-bold text-foreground">
+                Режимы платформы (Оплата × Исполнение)
+              </h3>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${
+                initialIsTestMode 
+                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' 
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+              }`}>
+                {initialIsTestMode ? 'Тест / Песочница' : 'Боевой режим'}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Глобальное переключение 4 сценариев (<strong>Песочница</strong>, <strong>Гибридный тест</strong>, <strong>Тест эквайринга</strong>, <strong>Боевой режим</strong>) осуществляется централизованно в верхней навигационной панели (Header).
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={handleToggle}
-          disabled={isPending || isTestEnvironment}
-          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            isTestMode 
-              ? 'bg-warning focus:ring-amber-500' 
-              : 'bg-success focus:ring-emerald-500'
-          } ${isPending || isTestEnvironment ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-        >
-          <span
-            className={`inline-block h-6 w-6 transform rounded-full bg-background shadow-md transition-transform duration-300 ${
-              isTestMode ? 'translate-x-7' : 'translate-x-1'
-            }`}
-          />
-        </button>
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <button
+            type="button"
+            onClick={handleClearTestData}
+            disabled={clearPending}
+            className="h-8 px-3 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Безопасно удаляет только изолированные заказы из Песочницы (SANDBOX)"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{clearPending ? 'Очистка...' : 'Очистить песочницу'}</span>
+          </button>
+        </div>
       </div>
 
       {isTestEnvironment && (
-        <div className="mt-3 text-xs bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 px-3.5 py-2 rounded-lg flex items-center gap-2">
+        <div className="mt-3 text-xs bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl flex items-center gap-2">
           <span>⚠️</span>
           <span>
-            <strong>Тестовый режим принудительно включен</strong> окружением сервера (.env / имя БД). Изменения заблокированы.
+            <strong>Сервер запущен в тестовом окружении</strong> (.env / локальный стенд). Внешние финансовые шлюзы заблокированы на уровне конфигурации.
           </span>
         </div>
       )}
 
-      {isTestMode && (
-        <div className="mt-4 pt-4 border-t border-amber-300/50 flex items-center justify-between">
-          <p className="text-xs text-amber-800 font-medium">
-            💡 Не забудьте выключить после тестирования!
-          </p>
-          <button
-            onClick={handleClearTestData}
-            disabled={clearPending}
-            className="text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold hover:bg-red-200 transition-colors disabled:opacity-50"
-          >
-            {clearPending ? 'Очистка...' : '🗑 Очистить тестовые данные'}
-          </button>
-        </div>
-      )}
-
       {message && (
-        <div className="mt-3 text-xs font-medium text-muted-foreground bg-background/80 rounded-lg px-3 py-2 border border-border">
-          ✅ {message}
+        <div className="mt-3 text-xs font-medium text-muted-foreground bg-muted/50 rounded-xl px-3 py-2 border border-border/60">
+          ℹ️ {message}
         </div>
       )}
 
@@ -124,12 +94,12 @@ export function TestModePanel({ initialIsTestMode, isTestEnvironment = false }: 
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={executeClearTestData}
-        title="Очистить тестовые данные"
+        title="Очистить данные песочницы"
         isDanger={true}
         confirmText="Очистить"
         cancelText="Отмена"
       >
-        Вы уверены? Все тестовые заказы будут БЕЗВОЗВРАТНО удалены.
+        Вы уверены? Будут удалены <strong>ТОЛЬКО заказы из виртуальной Песочницы (SANDBOX)</strong>. Живые боевые заказы и заказы из Гибридного теста останутся в полной безопасности.
       </ConfirmModal>
     </div>
   );

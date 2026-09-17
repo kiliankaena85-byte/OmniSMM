@@ -37,6 +37,8 @@ import {
 } from '@/actions/admin/orders';
 import { formatKopecks } from '@/utils/format-kopecks';
 import { classifyOrderError } from '@/lib/order-error-classifier';
+import { OrderEnvironmentBadge } from './OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode, type OrderEnvironmentMode } from '@/utils/order-environment';
 
 export interface OrderModalColumn {
   id: string;
@@ -59,6 +61,14 @@ export interface OrderModalColumn {
   user?: { email: string; id?: string };
   providerName?: string | null;
   tenantId?: string;
+  environmentMode?: string;
+  isTest?: boolean;
+  payment?: {
+    id?: string;
+    gatewayId?: string | null;
+    gateway?: string | null;
+  } | null;
+  resolvedEnvironmentMode?: OrderEnvironmentMode;
   service?: {
     name: string;
     isCancelEnabled?: boolean;
@@ -466,6 +476,11 @@ export function OrderDetailsModal({
                 }`}>
                   {currentOrder.tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}
                 </span>
+                {/* Environment Mode Badge */}
+                <OrderEnvironmentBadge 
+                  mode={currentOrder.resolvedEnvironmentMode || resolveOrderEnvironmentMode(currentOrder)} 
+                  size="sm" 
+                />
                 {/* Status Badge */}
                 <span className={`text-xs px-2.5 py-0.5 rounded-lg font-bold border ${statusInfo.cls} ${statusInfo.borderCls}`}>
                   {statusInfo.label}

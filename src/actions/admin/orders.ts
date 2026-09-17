@@ -653,6 +653,7 @@ export async function getOrderDetailsAction(orderId: string) {
       include: {
         user: { select: { email: true } },
         provider: { select: { name: true } },
+        payment: { select: { id: true, gatewayId: true, gateway: true } },
         service: {
           select: {
             name: true,
@@ -690,6 +691,14 @@ export async function getOrderDetailsAction(orderId: string) {
       interval: order.interval ?? null,
       currentRun: order.currentRun,
       error: order.error ?? null,
+      tenantId: order.tenantId,
+      environmentMode: order.environmentMode,
+      isTest: order.isTest,
+      payment: order.payment ? {
+        id: order.payment.id,
+        gatewayId: order.payment.gatewayId ?? null,
+        gateway: order.payment.gateway,
+      } : null,
       user: { email: order.user.email },
       providerName: order.provider?.name ?? null,
       service: {

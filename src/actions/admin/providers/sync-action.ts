@@ -248,7 +248,8 @@ export async function archiveZombieService(serviceId: string) {
       data: {
         isActive: false,
         name: newName,
-        cooldownReason: 'ZOMBIE_ARCHIVED',
+        cooldownReason: null,
+        cooldownUntil: null,
       },
     });
 
@@ -259,7 +260,7 @@ export async function archiveZombieService(serviceId: string) {
       target: serviceId,
       targetType: "SERVICE",
       oldValue: { name: service.name, isActive: service.isActive, cooldownReason: service.cooldownReason },
-      newValue: { name: newName, isActive: false, cooldownReason: 'ZOMBIE_ARCHIVED' },
+      newValue: { name: newName, isActive: false, cooldownReason: null },
     });
 
     revalidateQuarantineAndAnomalies();

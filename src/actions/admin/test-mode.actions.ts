@@ -39,13 +39,18 @@ export async function adminToggleTestMode(enable: boolean) {
 export async function adminClearTestData() {
   return requireStaffPermission('settings', 'edit', async (admin, _role, tenantId) => {
     const activeTenantId = tenantId || 'smmplan';
-    const ipAddress = await getClientIp('unknown');
     try {
-      // Deleting Orders cascading relationships
+      // Safe Delete: Only delete pure SANDBOX mock orders, NEVER delete live HYBRID or PRODUCTION orders!
       const resultOrders = await db.order.deleteMany({
-        where: { isTest: true, tenantId: activeTenantId }
+        where: { 
+          isTest: true,
+          environmentMode: 'SANDBOX',
+          tenantId: activeTenantId 
+        }
       });
+
       
+      const ipAddress = await getClientIp('unknown');
       await auditAdminAwaitable({
         adminId: admin.id,
         adminEmail: admin.email,

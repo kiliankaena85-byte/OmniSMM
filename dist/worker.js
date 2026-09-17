@@ -103444,24 +103444,13 @@ var init_settings = __esm({
           console.error("[SettingsProvider] Warning: Failed to invalidate cache tag:", cacheErr);
         }
       }
+      /**
+       * @deprecated Use setEnvironmentMode instead. Kept for backward compatibility.
+       * Automatically synchronizes environmentMode to eliminate brain-split bugs.
+       */
       static async setTestMode(enable, tenantId) {
-        const activeTenantId = tenantId || await this.getTenantId();
-        delete localSettingsCache[activeTenantId];
-        await db.systemSettings.upsert({
-          where: { id: activeTenantId },
-          update: { isTestMode: enable },
-          create: { id: activeTenantId, isTestMode: enable }
-        });
-        try {
-          const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
-          await redis2.set(`settings:${activeTenantId}:isTestMode`, String(enable));
-        } catch {
-        }
-        try {
-          (0, import_cache.revalidateTag)("settings", "default");
-        } catch (cacheErr) {
-          console.error("[SettingsProvider] Warning: Failed to invalidate cache tag:", cacheErr);
-        }
+        const mode = enable ? "SANDBOX" : "PRODUCTION";
+        return this.setEnvironmentMode(mode, tenantId);
       }
       static async setMaintenanceMode(enable, tenantId) {
         const activeTenantId = tenantId || await this.getTenantId();
@@ -109193,6 +109182,14 @@ var init_universal_provider = __esm({
             const text = await response.text();
             try {
               const data = JSON.parse(text);
+              if (data && typeof data === "object" && "error" in data && data.error) {
+                const errStr = String(data.error).toLowerCase();
+                const isSystemic = errStr.includes("balance") || errStr.includes("maintenance") || errStr.includes("down") || errStr.includes("busy");
+                if (isSystemic) {
+                  await CircuitBreaker.recordFailure(this.apiUrl);
+                }
+                return data;
+              }
               await CircuitBreaker.recordSuccess(this.apiUrl);
               return data;
             } catch (jsonErr) {
@@ -127754,10 +127751,24 @@ async function runSmartDripfeedTick() {
         `[Dripfeed Worker] \u0417\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443. External ID: ${extOrderId}`
       );
     } catch (err) {
-      log8.error(`[Dripfeed Worker] \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0438 \u0437\u0430\u0434\u0430\u0447\u0438 ${task.id}:`, err instanceof Error ? err.message : String(err));
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      log8.error(`[Dripfeed Worker] \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0438 \u0437\u0430\u0434\u0430\u0447\u0438 ${task.id}:`, errorMsg);
+      const isBalanceError = errorMsg.toLowerCase().includes("balance") || errorMsg.toLowerCase().includes("not enough") || errorMsg.toLowerCase().includes("low balance") || errorMsg.toLowerCase().includes("insufficient");
+      if (isBalanceError) {
+        log8.warn(`[Dripfeed Worker] \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043B \u0431\u0430\u043B\u0430\u043D\u0441. \u041E\u0442\u043A\u043B\u0430\u0434\u044B\u0432\u0430\u0435\u043C \u0437\u0430\u0434\u0430\u0447\u0443 ${task.id} \u043D\u0430 20 \u043C\u0438\u043D\u0443\u0442.`);
+        await db.smartTask.update({
+          where: { id: task.id },
+          data: {
+            status: import_client3.SmartTaskStatus.PLANNED,
+            runAt: new Date(Date.now() + 20 * 60 * 1e3),
+            error: `\u041E\u0442\u043B\u043E\u0436\u0435\u043D\u043E \u0438\u0437-\u0437\u0430 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430: ${errorMsg}`
+          }
+        });
+        continue;
+      }
       await db.smartTask.update({
         where: { id: task.id },
-        data: { status: import_client3.SmartTaskStatus.ERROR, error: err instanceof Error ? err.message : String(err) }
+        data: { status: import_client3.SmartTaskStatus.ERROR, error: errorMsg }
       });
       await checkAndCompleteCampaign(task.campaignId);
     }
@@ -128523,7 +128534,8 @@ var init_balance_autoflush_service = __esm({
           const candidateOrders = await db.order.findMany({
             where: {
               providerId,
-              status: "PENDING_CHECK"
+              status: "PENDING_CHECK",
+              retryCount: { lt: 5 }
             },
             orderBy: { createdAt: "asc" },
             take: this.BATCH_LIMIT,
@@ -128552,7 +128564,17 @@ var init_balance_autoflush_service = __esm({
           );
           const skippedCount = candidateOrders.length - eligibleOrders.length;
           let flushedCount = 0;
+          let remainingLiquidityRub = balanceData.balanceRub;
           for (const order of eligibleOrders) {
+            const orderCostRub = order.providerCost ? Number(order.providerCost) : 0;
+            if (orderCostRub > 0 && remainingLiquidityRub < orderCostRub) {
+              break;
+            }
+            if (orderCostRub > 0) {
+              remainingLiquidityRub -= orderCostRub;
+            }
+            await redis.del(`order:dispatched:${order.id}`).catch(() => {
+            });
             await db.order.update({
               where: { id: order.id },
               data: {
@@ -128564,6 +128586,22 @@ var init_balance_autoflush_service = __esm({
             const jobId = `dispatch-${order.id}-${Date.now()}`;
             await ordersQueue.add("order-dispatch", { orderId: order.id }, { jobId });
             flushedCount++;
+          }
+          if (flushedCount > 0) {
+            try {
+              await db.service.updateMany({
+                where: {
+                  providerId,
+                  cooldownReason: "HIGH_API_FAILURES",
+                  cooldownUntil: { gt: /* @__PURE__ */ new Date() }
+                },
+                data: {
+                  cooldownUntil: null,
+                  cooldownReason: null
+                }
+              });
+            } catch {
+            }
           }
           if (flushedCount > 0) {
             try {
@@ -141798,7 +141836,7 @@ ${escapeHtml2(validationErrorMsg)}
       if (!service) return ctx.scene.leave();
       orderData.link = orderData.tempLink;
       orderData.isLinkOverridden = true;
-      await ctx.reply(
+      await ctx.editMessageText(
         `\u{1F522} <b>\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E</b> (\u043E\u0442 ${service.minQty.toLocaleString()} \u0434\u043E ${service.maxQty.toLocaleString()}):
 
 <i>\u041E\u0442\u043F\u0440\u0430\u0432\u044C\u0442\u0435 \u0447\u0438\u0441\u043B\u043E \u0432 \u043E\u0442\u0432\u0435\u0442\u043D\u043E\u043C \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0438:</i>`,
@@ -141806,14 +141844,16 @@ ${escapeHtml2(validationErrorMsg)}
           parse_mode: "HTML",
           ...import_telegraf3.Markup.inlineKeyboard([[import_telegraf3.Markup.button.callback("\u274C \u041E\u0442\u043C\u0435\u043D\u0430", "cancel_wizard")]])
         }
-      );
+      ).catch(() => {
+      });
       return ctx.wizard.selectStep(3);
     });
     orderWizard.action("retry_link", async (ctx) => {
       await ctx.answerCbQuery();
-      await ctx.reply("\u{1F680} <b>\u041F\u0440\u0438\u0448\u043B\u0438\u0442\u0435 \u043D\u043E\u0432\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443:</b>", {
+      await ctx.editMessageText("\u{1F680} <b>\u041F\u0440\u0438\u0448\u043B\u0438\u0442\u0435 \u043D\u043E\u0432\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443:</b>", {
         parse_mode: "HTML",
         ...import_telegraf3.Markup.inlineKeyboard([[import_telegraf3.Markup.button.callback("\u274C \u041E\u0442\u043C\u0435\u043D\u0430", "cancel_wizard")]])
+      }).catch(() => {
       });
       return ctx.wizard.selectStep(1);
     });
@@ -141847,10 +141887,11 @@ ${escapeHtml2(validationErrorMsg)}
           if (!res.success) {
             throw new Error(res.error || "\u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u044F \u0437\u0430\u043A\u0430\u0437\u0430");
           }
-          await ctx.reply(
+          await ctx.editMessageText(
             `\u{1F389} <b>\u0417\u0430\u043A\u0430\u0437 \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D!</b>
 
-\u{1F194} \u041D\u043E\u043C\u0435\u0440 \u0437\u0430\u043A\u0430\u0437\u0430: <b>#${res.orderId || "\u2014"}</b>\\n\u{1F4E6} \u0423\u0441\u043B\u0443\u0433\u0430: <b>${escapeHtml2(service.name)}</b>
+\u{1F194} \u041D\u043E\u043C\u0435\u0440 \u0437\u0430\u043A\u0430\u0437\u0430: <b>#${res.orderId || "\u2014"}</b>
+\u{1F4E6} \u0423\u0441\u043B\u0443\u0433\u0430: <b>${escapeHtml2(service.name)}</b>
 \u{1F4CA} \u0421\u0442\u0430\u0442\u0443\u0441: <b>\u0412 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u043D\u0430 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435</b>
 
 \u0421\u043B\u0435\u0434\u0438\u0442\u044C \u0437\u0430 \u0441\u0442\u0430\u0442\u0443\u0441\u043E\u043C \u043C\u043E\u0436\u043D\u043E \u0432 \u0440\u0430\u0437\u0434\u0435\u043B\u0435 /orders`,
@@ -141861,10 +141902,11 @@ ${escapeHtml2(validationErrorMsg)}
                 [import_telegraf3.Markup.button.callback("\u{1F6D2} \u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u0435\u0449\u0451", "shop"), import_telegraf3.Markup.button.callback("\u{1F3E0} \u0412 \u0433\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "nav_start")]
               ])
             }
-          );
+          ).catch(() => {
+          });
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
-          await ctx.reply(
+          await ctx.editMessageText(
             `\u274C <b>\u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u044F \u0437\u0430\u043A\u0430\u0437\u0430</b>
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 ${errMsg}
@@ -141877,7 +141919,8 @@ ${errMsg}
                 [import_telegraf3.Markup.button.callback("\u{1F6D2} \u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u0443\u044E \u0443\u0441\u043B\u0443\u0433\u0443", "shop"), import_telegraf3.Markup.button.callback("\u{1F3E0} \u0412 \u0433\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "nav_start")]
               ])
             }
-          );
+          ).catch(() => {
+          });
           try {
             const { sendAdminAlert: sendAdminAlert2 } = await Promise.resolve().then(() => (init_notifications(), notifications_exports));
             sendAdminAlert2(
@@ -141921,7 +141964,7 @@ ${errMsg}
         if (!payment.success || !payment.confirmationUrl) {
           throw new Error(payment.error || "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0444\u043E\u0440\u043C\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u043E\u043F\u043B\u0430\u0442\u0443");
         }
-        await ctx.reply(
+        await ctx.editMessageText(
           `\u{1F4B3} <b>\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u0440\u0435\u0434\u0441\u0442\u0432 \u043D\u0430 \u0431\u0430\u043B\u0430\u043D\u0441\u0435</b>
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 \u0421\u0443\u043C\u043C\u0430 \u0437\u0430\u043A\u0430\u0437\u0430: <b>${formatCents(totalCents)}\u20BD</b>
@@ -141936,10 +141979,11 @@ ${errMsg}
               [import_telegraf3.Markup.button.callback("\u274C \u041E\u0442\u043C\u0435\u043D\u0430", "cancel_wizard")]
             ])
           }
-        );
+        ).catch(() => {
+        });
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        await ctx.reply(
+        await ctx.editMessageText(
           `\u274C <b>\u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u044F \u043F\u043B\u0430\u0442\u0435\u0436\u0430</b>
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 ${errMsg}
@@ -141952,7 +141996,8 @@ ${errMsg}
               [import_telegraf3.Markup.button.callback("\u{1F3E0} \u0412 \u0433\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "nav_start")]
             ])
           }
-        );
+        ).catch(() => {
+        });
         try {
           const { sendAdminAlert: sendAdminAlert2 } = await Promise.resolve().then(() => (init_notifications(), notifications_exports));
           sendAdminAlert2(
@@ -141973,11 +142018,12 @@ ${errMsg}
     orderWizard.action("cancel_wizard", async (ctx) => {
       await ctx.answerCbQuery("\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D").catch(() => {
       });
-      await ctx.reply("\u274C <b>\u041E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435 \u0437\u0430\u043A\u0430\u0437\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u043E.</b>", {
+      await ctx.editMessageText("\u274C <b>\u041E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435 \u0437\u0430\u043A\u0430\u0437\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u043E.</b>", {
         parse_mode: "HTML",
         ...import_telegraf3.Markup.inlineKeyboard([
           [import_telegraf3.Markup.button.callback("\u{1F6CD} \u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u0443\u044E \u0443\u0441\u043B\u0443\u0433\u0443", "shop"), import_telegraf3.Markup.button.callback("\u{1F3E0} \u0412 \u0433\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "nav_start")]
         ])
+      }).catch(() => {
       });
       return ctx.scene.leave();
     });
@@ -144105,18 +144151,7 @@ async function sendMainMenu(ctx, isEdit = false) {
   } catch {
   }
   const formattedWelcome = welcomeTpl.replace(/{siteName}/g, escapeHtml3(botSiteName)).replace(/{userName}/g, escapeHtml3(tgName)).replace(/{balance}/g, balanceStr);
-  const keyboard = await getDynamicKeyboard(tgId);
-  const isOwner = await isOwnerOrAdmin(tgId);
-  const inlineRows = [
-    [import_telegraf5.Markup.button.callback("\u{1F680} \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "start_fast_order")],
-    [import_telegraf5.Markup.button.callback("\u{1F6CD} \u041A\u0430\u0442\u0430\u043B\u043E\u0433 \u0443\u0441\u043B\u0443\u0433", "shop"), import_telegraf5.Markup.button.callback("\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "deposit")],
-    [import_telegraf5.Markup.button.callback("\u{1F464} \u041B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442", "profile"), import_telegraf5.Markup.button.callback("\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B", "my_orders")],
-    [import_telegraf5.Markup.button.callback("\u{1F517} \u041F\u0440\u0438\u0432\u044F\u0437\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442", "bind_account"), import_telegraf5.Markup.button.callback("\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430", "support")]
-  ];
-  if (isOwner) {
-    inlineRows.unshift([import_telegraf5.Markup.button.callback("\u{1F451} \u041F\u0443\u043B\u044C\u0442 \u041E\u0432\u043D\u0435\u0440\u0430 / DevOps Hub", "nav_owner_hub")]);
-  }
-  const startInline = import_telegraf5.Markup.inlineKeyboard(inlineRows);
+  const startInline = await getDynamicInlineKeyboard(tgId);
   if (isEdit) {
     try {
       await ctx.editMessageText(formattedWelcome, {
@@ -144127,9 +144162,18 @@ async function sendMainMenu(ctx, isEdit = false) {
     } catch {
     }
   }
-  await ctx.reply("\u{1F916} <i>\u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E SMMplan</i>", {
+  const persistentKeyboard = import_telegraf5.Markup.keyboard([
+    ["\u{1F4F1} \u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B"],
+    ["\u{1F4B0} \u0411\u0430\u043B\u0430\u043D\u0441", "\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430"]
+  ]).resize().persistent();
+  await ctx.reply("\u{1F9F9} <i>\u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043C\u0435\u043D\u044E...</i>", {
     parse_mode: "HTML",
-    ...keyboard
+    ...persistentKeyboard
+  }).then((m) => {
+    setTimeout(() => {
+      ctx.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(() => {
+      });
+    }, 1e3);
   }).catch(() => {
   });
   return ctx.reply(formattedWelcome, {
@@ -144137,12 +144181,13 @@ async function sendMainMenu(ctx, isEdit = false) {
     ...startInline
   });
 }
-async function getDynamicKeyboard(tgId) {
+async function getDynamicInlineKeyboard(tgId) {
   const isOwner = tgId ? await isOwnerOrAdmin(tgId) : false;
-  let baseGrid = [
-    ["\u{1F680} \u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u{1F6CD} \u041A\u0430\u0442\u0430\u043B\u043E\u0433 \u0443\u0441\u043B\u0443\u0433"],
-    ["\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C", "\u{1F464} \u041F\u0440\u043E\u0444\u0438\u043B\u044C"],
-    ["\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430", "\u{1F465} \u0420\u0435\u0444\u0435\u0440\u0430\u043B\u044B"]
+  let baseRows = [
+    [import_telegraf5.Markup.button.callback("\u{1F680} \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "start_fast_order")],
+    [import_telegraf5.Markup.button.callback("\u{1F6CD} \u041A\u0430\u0442\u0430\u043B\u043E\u0433 \u0443\u0441\u043B\u0443\u0433", "shop"), import_telegraf5.Markup.button.callback("\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "deposit")],
+    [import_telegraf5.Markup.button.callback("\u{1F464} \u041B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442", "profile"), import_telegraf5.Markup.button.callback("\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B", "my_orders")],
+    [import_telegraf5.Markup.button.callback("\u{1F517} \u041F\u0440\u0438\u0432\u044F\u0437\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442", "bind_account"), import_telegraf5.Markup.button.callback("\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430", "support")]
   ];
   try {
     const buttons = await BotSettingsService.getMenuButtons(botTenantId4);
@@ -144159,30 +144204,21 @@ async function getDynamicKeyboard(tgId) {
         const grid = [];
         for (const r of sortedRows) {
           const rowBtns = rowMap.get(r).sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-          grid.push(rowBtns.map((b) => b.label));
+          grid.push(rowBtns.map((b) => import_telegraf5.Markup.button.callback(b.label, `menu_action_${b.id}`)));
         }
         if (grid.length > 0) {
-          baseGrid = grid;
+          baseRows = grid;
         }
       }
     }
   } catch {
   }
   if (isOwner) {
-    return import_telegraf5.Markup.keyboard([
-      ["\u{1F451} \u041F\u0443\u043B\u044C\u0442 \u041E\u0432\u043D\u0435\u0440\u0430"],
-      ...baseGrid
-    ]).resize();
+    baseRows.unshift([import_telegraf5.Markup.button.callback("\u{1F451} \u041F\u0443\u043B\u044C\u0442 \u041E\u0432\u043D\u0435\u0440\u0430 / DevOps Hub", "nav_owner_hub")]);
   }
-  return import_telegraf5.Markup.keyboard(baseGrid).resize();
+  return import_telegraf5.Markup.inlineKeyboard(baseRows);
 }
-async function dispatchDynamicMenuAction(ctx, text) {
-  const btn = await BotSettingsService.findButtonByText(text, botTenantId4);
-  if (!btn) return false;
-  if (ctx.scene) {
-    await ctx.scene.leave().catch(() => {
-    });
-  }
+async function executeDynamicAction(ctx, btn) {
   switch (btn.action) {
     case "FAST_ORDER":
       await sendFastOrderPrompt(ctx);
@@ -144237,7 +144273,7 @@ async function dispatchDynamicMenuAction(ctx, text) {
         await ctx.reply("\u2139\uFE0F <b>\u0421\u043F\u0440\u0430\u0432\u043A\u0430</b>\n\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u043A\u043D\u043E\u043F\u043A\u0438 \u043C\u0435\u043D\u044E \u0434\u043B\u044F \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438 \u0438\u043B\u0438 \u043E\u0442\u043F\u0440\u0430\u0432\u044C\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u043D\u0430 \u0441\u043E\u0446\u0441\u0435\u0442\u044C \u0434\u043B\u044F \u0431\u044B\u0441\u0442\u0440\u043E\u0433\u043E \u0437\u0430\u043A\u0430\u0437\u0430.", { parse_mode: "HTML" });
         return true;
       }
-      return false;
+      return true;
     }
     case "WEB_APP": {
       const webAppUrl = btn.value || `https://${botTenantId4 === "flux" ? "smmflux.ru" : "test.smmplan.pro"}`;
@@ -144252,9 +144288,17 @@ async function dispatchDynamicMenuAction(ctx, text) {
       );
       return true;
     }
-    default:
-      return false;
   }
+  return false;
+}
+async function dispatchDynamicMenuAction(ctx, text) {
+  const trimmed = text.trim();
+  const buttons = await BotSettingsService.getMenuButtons(botTenantId4);
+  const btn = buttons.find((b) => b.label.toLowerCase() === trimmed.toLowerCase() || b.label.replace(/^[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim().toLowerCase() === trimmed.toLowerCase());
+  if (btn) {
+    return executeDynamicAction(ctx, btn);
+  }
+  return false;
 }
 async function sendNetworkCatalogMenu(ctx, isEdit = false) {
   try {
@@ -144584,6 +144628,18 @@ async function launchBot() {
       await bot.telegram.deleteWebhook({ drop_pending_updates: true });
       const me = await bot.telegram.getMe();
       console.info(`[Bot] \u2705 Telegram bot @${me.username} (ID: ${me.id}) initialized.`);
+      try {
+        await bot.telegram.setMyCommands([
+          { command: "menu", description: "\u{1F4F1} \u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E" },
+          { command: "orders", description: "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B" },
+          { command: "balance", description: "\u{1F4B0} \u0411\u0430\u043B\u0430\u043D\u0441 \u0438 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435" },
+          { command: "support", description: "\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430" },
+          { command: "start", description: "\u{1F680} \u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A \u0431\u043E\u0442\u0430" }
+        ]);
+        console.info("[Bot] Menu commands configured.");
+      } catch (err) {
+        console.warn("[Bot] Failed to set menu commands:", err);
+      }
       try {
         const { redis: redis2 } = await Promise.resolve().then(() => (init_redis(), redis_exports));
         await redis2.set("bot:heartbeat", Date.now(), "EX", 60).catch(() => {
@@ -144968,6 +145024,23 @@ var init_bot = __esm({
       }
       return sendMainMenu(ctx, false);
     });
+    bot.action(/^menu_action_(.+)$/, async (ctx) => {
+      if (!ctx.match) return;
+      const btnId = ctx.match[1];
+      const buttons = await BotSettingsService.getMenuButtons(botTenantId4);
+      const btn = buttons.find((b) => b.id === btnId);
+      if (!btn) {
+        return ctx.answerCbQuery("\u041A\u043D\u043E\u043F\u043A\u0430 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430").catch(() => {
+        });
+      }
+      await ctx.answerCbQuery().catch(() => {
+      });
+      if (ctx.scene) {
+        await ctx.scene.leave().catch(() => {
+        });
+      }
+      return executeDynamicAction(ctx, btn);
+    });
     bot.action(["nav_start", "start", "main_menu", "home"], async (ctx) => {
       await ctx.answerCbQuery().catch(() => {
       });
@@ -144984,6 +145057,29 @@ var init_bot = __esm({
     });
     bot.hears(["\u{1F680} \u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437", "\u0412\u0432\u0435\u0441\u0442\u0438 \u0441\u0441\u044B\u043B\u043A\u0443"], async (ctx) => {
       return sendFastOrderPrompt(ctx);
+    });
+    bot.command("menu", async (ctx) => {
+      return sendMainMenu(ctx, false);
+    });
+    bot.hears(/^(📱\s*)?Главное меню$/i, async (ctx) => {
+      if (ctx.scene) await ctx.scene.leave().catch(() => {
+      });
+      return sendMainMenu(ctx, false);
+    });
+    bot.hears(/^(📦\s*)?Мои заказы$/i, async (ctx) => {
+      if (ctx.scene) await ctx.scene.leave().catch(() => {
+      });
+      return sendUserOrders(ctx);
+    });
+    bot.hears(/^(💰\s*)?Баланс$/i, async (ctx) => {
+      if (ctx.scene) await ctx.scene.leave().catch(() => {
+      });
+      return sendUserProfile(ctx);
+    });
+    bot.hears(/^(🆘\s*)?Поддержка$/i, async (ctx) => {
+      if (ctx.scene) await ctx.scene.leave().catch(() => {
+      });
+      return sendSupportPrompt(ctx);
     });
     bot.action("cancel_fast_order", async (ctx) => {
       await ctx.answerCbQuery("\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E").catch(() => {
@@ -145233,7 +145329,7 @@ var init_bot = __esm({
         preFilledLink: preFilledLink || void 0
       });
     });
-    bot.hears(["\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C", "\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C", "\u0411\u0430\u043B\u0430\u043D\u0441", /^(💰\s*Пополнить|Пополнить|Баланс)/i], async (ctx) => {
+    bot.hears(["\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C", "\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "\u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C", /^(💰\s*Пополнить|Пополнить)/i], async (ctx) => {
       return ctx.scene.enter(DEPOSIT_WIZARD);
     });
     bot.command(["deposit", "pay", "balance"], async (ctx) => {
@@ -145768,13 +145864,12 @@ var init_payment_service = __esm({
                 where: { paymentId: payment.id, status: "AWAITING_PAYMENT" },
                 data: { status: "CANCELED" }
               });
-              for (const order of orders) {
-                if (order.promoCodeId) {
-                  await tx.promoCode.updateMany({
-                    where: { id: order.promoCodeId, uses: { gt: 0 } },
-                    data: { uses: { decrement: 1 } }
-                  });
-                }
+              const uniquePromoCodes = new Set(orders.map((o) => o.promoCodeId).filter(Boolean));
+              for (const promoId of uniquePromoCodes) {
+                await tx.promoCode.updateMany({
+                  where: { id: promoId, uses: { gt: 0 } },
+                  data: { uses: { decrement: 1 } }
+                });
               }
             }
             return true;
@@ -157879,7 +157974,6 @@ init_notifications();
 var import_bullmq2 = __toESM(require_cjs());
 init_db();
 init_provider_service();
-init_settings();
 init_queue_manager();
 init_logger();
 
@@ -157896,8 +157990,14 @@ var MarginGuard = class {
    */
   static async checkMargin(clientPaidCents, quantity, providerRate, providerCurrency, bufferPercent = 0.05) {
     const usdToRub = await SettingsProvider.getExchangeRateUSD();
-    const isForeign = providerCurrency.toUpperCase() === "USD";
-    const rateMultiplier = isForeign ? usdToRub * (1 + bufferPercent) : 1;
+    const currUpper = providerCurrency.toUpperCase();
+    let exchangeRate = 1;
+    if (currUpper === "USD") {
+      exchangeRate = usdToRub;
+    } else if (currUpper === "EUR") {
+      exchangeRate = usdToRub * 1.08;
+    }
+    const rateMultiplier = currUpper !== "RUB" ? exchangeRate * (1 + bufferPercent) : 1;
     const costRub = providerRate * rateMultiplier / 1e3 * quantity;
     const costCents = BigInt(Math.ceil(costRub * 100));
     if (costCents > clientPaidCents) {
@@ -158033,8 +158133,8 @@ async function orderProcessor(job) {
     log6.warn(`[OrderProcessor] Order ${orderId} is not PENDING. Skip.`);
     return;
   }
-  const isMockProvider = await SettingsManager.isMockProviderEnabled();
-  const envMode = await SettingsManager.getEnvironmentMode();
+  const envMode = order.environmentMode;
+  const isMockProvider = envMode === "SANDBOX" || envMode === "ACQUIRING_TEST";
   if (order.isTest && !isMockProvider && envMode !== "HYBRID") {
     log6.error(`[OrderProcessor] CRITICAL: Test order ${orderId} picked up in production mode. Failing safely.`);
     const { orderService: orderService2 } = await Promise.resolve().then(() => (init_order_service(), order_service_exports));
@@ -158293,6 +158393,8 @@ async function orderProcessor(job) {
           where: { id: order.id },
           data: {
             status: "PENDING_CHECK",
+            providerId: route.providerId,
+            providerServiceId: route.providerServiceId,
             error: formattedError
           }
         });
@@ -158312,6 +158414,8 @@ async function orderProcessor(job) {
           }, originalError, route.provider.name);
         } catch {
         }
+        await connection2.del(redisKey).catch(() => {
+        });
         throw new import_bullmq2.UnrecoverableError(`Manual failover mode: operator triage required`);
       }
       if (nextRoute) {
@@ -158353,6 +158457,8 @@ async function orderProcessor(job) {
         }, holdMessage, candidateRoutes[0]?.provider?.name);
       } catch {
       }
+      await connection2.del(redisKey).catch(() => {
+      });
       throw new import_bullmq2.UnrecoverableError(`Price Drift Hold: ${holdMessage}`);
     }
     log6.error(`[OrderProcessor] All routes failed for Order ${order.id}. Moving to PENDING_CHECK: ${lastError}`);
@@ -158369,6 +158475,8 @@ async function orderProcessor(job) {
       where: { id: order.id },
       data: {
         status: "PENDING_CHECK",
+        providerId: candidateRoutes[0]?.providerId || order.providerId,
+        providerServiceId: candidateRoutes[0]?.providerServiceId || order.providerServiceId,
         error: formattedError
       }
     });
@@ -158388,6 +158496,8 @@ async function orderProcessor(job) {
       }, lastError, candidateRoutes[0]?.provider?.name);
     } catch {
     }
+    await connection2.del(redisKey).catch(() => {
+    });
     throw new import_bullmq2.UnrecoverableError(`Order moved to PENDING_CHECK: ${lastError}`);
   }
 }
@@ -159169,10 +159279,21 @@ async function runCleanup() {
         if (updated.count > 0) {
           await LoyaltyService.reverseCommission(tx, zombie.id);
           if (zombie.promoCodeId) {
-            await tx.promoCode.updateMany({
-              where: { id: zombie.promoCodeId, uses: { gt: 0 } },
-              data: { uses: { decrement: 1 } }
-            });
+            let isFirstOrderOfPayment = true;
+            if (zombie.paymentId) {
+              const firstOrder = await tx.order.findFirst({
+                where: { paymentId: zombie.paymentId, promoCodeId: zombie.promoCodeId },
+                orderBy: { id: "asc" },
+                select: { id: true }
+              });
+              isFirstOrderOfPayment = firstOrder?.id === zombie.id;
+            }
+            if (isFirstOrderOfPayment) {
+              await tx.promoCode.updateMany({
+                where: { id: zombie.promoCodeId, uses: { gt: 0 } },
+                data: { uses: { decrement: 1 } }
+              });
+            }
           }
           canceledCount++;
           if (zombie.paymentId) {
@@ -164111,6 +164232,7 @@ async function handleDeadLetter(queueName, job, err) {
         error: err.message,
         failedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
+      let isParkedForTriage = false;
       if (queueName === "ordersQueue") {
         const payload = job.data;
         if (payload?.orderId) {
@@ -164120,6 +164242,7 @@ async function handleDeadLetter(queueName, job, err) {
           });
           if (currentOrder && (currentOrder.status === "PENDING_CHECK" || currentOrder.status === "IN_PROGRESS")) {
             log30.info(`[WORKER] Order #${currentOrder.numericId} (${payload.orderId}) is in '${currentOrder.status}'. Skipping auto-fail to allow operator triage / balance autoflush.`);
+            isParkedForTriage = true;
           } else {
             await orderService.failOrderTerminal(payload.orderId, err.message);
             log30.info(`Auto-refunded dead-letter order ${payload.orderId}`);
@@ -164137,7 +164260,7 @@ async function handleDeadLetter(queueName, job, err) {
         }
       }
       const isFinancialQueue = ["ordersQueue", "paymentSyncQueue", "paymentGatewayQueue", "refillQueue"].includes(queueName);
-      if (isFinancialQueue) {
+      if (isFinancialQueue && !isParkedForTriage) {
         await sendAdminAlert(
           `\u{1FAA6} *Dead Letter Job (P0 \u0424\u0438\u043D\u0430\u043D\u0441\u043E\u0432\u044B\u0439)*
 
@@ -164148,7 +164271,7 @@ Job ID: \`${job.id}\`
 \u041E\u0448\u0438\u0431\u043A\u0430: ${err.message}`,
           "CRITICAL"
         );
-      } else {
+      } else if (!isParkedForTriage) {
         const { P0AlertDebouncer: P0AlertDebouncer2 } = await Promise.resolve().then(() => (init_p0_alert_debouncer(), p0_alert_debouncer_exports));
         const errKey = `dlq:${queueName}:${err.name || "Error"}`;
         const { shouldSend, occurrences } = await P0AlertDebouncer2.checkDeduplicatedAlert(errKey, 7200);

@@ -141,11 +141,13 @@ export function BatchActionBar({
   onClear,
   canEditFinance,
   categories,
+  onDeleted,
 }: {
   selectedIds: string[];
   onClear: () => void;
   canEditFinance: boolean;
   categories: Array<{ id: string; name: string }>;
+  onDeleted?: (ids: string[]) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const [markupPercentInput, setMarkupPercentInput] = useState('');
@@ -161,6 +163,9 @@ export function BatchActionBar({
       const r = await bulkDeleteOrArchiveServicesAction(selectedIds);
       if (r.success) {
         toast.success(r.message);
+        if (onDeleted) {
+          onDeleted(selectedIds);
+        }
         onClear();
       } else {
         toast.error(r.error || 'Ошибка удаления');

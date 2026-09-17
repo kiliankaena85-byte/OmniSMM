@@ -7,9 +7,10 @@ import { useTransition, useState } from 'react';
 import { toast } from 'sonner';
 import { cancelOrderAction } from '@/actions/admin/orders';
 import { X, Edit2, Zap, Timer, Snail, Turtle, ArrowUpDown, Copy, Check } from 'lucide-react';
-import { formatEta } from '@/utils/format-eta';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-
+import { formatEta } from '@/utils/format-eta';
+import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode, type OrderEnvironmentMode } from '@/utils/order-environment';
 
 export type OrderColumn = {
   id: string;
@@ -33,6 +34,14 @@ export type OrderColumn = {
   providerName: string | null;
   providerTicketUrl?: string | null;
   tenantId?: string;
+  environmentMode?: string;
+  isTest?: boolean;
+  payment?: {
+    id: string;
+    gatewayId: string | null;
+    gateway: string;
+  } | null;
+  resolvedEnvironmentMode?: OrderEnvironmentMode;
   service: { 
     name: string;
     isCancelEnabled?: boolean;
@@ -415,11 +424,13 @@ export const columns = (canSeeRates: boolean = true): ColumnDef<OrderColumn>[] =
       const order = row.original;
       const email = order.user.email;
       return (
-        <div className="flex flex-col text-xs leading-normal py-1 space-y-0.5 min-w-[130px]">
+        <div className="flex flex-col text-xs leading-normal py-1 space-y-1 min-w-[130px]">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-bold text-foreground tabular-nums text-xs">
               #{order.numericId}
             </span>
+            <TenantBrandBadge tenantId={order.tenantId} />
+            <OrderEnvironmentBadge mode={order.resolvedEnvironmentMode || resolveOrderEnvironmentMode(order)} size="sm" />
           </div>
           <Link
             href={`/admin/clients?q=${encodeURIComponent(email)}`}

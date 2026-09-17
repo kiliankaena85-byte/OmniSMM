@@ -5,6 +5,8 @@ import { useState, useTransition, useOptimistic } from 'react';
 import { toast } from 'sonner';
 import { OrderColumn, TenantBrandBadge, STATUS_LABELS } from './columns';
 import { OrderSortableHeader } from './order-sortable-header';
+import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
+import { resolveOrderEnvironmentMode, ORDER_ENV_CONFIG } from '@/utils/order-environment';
 import Link from 'next/link';
 import { 
   Clock, 
@@ -455,7 +457,7 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-muted/40 border-b border-border/60 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground select-none">
-              <th scope="col" className="py-2 px-3 w-[75px]">
+              <th scope="col" className="py-2 px-3 w-[125px]">
                 <OrderSortableHeader title="ID" field="numericId" />
               </th>
               <th scope="col" className="py-2 px-3 w-[160px]">
@@ -481,6 +483,8 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
               const dateObj = new Date(order.createdAt);
               const formattedDate = dateObj.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
               const formattedTime = dateObj.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+              const envMode = order.resolvedEnvironmentMode || resolveOrderEnvironmentMode(order);
+              const envConfig = ORDER_ENV_CONFIG[envMode] || ORDER_ENV_CONFIG.PRODUCTION;
 
               return (
                 <tr
@@ -492,7 +496,7 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
                       openDrawer(order.id);
                     }
                   }}
-                  className={`transition-colors cursor-pointer group ${
+                  className={`transition-colors cursor-pointer group ${envConfig.rowBorderClass} ${
                     isSelected 
                       ? 'bg-primary/5' 
                       : isLockedOut
@@ -502,22 +506,28 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
                   title={isLockedOut ? `Нельзя смешивать со статусом «${STATUS_LABELS[lockedStatus] || lockedStatus}»` : undefined}
                 >
                   {/* ID */}
-                  <td className="py-3 px-3 align-top font-mono text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {selectionMode && (
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          disabled={isLockedOut}
-                          onChange={() => toggleSelectRow(order.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary shrink-0 ${
-                            isLockedOut ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'
-                          }`}
-                          title={isLockedOut ? `Нельзя выбрать: активна фиксация на статусе «${STATUS_LABELS[lockedStatus] || lockedStatus}»` : undefined}
-                        />
-                      )}
-                      <span className="truncate">#{order.numericId}</span>
+                  <td className={`py-3 px-3 align-top font-mono text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors ${envConfig.rowBorderClass}`}>
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {selectionMode && (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isLockedOut}
+                            onChange={() => toggleSelectRow(order.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className={`w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary shrink-0 ${
+                              isLockedOut ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'
+                            }`}
+                            title={isLockedOut ? `Нельзя выбрать: активна фиксация на статусе «${STATUS_LABELS[lockedStatus] || lockedStatus}»` : undefined}
+                          />
+                        )}
+                        <span className="truncate font-bold text-foreground">#{order.numericId}</span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <TenantBrandBadge tenantId={order.tenantId} />
+                        <OrderEnvironmentBadge mode={envMode} size="sm" />
+                      </div>
                     </div>
                   </td>
 
@@ -614,6 +624,8 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
         {optimisticData.map((order) => {
           const isSelected = selectedIds.has(order.id);
           const isLockedOut = lockedStatus !== null && order.status !== lockedStatus;
+          const envMode = order.resolvedEnvironmentMode || resolveOrderEnvironmentMode(order);
+          const envConfig = ORDER_ENV_CONFIG[envMode] || ORDER_ENV_CONFIG.PRODUCTION;
 
           return (
             <article
@@ -625,7 +637,7 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
                   openDrawer(order.id);
                 }
               }}
-              className={`bg-card border border-border/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all space-y-3 cursor-pointer ${
+              className={`bg-card border border-border/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all space-y-3 cursor-pointer ${envConfig.rowBorderClass} ${
                 isSelected 
                   ? 'ring-2 ring-primary/40 bg-primary/5' 
                   : isLockedOut 
@@ -649,6 +661,8 @@ export function OrderClient({ data, canSeeRates = true, userRole = 'SUPPORT' }: 
                     />
                   )}
                   <span className="font-mono font-bold text-sm text-primary">#{order.numericId}</span>
+                  <TenantBrandBadge tenantId={order.tenantId} />
+                  <OrderEnvironmentBadge mode={envMode} size="sm" />
                   <span className="text-xs text-muted-foreground" title={new Date(order.createdAt).toLocaleString('ru-RU')}>
                     {timeRelative(order.createdAt)}
                   </span>
