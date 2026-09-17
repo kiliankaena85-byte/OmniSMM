@@ -63,12 +63,21 @@ services:
         condition: service_healthy
     security_opt:
       - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   bot:
-    image: smmplan_staging_app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: bot-runner
+    image: smmplan_staging_bot:latest
     container_name: smmplan_staging_bot
     restart: unless-stopped
-    command: ["./node_modules/.bin/tsx", "src/bot/index.ts"]
+    command: ["node", "bot.js"]
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-smmplan_staging}?schema=public&connection_limit=5&pool_timeout=30
@@ -92,12 +101,21 @@ services:
       start_period: 15s
     security_opt:
       - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   worker:
-    image: smmplan_staging_app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker-runner
+    image: smmplan_staging_worker:latest
     container_name: smmplan_staging_worker
     restart: always
-    command: ["./node_modules/.bin/tsx", "src/workers/index.ts"]
+    command: ["node", "worker.js"]
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-smmplan_staging}?schema=public&connection_limit=5&pool_timeout=30
@@ -110,6 +128,11 @@ services:
         condition: service_healthy
     security_opt:
       - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
 volumes:
   staging_postgres_data:

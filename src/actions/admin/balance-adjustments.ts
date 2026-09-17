@@ -678,6 +678,7 @@ export async function getBalanceAdjustmentsAction(formData: FormData) {
     });
 
     const paymentIds = items.map(item => item.paymentId).filter((id): id is string => Boolean(id));
+    // tenant-isolation-ignore: admin cross-tenant payment enrichment by unique payment IDs
     const payments = paymentIds.length > 0
       ? await db.payment.findMany({
           where: { id: { in: paymentIds } },

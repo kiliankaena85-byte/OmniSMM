@@ -45,8 +45,12 @@ export function stripTrackingParams(urlObj: URL, platform?: IntelligencePlatform
     const isPrivate = urlObj.pathname.includes('/+') || urlObj.pathname.includes('/joinchat/');
 
     if (normTarget === 'CHANNEL' || normTarget === 'PROFILE' || normTarget === 'CHANNEL_POSTS') {
+      const hasBoostParam = urlObj.searchParams.has('boost');
       if (!isPrivate) {
         urlObj.search = '';
+        if (hasBoostParam) {
+          urlObj.search = '?boost';
+        }
       }
       return;
     }
@@ -258,6 +262,8 @@ export function canonicalizeUrl(rawUrl: string, platform?: IntelligencePlatform 
       urlObj.pathname = urlObj.pathname.replace(/^\/s\/([a-zA-Z0-9_]+)/i, '/$1');
       // t.me/@channel -> t.me/channel
       urlObj.pathname = urlObj.pathname.replace(/^\/@/, '/');
+      // t.me/boost/@channel -> t.me/boost/channel
+      urlObj.pathname = urlObj.pathname.replace(/^\/boost\/@/, '/boost/');
       // t.me/group/topic/100/250 -> t.me/group/100/250
       urlObj.pathname = urlObj.pathname.replace(/\/topic\/(\d+)\/(\d+)/i, '/$1/$2');
 

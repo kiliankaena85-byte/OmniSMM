@@ -487,6 +487,7 @@ beforeEach(async () => {
         'link-validator-stress',
         'link-analyzer.comprehensive',
         'api-v2-link-validation',
+        'telegram-boost-link-recognition',
         'checkout.test.ts'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {

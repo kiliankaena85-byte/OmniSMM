@@ -36,6 +36,8 @@ const legacyRedirects: Record<string, string> = {
   '/p/privacy': ROUTES.LEGAL.PRIVACY,
   '/p/refund': ROUTES.LEGAL.REFUND,
   '/p/faq': ROUTES.FAQ,
+  '/boost': '/services/telegram/busty',
+  '/telegram/boost': '/services/telegram/busty',
 };
 
 // N-10.3: Strict Trusted Contour Domain Allowlist
@@ -563,7 +565,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. Check legacy redirects
-  const newPath = legacyRedirects[pathname];
+  const normalizedPath = pathname.length > 1 && pathname.endsWith('/') ? pathname.replace(/\/+$/, '') : pathname;
+  const newPath = legacyRedirects[pathname] || legacyRedirects[normalizedPath];
   if (newPath) {
     const redirectUrl = resolveRedirectUrl(newPath);
     if (newPath.includes('#')) {

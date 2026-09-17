@@ -7,8 +7,8 @@ import { IntelligencePlatform } from '../analyzer/link-rules';
  */
 export const UNIFIED_REGEX = {
   TELEGRAM: {
-    // Allows public channel / group / profile: t.me/durov, t.me/@durov, t.me/joinchat/xxx, t.me/+xxx, t.me/s/durov
-    CHANNEL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+|s\/)?@?[\w-]+\/?(?:\?.*)?$/i,
+    // Allows public channel / group / profile: t.me/durov, t.me/@durov, t.me/joinchat/xxx, t.me/+xxx, t.me/s/durov, t.me/boost/xxx, t.me/xxx/boost, t.me/c/xxx/boost
+    CHANNEL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+|s\/|boost\/)?(?:c\/\d+|@?[\w-]+)(?:\/boost)?\/?(?:\?.*)?$/i,
     // Allows posts: t.me/channel/123, topic posts: t.me/group/100/250, web previews: t.me/s/channel/123
     POST: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/(?:topic\/)?\d+(?:\/\d+)?\/?(?:\?.*)?$/i,
     // Allows stories: t.me/channel/s/123
@@ -341,7 +341,7 @@ export function getUnifiedLinkSpecification(
         targetType: 'CHANNEL',
         placeholder: 'https://t.me/channel_name или https://t.me/+joinchat_hash',
         hint: 'Ссылка на публичный или закрытый Telegram канал/чат',
-        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/)?@?[\\w-]+',
+        regex: '^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/|boost\\/)?(?:c\\/\\d+|@?[\\w-]+)',
         clientRequirement: 'Канал/группа должны быть доступны (если закрытый — ссылка с + или joinchat)',
         requiresBotAdmin: false,
         isMediaGroupAware: false,
