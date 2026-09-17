@@ -151,6 +151,42 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
       expect(res.paymentUrl).toContain('OutSum=1500.00');
       expect(res.paymentUrl).toContain('shp_paymentId=pay_test_3');
       expect(res.paymentUrl).not.toContain('/payment-redirect');
+
+      const parsedUrl = new URL(res.paymentUrl);
+      expect(parsedUrl.searchParams.get('Email')).toBe('test@example.com');
+      const parsedReceipt = JSON.parse(parsedUrl.searchParams.get('Receipt') || '{}');
+      expect(parsedReceipt.client).toEqual({ email: 'test@example.com' });
+      expect(parsedReceipt.items).toHaveLength(1);
+      expect(parsedReceipt.items[0].sum).toBe('1500.00');
+    });
+
+    it('omits client email block from Robokassa receipt and queryParams when email is empty or null', async () => {
+      vi.spyOn(SettingsProvider, 'getPaymentSecrets').mockResolvedValue({
+        yookassaShopId: '',
+        yookassaSecretKey: '',
+        robokassaLogin: 'my_merchant_login',
+        robokassaPassword: 'my_merchant_pass_1',
+        robokassaWebhookPassword: 'my_merchant_webhook_pass',
+        yookassaWebhookSecret: '',
+        cryptoBotToken: '',
+      });
+      vi.spyOn(SettingsProvider, 'isTestMode').mockResolvedValue(false);
+
+      const roboGateway = PaymentGatewayFactory.getGateway('robokassa');
+      const res = await roboGateway.createPayment({
+        paymentId: 'pay_test_no_email',
+        userId: 'user_1',
+        amountRub: 500,
+        email: '   ',
+        successUrl: 'http://localhost:3000/dashboard',
+        description: 'Оплата без email'
+      });
+
+      const parsedUrl = new URL(res.paymentUrl);
+      expect(parsedUrl.searchParams.has('Email')).toBe(false);
+      const parsedReceipt = JSON.parse(parsedUrl.searchParams.get('Receipt') || '{}');
+      expect(parsedReceipt.client).toBeUndefined();
+      expect(parsedReceipt.items).toHaveLength(1);
     });
   });
 
