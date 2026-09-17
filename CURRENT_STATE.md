@@ -1,3 +1,20 @@
+- [x] ⚡ [PRE-PRODUCTION-STEP-2-INFRA-RESILIENCE-2026] Комплексное усиление инфраструктуры, Redis backoff, Drip-Feed Floor UI и маппинга статусов провайдеров (100% COMPLETE & VERIFIED):
+  * 🐳 **Синхронизация ранеров Docker Compose и ротация логов (`docker-compose.prod.yml`):**
+    - Для сервисов `worker` и `bot` исправлены точки входа: сервис `worker` использует ранер `node worker.js`, сервис `bot` переведён на образ `bot-runner` и команду `node bot.js` (устранены фатальные сбои отсутствия `./node_modules/.bin/tsx` и исходного каталога `src/` в минимальных production-образах).
+    - Для сервисов `nginx`, `app`, `worker` и `bot` настроены лимиты ротации логов (`json-file`, `max-size: 50m`, `max-file: 3`), предотвращающие переполнение дискового пространства сервера.
+  * 🔌 **Отказоустойчивость подключения Redis (`src/lib/redis.ts`):**
+    - Экспортирована функция `calculateRedisRetryDelay(times, env)` с защитой от разрыва соединения. Удалён деструктивный возврат `null` после 5 попыток (~750 мс), из-за которого сервер навсегда терял связь с Redis при штатных перезагрузках или сетевом флапе.
+    - Введён прогрессивный backoff с верхним порогом 3000 мс и бесконечными попытками переподключения.
+  * 📦 **Автомасштабирование объема Drip-Feed Floor в UI (`OrderSummaryCard.tsx`):**
+    - Реализовано немедленное автоматическое масштабирование поля `quantity` до порога `selectedService.minQty * runs` / `minQty * smartDripDays` при включении Drip-Feed, изменении числа запусков или выборе пресета дней Smart Drip. Исключены отказы валидации чекаута со стороны бэкенда.
+  * 🔄 **Маппинг статусов отмены поставщиков и перезапуск таймаутов (`route.ts`, `orders.ts`, `BulkActionsPanel.tsx`):**
+    - В обработчике вебхуков провайдеров `src/app/api/webhooks/provider/route.ts` расширен перечень распознаваемых статусов отмены: добавлены `CANCELLED`, `FAILED`, `FAIL` наряду с `CANCELED`, гарантируя корректную отмену и автовозврат средств клиенту.
+    - В массовом перезапуске заказов `bulkRestartOrdersAction` и панели `BulkActionsPanel.tsx` разрешён перезапуск заказов в статусе `PENDING_CHECK` (зависшие из-за таймаута внешнего API) и `CANCELED`.
+  * 🧪 **Верификация:**
+    - Сквозные юнит-тесты `src/__tests__/infrastructure/pre-production-step2-hardening.test.ts` (3/3 PASS — 100%).
+    - Тесты Drip-Feed `src/__tests__/orders/drip-feed-min-quantity-and-runs-integrity.test.ts` (5/5 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Изменения зафиксированы и запушены в `origin/main` (коммит `800d998f`).
 - [x] ⚡ [ROBOKASSA-54FZ-FISCAL-RECEIPT-EMAIL-2026] Добавление контакта покупателя (email) в фискальный чек 54-ФЗ и URL параметры Робокассы (100% COMPLETE & VERIFIED):
   * 💳 **Фискализация 54-ФЗ в RobokassaGateway (`src/services/financial/payment-gateway.service.ts`):**
     - В объекте `receipt` добавлен блок `client: { email: cleanEmail }`, гарантирующий отправку чека покупателю ОФД согласно требованиям ст. 1.2 Федерального закона № 54-ФЗ.
