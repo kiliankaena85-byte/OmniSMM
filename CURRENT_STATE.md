@@ -1,3 +1,21 @@
+- [x] ⚡ [DASHBOARD-MATH-AND-FINANCE-RECONCILIATION-2026] Комплексный аудит и исправление финансовой математики, расчёта чистой прибыли, эквайринга, конверсии заказов и метрик каталога (100% COMPLETE & VERIFIED):
+  * 💰 **Точная декомпозиция и сведение финансовой математики (до копейки):**
+    - В `src/app/admin/dashboard/page.tsx` карточка переименована с ошибочной «Чистая маржа» в «Чистая прибыль (Net Profit)».
+    - Устранена путаница расчёта 653 471,44 ₽: подтверждены все слагаемые (валовый оборот 725 655,13 ₽, эквайринг 24 837,90 ₽, возвраты 2 440,35 ₽, себестоимость COGS 3 194,50 ₽, налог УСН 6% 41 710,94 ₽). В карточку добавлена прозрачная строка налога УСН 6% и возвратов.
+    - Удалён ошибочный бейдж `+94%` из подвала себестоимости (ранее туда ошибочно попадала рентабельность всей прибыли).
+    - Удалён захардкоженный текст `100%` из карточки GMV, добавлен вывод чистых поступлений (`Чистая: ...`).
+  * 📦 **Корректный расчёт конверсии заказов (Fulfillment Rate):**
+    - В `src/services/admin/order.service.ts` и `src/app/admin/dashboard/page.tsx` формула конверсии переведена на отношение к терминальным заказам: `(completed + partial) / (completed + partial + error + canceled) * 100`.
+    - Активные заказы в процессе исполнения (`IN_PROGRESS`: 37 шт) и неоплаченные корзины (`AWAITING_PAYMENT`) больше не занижают конверсию платформы до ложных 12.6%.
+  * 📚 **Каталог услуг и стабильность при фильтрах:**
+    - В `src/services/admin/catalog.service.ts` из `getCatalogStats()` удалён фильтр `where.createdAt`, устранив обнуление витрины до «0 услуг» при выборе периодов «Сегодня» / «7 дней».
+  * 💳 **Эквайринг и защита от фантомных возвратов:**
+    - В `src/services/financial/accounting.service.ts` (`getMetrics`) синхронизированы ставки комиссий всех шлюзов: СБП (0.7%), CryptoBot (1.0%), Robokassa (3.9%), ЮKassa и дефолт (3.5%).
+    - Защищён расчёт возвратов: неоплаченные брошенные корзины (`AWAITING_PAYMENT` -> `CANCELED`) больше не списываются как фиктивные возвраты из оборота.
+  * 🧪 **Верификация:**
+    - `vitest run src/services/financial/accounting.service.test.ts src/__tests__/dashboard-bugs-fix-verification.test.ts` — 15/15 PASS.
+    - `vitest run src/__tests__/admin-panel-exhaustive-backend-audit.test.ts` — 9/9 PASS.
+    - `npx tsc --noEmit` — 0 ошибок компиляции.
 - [x] ⚡ [ZERO-VENDOR-LEAK-AND-MAINTENANCE-MODE-2026] Ликвидация утечки имен поставщиков (Vexboost, Clash/Mihomo, SSRF) и обеспечение надежного режима сервисного обслуживания (100% COMPLETE & VERIFIED):
   * 🛡️ **Zero Vendor Leak Invariant & Presentation Gate (CWE-209 / RAC-2026):**
     - Создан модуль `src/utils/order-customer-error.ts`: клиенту гарантированно не отдаются имена провайдеров, системные теги (`[GATEWAY_SSRF_BLOCKED]`, `[INSUFFICIENT_PROVIDER_BALANCE]`) и инструкции техподдержки (`Clash/Mihomo`, `DNS-резолв`, `админка`).
