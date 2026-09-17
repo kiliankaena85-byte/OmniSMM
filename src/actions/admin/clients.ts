@@ -410,6 +410,8 @@ export async function supportGoodwillCreditAction(formData: FormData) {
     const { WalletOps } = await import('@/services/financial/wallet-ops');
     const { auditAdminAwaitable } = await import('@/lib/admin-audit');
 
+    const resolvedTenant = targetUser.tenantId || tenantId || 'smmplan';
+
     const result = await db.$transaction(async (tx) => {
       if (direction === 'CREDIT') {
         return await WalletOps.credit(
@@ -419,19 +421,19 @@ export async function supportGoodwillCreditAction(formData: FormData) {
           `Начисление: ${reason}${comment ? ` (${comment})` : ''}`,
           {
             adminId: admin.id,
-            tenantId: tenantId || targetUser.tenantId || 'smmplan',
+            tenantId: resolvedTenant,
             transactionType: 'ADJUSTMENT'
           }
         );
       } else {
-        return await WalletOps.charge(
+        return await WalletOps.adminAdjust(
           tx,
           userId,
-          amountKopecks,
+          -amountKopecks,
           `Списание: ${reason}${comment ? ` (${comment})` : ''}`,
           {
             adminId: admin.id,
-            tenantId: tenantId || targetUser.tenantId || 'smmplan',
+            tenantId: resolvedTenant,
             transactionType: 'ADJUSTMENT'
           }
         );
@@ -464,11 +466,16 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
       return { success: false as const, error: 'Не указан ID клиента' };
     }
 
-    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+    const targetUser = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, tenantId: true }
+    });
+    if (!targetUser) {
+      return { success: false as const, error: 'Пользователь не найден' };
+    }
 
     const where: Prisma.LedgerEntryWhereInput = {
       userId,
-      ...tenantFilter,
     };
 
     if (filterType === 'TOPUP') {
@@ -480,6 +487,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
     } else if (filterType === 'ORDER_CHARGE') {
       where.OR = [
         { transactionType: 'ORDER_CHARGE' },
+        { transactionType: 'REROUTE' },
         { amount: { lt: BigInt(0) }, reason: { contains: 'Заказ' } }
       ];
     } else if (filterType === 'REFUND') {
@@ -514,7 +522,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
       }),
       db.ledgerEntry.groupBy({
         by: ['transactionType'],
-        where: { userId, ...tenantFilter },
+        where: { userId },
         _sum: { amount: true },
       })
     ]);
@@ -522,7 +530,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
     // Fetch admin emails if needed
     const adminIds = Array.from(new Set(entries.map(e => e.adminId).filter(Boolean))) as string[];
     const admins = adminIds.length > 0 ? await db.user.findMany({
-      where: { id: { in: adminIds }, ...tenantFilter },
+      where: { id: { in: adminIds } },
       select: { id: true, email: true }
     }) : [];
     const adminMap = new Map(admins.map(a => [a.id, a.email]));
@@ -539,12 +547,16 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
 
       if (type === 'TOPUP' || (type === 'PAYMENT' && sum > BigInt(0))) {
         totalDepositedKopecks += sum;
-      } else if (type === 'ORDER_CHARGE') {
+      } else if (type === 'ORDER_CHARGE' || type === 'REROUTE') {
         totalSpentKopecks += (sum < BigInt(0) ? -sum : sum);
       } else if (type === 'REFUND' || type === 'ORDER_CANCEL') {
         totalRefundedKopecks += (sum > BigInt(0) ? sum : -sum);
       } else if (type === 'ADJUSTMENT' || type === 'COMPENSATION') {
         totalAdjustedKopecks += sum;
+      } else if (sum > BigInt(0)) {
+        totalDepositedKopecks += sum;
+      } else if (sum < BigInt(0)) {
+        totalSpentKopecks += -sum;
       }
     }
 

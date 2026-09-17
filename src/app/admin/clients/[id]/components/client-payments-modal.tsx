@@ -13,6 +13,7 @@ interface ClientPaymentsModalProps {
   onClose: () => void;
   user: UserDTO;
   payments: PaymentDTO[];
+  totalDepositedRub?: number;
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -29,6 +30,7 @@ export function ClientPaymentsModal({
   onClose,
   user,
   payments,
+  totalDepositedRub: propTotalDepositedRub,
 }: ClientPaymentsModalProps) {
   const [approvalTarget, setApprovalTarget] = useState<PendingPaymentTarget | null>(null);
 
@@ -52,9 +54,11 @@ export function ClientPaymentsModal({
 
   if (!isOpen) return null;
 
-  const totalSuccessRub = payments
-    .filter(p => p.status === 'SUCCEEDED' || p.status === 'CONFIRMED')
-    .reduce((sum, p) => sum + p.amountRub, 0);
+  const totalSuccessRub = propTotalDepositedRub !== undefined
+    ? propTotalDepositedRub
+    : payments
+        .filter(p => p.status === 'SUCCEEDED' || p.status === 'CONFIRMED')
+        .reduce((sum, p) => sum + p.amountRub, 0);
 
   const modalContent = (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-5 md:p-8 animate-in fade-in duration-200">

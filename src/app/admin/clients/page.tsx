@@ -8,6 +8,7 @@ import { NumberedPagination } from '@/components/admin/ui/numbered-pagination';
 import { Users, Download, Search, Building2, Wallet, ShieldAlert, Sparkles } from 'lucide-react';
 import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
 import { resolveAdminTenantContext } from '@/utils/admin-tenant';
 import { enforceSectionAccess } from '@/lib/server/rbac';
 
@@ -53,7 +54,9 @@ export default async function AdminClientsPage({ searchParams }: Props) {
     : 'createdAt';
   const sortOrder: SortOrder = params.sortOrder === 'asc' ? 'asc' : 'desc';
 
-  const activeTenantId = resolveAdminTenantContext(user, selectedTenant);
+  const cookieStore = await cookies();
+  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+  const activeTenantId = resolveAdminTenantContext(user, selectedTenant, cookieTenant);
 
   const { items: users, totalCount, totalPages, currentPage } = await adminUserService.listUsers({
     search: search || undefined,
@@ -83,7 +86,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
   if (filter !== 'all') exportParams.set('filter', filter);
   if (sortBy !== 'createdAt') exportParams.set('sortBy', sortBy);
   if (sortOrder !== 'desc') exportParams.set('sortOrder', sortOrder);
-  if (selectedTenant && selectedTenant !== 'all') exportParams.set('tenant', selectedTenant);
+  if (activeTenantId) exportParams.set('tenant', activeTenantId);
 
   return (
     <div className="space-y-6 w-full animate-in fade-in duration-500 ease-out sm:px-2 md:px-0 min-h-full pb-10">
@@ -127,7 +130,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
             if (search) queryParams.set('q', search);
             if (sortBy !== 'createdAt') queryParams.set('sortBy', sortBy);
             if (sortOrder !== 'desc') queryParams.set('sortOrder', sortOrder);
-            if (selectedTenant && selectedTenant !== 'all') queryParams.set('tenant', selectedTenant);
+            if (activeTenantId) queryParams.set('tenant', activeTenantId);
 
             return (
               <Link
@@ -157,7 +160,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
         <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
           <form method="GET" action="/admin/clients" className="flex flex-1 flex-col sm:flex-row gap-3">
             {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
-            {selectedTenant && selectedTenant !== 'all' && <input type="hidden" name="tenant" value={selectedTenant} />}
+            {activeTenantId && <input type="hidden" name="tenant" value={activeTenantId} />}
             {sortBy !== 'createdAt' && <input type="hidden" name="sortBy" value={sortBy} />}
             {sortOrder !== 'desc' && <input type="hidden" name="sortOrder" value={sortOrder} />}
             
@@ -179,7 +182,12 @@ export default async function AdminClientsPage({ searchParams }: Props) {
             </button>
             {search && (
               <Link
-                href={`/admin/clients${filter !== 'all' ? `?filter=${filter}` : ''}`}
+                href={`/admin/clients${(() => {
+                  const resetParams = new URLSearchParams();
+                  if (filter !== 'all') resetParams.set('filter', filter);
+                  if (activeTenantId) resetParams.set('tenant', activeTenantId);
+                  return resetParams.toString() ? `?${resetParams.toString()}` : '';
+                })()}`}
                 className="sm:w-auto w-full px-3.5 py-2 text-xs font-bold text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg transition-all flex items-center justify-center border border-border/70"
               >
                 Сброс
@@ -221,7 +229,7 @@ export default async function AdminClientsPage({ searchParams }: Props) {
             totalPages={totalPages || 1}
             pageSize={pageSize}
             itemLabel="клиентов"
-            selectedTenant={selectedTenant}
+            selectedTenant={activeTenantId}
           />
         </div>
       </div>

@@ -5,7 +5,7 @@ import { verifySession } from '@/lib/session';
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { z } from 'zod';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 import { normalizeTenantId, registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { sendAdminAlert } from '@/lib/notifications';
@@ -348,7 +348,16 @@ export async function switchAdminTenantAction(tenantId: string) {
   });
 
   revalidatePath('/admin', 'layout');
-  revalidatePath('/', 'layout');
+
+  try {
+    const invalidateTag = revalidateTag as unknown as (tag: string, profile?: string) => void;
+    invalidateTag('catalog', 'default');
+    invalidateTag('services', 'default');
+    invalidateTag(`catalog-${normalized}`, 'default');
+    invalidateTag(`services-${normalized}`, 'default');
+    invalidateTag('clients', 'default');
+    invalidateTag(`clients-${normalized}`, 'default');
+  } catch {}
 
   return { success: true, tenantId: normalized };
 }

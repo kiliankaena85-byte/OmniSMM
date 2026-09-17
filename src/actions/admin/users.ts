@@ -15,6 +15,7 @@ import { getClientIp } from '@/utils/ip';
 import { z } from 'zod';
 
 import { getEncodedKey, SESSION_COOKIE_NAME } from '@/lib/session';
+import { resolveContourFromHost } from '@/lib/tenant-resolver-edge';
 import { SupportBalancePolicyService } from '@/services/financial/support-balance-policy.service';
 import { sendAdminAlert } from '@/lib/notifications';
 
@@ -302,13 +303,13 @@ export async function requestCardRefundAction(formData: FormData) {
 
     // 3. Atomically debit user balance and create financier payout request
     const adjustment = await db.$transaction(async (tx) => {
-      // Step A: Debit balance immediately so client cannot spend it
-      const chargeResult = await WalletOps.charge(
+      // Step A: Debit balance immediately so client cannot spend it (adminAdjust does not inflate totalSpent)
+      const adjustResult = await WalletOps.adminAdjust(
         tx,
         userId,
-        amountKopecks,
+        -amountKopecks,
         `REFUND_TO_CARD: Запрос на возврат через ЮKassa (${payment.gatewayId || payment.id})`,
-        { idempotencyKey, adminId: admin.id }
+        { idempotencyKey, adminId: admin.id, transactionType: 'REFUND' }
       );
 
       // Step B: Create adjustment / refund ticket for financier
@@ -326,7 +327,7 @@ export async function requestCardRefundAction(formData: FormData) {
         },
       });
 
-      return { adj, newBalance: chargeResult.balance };
+      return { adj, newBalance: adjustResult.balance };
     });
 
     // Step C: Audit log
@@ -522,10 +523,22 @@ export async function loginAsAction(formData: FormData) {
       },
     });
 
+    let host = '';
+    try {
+      const reqHeaders = await headers();
+      host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
+    } catch {}
+
+    const contour = resolveContourFromHost(host);
+    const tenantId = targetUser.tenantId || 'smmplan';
+
     const sessionToken = await new SignJWT({
       sessionId: impersonationSession.id,
       userId: targetUser.id,
       impersonatedBy: admin.id,
+      contour,
+      tenantId,
+      sessionVer: 1,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()

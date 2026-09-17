@@ -9,6 +9,9 @@ interface BalanceSnapshotPanelProps {
   orders: OrderDTO[];
   totalSpentRub: number;
   onNavigateToPayments: () => void;
+  totalDepositedRub?: number;
+  paymentsCount?: number;
+  ordersCount?: number;
 }
 
 export function BalanceSnapshotPanel({
@@ -16,10 +19,17 @@ export function BalanceSnapshotPanel({
   orders,
   totalSpentRub,
   onNavigateToPayments,
+  totalDepositedRub: propDepositedRub,
+  paymentsCount: propPaymentsCount,
+  ordersCount: propOrdersCount,
 }: BalanceSnapshotPanelProps) {
-  const totalDepositedRub = payments
+  const fallbackDepositedRub = payments
     .filter(p => p.status === 'SUCCEEDED')
     .reduce((acc, p) => acc + p.amountRub, 0);
+
+  const totalDepositedRub = propDepositedRub !== undefined ? propDepositedRub : fallbackDepositedRub;
+  const paymentsCount = propPaymentsCount !== undefined ? propPaymentsCount : payments.filter(p => p.status === 'SUCCEEDED').length;
+  const ordersCount = propOrdersCount !== undefined ? propOrdersCount : orders.length;
 
   return (
     <div className="space-y-6">
@@ -62,7 +72,7 @@ export function BalanceSnapshotPanel({
               Платежей проведено
             </span>
             <span className="text-lg font-black text-foreground font-mono">
-              {payments.filter(p => p.status === 'SUCCEEDED').length}
+              {paymentsCount}
             </span>
           </div>
 
@@ -71,7 +81,7 @@ export function BalanceSnapshotPanel({
               Заказов оформлено
             </span>
             <span className="text-lg font-black text-foreground font-mono">
-              {orders.length}
+              {ordersCount}
             </span>
           </div>
         </div>

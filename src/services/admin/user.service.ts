@@ -98,36 +98,47 @@ class AdminUserService {
     sortBy?: UserSortField;
     sortOrder?: SortOrder;
   }): Promise<PaginatedResult<AdminUserRow>> {
-    const where: Record<string, unknown> = {};
+    const andConditions: Prisma.UserWhereInput[] = [];
 
     if (params.search?.trim()) {
       const q = params.search.trim();
-      where.OR = [
-        { email: { contains: q, mode: 'insensitive' } },
-        { id: { equals: q } },
-        { telegramId: { contains: q, mode: 'insensitive' } },
-        { companyName: { contains: q, mode: 'insensitive' } },
-        { inn: { contains: q } },
-      ];
+      andConditions.push({
+        OR: [
+          { email: { contains: q, mode: 'insensitive' } },
+          { id: { equals: q } },
+          { telegramId: { contains: q, mode: 'insensitive' } },
+          { companyName: { contains: q, mode: 'insensitive' } },
+          { inn: { contains: q } },
+        ],
+      });
     }
 
     if (params.tenantId && params.tenantId !== 'all') {
-      where.tenantId = params.tenantId;
+      andConditions.push({ tenantId: params.tenantId });
     }
 
     if (params.filter === 'api') {
-      where.OR = [
-        { apiConfig: { isApiEnabled: true } },
-        { inn: { not: null } },
-        { companyName: { not: null } }
-      ];
+      andConditions.push({
+        OR: [
+          { apiConfig: { isApiEnabled: true } },
+          { inn: { not: null } },
+          { companyName: { not: null } },
+        ],
+      });
     } else if (params.filter === 'balance') {
-      where.balance = { gt: BigInt(0) };
+      andConditions.push({ balance: { gt: BigInt(0) } });
     } else if (params.filter === 'banned') {
-      where.role = 'BANNED';
+      andConditions.push({ role: 'BANNED' });
     } else if (params.filter === 'vip') {
-      where.totalSpent = { gte: BigInt(25_000_00) }; // Gold or Platinum
+      andConditions.push({
+        totalSpent: { gte: BigInt(25_000_00) }, // Gold or Platinum
+        role: 'USER',
+        staffRoleId: null,
+        isDeleted: false,
+      });
     }
+
+    const where: Prisma.UserWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     // Dynamic sorting with whitelist validation and 100% deterministic tie-breaker
     const rawSortBy = params.sortBy;
@@ -275,12 +286,27 @@ class AdminUserService {
   }
 
   /**
-   * Unban a user by restoring role to 'USER'.
+   * Unban a user by restoring role to 'USER' or original staff role.
    */
   async unbanUser(userId: string, admin: { id: string; email: string }) {
+    const user = await db.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { staffRole: true },
+    });
+
+    let restoredRole = 'USER';
+    if (user.staffRoleId && user.staffRole) {
+      const roleName = user.staffRole.name.toUpperCase();
+      if (['OWNER', 'ADMIN', 'SUPPORT', 'MANAGER', 'OPERATOR'].includes(roleName)) {
+        restoredRole = roleName;
+      } else {
+        restoredRole = 'SUPPORT';
+      }
+    }
+
     await db.user.update({
       where: { id: userId },
-      data: { role: 'USER' },
+      data: { role: restoredRole },
     });
 
     auditAdmin({
@@ -290,7 +316,7 @@ class AdminUserService {
       target: userId,
       targetType: 'USER',
       oldValue: { role: 'BANNED' },
-      newValue: { role: 'USER' },
+      newValue: { role: restoredRole },
     });
   }
 
@@ -307,13 +333,25 @@ class AdminUserService {
     }
     const [total, active, banned] = await Promise.all([
       db.user.count({ where }),
-      db.user.count({ where: { ...where, role: { not: 'BANNED' } } }),
+      db.user.count({
+        where: {
+          ...where,
+          role: 'USER',
+          staffRoleId: null,
+          isDeleted: false,
+        },
+      }),
       db.user.count({ where: { ...where, role: 'BANNED' } }),
     ]);
 
     const totalBalance = await db.user.aggregate({
       _sum: { balance: true },
-      where
+      where: {
+        ...where,
+        role: 'USER',
+        staffRoleId: null,
+        isDeleted: false,
+      },
     });
 
     return {

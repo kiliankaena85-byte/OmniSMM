@@ -54,7 +54,7 @@ export function PaymentsTab({ user, payments, canSeeFinances, ledgerEntries = []
             Внешние пополнения (ЮKassa / CryptoBot) и возврат на карту
           </h3>
           <span className="text-xs font-bold text-muted-foreground font-mono">
-            Всего пополнений: {payments.length}
+            Всего пополнений: {user.paymentsCount ?? payments.length}
           </span>
         </div>
 

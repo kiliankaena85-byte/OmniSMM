@@ -180,12 +180,16 @@ export default async function ClientDetailPage({ params }: Props) {
 
     if (type === 'TOPUP' || (type === 'PAYMENT' && sum > BigInt(0))) {
       totalDepositedKopecks += sum;
-    } else if (type === 'ORDER_CHARGE') {
+    } else if (type === 'ORDER_CHARGE' || type === 'REROUTE') {
       totalSpentKopecks += (sum < BigInt(0) ? -sum : sum);
     } else if (type === 'REFUND' || type === 'ORDER_CANCEL') {
       totalRefundedKopecks += (sum > BigInt(0) ? sum : -sum);
     } else if (type === 'ADJUSTMENT' || type === 'COMPENSATION') {
       totalAdjustedKopecks += sum;
+    } else if (sum > BigInt(0)) {
+      totalDepositedKopecks += sum;
+    } else if (sum < BigInt(0)) {
+      totalSpentKopecks += -sum;
     }
   }
 

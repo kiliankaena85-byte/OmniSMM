@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
 import { analyticsService } from '@/services/admin/analytics.service';
@@ -162,33 +163,46 @@ export async function GET(request: Request) {
         const rawSortBy = searchParams.get('sortBy');
         const rawSortOrder = searchParams.get('sortOrder');
 
-        const where: Record<string, unknown> = {
-          ...tenantFilter,
-        };
+        const andConditions: Prisma.UserWhereInput[] = [];
+
+        if (effectiveTenantId && effectiveTenantId !== 'all') {
+          andConditions.push({ tenantId: effectiveTenantId });
+        }
 
         if (search) {
-          where.OR = [
-            { email: { contains: search, mode: 'insensitive' } },
-            { id: { equals: search } },
-            { telegramId: { contains: search, mode: 'insensitive' } },
-            { companyName: { contains: search, mode: 'insensitive' } },
-            { inn: { contains: search } },
-          ];
+          andConditions.push({
+            OR: [
+              { email: { contains: search, mode: 'insensitive' } },
+              { id: { equals: search } },
+              { telegramId: { contains: search, mode: 'insensitive' } },
+              { companyName: { contains: search, mode: 'insensitive' } },
+              { inn: { contains: search } },
+            ],
+          });
         }
 
         if (filter === 'api') {
-          where.OR = [
-            { apiConfig: { isApiEnabled: true } },
-            { inn: { not: null } },
-            { companyName: { not: null } }
-          ];
+          andConditions.push({
+            OR: [
+              { apiConfig: { isApiEnabled: true } },
+              { inn: { not: null } },
+              { companyName: { not: null } },
+            ],
+          });
         } else if (filter === 'balance') {
-          where.balance = { gt: BigInt(0) };
+          andConditions.push({ balance: { gt: BigInt(0) } });
         } else if (filter === 'banned') {
-          where.role = 'BANNED';
+          andConditions.push({ role: 'BANNED' });
         } else if (filter === 'vip') {
-          where.totalSpent = { gte: BigInt(25_000_00) };
+          andConditions.push({
+            totalSpent: { gte: BigInt(25_000_00) },
+            role: 'USER',
+            staffRoleId: null,
+            isDeleted: false,
+          });
         }
+
+        const where: Prisma.UserWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
         const validSortFields = ['createdAt', 'balance', 'totalSpent', 'orders', 'email', 'role'];
         const sortBy = validSortFields.includes(rawSortBy || '') ? rawSortBy : 'createdAt';

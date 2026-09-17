@@ -84,9 +84,10 @@ describe('Multi-Tenant Staff Isolation & RBAC Boundaries', () => {
   });
 
   describe('1. resolveAdminTenantContext', () => {
-    it('gives OWNER global access across all tenants ("all" by default)', () => {
+    it('gives OWNER access across all tenants ("all" only if explicitly requested, otherwise fallback to cookie or tenantId)', () => {
       const owner = { id: 'usr_owner', role: 'OWNER', tenantId: 'smmplan', allowedTenants: ['smmplan', 'flux'] };
-      expect(resolveAdminTenantContext(owner)).toBe('all');
+      expect(resolveAdminTenantContext(owner)).toBe('smmplan');
+      expect(resolveAdminTenantContext(owner, null, 'flux')).toBe('flux');
       expect(resolveAdminTenantContext(owner, 'flux')).toBe('flux');
       expect(resolveAdminTenantContext(owner, 'smmplan')).toBe('smmplan');
       expect(resolveAdminTenantContext(owner, 'all')).toBe('all');

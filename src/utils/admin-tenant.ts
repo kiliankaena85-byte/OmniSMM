@@ -18,18 +18,37 @@ export type UserWithAllowedTenants = Omit<Partial<User>, 'tenantId'> & {
  */
 export function resolveAdminTenantContext(
   user: UserWithAllowedTenants | null,
-  urlTenantParam?: string | null
+  urlTenantParam?: string | null,
+  cookieTenant?: string | null
 ): string {
   if (!user) {
     return 'smmplan';
   }
 
-  // Strictly OWNER has universal global access across all tenants
+  // Attempt client-side cookie read if in browser and cookieTenant is omitted
+  let effectiveCookie = cookieTenant;
+  if (!effectiveCookie && typeof window !== 'undefined') {
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)x_admin_tenant=([^;]+)/);
+      if (match && match[1]) {
+        effectiveCookie = match[1];
+      }
+    } catch {}
+  }
+
+  // Strictly OWNER has universal global access across all tenants.
+  // Invariant: ONLY return 'all' if the URL parameter is explicitly 'all'.
   if (user.role === 'OWNER') {
-    if (urlTenantParam && urlTenantParam !== 'all') {
+    if (urlTenantParam === 'all') {
+      return 'all';
+    }
+    if (urlTenantParam && urlTenantParam.trim() !== '') {
       return urlTenantParam;
     }
-    return 'all';
+    if (effectiveCookie && effectiveCookie.trim() !== '' && effectiveCookie !== 'all') {
+      return effectiveCookie;
+    }
+    return user.tenantId || 'smmplan';
   }
 
   // Non-owners: get permitted tenants list
@@ -42,6 +61,11 @@ export function resolveAdminTenantContext(
     if (allowed.includes(urlTenantParam)) {
       return urlTenantParam;
     }
+  }
+
+  // Fallback to cookie if valid and permitted
+  if (effectiveCookie && effectiveCookie !== 'all' && allowed.includes(effectiveCookie)) {
+    return effectiveCookie;
   }
 
   // Fail-closed fallback to first allowed tenant or user.tenantId

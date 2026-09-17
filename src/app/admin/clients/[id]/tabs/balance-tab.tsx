@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { UserDTO, PaymentDTO, OrderDTO } from './types';
+import { UserDTO, PaymentDTO, OrderDTO, ClientLedgerSummaryDTO } from './types';
 import { BalanceTerminalForm } from './balance-terminal-form';
 import { BalanceSnapshotPanel } from './balance-snapshot-panel';
 
@@ -11,6 +11,7 @@ interface BalanceTabProps {
   payments: PaymentDTO[];
   canSeeFinances: boolean;
   onNavigateToPayments: () => void;
+  ledgerSummary?: ClientLedgerSummaryDTO;
 }
 
 export function BalanceTab({
@@ -19,6 +20,7 @@ export function BalanceTab({
   payments,
   canSeeFinances,
   onNavigateToPayments,
+  ledgerSummary,
 }: BalanceTabProps) {
   const totalSpentRub = (user.totalSpent || 0) / 100;
 
@@ -42,6 +44,9 @@ export function BalanceTab({
           orders={orders} 
           totalSpentRub={totalSpentRub} 
           onNavigateToPayments={onNavigateToPayments} 
+          totalDepositedRub={ledgerSummary?.totalDepositedRub}
+          paymentsCount={user.paymentsCount}
+          ordersCount={user.ordersCount}
         />
       </div>
     </div>

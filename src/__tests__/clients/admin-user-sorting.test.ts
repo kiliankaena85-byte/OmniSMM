@@ -7,6 +7,9 @@ vi.mock('@/lib/db', () => ({
     user: {
       findMany: vi.fn(),
       count: vi.fn(),
+      aggregate: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -164,6 +167,112 @@ describe('Admin User Dynamic Sorting & Deterministic Pagination (SPEC-2026-15)',
       { createdAt: 'desc' },
       { id: 'desc' },
     ]);
+  });
+
+  describe('VIP Tab, Search & RBAC Boundaries Remediation', () => {
+    it('applies strict criteria for VIP tab (role: USER, staffRoleId: null, isDeleted: false, totalSpent >= 2500000)', async () => {
+      await adminUserService.listUsers({
+        page: 1,
+        pageSize: 50,
+        filter: 'vip',
+      });
+
+      expect(db.user.findMany).toHaveBeenCalledTimes(1);
+      const callArgs = (db.user.findMany as any).mock.calls[0][0];
+      expect(callArgs.where.AND).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            totalSpent: { gte: BigInt(25_000_00) },
+            role: 'USER',
+            staffRoleId: null,
+            isDeleted: false,
+          }),
+        ])
+      );
+    });
+
+    it('preserves search conditions when filter is api using where.AND instead of overwriting where.OR', async () => {
+      await adminUserService.listUsers({
+        page: 1,
+        pageSize: 50,
+        search: 'crypto',
+        filter: 'api',
+      });
+
+      expect(db.user.findMany).toHaveBeenCalledTimes(1);
+      const callArgs = (db.user.findMany as any).mock.calls[0][0];
+      expect(callArgs.where.AND).toBeDefined();
+      expect(callArgs.where.AND.length).toBe(2);
+
+      // Condition 1: Search OR
+      expect(callArgs.where.AND[0]).toEqual({
+        OR: [
+          { email: { contains: 'crypto', mode: 'insensitive' } },
+          { id: { equals: 'crypto' } },
+          { telegramId: { contains: 'crypto', mode: 'insensitive' } },
+          { companyName: { contains: 'crypto', mode: 'insensitive' } },
+          { inn: { contains: 'crypto' } },
+        ],
+      });
+
+      // Condition 2: API filter OR
+      expect(callArgs.where.AND[1]).toEqual({
+        OR: [
+          { apiConfig: { isApiEnabled: true } },
+          { inn: { not: null } },
+          { companyName: { not: null } },
+        ],
+      });
+    });
+
+    it('excludes staff and banned users from active users and totalLiability in getUserStats', async () => {
+      (db.user.count as any).mockResolvedValue(10);
+      (db.user.aggregate as any).mockResolvedValue({ _sum: { balance: BigInt(500000) } });
+
+      const stats = await adminUserService.getUserStats(undefined, undefined, 'smmplan');
+
+      expect(stats.total).toBe(10);
+      expect(stats.totalLiability).toBe(BigInt(500000));
+
+      // Active count call excludes staff and deleted
+      expect(db.user.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            role: 'USER',
+            staffRoleId: null,
+            isDeleted: false,
+          }),
+        })
+      );
+
+      // Aggregate call excludes staff and deleted
+      expect(db.user.aggregate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            role: 'USER',
+            staffRoleId: null,
+            isDeleted: false,
+          }),
+        })
+      );
+    });
+
+    it('restores staff role when unbanning a user with staffRoleId', async () => {
+      (db.user.findUniqueOrThrow as any).mockResolvedValue({
+        id: 'usr_staff_01',
+        role: 'BANNED',
+        staffRoleId: 'role_sup_01',
+        staffRole: { id: 'role_sup_01', name: 'SUPPORT' },
+      });
+      (db.user.update as any).mockResolvedValue({ id: 'usr_staff_01', role: 'SUPPORT' });
+
+      await adminUserService.unbanUser('usr_staff_01', { id: 'adm_01', email: 'owner@smmplan.pro' });
+
+      expect(db.user.update).toHaveBeenCalledWith({
+        where: { id: 'usr_staff_01' },
+        data: { role: 'SUPPORT' },
+      });
+    });
   });
 
   describe('Rule 9 & Viewport Density Compliance (Zero Horizontal Scroll Invariants)', () => {

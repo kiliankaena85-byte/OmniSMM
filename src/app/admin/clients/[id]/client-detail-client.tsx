@@ -74,7 +74,7 @@ export function ClientDetailClient({
       <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto scrollbar-hide">
         {[
           { id: 'balance', label: 'Баланс & Начисление', icon: Wallet },
-          { id: 'payments', label: `Платежи & Возвраты (${payments.length})`, icon: CreditCard },
+          { id: 'payments', label: `Платежи & Возвраты (${user.paymentsCount ?? payments.length})`, icon: CreditCard },
           { id: 'api', label: 'API & Реквизиты', icon: Building2, badge: isApiEnabled ? 'API' : null },
           { id: 'notes', label: 'Скидки & Заметки', icon: Percent },
           { id: 'security', label: 'Безопасность', icon: Shield },
@@ -111,6 +111,7 @@ export function ClientDetailClient({
           payments={payments}
           canSeeFinances={canSeeFinances}
           onNavigateToPayments={() => setActiveTab('payments')}
+          ledgerSummary={ledgerSummary}
         />
       )}
       {activeTab === 'payments' && (

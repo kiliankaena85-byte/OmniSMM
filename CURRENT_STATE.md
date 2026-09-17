@@ -1,3 +1,24 @@
+- [x] ⚡ [CLIENTS-FULLSTACK-2026] Комплексный аудит и устранение логических, финансовых и визуальных дефектов вкладки /admin/clients, карточки клиента /admin/clients/[id], VIP-фильтра и быстрого переключения платформ (100% COMPLETE & VERIFIED):
+  * 🌐 **Мгновенное переключение платформ и ликвидация утечки данных (Split-Brain):**
+    - В `src/actions/admin/tenants.ts` удалена деструктивная глобальная инвалидация `revalidatePath('/', 'layout')`, заменена на точечную инвалидацию `/admin` и тегов кэша тенанта.
+    - В `src/utils/admin-tenant.ts` контекст администратора теперь считывает куку `x_admin_tenant` (на сервере и клиенте). Роль `OWNER` больше не сбрасывается в `'all'` при отсутствии параметра в URL.
+    - В `src/components/admin/tenant-switcher.tsx` убран конкурирующий `router.refresh()`, вызывавший состояние гонки и двойные запросы.
+    - В `src/app/admin/clients/page.tsx` активный тенант надежно сохраняется в поисковой форме, сабтабах и пагинации.
+  * 👑 **Харденинг вкладки VIP и исправление поиска:**
+    - В `src/services/admin/user.service.ts` фильтр `vip` жестко ограничен реальными клиентами: `{ totalSpent: >= 25 000 ₽, role: 'USER', staffRoleId: null, isDeleted: false }`.
+    - Исключены сотрудники и заблокированные аккаунты из `getUserStats` (активные пользователи и обязательства `totalLiability`).
+    - Исправлен поиск: критерии объединяются через `where.AND = [ ... ]` без перезаписи `where.OR` (также в экспорте CSV `/api/admin/export/route.ts`).
+  * 💳 **Финансовая целостность и карточка клиента (`/admin/clients/[id]`):**
+    - В `src/actions/admin/clients.ts` и `src/actions/admin/users.ts` заменен `WalletOps.charge` на `WalletOps.adminAdjust` с отрицательной суммой при ручных списаниях и запросах возвратов на карту, устраняя искусственное завышение LTV (`totalSpent`).
+    - В `src/actions/admin/users.ts` (`loginAsAction`) в JWT имперсонации добавлены `contour` и `tenantId`, что предотвращает вылет сессии в продакшене.
+    - В `src/services/admin/user.service.ts` (`unbanUser`) добавлено сохранение/восстановление роли сотрудников (`staffRoleId`).
+    - В карточке клиента статистика пополнений, списаний и возвратов переведена на точные агрегатные запросы к БД (`db.ledgerEntry.groupBy`).
+  * 🧪 **Верификация & CI-гейты:**
+    - `npm run typecheck` (`tsc --noEmit`) — 0 ошибок типов.
+    - Сьют клиентов и сортировки `admin-user-sorting.test.ts` — 14/14 PASS.
+    - Сьют изоляции тенантов персонала `multitenant-staff-isolation.test.ts` — 15/15 PASS.
+    - Сьют финансового баланса `client-crm-balance.test.ts` — 7/7 PASS.
+    - Сьют возвратов ЮKassa `yookassa-automated-refund.test.ts` — 4/4 PASS.
 - [x] ⚡ [CATALOG-PURGE-AND-ORDER-MODES-2026] Зачистка каталога услуг до первозданного состояния (Pristine Catalog), визуальное разделение режимов заказов и унификация тестирования (100% COMPLETE & VERIFIED):
   * 🧟 **Безопасная зачистка каталога и ликвидация зомби-услуг:**
     - Устранен баг несбрасываемого кулдауна: в `deleteOrArchiveServiceAction`, `bulkDeleteOrArchiveServicesAction` и `archiveZombieService` добавлен сброс `cooldownReason: null, cooldownUntil: null`.

@@ -401,6 +401,7 @@ export function SupportCommandCenter({
         onClose={() => setIsPaymentsModalOpen(false)}
         user={user}
         payments={payments}
+        totalDepositedRub={ledgerSummary.totalDepositedRub}
       />
 
       <SecurityEmailModal user={user} isOpen={showEmailModal} onClose={() => setShowEmailModal(false)} />
