@@ -47,8 +47,17 @@ export async function listTelegramBotsAction(
       if (count === 0) {
         try {
           const sys = await db.systemSettings.findUnique({ where: { id: tenantId } });
-          const rawToken = process.env.TELEGRAM_BOT_TOKEN || '';
-          if (rawToken && rawToken !== 'dummy_token') {
+          let rawToken = '';
+          if (sys?.telegramBotToken) {
+            rawToken = VaultService.decrypt(sys.telegramBotToken);
+          }
+          if (!rawToken) {
+            const envToken = process.env.TELEGRAM_BOT_TOKEN || '';
+            if (envToken && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
+              rawToken = envToken;
+            }
+          }
+          if (rawToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(rawToken)) {
             const tokenEncrypted = VaultService.encrypt(rawToken);
             await db.telegramBotInstance.create({
               data: {

@@ -199,7 +199,7 @@ export async function adminReplyTicket(formData: FormData) {
     const isGlobalStaff = ['OWNER', 'ADMIN'].includes(admin.role);
     const ticket = await db.ticket.findFirst({
       where: isGlobalStaff ? { id: ticketId } : { id: ticketId, tenantId: admin.tenantId ?? 'smmplan' },
-      select: { id: true, userId: true, orderId: true, tenantId: true }
+      select: { id: true, userId: true, orderId: true, tenantId: true, user: { select: { email: true, isBotOnly: true, telegramId: true } } }
     });
     if (!ticket) throw new Error('Ticket not found');
 
@@ -264,6 +264,23 @@ export async function adminReplyTicket(formData: FormData) {
 
     revalidatePath(`/admin/tickets/${ticketId}`);
     revalidatePath(`/admin/tickets`);
+
+    if (savedMsg.telegramMsgId?.startsWith('FAILED:')) {
+      const errorDetails = savedMsg.telegramMsgId.replace('FAILED:', '').trim();
+      const isBotUser = ticket.user?.email?.includes('@smmplan.bot') || ticket.user?.email?.includes('@flux.bot') || ticket.user?.isBotOnly;
+      if (isBotUser) {
+        return {
+          success: false,
+          error: `Ошибка отправки в Telegram: ${errorDetails}`,
+        };
+      }
+      return {
+        success: true,
+        warning: `Сообщение сохранено на сайте, но НЕ доставлено в Telegram: ${errorDetails}`,
+      };
+    }
+
+    return { success: true };
   });
 }
 
@@ -281,7 +298,7 @@ export async function changeTicketStatus(formData: FormData) {
     const isGlobalStaff = ['OWNER', 'ADMIN'].includes(admin.role);
     const oldTicket = await db.ticket.findFirst({
       where: isGlobalStaff ? { id: ticketId } : { id: ticketId, tenantId: admin.tenantId ?? 'smmplan' },
-      select: { status: true, user: { select: { telegramId: true } } }
+      select: { status: true, tenantId: true, user: { select: { telegramId: true } } }
     });
 
     await db.ticket.update({
@@ -307,8 +324,9 @@ export async function changeTicketStatus(formData: FormData) {
     // CSAT: When ticket is closed, send interactive rating buttons to user in Telegram in background (non-blocking)
     if (status === 'CLOSED' && oldTicket?.user?.telegramId) {
       const tgUserId = oldTicket.user.telegramId;
+      const tenantId = oldTicket.tenantId || 'smmplan';
       import('@/services/support/support-bot.service')
-        .then(({ supportBotService }) => supportBotService.sendTicketClosedRating(tgUserId, ticketId))
+        .then(({ supportBotService }) => supportBotService.sendTicketClosedRating(tgUserId, ticketId, tenantId))
         .catch((e) => console.error('[changeTicketStatus] Error sending Telegram CSAT rating:', e));
     }
 
@@ -374,7 +392,7 @@ export async function editTicketMessage(formData: FormData) {
     if (msg.telegramMsgId && msg.ticket.user.telegramId && msg.sender === 'STAFF') {
       try {
         const { supportBotService } = await import('@/services/support/support-bot.service');
-        await supportBotService.editSupportReply(msg.ticket.user.telegramId, msg.telegramMsgId, newText.trim());
+        await supportBotService.editSupportReply(msg.ticket.user.telegramId, msg.telegramMsgId, newText.trim(), msg.ticket.tenantId || 'smmplan');
       } catch (e) {
         console.error('[editTicketMessage] Error syncing edit to Telegram:', e);
         // We don't throw here to avoid failing the web UI if Telegram is temporarily down
@@ -390,21 +408,26 @@ const deleteMessageSchema = z.object({
 });
 
 export async function deleteTicketMessage(formData: FormData) {
-  return requireStaffPermission('tickets', 'edit', async (user) => {
+  return requireStaffPermission('tickets', 'edit', async (admin) => {
     const parsed = deleteMessageSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) throw new Error('Ошибка удаления сообщения');
+    if (!parsed.success) return { success: false, error: 'Ошибка удаления сообщения' };
     const { messageId } = parsed.data;
 
-    const msg = await db.ticketMessage.findUnique({ 
+    const msg = await db.ticketMessage.findUnique({
       where: { id: messageId },
-      include: { ticket: { include: { user: true } } }
+      include: { ticket: { include: { user: true } } },
     });
-    if (!msg) throw new Error('Message not found');
+
+    if (!msg) {
+      return { success: false, error: 'Сообщение не найдено' };
+    }
+
     if (msg.sender === 'USER') {
-      throw new Error('Нельзя удалять сообщения пользователя');
+      return { success: false, error: 'Нельзя удалять сообщения пользователя' };
     }
 
     const ipAddress = await getClientIp('unknown');
+
     await db.$transaction(async (tx) => {
       await tx.ticketMessage.update({
         where: { id: messageId },
@@ -416,11 +439,11 @@ export async function deleteTicketMessage(formData: FormData) {
 
       await tx.adminAuditLog.create({
         data: {
-          adminId: user.id,
-          adminEmail: user.email,
-          action: 'TICKET_MESSAGE_DELETED',
-          target: msg.id,
-          targetType: 'TICKET_MESSAGE',
+          adminId: admin.id,
+          adminEmail: admin.email,
+          action: 'DELETE_TICKET_MESSAGE',
+          target: messageId,
+          targetType: 'TICKET',
           oldValue: msg.text,
           newValue: '[DELETED]',
           ipAddress
@@ -432,13 +455,14 @@ export async function deleteTicketMessage(formData: FormData) {
     if (msg.telegramMsgId && msg.ticket.user.telegramId && msg.sender === 'STAFF') {
       try {
         const { supportBotService } = await import('@/services/support/support-bot.service');
-        await supportBotService.deleteSupportReply(msg.ticket.user.telegramId, msg.telegramMsgId);
+        await supportBotService.deleteSupportReply(msg.ticket.user.telegramId, msg.telegramMsgId, msg.ticket.tenantId || 'smmplan');
       } catch (e) {
         console.error('[deleteTicketMessage] Error deleting from Telegram:', e);
       }
     }
 
     revalidatePath(`/admin/tickets/${msg.ticketId}`);
+    return { success: true };
   });
 }
 

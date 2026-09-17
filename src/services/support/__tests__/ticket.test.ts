@@ -126,7 +126,8 @@ describe('TicketService', () => {
         'Quoted reply', 
         'tg_old_999',
         undefined,
-        undefined
+        undefined,
+        'smmplan'
       );
     });
     

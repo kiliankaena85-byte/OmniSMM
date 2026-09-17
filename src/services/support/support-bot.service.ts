@@ -134,32 +134,25 @@ class SupportBotService {
   }
 
   /**
-   * Resolve Telegram Bot Token with dynamic .env fallback if running process lacked it on start.
+   * Resolve Telegram Bot Token strictly from Admin Settings (PostgreSQL SystemSettings).
+   * Authoritative Source of Truth: Database SystemSettings for tenantId.
    */
-  private getBotToken(): string {
-    if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'dummy_token') {
-      return process.env.TELEGRAM_BOT_TOKEN;
-    }
+  private async getBotToken(tenantId: string = 'smmplan'): Promise<string> {
+    const normTenant = tenantId || 'smmplan';
     try {
-      const envPath = path.resolve(process.cwd(), '.env');
-      if (fs.existsSync(envPath)) {
-        // audit-ignore: .env is a small static configuration file (< 5KB)
-        const content = fs.readFileSync(envPath, 'utf8');
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('TELEGRAM_BOT_TOKEN=')) {
-            let val = trimmed.slice('TELEGRAM_BOT_TOKEN='.length).trim();
-            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-              val = val.slice(1, -1);
-            }
-            if (val && val !== 'dummy_token') {
-              process.env.TELEGRAM_BOT_TOKEN = val;
-              return val;
-            }
-          }
-        }
-      }
-    } catch { /* ignore */ }
+      const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
+      const token = await BotSettingsService.getBotToken(normTenant);
+      if (token) return token;
+    } catch (dbErr) {
+      logger.warn('[SupportBot] Failed to get bot token from BotSettingsService', { tenantId: normTenant, error: dbErr });
+    }
+
+    // Secondary fallback to process.env.TELEGRAM_BOT_TOKEN ONLY if genuine valid token
+    const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
+      return envToken;
+    }
+
     return '';
   }
 
@@ -167,37 +160,69 @@ class SupportBotService {
    * Low-level Telegram Bot API call via native fetch.
    * Works reliably in both Next.js Server Actions and standalone bot process contexts.
    */
-  private async tgCall(method: string, body: Record<string, unknown>): Promise<{ ok: boolean; result?: { message_id: number } }> {
-    const token = this.getBotToken();
-    if (!token || token === 'dummy_token') {
-      logger.warn(`[SupportBot] tgCall ${method} skipped: TELEGRAM_BOT_TOKEN not set`);
-      throw new Error('TELEGRAM_BOT_TOKEN not set');
+  private async tgCall(
+    method: string, 
+    body: Record<string, unknown>, 
+    tenantId: string = 'smmplan'
+  ): Promise<{ ok: boolean; result?: { message_id: number } }> {
+    const normTenant = tenantId || 'smmplan';
+    const token = await this.getBotToken(normTenant);
+    if (!token) {
+      logger.warn(`[SupportBot] tgCall ${method} skipped: valid TELEGRAM_BOT_TOKEN not found for tenant "${normTenant}"`);
+      throw new Error(`Telegram bot token for tenant "${normTenant}" is not configured in Admin Settings`);
     }
     const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(5000),
     });
     const json = await res.json() as { ok: boolean; result?: { message_id: number }; description?: string };
     if (!json.ok) {
-      logger.error(`[SupportBot] Telegram API [${method}] Error`, { description: json.description });
+      logger.error(`[SupportBot] Telegram API [${method}] Error`, { description: json.description, tenantId: normTenant });
       throw new Error(`Telegram API [${method}]: ${json.description ?? 'unknown error'}`);
     }
     return json;
+  }
+
+  public lastError: string | null = null;
+
+  public getLastError(): string | null {
+    return this.lastError;
+  }
+
+  private formatTelegramError(rawError: string): string {
+    if (!rawError) return 'Неизвестная ошибка Telegram Bot API';
+    if (rawError.includes('bot was blocked by the user')) return 'Пользователь заблокировал бота в Telegram';
+    if (rawError.includes('chat not found')) return 'Чат с пользователем не найден в Telegram';
+    if (rawError.includes('user is deactivated')) return 'Аккаунт пользователя в Telegram деактивирован';
+    if (rawError.includes('message is too long')) return 'Текст сообщения превышает лимит Telegram (4096 символов)';
+    if (rawError.includes("can't parse entities")) return 'Ошибка разметки HTML в тексте ответа';
+    if (rawError.includes('Forbidden')) return `Доступ запрещен Telegram API: ${rawError}`;
+    return rawError;
   }
 
   /**
    * OUTBOUND: Send reply from Admin panel to Telegram
    * Uses native fetch → works reliably in Next.js Server Action context.
    */
-  async sendSupportReply(telegramId: string, text: string, replyToTgMsgId?: string, mediaUrl?: string, mediaType?: string): Promise<string | null> {
-    const token = this.getBotToken();
-    if (!token || token === 'dummy_token') {
-      logger.warn('[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set');
+  async sendSupportReply(
+    telegramId: string, 
+    text: string, 
+    replyToTgMsgId?: string, 
+    mediaUrl?: string, 
+    mediaType?: string,
+    tenantId: string = 'smmplan'
+  ): Promise<string | null> {
+    this.lastError = null;
+    const normTenant = tenantId || 'smmplan';
+    const token = await this.getBotToken(normTenant);
+    if (!token) {
+      this.lastError = `Токен Telegram-бота для бренда "${normTenant}" не настроен в админ-панели`;
+      logger.warn('[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set in Admin Settings', { tenantId: normTenant });
       return null;
     }
-    logger.info('[SupportBot] sendSupportReply', { chat: telegramId, text: text.slice(0, 40) });
+    logger.info('[SupportBot] sendSupportReply', { chat: telegramId, tenantId: normTenant, text: text.slice(0, 40) });
     try {
       const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const safeText = escapeHtml(text);
@@ -215,7 +240,8 @@ class SupportBotService {
           const absolutePath = path.join(process.cwd(), 'private', 'uploads', mediaUrl);
           const source = fs.existsSync(absolutePath) ? { source: absolutePath } : mediaUrl;
           const { bot } = await import('@/bot');
-                    const extra: Record<string, unknown> = { ...baseParams, caption };
+          (bot.telegram as any).token = token;
+          const extra: Record<string, unknown> = { ...baseParams, caption };
           let msg;
           if (mediaType === 'image') msg = await bot.telegram.sendPhoto(telegramId, source, extra);
           else if (mediaType === 'audio') msg = await bot.telegram.sendAudio(telegramId, source, extra);
@@ -224,29 +250,30 @@ class SupportBotService {
         } catch (mediaErr: unknown) {
           const errMsg = mediaErr instanceof Error ? mediaErr.message : String(mediaErr);
           logger.warn('[SupportBot] Media send failed, fallback text', { error: errMsg });
-          const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption });
+          const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption }, normTenant);
           messageId = res.result?.message_id ?? null;
         }
       } else {
         // Text-only via fetch — guaranteed Next.js Server Action compatibility
         try {
-          const res = await this.tgCall('sendMessage', { ...baseParams, text: caption });
+          const res = await this.tgCall('sendMessage', { ...baseParams, text: caption }, normTenant);
           messageId = res.result?.message_id ?? null;
         } catch (htmlErr: unknown) {
           const errMsg = htmlErr instanceof Error ? htmlErr.message : String(htmlErr);
           logger.warn('[SupportBot] HTML send failed, retrying plain', { error: errMsg });
-          const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption });
+          const res = await this.tgCall('sendMessage', { chat_id: telegramId, text: plainCaption }, normTenant);
           messageId = res.result?.message_id ?? null;
         }
       }
 
-      logger.info('[SupportBot] sendSupportReply OK', { messageId });
+      logger.info('[SupportBot] sendSupportReply OK', { messageId, tenantId: normTenant });
       return messageId ? String(messageId) : null;
-        } catch (e: unknown) {
+    } catch (e: unknown) {
       const err = e as Error;
-      logger.error('[SupportBot] Failed to send to telegram', { error: err.message });
+      this.lastError = this.formatTelegramError(err.message);
+      logger.error('[SupportBot] Failed to send to telegram', { error: err.message, tenantId: normTenant });
       if (err.message?.includes('message to reply not found') && replyToTgMsgId) {
-        return this.sendSupportReply(telegramId, text, undefined, mediaUrl, mediaType);
+        return this.sendSupportReply(telegramId, text, undefined, mediaUrl, mediaType, normTenant);
       }
       return null;
     }
@@ -255,7 +282,8 @@ class SupportBotService {
   /**
    * EDIT: Admin edits message in Admin panel -> sync to Telegram
    */
-  async editSupportReply(telegramId: string, telegramMsgId: string, newText: string): Promise<boolean> {
+  async editSupportReply(telegramId: string, telegramMsgId: string, newText: string, tenantId: string = 'smmplan'): Promise<boolean> {
+    const normTenant = tenantId || 'smmplan';
     try {
       const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       await this.tgCall('editMessageText', {
@@ -263,7 +291,7 @@ class SupportBotService {
         message_id: Number(telegramMsgId),
         text: `${escapeHtml(newText)}\n\n<i>(изменено)</i>`,
         parse_mode: 'HTML',
-      });
+      }, normTenant);
       return true;
     } catch (e: unknown) {
       const err = e instanceof Error ? e : new Error(String(e));
@@ -276,12 +304,13 @@ class SupportBotService {
   /**
    * DELETE: Admin deletes message in Admin panel -> sync to Telegram
    */
-  async deleteSupportReply(telegramId: string, telegramMsgId: string): Promise<boolean> {
+  async deleteSupportReply(telegramId: string, telegramMsgId: string, tenantId: string = 'smmplan'): Promise<boolean> {
+    const normTenant = tenantId || 'smmplan';
     try {
       await this.tgCall('deleteMessage', {
         chat_id: telegramId,
         message_id: Number(telegramMsgId),
-      });
+      }, normTenant);
       return true;
     } catch (e: unknown) {
       const err = e instanceof Error ? e : new Error(String(e));
@@ -293,12 +322,13 @@ class SupportBotService {
   /**
    * CSAT: Send interactive rating buttons when ticket is closed
    */
-  async sendTicketClosedRating(telegramId: string, ticketId: string): Promise<string | null> {
+  async sendTicketClosedRating(telegramId: string, ticketId: string, tenantId: string = 'smmplan'): Promise<string | null> {
+    const normTenant = tenantId || 'smmplan';
     try {
       let ratingText = '✅ <b>Ваш вопрос решён и тикет #{ticketId} закрыт.</b>\n\nПожалуйста, оцените качество работы службы поддержки:';
       try {
         const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
-        const templates = await BotSettingsService.getTemplates('smmplan');
+        const templates = await BotSettingsService.getTemplates(normTenant);
         if (templates?.ticketClosedRating) {
           ratingText = templates.ticketClosedRating;
         }
@@ -321,7 +351,7 @@ class SupportBotService {
             ]
           ]
         }
-      });
+      }, normTenant);
       return res.result ? String(res.result.message_id) : null;
     } catch (e) {
       console.error('[SupportBot] Failed to send CSAT rating:', e);

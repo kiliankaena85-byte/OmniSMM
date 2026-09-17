@@ -485,8 +485,14 @@ export function ChatInput({
 
     try {
             const res = await onSendMessage(formData);
-      if (res && typeof res === 'object' && 'success' in res && (res as { success?: boolean }).success === false) {
-        throw new Error((res as { error?: string }).error || 'Ошибка отправки сообщения');
+      if (res && typeof res === 'object') {
+        const resObj = res as { success?: boolean; error?: string; warning?: string };
+        if (resObj.success === false) {
+          throw new Error(resObj.error || 'Ошибка отправки сообщения');
+        }
+        if (resObj.warning) {
+          toast.warning(resObj.warning, { duration: 8000 });
+        }
       }
 
       if (shouldCloseAfterSubmit) {

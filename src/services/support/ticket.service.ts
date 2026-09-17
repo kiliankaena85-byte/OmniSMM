@@ -226,6 +226,7 @@ class TicketService {
     const resolvedMediaUrl = mediaUrl || attachmentsToCreate[0]?.url || null;
     const resolvedMediaType = mediaType || attachmentsToCreate[0]?.type || null;
 
+    let telegramError: string | null = null;
     if (sender === 'STAFF' && ticketToUpdate.user.telegramId) {
       try {
         const { supportBotService } = await import('@/services/support/support-bot.service');
@@ -234,7 +235,9 @@ class TicketService {
         let replyToTgMsgId: string | undefined = undefined;
         if (replyToId) {
           const repliedMsg = await db.ticketMessage.findUnique({ where: { id: replyToId } });
-          if (repliedMsg?.telegramMsgId) replyToTgMsgId = repliedMsg.telegramMsgId;
+          if (repliedMsg?.telegramMsgId && !repliedMsg.telegramMsgId.startsWith('FAILED:')) {
+            replyToTgMsgId = repliedMsg.telegramMsgId;
+          }
         }
 
         const tgId = await supportBotService.sendSupportReply(
@@ -242,10 +245,18 @@ class TicketService {
           text, 
           replyToTgMsgId,
           resolvedMediaUrl || undefined,
-          resolvedMediaType || undefined
+          resolvedMediaType || undefined,
+          ticketToUpdate.tenantId || 'smmplan'
         );
-        if (tgId) telegramMsgId = tgId;
+        if (tgId) {
+          telegramMsgId = tgId;
+        } else {
+          telegramError = supportBotService.getLastError() || 'Telegram API не подтвердил отправку';
+          telegramMsgId = `FAILED: ${telegramError}`;
+        }
       } catch (e) {
+        telegramError = e instanceof Error ? e.message : String(e);
+        telegramMsgId = `FAILED: ${telegramError}`;
         console.error('[TicketService] Error sending to telegram:', e);
       }
     }

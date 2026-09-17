@@ -101,6 +101,7 @@ export interface ActiveTicketDTO {
     text: string;
     sender: string;
     createdAt: string;
+    telegramMsgId?: string | null;
     userEmail?: string;
     attachments?: Array<{
       id: string;

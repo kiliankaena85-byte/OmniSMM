@@ -114,6 +114,7 @@ export async function GET(req: NextRequest) {
       isDeleted: m.isDeleted,
       isEdited: m.isEdited,
       originalText: m.originalText,
+      telegramMsgId: m.telegramMsgId ?? null,
       replyTo: m.replyTo ? {
         id: m.replyTo.id,
         text: m.replyTo.text,

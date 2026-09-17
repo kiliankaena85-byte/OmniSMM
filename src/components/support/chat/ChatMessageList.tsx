@@ -771,7 +771,7 @@ export function ChatMessageList({
                       </div>
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap text-sm leading-[1.6] pr-12 pb-1 relative min-w-[50px] min-h-[1.25rem] text-inherit">
+                        <div className="whitespace-pre-wrap text-sm leading-[1.6] pr-14 pb-1 relative min-w-[50px] min-h-[1.25rem] text-inherit">
                           {msg.text}
                           <span className="absolute bottom-0 right-0 text-[10px] opacity-40 select-none flex items-center gap-1 font-medium text-inherit/80">
                             {msg.sender === 'INTERNAL' && (
@@ -794,8 +794,32 @@ export function ChatMessageList({
                             {msg.isHistorical && (
                               <span className="text-[8px] opacity-75">(Архив)</span>
                             )}
+                            {isStaff && msg.telegramMsgId && !msg.telegramMsgId.startsWith('FAILED:') && (
+                              <span 
+                                title={`Доставлено в Telegram (ID: ${msg.telegramMsgId})`}
+                                className="text-emerald-500 font-bold ml-0.5 cursor-help"
+                              >
+                                ✓✓
+                              </span>
+                            )}
+                            {isStaff && msg.telegramMsgId?.startsWith('FAILED:') && (
+                              <span 
+                                title={`Сбой доставки в Telegram: ${msg.telegramMsgId.replace('FAILED:', '').trim()}`}
+                                className="text-danger font-bold ml-0.5 cursor-help"
+                              >
+                                ⚠️
+                              </span>
+                            )}
                           </span>
                         </div>
+
+                        {/* Explicit visual alert for operators when Telegram delivery failed */}
+                        {isStaff && msg.telegramMsgId?.startsWith('FAILED:') && (
+                          <div className="mt-1.5 pt-1.5 border-t border-danger/25 flex items-start gap-1.5 text-[11px] text-danger font-medium leading-tight">
+                            <span className="shrink-0 text-xs">⚠️</span>
+                            <span>Не доставлено в Telegram: {msg.telegramMsgId.replace('FAILED:', '').trim()}</span>
+                          </div>
+                        )}
 
                         {/* Mobile Chat Actions Inline (under message text) */}
                         {!msg.isDeleted && editingMessageId !== msg.id && (

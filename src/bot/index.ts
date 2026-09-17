@@ -1452,6 +1452,38 @@ bot.on(['text', 'photo', 'voice', 'document', 'video', 'sticker', 'video_note', 
 
 // ── LAUNCH ──
 let isBotLaunched = false;
+let isRedisSubscribed = false;
+
+async function setupBotRedisSubscriber() {
+  if (isRedisSubscribed) return;
+  try {
+    const { Redis } = await import('ioredis');
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const sub = new Redis(redisUrl, { lazyConnect: true, maxRetriesPerRequest: 2 });
+    await sub.connect();
+    await sub.subscribe('bot:reload');
+    isRedisSubscribed = true;
+    sub.on('message', async (channel, msg) => {
+      if (channel === 'bot:reload') {
+        console.info('[Bot] 🔄 Received bot:reload event from Admin Panel:', msg);
+        try {
+          BotSettingsService.invalidate(botTenantId);
+          try {
+            bot.stop('Reload');
+          } catch { /* ignore if not running */ }
+          isBotLaunched = false;
+          await new Promise(r => setTimeout(r, 1000));
+          await launchBot();
+        } catch (rErr) {
+          console.error('[Bot] Failed to hot-reload bot after admin update:', rErr);
+        }
+      }
+    });
+    console.info('[Bot] 📡 Real-time settings listener active on Redis channel "bot:reload"');
+  } catch (err) {
+    console.warn('[Bot] Redis subscriber setup skipped:', err);
+  }
+}
 
 export async function launchBot() {
   if (isBotLaunched) {
@@ -1459,31 +1491,47 @@ export async function launchBot() {
     return;
   }
 
-  let activeToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!activeToken || activeToken === 'dummy_token') {
-    try {
-      const { VaultService } = await import('@/lib/vault');
-      const settings = await db.systemSettings.findUnique({ where: { id: botTenantId } });
-      if (settings?.telegramBotToken) {
-        const decrypted = VaultService.decrypt(settings.telegramBotToken);
-        if (decrypted && decrypted.trim().length > 10) {
-          activeToken = decrypted.trim();
-          process.env.TELEGRAM_BOT_TOKEN = activeToken;
-          (bot as unknown as { token: string }).token = activeToken;
-          (bot.telegram as unknown as { token: string }).token = activeToken;
-        }
-      }
-    } catch (dbErr) {
-      console.warn('[Bot] Failed to read token from DB:', dbErr);
+  // 1. Authoritative Source of Truth: load token from Admin Settings (PostgreSQL SystemSettings)
+  let activeToken: string | null = null;
+  try {
+    activeToken = await BotSettingsService.getBotToken(botTenantId);
+    if (activeToken) {
+      console.info(`[Bot] 🔑 Loaded active bot token for tenant "${botTenantId}" from Admin Settings`);
+    }
+  } catch (dbErr) {
+    console.warn('[Bot] Failed to read token from Admin Settings:', dbErr);
+  }
+
+  // 2. Secondary fallback to process.env.TELEGRAM_BOT_TOKEN ONLY if valid token
+  if (!activeToken) {
+    const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
+      activeToken = envToken;
+      console.info(`[Bot] 🔑 Using fallback bot token from environment variable`);
     }
   }
 
-  if (!activeToken || activeToken === 'dummy_token') {
-    console.warn('[Bot] TELEGRAM_BOT_TOKEN not set in .env or DB. Telegram bot will NOT start.');
+  if (!activeToken) {
+    console.warn(`[Bot] ⚠️ Telegram bot token for tenant "${botTenantId}" is not set or invalid in Admin Settings. Bot daemon will wait for token configuration.`);
+    isBotLaunched = false;
+    // Schedule watchdog check in 30s to re-check if token was configured in Admin Panel
+    setTimeout(() => {
+      if (!isBotLaunched) {
+        launchBot().catch(() => {});
+      }
+    }, 30_000);
     return;
   }
 
+  process.env.TELEGRAM_BOT_TOKEN = activeToken;
+  // NOTE: Telegraf.token is a getter-only property (throws TypeError on set).
+  // Set the token via telegram instance and options only:
+  (bot.telegram as any).token = activeToken;
+  (bot as any).options = (bot as any).options || {};
+  (bot as any).options.token = activeToken;
+
   isBotLaunched = true;
+  setupBotRedisSubscriber().catch(() => {});
 
   const MAX_LAUNCH_ATTEMPTS = 5;
   for (let attempt = 1; attempt <= MAX_LAUNCH_ATTEMPTS; attempt++) {

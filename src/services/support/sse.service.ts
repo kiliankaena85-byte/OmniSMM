@@ -28,6 +28,7 @@ export async function publishMessageSSE(ticketId: string, messageId: string) {
       mediaUrl: fullMsg.mediaUrl || (fullMsg.attachments[0]?.url ?? null),
       mediaType: fullMsg.mediaType || (fullMsg.attachments[0]?.type ?? null),
       createdAt: fullMsg.createdAt.toISOString(),
+      telegramMsgId: fullMsg.telegramMsgId ?? null,
       replyTo: fullMsg.replyTo ? {
         id: fullMsg.replyTo.id,
         text: fullMsg.replyTo.text,

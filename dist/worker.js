@@ -47125,6 +47125,9 @@ function createTenantEnforcerExtension(options = {}) {
         if (!tenantId) {
           return query(args);
         }
+        if (model === "user" && args.where && args.where.id) {
+          return query(args);
+        }
         const scopedWhere = model === "category" || model === "service" ? { ...args.where, tenantId: { in: [tenantId, "all"] } } : { ...args.where, tenantId };
         const scopedArgs = { ...args, where: scopedWhere };
         if (options.findFirstDelegate) {
@@ -94677,6 +94680,14 @@ ${captureLines}` : capture.stack;
 });
 
 // src/lib/crypto/encryption.ts
+var encryption_exports = {};
+__export2(encryption_exports, {
+  decrypt: () => decrypt,
+  encrypt: () => encrypt,
+  hashForSearch: () => hashForSearch,
+  maskEmail: () => maskEmail,
+  reEncrypt: () => reEncrypt
+});
 function deriveKeyBuffer(secret) {
   if (secret.length === 64 && /^[0-9a-fA-F]+$/.test(secret)) {
     return Buffer.from(secret, "hex");
@@ -94772,7 +94783,30 @@ function decrypt(encryptedData) {
     throw new Error(`[Encryption] Decryption failed or ciphertext is corrupted (key version: ${version2}): ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   }
 }
-var import_crypto, ALGORITHM, IV_LENGTH, DEFAULT_KEY_VERSION, getKeyForVersion;
+function reEncrypt(encryptedData) {
+  if (!encryptedData || typeof encryptedData !== "string") return encryptedData;
+  const registry = getKeyRegistry();
+  const parts = encryptedData.split(":");
+  if (parts.length === 4 && parts[0] === registry.primaryVersion) {
+    return encryptedData;
+  }
+  const decrypted = decrypt(encryptedData);
+  return encrypt(decrypted);
+}
+function hashForSearch(value) {
+  if (!value || typeof value !== "string") return "";
+  const normalized = value.trim().toLowerCase();
+  return (0, import_crypto.createHash)("sha256").update(`${normalized}:${getSalt()}`).digest("hex");
+}
+function maskEmail(email) {
+  if (!email || !email.includes("@")) return "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+  const [local, domain] = email.split("@");
+  if (local.length <= 2) {
+    return `${local[0]}*@${domain}`;
+  }
+  return `${local[0]}${"*".repeat(Math.min(local.length - 2, 5))}${local.slice(-1)}@${domain}`;
+}
+var import_crypto, ALGORITHM, IV_LENGTH, DEFAULT_KEY_VERSION, getKeyForVersion, getSalt;
 var init_encryption = __esm({
   "src/lib/crypto/encryption.ts"() {
     "use strict";
@@ -94794,6 +94828,17 @@ var init_encryption = __esm({
         throw new Error(`[Encryption] Encryption key version "${version2}" not found in key registry. Please configure it in APP_ENCRYPTION_KEYS.`);
       }
       return { key, version: version2 };
+    };
+    getSalt = () => {
+      const salt = process.env.DATA_SALT;
+      if (!salt) {
+        if (process.env.NODE_ENV === "production") {
+          throw new Error("[Encryption] DATA_SALT must be configured in production");
+        }
+        const singleKeyStr = process.env.APP_ENCRYPTION_KEY || process.env.DATA_ENCRYPTION_KEY || process.env.VAULT_MASTER_KEY || "dev_secret_key";
+        return (0, import_crypto.createHash)("sha256").update(`${singleKeyStr}:salt_derive`).digest("hex");
+      }
+      return salt;
     };
   }
 });
@@ -103099,6 +103144,20 @@ var init_settings = __esm({
         const nodeEnv = process.env.NODE_ENV;
         const appEnv = process.env.APP_ENV;
         return nodeEnv === "test" || appEnv === "test" || Boolean(process.env.VITEST);
+      }
+      /**
+       * Clears the in-memory fallback cache for workers/CLI.
+       */
+      static invalidateLocalCache(tenantId) {
+        if (tenantId) {
+          const cleanSlug = normalizeTenantId(tenantId) || "smmplan";
+          delete localSettingsCache[cleanSlug];
+          delete localSettingsCache[tenantId];
+        } else {
+          for (const k of Object.keys(localSettingsCache)) {
+            delete localSettingsCache[k];
+          }
+        }
       }
       /**
        * Resolves the current tenantId from request headers or fallback environment variables.
@@ -126004,6 +126063,7 @@ var init_format_price = __esm({
 // src/lib/smtp.ts
 var smtp_exports = {};
 __export2(smtp_exports, {
+  getEmailContext: () => getEmailContext,
   sendAuthMail: () => sendAuthMail,
   sendMagicLink: () => sendMagicLink,
   sendMail: () => sendMail,
@@ -126088,14 +126148,16 @@ async function getEmailContext(tenantId) {
   const supportDomain = getTenantHost(normTenant);
   return { companyName, supportDomain, tenantId: normTenant };
 }
-async function getTransporter() {
-  const s = await SettingsProvider.getEmailSettings();
+async function getTransporter(tenantId) {
+  const normTenant = normalizeTenantId2(tenantId);
+  const s = await SettingsProvider.getEmailSettings(normTenant);
   if (s.emailProvider === "RESEND") {
     if (!s.resendApiKey) {
       log5.error("RESEND selected but API key is not configured");
       throw new Error("Email provider is set to Resend but API key is missing. Check admin settings.");
     }
-    return { provider: "RESEND", resend: new Resend(s.resendApiKey), smtpUser: s.smtpUser, fromEmail: s.smtpUser || "no-reply@smmplan.pro" };
+    const defaultFrom = normTenant === "flux" ? "no-reply@smmflux.ru" : "no-reply@smmplan.pro";
+    return { provider: "RESEND", resend: new Resend(s.resendApiKey), smtpUser: s.smtpUser, fromEmail: s.smtpUser || defaultFrom };
   }
   if (!s.smtpHost || !s.smtpUser || !s.smtpPassword) {
     return null;
@@ -126156,7 +126218,7 @@ async function sendMagicLink(email, token, tenantId, redirectTo) {
 ${link}
 ========================================
 `);
-  const result = await getTransporter();
+  const result = await getTransporter(tenantId);
   if (!result) {
     log5.warn("SMTP Not configured. Magic link printed to console.", { email, link });
     return;
@@ -126189,7 +126251,7 @@ ${link}
 }
 async function sendMail(email, subject, htmlContent, replyTo, tenantId) {
   const { companyName } = await getEmailContext(tenantId);
-  const result = await getTransporter();
+  const result = await getTransporter(tenantId);
   if (!result) {
     if (process.env.NODE_ENV === "production") {
       log5.error("Not configured in AdminPanel");
@@ -126640,7 +126702,7 @@ var init_order_service = __esm({
               db.user.findUnique({ where: { id: userId }, select: { email: true } }).then((u) => {
                 if (u?.email) {
                   db.service.findUnique({ where: { id: order.serviceId }, select: { name: true } }).then((s) => {
-                    if (s?.name) sendOrderCanceledMail2(u.email, order.numericId.toString(), s.name).catch(console.error);
+                    if (s?.name) sendOrderCanceledMail2(u.email, order.numericId.toString(), s.name, order.tenantId).catch(console.error);
                   });
                 }
               });
@@ -126774,13 +126836,14 @@ var init_order_service = __esm({
             return {
               email: order.user?.email,
               numericId: order.numericId.toString(),
-              serviceName: order.service?.name
+              serviceName: order.service?.name,
+              tenantId: order.tenantId
             };
           });
           if (txResult?.email && txResult?.serviceName) {
             try {
               const { sendOrderCanceledMail: sendOrderCanceledMail2 } = await Promise.resolve().then(() => (init_smtp(), smtp_exports));
-              await sendOrderCanceledMail2(txResult.email, txResult.numericId, txResult.serviceName);
+              await sendOrderCanceledMail2(txResult.email, txResult.numericId, txResult.serviceName, txResult.tenantId);
             } catch (mailErr) {
               console.error(`[OrderService] Failed to send cancellation email for ${orderId}:`, mailErr instanceof Error ? mailErr.message : String(mailErr));
             }
@@ -126847,7 +126910,8 @@ error: ${e instanceof Error ? e.message : String(e)}`,
             return {
               numericId: order.numericId,
               serviceName: order.service?.name || "\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u0443\u0441\u043B\u0443\u0433\u0430",
-              email: order.user?.email
+              email: order.user?.email,
+              tenantId: order.tenantId
             };
           });
           if (txResult) {
@@ -126868,7 +126932,8 @@ error: ${e instanceof Error ? e.message : String(e)}`,
                 await sendOrderCanceledMail2(
                   txResult.email,
                   txResult.numericId.toString(),
-                  txResult.serviceName
+                  txResult.serviceName,
+                  txResult.tenantId
                 );
               } catch (err) {
                 console.warn("[OrderService] Auto-status refund notification failed:", err);
@@ -127560,7 +127625,7 @@ async function checkAndCompleteCampaign(campaignId) {
         if (orderTargetStatus === "ERROR") {
           const order = await tx.order.findUnique({
             where: { id: parentOrderId },
-            select: { userId: true, charge: true, numericId: true }
+            select: { userId: true, charge: true, numericId: true, tenantId: true }
           });
           if (order && order.charge > 0) {
             const totalQty = campaign.totalQuantity || allTasks.reduce((acc, t) => acc + t.quantity, 0);
@@ -127570,14 +127635,19 @@ async function checkAndCompleteCampaign(campaignId) {
             if (refundCents > 0) {
               const { WalletOps: WalletOps2 } = await Promise.resolve().then(() => (init_wallet_ops(), wallet_ops_exports));
               const refundKey = `refund-dripfeed-final-${parentOrderId}`;
-              const existing = await tx.ledgerEntry.findFirst({ where: { idempotencyKey: refundKey } });
+              const existing = await tx.ledgerEntry.findFirst({
+                where: {
+                  idempotencyKey: refundKey,
+                  ...order.tenantId ? { tenantId: order.tenantId } : {}
+                }
+              });
               if (!existing) {
                 await WalletOps2.refund(
                   tx,
                   order.userId,
                   refundCents,
                   `\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442 (${errorQty}/${totalQty} \u0448\u0442): SmartCampaign #${order.numericId} \u043D\u0435 \u043F\u043E\u043B\u043D\u043E\u0441\u0442\u044C\u044E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0430`,
-                  { idempotencyKey: refundKey }
+                  { idempotencyKey: refundKey, tenantId: order.tenantId }
                 );
               }
             }
@@ -128580,7 +128650,7 @@ var init_balance_autoflush_service = __esm({
           let flushedCount = 0;
           let remainingLiquidityRub = balanceData.balanceRub;
           for (const order of eligibleOrders) {
-            const orderCostRub = order.providerCost ? Number(order.providerCost) : 0;
+            const orderCostRub = order.providerCost ? Number(order.providerCost) / 100 : order.charge ? Number(order.charge) / 100 : 0;
             if (orderCostRub > 0 && remainingLiquidityRub < orderCostRub) {
               break;
             }
@@ -128629,19 +128699,21 @@ var init_balance_autoflush_service = __esm({
             } catch {
             }
           }
-          if (options?.initiatedBy && flushedCount > 0) {
+          if (flushedCount > 0) {
             await auditAdminAwaitable({
-              adminId: options.initiatedBy.id,
-              adminEmail: options.initiatedBy.email,
+              adminId: options?.initiatedBy?.id || "system-cron",
+              adminEmail: options?.initiatedBy?.email || "system-cron@smmplan.pro",
               action: "PROVIDER_BATCH_AUTOFLUSH",
               target: providerId,
               targetType: "PROVIDER",
               newValue: {
                 flushedCount,
                 skippedCount,
-                balanceRub: balanceData.balanceRub
+                balanceRub: balanceData.balanceRub,
+                remainingLiquidityRub,
+                initiatedBy: options?.initiatedBy?.email || "SYSTEM_CRON"
               }
-            });
+            }).catch((err) => console.error("[BalanceAutoFlush] Audit log failed:", err));
           }
           return {
             providerId,
@@ -139726,6 +139798,23 @@ var init_bot_settings_service = __esm({
         }
       }
       /**
+       * Get decrypted Telegram Bot Token configured in the Admin Panel (Authoritative Source of Truth)
+       */
+      static async getBotToken(tenantId = "smmplan") {
+        const settings = await this.getSettings(tenantId);
+        if (!settings?.telegramBotToken) return null;
+        try {
+          const { decrypt: decrypt2 } = await Promise.resolve().then(() => (init_encryption(), encryption_exports));
+          const decrypted = decrypt2(settings.telegramBotToken);
+          if (decrypted && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(decrypted.trim())) {
+            return decrypted.trim();
+          }
+        } catch (err) {
+          console.error(`[BotSettingsService] Failed to decrypt bot token for ${tenantId}:`, err);
+        }
+        return null;
+      }
+      /**
        * Get active menu buttons configured in the Admin Panel
        */
       static async getMenuButtons(tenantId = "smmplan") {
@@ -143446,6 +143535,7 @@ async function publishMessageSSE(ticketId, messageId) {
       mediaUrl: fullMsg.mediaUrl || (fullMsg.attachments[0]?.url ?? null),
       mediaType: fullMsg.mediaType || (fullMsg.attachments[0]?.type ?? null),
       createdAt: fullMsg.createdAt.toISOString(),
+      telegramMsgId: fullMsg.telegramMsgId ?? null,
       replyTo: fullMsg.replyTo ? {
         id: fullMsg.replyTo.id,
         text: fullMsg.replyTo.text,
@@ -143670,23 +143760,34 @@ var init_ticket_service = __esm({
         }
         const resolvedMediaUrl = mediaUrl || attachmentsToCreate[0]?.url || null;
         const resolvedMediaType = mediaType || attachmentsToCreate[0]?.type || null;
+        let telegramError = null;
         if (sender === "STAFF" && ticketToUpdate.user.telegramId) {
           try {
             const { supportBotService: supportBotService2 } = await Promise.resolve().then(() => (init_support_bot_service(), support_bot_service_exports));
             let replyToTgMsgId = void 0;
             if (replyToId) {
               const repliedMsg = await db.ticketMessage.findUnique({ where: { id: replyToId } });
-              if (repliedMsg?.telegramMsgId) replyToTgMsgId = repliedMsg.telegramMsgId;
+              if (repliedMsg?.telegramMsgId && !repliedMsg.telegramMsgId.startsWith("FAILED:")) {
+                replyToTgMsgId = repliedMsg.telegramMsgId;
+              }
             }
             const tgId = await supportBotService2.sendSupportReply(
               ticketToUpdate.user.telegramId,
               text,
               replyToTgMsgId,
               resolvedMediaUrl || void 0,
-              resolvedMediaType || void 0
+              resolvedMediaType || void 0,
+              ticketToUpdate.tenantId || "smmplan"
             );
-            if (tgId) telegramMsgId = tgId;
+            if (tgId) {
+              telegramMsgId = tgId;
+            } else {
+              telegramError = supportBotService2.getLastError() || "Telegram API \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043B \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0443";
+              telegramMsgId = `FAILED: ${telegramError}`;
+            }
           } catch (e) {
+            telegramError = e instanceof Error ? e.message : String(e);
+            telegramMsgId = `FAILED: ${telegramError}`;
             console.error("[TicketService] Error sending to telegram:", e);
           }
         }
@@ -143805,6 +143906,7 @@ var init_support_bot_service = __esm({
     SupportBotService = class {
       constructor() {
         this.UPLOAD_DIR_BASE = import_path.default.join(process.cwd(), "private", "uploads", "tickets");
+        this.lastError = null;
         try {
           if (!import_fs2.default.existsSync(this.UPLOAD_DIR_BASE)) {
             import_fs2.default.mkdirSync(this.UPLOAD_DIR_BASE, { recursive: true });
@@ -143886,31 +143988,21 @@ var init_support_bot_service = __esm({
         }
       }
       /**
-       * Resolve Telegram Bot Token with dynamic .env fallback if running process lacked it on start.
+       * Resolve Telegram Bot Token strictly from Admin Settings (PostgreSQL SystemSettings).
+       * Authoritative Source of Truth: Database SystemSettings for tenantId.
        */
-      getBotToken() {
-        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== "dummy_token") {
-          return process.env.TELEGRAM_BOT_TOKEN;
-        }
+      async getBotToken(tenantId = "smmplan") {
+        const normTenant = tenantId || "smmplan";
         try {
-          const envPath = import_path.default.resolve(process.cwd(), ".env");
-          if (import_fs2.default.existsSync(envPath)) {
-            const content = import_fs2.default.readFileSync(envPath, "utf8");
-            for (const line of content.split("\n")) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith("TELEGRAM_BOT_TOKEN=")) {
-                let val = trimmed.slice("TELEGRAM_BOT_TOKEN=".length).trim();
-                if (val.startsWith('"') && val.endsWith('"') || val.startsWith("'") && val.endsWith("'")) {
-                  val = val.slice(1, -1);
-                }
-                if (val && val !== "dummy_token") {
-                  process.env.TELEGRAM_BOT_TOKEN = val;
-                  return val;
-                }
-              }
-            }
-          }
-        } catch {
+          const { BotSettingsService: BotSettingsService2 } = await Promise.resolve().then(() => (init_bot_settings_service(), bot_settings_service_exports));
+          const token = await BotSettingsService2.getBotToken(normTenant);
+          if (token) return token;
+        } catch (dbErr) {
+          logger.warn("[SupportBot] Failed to get bot token from BotSettingsService", { tenantId: normTenant, error: dbErr });
+        }
+        const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+        if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes("YOUR_") && envToken !== "dummy_token") {
+          return envToken;
         }
         return "";
       }
@@ -143918,36 +144010,53 @@ var init_support_bot_service = __esm({
        * Low-level Telegram Bot API call via native fetch.
        * Works reliably in both Next.js Server Actions and standalone bot process contexts.
        */
-      async tgCall(method, body) {
-        const token = this.getBotToken();
-        if (!token || token === "dummy_token") {
-          logger.warn(`[SupportBot] tgCall ${method} skipped: TELEGRAM_BOT_TOKEN not set`);
-          throw new Error("TELEGRAM_BOT_TOKEN not set");
+      async tgCall(method, body, tenantId = "smmplan") {
+        const normTenant = tenantId || "smmplan";
+        const token = await this.getBotToken(normTenant);
+        if (!token) {
+          logger.warn(`[SupportBot] tgCall ${method} skipped: valid TELEGRAM_BOT_TOKEN not found for tenant "${normTenant}"`);
+          throw new Error(`Telegram bot token for tenant "${normTenant}" is not configured in Admin Settings`);
         }
         const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(3500)
+          signal: AbortSignal.timeout(5e3)
         });
         const json = await res.json();
         if (!json.ok) {
-          logger.error(`[SupportBot] Telegram API [${method}] Error`, { description: json.description });
+          logger.error(`[SupportBot] Telegram API [${method}] Error`, { description: json.description, tenantId: normTenant });
           throw new Error(`Telegram API [${method}]: ${json.description ?? "unknown error"}`);
         }
         return json;
+      }
+      getLastError() {
+        return this.lastError;
+      }
+      formatTelegramError(rawError) {
+        if (!rawError) return "\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u043E\u0448\u0438\u0431\u043A\u0430 Telegram Bot API";
+        if (rawError.includes("bot was blocked by the user")) return "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043B \u0431\u043E\u0442\u0430 \u0432 Telegram";
+        if (rawError.includes("chat not found")) return "\u0427\u0430\u0442 \u0441 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u043C \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D \u0432 Telegram";
+        if (rawError.includes("user is deactivated")) return "\u0410\u043A\u043A\u0430\u0443\u043D\u0442 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F \u0432 Telegram \u0434\u0435\u0430\u043A\u0442\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D";
+        if (rawError.includes("message is too long")) return "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u044F \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u043B\u0438\u043C\u0438\u0442 Telegram (4096 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)";
+        if (rawError.includes("can't parse entities")) return "\u041E\u0448\u0438\u0431\u043A\u0430 \u0440\u0430\u0437\u043C\u0435\u0442\u043A\u0438 HTML \u0432 \u0442\u0435\u043A\u0441\u0442\u0435 \u043E\u0442\u0432\u0435\u0442\u0430";
+        if (rawError.includes("Forbidden")) return `\u0414\u043E\u0441\u0442\u0443\u043F \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D Telegram API: ${rawError}`;
+        return rawError;
       }
       /**
        * OUTBOUND: Send reply from Admin panel to Telegram
        * Uses native fetch → works reliably in Next.js Server Action context.
        */
-      async sendSupportReply(telegramId, text, replyToTgMsgId, mediaUrl, mediaType) {
-        const token = this.getBotToken();
-        if (!token || token === "dummy_token") {
-          logger.warn("[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set");
+      async sendSupportReply(telegramId, text, replyToTgMsgId, mediaUrl, mediaType, tenantId = "smmplan") {
+        this.lastError = null;
+        const normTenant = tenantId || "smmplan";
+        const token = await this.getBotToken(normTenant);
+        if (!token) {
+          this.lastError = `\u0422\u043E\u043A\u0435\u043D Telegram-\u0431\u043E\u0442\u0430 \u0434\u043B\u044F \u0431\u0440\u0435\u043D\u0434\u0430 "${normTenant}" \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D \u0432 \u0430\u0434\u043C\u0438\u043D-\u043F\u0430\u043D\u0435\u043B\u0438`;
+          logger.warn("[SupportBot] sendSupportReply skipped: TELEGRAM_BOT_TOKEN not set in Admin Settings", { tenantId: normTenant });
           return null;
         }
-        logger.info("[SupportBot] sendSupportReply", { chat: telegramId, text: text.slice(0, 40) });
+        logger.info("[SupportBot] sendSupportReply", { chat: telegramId, tenantId: normTenant, text: text.slice(0, 40) });
         try {
           const escapeHtml4 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           const safeText = escapeHtml4(text);
@@ -143961,6 +144070,7 @@ var init_support_bot_service = __esm({
               const absolutePath = import_path.default.join(process.cwd(), "private", "uploads", mediaUrl);
               const source = import_fs2.default.existsSync(absolutePath) ? { source: absolutePath } : mediaUrl;
               const { bot: bot2 } = await Promise.resolve().then(() => (init_bot(), bot_exports));
+              bot2.telegram.token = token;
               const extra = { ...baseParams, caption };
               let msg;
               if (mediaType === "image") msg = await bot2.telegram.sendPhoto(telegramId, source, extra);
@@ -143970,27 +144080,28 @@ var init_support_bot_service = __esm({
             } catch (mediaErr) {
               const errMsg = mediaErr instanceof Error ? mediaErr.message : String(mediaErr);
               logger.warn("[SupportBot] Media send failed, fallback text", { error: errMsg });
-              const res = await this.tgCall("sendMessage", { chat_id: telegramId, text: plainCaption });
+              const res = await this.tgCall("sendMessage", { chat_id: telegramId, text: plainCaption }, normTenant);
               messageId = res.result?.message_id ?? null;
             }
           } else {
             try {
-              const res = await this.tgCall("sendMessage", { ...baseParams, text: caption });
+              const res = await this.tgCall("sendMessage", { ...baseParams, text: caption }, normTenant);
               messageId = res.result?.message_id ?? null;
             } catch (htmlErr) {
               const errMsg = htmlErr instanceof Error ? htmlErr.message : String(htmlErr);
               logger.warn("[SupportBot] HTML send failed, retrying plain", { error: errMsg });
-              const res = await this.tgCall("sendMessage", { chat_id: telegramId, text: plainCaption });
+              const res = await this.tgCall("sendMessage", { chat_id: telegramId, text: plainCaption }, normTenant);
               messageId = res.result?.message_id ?? null;
             }
           }
-          logger.info("[SupportBot] sendSupportReply OK", { messageId });
+          logger.info("[SupportBot] sendSupportReply OK", { messageId, tenantId: normTenant });
           return messageId ? String(messageId) : null;
         } catch (e) {
           const err = e;
-          logger.error("[SupportBot] Failed to send to telegram", { error: err.message });
+          this.lastError = this.formatTelegramError(err.message);
+          logger.error("[SupportBot] Failed to send to telegram", { error: err.message, tenantId: normTenant });
           if (err.message?.includes("message to reply not found") && replyToTgMsgId) {
-            return this.sendSupportReply(telegramId, text, void 0, mediaUrl, mediaType);
+            return this.sendSupportReply(telegramId, text, void 0, mediaUrl, mediaType, normTenant);
           }
           return null;
         }
@@ -143998,7 +144109,8 @@ var init_support_bot_service = __esm({
       /**
        * EDIT: Admin edits message in Admin panel -> sync to Telegram
        */
-      async editSupportReply(telegramId, telegramMsgId, newText) {
+      async editSupportReply(telegramId, telegramMsgId, newText, tenantId = "smmplan") {
+        const normTenant = tenantId || "smmplan";
         try {
           const escapeHtml4 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           await this.tgCall("editMessageText", {
@@ -144008,7 +144120,7 @@ var init_support_bot_service = __esm({
 
 <i>(\u0438\u0437\u043C\u0435\u043D\u0435\u043D\u043E)</i>`,
             parse_mode: "HTML"
-          });
+          }, normTenant);
           return true;
         } catch (e) {
           const err = e instanceof Error ? e : new Error(String(e));
@@ -144020,12 +144132,13 @@ var init_support_bot_service = __esm({
       /**
        * DELETE: Admin deletes message in Admin panel -> sync to Telegram
        */
-      async deleteSupportReply(telegramId, telegramMsgId) {
+      async deleteSupportReply(telegramId, telegramMsgId, tenantId = "smmplan") {
+        const normTenant = tenantId || "smmplan";
         try {
           await this.tgCall("deleteMessage", {
             chat_id: telegramId,
             message_id: Number(telegramMsgId)
-          });
+          }, normTenant);
           return true;
         } catch (e) {
           const err = e instanceof Error ? e : new Error(String(e));
@@ -144036,12 +144149,13 @@ var init_support_bot_service = __esm({
       /**
        * CSAT: Send interactive rating buttons when ticket is closed
        */
-      async sendTicketClosedRating(telegramId, ticketId) {
+      async sendTicketClosedRating(telegramId, ticketId, tenantId = "smmplan") {
+        const normTenant = tenantId || "smmplan";
         try {
           let ratingText = "\u2705 <b>\u0412\u0430\u0448 \u0432\u043E\u043F\u0440\u043E\u0441 \u0440\u0435\u0448\u0451\u043D \u0438 \u0442\u0438\u043A\u0435\u0442 #{ticketId} \u0437\u0430\u043A\u0440\u044B\u0442.</b>\n\n\u041F\u043E\u0436\u0430\u043B\u0443\u0439\u0441\u0442\u0430, \u043E\u0446\u0435\u043D\u0438\u0442\u0435 \u043A\u0430\u0447\u0435\u0441\u0442\u0432\u043E \u0440\u0430\u0431\u043E\u0442\u044B \u0441\u043B\u0443\u0436\u0431\u044B \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438:";
           try {
             const { BotSettingsService: BotSettingsService2 } = await Promise.resolve().then(() => (init_bot_settings_service(), bot_settings_service_exports));
-            const templates = await BotSettingsService2.getTemplates("smmplan");
+            const templates = await BotSettingsService2.getTemplates(normTenant);
             if (templates?.ticketClosedRating) {
               ratingText = templates.ticketClosedRating;
             }
@@ -144063,7 +144177,7 @@ var init_support_bot_service = __esm({
                 ]
               ]
             }
-          });
+          }, normTenant);
           return res.result ? String(res.result.message_id) : null;
         } catch (e) {
           console.error("[SupportBot] Failed to send CSAT rating:", e);
@@ -144370,7 +144484,9 @@ async function sendUserProfile(ctx) {
   const tgId = String(ctx.from.id);
   const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId4 } });
   if (!user) return ctx.reply("\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 /start \u0434\u043B\u044F \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.");
-  const orderCount = await db.order.count({ where: { userId: user.id } });
+  const orderCount = await db.order.count({
+    where: { userId: user.id, ...botTenantId4 ? { tenantId: botTenantId4 } : {} }
+  });
   const text = `\u{1F464} <b>\u041B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442 ${botSiteName}</b>
 
 \u{1F194} ID: <code>${user.id.slice(0, 8)}</code>
@@ -144399,7 +144515,7 @@ async function sendUserTransactions(ctx) {
   const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId4 } });
   if (!user) return ctx.reply("\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 /start \u0434\u043B\u044F \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.");
   const transactions = await db.ledgerEntry.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...botTenantId4 ? { tenantId: botTenantId4 } : {} },
     take: 8,
     orderBy: { createdAt: "desc" }
   });
@@ -144455,7 +144571,7 @@ async function sendUserOrders(ctx) {
   const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId4 } });
   if (!user) return ctx.reply("\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 /start \u0434\u043B\u044F \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.");
   const orders = await db.order.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...botTenantId4 ? { tenantId: botTenantId4 } : {} },
     take: 10,
     orderBy: { createdAt: "desc" },
     include: { service: { select: { name: true } } }
@@ -144595,34 +144711,76 @@ async function handleLinkInput(ctx, rawInput) {
     );
   }
 }
+async function setupBotRedisSubscriber() {
+  if (isRedisSubscribed) return;
+  try {
+    const { Redis: Redis3 } = await Promise.resolve().then(() => __toESM(require_built3()));
+    const redisUrl2 = process.env.REDIS_URL || "redis://localhost:6379";
+    const sub = new Redis3(redisUrl2, { lazyConnect: true, maxRetriesPerRequest: 2 });
+    await sub.connect();
+    await sub.subscribe("bot:reload");
+    isRedisSubscribed = true;
+    sub.on("message", async (channel, msg) => {
+      if (channel === "bot:reload") {
+        console.info("[Bot] \u{1F504} Received bot:reload event from Admin Panel:", msg);
+        try {
+          BotSettingsService.invalidate(botTenantId4);
+          try {
+            bot.stop("Reload");
+          } catch {
+          }
+          isBotLaunched = false;
+          await new Promise((r) => setTimeout(r, 1e3));
+          await launchBot();
+        } catch (rErr) {
+          console.error("[Bot] Failed to hot-reload bot after admin update:", rErr);
+        }
+      }
+    });
+    console.info('[Bot] \u{1F4E1} Real-time settings listener active on Redis channel "bot:reload"');
+  } catch (err) {
+    console.warn("[Bot] Redis subscriber setup skipped:", err);
+  }
+}
 async function launchBot() {
   if (isBotLaunched) {
     console.info("[Bot] Bot instance is already running.");
     return;
   }
-  let activeToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!activeToken || activeToken === "dummy_token") {
-    try {
-      const { VaultService: VaultService2 } = await Promise.resolve().then(() => (init_vault(), vault_exports));
-      const settings = await db.systemSettings.findUnique({ where: { id: botTenantId4 } });
-      if (settings?.telegramBotToken) {
-        const decrypted = VaultService2.decrypt(settings.telegramBotToken);
-        if (decrypted && decrypted.trim().length > 10) {
-          activeToken = decrypted.trim();
-          process.env.TELEGRAM_BOT_TOKEN = activeToken;
-          bot.token = activeToken;
-          bot.telegram.token = activeToken;
-        }
-      }
-    } catch (dbErr) {
-      console.warn("[Bot] Failed to read token from DB:", dbErr);
+  let activeToken = null;
+  try {
+    activeToken = await BotSettingsService.getBotToken(botTenantId4);
+    if (activeToken) {
+      console.info(`[Bot] \u{1F511} Loaded active bot token for tenant "${botTenantId4}" from Admin Settings`);
+    }
+  } catch (dbErr) {
+    console.warn("[Bot] Failed to read token from Admin Settings:", dbErr);
+  }
+  if (!activeToken) {
+    const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes("YOUR_") && envToken !== "dummy_token") {
+      activeToken = envToken;
+      console.info(`[Bot] \u{1F511} Using fallback bot token from environment variable`);
     }
   }
-  if (!activeToken || activeToken === "dummy_token") {
-    console.warn("[Bot] TELEGRAM_BOT_TOKEN not set in .env or DB. Telegram bot will NOT start.");
+  if (!activeToken) {
+    console.warn(`[Bot] \u26A0\uFE0F Telegram bot token for tenant "${botTenantId4}" is not set or invalid in Admin Settings. Bot daemon will wait for token configuration.`);
+    isBotLaunched = false;
+    setTimeout(() => {
+      if (!isBotLaunched) {
+        launchBot().catch(() => {
+        });
+      }
+    }, 3e4);
     return;
   }
+  process.env.TELEGRAM_BOT_TOKEN = activeToken;
+  bot.telegram.token = activeToken;
+  bot.options = bot.options || {};
+  bot.options.token = activeToken;
   isBotLaunched = true;
+  setupBotRedisSubscriber().catch(() => {
+  });
   const MAX_LAUNCH_ATTEMPTS = 5;
   for (let attempt = 1; attempt <= MAX_LAUNCH_ATTEMPTS; attempt++) {
     let currentProxyUrl = void 0;
@@ -144721,7 +144879,7 @@ async function handleShutdown(signal) {
   }
   process.exit(0);
 }
-var dotenv, import_path2, import_telegraf5, origGetProto, TOKEN, agent, bot, botTenantId4, botSiteName, stage, isBotLaunched;
+var dotenv, import_path2, import_telegraf5, origGetProto, TOKEN, agent, bot, botTenantId4, botSiteName, stage, isBotLaunched, isRedisSubscribed;
 var init_bot = __esm({
   "src/bot/index.ts"() {
     "use strict";
@@ -144983,7 +145141,7 @@ var init_bot = __esm({
         const paymentId = payload.replace(/^pay_ok_/, "").replace(/^pay_/, "");
         try {
           let payment = await db.payment.findUnique({ where: { id: paymentId } });
-          if (payment) {
+          if (payment && payment.userId === user.id && (!botTenantId4 || payment.tenantId === botTenantId4)) {
             if (payment.status !== "SUCCEEDED" && payment.gateway === "yookassa" && payment.gatewayId) {
               try {
                 const { PaymentGatewayFactory: PaymentGatewayFactory2 } = await Promise.resolve().then(() => (init_payment_gateway_service(), payment_gateway_service_exports));
@@ -145219,7 +145377,7 @@ var init_bot = __esm({
       const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId4 } });
       if (!user) return;
       const orders = await db.order.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, ...botTenantId4 ? { tenantId: botTenantId4 } : {} },
         take: 5,
         orderBy: { createdAt: "desc" },
         include: { service: { select: { name: true } } }
@@ -145529,6 +145687,7 @@ ${thanksText}`,
       }
     });
     isBotLaunched = false;
+    isRedisSubscribed = false;
     if (process.env.NODE_ENV !== "test" && !process.env.NEXT_PHASE && process.env.SKIP_BOT !== "true") {
       launchBot();
     }
@@ -145720,21 +145879,22 @@ var init_payment_service = __esm({
                   amount: Number(creditAmount),
                   userEmail: order.user?.email ?? null,
                   serviceName: order.service?.name ?? null,
-                  numericId: order.numericId
+                  numericId: order.numericId,
+                  tenantId: order.tenantId
                 });
                 await WalletOps.credit(
                   tx,
                   targetUserId,
                   creditAmount,
                   `\u041E\u043F\u043B\u0430\u0442\u0430 \u0437\u0430\u043A\u0430\u0437\u0430 #${order.numericId} \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
-                  { idempotencyKey: `gateway-credit-${processedPaymentId}` }
+                  { idempotencyKey: `gateway-credit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
                 );
                 await WalletOps.charge(
                   tx,
                   targetUserId,
                   order.charge,
                   `\u0421\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 #${order.numericId}`,
-                  { idempotencyKey: `gateway-charge-${order.id}` }
+                  { idempotencyKey: `gateway-charge-${order.id}`, tenantId: currentPayment?.tenantId }
                 );
               }
             }
@@ -145764,7 +145924,8 @@ var init_payment_service = __esm({
                   amount: Number(order.charge),
                   userEmail: order.user?.email ?? null,
                   serviceName: order.service?.name ?? null,
-                  numericId: order.numericId
+                  numericId: order.numericId,
+                  tenantId: order.tenantId
                 });
                 await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
               }
@@ -145773,7 +145934,7 @@ var init_payment_service = __esm({
                 targetUserId,
                 creditAmount,
                 `\u041E\u043F\u043B\u0430\u0442\u0430 \u043A\u043E\u0440\u0437\u0438\u043D\u044B \u0437\u0430\u043A\u0430\u0437\u043E\u0432 \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
-                { idempotencyKey: `gateway-credit-${processedPaymentId}` }
+                { idempotencyKey: `gateway-credit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
               );
               const totalChargeCents = basketOrders.reduce((sum, order) => sum + order.charge, BigInt(0));
               if (creditAmount < totalChargeCents) {
@@ -145785,7 +145946,7 @@ var init_payment_service = __esm({
                 targetUserId,
                 totalChargeCents,
                 `\u0421\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0437\u0430 \u043E\u043F\u043B\u0430\u0442\u0443 \u043A\u043E\u0440\u0437\u0438\u043D\u044B \u0437\u0430\u043A\u0430\u0437\u043E\u0432 (${basketOrders.length} \u0448\u0442.)`,
-                { idempotencyKey: `gateway-basket-charge-${processedPaymentId}` }
+                { idempotencyKey: `gateway-basket-charge-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
               );
             }
             if (!isOrderPayment && basketOrders.length === 0) {
@@ -145794,7 +145955,7 @@ var init_payment_service = __esm({
                 targetUserId,
                 creditAmount,
                 `\u041F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u0447\u0435\u0440\u0435\u0437 ${gatewayType}`,
-                { idempotencyKey: `deposit-${processedPaymentId}` }
+                { idempotencyKey: `deposit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
               );
             }
             paidAmountBigInt = creditAmount;
@@ -145809,7 +145970,8 @@ var init_payment_service = __esm({
                 void sendOrderPaidMail(
                   activated.userEmail,
                   activated.numericId?.toString() ?? activated.id,
-                  activated.serviceName
+                  activated.serviceName,
+                  activated.tenantId
                 ).catch((err) => console.error("[H1] sendOrderPaidMail failed", err));
               }
             }
@@ -145866,16 +146028,28 @@ var init_payment_service = __esm({
             const payment = await tx.payment.findUnique({ where: { gatewayId } });
             if (!payment || payment.status !== "PENDING") return false;
             const updated = await tx.payment.updateMany({
-              where: { id: payment.id, status: "PENDING" },
+              where: {
+                id: payment.id,
+                status: "PENDING",
+                ...payment.tenantId ? { tenantId: payment.tenantId } : {}
+              },
               data: { status: "CANCELED" }
             });
             if (updated.count === 0) return false;
             const orders = await tx.order.findMany({
-              where: { paymentId: payment.id, status: "AWAITING_PAYMENT" }
+              where: {
+                paymentId: payment.id,
+                status: "AWAITING_PAYMENT",
+                ...payment.tenantId ? { tenantId: payment.tenantId } : {}
+              }
             });
             if (orders.length > 0) {
               await tx.order.updateMany({
-                where: { paymentId: payment.id, status: "AWAITING_PAYMENT" },
+                where: {
+                  paymentId: payment.id,
+                  status: "AWAITING_PAYMENT",
+                  ...payment.tenantId ? { tenantId: payment.tenantId } : {}
+                },
                 data: { status: "CANCELED" }
               });
               const uniquePromoCodes = new Set(orders.map((o) => o.promoCodeId).filter(Boolean));
@@ -145933,21 +146107,22 @@ var init_payment_service = __esm({
                   isDripFeed: order.isDripFeed,
                   userEmail: order.user?.email ?? null,
                   serviceName: order.service?.name ?? null,
-                  numericId: order.numericId
+                  numericId: order.numericId,
+                  tenantId: order.tenantId
                 });
                 await WalletOps.credit(
                   tx,
                   payment.userId,
                   Number(payment.amount),
                   `\u041E\u043F\u043B\u0430\u0442\u0430 \u0437\u0430\u043A\u0430\u0437\u0430 #${order.numericId} \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
-                  { idempotencyKey: `gateway-credit-${paymentId}` }
+                  { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
                 );
                 await WalletOps.charge(
                   tx,
                   payment.userId,
                   Number(order.charge),
                   `\u0421\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 #${order.numericId}`,
-                  { idempotencyKey: `gateway-charge-${order.id}` }
+                  { idempotencyKey: `gateway-charge-${order.id}`, tenantId: payment.tenantId }
                 );
               }
             }
@@ -145966,7 +146141,8 @@ var init_payment_service = __esm({
                   isDripFeed: order.isDripFeed,
                   userEmail: order.user?.email ?? null,
                   serviceName: order.service?.name ?? null,
-                  numericId: order.numericId
+                  numericId: order.numericId,
+                  tenantId: order.tenantId
                 });
                 await logPromoCodeUsageIfNeeded(tx, order.id, payment.userId);
               }
@@ -145975,7 +146151,7 @@ var init_payment_service = __esm({
                 payment.userId,
                 Number(payment.amount),
                 `\u041E\u043F\u043B\u0430\u0442\u0430 \u043A\u043E\u0440\u0437\u0438\u043D\u044B \u0437\u0430\u043A\u0430\u0437\u043E\u0432 \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
-                { idempotencyKey: `gateway-credit-${paymentId}` }
+                { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
               );
               const totalChargeCents = basketOrders.reduce((sum, order) => sum + order.charge, BigInt(0));
               await WalletOps.charge(
@@ -145983,7 +146159,7 @@ var init_payment_service = __esm({
                 payment.userId,
                 totalChargeCents,
                 `\u0421\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0437\u0430 \u043E\u043F\u043B\u0430\u0442\u0443 \u043A\u043E\u0440\u0437\u0438\u043D\u044B \u0437\u0430\u043A\u0430\u0437\u043E\u0432 (${basketOrders.length} \u0448\u0442.)`,
-                { idempotencyKey: `gateway-basket-charge-${paymentId}` }
+                { idempotencyKey: `gateway-basket-charge-${paymentId}`, tenantId: payment.tenantId }
               );
             }
             if (!payment.orderId && basketOrders.length === 0) {
@@ -145992,7 +146168,7 @@ var init_payment_service = __esm({
                 payment.userId,
                 Number(payment.amount),
                 `\u041F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u0447\u0435\u0440\u0435\u0437 yookassa`,
-                { idempotencyKey: `deposit-${paymentId}` }
+                { idempotencyKey: `deposit-${paymentId}`, tenantId: payment.tenantId }
               );
             }
           }, { isolationLevel: "Serializable", timeout: 15e3 });
@@ -146005,7 +146181,8 @@ var init_payment_service = __esm({
                 void sendOrderPaidMail(
                   activated.userEmail,
                   activated.numericId?.toString() ?? activated.id,
-                  activated.serviceName
+                  activated.serviceName,
+                  activated.tenantId
                 ).catch((err) => console.error("[H1] sendOrderPaidMail failed", err));
               }
             }
@@ -158597,7 +158774,10 @@ var RefundPolicyService = class {
     if (order.status === "CANCELED" || order.status === "ERROR") {
       let previousRefunds = 0;
       const partialRefundLedger = await txClient.ledgerEntry.findFirst({
-        where: { idempotencyKey: `refund_${order.id}_PARTIAL` }
+        where: {
+          idempotencyKey: `refund_${order.id}_PARTIAL`,
+          ...order.tenantId ? { tenantId: order.tenantId } : {}
+        }
       });
       if (partialRefundLedger) {
         previousRefunds += Number(partialRefundLedger.amount);
@@ -158611,9 +158791,9 @@ var RefundPolicyService = class {
     if (refundCents > 0) {
       const idempotencyKey = `refund_${order.id}_${order.status}`;
       if (txClient === db) {
-        return await WalletService.refund(order.userId, refundCents, reason, idempotencyKey);
+        return await WalletService.refund(order.userId, refundCents, reason, idempotencyKey, void 0, order.tenantId);
       } else {
-        return await WalletOps.refund(txClient, order.userId, refundCents, reason, { idempotencyKey });
+        return await WalletOps.refund(txClient, order.userId, refundCents, reason, { idempotencyKey, tenantId: order.tenantId });
       }
     }
     return null;
@@ -158697,6 +158877,17 @@ async function syncProcessor(job) {
           });
         } catch (batchErr) {
           log10.warn(`[SyncProcessor] Batch status polling failed for ${providerDef.name}, falling back to 1-by-1 query:`, { error: batchErr });
+          try {
+            await db.provider.update({
+              where: { id: providerDef.id },
+              data: {
+                lastErrorAt: /* @__PURE__ */ new Date(),
+                errorCount5m: { increment: 1 }
+              }
+            });
+          } catch (slaErr) {
+            log10.error(`Failed to update SLA error metrics for ${providerDef.id}`, { cause: slaErr });
+          }
           for (const extId of allExtIds) {
             try {
               const single = await provider.getOrderStatus(extId);
@@ -158765,7 +158956,7 @@ async function syncProcessor(job) {
                 startCount: startCountNum !== void 0 && !isNaN(startCountNum) ? startCountNum : void 0
               });
               if (updated && order.email) {
-                await sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name).catch((err) => log10.error("Failed to send order completed email", { error: err }));
+                await sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name, order.tenantId).catch((err) => log10.error("Failed to send order completed email", { error: err }));
               }
             });
           } else if (targetStatus === "CANCELED") {
@@ -158776,7 +158967,7 @@ async function syncProcessor(job) {
                 error: statusObj.error || "\u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437"
               });
               if (updated) {
-                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: "CANCELED" }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442: \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437", tx);
+                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: "CANCELED", tenantId: order.tenantId }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442: \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437", tx);
               }
             });
           } else if (targetStatus === "PARTIAL") {
@@ -158789,7 +158980,7 @@ async function syncProcessor(job) {
                 startCount: startCountNum !== void 0 && !isNaN(startCountNum) ? startCountNum : void 0
               });
               if (updated) {
-                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: "PARTIAL" }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442 \u0437\u0430 \u043D\u0435\u0434\u043E\u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043D\u0443\u044E \u0447\u0430\u0441\u0442\u044C \u0437\u0430\u043A\u0430\u0437\u0430", tx);
+                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: "PARTIAL", tenantId: order.tenantId }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442 \u0437\u0430 \u043D\u0435\u0434\u043E\u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043D\u0443\u044E \u0447\u0430\u0441\u0442\u044C \u0437\u0430\u043A\u0430\u0437\u0430", tx);
               }
             });
           } else if (targetStatus === "IN_PROGRESS") {
@@ -159271,6 +159462,7 @@ async function runCleanup() {
         numericId: true,
         paymentId: true,
         promoCodeId: true,
+        tenantId: true,
         user: { select: { email: true } },
         service: { select: { name: true } }
       },
@@ -159319,7 +159511,8 @@ async function runCleanup() {
         sendOrderCanceledMail(
           zombie.user.email,
           zombie.numericId.toString(),
-          zombie.service.name
+          zombie.service.name,
+          zombie.tenantId
         ).catch((err) => log16.error("Failed to send zombie cancellation email", { orderId: zombie.id, error: err instanceof Error ? err.message : String(err) }));
       }
     }
@@ -159537,6 +159730,7 @@ async function runInProgressTTLSweep() {
         runs: true,
         interval: true,
         createdAt: true,
+        tenantId: true,
         service: {
           select: {
             provider: true
@@ -159621,6 +159815,23 @@ async function runInProgressTTLSweep() {
         refundCents = calculatePartialRefund({ remains, quantity, charge });
         delivered = Math.max(0, quantity - remains);
         reasonText = `\u0417\u0430\u043A\u0430\u0437 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C. \u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E ${delivered} \u0438\u0437 ${quantity}. \u041D\u0435\u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043D\u044B\u0439 \u043E\u0441\u0442\u0430\u0442\u043E\u043A \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0451\u043D \u043D\u0430 \u0431\u0430\u043B\u0430\u043D\u0441.`;
+      } else if (!order.externalId || !order.service?.provider) {
+        if (remains <= 0) {
+          targetStatus = "COMPLETED";
+          refundCents = 0;
+          delivered = quantity;
+          reasonText = `\u0417\u0430\u043A\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D \u043F\u043E \u0442\u0430\u0439\u043C\u0430\u0443\u0442\u0443 (72\u0447 IN_PROGRESS). \u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E ${delivered} \u0438\u0437 ${quantity}.`;
+        } else if (remains >= quantity) {
+          targetStatus = "ERROR";
+          refundCents = Number(charge);
+          delivered = 0;
+          reasonText = `\u0417\u0430\u043A\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D \u043F\u043E \u0442\u0430\u0439\u043C\u0430\u0443\u0442\u0443 (72\u0447 IN_PROGRESS). \u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E 0 \u0438\u0437 ${quantity}. \u0421\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u0430 \u043D\u0430 \u0431\u0430\u043B\u0430\u043D\u0441.`;
+        } else {
+          targetStatus = "PARTIAL";
+          refundCents = calculatePartialRefund({ remains, quantity, charge });
+          delivered = Math.max(0, quantity - remains);
+          reasonText = `\u0417\u0430\u043A\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D \u043F\u043E \u0442\u0430\u0439\u043C\u0430\u0443\u0442\u0443 (72\u0447 IN_PROGRESS). \u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E ${delivered} \u0438\u0437 ${quantity}. \u041D\u0435\u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043D\u044B\u0439 \u043E\u0441\u0442\u0430\u0442\u043E\u043A \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0451\u043D \u043D\u0430 \u0431\u0430\u043B\u0430\u043D\u0441.`;
+        }
       } else {
         log16.info(`Order ${order.id} has no terminal status from provider (status: ${statusFromProvider || "unknown"}). Keeping in IN_PROGRESS.`);
         continue;
@@ -159647,7 +159858,10 @@ async function runInProgressTTLSweep() {
           if (refundCents > 0) {
             const refundKey = `refund-ttl-${order.id}`;
             const existingLedger = await tx.ledgerEntry.findFirst({
-              where: { idempotencyKey: refundKey }
+              where: {
+                idempotencyKey: refundKey,
+                ...order.tenantId ? { tenantId: order.tenantId } : {}
+              }
             });
             if (!existingLedger) {
               await WalletOps.refund(
@@ -159655,7 +159869,7 @@ async function runInProgressTTLSweep() {
                 order.userId,
                 refundCents,
                 reasonText,
-                { idempotencyKey: refundKey }
+                { idempotencyKey: refundKey, tenantId: order.tenantId }
               );
             }
           }
@@ -159701,6 +159915,7 @@ async function runPendingCheckTTLSweep() {
       userId: true,
       charge: true,
       externalId: true,
+      tenantId: true,
       service: {
         select: {
           provider: true
@@ -159754,14 +159969,19 @@ async function runPendingCheckTTLSweep() {
         await LoyaltyService.reverseCommission(tx, order.id);
         if (order.charge > 0) {
           const refundKey = `refund-pending-check-ttl-${order.id}`;
-          const existing = await tx.ledgerEntry.findFirst({ where: { idempotencyKey: refundKey } });
+          const existing = await tx.ledgerEntry.findFirst({
+            where: {
+              idempotencyKey: refundKey,
+              ...order.tenantId ? { tenantId: order.tenantId } : {}
+            }
+          });
           if (!existing) {
             await WalletOps.refund(
               tx,
               order.userId,
               Number(order.charge),
               `\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442: \u0437\u0430\u043A\u0430\u0437 #${order.numericId} \u043E\u0442\u043C\u0435\u043D\u0451\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C`,
-              { idempotencyKey: refundKey }
+              { idempotencyKey: refundKey, tenantId: order.tenantId }
             );
           }
         }
@@ -161768,19 +161988,14 @@ ${anomalies.join("\n")}`,
     return anomalies;
   }
   /**
-   * Catalog stats for the header.
+   * Catalog stats for the header and dashboard.
+   * Services and categories represent current inventory catalog state, not temporal transactions.
    */
-  async getCatalogStats(tenantId, startDate, endDate) {
+  async getCatalogStats(tenantId, _startDate, _endDate) {
     const where = {};
-    if (tenantId) where.tenantId = { in: [tenantId, "all"] };
-    if (startDate && endDate) {
-      where.createdAt = { gte: startDate, lte: endDate };
-    }
+    if (tenantId && tenantId !== "all") where.tenantId = { in: [tenantId, "all"] };
     const categoryWhere = {};
-    if (tenantId) categoryWhere.tenantId = { in: [tenantId, "all"] };
-    if (startDate && endDate) {
-      categoryWhere.createdAt = { gte: startDate, lte: endDate };
-    }
+    if (tenantId && tenantId !== "all") categoryWhere.tenantId = { in: [tenantId, "all"] };
     const [totalServices, activeServices, categories] = await Promise.all([
       db.service.count({ where }),
       db.service.count({ where: { ...where, isActive: true } }),
@@ -162093,6 +162308,7 @@ async function triggerCacheRevalidation(tags) {
 
 // src/workers/processors/catalog.processor.ts
 var log20 = logger.child({ component: "CatalogProcessor" });
+var MULTI_TENANT_CATALOG_TAGS = ["catalog", "services", "catalog-smmplan", "catalog-flux", "catalog-global"];
 async function safeTriggerCacheRevalidation(tags) {
   try {
     await triggerCacheRevalidation(tags);
@@ -162120,7 +162336,7 @@ async function catalogProcessor(job) {
         log20.info(`[CatalogProcessor] Starting background price sync with rate ${effectiveRate}...`);
         await adminCatalogService.syncDenormalizedPrices(effectiveRate);
         log20.info(`[CatalogProcessor] Price sync completed successfully.`);
-        await safeTriggerCacheRevalidation(["catalog", "services"]);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
       case "RECONCILE_PRICES": {
@@ -162226,7 +162442,7 @@ async function catalogProcessor(job) {
           currencyQuarantined,
           lowMarkupReported
         });
-        await triggerCacheRevalidation(["catalog", "services"]);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
       case "SYNC_ALL_CATALOGS": {
@@ -162258,7 +162474,7 @@ async function catalogProcessor(job) {
             const errMsg = postSyncErr instanceof Error ? postSyncErr.message : String(postSyncErr);
             log20.error(`[CatalogProcessor] applyPostSyncRules failed: ${errMsg}`);
           }
-          await safeTriggerCacheRevalidation(["catalog", "services"]);
+          await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         } catch (syncErr) {
           const errMsg = syncErr instanceof Error ? syncErr.message : String(syncErr);
           log20.warn(`[CatalogProcessor] Skipping catalog sync for provider ${providerId} due to provider API error: ${errMsg}`);
@@ -162285,7 +162501,7 @@ async function catalogProcessor(job) {
           admin
         );
         log20.info(`[CatalogProcessor] Bulk markup completed. Updated ${result.updatedCount} services.`);
-        await safeTriggerCacheRevalidation(["catalog", "services"]);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
       case "SYNC_CBR_RATE": {
@@ -162385,26 +162601,47 @@ async function paymentSyncProcessor(job) {
     return;
   }
   log21.info(`Found ${pendingPayments.length} pending YooKassa payments to check.`);
-  const isTestMode = await SettingsManager.isTestMode();
-  if (isTestMode) {
-    log21.info("System is in Sandbox/Test mode. Skipping real YooKassa API status checks.");
-    return;
+  const tenantSecretsCache = /* @__PURE__ */ new Map();
+  async function getTenantAuth(tenantId) {
+    const tid = tenantId || "smmplan";
+    if (tenantSecretsCache.has(tid)) {
+      return tenantSecretsCache.get(tid);
+    }
+    const isTest = await SettingsManager.isTestMode(tid);
+    if (isTest) {
+      const entry2 = { authHeader: null, isTest: true };
+      tenantSecretsCache.set(tid, entry2);
+      return entry2;
+    }
+    const secrets = await SettingsManager.getPaymentSecrets(tid);
+    const shopId = secrets.yookassaShopId;
+    const secretKey = secrets.yookassaSecretKey;
+    if (!shopId || !secretKey) {
+      const entry2 = { authHeader: null, isTest: false };
+      tenantSecretsCache.set(tid, entry2);
+      return entry2;
+    }
+    const authHeader = "Basic " + Buffer.from(`${shopId}:${secretKey}`).toString("base64");
+    const entry = { authHeader, isTest: false };
+    tenantSecretsCache.set(tid, entry);
+    return entry;
   }
-  const secrets = await SettingsManager.getPaymentSecrets();
-  const shopId = secrets.yookassaShopId;
-  const secretKey = secrets.yookassaSecretKey;
-  if (!shopId || !secretKey) {
-    log21.error("YooKassa shopId or secretKey is not configured. Aborting payments synchronization.");
-    return;
-  }
-  const authHeader = "Basic " + Buffer.from(`${shopId}:${secretKey}`).toString("base64");
   for (const payment of pendingPayments) {
     if (!payment.gatewayId) {
       log21.warn(`Pending payment ${payment.id} has no remote gatewayId. Skipping.`);
       continue;
     }
+    const { authHeader, isTest } = await getTenantAuth(payment.tenantId || "smmplan");
+    if (isTest) {
+      log21.info(`Payment ${payment.id} is in test mode for tenant ${payment.tenantId || "smmplan"}. Skipping live check.`);
+      continue;
+    }
+    if (!authHeader) {
+      log21.warn(`Payment ${payment.id} tenant ${payment.tenantId || "smmplan"} missing YooKassa keys. Skipping.`);
+      continue;
+    }
     try {
-      log21.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId})...`);
+      log21.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId}, Tenant: ${payment.tenantId})...`);
       const response = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
         method: "GET",
         headers: {
@@ -163017,6 +163254,7 @@ var LedgerReconciliationService = class {
         totalSpent: true,
         isActive: true,
         role: true,
+        tenantId: true,
         createdAt: true
       }
     });
@@ -163024,7 +163262,10 @@ var LedgerReconciliationService = class {
       throw new Error(`\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C \u0441 ID ${userId} \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D`);
     }
     const entries = await db.ledgerEntry.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...user.tenantId ? { tenantId: user.tenantId } : {}
+      },
       orderBy: [
         { createdAt: "asc" },
         { id: "asc" }
@@ -163087,7 +163328,11 @@ var LedgerReconciliationService = class {
         const freshUser = await tx.user.findUniqueOrThrow({ where: { id: userId } });
         const ledgerAgg = await tx.ledgerEntry.aggregate({
           _sum: { amount: true },
-          where: { userId, status: "APPROVED" }
+          where: {
+            userId,
+            status: "APPROVED",
+            ...freshUser.tenantId ? { tenantId: freshUser.tenantId } : {}
+          }
         });
         const ledgerSum = ledgerAgg._sum.amount ?? BigInt(0);
         const diff = freshUser.balance - ledgerSum;

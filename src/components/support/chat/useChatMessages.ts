@@ -25,6 +25,7 @@ export interface Message {
     createdAt: string;
   }>;
   orderId?: string | null;
+  telegramMsgId?: string | null;
   order?: {
     id: string;
     numericId?: number;

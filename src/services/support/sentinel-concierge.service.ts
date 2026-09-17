@@ -48,7 +48,19 @@ export class SentinelConciergeService {
 
       // Dispatches client-facing message if telegram is connected
       if (order.user.telegramId) {
-        const token = process.env.TELEGRAM_BOT_TOKEN;
+        let token: string | null = null;
+        try {
+          const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
+          token = await BotSettingsService.getBotToken(order.tenantId || 'smmplan');
+        } catch { /* ignore */ }
+
+        if (!token) {
+          const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+          if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
+            token = envToken;
+          }
+        }
+
         if (token) {
           const escapeHtml = (text: string) =>
             text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

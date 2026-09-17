@@ -101,8 +101,10 @@ async function getBotToken(targetTenantId?: string): Promise<string | null> {
   } catch {
     // audit-ignore: token retrieval from vault is best-effort fallback
   }
-  let token = process.env.TELEGRAM_BOT_TOKEN;
-  if (token && token !== 'dummy_token' && tenantId === 'smmplan') return token;
+  const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token' && tenantId === 'smmplan') {
+    return envToken;
+  }
   return null;
 }
 
@@ -1547,6 +1549,18 @@ export async function updateTelegramBotSettingsAction(formData: FormData) {
       where: { id: tenantId },
       data: dataToUpdate,
     });
+
+    try {
+      const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
+      BotSettingsService.invalidate(tenantId);
+    } catch { /* ignore */ }
+
+    try {
+      const { redis } = await import('@/lib/redis');
+      await redis.publish('bot:reload', JSON.stringify({ tenantId, timestamp: Date.now() }));
+    } catch (rErr) {
+      console.warn('[updateTelegramBotSettingsAction] Redis publish bot:reload failed:', rErr);
+    }
 
     const ipAddress = await getClientIp();
     await auditAdminAwaitable({

@@ -357,7 +357,7 @@ class AdminTicketService {
     historicalTickets.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     // Map Message DTO helper
-    const mapMessage = (m: Record<string, unknown> & { id: string; sender: string; text: string; mediaUrl?: string | null; mediaType?: string | null; createdAt: Date; isDeleted?: boolean; isEdited?: boolean; originalText?: string | null; orderId?: string | null; order?: { id: string; numericId: number; status: string; charge: bigint | number; createdAt: Date; service?: { name: string } | null } | null; replyTo?: { id: string; text: string; sender: string } | null; attachments?: Array<{ id: string; url: string; type: string; mimeType?: string | null; name?: string | null; size?: number | null; createdAt: Date }> }, isHistorical = false, histTicketId?: string, histSubject?: string) => ({
+    const mapMessage = (m: Record<string, unknown> & { id: string; sender: string; text: string; mediaUrl?: string | null; mediaType?: string | null; createdAt: Date; isDeleted?: boolean; isEdited?: boolean; originalText?: string | null; orderId?: string | null; telegramMsgId?: string | null; order?: { id: string; numericId: number; status: string; charge: bigint | number; createdAt: Date; service?: { name: string } | null } | null; replyTo?: { id: string; text: string; sender: string } | null; attachments?: Array<{ id: string; url: string; type: string; mimeType?: string | null; name?: string | null; size?: number | null; createdAt: Date }> }, isHistorical = false, histTicketId?: string, histSubject?: string) => ({
       id: m.id,
       sender: m.sender,
       text: m.text,
@@ -368,6 +368,7 @@ class AdminTicketService {
       isEdited: m.isEdited,
       originalText: m.originalText,
       orderId: m.orderId,
+      telegramMsgId: (m.telegramMsgId as string | null | undefined) ?? null,
       order: m.order ? {
         id: m.order.id,
         numericId: m.order.numericId,

@@ -13,7 +13,7 @@ interface ChatWindowProps {
   initialMessages: Message[];
   isStaff?: boolean;
   initialTemplates?: SupportTemplateDTO[];
-  onSendMessage: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
+  onSendMessage: (formData: FormData) => Promise<{ success: boolean; error?: string; warning?: string } | void>;
   editTicketMessage?: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
   deleteTicketMessage?: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
   initialNextCursor?: string | null;

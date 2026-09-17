@@ -67,6 +67,25 @@ export class BotSettingsService {
   }
 
   /**
+   * Get decrypted Telegram Bot Token configured in the Admin Panel (Authoritative Source of Truth)
+   */
+  static async getBotToken(tenantId: string = 'smmplan'): Promise<string | null> {
+    const settings = await this.getSettings(tenantId);
+    if (!settings?.telegramBotToken) return null;
+
+    try {
+      const { decrypt } = await import('@/lib/crypto/encryption');
+      const decrypted = decrypt(settings.telegramBotToken);
+      if (decrypted && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(decrypted.trim())) {
+        return decrypted.trim();
+      }
+    } catch (err) {
+      console.error(`[BotSettingsService] Failed to decrypt bot token for ${tenantId}:`, err);
+    }
+    return null;
+  }
+
+  /**
    * Get active menu buttons configured in the Admin Panel
    */
   static async getMenuButtons(tenantId: string = 'smmplan'): Promise<TelegramMenuButton[]> {

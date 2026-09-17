@@ -379,6 +379,15 @@ export async function updateGlobalSettings(formData: FormData) {
 
     // 2. Telegram Bot Alert (HIGH)
     if (changedTgKeys.length > 0) {
+      try {
+        const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
+        BotSettingsService.invalidate(activeTenantId);
+      } catch { /* ignore */ }
+      try {
+        const { redis } = await import('@/lib/redis');
+        await redis.publish('bot:reload', JSON.stringify({ tenantId: activeTenantId, timestamp: Date.now() }));
+      } catch { /* ignore */ }
+
       const newBotUsername = dataToUpdate.contactTelegramBot ? `@${String(dataToUpdate.contactTelegramBot).replace('@', '')}` : 'Отвязан/Сброшен';
       sendAdminAlert(
         `⚠️ <b>ИЗМЕНЕНИЕ НАСТРОЕК TELEGRAM-БОТА</b>\n` +
@@ -623,11 +632,27 @@ export async function testGeminiAiConnectionAction(apiKey?: string, proxy?: stri
   });
 }
 
-export async function testTelegramBotConnectionAction() {
+export async function testTelegramBotConnectionAction(targetTenantId?: string) {
   return requireStaffPermission('settings', 'view', async () => {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (!token || token === 'dummy_token') {
-      return { success: false, message: 'TELEGRAM_BOT_TOKEN не задан в .env' };
+    const tenantId = targetTenantId || 'smmplan';
+    let token: string | null = null;
+    try {
+      const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
+      token = await BotSettingsService.getBotToken(tenantId);
+    } catch { /* ignore */ }
+
+    if (!token) {
+      const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+      if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
+        token = envToken;
+      }
+    }
+
+    if (!token) {
+      return { 
+        success: false, 
+        message: `Токен Telegram-бота для бренда ${tenantId === 'flux' ? 'SMMflux' : 'SMMplan'} не настроен в админ-панели` 
+      };
     }
 
     try {
