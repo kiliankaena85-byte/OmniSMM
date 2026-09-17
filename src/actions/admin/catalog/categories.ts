@@ -221,7 +221,7 @@ export async function hideCategoryAndServicesAction(categoryId: string) {
     }
 
     await db.service.updateMany({
-      where: { categoryId: id, tenantId: category.tenantId },
+      where: { categoryId: id },
       data: { isActive: false }
     });
 
@@ -299,11 +299,19 @@ export async function mergeCategoriesAction(sourceCategoryId: string, targetCate
     await db.$transaction(async (tx) => {
       // 1. Move all services from source to target
       await tx.service.updateMany({
-        where: { categoryId: sourceCategoryId, tenantId: sourceCat.tenantId },
+        where: { categoryId: sourceCategoryId },
         data: { categoryId: targetCategoryId }
       });
 
-      // 2. Delete source category
+      // 2. If source had tenantId 'all' and target was single-tenant, upgrade target to 'all'
+      if (sourceCat.tenantId === 'all' && targetCat.tenantId !== 'all') {
+        await tx.category.update({
+          where: { id: targetCategoryId },
+          data: { tenantId: 'all' }
+        });
+      }
+
+      // 3. Delete source category
       await tx.category.delete({
         where: { id: sourceCategoryId }
       });
@@ -367,7 +375,7 @@ export async function createNetworkAction(rawData: { name: string; slug: string;
       }
     });
     if (existing) {
-      return { success: false as const, error: 'Соцсеть с таким названием или slug уже существует' };
+      return { success: false as const, error: 'Сеть с таким названием или slug уже существует' };
     }
 
     const network = await db.network.create({
@@ -433,7 +441,7 @@ export async function updateNetworkAction(id: string, rawData: { name: string; s
       }
     });
     if (existing) {
-      return { success: false as const, error: 'Соцсеть с таким названием или slug уже существует' };
+      return { success: false as const, error: 'Сеть с таким названием или slug уже существует' };
     }
 
     const updated = await db.network.update({
@@ -485,7 +493,7 @@ export async function deleteNetworkAction(id: string) {
     if (categoryCount > 0) {
       return {
         success: false as const,
-        error: `Невозможно удалить соцсеть. Она содержит ${categoryCount} категорий. Удалите или переместите их сначала.`
+        error: `Невозможно удалить сеть. Она содержит ${categoryCount} категорий. Удалите или переместите их сначала.`
       };
     }
 

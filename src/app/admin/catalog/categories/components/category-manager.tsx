@@ -75,22 +75,28 @@ interface CategoryItem {
   icon?: string | null;
   network?: NetworkItem | null;
   _count: { services: number };
+  tenantServicesCount?: number;
+  globalServicesCount?: number;
+  otherTenantsCount?: number;
+  otherTenantsLabel?: string;
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
 export function CategoryManager({ 
   categories, 
-  networks 
+  networks,
+  currentTenant = 'smmplan'
 }: { 
   categories: CategoryItem[]; 
   networks: NetworkItem[]; 
+  currentTenant?: string;
 }) {
   const router = useRouter();
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNetworkFilter, setSelectedNetworkFilter] = useState("ALL");
-  const [emptyFilter, setEmptyFilter] = useState<'ALL' | 'WITH_SERVICES' | 'EMPTY'>('ALL');
+  const [emptyFilter, setEmptyFilter] = useState<'ALL' | 'WITH_SERVICES' | 'OTHER_TENANTS' | 'EMPTY'>('ALL');
 
   // Modals state
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
@@ -130,14 +136,41 @@ export function CategoryManager({
   const [isMergePending, startMergeTransition] = useTransition();
   const [isCleanupPending, startCleanupTransition] = useTransition();
 
-  const emptyCategoriesCount = useMemo(() => {
-    return categories.filter(c => (c._count?.services || 0) === 0).length;
+  const currentTenantLabel = useMemo(() => {
+    if (currentTenant === 'flux') return 'SMMflux';
+    if (currentTenant === 'smmplan') return 'SMMplan';
+    if (currentTenant === 'all') return 'Все проекты';
+    return currentTenant;
+  }, [currentTenant]);
+
+  // Truly empty categories (0 services globally across all tenants/archive)
+  const trulyEmptyCategoriesCount = useMemo(() => {
+    return categories.filter(c => (c.globalServicesCount ?? c._count?.services ?? 0) === 0).length;
   }, [categories]);
 
-  const selectedNetworkEmptyCount = useMemo(() => {
-    if (selectedNetworkFilter === 'ALL') return emptyCategoriesCount;
-    return categories.filter(c => c.networkId === selectedNetworkFilter && (c._count?.services || 0) === 0).length;
-  }, [categories, selectedNetworkFilter, emptyCategoriesCount]);
+  const selectedNetworkTrulyEmptyCount = useMemo(() => {
+    if (selectedNetworkFilter === 'ALL') return trulyEmptyCategoriesCount;
+    return categories.filter(c => 
+      c.networkId === selectedNetworkFilter && 
+      (c.globalServicesCount ?? c._count?.services ?? 0) === 0
+    ).length;
+  }, [categories, selectedNetworkFilter, trulyEmptyCategoriesCount]);
+
+  const activeTrulyEmptyCount = useMemo(() => {
+    return selectedNetworkFilter === 'ALL' ? trulyEmptyCategoriesCount : selectedNetworkTrulyEmptyCount;
+  }, [selectedNetworkFilter, trulyEmptyCategoriesCount, selectedNetworkTrulyEmptyCount]);
+
+  // Categories with 0 active services on current tenant, but populated on other tenants or archive
+  const otherTenantsCategoriesCount = useMemo(() => {
+    return categories.filter(c => 
+      (c.tenantServicesCount ?? c._count?.services ?? 0) === 0 && 
+      (c.globalServicesCount ?? 0) > 0
+    ).length;
+  }, [categories]);
+
+  const withServicesCount = useMemo(() => {
+    return categories.filter(c => (c.tenantServicesCount ?? c._count?.services ?? 0) > 0).length;
+  }, [categories]);
 
   const sourceCat = useMemo(() => categories.find(c => c.id === sourceCatId), [categories, sourceCatId]);
   const targetCat = useMemo(() => categories.find(c => c.id === targetCatId), [categories, targetCatId]);
@@ -146,12 +179,18 @@ export function CategoryManager({
   const filteredCategories = useMemo(() => {
     return categories.filter(c => {
       const matchNetwork = selectedNetworkFilter === "ALL" || c.networkId === selectedNetworkFilter;
-      const count = c._count?.services || 0;
-      const matchEmpty = emptyFilter === "ALL" 
-        ? true 
-        : emptyFilter === "WITH_SERVICES" 
-          ? count > 0 
-          : count === 0;
+      const tenantCount = c.tenantServicesCount ?? c._count?.services ?? 0;
+      const globalCount = c.globalServicesCount ?? c._count?.services ?? 0;
+
+      let matchEmpty = true;
+      if (emptyFilter === 'WITH_SERVICES') {
+        matchEmpty = tenantCount > 0;
+      } else if (emptyFilter === 'OTHER_TENANTS') {
+        matchEmpty = tenantCount === 0 && globalCount > 0;
+      } else if (emptyFilter === 'EMPTY') {
+        matchEmpty = globalCount === 0;
+      }
+
       const matchQuery = !searchQuery.trim() || 
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         c.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -379,15 +418,27 @@ export function CategoryManager({
           <span className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg border border-border/50">
             {networks.length} соцсетей · {categories.length} категорий
           </span>
-          {emptyCategoriesCount > 0 && (
+          {trulyEmptyCategoriesCount > 0 && (
             <span className="text-xs font-mono font-bold text-destructive bg-destructive/10 px-2.5 py-1 rounded-lg border border-destructive/25">
-              Пустых: {emptyCategoriesCount}
+              Без услуг: {trulyEmptyCategoriesCount}
+            </span>
+          )}
+          {otherTenantsCategoriesCount > 0 && (
+            <span 
+              className="text-xs font-mono font-bold text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/25"
+              title={
+                currentTenant === 'all'
+                  ? 'Категории, содержащие только скрытые или архивные услуги'
+                  : `Категории без активных услуг на ${currentTenantLabel}, но содержащие услуги в других проектах или архиве`
+              }
+            >
+              {currentTenant === 'all' ? `Скрытые / архив: ${otherTenantsCategoriesCount}` : `В других проектах: ${otherTenantsCategoriesCount}`}
             </span>
           )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {emptyCategoriesCount > 0 && (
+          {activeTrulyEmptyCount > 0 && (
             <Button
               intent="destructive"
               size="sm"
@@ -395,7 +446,7 @@ export function CategoryManager({
               className="font-bold h-8.5 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-              Очистить пустые ({selectedNetworkFilter !== 'ALL' && selectedNetworkEmptyCount > 0 ? `${selectedNetworkEmptyCount} в сети` : emptyCategoriesCount})
+              Очистить пустые ({selectedNetworkFilter !== 'ALL' ? `${activeTrulyEmptyCount} в сети` : activeTrulyEmptyCount})
             </Button>
           )}
 
@@ -475,7 +526,7 @@ export function CategoryManager({
           </Select>
         </div>
 
-        {/* Filter chips: Все / С услугами / Пустые */}
+        {/* Filter chips: Все / С услугами / В других проектах / Пустые */}
         <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-xl border border-border/50 text-xs">
           <button
             onClick={() => setEmptyFilter('ALL')}
@@ -491,16 +542,33 @@ export function CategoryManager({
               emptyFilter === 'WITH_SERVICES' ? 'bg-background text-primary shadow-xs' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            С услугами ({categories.length - emptyCategoriesCount})
+            С услугами ({withServicesCount})
           </button>
-          <button
-            onClick={() => setEmptyFilter('EMPTY')}
-            className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1 ${
-              emptyFilter === 'EMPTY' ? 'bg-destructive/15 text-destructive font-black shadow-xs' : 'text-muted-foreground hover:text-destructive'
-            }`}
-          >
-            Пустые ({emptyCategoriesCount})
-          </button>
+          {otherTenantsCategoriesCount > 0 && (
+            <button
+              onClick={() => setEmptyFilter('OTHER_TENANTS')}
+              title={
+                currentTenant === 'all'
+                  ? 'Категории, содержащие только скрытые или архивные услуги'
+                  : `Категории без активных услуг на ${currentTenantLabel}, но содержащие услуги в других проектах или архиве`
+              }
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1 ${
+                emptyFilter === 'OTHER_TENANTS' ? 'bg-sky-500/15 text-sky-500 font-black shadow-xs' : 'text-muted-foreground hover:text-sky-500'
+              }`}
+            >
+              {currentTenant === 'all' ? `Скрытые / архив (${otherTenantsCategoriesCount})` : `В других проектах (${otherTenantsCategoriesCount})`}
+            </button>
+          )}
+          {trulyEmptyCategoriesCount > 0 && (
+            <button
+              onClick={() => setEmptyFilter('EMPTY')}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1 ${
+                emptyFilter === 'EMPTY' ? 'bg-destructive/15 text-destructive font-black shadow-xs' : 'text-muted-foreground hover:text-destructive'
+              }`}
+            >
+              Пустые ({trulyEmptyCategoriesCount})
+            </button>
+          )}
         </div>
 
         {(searchQuery || selectedNetworkFilter !== "ALL" || emptyFilter !== "ALL") && (
@@ -601,9 +669,23 @@ export function CategoryManager({
                                 <span className="text-muted-foreground text-xs font-mono font-bold">{c.sort}</span>
                               </Table.Cell>
                               <Table.Cell className="py-3 text-center">
-                                {c._count.services > 0 ? (
-                                  <span className="text-xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-md">
-                                    {c._count.services}
+                                {(c.tenantServicesCount ?? c._count?.services ?? 0) > 0 ? (
+                                  <span 
+                                    className="text-xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-md"
+                                    title={
+                                      (c.globalServicesCount ?? 0) > (c.tenantServicesCount ?? c._count?.services ?? 0)
+                                        ? `${c.tenantServicesCount ?? c._count.services} активных на ${currentTenantLabel}, всего ${c.globalServicesCount} по всем проектам`
+                                        : undefined
+                                    }
+                                  >
+                                    {c.tenantServicesCount ?? c._count.services}
+                                  </span>
+                                ) : (c.globalServicesCount ?? 0) > 0 ? (
+                                  <span 
+                                    className="text-[10px] font-mono font-bold bg-sky-500/10 text-sky-500 border border-sky-500/25 px-2 py-0.5 rounded-md"
+                                    title={c.otherTenantsLabel || `Категория содержит ${c.globalServicesCount} услуг в других проектах или архиве`}
+                                  >
+                                    {c.otherTenantsLabel || `В других проектах (${c.globalServicesCount})`}
                                   </span>
                                 ) : (
                                   <span className="text-[10px] font-mono font-bold bg-destructive/10 text-destructive border border-destructive/25 px-2 py-0.5 rounded-md">
@@ -638,9 +720,15 @@ export function CategoryManager({
                                       setCategoryToDelete(c);
                                       setDeleteConfirmOpen(true);
                                     }}
-                                    title={c._count.services === 0 ? "Удалить пустую категорию" : "Удалить категорию"}
+                                    title={
+                                      (c.globalServicesCount ?? c._count?.services ?? 0) === 0
+                                        ? "Удалить пустую категорию"
+                                        : (c.tenantServicesCount ?? c._count?.services ?? 0) === 0
+                                          ? `Категория содержит ${c.globalServicesCount} услуг в других проектах или архиве`
+                                          : "Удалить категорию"
+                                    }
                                     className={`p-1.5 rounded-lg border transition-all duration-150 cursor-pointer ${
-                                      c._count.services === 0
+                                      (c.globalServicesCount ?? c._count?.services ?? 0) === 0
                                         ? "border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 hover:border-destructive"
                                         : "border-border/60 hover:border-destructive/50 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     }`}
@@ -1096,7 +1184,24 @@ export function CategoryManager({
         confirmText="Удалить"
         cancelText="Отмена"
       >
-        Вы действительно хотите удалить категорию «{categoryToDelete?.name}»? Все услуги этой категории должны быть предварительно удалены или перенесены.
+        {categoryToDelete && (categoryToDelete.globalServicesCount ?? categoryToDelete._count?.services ?? 0) > 0 ? (
+          <div className="space-y-2 text-xs">
+            <p className="text-foreground">
+              Категория «<strong>{categoryToDelete.name}</strong>» содержит{" "}
+              <strong className="text-destructive">
+                {categoryToDelete.globalServicesCount ?? categoryToDelete._count?.services}
+              </strong>{" "}
+              услуг ({categoryToDelete.otherTenantsLabel || "активных, скрытых или в других проектах"}).
+            </p>
+            <p className="text-muted-foreground">
+              Прямое удаление невозможно. Чтобы удалить эту категорию, сначала объедините её с другой категорией или удалите все её услуги.
+            </p>
+          </div>
+        ) : (
+          <span>
+            Вы действительно хотите удалить категорию «{categoryToDelete?.name}»? Это действие необратимо.
+          </span>
+        )}
       </ConfirmModal>
 
       {/* Bulk Cleanup Empty Categories Confirm Modal */}
@@ -1109,13 +1214,13 @@ export function CategoryManager({
         confirmText={isCleanupPending ? "Удаление..." : "Удалить пустые"}
         cancelText="Отмена"
       >
-        {selectedNetworkFilter !== 'ALL' && selectedNetworkEmptyCount > 0 ? (
+        {selectedNetworkFilter !== 'ALL' ? (
           <span>
-            Вы действительно хотите удалить <strong>{selectedNetworkEmptyCount}</strong> пустых категорий без услуг в выбранной соцсети? Это действие необратимо.
+            Вы действительно хотите удалить <strong>{activeTrulyEmptyCount}</strong> пустых категорий без услуг в выбранной соцсети? Это действие необратимо.
           </span>
         ) : (
           <span>
-            Вы действительно хотите удалить все <strong>{emptyCategoriesCount}</strong> пустых категорий без услуг по всему каталогу? Это действие необратимо.
+            Вы действительно хотите удалить все <strong>{activeTrulyEmptyCount}</strong> пустых категорий без услуг по всему каталогу? Это действие необратимо.
           </span>
         )}
       </ConfirmModal>

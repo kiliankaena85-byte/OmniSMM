@@ -35,11 +35,11 @@ export default async function CategoriesAdminPage({ searchParams }: Props) {
   const effectiveParamTenant = params.tenant || cookieTenant;
 
   const resolvedTenant = resolveAdminTenantContext(user as unknown as import('@prisma/client').User, effectiveParamTenant);
-  const selectedTenant = resolvedTenant !== 'all' ? resolvedTenant : (headerTenant || 'smmplan');
-  const tenantFilter = selectedTenant ? { in: [selectedTenant, 'all'] } : undefined;
+  const selectedTenant = resolvedTenant || headerTenant || 'smmplan';
+  const isGlobalTenant = selectedTenant === 'all';
 
-  const categories = await db.category.findMany({
-    where: selectedTenant ? { tenantId: { in: [selectedTenant, 'all'] } } : undefined,
+  const categoriesRaw = await db.category.findMany({
+    where: !isGlobalTenant ? { tenantId: { in: [selectedTenant, 'all'] } } : undefined,
     orderBy: [
       { network: { slug: 'asc' } },
       { sort: 'asc' }
@@ -48,15 +48,63 @@ export default async function CategoriesAdminPage({ searchParams }: Props) {
       network: true,
       _count: {
         select: {
-          services: {
-            where: {
-              isActive: true,
-              ...(tenantFilter ? { tenantId: tenantFilter } : {})
-            }
-          }
+          services: true
         }
       }
     }
+  });
+
+  const serviceStats = await db.service.groupBy({
+    by: ['categoryId', 'tenantId', 'isActive'],
+    _count: {
+      _all: true
+    }
+  });
+
+  const categories = categoriesRaw.map(c => {
+    const catStats = serviceStats.filter(s => s.categoryId === c.id);
+    
+    // Active services on current tenant (or all active if isGlobalTenant)
+    const tenantServicesCount = catStats
+      .filter(s => s.isActive && (isGlobalTenant || s.tenantId === selectedTenant || (!s.tenantId && selectedTenant === 'smmplan') || s.tenantId === 'all'))
+      .reduce((acc, s) => acc + s._count._all, 0);
+
+    const globalServicesCount = c._count.services;
+
+    // Services on other tenants (active)
+    const otherTenantsActiveCount = catStats
+      .filter(s => s.isActive && !isGlobalTenant && (s.tenantId || 'smmplan') !== selectedTenant && s.tenantId !== 'all')
+      .reduce((acc, s) => acc + s._count._all, 0);
+
+    let otherTenantsLabel = '';
+    if (otherTenantsActiveCount > 0) {
+      const otherTenants = Array.from(new Set(
+        catStats
+          .filter(s => s.isActive && !isGlobalTenant && (s.tenantId || 'smmplan') !== selectedTenant && s.tenantId !== 'all')
+          .map(s => s.tenantId || 'smmplan')
+      ));
+      if (otherTenants.length === 1 && otherTenants[0] === 'flux') {
+        otherTenantsLabel = `Только во Flux (${otherTenantsActiveCount})`;
+      } else if (otherTenants.length === 1 && otherTenants[0] === 'smmplan') {
+        otherTenantsLabel = `Только в SMMplan (${otherTenantsActiveCount})`;
+      } else {
+        otherTenantsLabel = `В других проектах (${otherTenantsActiveCount})`;
+      }
+    } else if (globalServicesCount > tenantServicesCount) {
+      const inactiveCount = globalServicesCount - tenantServicesCount;
+      otherTenantsLabel = `Скрытые / архив (${inactiveCount})`;
+    }
+
+    return {
+      ...c,
+      tenantServicesCount,
+      globalServicesCount,
+      otherTenantsCount: Math.max(0, globalServicesCount - tenantServicesCount),
+      otherTenantsLabel,
+      _count: {
+        services: tenantServicesCount
+      }
+    };
   });
 
   const networks = await db.network.findMany({ orderBy: { sort: 'asc' } });
@@ -72,7 +120,7 @@ export default async function CategoriesAdminPage({ searchParams }: Props) {
         onboarding={ONBOARDING_CONFIGS.catalog}
       />
 
-      <CategoryManager categories={categories} networks={networks} />
+      <CategoryManager categories={categories} networks={networks} currentTenant={selectedTenant} />
     </div>
   );
 }

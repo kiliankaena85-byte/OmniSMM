@@ -247,6 +247,42 @@ describe.sequential('Milestone 5: Catalog CRUD & Categories Operations Test Suit
       expect(revalidateTag).toHaveBeenCalledWith('services', expect.anything());
     });
 
+    it('should successfully merge source category with tenantId "all" into single-tenant target and upgrade target to "all"', async () => {
+      vi.mocked(verifySession).mockResolvedValue({ userId: adminUser.id });
+
+      const network = await db.network.upsert({
+        where: { slug: 'telegram' },
+        update: {},
+        create: { name: 'Telegram', slug: 'telegram' },
+      });
+      const catAll = await db.category.create({
+        data: { name: 'Global Category', networkId: network.id, tenantId: 'all' },
+      });
+      const catPlan = await db.category.create({
+        data: { name: 'SMMplan Category', networkId: network.id, tenantId: 'smmplan' },
+      });
+
+      // Service with tenantId 'flux' inside catAll
+      const s1 = await db.service.create({
+        data: { name: 'Flux Service in All Category', categoryId: catAll.id, tenantId: 'flux', rate: 1.0, markup: 2.0 },
+      });
+
+      const result = await mergeCategoriesAction(catAll.id, catPlan.id);
+      expect(result.success).toBe(true);
+
+      // Verify service moved to catPlan
+      const updatedS1 = await db.service.findUnique({ where: { id: s1.id } });
+      expect(updatedS1!.categoryId).toBe(catPlan.id);
+
+      // Verify catPlan was upgraded to 'all'
+      const updatedCatPlan = await db.category.findUnique({ where: { id: catPlan.id } });
+      expect(updatedCatPlan!.tenantId).toBe('all');
+
+      // Verify source category deleted
+      const deletedCat = await db.category.findUnique({ where: { id: catAll.id } });
+      expect(deletedCat).toBeNull();
+    });
+
     it('should fail if source and target category IDs are same', async () => {
       vi.mocked(verifySession).mockResolvedValue({ userId: adminUser.id });
 
@@ -403,6 +439,25 @@ describe.sequential('Milestone 5: Catalog CRUD & Categories Operations Test Suit
       });
       await db.service.create({
         data: { name: 'YT Views 100k', categoryId: cat.id, rate: 1.0, markup: 2.0 },
+      });
+
+      const result = await deleteCategory(cat.id);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Невозможно удалить. Категория содержит 1 скрытых услуг или услуг из других проектов.');
+    });
+
+    it('should reject category deletion if it contains only services on another tenant', async () => {
+      vi.mocked(verifySession).mockResolvedValue({ userId: adminUser.id });
+
+      const network = await db.network.create({
+        data: { name: 'TikTok', slug: 'tiktok' },
+      });
+      const cat = await db.category.create({
+        data: { name: 'TikTok Подписчики', networkId: network.id, tenantId: 'smmplan' },
+      });
+      // Service belongs to 'flux'
+      await db.service.create({
+        data: { name: 'TT Followers Global', categoryId: cat.id, tenantId: 'flux', rate: 1.0, markup: 2.0 },
       });
 
       const result = await deleteCategory(cat.id);

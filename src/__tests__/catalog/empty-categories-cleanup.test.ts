@@ -93,4 +93,19 @@ describe('Empty Categories Cleanup Action & Sanitation (No Ghost Taxonomy)', () 
       select: { id: true, name: true, networkId: true, tenantId: true },
     });
   });
+
+  it('enforces services: { none: {} } invariant so cross-tenant populated categories are never targeted', async () => {
+    vi.mocked(db.category.findMany).mockResolvedValueOnce([]);
+
+    await cleanupEmptyCategoriesAction();
+
+    // Verify the query strictly looks for categories where services has { none: {} }
+    expect(db.category.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          services: { none: {} },
+        }),
+      })
+    );
+  });
 });
