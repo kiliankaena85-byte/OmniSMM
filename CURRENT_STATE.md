@@ -1,3 +1,12 @@
+- [x] ⚡ [ROBOKASSA-54FZ-FISCAL-RECEIPT-EMAIL-2026] Добавление контакта покупателя (email) в фискальный чек 54-ФЗ и URL параметры Робокассы (100% COMPLETE & VERIFIED):
+  * 💳 **Фискализация 54-ФЗ в RobokassaGateway (`src/services/financial/payment-gateway.service.ts`):**
+    - В объекте `receipt` добавлен блок `client: { email: cleanEmail }`, гарантирующий отправку чека покупателю ОФД согласно требованиям ст. 1.2 Федерального закона № 54-ФЗ.
+    - В query-параметры `queryParams` добавлено дублирование `Email: cleanEmail`, если email передан клиентом.
+    - При отсутствии email блок `client` безопасно опускается, предотвращая ошибки валидации схемы шлюза.
+  * 🧪 **Верификация:**
+    - Сквозные юнит-тесты в `src/__tests__/financial/payment-e2e-and-gateway-filtering.test.ts` (8/8 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Изменения зафиксированы и запушены в `origin/main` (коммит `c7ae76ad`).
 - [x] ⚡ [TELEGRAM-BOT-DAEMON-AND-DELIVERY-STABILITY-2026] Устранение сбоев запуска демона Long Polling и двусторонней доставки сообщений Telegram-бота (100% COMPLETE & VERIFIED):
   * 🤖 **Устранение первопричин остановки демона и сбоев доставки:**
     - В `docker-compose.yml`: в сервисе `bot` явно переопределен параметр `SKIP_BOT=false`, предотвращая наследование `SKIP_BOT="true"` из `.env`, из-за которого бот-контейнер не запускал Long Polling.
