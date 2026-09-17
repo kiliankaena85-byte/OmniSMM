@@ -9,6 +9,7 @@ interface FinancialMetrics {
   gatewayFees: number; // Комиссии шлюзов (ЮKassa, CryptoBot)
   revenueNet: number; // Выручка минус возвраты и комиссии шлюзов
   marginGross: number; // Net Revenue - COGS
+  ebitda: number; // EBITDA = Gross Margin - OPEX
   taxes: number;
   opex: number;
   profitNet: number; // Margin - Taxes - OPEX
@@ -182,26 +183,47 @@ class AccountingService {
     const opex = settings?.opexMonthly || 0.0;
     const usnScheme = settings?.usnScheme ?? 'INCOME_EXPENSES';
 
-    // Calculate dynamic tax rate based on annual revenue of current calendar year
+    // Calculate dynamic tax rate based on annual revenue of current calendar year (deducting REFUNDs)
     const currentYear = new Date().getFullYear();
-    const annualRevenue = await db.payment.aggregate({
-      _sum: { amount: true },
-      where: {
-        status: 'SUCCEEDED',
-        ...(isSingleTenant ? { tenantId } : {}),
-        createdAt: {
-          gte: new Date(currentYear, 0, 1),
-          lte: new Date(currentYear, 11, 31, 23, 59, 59, 999)
-        }
-      }
-    }).then(res => Number(res._sum.amount || 0));
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
 
-    // Threshold is 20 million rubles (2,000,000,000 cents)
+    const [annualPayments, annualRefunds] = await Promise.all([
+      db.payment.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: 'SUCCEEDED',
+          ...(isSingleTenant ? { tenantId } : {}),
+          createdAt: {
+            gte: startOfYear,
+            lte: endOfYear
+          }
+        }
+      }),
+      db.ledgerEntry ? db.ledgerEntry.aggregate({
+        _sum: { amount: true },
+        where: {
+          transactionType: 'REFUND',
+          ...(isSingleTenant ? { tenantId } : {}),
+          createdAt: {
+            gte: startOfYear,
+            lte: endOfYear
+          }
+        }
+      }).catch(() => ({ _sum: { amount: BigInt(0) } })) : Promise.resolve({ _sum: { amount: BigInt(0) } })
+    ]);
+
+    const grossAnnual = Number(annualPayments._sum.amount || 0);
+    const refundAnnual = Number(annualRefunds?._sum?.amount || 0);
+    const annualRevenue = Math.max(0, grossAnnual - refundAnnual);
+
+    // Threshold is 20 million rubles (2,000,000,000 cents) (п. 1 ст. 145 НК РФ)
     const isVatThresholdExceeded = annualRevenue >= 2000000000;
     
-    // If threshold is exceeded, add special 5% VAT rate to base tax rate
-    const effectiveTaxRate = isVatThresholdExceeded ? baseTaxRate + 5.0 : baseTaxRate;
+    // Under 2026 tax reform (ФЗ № 425-ФЗ), VAT rate upon exceeding 20M limit is 22% (п. 3 ст. 164 НК РФ)
+    const effectiveTaxRate = isVatThresholdExceeded ? baseTaxRate + 22.0 : baseTaxRate;
 
+    const ebitda = Math.round(marginGross - opex);
     const taxes = usnScheme === 'INCOME'
       ? Math.round((revenueGross > 0 ? revenueGross : 0) * (effectiveTaxRate / 100))
       : Math.round((marginGross > 0 ? marginGross : 0) * (effectiveTaxRate / 100));
@@ -215,6 +237,7 @@ class AccountingService {
       revenueNet,
       cogs,
       marginGross,
+      ebitda,
       taxes,
       opex,
       profitNet,

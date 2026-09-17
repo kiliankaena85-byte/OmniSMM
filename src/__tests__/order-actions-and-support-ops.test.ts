@@ -187,7 +187,7 @@ describe('Order Management & Support Actions — Comprehensive E2E Suite', () =>
       expect(userAfter.balance).toBe(userBefore.balance);
     });
 
-    it('rejects cancellation on terminal COMPLETED orders', async () => {
+    it('allows admin cancellation and full refund on COMPLETED orders (SPEC-2026-09-16)', async () => {
       const order = await db.order.create({
         data: {
           numericId: Math.floor((Date.now() + 3) % 1000000),
@@ -195,6 +195,33 @@ describe('Order Management & Support Actions — Comprehensive E2E Suite', () =>
           serviceId: testServiceId,
           providerId: testProviderId,
           status: 'COMPLETED',
+          quantity: 100,
+          remains: 0,
+          charge: BigInt(5000),
+          providerCost: BigInt(1500),
+          link: 'https://t.me/durov',
+          tenantId: 'smmplan',
+        }
+      });
+
+      const res = await adminOrderService.cancelOrder(order.id, {
+        id: testUserId,
+        email: 'admin@smmplan.pro',
+      });
+      expect(res.refundCents).toBe(5000);
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.status).toBe('CANCELED');
+    });
+
+    it('rejects cancellation on terminal CANCELED orders', async () => {
+      const order = await db.order.create({
+        data: {
+          numericId: Math.floor((Date.now() + 4) % 1000000),
+          userId: testUserId,
+          serviceId: testServiceId,
+          providerId: testProviderId,
+          status: 'CANCELED',
           quantity: 100,
           remains: 0,
           charge: BigInt(5000),

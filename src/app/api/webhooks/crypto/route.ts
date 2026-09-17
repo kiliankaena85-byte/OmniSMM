@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { paymentService } from '@/services/financial/payment.service';
 import { SettingsManager } from '@/lib/settings';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
+import { MutexManager } from '@/lib/redis-lock';
 
 const MAX_BODY_SIZE = 1024 * 64; // 64KB
 
@@ -111,6 +112,26 @@ export async function POST(request: NextRequest) {
        return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
     
+    // --- ANTI-REPLAY GUARD (NIST SP 800-63B / PCI DSS v4.0.1) ---
+    const updateId = data.update_id;
+    if (updateId !== undefined && updateId !== null) {
+      try {
+        const { redis } = await import('@/lib/redis');
+        const replayKey = `webhook:crypto:event:${updateId}`;
+        const isNew = await redis.set(replayKey, '1', 'EX', 86400, 'NX');
+        if (!isNew) {
+          console.info(`[CryptoBot Webhook] Idempotent duplicate event bypassed: ${updateId}`);
+          return NextResponse.json({ ok: true, duplicate: true });
+        }
+      } catch (redisErr) {
+        if (process.env.NODE_ENV === 'production') {
+          console.error('[CryptoBot Webhook] Fail-Closed: Redis Anti-Replay Guard unreachable:', redisErr);
+          return NextResponse.json({ error: 'Anti-Replay Guard service unavailable' }, { status: 503 });
+        }
+        console.warn('[CryptoBot Webhook] Dev/test mode: Redis unreachable, proceeding with DB lock.');
+      }
+    }
+
     // Replay protection (30 minutes window)
     const webhookCreatedAt = data.payload?.paid_at || data.payload?.created_at;
     if (webhookCreatedAt) {
@@ -131,7 +152,8 @@ export async function POST(request: NextRequest) {
     if (data.update_type === 'invoice_paid') {
       const invoice = data.payload;
 
-      if (!invoice || typeof invoice.invoice_id !== 'number' || invoice.invoice_id <= 0) {
+      const invoiceIdNum = Number(invoice?.invoice_id);
+      if (!invoice || isNaN(invoiceIdNum) || invoiceIdNum <= 0) {
         console.error('[Crypto Webhook] Invalid or missing invoice_id');
         return NextResponse.json({ error: 'Invalid invoice_id' }, { status: 400 });
       }
@@ -155,52 +177,82 @@ export async function POST(request: NextRequest) {
         paymentId = invoice.payload;
       }
 
-      const payment = await db.payment.findUnique({ where: { id: paymentId } });
-      
-      if (!payment) {
-         console.error(`[Webhook] Payment record not found for payload ${paymentId}`);
-         return NextResponse.json({ error: 'Payment context missing' }, { status: 400 });
-      }
-
-      const currency = String(payment.currency || '').toUpperCase();
-      if (currency !== 'RUB' && currency !== 'USD') {
-        console.error(`[CryptoBot Webhook] Invalid currency: ${currency}`);
-        return NextResponse.json({ error: 'Invalid currency' }, { status: 400 });
-      }
-
       const gatewayId = invoice.invoice_id.toString();
-      
-      // Strict Integer parsing from exact paid_fiat_amount string (no float multiplication!)
-      if (typeof invoice.paid_fiat_amount !== 'string' && typeof invoice.paid_fiat_amount !== 'number') {
-        console.error('[Crypto Webhook] Missing paid_fiat_amount in payload');
-        return NextResponse.json({ error: 'Missing paid_fiat_amount' }, { status: 400 });
+
+      try {
+        const result = await MutexManager.withLock(`webhook_payment_crypto_${gatewayId}`, 15000, 10000, async () => {
+          const payment = await db.payment.findFirst({
+            where: {
+              OR: [
+                ...(paymentId ? [{ id: paymentId }] : []),
+                { gatewayId }
+              ]
+            }
+          });
+          
+          if (!payment) {
+             console.error(`[Webhook] Payment record not found for payload ${paymentId} / gateway ${gatewayId}`);
+             return NextResponse.json({ error: 'Payment context missing' }, { status: 400 });
+          }
+
+          if (payment.status === 'SUCCEEDED') {
+             console.info(`[CryptoBot Webhook] Payment ${payment.id} already processed (idempotency hit)`);
+             return NextResponse.json({ ok: true, duplicate: true });
+          }
+
+          const currency = String(payment.currency || '').toUpperCase();
+          if (currency !== 'RUB' && currency !== 'USD') {
+            console.error(`[CryptoBot Webhook] Invalid currency: ${currency}`);
+            return NextResponse.json({ error: 'Invalid currency' }, { status: 400 });
+          }
+
+          // Strict Integer parsing from exact paid_fiat_amount string (no float multiplication!)
+          if (typeof invoice.paid_fiat_amount !== 'string' && typeof invoice.paid_fiat_amount !== 'number') {
+            console.error('[Crypto Webhook] Missing paid_fiat_amount in payload');
+            return NextResponse.json({ error: 'Missing paid_fiat_amount' }, { status: 400 });
+          }
+
+          const rawAmountStr = String(invoice.paid_fiat_amount).trim();
+          const amountMatch = /^(\d+)(?:\.(\d{1,2}))?$/.exec(rawAmountStr);
+          if (!amountMatch) {
+            console.error(`[Crypto Webhook] Invalid amount format: ${rawAmountStr}`);
+            return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
+          }
+          const intCents = BigInt(amountMatch[1]) * BigInt(100);
+          const decCents = BigInt((amountMatch[2] || '00').padEnd(2, '0').slice(0, 2));
+          const amount = intCents + decCents;
+
+          const success = await paymentService.confirmPayment(
+            gatewayId, 
+            amount, 
+            payment.userId,
+            isTestMode,
+            'cryptobot',
+            payment.id,
+            metadataType
+          );
+
+          if (!success) {
+             return NextResponse.json({ error: 'Payment double-check validation failed' }, { status: 400 });
+          }
+
+          console.info(`[Webhook] Successfully processed payment ${gatewayId}`);
+          return NextResponse.json({ ok: true });
+        });
+        return result;
+      } catch (lockError) {
+        // Clear anti-replay key on transient lock acquisition timeout so gateway retries can be processed
+        if (updateId !== undefined && updateId !== null) {
+          try {
+            const { redis } = await import('@/lib/redis');
+            await redis.del(`webhook:crypto:event:${updateId}`);
+          } catch {
+            // ignore redis del errors during error handling
+          }
+        }
+        console.error(`[CryptoBot Webhook] Failed to acquire lock for payment ${gatewayId}:`, lockError);
+        return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
       }
-
-      const rawAmountStr = String(invoice.paid_fiat_amount).trim();
-      const amountMatch = /^(\d+)(?:\.(\d{1,2}))?$/.exec(rawAmountStr);
-      if (!amountMatch) {
-        console.error(`[Crypto Webhook] Invalid amount format: ${rawAmountStr}`);
-        return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
-      }
-      const intCents = BigInt(amountMatch[1]) * BigInt(100);
-      const decCents = BigInt((amountMatch[2] || '00').padEnd(2, '0').slice(0, 2));
-      const amount = intCents + decCents;
-
-      const success = await paymentService.confirmPayment(
-        gatewayId, 
-        amount, 
-        payment.userId,
-        isTestMode,
-        'cryptobot',
-        payment.id,
-        metadataType // Теперь 'deposit' будет корректно передан
-      );
-
-      if (!success) {
-         return NextResponse.json({ error: 'Payment double-check validation failed' }, { status: 400 });
-      }
-
-      console.info(`[Webhook] Successfully processed payment ${gatewayId}`);
     }
 
     return NextResponse.json({ ok: true });

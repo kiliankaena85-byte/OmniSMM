@@ -9,6 +9,9 @@ vi.mock('@/lib/db', () => ({
       groupBy: vi.fn(),
       aggregate: vi.fn(),
     },
+    ledgerEntry: {
+      aggregate: vi.fn().mockResolvedValue({ _sum: { amount: BigInt(0) } }),
+    },
     order: {
       findMany: vi.fn(),
     },
@@ -22,6 +25,7 @@ describe('AccountingService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(db.$queryRaw).mockResolvedValue([{ total: BigInt(0) }]);
+    vi.mocked(db.ledgerEntry.aggregate).mockResolvedValue({ _sum: { amount: BigInt(0) } } as any);
   });
 
   it('calculates standard tax rate (6%) when annual revenue is below 20M RUB', async () => {
@@ -56,7 +60,7 @@ describe('AccountingService', () => {
     expect(metrics.taxes).toBe(Math.round(metrics.marginGross * 0.06));
   });
 
-  it('calculates elevated tax rate (11%) when annual revenue is exactly or above 20M RUB', async () => {
+  it('calculates elevated tax rate (28%) when annual revenue is exactly or above 20M RUB under 2026 VAT standard', async () => {
     // 1. Mock payment groups
     vi.mocked(db.payment.groupBy).mockResolvedValue([
       {
@@ -84,8 +88,43 @@ describe('AccountingService', () => {
 
     expect(metrics.annualRevenue).toBe(2000000000);
     expect(metrics.isVatThresholdExceeded).toBe(true);
-    expect(metrics.effectiveTaxRate).toBe(11.0);
-    expect(metrics.taxes).toBe(Math.round(metrics.marginGross * 0.11));
+    expect(metrics.effectiveTaxRate).toBe(28.0);
+    expect(metrics.taxes).toBe(Math.round(metrics.marginGross * 0.28));
+    expect(metrics.ebitda).toBe(Math.round(metrics.marginGross - 100000));
+  });
+
+  it('deducts REFUND ledger entries from annual revenue for VAT threshold evaluation', async () => {
+    vi.mocked(db.payment.groupBy).mockResolvedValue([
+      {
+        gateway: 'yookassa',
+        _sum: { amount: BigInt(100000) },
+      },
+    ] as any);
+
+    // Gross annual payment = 20,500,000 RUB (2,050,000,000 cents)
+    vi.mocked(db.payment.aggregate).mockResolvedValue({
+      _sum: { amount: BigInt(2050000000) },
+    } as any);
+
+    // Annual refunds = 1,000,000 RUB (100,000,000 cents)
+    vi.mocked(db.ledgerEntry.aggregate).mockResolvedValue({
+      _sum: { amount: BigInt(100000000) },
+    } as any);
+
+    vi.mocked(db.order.findMany).mockResolvedValue([]);
+    vi.mocked(db.systemSettings.findUnique).mockResolvedValue({
+      id: 'global',
+      taxRate: 6.0,
+      opexMonthly: 50000,
+    } as any);
+
+    const metrics = await accountingService.getMetrics();
+
+    // 2,050,000,000 - 100,000,000 = 1,950,000,000 cents (< 20M RUB)
+    expect(metrics.annualRevenue).toBe(1950000000);
+    expect(metrics.isVatThresholdExceeded).toBe(false);
+    expect(metrics.effectiveTaxRate).toBe(6.0);
+    expect(metrics.ebitda).toBe(Math.round(metrics.marginGross - 50000));
   });
 
   it('correctly calculates taxes under INCOME scheme (based on gross revenue)', async () => {

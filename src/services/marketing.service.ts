@@ -11,6 +11,7 @@ import { SettingsProvider } from '@/lib/settings';
 import { getCostRub } from '@/lib/pricing/currency-invariant';
 import { CBRRateService } from '@/services/system/cbr-rate.service';
 import { applyAntiNegativeMargin } from '@/lib/pricing/anti-negative-margin';
+import { ExactMath } from '@/lib/financial/exact-math';
 
 export type PricingResult = {
   totalCents: number;
@@ -111,9 +112,10 @@ class MarketingService {
       costPer1kRub = 0.01;
     }
 
+    const safeQuantity = Math.round(quantity);
     const providerCostPer1000Cents = Math.round(costPer1kRub * 100);
-    const providerCostCents = quantity > 0
-      ? Math.max(1, Math.ceil((providerCostPer1000Cents / 1000) * quantity))
+    const providerCostCents = safeQuantity > 0
+      ? Number(ExactMath.calculateOrderCostKopecks(safeQuantity, BigInt(providerCostPer1000Cents), BigInt(0), BigInt(1)))
       : 0;
 
     // 2. Base Retail Price per 1k in Cents (Honors DB pricePer1000Cents for 100% storefront parity)
@@ -127,8 +129,8 @@ class MarketingService {
       retailPer1000Cents = antiLoss.finalRetailPer1kCents;
     }
 
-    const originalTotalCents = quantity > 0
-      ? Math.max(1, Math.ceil((retailPer1000Cents / 1000) * quantity))
+    const originalTotalCents = safeQuantity > 0
+      ? Number(ExactMath.calculateOrderCostKopecks(safeQuantity, BigInt(Math.round(retailPer1000Cents)), BigInt(0), BigInt(1)))
       : 0;
 
     // 2. Discover available discounts

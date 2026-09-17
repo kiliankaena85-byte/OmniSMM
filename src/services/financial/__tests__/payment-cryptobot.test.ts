@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { db } from '@/lib/db';
 import { WalletOps } from '@/services/financial/wallet-ops';
+import { POST } from '@/app/api/webhooks/crypto/route';
+import { NextRequest } from 'next/server';
+import { MutexManager } from '@/lib/redis-lock';
+import { redis } from '@/lib/redis';
 import crypto from 'crypto';
 
 const globalFetch = vi.fn();
@@ -165,5 +169,118 @@ describe('CryptoBot (CryptoPay) Gateway Integration', () => {
 
     const isValid = verifyCryptoBotSignature(webhookBody, fakeSignature, cryptoBotApiToken);
     expect(isValid).toBe(false);
+  });
+
+  // ─────────────────────────────────────────────
+  // 4. E2E Webhook POST with MutexManager & Anti-Replay
+  // ─────────────────────────────────────────────
+  it('E2E POST processes webhook with MutexManager lock and Anti-Replay', async () => {
+    const invoiceNum = Math.floor(Date.now() % 1000000);
+    const payment = await db.payment.create({
+      data: {
+        userId,
+        tenantId: 'smmplan',
+        amount: BigInt(50000), // 500.00 RUB
+        status: 'PENDING',
+        gateway: 'cryptobot',
+        gatewayId: String(invoiceNum),
+      },
+    });
+
+    const bodyObj = {
+      update_id: invoiceNum,
+      update_type: 'invoice_paid',
+      request_date: new Date().toISOString(),
+      payload: {
+        invoice_id: invoiceNum,
+        status: 'paid',
+        hash: 'test_hash_e2e',
+        asset: 'TON',
+        amount: '5.0',
+        paid_asset: 'RUB',
+        paid_fiat_amount: '500.00',
+        paid_at: new Date().toISOString(),
+        payload: JSON.stringify({ paymentId: payment.id, type: 'deposit' }),
+      },
+    };
+
+    const rawBody = JSON.stringify(bodyObj);
+    const secret = crypto.createHash('sha256').update(cryptoBotApiToken).digest();
+    const signature = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+
+    const req = new NextRequest('http://localhost:3000/api/webhooks/crypto', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'crypto-pay-api-signature': signature,
+      },
+      body: rawBody,
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const resJson = await res.json();
+    expect(resJson.ok).toBe(true);
+
+    const updatedPayment = await db.payment.findUniqueOrThrow({ where: { id: payment.id } });
+    expect(updatedPayment.status).toBe('SUCCEEDED');
+
+    // Second call with same update_id should be bypassed by Anti-Replay Guard
+    const reqDuplicate = new NextRequest('http://localhost:3000/api/webhooks/crypto', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'crypto-pay-api-signature': signature,
+      },
+      body: rawBody,
+    });
+
+    const resDup = await POST(reqDuplicate);
+    expect(resDup.status).toBe(200);
+    const dupJson = await resDup.json();
+    expect(dupJson.ok).toBe(true);
+    expect(dupJson.duplicate).toBe(true);
+  });
+
+  it('clears anti-replay key on MutexManager lock timeout so retries succeed', async () => {
+    const invoiceNum = Math.floor(Date.now() % 1000000) + 100;
+    const updateId = invoiceNum + 777;
+
+    vi.spyOn(MutexManager, 'withLock').mockRejectedValueOnce(new Error('Lock acquisition timeout'));
+
+    const bodyObj = {
+      update_id: updateId,
+      update_type: 'invoice_paid',
+      request_date: new Date().toISOString(),
+      payload: {
+        invoice_id: invoiceNum,
+        paid_fiat_amount: '100.00',
+        paid_at: new Date().toISOString(),
+        payload: 'test_payload',
+      },
+    };
+
+    const rawBody = JSON.stringify(bodyObj);
+    const secret = crypto.createHash('sha256').update(cryptoBotApiToken).digest();
+    const signature = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+
+    const req = new NextRequest('http://localhost:3000/api/webhooks/crypto', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'crypto-pay-api-signature': signature,
+      },
+      body: rawBody,
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(429);
+    const resJson = await res.json();
+    expect(resJson.error).toBe('Concurrent processing lock timeout');
+
+    // Anti-replay key must be removed
+    const replayKey = `webhook:crypto:event:${updateId}`;
+    const keyVal = await redis.get(replayKey);
+    expect(keyVal).toBeNull();
   });
 });

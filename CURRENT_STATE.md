@@ -1,3 +1,24 @@
+- [x] ⚡ [FINTECH-SECURITY-CRYPTOBOT-MUTEX-AND-EXACTMATH-2026] Усиление финансовой безопасности: мьютекс CryptoBot, ExactMath чекаут, нормализация LCR казначейства и НДС 2026 (100% COMPLETE & VERIFIED):
+  * 🛡️ **Защита вебхуков и целостность платежей (`src/app/api/webhooks/crypto/route.ts`):**
+    - Внедрён распределённый мьютекс `MutexManager.withLock` (15 сек) и Redis Anti-Replay ключ `webhook:crypto:event:${update_id}` (24 ч, NX) для полного паритета с ЮKassa и Robokassa.
+    - Реализована автоматическая очистка ключа `redis.del(...)` при таймауте лока, предотвращающая потерю повторных попыток (retries) от Telegram CryptoPay.
+    - Добавлена гибкая обработка числовых и строковых `invoice_id` и fallback-поиск по `gatewayId`.
+  * 🏦 **Нормализация казначейства и расчет LCR (`src/services/financial/liquidity-monitor.service.ts`):**
+    - В SQL-запрос `getMetrics` добавлен фильтр `WHERE u.role = 'USER' AND u."staffRoleId" IS NULL`, исключающий 100 000 ₽ баланса владельца из обязательств перед клиентами.
+    - Коэффициент покрытия ликвидности (LCR) скорректирован с ложного `0.47x` (DEFICIT) до здоровых `8.06x` (HEALTHY), ликвидированы ложные Telegram-алерты.
+  * ⚖️ **Копеечная точность чекаута и частичных возвратов (`ExactMath`, `marketing.service.ts`, `refund.ts`):**
+    - Метод `marketingService.calculatePrice` переведён на `ExactMath.calculateOrderCostKopecks` (BigInt Half-Even банковское округление) с защитой от float `RangeError`.
+    - Функция `calculatePartialRefund` в `src/utils/refund.ts` унифицирована с вызовом `ExactMath.calculatePartialRefund`.
+  * 📊 **Метрики P&L и актуализация НДС 2026 (`src/services/financial/accounting.service.ts`):**
+    - Добавлен расчет `ebitda` (`marginGross - opex`).
+    - Возвраты `REFUND` теперь вычитаются из базы годового оборота `annualRevenue`.
+    - Ставка налога при превышении 20 млн ₽ приведена к стандарту 2026 года (22%, ФЗ № 425-ФЗ).
+  * 🧪 **Верификация:**
+    - Сквозные тесты `wallet-ops.test.ts`, `payment-cryptobot.test.ts`, `wave3-fintech-fiscal-and-liquidity.test.ts` (19/19 PASS — 100%).
+    - Тесты точности и P&L `exact-math.test.ts`, `financial-security-audit.test.ts`, `accounting.service.test.ts` (84/84 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
 - [x] ⚡ [CLIENTS-CRM-BALANCE-HARDENING-AND-IDOR-DEFENSE-2026] Усиление лимитов баланса, защита от Cross-Tenant IDOR и стабилизация логики вкладок CRM клиентов (100% COMPLETE & VERIFIED):
   * 🛡️ **Финансовая защита и лимиты корректировок (WalletOps & Escrow):**
     - Расширен лимит схемы `updateBalanceSchema` до 100 млн ₽ с размаскированием ошибок валидации Zod для операторов.

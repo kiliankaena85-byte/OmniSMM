@@ -39,6 +39,8 @@ export class LiquidityMonitorService {
       SELECT COALESCE(SUM(u.balance), 0)::BIGINT AS total_liabilities
       FROM "User" u
       WHERE u."isDeleted" = false
+        AND u.role = 'USER'
+        AND u."staffRoleId" IS NULL
         ${tenantFilter}
     `;
 
