@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/session";
+import { runWithTenantBypass } from "@/lib/tenant-context";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { User, StaffRole, StaffPermission } from "@prisma/client";
 import { handleServerError } from "@/utils/error-handler";
@@ -36,7 +37,6 @@ export const BUILTIN_ROLE_PERMISSIONS: Record<string, Record<string, { canView: 
     STAFF: { canView: true, canEdit: false },
     BALANCE_REQUESTS: { canView: true, canEdit: true },
     TRANSACTIONS: { canView: true, canEdit: false },
-    FINANCE: { canView: true, canEdit: false },
   },
   MANAGER: {
     CLIENTS: { canView: true, canEdit: true },
@@ -74,13 +74,15 @@ export async function requireStaffPermission<T>(
        return { success: false, error: "Unauthorized access" };
     }
 
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      include: {
-        staffRole: {
-          include: { permissions: true }
+    const user = await runWithTenantBypass('RBAC requireStaffPermission staff lookup', async () => {
+      return db.user.findUnique({
+        where: { id: userId },
+        include: {
+          staffRole: {
+            include: { permissions: true }
+          }
         }
-      }
+      });
     });
 
     if (!user || user.role === 'BANNED' || user.role === 'USER') {
@@ -97,11 +99,11 @@ export async function requireStaffPermission<T>(
 
     const normalizedSection = section.toUpperCase();
     const explicitPermission = user.staffRole?.permissions?.find(p => p.section.toUpperCase() === normalizedSection);
-    const builtin = BUILTIN_ROLE_PERMISSIONS[user.role]?.[normalizedSection];
+    const hasCustomRole = Boolean(user.staffRole && user.staffRole.permissions && user.staffRole.permissions.length > 0);
+    const builtin = !hasCustomRole ? BUILTIN_ROLE_PERMISSIONS[user.role]?.[normalizedSection] : null;
 
-    // Merge explicit DB permission with builtin using OR:
-    // If either source grants a right, the operator gets it.
-    // This prevents a partial/stale DB row from blocking a role's built-in capabilities.
+    // When an explicit staffRole is assigned, its defined permissions strictly govern access.
+    // Builtin role defaults are used as fallback when no custom staffRole is present.
     const permission = (explicitPermission || builtin) ? {
       canView: (explicitPermission?.canView ?? false) || (builtin?.canView ?? false),
       canEdit: (explicitPermission?.canEdit ?? false) || (builtin?.canEdit ?? false),
@@ -180,7 +182,9 @@ export async function requireOwnerPermission<T>(
     const userId = await getSessionUserId();
     if (!userId) return { success: false, error: "Unauthorized access" };
 
-    const user = await db.user.findUnique({ where: { id: userId } });
+    const user = await runWithTenantBypass('RBAC requireOwnerPermission owner lookup', async () => {
+      return db.user.findUnique({ where: { id: userId } });
+    });
     if (!user) return { success: false, error: "Forbidden: User not found" };
 
     const tenantId = user.tenantId ?? 'smmplan';
@@ -227,9 +231,11 @@ export async function enforcePageRole(allowedRoles: string[]) {
     redirect('/login');
   }
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true, isDeleted: true, isActive: true, tenantId: true }
+  const user = await runWithTenantBypass('RBAC enforcePageRole staff lookup', async () => {
+    return db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, isDeleted: true, isActive: true, tenantId: true }
+    });
   });
 
   if (!user || user.isDeleted || !user.isActive) {
@@ -254,13 +260,15 @@ export async function enforceSectionAccess(section: string) {
     redirect('/login');
   }
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    include: {
-      staffRole: {
-        include: { permissions: true }
+  const user = await runWithTenantBypass('RBAC enforceSectionAccess staff lookup', async () => {
+    return db.user.findUnique({
+      where: { id: userId },
+      include: {
+        staffRole: {
+          include: { permissions: true }
+        }
       }
-    }
+    });
   });
 
   if (!user || user.role === 'BANNED' || user.role === 'USER' || user.isDeleted || !user.isActive) {
@@ -274,7 +282,8 @@ export async function enforceSectionAccess(section: string) {
 
   const normalizedSection = section.toUpperCase();
   const explicitPermission = user.staffRole?.permissions?.find(p => p.section.toUpperCase() === normalizedSection);
-  const builtin = BUILTIN_ROLE_PERMISSIONS[user.role]?.[normalizedSection];
+  const hasCustomRole = Boolean(user.staffRole && user.staffRole.permissions && user.staffRole.permissions.length > 0);
+  const builtin = !hasCustomRole ? BUILTIN_ROLE_PERMISSIONS[user.role]?.[normalizedSection] : null;
   const permission = explicitPermission || builtin;
 
   if (!permission || (!permission.canView && !permission.canEdit)) {
@@ -299,13 +308,15 @@ export async function enforceAnySectionAccess(sections: string[]) {
     redirect('/login');
   }
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    include: {
-      staffRole: {
-        include: { permissions: true }
+  const user = await runWithTenantBypass('RBAC enforceAnySectionAccess staff lookup', async () => {
+    return db.user.findUnique({
+      where: { id: userId },
+      include: {
+        staffRole: {
+          include: { permissions: true }
+        }
       }
-    }
+    });
   });
 
   if (!user || user.role === 'BANNED' || user.role === 'USER' || user.isDeleted || !user.isActive) {
@@ -318,7 +329,8 @@ export async function enforceAnySectionAccess(sections: string[]) {
   }
 
   const normalizedSections = sections.map(s => s.toUpperCase());
-  const builtinPerms = BUILTIN_ROLE_PERMISSIONS[user.role] || {};
+  const hasCustomRole = Boolean(user.staffRole && user.staffRole.permissions && user.staffRole.permissions.length > 0);
+  const builtinPerms = !hasCustomRole ? (BUILTIN_ROLE_PERMISSIONS[user.role] || {}) : {};
   const hasBuiltin = normalizedSections.some(s => {
     const p = builtinPerms[s];
     return p && (p.canView || p.canEdit);

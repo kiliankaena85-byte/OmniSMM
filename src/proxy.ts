@@ -439,13 +439,15 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const isAdminOrOperator = pathname.startsWith('/admin') || pathname.startsWith('/operator');
+
   // 1. Explicit query parameter override (permitted for staff on prod, or unrestricted on test/localhost)
   if (fromQuery && isAllowedQueryTenant) {
     finalTenantId = fromQuery;
     isExplicitTenant = true;
   }
   // 2. Global Site Switcher for Admin/Operator panels
-  else if (fromAdminCookie && (pathname.startsWith('/admin') || pathname.startsWith('/operator')) && Boolean(readSessionTokenFromCookies(request.cookies))) {
+  else if (fromAdminCookie && isAdminOrOperator && Boolean(readSessionTokenFromCookies(request.cookies))) {
     finalTenantId = fromAdminCookie;
   }
   // 3. Dedicated Domain Resolution (test.smmplan.pro -> smmplan, flux.smmplan.pro -> flux) - ABSOLUTE PRIORITY OVER STALE COOKIES
@@ -453,7 +455,7 @@ export async function proxy(request: NextRequest) {
     finalTenantId = fromHost;
   }
   // 4. Local Development / Generic Tunnel Node Cookie Fallback (only on localhost:3000 / 127.0.0.1 or Tailscale)
-  else if ((isLocalhost || isTailscaleHost) && fromCookie) {
+  else if ((isLocalhost || isTailscaleHost) && fromCookie && !isAdminOrOperator) {
     finalTenantId = fromCookie;
     isExplicitTenant = true;
   }
@@ -472,13 +474,25 @@ export async function proxy(request: NextRequest) {
   const applyStickyCookie = (res: NextResponse) => {
     res.headers.set('x-tenant-id', finalTenantId);
     if (isExplicitTenant) {
-      res.cookies.set('x_tenant', finalTenantId, {
-        path: '/',
-        httpOnly: false, // Allow client-side QA Dock to switch brands
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-      });
+      if (isAdminOrOperator) {
+        // Staff site selection is saved exclusively in x_admin_tenant, preserving storefront x_tenant
+        res.cookies.set('x_admin_tenant', finalTenantId, {
+          path: '/',
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+        });
+      } else {
+        // Storefront client cookie
+        res.cookies.set('x_tenant', finalTenantId, {
+          path: '/',
+          httpOnly: false, // Allow client-side QA Dock to switch brands
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+        });
+      }
     }
     return res;
   };

@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import { requireStaffPermission } from '@/lib/server/rbac';
+import { runWithTenantBypass } from '@/lib/tenant-context';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { z } from 'zod';
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -266,9 +267,11 @@ export async function deleteTenantAction(id: string) {
   try {
     await db.tenant.delete({ where: { id } });
 
-    const user = await db.user.findUnique({
-      where: { id: session.userId },
-      select: { email: true }
+    const user = await runWithTenantBypass('Admin delete tenant staff lookup', async () => {
+      return db.user.findUnique({
+        where: { id: session.userId },
+        select: { email: true }
+      });
     });
 
     await auditAdminAwaitable({
@@ -304,9 +307,11 @@ export async function switchAdminTenantAction(tenantId: string) {
     return { success: false, error: 'Доступ запрещён: требуется роль сотрудника' };
   }
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
-    select: { id: true, email: true, role: true, allowedTenants: true, tenantId: true },
+  const user = await runWithTenantBypass('Admin switch tenant staff lookup', async () => {
+    return db.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, email: true, role: true, allowedTenants: true, tenantId: true },
+    });
   });
 
   if (!user) {

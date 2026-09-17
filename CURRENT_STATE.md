@@ -1,3 +1,17 @@
+- [x] ⚡ [ADMIN-RBAC-AND-PROXY-TENANT-ISOLATION-2026] Изоляция административных сессий, RBAC-проверок и разделение витринных и административных кук (100% COMPLETE & VERIFIED):
+  * 🛡️ **Запрет подмешивания tenantId в `prisma-tenant-enforcer.ts` при поиске по id:**
+    - В `src/lib/prisma-tenant-enforcer.ts`: в методе `findUnique` добавлена проверка `if (model === 'user' && args.where && args.where.id) return query(args);`. Первичный ключ CUID глобально уникален, а администраторы (`OWNER`, `ADMIN`, `SUPPORT`) имеют право управлять любыми сайтами платформы OmniSMM 1.0 без принудительного скоупинга по домашнему `tenantId`.
+  * 🔐 **Оборачивание системных проверок RBAC и сессий в `runWithTenantBypass()`:**
+    - В `src/lib/server/rbac.ts`: функции `requireStaffPermission`, `requireOwnerPermission`, `enforcePageRole`, `enforceSectionAccess`, `enforceAnySectionAccess` обёрнуты в `runWithTenantBypass()`. Проверка прав сотрудника больше никогда не зависит от выбранного в данный момент сайта.
+    - В `src/actions/admin/tenants.ts`: `switchAdminTenantAction` и `deleteTenantAction` обёрнуты в `runWithTenantBypass()`.
+    - В `BUILTIN_ROLE_PERMISSIONS`: удален ошибочный доступ `FINANCE` у роли `SUPPORT`, обеспечен строгий приоритет кастомных прав `staffRole` над встроенными дефолтами.
+  * 🍪 **Разделение кук в `src/proxy.ts` (защита витрины от перезаписи):**
+    - Для путей `/admin` и `/operator` сохранение выбора сайта перенаправлено исключительно в `x_admin_tenant`. Клиентская витринная кука `x_tenant` не затрагивается и не сбивает витрину пользователя.
+  * 🧪 **Верификация:**
+    - `vitest run src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts` — 11/11 PASS (100%).
+    - `vitest run rbac-stage-a-matrix, rbac-stage-b-roles, rbac-providers-matrix, optimization-security-and-rbac` — 39/39 PASS (100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
 - [x] ⚡ [WEBHOOK-AND-AUTOFLUSH-HARDENING-2026] Комплексный аудит и устранение критических уязвимостей вебхуков, провайдерского авто-флаша, Drip-Feed Floor и настроек персонала (100% COMPLETE & VERIFIED):
   * 💱 **Исправление критического бага себестоимости в авто-флаше (`balance-autoflush.service.ts`):**
     - В `src/services/providers/balance-autoflush.service.ts`: `order.providerCost` и `order.charge` хранятся в БД в копейках/центах (`BigInt`), тогда как `balanceData.balanceRub` рассчитывается в рублях. Ранее `Number(order.providerCost)` завышал себестоимость заказа в 100 раз (15 ₽ считалось как 1500 ₽), из-за чего механизм авто-флаша ошибочно считал баланс исчерпанным и прерывал сброс очереди (`break;`).

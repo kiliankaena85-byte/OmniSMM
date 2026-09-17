@@ -111,6 +111,12 @@ export function createTenantEnforcerExtension(options: TenantEnforcerOptions = {
           return query(args);
         }
 
+        // Primary key lookup for User: User ID (CUID) is globally unique, and staff (OWNER, ADMIN, SUPPORT)
+        // have legitimate rights to manage any site on OmniSMM without scoping by home tenant.
+        if (model === 'user' && args.where && args.where.id) {
+          return query(args);
+        }
+
         // Convert findUnique to findFirst with tenantId to eliminate IDOR vulnerabilities
         const scopedWhere = (model === 'category' || model === 'service')
           ? { ...args.where, tenantId: { in: [tenantId, 'all'] } }
