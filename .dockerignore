@@ -1,7 +1,9 @@
 node_modules/*
 !node_modules/.prisma
 !node_modules/@prisma
+!node_modules/prisma
 !node_modules/nodemailer
+
 .next/*
 !.next/standalone
 !.next/static

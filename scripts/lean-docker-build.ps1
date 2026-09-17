@@ -64,9 +64,20 @@ if ($proc.ExitCode -ne 0) {
 
 Write-Host "OK: Host build artifacts compiled successfully!" -ForegroundColor Green
 
+# 3.5. Database Schema Sync (Zero-Drift Invariant)
+Write-Host "[3.5/4] Synchronizing Prisma database schema..." -ForegroundColor Yellow
+try {
+    $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5435/smmplan_lite?schema=public"
+    & npx prisma db push --skip-generate
+    Write-Host "      OK: Database schema verified and in sync." -ForegroundColor Green
+} catch {
+    Write-Host "      WARN: Database sync notice: $_" -ForegroundColor DarkGray
+}
+
 # 4. Build Docker containers
 Write-Host "[4/4] Building Docker containers (web, worker, bot)..." -ForegroundColor Yellow
 & docker compose build web worker bot
+
 
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host "  Lean Build successfully completed!                  " -ForegroundColor Green

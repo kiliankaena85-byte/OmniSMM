@@ -11,11 +11,13 @@ COPY --chown=nextjs:nodejs .next/standalone ./
 COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 
-# Prisma (для migrate deploy и runtime) & Nodemailer for SMTP
+# Prisma (для migrate deploy, db push и runtime) & Nodemailer for SMTP
 COPY --chown=nextjs:nodejs prisma ./prisma
 COPY --chown=nextjs:nodejs node_modules/.prisma ./node_modules/.prisma
-COPY --chown=nextjs:nodejs node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --chown=nextjs:nodejs node_modules/@prisma ./node_modules/@prisma
+COPY --chown=nextjs:nodejs node_modules/prisma ./node_modules/prisma
 COPY --chown=nextjs:nodejs node_modules/nodemailer ./node_modules/nodemailer
+
 
 # Entrypoint (prisma migrate deploy перед стартом)
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
