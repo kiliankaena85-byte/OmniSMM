@@ -39,6 +39,7 @@ vi.mock('@/lib/queue-manager', () => ({
   getRedisConnection: vi.fn().mockReturnValue({
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
   }),
 }));
 
@@ -217,7 +218,6 @@ describe('Price Drift Hold Protection Suite', () => {
         providerId: 'prov-cheap',
         providerServiceId: '202',
         status: 'IN_PROGRESS',
-        waitingUntil: expect.any(Date),
       },
     });
   });

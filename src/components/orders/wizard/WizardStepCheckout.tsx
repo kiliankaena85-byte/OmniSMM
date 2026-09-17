@@ -11,18 +11,18 @@ import { WizardStepCheckoutProps } from './types';
 import { getTargetTypeHint } from './helpers';
 import { CheckoutDripFeed } from './sub/CheckoutDripFeed';
 import { CheckoutPaymentMethod } from './sub/CheckoutPaymentMethod';
+import { CheckoutPromoCode } from './sub/CheckoutPromoCode';
 import { clampOrderQuantity } from '@/hooks/useBaseOrderValidation';
 
 export function WizardStepCheckout(props: WizardStepCheckoutProps) {
   const {
     selectedNetwork, selectedCategory, selectedService, isLoadingServices, formRef, errorRef,
-    shakeKey, errors, link, setLink, handleBlurLink, isTgGuideOpen, setIsTgGuideOpen, customData,
-    setCustomData, isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval,
-    setDripInterval, isRequirementsConfirmed, setIsRequirementsConfirmed, quantity, setQuantity,
-    addQuantity, totalQuantity, email, setEmail, showPromo, setShowPromo, promoCodeInput, setPromoCodeInput,
-    appliedPromo, promoMessage, isApplyingPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway,
-    userBalanceCents, availableGateways, isCalculatingPrice, calculatedPriceRub, dripFloorWarning, isSubmitting,
-    onBackToServices, onSubmit, setErrors
+    shakeKey, errors, link, setLink, handleBlurLink, isTgGuideOpen, setIsTgGuideOpen, customData, setCustomData,
+    isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval,
+    isRequirementsConfirmed, setIsRequirementsConfirmed, quantity, setQuantity, addQuantity, totalQuantity,
+    email, setEmail, showPromo, setShowPromo, promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage,
+    isApplyingPromo, handleApplyPromo, handleRemovePromo, gateway, setGateway, userBalanceCents,
+    availableGateways, isCalculatingPrice, calculatedPriceRub, dripFloorWarning, isSubmitting, onBackToServices, onSubmit, setErrors
   } = props;
 
   if (!selectedService || isLoadingServices) {
@@ -116,35 +116,18 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <label className="text-sm font-bold text-foreground flex items-center gap-1.5"><Hash className="w-4 h-4 text-primary shrink-0" /> <span>Количество</span> <span className="text-destructive">*</span></label>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-            <span>Лимиты:</span>
-            <button
-              type="button"
-              onClick={() => {
-                const runs = isDripFeedEnabled ? dripRuns : 1;
-                setQuantity(selectedService.minQty * runs);
-              }}
-              className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer"
-              title="Установить минимальный объем"
-            >
-              Мин: {selectedService.minQty * (isDripFeedEnabled ? dripRuns : 1)}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <button type="button" onClick={() => { const runs = isDripFeedEnabled ? dripRuns : 1; setQuantity(selectedService.minQty * runs); }} className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer" title="Установить минимальный объем">
+              Мин: {(selectedService.minQty * (isDripFeedEnabled ? dripRuns : 1)).toLocaleString('ru-RU')}
             </button>
-            <button
-              type="button"
-              onClick={() => setQuantity(selectedService.maxQty)}
-              className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer"
-              title="Установить максимальный объем"
-            >
+            <button type="button" onClick={() => setQuantity(selectedService.maxQty)} className="px-2 py-0.5 rounded-md bg-muted hover:bg-muted/80 text-foreground font-bold transition-colors cursor-pointer" title="Установить максимальный объем">
               Макс: {selectedService.maxQty.toLocaleString('ru-RU')}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={quantity || ''}
+            type="text" inputMode="numeric" pattern="[0-9]*" value={quantity || ''}
             onFocus={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }}
             onClick={(e) => { const t = e.currentTarget; setTimeout(() => t.select(), 10); }}
             onChange={e => {
@@ -156,9 +139,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
               if (selectedService) {
                 const runs = isDripFeedEnabled ? dripRuns : 1;
                 const clamped = clampOrderQuantity(quantity || 0, selectedService.minQty, selectedService.maxQty, runs);
-                if (clamped !== quantity) {
-                  setQuantity(clamped);
-                }
+                if (clamped !== quantity) setQuantity(clamped);
               }
             }}
             className={`w-full px-4 py-3 text-base sm:text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`}
@@ -177,20 +158,11 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         {errors.email && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.email}</p>}
       </div>
 
-      <div>
-        {!showPromo ? (
-          <button type="button" onClick={() => setShowPromo(true)} className="text-xs font-bold text-primary hover:underline flex items-center gap-1 min-h-[44px] py-2 cursor-pointer">+ Есть промокод?</button>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between"><label className="text-xs font-bold text-foreground">Промокод</label>{appliedPromo && <button type="button" onClick={handleRemovePromo} className="text-[11px] font-medium text-muted-foreground hover:text-destructive cursor-pointer">Удалить</button>}</div>
-            <div className="flex gap-2">
-              <input type="text" value={promoCodeInput} onChange={e => setPromoCodeInput(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }} placeholder="ВВЕДИТЕ ПРОМОКОД" disabled={Boolean(appliedPromo)} className="flex-1 px-4 py-2.5 text-base sm:text-sm uppercase font-mono bg-background border border-border/60 rounded-xl text-foreground disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]" />
-              {!appliedPromo ? <button type="button" onClick={handleApplyPromo} disabled={!promoCodeInput.trim() || isApplyingPromo} className="px-4 py-2.5 min-h-[44px] bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-50 cursor-pointer shrink-0 flex items-center justify-center">{isApplyingPromo ? '...' : 'Применить'}</button> : <div className="flex items-center px-3 py-2.5 min-h-[44px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl shrink-0 select-none">✓ Активен</div>}
-            </div>
-            {promoMessage && <p className={`text-xs font-semibold ${promoMessage.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>{promoMessage.text}</p>}
-          </div>
-        )}
-      </div>
+      <CheckoutPromoCode
+        showPromo={showPromo} setShowPromo={setShowPromo} promoCodeInput={promoCodeInput}
+        setPromoCodeInput={setPromoCodeInput} appliedPromo={appliedPromo} promoMessage={promoMessage}
+        isApplyingPromo={isApplyingPromo} handleApplyPromo={handleApplyPromo} handleRemovePromo={handleRemovePromo}
+      />
 
       <CheckoutPaymentMethod gateway={gateway} setGateway={setGateway} userBalanceCents={userBalanceCents} calculatedPriceRub={calculatedPriceRub} availableGateways={availableGateways} />
 

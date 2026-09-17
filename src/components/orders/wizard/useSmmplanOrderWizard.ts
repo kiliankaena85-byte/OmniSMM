@@ -3,16 +3,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getPublicCatalogAction, getServicesByCategoryAction, PublicNetwork, PublicCategory, PublicService } from '@/actions/order/catalog';
-import { calculatePriceAction, getAvailableGatewaysAction } from '@/actions/order/checkout';
+import { getAvailableGatewaysAction } from '@/actions/order/checkout';
 import { trackEvent } from '@/lib/analytics';
-import { analyzeUrl } from '@/actions/order/analyze-url';
 import { matchesSuggestedCategory } from '@/services/analyzer/category-matcher';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
 import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 import { mutateLink } from '@/validators/link-mutators';
-import { validateDripFeedFloor, validateBaseOrderLink, saveOrderDraftToStorage, loadOrderDraftFromStorage, generateStableIdempotencyKey, sanitizeAndNormalizeOrderLink } from '@/hooks/useBaseOrderValidation';
+import { validateDripFeedFloor, generateStableIdempotencyKey } from '@/hooks/useBaseOrderValidation';
 import { WizardStep, PaymentGateway, AvailableGateways, FormErrors, SmmplanOrderWizardProps, TariffSubtypeFilter } from './types';
 import { isChannelSrv, isPostSrv, normalizeUrl } from './helpers';
+import { useWizardPricing } from './useWizardPricing';
+import { useWizardLinkAnalyzer } from './useWizardLinkAnalyzer';
 
 export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tenantId = 'smmplan' }: SmmplanOrderWizardProps) {
   const router = useRouter(); const searchParams = useSearchParams();
@@ -23,37 +24,22 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const [selectedNetwork, setSelectedNetwork] = useState<PublicNetwork | null>(null); const [selectedCategory, setSelectedCategory] = useState<PublicCategory | null>(null);
   const [services, setServices] = useState<PublicService[]>([]); const [isLoadingServices, setIsLoadingServices] = useState(false); const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [link, setLink] = useState(''); const [quantity, setQuantity] = useState<number>(100);
-  const [email, setEmail] = useState(userEmail); const [promoCodeInput, setPromoCodeInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState(''); const [showPromo, setShowPromo] = useState(false);
-  const [promoMessage, setPromoMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null); const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [email, setEmail] = useState(userEmail);
   const [gateway, setGateway] = useState<PaymentGateway>('balance'); const [availableGateways, setAvailableGateways] = useState<AvailableGateways | null>(null);
   const [isDripFeedEnabled, setIsDripFeedEnabled] = useState(false); const [dripRuns, setDripRuns] = useState(5); const [dripInterval, setDripInterval] = useState(60);
   const [isSmartDrip, setIsSmartDrip] = useState(false);
   const [customData, setCustomData] = useState(''); const [isRequirementsConfirmed, setIsRequirementsConfirmed] = useState(false);
   const [isTgGuideOpen, setIsTgGuideOpen] = useState(false); const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false); const [shakeKey, setShakeKey] = useState(0);
-  const [calculatedPriceRub, setCalculatedPriceRub] = useState<number | null>(null); const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [searchNetwork, setSearchNetwork] = useState(''); const [searchCategory, setSearchCategory] = useState('');
-  const [detectedType, setDetectedType] = useState<string | null>(null); const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
-  const [showAllCategories, setShowAllCategories] = useState(false); const [tariffSubtypeFilter, setTariffSubtypeFilter] = useState<TariffSubtypeFilter>('auto');
-  const analyzeRequestIdRef = useRef(0);
+  const [tariffSubtypeFilter, setTariffSubtypeFilter] = useState<TariffSubtypeFilter>('auto');
   const serviceRequestIdRef = useRef(0);
-  const priceRequestIdRef = useRef(0);
   const formRef = useRef<HTMLFormElement>(null); const errorRef = useRef<HTMLDivElement>(null); const hasRestoredUrlRef = useRef(false);
 
-  // [T2-1] Restore sessionStorage draft on mount (no email/promo per PCI DSS)
-  useEffect(() => {
-    const draft = loadOrderDraftFromStorage<{ link?: string; quantity?: number }>('smmplan_draft');
-    if (draft) {
-      if (draft.link && typeof draft.link === 'string' && draft.link.length >= 5) setLink(draft.link);
-      if (draft.quantity && typeof draft.quantity === 'number' && draft.quantity > 0) setQuantity(draft.quantity);
-    }
-  }, []);
-
-  // [T2-1] Persist draft to sessionStorage on changes
-  useEffect(() => {
-    saveOrderDraftToStorage('smmplan_draft', { link, networkId: selectedNetwork?.id, categoryId: selectedCategory?.id, quantity });
-  }, [link, selectedNetwork?.id, selectedCategory?.id, quantity]);
+  const linkAnalyzer = useWizardLinkAnalyzer({
+    link, setLink, quantity, setQuantity, networks,
+    selectedNetwork, setSelectedNetwork, selectedCategory, selectedService,
+  });
 
   useEffect(() => {
     getAvailableGatewaysAction().then((res) => {
@@ -63,27 +49,6 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
       }
     }).catch(() => {});
   }, [gateway]);
-
-  useEffect(() => {
-    const trimmed = link.trim();
-    if (trimmed.length < 5) { setDetectedType(null); setSuggestedCategories([]); setShowAllCategories(false); return; }
-    const currentRequestId = ++analyzeRequestIdRef.current;
-    const timer = setTimeout(async () => {
-      try {
-        const res = await analyzeUrl(trimmed);
-        if (currentRequestId !== analyzeRequestIdRef.current) return;
-        if (res.success && res.data) {
-          setDetectedType(res.data.type || null); setSuggestedCategories(res.data.suggestedCategories || []);
-          const platformStr = res.data.platform !== 'OTHER' ? res.data.platform.toLowerCase() : null;
-          if (platformStr && networks.length > 0) {
-            const m = networks.find(n => n.slug.toLowerCase() === platformStr);
-            if (m && (!selectedNetwork || selectedNetwork.id !== m.id)) setSelectedNetwork(m);
-          }
-        } else { setDetectedType(null); setSuggestedCategories([]); }
-      } catch { if (currentRequestId === analyzeRequestIdRef.current) { setDetectedType(null); setSuggestedCategories([]); } }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [link, networks, selectedNetwork]);
 
   const changeStep = (newStep: WizardStep, srvId?: string, catId?: string, netId?: string) => {
     setStep(newStep);
@@ -149,8 +114,8 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     getServicesByCategoryAction(selectedCategory.id, tenantId).then(servs => {
       if (currentRequestId !== serviceRequestIdRef.current) return;
       let finalServs = servs;
-      if (detectedType && link.trim().length >= 5) {
-        const comp = servs.filter(s => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+      if (linkAnalyzer.detectedType && link.trim().length >= 5) {
+        const comp = servs.filter(s => isLinkServiceCompatible(linkAnalyzer.detectedType, resolveServiceTargetType(s)));
         if (comp.length > 0) finalServs = comp;
       }
       setServices(finalServs);
@@ -166,21 +131,23 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     }).catch(console.error).finally(() => {
       if (currentRequestId === serviceRequestIdRef.current) setIsLoadingServices(false);
     });
-  }, [selectedCategory, initialReorderData, searchParams, detectedType, link, tenantId]);
+  }, [selectedCategory, initialReorderData, searchParams, linkAnalyzer.detectedType, link, tenantId]);
 
   const totalQuantity = isDripFeedEnabled ? quantity * dripRuns : quantity;
 
+  const pricing = useWizardPricing({
+    selectedService,
+    quantity,
+    setQuantity,
+    totalQuantity,
+    isDripFeedEnabled,
+    dripRuns,
+    isSmartDrip,
+  });
+
   // [T1-7] Drip-Feed Floor Invariant warning via shared validation engine
-  const dripFloorWarning: string | null = (() => {
-    if (!isDripFeedEnabled || !selectedService) return null;
-    const res = validateDripFeedFloor({
-      isDripFeedEnabled,
-      quantity: totalQuantity,
-      runs: dripRuns,
-      minQty: selectedService.minQty,
-    });
-    return res.warningMessage;
-  })();
+  const dripFloorWarning = (!isDripFeedEnabled || !selectedService) ? null :
+    validateDripFeedFloor({ isDripFeedEnabled, quantity: totalQuantity, runs: dripRuns, minQty: selectedService.minQty }).warningMessage;
 
   const handleSelectService = (srv: PublicService) => {
     setSelectedService(srv); setQuantity(srv.minQty || 100); setIsDripFeedEnabled(false); setIsSmartDrip(false);
@@ -189,81 +156,28 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     changeStep(4, srv.id, selectedCategory?.id, selectedNetwork?.id);
   };
 
-  // [T1-4] Pass isSmartDrip to calculatePriceAction
-  const handleApplyPromo = async () => {
-    const code = promoCodeInput.trim().toUpperCase(); if (!code || !selectedService) return;
-    setIsApplyingPromo(true); setPromoMessage(null);
-    try {
-      const res = await calculatePriceAction(selectedService.id, totalQuantity, code, isDripFeedEnabled ? dripRuns : undefined, isSmartDrip);
-      if (res.success && res.data && res.data.discountCents > 0) {
-        const base = res.data.originalTotalCents || res.data.totalCents; const disc = Math.round((res.data.discountCents / base) * 100);
-        setAppliedPromo(code); setCalculatedPriceRub(res.data.totalCents / 100);
-        setPromoMessage({ type: 'success', text: 'Промокод «' + code + '» применен: скидка ' + disc + '%' });
-        toast.success('Промокод применен: скидка ' + disc + '%');
-      } else { setAppliedPromo(''); setPromoMessage({ type: 'error', text: res.error || 'Промокод не найден' }); }
-    } catch { setPromoMessage({ type: 'error', text: 'Не удалось проверить промокод' }); }
-    finally { setIsApplyingPromo(false); }
-  };
-
-  const handleRemovePromo = () => { setAppliedPromo(''); setPromoCodeInput(''); setPromoMessage(null); };
-
-  // [T1-4 + T1-5] isSmartDrip in price calc + requestId stale guard
-  useEffect(() => {
-    if (!selectedService || !quantity) { setCalculatedPriceRub(null); return; }
-    const currentRequestId = ++priceRequestIdRef.current;
-    setIsCalculatingPrice(true);
-    calculatePriceAction(selectedService.id, totalQuantity, appliedPromo || undefined, isDripFeedEnabled ? dripRuns : undefined, isSmartDrip)
-      .then(res => {
-        if (currentRequestId !== priceRequestIdRef.current) return;
-        if (res.success && res.data) setCalculatedPriceRub(res.data.totalCents / 100);
-        else setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity);
-      })
-      .catch(() => { if (currentRequestId === priceRequestIdRef.current) setCalculatedPriceRub(selectedService.pricePerUnitRub * totalQuantity); })
-      .finally(() => { if (currentRequestId === priceRequestIdRef.current) setIsCalculatingPrice(false); });
-  }, [selectedService, quantity, totalQuantity, appliedPromo, isSmartDrip, dripRuns, isDripFeedEnabled]);
-
-  const addQuantity = (delta: number) => { if (!selectedService) return; setQuantity(Math.min(selectedService.maxQty, Math.max(selectedService.minQty, (quantity || 0) + delta))); };
-
-  // [T1-3] Apply sanitizeAndNormalizeOrderLink on blur for auto-correction & sanitization
-  const handleBlurLink = () => {
-    if (!link) return;
-    const targetType = selectedService ? resolveServiceTargetType(selectedService) : undefined;
-    const platformSlug = selectedNetwork?.slug ? selectedNetwork.slug.toUpperCase() : undefined;
-    const res = sanitizeAndNormalizeOrderLink(link, platformSlug, targetType);
-    if (res.cleanUrl && res.cleanUrl !== link) {
-      setLink(res.cleanUrl);
-      toast.info('Ссылка скорректирована автоматически');
-    }
-  };
-
-  // [T1-3 + T2-3] Validator exposed for submit guard via shared validation engine
-  const validateLinkFormat = (): string | null => {
-    if (!selectedService || !selectedNetwork || !link) return null;
-    const targetType = resolveServiceTargetType(selectedService);
-    const platformSlug = selectedNetwork.slug.toUpperCase();
-    return validateBaseOrderLink(link, platformSlug, targetType);
-  };
-
   const filteredNetworks = networks.filter(n => n.name.toLowerCase().includes(searchNetwork.toLowerCase()));
   const isLinkActive = link.trim().length >= 5;
-  const hasSmartFilter = isLinkActive && Boolean(detectedType || (suggestedCategories && suggestedCategories.length > 0));
-  const matchedCategories = selectedNetwork ? selectedNetwork.categories.filter(c => !hasSmartFilter || matchesSuggestedCategory(c.name, suggestedCategories, (c as { analyzerTags?: string }).analyzerTags ?? null, detectedType)) : [];
-  const effectiveCategories = (!hasSmartFilter || showAllCategories || matchedCategories.length === 0) ? (selectedNetwork?.categories || []) : matchedCategories;
+  const hasSmartFilter = isLinkActive && Boolean(linkAnalyzer.detectedType || (linkAnalyzer.suggestedCategories && linkAnalyzer.suggestedCategories.length > 0));
+  const matchedCategories = selectedNetwork ? selectedNetwork.categories.filter(c => !hasSmartFilter || matchesSuggestedCategory(c.name, linkAnalyzer.suggestedCategories, (c as { analyzerTags?: string }).analyzerTags ?? null, linkAnalyzer.detectedType)) : [];
+  const effectiveCategories = (!hasSmartFilter || linkAnalyzer.showAllCategories || matchedCategories.length === 0) ? (selectedNetwork?.categories || []) : matchedCategories;
   const filteredCategories = effectiveCategories.filter(c => c.name.toLowerCase().includes(searchCategory.toLowerCase()));
   const channelServicesCount = services.filter(isChannelSrv).length; const postServicesCount = services.filter(isPostSrv).length;
   const hasMultipleSubtypes = channelServicesCount > 0 && postServicesCount > 0;
-  const effectiveSubtype: 'all' | 'channel' | 'post' = tariffSubtypeFilter !== 'auto' ? tariffSubtypeFilter : (['channel', 'group', 'chat'].includes(detectedType || '') ? 'channel' : (['post', 'private_post', 'photo'].includes(detectedType || '') ? 'post' : 'all'));
+  const effectiveSubtype: 'all' | 'channel' | 'post' = tariffSubtypeFilter !== 'auto' ? tariffSubtypeFilter : (['channel', 'group', 'chat'].includes(linkAnalyzer.detectedType || '') ? 'channel' : (['post', 'private_post', 'photo'].includes(linkAnalyzer.detectedType || '') ? 'post' : 'all'));
   const displayedServices = services.filter(s => (!hasMultipleSubtypes || effectiveSubtype === 'all') ? true : (effectiveSubtype === 'channel' ? isChannelSrv(s) : isPostSrv(s)));
 
   return {
     router, networks, filteredNetworks, isLoadingCatalog, step, setStep, changeStep,
     selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory,
     services, isLoadingServices, selectedService, setSelectedService, handleSelectService,
-    link, setLink, handleBlurLink, validateLinkFormat,
-    quantity, setQuantity, addQuantity, totalQuantity,
+    link, setLink, handleBlurLink: linkAnalyzer.handleBlurLink, validateLinkFormat: linkAnalyzer.validateLinkFormat,
+    quantity, setQuantity, addQuantity: pricing.addQuantity, totalQuantity,
     email, setEmail,
-    promoCodeInput, setPromoCodeInput, appliedPromo, promoMessage, isApplyingPromo,
-    showPromo, setShowPromo, handleApplyPromo, handleRemovePromo,
+    promoCodeInput: pricing.promoCodeInput, setPromoCodeInput: pricing.setPromoCodeInput,
+    appliedPromo: pricing.appliedPromo, promoMessage: pricing.promoMessage, isApplyingPromo: pricing.isApplyingPromo,
+    showPromo: pricing.showPromo, setShowPromo: pricing.setShowPromo,
+    handleApplyPromo: pricing.handleApplyPromo, handleRemovePromo: pricing.handleRemovePromo,
     gateway, setGateway, availableGateways,
     isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval,
     isSmartDrip, setIsSmartDrip, dripFloorWarning,
@@ -271,9 +185,9 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     isTgGuideOpen, setIsTgGuideOpen,
     idempotencyKey, resetIdempotencyKey,
     errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey,
-    calculatedPriceRub, isCalculatingPrice,
+    calculatedPriceRub: pricing.calculatedPriceRub, isCalculatingPrice: pricing.isCalculatingPrice,
     searchNetwork, setSearchNetwork, searchCategory, setSearchCategory,
-    detectedType, showAllCategories, setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter,
+    detectedType: linkAnalyzer.detectedType, showAllCategories: linkAnalyzer.showAllCategories, setShowAllCategories: linkAnalyzer.setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter,
     formRef, errorRef,
     hasSmartFilter, matchedCategories, filteredCategories,
     channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices

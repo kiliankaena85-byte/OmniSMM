@@ -1,3 +1,18 @@
+- [x] ⚡ [ORDER-WIZARD-DECOMPOSITION-AND-PRICE-DRIFT-TESTS-100-PASS-2026] Декомпозиция визарда заказов (Clean Architecture <= 200 строк), синхронизация моков защиты от дрифта цен и 100% PASS тестов заказов (100% COMPLETE & VERIFIED):
+  * 🧩 **Декомпозиция хука и компонентов визарда заказов (`useWizardPricing.ts`, `useWizardLinkAnalyzer.ts`, `CheckoutPromoCode.tsx`):**
+    - Создан хук `useWizardPricing.ts` (123 строки <= 200), инкапсулирующий расчет стоимости заказа `calculatePriceAction` и управление промокодами.
+    - Создан хук `useWizardLinkAnalyzer.ts` (117 строк <= 200), инкапсулирующий дебаунс-анализ ссылок `analyzeUrl`, сохранение драфтов в `sessionStorage`, авто-коррекцию ссылок и валидацию формата.
+    - Создан UI-компонент `CheckoutPromoCode.tsx` (83 строки <= 200) в `wizard/sub/`, вынесший форму промокода из чекаута.
+    - Размер монолитного хука `useSmmplanOrderWizard.ts` сокращён с 281 до **195 строк** (соблюдён лимит <= 200 строк `arch-boundary-guard`).
+    - Размер компонента `WizardStepCheckout.tsx` сокращён с 217 до **188 строк** (соблюдён лимит <= 200 строк) с сохранением инварианта Drip-Feed Floor.
+  * 🛡️ **Синхронизация тестов защиты от дрифта цен (`src/__tests__/orders/price-drift-hold.test.ts`):**
+    - В мок `getRedisConnection` добавлен метод `del`, устранивший падение `"connection.del is not a function"`.
+    - Удалено устаревшее поле `waitingUntil` из ассерта `db.order.update`, синхронизировав тест с актуальным `order.processor.ts`.
+  * 🧪 **Верификация:**
+    - Все 12 сьютов заказов и дашборда `src/__tests__/orders/` и `src/__tests__/dashboard/`: **97 из 97 PASS (100%)**!
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
 - [x] ⚡ [FINTECH-SECURITY-CRYPTOBOT-MUTEX-AND-EXACTMATH-2026] Усиление финансовой безопасности: мьютекс CryptoBot, ExactMath чекаут, нормализация LCR казначейства и НДС 2026 (100% COMPLETE & VERIFIED):
   * 🛡️ **Защита вебхуков и целостность платежей (`src/app/api/webhooks/crypto/route.ts`):**
     - Внедрён распределённый мьютекс `MutexManager.withLock` (15 сек) и Redis Anti-Replay ключ `webhook:crypto:event:${update_id}` (24 ч, NX) для полного паритета с ЮKassa и Robokassa.
