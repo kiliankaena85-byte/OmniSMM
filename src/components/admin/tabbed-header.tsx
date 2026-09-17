@@ -36,12 +36,15 @@ interface AdminTabbedHeaderProps {
   currentTenant?: string;
 }
 
+import { AdminTabs } from './tabbed-header-client';
+
 export function AdminTabbedHeader({
   icon: Icon,
   title,
   description,
   action,
   breadcrumbs,
+  tabs,
 }: AdminTabbedHeaderProps) {
   return (
     <div className="w-full flex flex-col gap-3 mb-5 border-b border-border/50 pb-4">
@@ -86,6 +89,11 @@ export function AdminTabbedHeader({
           {action}
         </div>
       </div>
+
+      {/* Sub tabs navigation */}
+      {tabs && tabs.length > 0 && (
+        <AdminTabs tabs={tabs} />
+      )}
     </div>
   );
 }

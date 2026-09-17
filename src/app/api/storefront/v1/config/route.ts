@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     headers.set('RateLimit-Remaining', rateLimitInfo.remaining.toString());
     headers.set('RateLimit-Reset', rateLimitInfo.resetSeconds.toString());
 
-    if (rateLimitInfo.remaining < 0) {
+    if (!rateLimitInfo.allowed) {
       return NextResponse.json({ success: false, error: 'Too Many Requests' }, { status: 429, headers });
     }
 

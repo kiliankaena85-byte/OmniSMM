@@ -2,7 +2,7 @@ import { BalanceAdjustmentStatsClient } from './balance-requests-stats-client';
 import { enforceSectionAccess } from '@/lib/server/rbac';
 
 export const metadata = {
-  title: 'Статистика корректировок баланса | SMMpanel 1.0',
+  title: 'Статистика корректировок баланса | OmniSMM 1.0',
 };
 
 /**

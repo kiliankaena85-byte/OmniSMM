@@ -57,7 +57,7 @@ export function BalanceAdjustmentStatsClient() {
   const netRub = (Number(stats.summary.netSum) / 100).toFixed(2);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 w-full max-w-full pb-8">
       <AdminBreadcrumbs
         items={[
           { label: 'Финансы', href: '/admin/finance' },

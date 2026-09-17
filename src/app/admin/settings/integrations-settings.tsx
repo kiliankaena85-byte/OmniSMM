@@ -12,6 +12,7 @@ import {
   testSmtpConnectionAction,
   testGeminiAiConnectionAction,
   testYooKassaConnectionAction,
+  testAlfaBankConnectionAction,
 } from '@/actions/admin/settings';
 import { testInboundEmailAction } from '@/actions/admin/test-inbound-email';
 import { toast } from 'sonner';
@@ -34,6 +35,7 @@ import {
   ExternalLink,
   CreditCard,
   Lock,
+  Landmark,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { SystemSettings } from '@prisma/client';
@@ -55,6 +57,13 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
   // YooKassa Test State
   const [testingYooKassa, setTestingYooKassa] = useState(false);
   const [yooKassaTestResult, setYooKassaTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Alfa-Bank Test State
+  const [testingAlfaBank, setTestingAlfaBank] = useState(false);
+  const [alfaBankTestResult, setAlfaBankTestResult] = useState<{ success: boolean; message: string; balance?: number } | null>(null);
+  const [showAlfaToken, setShowAlfaToken] = useState(false);
+  const [showAlfaSecret, setShowAlfaSecret] = useState(false);
+  const [isAlfaSandbox, setIsAlfaSandbox] = useState<boolean>(settings.alfaBankIsSandbox ?? true);
 
   // SMTP Test State
   const [testingSmtp, setTestingSmtp] = useState(false);
@@ -133,6 +142,26 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
       toast.error(String(err));
     } finally {
       setTestingYooKassa(false);
+    }
+  };
+
+  const handleTestAlfaBank = async () => {
+    setTestingAlfaBank(true);
+    setAlfaBankTestResult(null);
+    try {
+      const res = await testAlfaBankConnectionAction(tenantId);
+      const message = 'message' in res ? res.message : res.error;
+      const balance = 'balance' in res ? res.balance : undefined;
+      setAlfaBankTestResult({ success: res.success, message, balance });
+      if (res.success) {
+        toast.success(message);
+      } else {
+        toast.error(message);
+      }
+    } catch (err) {
+      toast.error(String(err));
+    } finally {
+      setTestingAlfaBank(false);
     }
   };
 
@@ -469,6 +498,184 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
                     Позволяет клиентам пополнять баланс криптовалютой напрямую через Telegram без комиссии платформы.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* ── B2B РАСЧЕТНЫЙ СЧЕТ АЛЬФА-БАНК (Alfa Developer Hub) ── */}
+        <Card className="rounded-3xl border border-border/60 shadow-lg bg-card/70 backdrop-blur-xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20">
+                <Landmark className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-foreground">Расчётный счёт Альфа-Банк (Alfa Developer Hub B2B)</h3>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 rounded-full">
+                    Корпоративное Казначейство
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Синхронизация остатка р/с компании для расчёта дивидендов, налоговых резервов (54-ФЗ / 176-ФЗ) и Safe Owner Draw. Клиентский эквайринг не затрагивается.
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestAlfaBank}
+              disabled={testingAlfaBank}
+              className="text-xs font-bold gap-2 cursor-pointer shrink-0 h-9 px-3.5"
+            >
+              {testingAlfaBank ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+              ) : (
+                <Radio className="w-3.5 h-3.5 text-red-500" />
+              )}
+              <span>Проверить Альфа-Банк API</span>
+            </Button>
+          </div>
+
+          {alfaBankTestResult && (
+            <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+              alfaBankTestResult.success 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 dark:text-emerald-400' 
+                : 'bg-destructive/10 border-destructive/30 text-destructive'
+            }`}>
+              {alfaBankTestResult.success ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+              <span>{alfaBankTestResult.message}</span>
+              {alfaBankTestResult.balance !== undefined && (
+                <span className="ml-auto font-mono font-bold">
+                  Баланс: {alfaBankTestResult.balance.toLocaleString('ru-RU')} ₽
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Account Number */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Номер расчётного счёта компании (20 цифр)
+              </Label>
+              <Input
+                name="alfaBankAccountNumber"
+                defaultValue={settings.alfaBankAccountNumber || ''}
+                placeholder="40802810500001234567"
+                maxLength={20}
+                className="font-mono text-xs"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Стандартный 20-значный р/с юридического лица или ИП в АО «Альфа-Банк».
+              </p>
+            </div>
+
+            {/* Base URL API */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                API Base URL (Open API Gateway)
+              </Label>
+              <Input
+                name="alfaBankApiBaseUrl"
+                defaultValue={settings.alfaBankApiBaseUrl || 'https://business.alfabank.ru/ext-api/v1'}
+                placeholder="https://business.alfabank.ru/ext-api/v1"
+                className="font-mono text-xs"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Шлюз Alfa Developer Hub API (по умолчанию: https://business.alfabank.ru/ext-api/v1).
+              </p>
+            </div>
+
+            {/* API Token / Bearer */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                <span>API-токен (Bearer Token / Secret)</span>
+                <span className="text-[10px] text-primary font-normal">AES-256 Защита</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  name="alfaBankApiKey"
+                  type={showAlfaToken ? 'text' : 'password'}
+                  placeholder={settings.alfaBankApiKey ? '••••••••••••••••' : 'Вставьте токен из кабинета разработчика'}
+                  className="font-mono text-xs pr-10"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAlfaToken(!showAlfaToken)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                >
+                  {showAlfaToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Шифруется на лету через AES-256-GCM перед записью в базу данных.
+              </p>
+            </div>
+
+            {/* Client Secret (Optional) */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                <span>Client Secret (Опционально)</span>
+                <span className="text-[10px] text-primary font-normal">AES-256 Защита</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  name="alfaBankClientSecret"
+                  type={showAlfaSecret ? 'text' : 'password'}
+                  placeholder={settings.alfaBankClientSecret ? '••••••••••••••••' : 'Client Secret (при двухфакторном API)'}
+                  className="font-mono text-xs pr-10"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAlfaSecret(!showAlfaSecret)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                >
+                  {showAlfaSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Используется при аутентификации через заголовок X-Client-Secret.
+              </p>
+            </div>
+
+            {/* Sandbox Mock / Live Open API Mode Selector */}
+            <div className="md:col-span-2 p-4 rounded-2xl bg-muted/20 border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-foreground">Режим интеграции Альфа-Банка</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                    isAlfaSandbox
+                      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                      : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                  }`}>
+                    {isAlfaSandbox ? 'Sandbox Mock (Эмулятор)' : 'Live Open API (Боевой)'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  В режиме Sandbox Mock используется безопасная симуляция остатка для тестов и разработки без обращения к внешнему шлюзу.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <input
+                  type="hidden"
+                  name="alfaBankIsSandbox"
+                  value={isAlfaSandbox ? 'true' : 'false'}
+                />
+                <Button
+                  type="button"
+                  variant={isAlfaSandbox ? 'secondary' : 'outline'}
+                  size="sm"
+                  onClick={() => setIsAlfaSandbox(!isAlfaSandbox)}
+                  className="text-xs font-bold cursor-pointer h-9 px-3.5"
+                >
+                  {isAlfaSandbox ? 'Переключить в Live Open API' : 'Переключить в Sandbox Mock'}
+                </Button>
               </div>
             </div>
           </div>

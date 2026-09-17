@@ -455,6 +455,7 @@ export function FinanceLedgerTab({ initial, period: initPeriod, tenantId }: Fina
       {/* Main DataTable / Mobile Cards */}
       <div className="w-full">
         <DataTable
+          compact={true}
           columns={columns}
           data={data.items}
           renderMobileView={renderMobileLedger}

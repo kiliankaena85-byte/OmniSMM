@@ -30,7 +30,7 @@ export async function GET(
     headers.set('RateLimit-Remaining', rateLimitInfo.remaining.toString());
     headers.set('RateLimit-Reset', rateLimitInfo.resetSeconds.toString());
 
-    if (rateLimitInfo.remaining < 0) {
+    if (!rateLimitInfo.allowed) {
       return NextResponse.json({ success: false, error: 'Too Many Requests' }, { status: 429, headers });
     }
 
@@ -42,18 +42,25 @@ export async function GET(
     }
 
     return await runWithTenant(ctx.tenantSlug, async () => {
-      // Ищем заказ с привязкой к тенанту (гарантируется Tenant Enforcer)
-      const order = await db.order.findUnique({
-        where: { id: orderId },
-        include: { service: true, user: true }
-      });
+      // Ищем заказ с привязкой к тенанту (по numericId или CUID id)
+      const isNumeric = /^\d+$/.test(orderId);
+      const order = isNumeric
+        ? await db.order.findFirst({
+            where: { numericId: parseInt(orderId, 10), tenantId: ctx.tenantId },
+            include: { service: true, user: true }
+          })
+        : await db.order.findFirst({
+            where: { id: orderId, tenantId: ctx.tenantId },
+            include: { service: true, user: true }
+          });
 
       if (!order) {
         return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404, headers });
       }
 
       // Проверка email, если запросили по публичному ключу
-      if (ctx.keyType === 'publishable' && order.user.email.toLowerCase() !== email?.toLowerCase()) {
+      const orderEmail = order.user?.email || order.email || '';
+      if (ctx.keyType === 'publishable' && orderEmail.toLowerCase() !== email?.toLowerCase()) {
         return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404, headers });
       }
 

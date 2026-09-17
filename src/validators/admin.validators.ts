@@ -145,6 +145,15 @@ export const globalSettingsSchema = z.object({
   siteFaviconUrl: z.string().trim().max(500).nullable().optional().transform((val) => (val === '' ? null : val)),
   geminiApiKeys: z.string().trim().max(2000).nullable().optional(),
   geminiProxy: z.string().trim().max(500).nullable().optional(),
+  alfaBankAccountNumber: z.string().trim().max(50).nullable().optional()
+    .refine((val) => !val || /^\d{20}$/.test(val), "Номер счета должен состоять строго из 20 цифр"),
+  alfaBankApiKey: z.string().trim().max(500).nullable().optional(),
+  alfaBankClientSecret: z.string().trim().max(500).nullable().optional(),
+  alfaBankApiBaseUrl: z.string().trim().max(250).nullable().optional()
+    .transform((val) => (val === '' ? null : val))
+    .refine((val) => !val || /^https?:\/\/.+/.test(val), "Некорректный URL API (должен начинаться с http:// или https://)"),
+  alfaBankIsSandbox: z.union([z.boolean(), z.string(), z.number()]).nullable().optional()
+    .transform((val) => val === true || val === 'true' || val === 'on' || val === 1 || val === '1'),
 });
 
 // Orders

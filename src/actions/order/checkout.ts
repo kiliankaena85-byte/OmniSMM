@@ -234,8 +234,18 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     } catch {
       // CLI / fallback
     }
-    const currentTenantId = normalizeTenantId(inputTenantId || rawTenantId) || "smmplan";
-    if (service.tenantId && service.tenantId !== currentTenantId && service.tenantId !== "all") {
+    const currentTenantId = (inputTenantId && inputTenantId.trim())
+      ? (normalizeTenantId(inputTenantId.trim()) === 'flux' ? 'flux' : inputTenantId.trim())
+      : (normalizeTenantId(rawTenantId) || "smmplan");
+
+    const isInvestorTenant = currentTenantId !== 'smmplan' && currentTenantId !== 'flux';
+    const isServiceTenantAllowed =
+      !service.tenantId ||
+      service.tenantId === 'all' ||
+      service.tenantId === currentTenantId ||
+      (isInvestorTenant && service.tenantId === 'smmplan');
+
+    if (!isServiceTenantAllowed) {
       throw new Error("Услуга недоступна для текущей площадки");
     }
 
@@ -422,7 +432,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
 
     const { SettingsProvider } = await import('@/lib/settings');
     const currentUsdRate = await SettingsProvider.getExchangeRateUSD();
-    const envMode = await SettingsManager.getEnvironmentMode(tenantId);
+    const envMode = typeof SettingsManager.getEnvironmentMode === 'function' ? await SettingsManager.getEnvironmentMode(tenantId) : 'PRODUCTION';
 
     // Media Group: double the total for 2 orders
     const mediaGroupMultiplier = hasMediaGroup ? 2 : 1;
@@ -689,12 +699,14 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     }
   } catch (err: unknown) {
       if (err instanceof IdempotencyConflictError) {
-        const existingOrder = err.existingOrder as { id: string; paymentId?: string; payment?: { checkoutUrl?: string } };
+        const existingOrder = err.existingOrder as { id: string; numericId?: number; paymentId?: string; payment?: { checkoutUrl?: string }; charge?: number | bigint };
         console.info(`[Checkout] Idempotency hit for key ${idempotencyKey}, returning existing order.`);
         return {
           orderId: existingOrder.id,
+          numericId: existingOrder.numericId,
           paymentId: existingOrder.paymentId || '',
-          paymentUrl: existingOrder.payment?.checkoutUrl || ''
+          paymentUrl: existingOrder.payment?.checkoutUrl || '',
+          totalKopecks: existingOrder.charge ? Number(existingOrder.charge) : finalTotalCents,
         };
       }
       const isP2002 = err instanceof Prisma.PrismaClientKnownRequestError ? err.code === 'P2002' : (err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P2002');
@@ -708,8 +720,10 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
             console.info(`[Checkout] Parallel idempotency hit for key ${idempotencyKey}, returning existing order.`);
             return {
               orderId: existingOrder.id,
+              numericId: existingOrder.numericId,
               paymentId: existingOrder.paymentId,
-              paymentUrl: existingOrder.payment?.checkoutUrl || ''
+              paymentUrl: existingOrder.payment?.checkoutUrl || '',
+              totalKopecks: existingOrder.charge ? Number(existingOrder.charge) : finalTotalCents,
             };
           }
         }
@@ -820,17 +834,19 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
 
       return { 
         orderId: result.orderId, 
+        numericId: result.numericId,
         paymentId: result.paymentId,
         paymentUrl: null,
         redirectUrl: `/dashboard/orders?success=1&orderId=${result.orderId}&payment=balance`,
         remainingBalanceRub: result.remainingBalanceCents !== null && result.remainingBalanceCents !== undefined
           ? result.remainingBalanceCents / 100
-          : undefined
+          : undefined,
+        totalKopecks: finalTotalCents,
       };
     }
 
     try {
-      const isMockPayment = await SettingsProvider.isMockPaymentEnabled(tenantId);
+      const isMockPayment = typeof SettingsProvider.isMockPaymentEnabled === 'function' ? await SettingsProvider.isMockPaymentEnabled(tenantId) : false;
       const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
       const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa', { isMockPayment });
       const gatewayResult = await gatewaySvc.createPayment({
@@ -941,7 +957,8 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
       paymentUrl,
       redirectUrl,
       guestOrderToken,
-      numericId: result.numericId
+      numericId: result.numericId,
+      totalKopecks: finalTotalCents
     };
   });
 };

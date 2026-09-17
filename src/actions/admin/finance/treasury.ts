@@ -26,19 +26,26 @@ export async function getTreasuryFinancialHealthAction(
     try {
       const usdToRub = await SettingsProvider.getExchangeRateUSD();
 
+      const isGlobalScope = !tenantId || tenantId === 'all';
+      const tenantFilter = isGlobalScope ? {} : { tenantId };
+
       // 1. Fetch Live Alfa-Bank Balance if not explicitly overridden
       let bankBalanceRub = overrideBankRub;
       let bankAccountInfo: AlfaBankAccountBalance | undefined = undefined;
       let bankSource: 'ALFA_BANK_API' | 'MANUAL_ENTRY' = 'MANUAL_ENTRY';
+      let bankSyncError: string | undefined = undefined;
 
       if (overrideBankRub === undefined) {
-        const alfaRes = await AlfaBankService.getLiveBalance(tenantId);
+        const bankTenantId = isGlobalScope ? 'smmplan' : tenantId;
+        const alfaRes = await AlfaBankService.getLiveBalance(bankTenantId);
         if (alfaRes.success && alfaRes.account) {
           bankBalanceRub = alfaRes.account.authorizedBalanceRub;
           bankAccountInfo = alfaRes.account;
           bankSource = 'ALFA_BANK_API';
         } else {
           bankBalanceRub = 250000.0; // Safe fallback
+          bankSyncError = alfaRes.error || 'Не удалось синхронизировать баланс Альфа-Банка';
+          console.warn('[getTreasuryFinancialHealthAction] Alfa-Bank sync error:', bankSyncError);
         }
       } else {
         bankSource = 'MANUAL_ENTRY';
@@ -46,7 +53,7 @@ export async function getTreasuryFinancialHealthAction(
 
       // 2. Calculate sum of real User.balance vs User.bonusBalance via SQL aggregate
       const userAggregates = await db.user.aggregate({
-        where: { tenantId },
+        where: tenantFilter,
         _sum: {
           balance: true,
           bonusBalance: true,
@@ -62,7 +69,7 @@ export async function getTreasuryFinancialHealthAction(
       // 3. Active orders cost in progress via SQL aggregate
       const orderAggregates = await db.order.aggregate({
         where: {
-          tenantId,
+          ...tenantFilter,
           status: { in: ['PENDING', 'IN_PROGRESS'] },
         },
         _sum: { providerCost: true },
@@ -75,7 +82,7 @@ export async function getTreasuryFinancialHealthAction(
       const currentQuarterStart = new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3, 1);
       const paymentAggregates = await db.payment.aggregate({
         where: {
-          tenantId,
+          ...tenantFilter,
           status: 'SUCCEEDED',
           createdAt: { gte: currentQuarterStart },
         },
@@ -111,6 +118,7 @@ export async function getTreasuryFinancialHealthAction(
         data: report,
         bankAccount: bankAccountInfo,
         bankSource,
+        error: bankSyncError,
       };
     } catch (err: unknown) {
       console.error('[getTreasuryFinancialHealthAction] Error:', err);

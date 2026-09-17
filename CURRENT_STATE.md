@@ -1,3 +1,23 @@
+- [x] ⚡ [FINANCE-TABLES-WIDTH-AUDIT-AND-BALANCE-SAFETY-2026] Оптимизация ширины таблиц (Rule 9 Viewport 100% Fit), аудит и устранение уязвимостей в /admin/finance/balance-requests, /admin/settings/balance-policies, /admin/finance (100% COMPLETE & VERIFIED):
+  * 📐 **Оптимизация ширины таблиц и Правило 9 (Zero Horizontal Scroll & Viewport 100% Fit):**
+    - В `src/components/ui/data-table.tsx` добавлен режим `compact={true}` (`table-fixed`, ячейки `py-2 px-2.5 text-xs`, заголовки `py-2 px-2.5 text-[11px]`, поддержка ширин колонок через `columnDef.size` и `meta.width`), устранивший раздутый паддинг `px-[1.5rem]` (48px на ячейку).
+    - В `src/components/ui/plan/PlanTable.tsx` добавлен режим `compact={true}` (`px-2.5 py-2`) и `containerClassName`.
+    - На `/admin/finance/balance-requests` устранён ограничивающий контейнер `max-w-7xl`, включены `PlanTable compact={true}` и `w-full table-fixed`, сбалансированы 8 колонок с защитой от распора длинными строками (`truncate block w-full`).
+    - На `/admin/settings/balance-policies` устранён `max-w-5xl`, добавлена полноразмерная таблица действующих политик `PlanTable` (`compact={true}`, `w-full table-fixed`).
+    - На `/admin/finance` переведены на компактный полноширинный режим вкладки «Реестр платежей» (`payment-columns.tsx`), «Проводки Ledger» (`ledger-columns.tsx`), «Сверка счетов» (`reconciliation-tab.tsx`), и экран Казначейства `/admin/finance/treasury` (`w-full max-w-full`).
+  * 🛡️ **Финансовая безопасность и исправление критических багов:**
+    - Устранён баг x100 увеличения сумм в `BalanceAdjustmentRequestForm.tsx`: сумма передаётся в рублях и копейках (`amountCents`), а `balance-adjustments.ts` принимает `amountCents` без повторного умножения.
+    - Закрыта брешь неконтролируемого списания средств саппортом (DEBIT Bypass) в `clients.ts`: добавлен лимит `maxDebitLimitKopecks` с авто-эскалацией на согласование администратора.
+    - Обеспечен инвариант `idempotencyKey` в прямых операциях баланса `WalletOps.credit` и `WalletOps.adminAdjust`.
+    - При одобрении списаний в `balance-adjustments.ts` вызов `WalletOps.charge` заменён на `WalletOps.adminAdjust(..., { transactionType: 'ADJUSTMENT' })` для защиты статистики покупок `totalSpent`.
+    - Устранён тупиковый статус `EXECUTION_FAILED`: экшены `approve`, `reject`, `cancel` теперь поддерживают статус сбоя исполнения, позволяя повторить или отменить упавшую заявку.
+    - Исправлены права кнопок в `BalanceAdjustmentDrawer.tsx`: кнопки «Утвердить» и «Отклонить» ограничены ролями `OWNER`/`ADMIN`, а «Отменить» открыта инициатору и руководству.
+    - В `finance-payments-tab.tsx` проброшена реальная роль пользователя (`currentUserRole`) из сессии, а заголовок статистики обновлён до официального `'OmniSMM 1.0'`.
+  * 🧪 **Верификация:**
+    - Сквозные финансовые тесты `src/services/admin/__tests__/balance-policy.test.ts`, `pre-production-step3-robokassa-refund-guard-and-cbr.test.ts`, `client-crm-balance.test.ts` (20/20 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
 - [x] ⚡ [TELEGRAM-BOOST-LINK-SUPPORT-AND-CI-TENANT-UNBLOCK-2026] Поддержка форматов ссылок на бусты Telegram, разблокировка CI-линтера тенантов и синхронизация Staging (100% COMPLETE & VERIFIED):
   * 🚀 **Поддержка форматов ссылок на бусты Telegram (`link-rules.ts`, `link-rules-registry.ts`, `link-canonicalizer.ts`):**
     - В `src/services/analyzer/link-rules.ts` добавлено правило для ссылок на бусты каналов Telegram (`t.me/boost/channelname`, `t.me/channelname/boost`, `t.me/c/1234567890/boost`, `t.me/boost/c/1234567890`, `t.me/channelname?boost`) с категориями `[BOOSTS, SUBSCRIBERS, PREMIUM]` и контекстом `channel_boost_target`.

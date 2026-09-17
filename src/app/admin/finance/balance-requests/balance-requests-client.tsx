@@ -121,7 +121,7 @@ export function BalanceRequestsClient({
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-4 w-full max-w-full pb-8">
       <AdminBreadcrumbs
         items={[
           { label: 'Финансы', href: '/admin/finance' },
@@ -247,29 +247,29 @@ export function BalanceRequestsClient({
 
       {/* PlanTable */}
       <div className="space-y-4">
-        <PlanTable>
+        <PlanTable compact={true} className="w-full table-fixed">
           <PlanTableHeader>
             <tr>
-              <PlanTableHeadCell className="w-[140px]">ID / Дата</PlanTableHeadCell>
-              <PlanTableHeadCell>Клиент</PlanTableHeadCell>
-              <PlanTableHeadCell>Оператор</PlanTableHeadCell>
-              <PlanTableHeadCell>Тип / Причина</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right">Сумма</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-center w-[90px]">Тикет</PlanTableHeadCell>
-              <PlanTableHeadCell className="w-[130px]">Статус</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right w-[100px]">Действия</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[105px]">ID / Дата</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[20%] min-w-0">Клиент</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[16%] min-w-0">Оператор</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[24%] min-w-0">Тип / Причина</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[110px] text-right">Сумма</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[70px] text-center">Тикет</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[115px]">Статус</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[75px] text-right">Действия</PlanTableHeadCell>
             </tr>
           </PlanTableHeader>
           <tbody>
             {isPending && items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-12 text-center text-muted-foreground text-xs font-medium">
+                <td colSpan={8} className="p-8 text-center text-muted-foreground text-xs font-medium">
                   Загрузка заявок...
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-12 text-center text-muted-foreground text-xs font-medium">
+                <td colSpan={8} className="p-8 text-center text-muted-foreground text-xs font-medium">
                   Заявки по выбранным фильтрам не найдены.
                 </td>
               </tr>
@@ -284,7 +284,7 @@ export function BalanceRequestsClient({
                 return (
                   <PlanTableRow key={item.id} className="hover:bg-muted/30 transition-colors">
                     {/* ID / Date */}
-                    <PlanTableCell>
+                    <PlanTableCell className="whitespace-nowrap">
                       <div className="flex flex-col gap-0.5">
                         <span className="font-mono font-bold text-xs text-foreground">
                           #{item.id.slice(-6)}
@@ -300,10 +300,10 @@ export function BalanceRequestsClient({
                     </PlanTableCell>
 
                     {/* Client */}
-                    <PlanTableCell>
+                    <PlanTableCell className="min-w-0 overflow-hidden">
                       <Link
                         href={`/admin/clients?q=${encodeURIComponent(item.user?.email || item.userId)}`}
-                        className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate block max-w-[200px]"
+                        className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate block w-full"
                         title={item.user?.email || item.userId}
                       >
                         {item.user?.email || item.userId}
@@ -311,61 +311,61 @@ export function BalanceRequestsClient({
                     </PlanTableCell>
 
                     {/* Requester / Staff */}
-                    <PlanTableCell>
-                      <span className="text-xs text-muted-foreground font-medium truncate block max-w-[180px]" title={item.requester?.email || item.requestedBy}>
+                    <PlanTableCell className="min-w-0 overflow-hidden">
+                      <span className="text-xs text-muted-foreground font-medium truncate block w-full" title={item.requester?.email || item.requestedBy}>
                         {item.requester?.email || item.requestedBy}
                       </span>
                     </PlanTableCell>
 
                     {/* Direction & Reason */}
-                    <PlanTableCell>
-                      <div className="flex flex-col gap-0.5">
+                    <PlanTableCell className="min-w-0 overflow-hidden">
+                      <div className="flex flex-col gap-0.5 min-w-0">
                         {item.reasonCode === 'REFUND_TO_CARD' ? (
-                          <span className="text-xs font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <span className="text-xs font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-1 truncate">
                             💳 ВОЗВРАТ НА КАРТУ
                           </span>
                         ) : (
-                          <span className={`text-xs font-bold font-mono ${isCredit ? 'text-success' : 'text-destructive'}`}>
-                            {isCredit ? '+ CREDIT (Начисление)' : '- DEBIT (Списание)'}
+                          <span className={`text-xs font-bold font-mono truncate ${isCredit ? 'text-success' : 'text-destructive'}`}>
+                            {isCredit ? '+ CREDIT' : '- DEBIT'}
                           </span>
                         )}
-                        <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[220px]" title={item.reasonNote || item.reasonCode}>
+                        <span className="text-[10px] text-muted-foreground font-medium truncate block w-full" title={item.reasonNote || item.reasonCode}>
                           {item.reasonCode === 'REFUND_TO_CARD' 
                             ? (item.reasonNote || (item.payment?.gateway ? `Возврат через ${item.payment.gateway.toUpperCase()}` : 'Возврат через эквайринг')) 
-                            : item.reasonCode}
+                            : (item.reasonNote ? `${item.reasonCode}: ${item.reasonNote}` : item.reasonCode)}
                         </span>
                       </div>
                     </PlanTableCell>
 
                     {/* Amount */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <span className={`font-mono font-bold tabular-nums text-xs ${isCredit ? 'text-success' : 'text-destructive'}`}>
                         {fmt(Number(item.amount), isCredit)}
                       </span>
                     </PlanTableCell>
 
                     {/* Ticket */}
-                    <PlanTableCell className="text-center font-mono text-xs text-primary font-medium">
+                    <PlanTableCell className="text-center font-mono text-xs text-primary font-medium whitespace-nowrap">
                       {item.ticketId ? `#${item.ticketId}` : '—'}
                     </PlanTableCell>
 
                     {/* Status */}
-                    <PlanTableCell>
+                    <PlanTableCell className="whitespace-nowrap">
                       <Badge
                         intent="outline"
-                        className={`text-[9px] font-bold uppercase py-0.5 px-2 rounded ${badgeInfo.className}`}
+                        className={`text-[9px] font-bold uppercase py-0.5 px-1.5 rounded truncate ${badgeInfo.className}`}
                       >
                         {badgeInfo.label}
                       </Badge>
                     </PlanTableCell>
 
                     {/* Actions */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <Button
                         intent="outline"
                         size="sm"
                         onClick={() => setSelectedItem(item)}
-                        className="h-7 min-h-[28px] px-2.5 text-xs font-bold shadow-xs hover:bg-muted"
+                        className="h-7 min-h-[28px] px-2 text-xs font-bold shadow-xs hover:bg-muted"
                       >
                         Детали
                       </Button>

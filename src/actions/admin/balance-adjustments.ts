@@ -48,16 +48,24 @@ function parseAmountToKopecks(input: string): bigint {
 
 export async function createBalanceAdjustmentRequestAction(formData: FormData) {
   return requireStaffPermission('balance_requests', 'edit', async (staffUser) => {
+    const rawUserId = (formData.get("userId") || formData.get("targetUserId")) as string;
+    const rawAmountCents = formData.get("amountCents") as string | null;
+    let rawAmount = (formData.get("amount") || formData.get("amountRub")) as string;
+
+    if (!rawAmount && rawAmountCents && /^\d+$/.test(rawAmountCents.trim())) {
+      rawAmount = (Number(rawAmountCents.trim()) / 100).toFixed(2);
+    }
+
     const rawData = {
-      userId: formData.get("userId") as string,
+      userId: rawUserId,
       direction: formData.get("direction") as string,
-      amount: formData.get("amount") as string,
+      amount: rawAmount,
       reasonCode: formData.get("reasonCode") as string,
       reasonNote: formData.get("reasonNote") as string,
       ticketId: (formData.get("ticketId") as string) || null,
       orderId: (formData.get("orderId") as string) || null,
       paymentId: (formData.get("paymentId") as string) || null,
-      idempotencyKey: formData.get("idempotencyKey") as string
+      idempotencyKey: ((formData.get("idempotencyKey") as string)?.trim()) || crypto.randomUUID()
     };
 
     const parsed = createRequestSchema.safeParse(rawData);
@@ -68,7 +76,11 @@ export async function createBalanceAdjustmentRequestAction(formData: FormData) {
     const data = parsed.data;
     let amountBigInt: bigint;
     try {
-      amountBigInt = parseAmountToKopecks(data.amount);
+      if (rawAmountCents && /^\d+$/.test(rawAmountCents.trim())) {
+        amountBigInt = BigInt(rawAmountCents.trim());
+      } else {
+        amountBigInt = parseAmountToKopecks(data.amount);
+      }
     } catch {
       return { success: false, error: "Указана некорректная сумма" };
     }
@@ -274,7 +286,7 @@ export async function cancelBalanceAdjustmentRequestAction(formData: FormData) {
       return { success: false, error: "Вы можете отменять только свои собственные заявки" };
     }
 
-    if (adjustment.status !== BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL) {
+    if (adjustment.status !== BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL && adjustment.status !== BALANCE_ADJUSTMENT_STATUS.EXECUTION_FAILED) {
       return { success: false, error: `Нельзя отменить заявку в статусе ${adjustment.status}` };
     }
 
@@ -360,11 +372,11 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
       return { success: false, error: `У целевого пользователя недостаточно средств для списания: баланс ${freshTargetUser.balance.toString()} коп., требуется ${adjustment.amount.toString()} коп.` };
     }
 
-    // Atomic Status Transition: PENDING_APPROVAL -> APPROVED
+    // Atomic Status Transition: PENDING_APPROVAL / EXECUTION_FAILED -> APPROVED
     const updatedCount = await db.manualBalanceAdjustment.updateMany({
       where: {
         id: adjustment.id,
-        status: BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL
+        status: { in: [BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL, BALANCE_ADJUSTMENT_STATUS.EXECUTION_FAILED] }
       },
       data: {
         status: BALANCE_ADJUSTMENT_STATUS.APPROVED,
@@ -487,12 +499,12 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
             { idempotencyKey: `manual_adjustment:${adjustment.id}`, adminId: approver.id }
           );
         } else {
-          res = await WalletOps.charge(
+          res = await WalletOps.adminAdjust(
             tx,
             adjustment.userId,
-            adjustment.amount,
+            -adjustment.amount,
             `Корректировка баланса (заявка #${adjustment.id.slice(-6)}): ${adjustment.reasonCode}`,
-            { idempotencyKey: `manual_adjustment:${adjustment.id}`, adminId: approver.id }
+            { idempotencyKey: `manual_adjustment:${adjustment.id}`, adminId: approver.id, transactionType: 'ADJUSTMENT' }
           );
         }
 
@@ -570,7 +582,7 @@ export async function rejectBalanceAdjustmentAction(formData: FormData) {
     const adjustment = await db.manualBalanceAdjustment.findUnique({ where: { id } });
     if (!adjustment) return { success: false, error: "Заявка не найдена" };
 
-    if (adjustment.status !== BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL) {
+    if (adjustment.status !== BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL && adjustment.status !== BALANCE_ADJUSTMENT_STATUS.EXECUTION_FAILED) {
       return { success: false, error: `Заявка находится в статусе ${adjustment.status} и не может быть отклонена` };
     }
 

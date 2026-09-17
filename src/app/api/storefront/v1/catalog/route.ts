@@ -4,6 +4,7 @@ import { getServicesByCategoryAction } from '@/actions/order/catalog';
 import { db } from '@/lib/db';
 import { RateLimitService } from '@/services/core/rate-limit.service';
 import { runWithTenant } from '@/lib/tenant-context';
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
     headers.set('RateLimit-Remaining', rateLimitInfo.remaining.toString());
     headers.set('RateLimit-Reset', rateLimitInfo.resetSeconds.toString());
 
-    if (rateLimitInfo.remaining < 0) {
+    if (!rateLimitInfo.allowed) {
       return NextResponse.json(
         { success: false, error: 'Too Many Requests' },
         { status: 429, headers }
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
         
         let filteredServices = services;
         if (filterTargetType) {
-          filteredServices = filteredServices.filter(s => s.targetType === filterTargetType);
+          filteredServices = filteredServices.filter(s => resolveServiceTargetType(s) === filterTargetType);
         }
 
         if (filteredServices.length > 0) {
@@ -71,7 +72,7 @@ export async function GET(req: NextRequest) {
               pricePerUnitRub: s.pricePerUnitRub,
               pricePer1000Rub: s.pricePer1kRub,
               dripFeedSupported: s.isDripFeedEnabled,
-              targetType: s.targetType || 'POST',
+              targetType: resolveServiceTargetType(s),
               speed: s.speedDisplay || s.speed,
               startTime: s.startTime,
               qualityLabel: s.qualityLabel,

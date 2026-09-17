@@ -72,14 +72,15 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
     accessorKey: 'userEmail',
     header: 'Клиент',
     cell: ({ row }) => (
-      <div className="flex flex-col gap-1 min-w-0 max-w-[200px]">
+      <div className="flex flex-col gap-0.5 min-w-0 w-full max-w-full">
         <Link
           href={`/admin/clients?q=${encodeURIComponent(row.original.userEmail)}`}
-          className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate transition-colors"
+          className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate block transition-colors"
+          title={row.original.userEmail}
         >
           {row.original.userEmail}
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 min-w-0">
           <span 
             className="text-[10px] text-muted-foreground font-mono truncate"
             title={row.original.id}
@@ -100,6 +101,7 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
   {
     accessorKey: 'tenantId',
     header: 'Бренд',
+    size: 95,
     cell: ({ row }) => {
       const u = row.original;
       const isSmmplan = u.tenantId === 'smmplan';
@@ -107,7 +109,7 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
         ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' 
         : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:bg-purple-500/20';
       return (
-        <Badge intent="outline" className={`shadow-sm px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${bg}`}>
+        <Badge intent="outline" className={`shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${bg}`}>
           {isSmmplan ? 'SMMplan' : 'SMMflux'}
         </Badge>
       );
@@ -116,6 +118,7 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
   {
     accessorKey: 'transactionType',
     header: 'Тип операции',
+    size: 145,
     cell: ({ row }) => {
       const { transactionType, amount, adminId } = row.original;
       return getTypeBadge(transactionType, amount, adminId);
@@ -127,11 +130,11 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
     cell: ({ row }) => {
       const adminId = row.original.adminId;
       return (
-        <div className="flex flex-col items-start gap-0.5 max-w-xs">
-          <span className="text-xs text-foreground font-medium line-clamp-2 leading-relaxed" title={row.original.reason}>
+        <div className="flex flex-col items-start gap-0.5 min-w-0 w-full">
+          <span className="text-xs text-foreground font-medium truncate block w-full leading-relaxed" title={row.original.reason}>
             {row.original.reason}
           </span>
-          <span className="text-[10px] text-muted-foreground font-medium">
+          <span className="text-[10px] text-muted-foreground font-medium truncate">
             {adminId ? `👤 Оператор (${adminId.slice(0, 6)})` : '⚙️ Система'}
           </span>
         </div>
@@ -141,11 +144,12 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
   {
     accessorKey: 'amount',
     header: () => <div className="text-right">Сумма</div>,
+    size: 110,
     cell: ({ row }) => {
       const amount = row.original.amount;
       const isPositive = amount >= 0;
       return (
-        <div className={`text-right font-bold tabular-nums text-sm ${isPositive ? 'text-success' : 'text-destructive'}`}>
+        <div className={`text-right font-bold tabular-nums text-xs ${isPositive ? 'text-success' : 'text-destructive'}`}>
           {fmt(amount, true)}
         </div>
       );
@@ -154,11 +158,12 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Дата',
+    size: 125,
     cell: ({ row }) => {
       const status = row.original.status;
       const showStatusLabel = status !== 'APPROVED';
       return (
-        <div className="flex flex-col items-start gap-1">
+        <div className="flex flex-col items-start gap-0.5">
           <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
             {new Date(row.original.createdAt).toLocaleString('ru-RU', { 
               day: '2-digit', 
@@ -169,7 +174,7 @@ export const columns: ColumnDef<LedgerEntryDTO>[] = [
           </span>
           {showStatusLabel && (
             <Badge
-              className={`uppercase font-bold tracking-wider text-[8px] py-0 px-1 h-4 rounded ${STATUS_CLASSES[status] || 'bg-muted text-muted-foreground'}`}
+              className={`uppercase font-bold tracking-wider text-[8px] py-0 px-1 h-3.5 rounded ${STATUS_CLASSES[status] || 'bg-muted text-muted-foreground'}`}
             >
               {STATUS_LABELS[status] || status}
             </Badge>

@@ -35,9 +35,10 @@ export interface FinancePaymentsTabProps {
   initial: PaymentsPageResult;
   period: string;
   tenantId?: string;
+  currentUserRole?: string;
 }
 
-export function FinancePaymentsTab({ initial, period: initPeriod, tenantId }: FinancePaymentsTabProps) {
+export function FinancePaymentsTab({ initial, period: initPeriod, tenantId, currentUserRole = 'ADMIN' }: FinancePaymentsTabProps) {
   const [period, setPeriod]       = useState(initPeriod);
   const [status, setStatus]       = useState<string>('ALL');
   const [gateway, setGateway]     = useState<string>('ALL');
@@ -375,6 +376,7 @@ export function FinancePaymentsTab({ initial, period: initPeriod, tenantId }: Fi
       {/* Main DataTable / Mobile Cards */}
       <div className="w-full">
         <DataTable
+          compact={true}
           columns={paymentColumns}
           data={data.items}
           renderMobileView={renderMobilePayments}
@@ -396,7 +398,7 @@ export function FinancePaymentsTab({ initial, period: initPeriod, tenantId }: Fi
       {approvalTarget && (
         <ManualPaymentApprovalModal
           payment={approvalTarget}
-          currentUserRole="ADMIN"
+          currentUserRole={currentUserRole}
           supportLimitRub={3000}
           onClose={() => setApprovalTarget(null)}
           onSuccess={() => {

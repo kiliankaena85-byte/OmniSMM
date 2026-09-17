@@ -113,16 +113,16 @@ export function OnboardingSection({
   );
 }
 
+import { isNavTabActive } from '@/components/admin/navigation-data';
+
 export function AdminTabs({ tabs }: { tabs: TabItem[] }) {
   const pathname = usePathname();
+  const allHrefs = React.useMemo(() => tabs.map((t) => t.href), [tabs]);
 
   return (
     <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 border-t border-border/30 pt-3 w-full">
       {tabs.map((tab, idx) => {
-        const isActive = pathname === tab.href || (
-          pathname.startsWith(tab.href + '/') &&
-          !tabs.some(t => t.href !== tab.href && t.href.startsWith(tab.href + '/') && pathname.startsWith(t.href))
-        );
+        const isActive = isNavTabActive(pathname, tab.href, allHrefs);
         return (
           <Link
             key={idx}

@@ -290,23 +290,23 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
 
       {/* ── Table of Reconciled Accounts ── */}
       <div className="space-y-4">
-        <PlanTable>
+        <PlanTable compact={true} className="w-full table-fixed">
           <PlanTableHeader>
             <tr>
-              <PlanTableHeadCell className="w-[280px]">Пользователь</PlanTableHeadCell>
-              <PlanTableHeadCell className="w-[110px]">Бренд</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right">Баланс (User)</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right">Сумма Ledger</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right">Расхождение</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-center w-[90px]">Проводок</PlanTableHeadCell>
-              <PlanTableHeadCell className="w-[120px]">Статус</PlanTableHeadCell>
-              <PlanTableHeadCell className="text-right w-[110px]">Действия</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[24%] min-w-0">Пользователь</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[85px]">Бренд</PlanTableHeadCell>
+              <PlanTableHeadCell className="text-right w-[14%]">Баланс (User)</PlanTableHeadCell>
+              <PlanTableHeadCell className="text-right w-[14%]">Сумма Ledger</PlanTableHeadCell>
+              <PlanTableHeadCell className="text-right w-[14%]">Расхождение</PlanTableHeadCell>
+              <PlanTableHeadCell className="text-center w-[75px]">Проводок</PlanTableHeadCell>
+              <PlanTableHeadCell className="w-[100px]">Статус</PlanTableHeadCell>
+              <PlanTableHeadCell className="text-right w-[80px]">Действия</PlanTableHeadCell>
             </tr>
           </PlanTableHeader>
           <tbody>
             {accounts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-12 text-center text-muted-foreground text-xs font-medium">
+                <td colSpan={8} className="p-8 text-center text-muted-foreground text-xs font-medium">
                   {isPending ? 'Загрузка счетов...' : 'Счетов по заданным фильтрам не найдено.'}
                 </td>
               </tr>
@@ -324,12 +324,12 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
                     }`}
                   >
                     {/* User info */}
-                    <PlanTableCell>
-                      <div className="flex flex-col gap-1 min-w-0 max-w-[260px]">
-                        <div className="flex items-center gap-1.5 truncate">
+                    <PlanTableCell className="min-w-0 overflow-hidden">
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-1 min-w-0">
                           <Link
                             href={`/admin/clients?q=${encodeURIComponent(acc.email)}`}
-                            className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate transition-colors"
+                            className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate block w-full transition-colors"
                             title={acc.email}
                           >
                             {acc.email}
@@ -349,10 +349,10 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
                     </PlanTableCell>
 
                     {/* Brand / Tenant */}
-                    <PlanTableCell>
+                    <PlanTableCell className="whitespace-nowrap">
                       <Badge
                         intent="outline"
-                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                        className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                           isSmmplan
                             ? 'bg-primary/10 text-primary border-primary/20'
                             : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
@@ -363,21 +363,21 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
                     </PlanTableCell>
 
                     {/* User Balance */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <span className="font-mono font-bold tabular-nums text-xs text-foreground">
                         {fmt(acc.userBalance)}
                       </span>
                     </PlanTableCell>
 
                     {/* Ledger Sum */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <span className="font-mono font-bold tabular-nums text-xs text-foreground">
                         {fmt(acc.ledgerSum)}
                       </span>
                     </PlanTableCell>
 
                     {/* Discrepancy */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <span
                         className={`font-mono font-black tabular-nums text-xs ${
                           isDiscrepancy ? 'text-destructive' : 'text-success'
@@ -388,15 +388,15 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
                     </PlanTableCell>
 
                     {/* Entries Count */}
-                    <PlanTableCell className="text-center font-mono text-xs tabular-nums text-muted-foreground">
+                    <PlanTableCell className="text-center font-mono text-xs tabular-nums text-muted-foreground whitespace-nowrap">
                       {acc.entriesCount}
                     </PlanTableCell>
 
                     {/* Status */}
-                    <PlanTableCell>
+                    <PlanTableCell className="whitespace-nowrap">
                       <Badge
                         intent="outline"
-                        className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${
+                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
                           acc.isActive
                             ? 'bg-success/10 text-success border-success/20'
                             : 'bg-destructive/10 text-destructive border-destructive/20'
@@ -407,12 +407,12 @@ export function ReconciliationTab({ tenantId, initialSummary }: ReconciliationTa
                     </PlanTableCell>
 
                     {/* Actions */}
-                    <PlanTableCell className="text-right">
+                    <PlanTableCell className="text-right whitespace-nowrap">
                       <Button
                         intent={isDiscrepancy ? 'destructive' : 'outline'}
                         size="sm"
                         onClick={() => setSelectedAuditUserId(acc.userId)}
-                        className="h-8 min-h-[32px] px-3 font-bold text-xs"
+                        className="h-7 min-h-[28px] px-2 font-bold text-xs"
                       >
                         {isDiscrepancy ? '🚨 Аудит' : 'Аудит'}
                       </Button>

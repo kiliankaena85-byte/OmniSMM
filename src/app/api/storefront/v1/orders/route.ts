@@ -13,9 +13,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (ctx.keyType !== 'secret' && !req.headers.get('host')) {
-      // Для серверного POST к заказам требуется sk_live_* (если это не вызов из собственного браузера через fallback)
-      return NextResponse.json({ success: false, error: 'Forbidden: Secret key required for orders' }, { status: 403 });
+    if (ctx.keyType !== 'secret') {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Secret key required for orders' },
+        { status: 403 }
+      );
     }
 
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
@@ -28,8 +30,11 @@ export async function POST(req: NextRequest) {
     headers.set('RateLimit-Remaining', rateLimitInfo.remaining.toString());
     headers.set('RateLimit-Reset', rateLimitInfo.resetSeconds.toString());
 
-    if (rateLimitInfo.remaining < 0) {
-      return NextResponse.json({ success: false, error: 'Too Many Requests' }, { status: 429, headers });
+    if (!rateLimitInfo.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too Many Requests' },
+        { status: 429, headers }
+      );
     }
 
     let body;

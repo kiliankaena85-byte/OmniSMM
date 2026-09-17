@@ -62,6 +62,7 @@ const ADMIN_NAVIGATION = [
       { href: '/admin/clients',                   icon: 'Users',         label: 'Клиенты',              section: 'clients' },
       { href: '/admin/transactions',              icon: 'ArrowLeftRight', label: 'Транзакции',          section: 'clients' },
       { href: '/admin/finance',                   icon: 'CreditCard',    label: 'Финансы & Касса',      section: 'finance' },
+      { href: '/admin/finance/treasury',          icon: 'Landmark',      label: 'Казначейство & Банк',  section: 'finance' },
       { href: '/admin/finance/balance-requests',  icon: 'Inbox',         label: 'Заявки на баланс',     section: 'balance_requests' },
       { href: '/admin/analytics',                 icon: 'BarChart3',     label: 'Аналитика',            section: 'analytics' },
       { href: '/admin/settings',                  icon: 'Settings',      label: 'Настройки',            section: 'settings' },

@@ -49,7 +49,8 @@ export function BalanceAdjustmentRequestForm({ userId, userEmail, userBalanceCen
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("direction", direction);
-    formData.append("amount", amountCents);
+    formData.append("amount", parsedRub.toFixed(2));
+    formData.append("amountCents", amountCents);
     formData.append("reasonCode", reasonCode);
     formData.append("reasonNote", reasonNote);
     if (ticketId) formData.append("ticketId", ticketId);

@@ -8,7 +8,7 @@ import {
   Menu, X, Home, Users, Package, ShoppingCart, 
   MessageSquare, CreditCard, Link as LinkIcon, Settings,
   RefreshCw, BarChart, BarChart3, Inbox, Shield, AlertTriangle,
-  Activity, BookOpen, Globe, FolderTree, Layers, TrendingUp
+  Activity, BookOpen, Globe, FolderTree, Layers, TrendingUp, Landmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -54,6 +54,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeW
   FolderTree,
   Layers,
   TrendingUp,
+  Landmark,
 };
 
 export function MobileNavDrawer({ userEmail, roleInfo, navigation }: MobileNavDrawerProps) {

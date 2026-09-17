@@ -102,6 +102,7 @@ export default async function FinanceDashboard({ searchParams }: Props) {
         metrics={metrics}
         settings={settings}
         quarantineList={quarantineList}
+        currentUserRole={user?.role || 'ADMIN'}
       />
     </div>
   );

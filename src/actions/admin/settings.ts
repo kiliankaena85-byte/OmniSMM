@@ -140,6 +140,11 @@ export async function updateGlobalSettings(formData: FormData) {
       siteFaviconUrl,
       geminiApiKeys: rawGeminiKeys,
       geminiProxy,
+      alfaBankAccountNumber,
+      alfaBankApiKey: rawAlfaBankApiKey,
+      alfaBankClientSecret: rawAlfaBankClientSecret,
+      alfaBankApiBaseUrl,
+      alfaBankIsSandbox,
     } = parsed.data;
 
     const oldSettings = await db.systemSettings.findUnique({ where: { id: activeTenantId } });
@@ -251,6 +256,23 @@ export async function updateGlobalSettings(formData: FormData) {
       dataToUpdate.geminiApiKeys = VaultService.encrypt(rawGeminiKeys.trim());
     }
 
+    // Alfa-Bank Business Account (Alfa Developer Hub B2B)
+    if (formData.has('alfaBankAccountNumber')) {
+      dataToUpdate.alfaBankAccountNumber = alfaBankAccountNumber ? alfaBankAccountNumber.trim() : null;
+    }
+    if (rawAlfaBankApiKey && !isPlaceholder(rawAlfaBankApiKey)) {
+      dataToUpdate.alfaBankApiKey = VaultService.encrypt(rawAlfaBankApiKey.trim());
+    }
+    if (rawAlfaBankClientSecret && !isPlaceholder(rawAlfaBankClientSecret)) {
+      dataToUpdate.alfaBankClientSecret = VaultService.encrypt(rawAlfaBankClientSecret.trim());
+    }
+    if (formData.has('alfaBankApiBaseUrl')) {
+      dataToUpdate.alfaBankApiBaseUrl = alfaBankApiBaseUrl ? alfaBankApiBaseUrl.trim() : 'https://business.alfabank.ru/ext-api/v1';
+    }
+    if (formData.has('alfaBankIsSandbox')) {
+      dataToUpdate.alfaBankIsSandbox = alfaBankIsSandbox ?? true;
+    }
+
     // SECURITY RBAC (P0): Only OWNER can change critical financial gateways, safety floors, and payment credentials
     const isOwnerOnlyChange = Boolean(
       rawYookassaSecret ||
@@ -263,7 +285,12 @@ export async function updateGlobalSettings(formData: FormData) {
       formData.has('robokassaLogin') ||
       formData.has('safetyFloor') ||
       formData.has('taxRate') ||
-      formData.has('opexMonthly')
+      formData.has('opexMonthly') ||
+      rawAlfaBankApiKey ||
+      rawAlfaBankClientSecret ||
+      formData.has('alfaBankAccountNumber') ||
+      formData.has('alfaBankApiBaseUrl') ||
+      formData.has('alfaBankIsSandbox')
     );
 
     if (isOwnerOnlyChange && user.role !== 'OWNER') {
@@ -798,6 +825,50 @@ export async function disconnectTelegramBotAction(tenantId?: string) {
     }
 
     return { success: true, message: `Telegram-бот успешно отвязан от бренда ${activeTenantId}` };
+  });
+}
+
+// ── Test Alfa-Bank Connection ──
+export async function testAlfaBankConnectionAction(targetTenantId?: string) {
+  return requireStaffPermission('settings', 'view', async () => {
+    const { AlfaBankService } = await import('@/services/financial/bank-integrations/alfa-bank.service');
+    const { SettingsProvider } = await import('@/lib/settings');
+    const rawTenant = targetTenantId || await SettingsProvider.getTenantId();
+    const activeTenantId = normalizeTenantId(rawTenant) || 'smmplan';
+
+    const startTime = Date.now();
+    try {
+      const res = await AlfaBankService.getLiveBalance(activeTenantId, true);
+      const pingMs = Date.now() - startTime;
+
+      if (res.success && res.account) {
+        const modeLabel = res.account.isSandbox ? 'Sandbox Mock' : 'Live Open API';
+        return {
+          success: true,
+          pingMs,
+          message: `Связь с Альфа-Банком установлена (${pingMs}ms, ${modeLabel})`,
+          balance: res.account.authorizedBalanceRub,
+        };
+      }
+
+      return {
+        success: false,
+        pingMs,
+        message: res.error || 'Ошибка связи с Альфа-Банк API',
+        error: res.error || 'Ошибка связи с Альфа-Банк API',
+        balance: undefined,
+      };
+    } catch (err) {
+      const pingMs = Date.now() - startTime;
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        success: false,
+        pingMs,
+        message: `Ошибка подключения к Альфа-Банку: ${msg}`,
+        error: `Ошибка подключения к Альфа-Банку: ${msg}`,
+        balance: undefined,
+      };
+    }
   });
 }
 

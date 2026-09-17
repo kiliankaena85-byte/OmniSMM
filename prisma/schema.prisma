@@ -773,6 +773,13 @@ model SystemSettings {
   geminiApiKeys String?
   geminiProxy   String?
 
+  // Alfa-Bank Business Account (Alfa Developer Hub B2B)
+  alfaBankAccountNumber String?
+  alfaBankApiKey        String?   // AES-256-GCM encrypted
+  alfaBankClientSecret  String?   // AES-256-GCM encrypted
+  alfaBankApiBaseUrl    String?   @default("https://business.alfabank.ru/ext-api/v1")
+  alfaBankIsSandbox     Boolean   @default(true)
+
   updatedAt DateTime @updatedAt
 
   // Contact & Social Information

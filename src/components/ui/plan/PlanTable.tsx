@@ -2,23 +2,40 @@
 
 import React from "react";
 
+const PlanTableContext = React.createContext<{ compact?: boolean }>({ compact: false });
+
 export interface PlanTableProps extends React.TableHTMLAttributes<HTMLTableElement> {
   children: React.ReactNode;
   className?: string;
+  containerClassName?: string;
+  compact?: boolean;
 }
 
-export function PlanTable({ children, className = "", ...props }: PlanTableProps) {
+export function PlanTable({ 
+  children, 
+  className = "", 
+  containerClassName = "", 
+  compact = false, 
+  ...props 
+}: PlanTableProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-sm">
-      <table className={`w-full text-left text-sm border-collapse ${className}`} {...props}>
-        {children}
-      </table>
-    </div>
+    <PlanTableContext.Provider value={{ compact }}>
+      <div className={`w-full overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-sm ${containerClassName}`}>
+        <table className={`w-full text-left text-sm border-collapse ${className}`} {...props}>
+          {children}
+        </table>
+      </div>
+    </PlanTableContext.Provider>
   );
 }
 
 export function PlanTableHeader({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <thead className={`bg-muted/40 border-b border-border text-xs uppercase font-bold text-muted-foreground ${className}`}>{children}</thead>;
+  const { compact } = React.useContext(PlanTableContext);
+  return (
+    <thead className={`bg-muted/40 border-b border-border text-xs uppercase font-bold text-muted-foreground ${compact ? 'text-[11px]' : ''} ${className}`}>
+      {children}
+    </thead>
+  );
 }
 
 export function PlanTableRow({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
@@ -33,9 +50,13 @@ export function PlanTableRow({ children, className = "", onClick }: { children: 
 }
 
 export function PlanTableCell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3.5 text-foreground align-middle ${className}`}>{children}</td>;
+  const { compact } = React.useContext(PlanTableContext);
+  const defaultPadding = compact ? "px-2.5 py-2 text-xs" : "px-4 py-3.5";
+  return <td className={`${defaultPadding} text-foreground align-middle ${className}`}>{children}</td>;
 }
 
 export function PlanTableHeadCell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-3 font-extrabold text-foreground select-none ${className}`}>{children}</th>;
+  const { compact } = React.useContext(PlanTableContext);
+  const defaultPadding = compact ? "px-2.5 py-2 text-[11px]" : "px-4 py-3";
+  return <th className={`${defaultPadding} font-extrabold text-foreground select-none ${className}`}>{children}</th>;
 }

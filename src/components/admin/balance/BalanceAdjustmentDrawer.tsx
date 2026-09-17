@@ -56,16 +56,16 @@ export function BalanceAdjustmentDrawer({
 
   const isOwnerOrAdmin = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
   const isRequester = Boolean(currentUserId && adjustment.requestedBy === currentUserId);
-  const canApprove = isOwnerOrAdmin || !isRequester;
-  const canReject = isOwnerOrAdmin || !isRequester;
-  const canCancel = isRequester && !isOwnerOrAdmin;
+  const canApprove = isOwnerOrAdmin;
+  const canReject = isOwnerOrAdmin;
+  const canCancel = isOwnerOrAdmin || isRequester;
 
   const isRefundToCard = adjustment.reasonCode === 'REFUND_TO_CARD';
   const paymentGateway = adjustment.payment?.gateway?.toLowerCase() || 'yookassa';
   const isManualGateway = isRefundToCard && paymentGateway !== 'yookassa';
 
   const amountRub = (Number(adjustment.amount) / 100).toFixed(2);
-  const isPending = adjustment.status === "PENDING_APPROVAL";
+  const isPending = adjustment.status === "PENDING_APPROVAL" || adjustment.status === "EXECUTION_FAILED";
 
   const handleApprove = async () => {
     if (isManualGateway && !manualConfirmed) {

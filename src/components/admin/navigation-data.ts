@@ -56,6 +56,7 @@ export const FINANCE_TABS = [
   { label: 'Клиенты платформы', href: '/admin/clients' },
   { label: 'Транзакции (Ledger)', href: '/admin/transactions' },
   { label: 'Финансы & P&L', href: '/admin/finance' },
+  { label: 'Казначейство & Банк', href: '/admin/finance/treasury' },
   { label: 'Маркетинг и промокоды', href: '/admin/marketing' },
 ];
 

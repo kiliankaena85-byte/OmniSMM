@@ -1,6 +1,8 @@
 import { getRedisConnection } from '@/lib/queue-manager';
 import { logger } from '@/lib/logger';
 import Decimal from 'decimal.js';
+import { db } from '@/lib/db';
+import { VaultService } from '@/lib/vault';
 
 const log = logger.child({ component: 'AlfaBankService' });
 
@@ -21,6 +23,27 @@ export interface AlfaBankSyncResult {
   account?: AlfaBankAccountBalance;
   error?: string;
   isCached?: boolean;
+}
+
+interface RawAlfaAccount {
+  accountNumber?: string;
+  currency?: string;
+  status?: 'ACTIVE' | 'BLOCKED' | 'RESTRICTED';
+  balance?: {
+    authorizedBalance?: number;
+    availableBalance?: number;
+  };
+}
+
+interface RawAlfaResponse {
+  accounts?: RawAlfaAccount[];
+  accountNumber?: string;
+  currency?: string;
+  status?: 'ACTIVE' | 'BLOCKED' | 'RESTRICTED';
+  balance?: {
+    authorizedBalance?: number;
+    availableBalance?: number;
+  };
 }
 
 export class AlfaBankService {
@@ -44,7 +67,8 @@ export class AlfaBankService {
     tenantId: string = 'smmplan',
     forceRefresh: boolean = false
   ): Promise<AlfaBankSyncResult> {
-    const cacheKey = `${this.REDIS_CACHE_PREFIX}:${tenantId}`;
+    const effectiveTenantId = (!tenantId || tenantId === 'all') ? 'smmplan' : tenantId;
+    const cacheKey = `${this.REDIS_CACHE_PREFIX}:${effectiveTenantId}`;
     const redis = getRedisConnection();
 
     // 1. Check Redis cache if forceRefresh is false
@@ -65,11 +89,48 @@ export class AlfaBankService {
       }
     }
 
-    // 2. Read credentials from environment variables
-    const apiKey = process.env.ALFA_BANK_API_KEY;
-    const clientSecret = process.env.ALFA_BANK_CLIENT_SECRET;
-    const accountNumber = process.env.ALFA_BANK_ACCOUNT_NUMBER || '40802810500001234567';
-    const isSandbox = process.env.ALFA_BANK_IS_SANDBOX !== 'false'; // Default to sandbox/mock if not explicitly disabled
+    // 2. Read credentials from database settings with fallback to environment variables
+    let apiKey = process.env.ALFA_BANK_API_KEY;
+    let clientSecret = process.env.ALFA_BANK_CLIENT_SECRET;
+    let accountNumber = process.env.ALFA_BANK_ACCOUNT_NUMBER || '40802810500001234567';
+    let isSandbox = process.env.ALFA_BANK_IS_SANDBOX !== 'false';
+    let baseUrl = process.env.ALFA_BANK_API_BASE_URL || 'https://business.alfabank.ru/ext-api/v1';
+
+    try {
+      const dbSettings = await db.systemSettings.findUnique({
+        where: { id: effectiveTenantId },
+      });
+      if (dbSettings) {
+        const hasDbConfig = Boolean(dbSettings.alfaBankApiKey || dbSettings.alfaBankAccountNumber);
+        if (hasDbConfig && typeof dbSettings.alfaBankIsSandbox === 'boolean') {
+          isSandbox = dbSettings.alfaBankIsSandbox;
+        }
+        if (dbSettings.alfaBankApiKey) {
+          try {
+            const decrypted = VaultService.decrypt(dbSettings.alfaBankApiKey);
+            if (decrypted) apiKey = decrypted;
+          } catch {
+            apiKey = dbSettings.alfaBankApiKey;
+          }
+        }
+        if (dbSettings.alfaBankClientSecret) {
+          try {
+            const decrypted = VaultService.decrypt(dbSettings.alfaBankClientSecret);
+            if (decrypted) clientSecret = decrypted;
+          } catch {
+            clientSecret = dbSettings.alfaBankClientSecret;
+          }
+        }
+        if (dbSettings.alfaBankAccountNumber) {
+          accountNumber = dbSettings.alfaBankAccountNumber;
+        }
+        if (dbSettings.alfaBankApiBaseUrl) {
+          baseUrl = dbSettings.alfaBankApiBaseUrl;
+        }
+      }
+    } catch (dbErr) {
+      log.warn('Failed to read Alfa-Bank settings from DB, using fallback env', { dbErr, tenantId: effectiveTenantId });
+    }
 
     // 3. Fetch from Alfa-Bank Open API or Sandbox Mock
     try {
@@ -88,12 +149,9 @@ export class AlfaBankService {
           status: 'ACTIVE',
         };
       } else {
-        // Production Alfa-Bank Open API Request
-        const baseUrl = process.env.ALFA_BANK_API_BASE_URL || 'https://business.alfabank.ru/ext-api/v1';
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const response = await fetch(`${baseUrl}/accounts`, {
+        // Production Alfa-Bank Open API Request with 10s timeout
+        const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+        const response = await fetch(`${cleanBaseUrl}/accounts`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${apiKey}`,
@@ -101,18 +159,16 @@ export class AlfaBankService {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          signal: controller.signal,
+          signal: AbortSignal.timeout(10000),
         });
-
-        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`Alfa-Bank API HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as RawAlfaResponse;
         const matchingAccount = Array.isArray(data.accounts)
-          ? data.accounts.find((acc: any) => acc.accountNumber === accountNumber) || data.accounts[0]
+          ? data.accounts.find((acc) => acc.accountNumber === accountNumber) || data.accounts[0]
           : data;
 
         if (!matchingAccount) {
@@ -143,7 +199,7 @@ export class AlfaBankService {
 
       log.info(
         `Alfa-Bank account balance synchronized successfully (${balanceData.authorizedBalanceRub} RUB)`,
-        { tenantId, balance: balanceData.authorizedBalanceRub, isSandbox: balanceData.isSandbox }
+        { tenantId: effectiveTenantId, balance: balanceData.authorizedBalanceRub, isSandbox: balanceData.isSandbox }
       );
 
       return {
@@ -154,7 +210,7 @@ export class AlfaBankService {
       };
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown Alfa-Bank API Error';
-      log.error('Alfa-Bank balance synchronization failed', { err, tenantId });
+      log.error('Alfa-Bank balance synchronization failed', { err, tenantId: effectiveTenantId });
 
       return {
         success: false,

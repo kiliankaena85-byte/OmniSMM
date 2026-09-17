@@ -291,14 +291,27 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const isStorefrontApi = pathname.startsWith('/api/storefront/');
+
   // Handle CORS preflight requests for API routes
   if (pathname.startsWith('/api') && request.method === 'OPTIONS') {
     const preflightHeaders = new Headers();
+    if (isStorefrontApi) {
+      preflightHeaders.set('Access-Control-Allow-Origin', origin || '*');
+      if (origin) {
+        preflightHeaders.set('Access-Control-Allow-Credentials', 'true');
+      }
+      preflightHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      preflightHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
+      preflightHeaders.set('Access-Control-Max-Age', '86400');
+      return new NextResponse(null, { status: 204, headers: preflightHeaders });
+    }
+
     if (isAllowedOrigin && origin) {
       preflightHeaders.set('Access-Control-Allow-Origin', origin);
       preflightHeaders.set('Access-Control-Allow-Credentials', 'true');
       preflightHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-      preflightHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key');
+      preflightHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
       preflightHeaders.set('Access-Control-Max-Age', '86400');
       return new NextResponse(null, { status: 204, headers: preflightHeaders });
     }
@@ -306,16 +319,19 @@ export async function proxy(request: NextRequest) {
   }
 
   // EARLY REJECTION — before any host is used for redirects/cookies
-  if (rawHostClean && !isKnownOrAllowedHost(rawHostClean) && !isSecurityTxt) {
-    return NextResponse.json({ error: 'Forbidden: Invalid Host header' }, { status: 403 });
-  }
-  if (rawFwdClean && !isKnownOrAllowedHost(rawFwdClean) && !isSecurityTxt) {
-    return NextResponse.json({ error: 'Forbidden: Invalid X-Forwarded-Host header' }, { status: 403 });
+  if (!isStorefrontApi && !isSecurityTxt) {
+    if (rawHostClean && !isKnownOrAllowedHost(rawHostClean)) {
+      return NextResponse.json({ error: 'Forbidden: Invalid Host header' }, { status: 403 });
+    }
+    if (rawFwdClean && !isKnownOrAllowedHost(rawFwdClean)) {
+      return NextResponse.json({ error: 'Forbidden: Invalid X-Forwarded-Host header' }, { status: 403 });
+    }
   }
 
   // 0.5. Echelon DDoS Shield & Anomaly Inspection (SPEC-2026-09-11)
   const isExcludedFromShield = 
     pathname.startsWith('/api/webhooks/') ||
+    pathname.startsWith('/api/storefront/') ||
     pathname.startsWith('/_next/') ||
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
@@ -503,7 +519,7 @@ export async function proxy(request: NextRequest) {
   const allowedForContour = TRUSTED_CONTOUR_MAP[activeContour];
   const effectiveHost = (rawFwdClean && !isInternalHost(rawFwdClean)) ? rawFwdClean : rawHostClean;
 
-  if (effectiveHost && allowedForContour && !isInternalHost(effectiveHost) && !allowedForContour.has(effectiveHost) && !isSecurityTxt) {
+  if (!isStorefrontApi && effectiveHost && allowedForContour && !isInternalHost(effectiveHost) && !allowedForContour.has(effectiveHost) && !isSecurityTxt) {
     if (process.env.NODE_ENV === 'production') {
       return NextResponse.json(
         { error: 'Forbidden: Host not permitted for active server contour' },
@@ -662,11 +678,18 @@ export async function proxy(request: NextRequest) {
   });
 
   // Inject CORS headers for API routes when requested with an allowed origin
-  if (pathname.startsWith('/api') && isAllowedOrigin && origin) {
+  if (isStorefrontApi) {
+    response.headers.set('Access-Control-Allow-Origin', origin || '*');
+    if (origin) {
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+    }
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
+  } else if (pathname.startsWith('/api') && isAllowedOrigin && origin) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
   }
 
   response.headers.set('x-tenant-id', finalTenantId);

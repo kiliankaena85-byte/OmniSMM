@@ -107,15 +107,15 @@ describe('Alfa-Bank Open API Integration & Automated Treasury Sync Suite', () =>
     });
 
     it('automatically populates Alfa-Bank balance in getTreasuryFinancialHealthAction', async () => {
-      vi.spyOn(db.user, 'findMany').mockResolvedValue([
-        { balance: BigInt(20000000), bonusBalance: BigInt(5000000) } as any, // 200,000 RUB real, 50,000 RUB bonus
-      ]);
-      vi.spyOn(db.order, 'findMany').mockResolvedValue([
-        { providerCost: BigInt(3000000) } as any, // 30,000 RUB active
-      ]);
-      vi.spyOn(db.payment, 'findMany').mockResolvedValue([
-        { amount: BigInt(50000000) } as any, // 500,000 RUB inflow -> 30,000 RUB tax
-      ]);
+      vi.spyOn(db.user, 'aggregate').mockResolvedValue({
+        _sum: { balance: BigInt(20000000), bonusBalance: BigInt(5000000) },
+      } as any);
+      vi.spyOn(db.order, 'aggregate').mockResolvedValue({
+        _sum: { providerCost: BigInt(3000000) },
+      } as any);
+      vi.spyOn(db.payment, 'aggregate').mockResolvedValue({
+        _sum: { amount: BigInt(50000000) },
+      } as any);
 
       const treasuryRes = await getTreasuryFinancialHealthAction('smmplan');
 
@@ -125,6 +125,58 @@ describe('Alfa-Bank Open API Integration & Automated Treasury Sync Suite', () =>
       expect(treasuryRes.bankAccount?.authorizedBalanceRub).toBe(1450000);
       expect(treasuryRes.data?.customerRealDepositsRub).toBe(200000);
       expect(treasuryRes.data?.safeOwnerDrawCapacityRub).toBeGreaterThan(0);
+    });
+
+    it('correctly aggregates financial health across all tenants when tenantId is all', async () => {
+      vi.spyOn(db.user, 'aggregate').mockResolvedValue({
+        _sum: { balance: BigInt(40000000), bonusBalance: BigInt(10000000) },
+      } as any);
+      vi.spyOn(db.order, 'aggregate').mockResolvedValue({
+        _sum: { providerCost: BigInt(6000000) },
+      } as any);
+      vi.spyOn(db.payment, 'aggregate').mockResolvedValue({
+        _sum: { amount: BigInt(100000000) },
+      } as any);
+
+      const treasuryRes = await getTreasuryFinancialHealthAction('all');
+
+      expect(treasuryRes.success).toBe(true);
+      expect(treasuryRes.bankSource).toBe('ALFA_BANK_API');
+      expect(treasuryRes.bankAccount?.authorizedBalanceRub).toBe(1450000);
+      expect(treasuryRes.data?.customerRealDepositsRub).toBe(400000);
+    });
+
+    it('successfully executes testAlfaBankConnectionAction', async () => {
+      const { testAlfaBankConnectionAction } = await import('@/actions/admin/settings');
+      const res = await testAlfaBankConnectionAction('smmplan');
+
+      expect(res.success).toBe(true);
+      if ('pingMs' in res) {
+        expect(res.pingMs).toBeGreaterThanOrEqual(0);
+        expect(res.message).toContain('Связь с Альфа-Банком установлена');
+        expect(res.balance).toBe(1450000);
+      }
+    });
+
+    it('correctly reads encrypted credentials from db.systemSettings', async () => {
+      const { VaultService } = await import('@/lib/vault');
+      const rawSecret = 'alfa_token_db_encrypted_test';
+      const encryptedSecret = VaultService.encrypt(rawSecret);
+
+      vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
+        id: 'smmplan',
+        alfaBankApiKey: encryptedSecret,
+        alfaBankAccountNumber: '40802810500007776666',
+        alfaBankIsSandbox: true,
+        alfaBankApiBaseUrl: 'https://business.alfabank.ru/ext-api/v1',
+      } as any);
+
+      const res = await AlfaBankService.getLiveBalance('smmplan', true);
+
+      expect(res.success).toBe(true);
+      expect(res.account?.accountNumber).toBe('40802810500007776666');
+      expect(res.account?.maskedAccountNumber).toBe('40802810****6666');
+      expect(res.account?.isSandbox).toBe(true);
     });
   });
 });

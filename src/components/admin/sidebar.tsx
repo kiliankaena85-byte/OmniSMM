@@ -9,7 +9,7 @@ import {
   Home, Users, Package, RefreshCw, ShoppingCart, 
   MessageSquare, CreditCard, Link as LinkIcon, Gift, FileText, Settings,
   PanelLeftClose, PanelLeftOpen, ArrowLeft, BarChart, BarChart3, Inbox, Shield, AlertTriangle, ToggleLeft, Activity, Cpu, BookOpen,
-  Sun, Moon, ArrowLeftRight, Globe, FolderTree, Layers, Star, ChevronDown, ChevronRight, TrendingUp
+  Sun, Moon, ArrowLeftRight, Globe, FolderTree, Layers, Star, ChevronDown, ChevronRight, TrendingUp, Landmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -39,7 +39,7 @@ interface SidebarProps {
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   Home, Users, Package, RefreshCw, ShoppingCart, AlertTriangle,
   MessageSquare, CreditCard, Link: LinkIcon, Gift, FileText, Settings, BarChart, BarChart3, Inbox, Shield,
-  ToggleLeft, Activity, Cpu, BookOpen, ArrowLeftRight, Globe, FolderTree, Layers, TrendingUp
+  ToggleLeft, Activity, Cpu, BookOpen, ArrowLeftRight, Globe, FolderTree, Layers, TrendingUp, Landmark
 };
 
 export function AdminSidebar({ userEmail, roleInfo, navigation }: SidebarProps) {

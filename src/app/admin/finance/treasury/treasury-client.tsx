@@ -39,9 +39,13 @@ export function TreasuryClient({
       const res = await getTreasuryFinancialHealthAction(tenantId, bankRub, gatewayRub);
       if (res.success && res.data) {
         setReport(res.data);
-        if (res.bankAccount) setBankAccount(res.bankAccount);
+        setBankAccount(res.bankAccount);
         if (res.bankSource) setBankSource(res.bankSource);
-        toast.success('Казначейский баланс пересчитан');
+        if (res.error) {
+          toast.warning(`Казначейство пересчитано с резервным балансом: ${res.error}`);
+        } else {
+          toast.success('Казначейский баланс пересчитан');
+        }
       } else {
         toast.error(res.error || 'Ошибка расчета');
       }

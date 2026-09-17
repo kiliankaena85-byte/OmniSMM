@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
   initialColumnVisibility?: VisibilityState;
   renderMobileView?: (table: ReactTable<TData>) => React.ReactNode;
   meta?: Record<string, any>;
+  compact?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +49,7 @@ export function DataTable<TData, TValue>({
   initialColumnVisibility = {},
   renderMobileView,
   meta,
+  compact = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -114,18 +116,37 @@ export function DataTable<TData, TValue>({
       <div className={cn("rounded-xl border border-border/60 overflow-hidden bg-card shadow-md ring-1 ring-border/5", renderMobileView ? "hidden lg:block" : "")}>
         <Table className="h-full w-full">
           <Table.ScrollContainer>
-            <Table.Content aria-label="Data Table" className="w-full">
+            <Table.Content aria-label="Data Table" className={cn("w-full", compact && "table-fixed")}>
               <Table.Header className="bg-muted/40">
-                {table.getFlatHeaders().map((header, index) => (
-                  <Table.Column isRowHeader={index === 0} key={header.id} className="py-[var(--table-head-py,1rem)] px-[var(--table-head-px,1.5rem)] text-left text-xs font-bold text-muted-foreground uppercase tracking-wider transition-all duration-150">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </Table.Column>
-                ))}
+                {table.getFlatHeaders().map((header, index) => {
+                  const colMeta = header.column.columnDef.meta as { width?: string } | undefined;
+                  const widthStyle = colMeta?.width
+                    ? { width: colMeta.width }
+                    : header.column.columnDef.size
+                      ? { width: `${header.column.columnDef.size}px` }
+                      : undefined;
+
+                  return (
+                    <Table.Column
+                      isRowHeader={index === 0}
+                      key={header.id}
+                      style={widthStyle}
+                      className={cn(
+                        "text-left font-bold text-muted-foreground uppercase tracking-wider transition-all duration-150",
+                        compact
+                          ? "py-2 px-2.5 text-[11px]"
+                          : "py-[var(--table-head-py,1rem)] px-[var(--table-head-px,1.5rem)] text-xs"
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </Table.Column>
+                  );
+                })}
               </Table.Header>
               <Table.Body>
                 {table.getRowModel().rows?.length ? (
@@ -136,7 +157,15 @@ export function DataTable<TData, TValue>({
                       className="hover:bg-muted/30 even:bg-muted/10 transition-colors"
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <Table.Cell key={cell.id} className="py-[var(--table-cell-py,1.25rem)] px-[var(--table-cell-px,1.5rem)] text-[length:var(--table-font,0.875rem)] text-foreground transition-all duration-150">
+                        <Table.Cell
+                          key={cell.id}
+                          className={cn(
+                            "text-foreground transition-all duration-150",
+                            compact
+                              ? "py-2 px-2.5 text-xs"
+                              : "py-[var(--table-cell-py,1.25rem)] px-[var(--table-cell-px,1.5rem)] text-[length:var(--table-font,0.875rem)]"
+                          )}
+                        >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </Table.Cell>
                       ))}

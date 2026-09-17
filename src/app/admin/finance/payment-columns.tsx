@@ -67,14 +67,15 @@ export const columns: ColumnDef<PaymentDTO>[] = [
     cell: ({ row }) => {
       const displayId = row.original.gatewayId || row.original.id;
       return (
-        <div className="flex flex-col gap-1 min-w-0 max-w-[200px]">
+        <div className="flex flex-col gap-0.5 min-w-0 w-full max-w-full">
           <Link
             href={`/admin/clients?q=${encodeURIComponent(row.original.userEmail)}`}
-            className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate transition-colors"
+            className="text-primary hover:text-primary/80 hover:underline font-mono text-xs font-semibold truncate block transition-colors"
+            title={row.original.userEmail}
           >
             {row.original.userEmail}
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 min-w-0">
             <span 
               className="text-[10px] text-muted-foreground font-mono truncate"
               title={displayId}
@@ -97,6 +98,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
   {
     accessorKey: 'tenantId',
     header: 'Бренд',
+    size: 95,
     cell: ({ row }) => {
       const u = row.original;
       const isSmmplan = u.tenantId === 'smmplan';
@@ -104,7 +106,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
         ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' 
         : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:bg-purple-500/20';
       return (
-        <Badge intent="outline" className={`shadow-sm px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${bg}`}>
+        <Badge intent="outline" className={`shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${bg}`}>
           {isSmmplan ? 'SMMplan' : 'SMMflux'}
         </Badge>
       );
@@ -113,11 +115,12 @@ export const columns: ColumnDef<PaymentDTO>[] = [
   {
     accessorKey: 'amount',
     header: () => <div className="text-right">Сумма</div>,
+    size: 115,
     cell: ({ row }) => {
       const isSucceeded = row.original.status === 'SUCCEEDED';
       return (
-        <div className="flex items-center justify-end gap-2 text-right">
-          <span className="font-bold tabular-nums text-sm text-foreground">
+        <div className="flex items-center justify-end gap-1.5 text-right">
+          <span className="font-bold tabular-nums text-xs text-foreground">
             {fmt(row.original.amount)}
           </span>
           {isSucceeded && (
@@ -126,7 +129,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
               className="p-1 hover:bg-muted text-primary hover:text-primary/80 rounded transition-colors"
               title="📄 Оформить dispute-пакет документов"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
@@ -136,6 +139,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
   {
     accessorKey: 'status',
     header: 'Статус',
+    size: 135,
     cell: ({ row }) => {
       const status = row.original.status;
       const gatewayLabel = GATEWAY_LABELS[row.original.gateway] || row.original.gateway;
@@ -143,11 +147,11 @@ export const columns: ColumnDef<PaymentDTO>[] = [
       const isStale = isPending && (Date.now() - new Date(row.original.createdAt).getTime() > 30 * 60 * 1000);
 
       return (
-        <div className="flex flex-col items-start gap-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex flex-col items-start gap-0.5">
+          <div className="flex items-center gap-1 flex-wrap">
             <Badge
               className={cn(
-                "uppercase font-bold tracking-wider text-[10px] py-0 px-2 h-5 rounded-md",
+                "uppercase font-bold tracking-wider text-[9px] py-0 px-1.5 h-4.5 rounded-md",
                 STATUS_CLASSES[status] || 'bg-muted text-muted-foreground border-border'
               )}
             >
@@ -156,14 +160,14 @@ export const columns: ColumnDef<PaymentDTO>[] = [
             {isStale && (
               <Badge
                 intent="outline"
-                className="bg-destructive/15 text-destructive border-destructive/30 text-[9px] font-bold py-0 px-1.5 h-4"
+                className="bg-destructive/15 text-destructive border-destructive/30 text-[8px] font-bold py-0 px-1 h-3.5"
                 title="Платёж ожидает подтверждения более 30 минут"
               >
-                STALE 30+ мин
+                STALE
               </Badge>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground/75 font-medium ml-1">
+          <span className="text-[10px] text-muted-foreground/75 font-medium">
             {gatewayLabel}
           </span>
         </div>
@@ -173,6 +177,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Дата',
+    size: 120,
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
         {new Date(row.original.createdAt).toLocaleString('ru-RU', { 
@@ -187,6 +192,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
   {
     id: 'actions',
     header: () => <div className="text-right">Действие</div>,
+    size: 105,
     cell: ({ row, table }) => {
       const p = row.original;
       const isPending = p.status === 'PENDING';
@@ -199,7 +205,7 @@ export const columns: ColumnDef<PaymentDTO>[] = [
           <button
             type="button"
             onClick={() => meta.onApprovePayment!(p)}
-            className="px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-lg text-[11px] font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+            className="px-2 py-0.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-md text-[10px] font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1 h-6"
             title="Подтвердить зачисление по чеку/письму"
           >
             <span>✓ Подтвердить</span>

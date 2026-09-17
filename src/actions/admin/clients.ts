@@ -382,26 +382,55 @@ export async function supportGoodwillCreditAction(formData: FormData) {
     const { getEffectiveBalancePolicy } = await import('@/services/admin/balance-policy.service');
     const policy = await getEffectiveBalancePolicy(admin.id);
     
-    // Default limit: 2 000 ₽ per request if policy not configured
-    const maxInstantLimitKopecks = policy?.maxCreditPerRequest ?? BigInt(200_000);
-    const maxInstantLimitRub = Number(maxInstantLimitKopecks) / 100;
+    // Default limits: 2 000 ₽ per request if policy not configured
+    const maxInstantCreditLimitKopecks = policy?.maxCreditPerRequest ?? BigInt(200_000);
+    const maxInstantCreditLimitRub = Number(maxInstantCreditLimitKopecks) / 100;
+    const maxInstantDebitLimitKopecks = policy?.maxDebitPerRequest ?? BigInt(200_000);
+    const maxInstantDebitLimitRub = Number(maxInstantDebitLimitKopecks) / 100;
 
     // If SUPPORT wants to credit more than instant limit -> Escalate to Admin approval flow
-    if (direction === 'CREDIT' && admin.role === 'SUPPORT' && amountKopecks > maxInstantLimitKopecks) {
+    if (direction === 'CREDIT' && admin.role === 'SUPPORT' && amountKopecks > maxInstantCreditLimitKopecks) {
       const { createBalanceAdjustmentRequestAction } = await import('@/actions/admin/balance-adjustments');
       const reqFormData = new FormData();
+      reqFormData.set('userId', userId);
       reqFormData.set('targetUserId', userId);
       reqFormData.set('direction', 'CREDIT');
+      reqFormData.set('amount', (Number(amountKopecks) / 100).toFixed(2));
       reqFormData.set('amountCents', amountKopecks.toString());
       reqFormData.set('reasonCode', 'GOODWILL');
-      reqFormData.set('reasonNote', `Goodwill > ${maxInstantLimitRub} ₽: ${reason}${comment ? ` (${comment})` : ''}`);
+      reqFormData.set('reasonNote', `Goodwill > ${maxInstantCreditLimitRub} ₽: ${reason}${comment ? ` (${comment})` : ''}`);
+      reqFormData.set('idempotencyKey', crypto.randomUUID());
 
       const requestRes = await createBalanceAdjustmentRequestAction(reqFormData);
       if (requestRes.success) {
         return {
           success: true as const,
           pendingApproval: true,
-          message: `Сумма ${amountRub} ₽ превышает ваш мгновенный лимит (${maxInstantLimitRub} ₽). Заявка отправлена администратору на согласование.`
+          message: `Сумма ${amountRub} ₽ превышает ваш мгновенный лимит (${maxInstantCreditLimitRub} ₽). Заявка отправлена администратору на согласование.`
+        };
+      }
+      return { success: false as const, error: requestRes.error || 'Ошибка создания заявки администратору' };
+    }
+
+    // If SUPPORT wants to debit more than instant limit -> Escalate to Admin approval flow
+    if (direction === 'DEBIT' && admin.role === 'SUPPORT' && amountKopecks > maxInstantDebitLimitKopecks) {
+      const { createBalanceAdjustmentRequestAction } = await import('@/actions/admin/balance-adjustments');
+      const reqFormData = new FormData();
+      reqFormData.set('userId', userId);
+      reqFormData.set('targetUserId', userId);
+      reqFormData.set('direction', 'DEBIT');
+      reqFormData.set('amount', (Number(amountKopecks) / 100).toFixed(2));
+      reqFormData.set('amountCents', amountKopecks.toString());
+      reqFormData.set('reasonCode', 'CORRECTION_DEBIT');
+      reqFormData.set('reasonNote', `Списание > ${maxInstantDebitLimitRub} ₽: ${reason}${comment ? ` (${comment})` : ''}`);
+      reqFormData.set('idempotencyKey', crypto.randomUUID());
+
+      const requestRes = await createBalanceAdjustmentRequestAction(reqFormData);
+      if (requestRes.success) {
+        return {
+          success: true as const,
+          pendingApproval: true,
+          message: `Списание ${amountRub} ₽ превышает ваш мгновенный лимит (${maxInstantDebitLimitRub} ₽). Заявка отправлена администратору на согласование.`
         };
       }
       return { success: false as const, error: requestRes.error || 'Ошибка создания заявки администратору' };
@@ -411,6 +440,7 @@ export async function supportGoodwillCreditAction(formData: FormData) {
     const { auditAdminAwaitable } = await import('@/lib/admin-audit');
 
     const resolvedTenant = targetUser.tenantId || tenantId || 'smmplan';
+    const txIdempotencyKey = crypto.randomUUID();
 
     const result = await db.$transaction(async (tx) => {
       if (direction === 'CREDIT') {
@@ -422,7 +452,8 @@ export async function supportGoodwillCreditAction(formData: FormData) {
           {
             adminId: admin.id,
             tenantId: resolvedTenant,
-            transactionType: 'ADJUSTMENT'
+            transactionType: 'ADJUSTMENT',
+            idempotencyKey: txIdempotencyKey,
           }
         );
       } else {
@@ -434,7 +465,8 @@ export async function supportGoodwillCreditAction(formData: FormData) {
           {
             adminId: admin.id,
             tenantId: resolvedTenant,
-            transactionType: 'ADJUSTMENT'
+            transactionType: 'ADJUSTMENT',
+            idempotencyKey: txIdempotencyKey,
           }
         );
       }

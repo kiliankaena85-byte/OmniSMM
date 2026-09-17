@@ -3,16 +3,38 @@ import { enforceSectionAccess } from '@/lib/server/rbac';
 import { getTreasuryFinancialHealthAction } from '@/actions/admin/finance/treasury';
 import { TreasuryClient } from './treasury-client';
 import { Landmark } from 'lucide-react';
+import { AdminTabbedHeader } from '@/components/admin/tabbed-header';
+import { FINANCE_TABS, ONBOARDING_CONFIGS } from '@/components/admin/navigation-data';
+import { verifySession } from '@/lib/session';
+import { db } from '@/lib/db';
+import { resolveAdminTenantContext } from '@/utils/admin-tenant';
+import { cookies } from 'next/headers';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Казначейство & Безопасный Вывод — OmniSMM 1.0',
   description: 'Анализ обязательств перед клиентами, налоговых резервов и расчет безопасного вывода дивидендов',
 };
 
-export default async function AdminTreasuryPage() {
-  const admin = await enforceSectionAccess('finance');
-  const tenantId = admin.tenantId || 'smmplan';
-  const reportRes = await getTreasuryFinancialHealthAction(tenantId);
+interface Props {
+  searchParams: Promise<{ tenant?: string }>;
+}
+
+export default async function AdminTreasuryPage({ searchParams }: Props) {
+  await enforceSectionAccess('finance');
+  const session = await verifySession();
+  const user = session ? await db.user.findUnique({ 
+    where: { id: session.userId },
+    include: { staffRole: { include: { permissions: true } } }
+  }) : null;
+
+  const cookieStore = await cookies();
+  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+  const params = await searchParams;
+  const activeTenantId = resolveAdminTenantContext(user, params.tenant, cookieTenant);
+
+  const reportRes = await getTreasuryFinancialHealthAction(activeTenantId);
 
   const initialReport = reportRes.data || {
     totalLiquidAssetsRub: 400000,
@@ -29,27 +51,21 @@ export default async function AdminTreasuryPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-            <Landmark className="w-4 h-4 shrink-0" />
-            OmniSMM 1.0 Финансовое Казначейство
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mt-1">
-            Эскроу Клиентов, Налоги & Безопасный Вывод Прибыли
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Автоматическое разграничение кредиторской задолженности, налогов и свободной чистой прибыли
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6 pb-10 w-full max-w-full animate-in fade-in duration-300">
+      <AdminTabbedHeader
+        icon={Landmark}
+        title="Казначейство & Банковский счет"
+        description="Анализ обязательств перед клиентами, налоговых резервов и расчет безопасного вывода прибыли"
+        tabs={FINANCE_TABS}
+        onboardingKey="finance"
+        onboarding={ONBOARDING_CONFIGS.finance}
+      />
 
       <TreasuryClient
         initialReport={initialReport}
         initialBankAccount={reportRes.bankAccount}
         initialBankSource={reportRes.bankSource}
-        tenantId={tenantId}
+        tenantId={activeTenantId}
       />
     </div>
   );
