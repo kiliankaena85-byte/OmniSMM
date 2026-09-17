@@ -313,3 +313,16 @@
    - ❌ **No Information Disclosure:** Запрещено раскрывать внутренние пути (`/dev`, `/operator`, `/test`) в публичном `robots.txt` (использовать `X-Robots-Tag: noindex, nofollow` в middleware).
    - ✅ **Symmetric Cookie Sanitation:** Любая очистка сессионных кук обязана содержать полный набор атрибутов: `Secure; HttpOnly; SameSite=Lax; MaxAge=0; Expires=0; Path=/`.
    - ✅ **Granular RBAC Enforcement:** Разграничение прав ролей (Owner, Admin, Manager, Support, Cashier, User) проверяется на уровне каждого Server Action через `requireStaffPermission()`.
+
+---
+
+## 9. Жесткие инварианты надежности и постмортема (Production Post-Mortem Invariants — 2026-09-17)
+
+- ❌ **Multi-Tenant Purge Hazard:** Запрещено оценивать возможность удаления сущностей (категорий, услуг) только по счетчику активного тенанта (`tenantServicesCount === 0`). При наличии элементов в базе (`globalServicesCount > 0`) деструктивные действия обязаны блокироваться.
+- ❌ **Unverified Gateway Refund Trap:** Запрещено переводить заявку на возврат на карту в статус `EXECUTED` для шлюзов без API автоматического возврата (Robokassa, CryptoBot). Обязательно требовать `manualConfirmed: true` от оператора с фиксацией в аудите.
+- ❌ **Dev Runners in Production Containers:** Запрещено указывать `tsx` или пути к `src/` в `docker-compose.prod.yml` и `docker-compose.staging.yml`. Использовать строго скомпилированные точки входа (`node bot.js`, `node worker.js`).
+- ✅ **Infinite Infrastructure Backoff:** Сетевые драйверы Redis и PostgreSQL обязаны использовать бесконечный цикл переподключения с прогрессивным backoff (до 3000 мс), исключая обрыв соединения после N попыток.
+- ✅ **54-FZ Fiscal Schema Completeness:** Чеки 54-ФЗ во всех шлюзах (Робокасса, ЮKassa) обязаны содержать контактные данные покупателя (`client: { email }` / `phone`) согласно требованиям ФФД 1.2.
+- ✅ **WHATWG URL Flag Invariant:** Для безымянных флагов URL (например, `?boost`) использовать прямое назначение `urlObj.search = '?boost'`, исключая появление артефактного знака `?boost=`.
+- ✅ **Edge Proxy Trailing Slash Normalization:** Словари редиректов в `src/proxy.ts` обязаны нормализовать завершающие слэши (`pathname.replace(/\/+$/, '')`).
+- ✅ **Exact Financial Telemetry:** Метрики дашборда обязаны разделять Net Profit (в рублях за вычетом COGS, комиссий и УСН 6%) и Margin (в %), а процент успешности заказов рассчитывать строго по терминальным заказам без учета неоплаченных корзин.

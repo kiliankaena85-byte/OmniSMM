@@ -195,3 +195,15 @@
   10. **Анализ влияния:** [`impact-blast-radius`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/impact-blast-radius/SKILL.md) — картирование зависимостей через `grep_search`, моделирование отказа на 3 шага вперед.
   11. **Производительность:** [`nfr-performance-budget`](file:///c:/Users/Shadow/Documents/SMM/.agents/skills/nfr-performance-budget/SKILL.md) — P95/P99 latency budgets, детекция N+1 в Prisma, Keyset пагинация, connection pool limits.
 
+---
+
+## 17. Production Post-Mortem Hard Invariants (Lessons Learned 2026-09-17)
+- ❌ **Multi-Tenant Purge Hazard:** Запрещено оценивать возможность удаления сущностей (категорий, услуг) только по счетчику активного тенанта (`tenantServicesCount === 0`). При наличии элементов в базе (`globalServicesCount > 0`) деструктивные действия обязаны блокироваться.
+- ❌ **Unverified Gateway Refund Trap:** Запрещено переводить заявку на возврат на карту в статус `EXECUTED` для шлюзов без API автоматического возврата (Robokassa, CryptoBot). Обязательно требовать `manualConfirmed: true` от оператора с фиксацией в аудите.
+- ❌ **Dev Runners in Production Containers:** Запрещено указывать `tsx` или пути к `src/` в `docker-compose.prod.yml` и `docker-compose.staging.yml`. Использовать строго скомпилированные точки входа (`node bot.js`, `node worker.js`).
+- ✅ **Infinite Infrastructure Backoff:** Сетевые драйверы Redis и PostgreSQL обязаны использовать бесконечный цикл переподключения с прогрессивным backoff (до 3000 мс), исключая обрыв соединения после N попыток.
+- ✅ **54-FZ Fiscal Schema Completeness:** Чеки 54-ФЗ во всех шлюзах (Робокасса, ЮKassa) обязаны содержать контактные данные покупателя (`client: { email }` / `phone`) согласно требованиям ФФД 1.2.
+- ✅ **WHATWG URL Flag Invariant:** Для безымянных флагов URL (например, `?boost`) использовать прямое назначение `urlObj.search = '?boost'`, исключая появление артефактного знака `?boost=`.
+- ✅ **Edge Proxy Trailing Slash Normalization:** Словари редиректов в `src/proxy.ts` обязаны нормализовать завершающие слэши (`pathname.replace(/\/+$/, '')`).
+- ✅ **Exact Financial Telemetry:** Метрики дашборда обязаны разделять Net Profit (в рублях за вычетом COGS, комиссий и УСН 6%) и Margin (в %), а процент успешности заказов рассчитывать строго по терминальным заказам без учета неоплаченных корзин.
+
