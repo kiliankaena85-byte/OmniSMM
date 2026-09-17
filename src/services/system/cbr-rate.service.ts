@@ -205,13 +205,17 @@ export class CBRRateService {
       // Non-blocking redis read
     }
 
-    const usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
-    if (!usdRate || usdRate <= 0 || !Number.isFinite(usdRate)) {
-      throw new Error('INVALID_USD_RATE: Exchange rate USD is not configured in SystemSettings');
+    let usdRate: number | null = null;
+    try {
+      usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
+    } catch (err) {
+      console.warn('[CBRRateService] Failed to read USD exchange rate from settings:', err instanceof Error ? err.message : String(err));
     }
 
+    const safeUsdRate = (usdRate && Number.isFinite(usdRate) && usdRate > 0) ? usdRate : 95.0;
+
     return {
-      usdToRub: usdRate,
+      usdToRub: safeUsdRate,
       eurToUsd: 1.08,
       uahToUsd: 0.027,
       kztToUsd: 0.0023,

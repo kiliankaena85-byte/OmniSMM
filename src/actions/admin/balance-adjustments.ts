@@ -377,7 +377,7 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
       return { success: false, error: "Заявка уже обрабатывается или статус был изменен" };
     }
 
-    // Case 1: Automated Gateway Card Refund (YooKassa / Robokassa)
+    // Case 1: Automated Gateway Card Refund (YooKassa) vs Manual Merchant Refund (Robokassa / CryptoBot)
     if (adjustment.reasonCode === 'REFUND_TO_CARD') {
       try {
         const payment = adjustment.paymentId
@@ -401,6 +401,29 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
             tenantId: payment.tenantId || adjustment.user?.tenantId || 'smmplan',
           });
           refundReceiptId = refundRes.receiptRegistration || refundRes.refundId;
+        } else {
+          // Gateway does NOT support automated API refunds (e.g. Robokassa, CryptoBot)
+          const manualConfirmed = formData.get("manualConfirmed") === "true";
+          if (!manualConfirmed) {
+            // Revert state back to PENDING_APPROVAL so the card refund remains actionable
+            await db.manualBalanceAdjustment.update({
+              where: { id: adjustment.id },
+              data: {
+                status: BALANCE_ADJUSTMENT_STATUS.PENDING_APPROVAL,
+                approvedBy: null,
+                approvedAt: null,
+              }
+            });
+            const gwLabel = (payment.gateway || 'эквайринг').toUpperCase();
+            return {
+              success: false,
+              requiresManualRefund: true,
+              gateway: payment.gateway,
+              paymentId: payment.gatewayId || payment.id,
+              error: `Шлюз ${gwLabel} не поддерживает автоматический возврат через API. Для завершения операции выполните возврат вручную в личном кабинете ${gwLabel} (ID платежа: ${payment.gatewayId || payment.id}) и подтвердите выполнение с установленным флагом ручного возврата.`,
+            };
+          }
+          refundReceiptId = `MANUAL_${(payment.gateway || 'MANUAL').toUpperCase()}_${Date.now()}`;
         }
 
         if (refundReceiptId) {
@@ -420,7 +443,7 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
         await auditAdminAwaitable({
           adminId: approver.id,
           adminEmail: approver.email,
-          action: 'CARD_REFUND_EXECUTED_VIA_GATEWAY',
+          action: gateway.executeRefund ? 'CARD_REFUND_EXECUTED_VIA_GATEWAY' : 'CARD_REFUND_CONFIRMED_MANUAL',
           target: adjustment.id,
           targetType: 'ManualBalanceAdjustment',
           newValue: {
@@ -430,6 +453,7 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
             gateway: payment.gateway,
             amountCents: adjustment.amount.toString(),
             refundReceiptId,
+            manualConfirmed: !gateway.executeRefund,
           }
         });
 
@@ -653,10 +677,20 @@ export async function getBalanceAdjustmentsAction(formData: FormData) {
       }
     });
 
+    const paymentIds = items.map(item => item.paymentId).filter((id): id is string => Boolean(id));
+    const payments = paymentIds.length > 0
+      ? await db.payment.findMany({
+          where: { id: { in: paymentIds } },
+          select: { id: true, gateway: true, gatewayId: true, status: true }
+        })
+      : [];
+    const paymentMap = new Map(payments.map(p => [p.id, p]));
+
     const serializedItems = items.map(item => ({
       ...item,
       amount: item.amount.toString(),
       user: item.user ? { ...item.user, balance: item.user.balance.toString() } : null,
+      payment: item.paymentId ? paymentMap.get(item.paymentId) || null : null,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
       approvedAt: item.approvedAt ? item.approvedAt.toISOString() : null,

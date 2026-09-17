@@ -118,6 +118,12 @@ export function PaymentsRefundModal({
           </div>
         </div>
 
+        {payment.gateway.toLowerCase() !== 'yookassa' && (
+          <div className="p-2.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[11px] text-amber-700 dark:text-amber-400">
+            ℹ️ Эквайринг {payment.gateway.toUpperCase()} не поддерживает прямой автовозврат по API. После утверждения заявки возврат оформляется вручную в личном кабинете эквайринга.
+          </div>
+        )}
+
         <form onSubmit={handleCardRefundSubmit} className="space-y-3.5">
           <div>
             <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-1 flex items-center justify-between">

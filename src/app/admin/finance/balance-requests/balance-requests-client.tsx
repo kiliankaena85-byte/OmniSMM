@@ -330,7 +330,9 @@ export function BalanceRequestsClient({
                           </span>
                         )}
                         <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[220px]" title={item.reasonNote || item.reasonCode}>
-                          {item.reasonCode === 'REFUND_TO_CARD' ? (item.reasonNote || 'Возврат через эквайринг ЮKassa') : item.reasonCode}
+                          {item.reasonCode === 'REFUND_TO_CARD' 
+                            ? (item.reasonNote || (item.payment?.gateway ? `Возврат через ${item.payment.gateway.toUpperCase()}` : 'Возврат через эквайринг')) 
+                            : item.reasonCode}
                         </span>
                       </div>
                     </PlanTableCell>

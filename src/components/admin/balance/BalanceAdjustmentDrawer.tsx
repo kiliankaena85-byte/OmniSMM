@@ -23,6 +23,7 @@ export interface BalanceAdjustmentItem {
   rejectionReason?: string | null;
   executionError?: string | null;
   ledgerEntryId?: string | null;
+  payment?: { id: string; gateway: string; gatewayId?: string | null; status: string } | null;
   createdAt: string;
   user?: { id: string; email: string; role: string; balance: string } | null;
   requester?: { id: string; email: string } | null;
@@ -49,6 +50,7 @@ export function BalanceAdjustmentDrawer({
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [manualConfirmed, setManualConfirmed] = useState(false);
 
   if (!adjustment) return null;
 
@@ -58,15 +60,27 @@ export function BalanceAdjustmentDrawer({
   const canReject = isOwnerOrAdmin || !isRequester;
   const canCancel = isRequester && !isOwnerOrAdmin;
 
+  const isRefundToCard = adjustment.reasonCode === 'REFUND_TO_CARD';
+  const paymentGateway = adjustment.payment?.gateway?.toLowerCase() || 'yookassa';
+  const isManualGateway = isRefundToCard && paymentGateway !== 'yookassa';
+
   const amountRub = (Number(adjustment.amount) / 100).toFixed(2);
   const isPending = adjustment.status === "PENDING_APPROVAL";
 
   const handleApprove = async () => {
+    if (isManualGateway && !manualConfirmed) {
+      setError(`Для утверждения отметьте чекбокс о подтверждении ручного возврата в ЛК ${paymentGateway.toUpperCase()}`);
+      return;
+    }
+
     setError(null);
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("id", adjustment.id);
+      if (manualConfirmed) {
+        formData.append("manualConfirmed", "true");
+      }
       const res = await approveBalanceAdjustmentAction(formData);
       if (res.success) {
         onActionComplete();
@@ -189,7 +203,9 @@ export function BalanceAdjustmentDrawer({
                 <span className="font-medium text-foreground flex items-center gap-1.5">
                   {adjustment.reasonCode === 'REFUND_TO_CARD' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                      💳 Возврат на карту (ЮKassa)
+                      {isManualGateway
+                        ? `💳 Возврат на карту (${paymentGateway.toUpperCase()} — Ручной)`
+                        : '💳 Возврат на карту (ЮKassa)'}
                     </span>
                   ) : (
                     adjustment.reasonCode
@@ -236,6 +252,27 @@ export function BalanceAdjustmentDrawer({
                   {adjustment.reasonNote}
                 </p>
               </div>
+
+              {isManualGateway && isPending && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs space-y-2 mt-2">
+                  <div className="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                    <span>⚠️ Внимание: ручной возврат в ЛК {paymentGateway.toUpperCase()}</span>
+                  </div>
+                  <p className="text-muted-foreground text-[11px] leading-relaxed">
+                    Эквайринг {paymentGateway.toUpperCase()} не поддерживает автоматический возврат по API.
+                    Выполните возврат средств клиенту вручную в панели эквайринга{adjustment.payment?.gatewayId ? ` (ID: ${adjustment.payment.gatewayId})` : ''}, после чего подтвердите выполнение заявки.
+                  </p>
+                  <label className="flex items-center gap-2 pt-1 cursor-pointer select-none text-foreground font-medium">
+                    <input
+                      type="checkbox"
+                      checked={manualConfirmed}
+                      onChange={(e) => setManualConfirmed(e.target.checked)}
+                      className="w-4 h-4 rounded border-amber-500 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                    />
+                    <span>Подтверждаю, что возврат выполнен в ЛК {paymentGateway.toUpperCase()}</span>
+                  </label>
+                </div>
+              )}
 
               {adjustment.rejectionReason && (
                 <div>
@@ -300,7 +337,9 @@ export function BalanceAdjustmentDrawer({
                     disabled={loading}
                     className="flex-1 py-2.5 bg-emerald-600 text-primary-foreground rounded-lg text-xs font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
                   >
-                    {adjustment.reasonCode === 'REFUND_TO_CARD' ? '✓ Одобрить и вернуть в ЮKassa' : '✓ Утвердить и исполнить'}
+                    {adjustment.reasonCode === 'REFUND_TO_CARD' 
+                      ? (isManualGateway ? `✓ Подтвердить возврат в ${paymentGateway.toUpperCase()}` : '✓ Одобрить и вернуть в ЮKassa') 
+                      : '✓ Утвердить и исполнить'}
                   </button>
                 )}
 

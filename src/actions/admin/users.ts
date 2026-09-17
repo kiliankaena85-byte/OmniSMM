@@ -301,6 +301,9 @@ export async function requestCardRefundAction(formData: FormData) {
       }
     }
 
+    const gwName = (payment.gateway || 'эквайринг').toUpperCase();
+    const isAutomatedGateway = payment.gateway.toLowerCase() === 'yookassa';
+
     // 3. Atomically debit user balance and create financier payout request
     const adjustment = await db.$transaction(async (tx) => {
       // Step A: Debit balance immediately so client cannot spend it (adminAdjust does not inflate totalSpent)
@@ -308,7 +311,7 @@ export async function requestCardRefundAction(formData: FormData) {
         tx,
         userId,
         -amountKopecks,
-        `REFUND_TO_CARD: Запрос на возврат через ЮKassa (${payment.gatewayId || payment.id})`,
+        `REFUND_TO_CARD: Запрос на возврат через ${gwName} (${payment.gatewayId || payment.id})`,
         { idempotencyKey, adminId: admin.id, transactionType: 'REFUND' }
       );
 
@@ -340,9 +343,11 @@ export async function requestCardRefundAction(formData: FormData) {
       newValue: {
         userId,
         paymentId,
+        gateway: payment.gateway,
         gatewayId: payment.gatewayId,
         amountKopecks: amountKopecks.toString(),
         reason: reason.trim(),
+        isAutomatedGateway,
       },
       ipAddress,
     });
@@ -353,7 +358,9 @@ export async function requestCardRefundAction(formData: FormData) {
 
     return { 
       success: true as const, 
-      message: `Баланс клиента списан на ${(Number(amountKopecks) / 100).toFixed(2)} ₽. Заявка на возврат через ЮKassa передана финансисту.` 
+      message: isAutomatedGateway
+        ? `Баланс клиента списан на ${(Number(amountKopecks) / 100).toFixed(2)} ₽. Заявка на возврат через ЮKassa передана финансисту.`
+        : `Баланс клиента списан на ${(Number(amountKopecks) / 100).toFixed(2)} ₽. Заявка создана. Внимание: шлюз ${gwName} требует ручного оформления возврата в личном кабинете эквайринга после утверждения.`
     };
   });
 }
