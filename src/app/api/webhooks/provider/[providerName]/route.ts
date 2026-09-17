@@ -152,6 +152,10 @@ export async function POST(
         if (updated.count > 0) {
           const freshOrder = await tx.order.findUniqueOrThrow({ where: { id: order.id } });
           await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, `(Отмена на стороне провайдера ${providerName})`, tx);
+          if (order.user?.email) {
+            const { sendOrderCanceledMail } = await import('@/lib/smtp');
+            sendOrderCanceledMail(order.user.email, order.numericId.toString(), order.service.name, order.tenantId).catch(console.error);
+          }
         }
       });
     } else if (['PARTIAL'].includes(verifiedStatus)) {
@@ -167,10 +171,18 @@ export async function POST(
       });
     } else if (['COMPLETED'].includes(verifiedStatus)) {
       await runSerializableTransaction(async (tx) => {
-        await tx.order.updateMany({
+        const updated = await tx.order.updateMany({
           where: { id: order.id, status: { in: ['PENDING', 'IN_PROGRESS', 'PENDING_CHECK'] } },
           data: { status: 'COMPLETED', remains: 0 }
         });
+        if (updated.count > 0) {
+          const { LoyaltyService } = await import('@/services/users/loyalty.service');
+          await LoyaltyService.confirmCommission(tx, order.id);
+          if (order.user?.email) {
+            const { sendOrderCompletedMail } = await import('@/lib/smtp');
+            sendOrderCompletedMail(order.user.email, order.numericId.toString(), order.service.name, order.tenantId).catch(console.error);
+          }
+        }
       });
     } else {
       await db.order.updateMany({

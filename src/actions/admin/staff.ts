@@ -147,23 +147,41 @@ function getMskHour(date: Date): number {
 /**
  * Fetches all staff members with their 24h activity timeline and shift metrics in MSK time.
  */
-export async function getStaffMembersWithMetrics(dateParam?: string) {
+export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam?: string) {
   return requireStaffPermission('settings', 'view', async (admin) => {
     // Determine start and end of MSK day
     const targetDate = dateParam ? new Date(dateParam) : new Date();
     const mskNow = new Date(targetDate.getTime() + 3 * 3600 * 1000);
     const startOfDay = new Date(Date.UTC(mskNow.getUTCFullYear(), mskNow.getUTCMonth(), mskNow.getUTCDate(), -3, 0, 0, 0));
     const endOfDay = new Date(Date.UTC(mskNow.getUTCFullYear(), mskNow.getUTCMonth(), mskNow.getUTCDate(), 20, 59, 59, 999));
-    const tenantFilter = admin.tenantId ? { tenantId: admin.tenantId } : {};
+
+    let cookieTenant: string | null = null;
+    try {
+      const { cookies } = await import('next/headers');
+      const c = await cookies();
+      cookieTenant = c.get('x_admin_tenant')?.value || null;
+    } catch {}
+
+    const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
+    const resolvedTenant = resolveAdminTenantContext(admin, tenantParam, cookieTenant);
 
     // Fetch all staff users (SUPPORT, MANAGER, ADMIN, OWNER or with staffRole)
     const staffUsers = await db.user.findMany({
       where: {
-        OR: [
-          { role: { in: ['SUPPORT', 'MANAGER', 'ADMIN', 'OWNER'] } },
-          { staffRoleId: { not: null } },
-        ],
-        ...tenantFilter
+        AND: [
+          {
+            OR: [
+              { role: { in: ['SUPPORT', 'MANAGER', 'ADMIN', 'OWNER'] } },
+              { staffRoleId: { not: null } },
+            ]
+          },
+          ...(resolvedTenant === 'all' ? [] : [{
+            OR: [
+              { tenantId: resolvedTenant },
+              { allowedTenants: { has: resolvedTenant } }
+            ]
+          }])
+        ]
       },
       include: {
         staffRole: true,

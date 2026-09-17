@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { providerService } from "@/services/providers/provider.service";
 import { RefundPolicyService } from "@/services/financial/refund-policy.service";
-import { sendOrderCompletedMail } from "@/lib/smtp";
+import { sendOrderCompletedMail, sendOrderCanceledMail } from "@/lib/smtp";
 import { QuarantineService } from "@/services/providers/quarantine.service";
 import { CompensationService } from "@/services/financial/compensation.service";
 import { runSerializableTransaction } from "@/lib/transactions";
@@ -156,6 +156,9 @@ export async function POST(req: Request) {
           // Trigger Quarantine Check (Silent Failures)
           QuarantineService.evaluateTriggerB(order.serviceId).catch(console.error);
           
+          if (order.user?.email) {
+            sendOrderCanceledMail(order.user.email, order.numericId.toString(), order.service.name, order.tenantId).catch(console.error);
+          }
           CompensationService.trackCompensation(order.id, s.charge).catch(err => console.error('[Webhook] Failed to track compensation', err));
         }
       });

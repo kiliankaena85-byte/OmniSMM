@@ -203,7 +203,9 @@ export class BalanceAutoFlushService {
 
       // 7. Atomic reset and queue push with Batch Liquidity check
       for (const order of eligibleOrders) {
-        const orderCostRub = order.providerCost ? Number(order.providerCost) : 0;
+        const orderCostRub = order.providerCost
+          ? Number(order.providerCost) / 100
+          : (order.charge ? Number(order.charge) / 100 : 0);
         if (orderCostRub > 0 && remainingLiquidityRub < orderCostRub) {
           // Break early if remaining balance cannot cover the next order
           break;
@@ -259,10 +261,10 @@ export class BalanceAutoFlushService {
         } catch { /* ignore */ }
       }
 
-      if (options?.initiatedBy && flushedCount > 0) {
+      if (flushedCount > 0) {
         await auditAdminAwaitable({
-          adminId: options.initiatedBy.id,
-          adminEmail: options.initiatedBy.email,
+          adminId: options?.initiatedBy?.id || 'system-cron',
+          adminEmail: options?.initiatedBy?.email || 'system-cron@smmplan.pro',
           action: 'PROVIDER_BATCH_AUTOFLUSH',
           target: providerId,
           targetType: 'PROVIDER',
@@ -270,8 +272,10 @@ export class BalanceAutoFlushService {
             flushedCount,
             skippedCount,
             balanceRub: balanceData.balanceRub,
+            remainingLiquidityRub,
+            initiatedBy: options?.initiatedBy?.email || 'SYSTEM_CRON',
           },
-        });
+        }).catch((err) => console.error('[BalanceAutoFlush] Audit log failed:', err));
       }
 
       return {

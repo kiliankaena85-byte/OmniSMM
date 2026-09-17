@@ -437,6 +437,8 @@ export async function updateGlobalSettings(formData: FormData) {
         revalidatePath: (path: string, type?: 'layout' | 'page') => unknown; 
       };
       revalidateTag('settings');
+      revalidateTag(`settings-${activeTenantId}`);
+      SettingsProvider.invalidateLocalCache(activeTenantId);
       revalidatePath('/', 'layout');
       revalidatePath('/admin/settings');
     } catch (cacheErr) {

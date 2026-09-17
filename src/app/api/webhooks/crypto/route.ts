@@ -43,8 +43,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    const internalPaymentId = data.payload?.payload || data.payload?.invoice_id?.toString();
-    let resolvedTenantId = 'smmplan';
+    const rawPayload = data.payload?.payload;
+    let internalPaymentId: string | undefined = typeof rawPayload === 'string' ? rawPayload : undefined;
+    let payloadTenantId: string | undefined;
+
+    if (internalPaymentId && (internalPaymentId.startsWith('{') || internalPaymentId.startsWith('['))) {
+      try {
+        const parsed = JSON.parse(internalPaymentId);
+        if (parsed.paymentId) internalPaymentId = parsed.paymentId;
+        if (parsed.tenantId) payloadTenantId = parsed.tenantId;
+      } catch {
+        // Keep raw internalPaymentId
+      }
+    }
+
+    if (!internalPaymentId && data.payload?.invoice_id) {
+      internalPaymentId = data.payload.invoice_id.toString();
+    }
+
+    let resolvedTenantId = payloadTenantId || 'smmplan';
     if (internalPaymentId) {
       const p = await db.payment.findFirst({
         where: {

@@ -60,6 +60,21 @@ export class SettingsProvider {
   }
 
   /**
+   * Clears the in-memory fallback cache for workers/CLI.
+   */
+  static invalidateLocalCache(tenantId?: string) {
+    if (tenantId) {
+      const cleanSlug = normalizeTenantId(tenantId) || 'smmplan';
+      delete localSettingsCache[cleanSlug];
+      delete localSettingsCache[tenantId];
+    } else {
+      for (const k of Object.keys(localSettingsCache)) {
+        delete localSettingsCache[k];
+      }
+    }
+  }
+
+  /**
    * Resolves the current tenantId from request headers or fallback environment variables.
    */
   static async getTenantId(): Promise<string> {

@@ -303,7 +303,8 @@ export async function POST(req: NextRequest) {
                     : email;
                   sendAdminAlert(
                     `⏱️ <b>[Платёжный шлюз] Задержка вебхука ЮKassa</b>\n\n• Платеж: <code>${existingPayment.id}</code>\n• Клиент: <code>${maskedEmail}</code>\n• Сумма: <b>${(Number(amountCents) / 100).toFixed(2)} ₽</b>\n• Задержка доставки: <b>${Math.round(latencySec / 60)} мин</b>\n• Статус: <b>Успешно зачислено</b>`,
-                    'WARNING'
+                    'WARNING',
+                    webhookTenantId
                   );
                 }).catch(err => console.error('[YooKassa Webhook] Latency alert failed', err));
               }
@@ -317,7 +318,8 @@ export async function POST(req: NextRequest) {
                 const formattedRub = (Number(amountCents) / 100).toLocaleString('ru-RU');
                 sendAdminAlert(
                   `💰 Large payment: ${formattedRub} ₽ from ${email}`,
-                  'INFO'
+                  'INFO',
+                  webhookTenantId
                 );
               }).catch(err => console.error('[YooKassa Webhook] Large payment alert failed', err));
             }

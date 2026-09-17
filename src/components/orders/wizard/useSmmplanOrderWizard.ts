@@ -175,7 +175,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     if (!isDripFeedEnabled || !selectedService) return null;
     const res = validateDripFeedFloor({
       isDripFeedEnabled,
-      quantity,
+      quantity: totalQuantity,
       runs: dripRuns,
       minQty: selectedService.minQty,
     });

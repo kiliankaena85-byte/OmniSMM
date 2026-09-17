@@ -1,3 +1,24 @@
+- [x] ⚡ [WEBHOOK-AND-AUTOFLUSH-HARDENING-2026] Комплексный аудит и устранение критических уязвимостей вебхуков, провайдерского авто-флаша, Drip-Feed Floor и настроек персонала (100% COMPLETE & VERIFIED):
+  * 💱 **Исправление критического бага себестоимости в авто-флаше (`balance-autoflush.service.ts`):**
+    - В `src/services/providers/balance-autoflush.service.ts`: `order.providerCost` и `order.charge` хранятся в БД в копейках/центах (`BigInt`), тогда как `balanceData.balanceRub` рассчитывается в рублях. Ранее `Number(order.providerCost)` завышал себестоимость заказа в 100 раз (15 ₽ считалось как 1500 ₽), из-за чего механизм авто-флаша ошибочно считал баланс исчерпанным и прерывал сброс очереди (`break;`).
+    - Исправлено приведение стоимости: `orderCostRub = order.providerCost ? Number(order.providerCost) / 100 : (order.charge ? Number(order.charge) / 100 : 0)`.
+    - Нормализован аудит: вызов `auditAdminAwaitable` теперь корректно передает `adminId`, `adminEmail`, `action`, `target`, `targetType`, `newValue` для системного и ручного запуска с перехватом ошибок.
+  * 🔐 **Защита CryptoBot и многотенантных вебхуков (`crypto/route.ts`, `yookassa/route.ts`):**
+    - В `src/app/api/webhooks/crypto/route.ts`: добавлено безопасное извлечение `paymentId` и `tenantId` из JSON-строки `data.payload?.payload` до запроса к БД. Исключен сбой HMAC-верификации из-за использования токена не того тенанта.
+    - В `src/app/api/webhooks/yookassa/route.ts`: в вызовы `sendAdminAlert` передан `webhookTenantId`, обеспечивая корректный брендинг и маршрутизацию алертов о задержке и крупных платежах.
+  * 📬 **Уведомления и подтверждение комиссий в провайдерских вебхуках (`provider/[providerName]/route.ts`, `vexboost/route.ts`, `provider/route.ts`):**
+    - При переходе в `COMPLETED` добавлено подтверждение партнерской комиссии `LoyaltyService.confirmCommission(tx, order.id)` и отправка email клиенту `sendOrderCompletedMail` с учетом `order.tenantId`.
+    - При отмене заказа добавлена отправка `sendOrderCanceledMail` с изоляцией по `order.tenantId`.
+  * ⏳ **Устранение ложного срабатывания Drip-Feed Floor в визарде заказов (`useSmmplanOrderWizard.ts`):**
+    - В `useSmmplanOrderWizard.ts`: функция `validateDripFeedFloor` ожидает общий объем заказа (`quantity / runs`), однако в нее ошибочно передавался объем на один запуск `quantity`, вызывая ложное срабатывание ошибки и блокировку кнопки заказа. Исправлено на передачу `quantity: totalQuantity`.
+  * ⚙️ **Изоляция настроек и прав сотрудников по тенантам (`settings.ts`, `staff.ts`):**
+    - В `SettingsProvider` добавлен метод `invalidateLocalCache(tenantId?: string)` для сброса fallback-кэша воркеров.
+    - В `updateGlobalSettings` добавлена инвалидация тенантного тэга `settings-${activeTenantId}` и вызов `invalidateLocalCache`.
+    - В `getStaffMembersWithMetrics` внедрена поддержка `tenantParam` и куки `x_admin_tenant` через `resolveAdminTenantContext`, позволяя владельцу фильтровать персонал по проектам.
+  * 🧪 **Верификация:**
+    - `vitest run` (10 сьютов, 48/48 PASS — 100%).
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
 - [x] ⚡ [WORKER-AND-REFUND-ISOLATION-2026] Изоляция авто-возвратов фоновых воркеров (DripFeed, Cleanup, Sync), провайдерских вебхуков и SLA-метрик (100% COMPLETE & VERIFIED):
   * 🔄 **Изоляция авто-возвратов в DripFeed и TTL-свипере (`dripfeed.processor.ts`, `cleanup.processor.ts`):**
     - В `src/workers/processors/dripfeed.processor.ts`: выборка заказа при сбое кампании обогащена `tenantId: true`, проверка идемпотентности в `tx.ledgerEntry.findFirst` и вызов `WalletOps.refund` получили строгий `tenantId: order.tenantId`.
