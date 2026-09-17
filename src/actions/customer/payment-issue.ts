@@ -60,7 +60,7 @@ export async function reportPaymentIssueAction(paymentId: string): Promise<Repor
 
     // 1. Immediate sync check with gateway
     if (payment.gatewayId && payment.gateway === 'yookassa') {
-      const secrets = await SettingsManager.getPaymentSecrets().catch(() => null);
+      const secrets = await SettingsManager.getPaymentSecrets(payment.tenantId || 'smmplan').catch(() => null);
       const authHeader = (secrets?.yookassaShopId && secrets?.yookassaSecretKey)
         ? 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64')
         : 'Basic mock';

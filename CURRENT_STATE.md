@@ -1,3 +1,22 @@
+- [x] ⚡ [PAYMENT-SYNC-AND-FINANCIAL-LEDGER-TENANT-ISOLATION-2026] Изоляция платежных ключей, синхронизации статусов, возвратов и финансовой книги (100% COMPLETE & VERIFIED):
+  * 💳 **Многотенантная изоляция платежных шлюзов и синхронизации статусов:**
+    - В `src/workers/processors/payment-sync.ts`: кэширование и получение учетных данных ЮKassa/тестового режима переведено на изолированное разрешение по `payment.tenantId || 'smmplan'`, исключая кросс-тенантные сбои 401/404 при проверке платежей SMMflux.
+    - В `src/actions/order/sync-payment.ts`: параметры `SettingsManager.getPaymentSecrets(tenantId)` и `isTestMode(tenantId)` теперь строго используют `session.tenantId || 'smmplan'`.
+    - В `src/actions/customer/payment-issue.ts`: автоматическая проверка ЮKassa при обращении клиента в тикет скоупирована по `payment.tenantId || 'smmplan'`.
+    - В `src/app/api/payments/[id]/status/route.ts`: фоновый Active Pull ЮKassa изолирован по `payment.tenantId || 'smmplan'`.
+    - В `src/app/api/order-status/route.ts`: синхронный опрос статусов заказов и корзины скоупирован по `order.tenantId` и `payment.tenantId` для всех провайдеров (`yookassa`, `cryptobot`, `robokassa`).
+    - В `src/actions/order/checkout.ts`: функции `checkYookassaStatusSync` и `getAvailableGatewaysAction` теперь изолированно определяют активный тенант из сессии, параметров или заголовка `x-tenant-id`.
+    - В `src/actions/admin/settings.ts`: `testYooKassaConnectionAction` поддерживает проверку ключей для выбранного администратором сайта `targetTenantId`.
+  * 💰 **Изоляция финансовой книги (Ledger) и возвратов средств:**
+    - В `src/actions/admin/orders.ts`: вызовы `WalletOps.refund` при смене статуса, Force Complete и массовой отмене обогащены обязательным `tenantId: order.tenantId` / `safeOrder.tenantId`.
+    - В `src/workers/processors/cleanup.processor.ts`: в свипере `runPendingCheckTTLSweep` выборка заказов дополнена `tenantId: true`, проверка идемпотентности и вызов `WalletOps.refund` изолированы по `order.tenantId`.
+    - В `src/actions/support/ticket.ts`: групповой возврат средств по тикету (`bulkRefundOrdersAction`) скоупирован по `item.order.tenantId || ticket.tenantId`.
+    - В `src/services/admin/order.service.ts`: ручная отмена заказа с возвратом (`cancelOrder`) скоупирована по `order.tenantId`.
+    - В `src/actions/admin/balance-adjustments.ts`: вызов шлюзового возврата `gateway.executeRefund` обогащен `tenantId: payment.tenantId || adjustment.user?.tenantId || 'smmplan'`.
+  * 🧪 **Верификация:**
+    - `vitest run` (`payment-sync.test.ts`, `wallet-ops.test.ts`, `tenant-settings-bot-and-legal-isolation.test.ts`, `multitenant-checkout-and-payment-retry.test.ts`) — 19/19 PASS (100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
 - [x] ⚡ [ADMIN-RBAC-AND-PROXY-TENANT-ISOLATION-2026] Изоляция административных сессий, RBAC-проверок и разделение витринных и административных кук (100% COMPLETE & VERIFIED):
   * 🛡️ **Запрет подмешивания tenantId в `prisma-tenant-enforcer.ts` при поиске по id:**
     - В `src/lib/prisma-tenant-enforcer.ts`: в методе `findUnique` добавлена проверка `if (model === 'user' && args.where && args.where.id) return query(args);`. Первичный ключ CUID глобально уникален, а администраторы (`OWNER`, `ADMIN`, `SUPPORT`) имеют право управлять любыми сайтами платформы OmniSMM 1.0 без принудительного скоупинга по домашнему `tenantId`.

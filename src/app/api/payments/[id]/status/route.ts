@@ -58,7 +58,7 @@ export async function GET(
       if (paymentAgeMs >= ACTIVE_PULL_MIN_AGE_MS) {
         try {
           const { SettingsManager } = await import('@/lib/settings');
-          const secrets = await SettingsManager.getPaymentSecrets();
+          const secrets = await SettingsManager.getPaymentSecrets(payment.tenantId || 'smmplan');
 
           // Determine gateway type from payment.gateway field
           const isYooKassa = payment.gateway === 'yookassa' ||

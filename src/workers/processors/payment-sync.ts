@@ -81,22 +81,32 @@ export default async function paymentSyncProcessor(job: Job<SyncJobPayload>) {
 
   log.info(`Found ${pendingPayments.length} pending YooKassa payments to check.`);
 
-  const isTestMode = await SettingsManager.isTestMode();
-  if (isTestMode) {
-    log.info('System is in Sandbox/Test mode. Skipping real YooKassa API status checks.');
-    return;
+  const tenantSecretsCache = new Map<string, { authHeader: string | null; isTest: boolean }>();
+
+  async function getTenantAuth(tenantId: string) {
+    const tid = tenantId || 'smmplan';
+    if (tenantSecretsCache.has(tid)) {
+      return tenantSecretsCache.get(tid)!;
+    }
+    const isTest = await SettingsManager.isTestMode(tid);
+    if (isTest) {
+      const entry = { authHeader: null, isTest: true };
+      tenantSecretsCache.set(tid, entry);
+      return entry;
+    }
+    const secrets = await SettingsManager.getPaymentSecrets(tid);
+    const shopId = secrets.yookassaShopId;
+    const secretKey = secrets.yookassaSecretKey;
+    if (!shopId || !secretKey) {
+      const entry = { authHeader: null, isTest: false };
+      tenantSecretsCache.set(tid, entry);
+      return entry;
+    }
+    const authHeader = 'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64');
+    const entry = { authHeader, isTest: false };
+    tenantSecretsCache.set(tid, entry);
+    return entry;
   }
-
-  const secrets = await SettingsManager.getPaymentSecrets();
-  const shopId = secrets.yookassaShopId;
-  const secretKey = secrets.yookassaSecretKey;
-
-  if (!shopId || !secretKey) {
-    log.error('YooKassa shopId or secretKey is not configured. Aborting payments synchronization.');
-    return;
-  }
-
-  const authHeader = 'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64');
 
   for (const payment of pendingPayments) {
     if (!payment.gatewayId) {
@@ -104,8 +114,18 @@ export default async function paymentSyncProcessor(job: Job<SyncJobPayload>) {
       continue;
     }
 
+    const { authHeader, isTest } = await getTenantAuth(payment.tenantId || 'smmplan');
+    if (isTest) {
+      log.info(`Payment ${payment.id} is in test mode for tenant ${payment.tenantId || 'smmplan'}. Skipping live check.`);
+      continue;
+    }
+    if (!authHeader) {
+      log.warn(`Payment ${payment.id} tenant ${payment.tenantId || 'smmplan'} missing YooKassa keys. Skipping.`);
+      continue;
+    }
+
     try {
-      log.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId})...`);
+      log.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId}, Tenant: ${payment.tenantId})...`);
 
       const response = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
         method: 'GET',

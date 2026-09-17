@@ -652,12 +652,14 @@ export async function testTelegramBotConnectionAction() {
   });
 }
 
-export async function testYooKassaConnectionAction() {
+export async function testYooKassaConnectionAction(targetTenantId?: string) {
   return requireStaffPermission('settings', 'view', async () => {
-    const { SettingsManager } = await import('@/lib/settings');
-    const secrets = await SettingsManager.getPaymentSecrets();
+    const { SettingsManager, SettingsProvider } = await import('@/lib/settings');
+    const rawTenant = targetTenantId || await SettingsProvider.getTenantId();
+    const activeTenantId = normalizeTenantId(rawTenant) || 'smmplan';
+    const secrets = await SettingsManager.getPaymentSecrets(activeTenantId);
     if (!secrets.yookassaShopId || !secrets.yookassaSecretKey) {
-      return { success: false, message: 'Ключи ЮKassa (Shop ID / Secret Key) не заполнены в БД или .env' };
+      return { success: false, message: `Ключи ЮKassa (${activeTenantId}) не заполнены в БД или .env` };
     }
 
     try {

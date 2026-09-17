@@ -75,10 +75,12 @@ export async function GET(req: NextRequest) {
         let isActuallyPaid = false;
         let checkAmount = Number(order.payment.amount);
 
+        const orderTenantId = order.tenantId || 'smmplan';
+
         if (gatewayId.startsWith('yoo_test_mock_') || gatewayId.startsWith('crypto_test_mock_') || gatewayId.startsWith('robo_test_mock_') || gatewayId.startsWith('mock_')) {
           isActuallyPaid = true;
         } else if (gateway === 'yookassa') {
-          const secrets = await SettingsManager.getPaymentSecrets();
+          const secrets = await SettingsManager.getPaymentSecrets(orderTenantId);
           if (secrets.yookassaShopId && secrets.yookassaSecretKey) {
             const authHeader = 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64');
             try {
@@ -102,7 +104,7 @@ export async function GET(req: NextRequest) {
             const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
             const gatewaySvc = PaymentGatewayFactory.getGateway(gateway);
             if (gatewaySvc.checkStatusSync) {
-              isActuallyPaid = await gatewaySvc.checkStatusSync(gatewayId);
+              isActuallyPaid = await gatewaySvc.checkStatusSync(gatewayId, orderTenantId);
             }
           } catch (e: unknown) {
             console.error(`[order-status] ${gateway} sync fallback failed:`, (e instanceof Error ? e.message : String(e)));
@@ -110,7 +112,7 @@ export async function GET(req: NextRequest) {
         }
 
         if (isActuallyPaid) {
-          const isTestMode = await SettingsManager.isTestMode();
+          const isTestMode = await SettingsManager.isTestMode(orderTenantId);
           const { paymentService } = await import('@/services/financial/payment.service');
           await paymentService.confirmPayment(
             gatewayId,
@@ -163,10 +165,12 @@ export async function GET(req: NextRequest) {
         let isActuallyPaid = false;
         let checkAmount = Number(payment.amount);
 
+        const paymentTenantId = payment.tenantId || 'smmplan';
+
         if (gatewayId.startsWith('yoo_test_mock_') || gatewayId.startsWith('crypto_test_mock_') || gatewayId.startsWith('robo_test_mock_') || gatewayId.startsWith('mock_')) {
           isActuallyPaid = true;
         } else if (gateway === 'yookassa') {
-          const secrets = await SettingsManager.getPaymentSecrets();
+          const secrets = await SettingsManager.getPaymentSecrets(paymentTenantId);
           if (secrets.yookassaShopId && secrets.yookassaSecretKey) {
             const authHeader = 'Basic ' + Buffer.from(`${secrets.yookassaShopId}:${secrets.yookassaSecretKey}`).toString('base64');
             try {
@@ -190,7 +194,7 @@ export async function GET(req: NextRequest) {
             const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
             const gatewaySvc = PaymentGatewayFactory.getGateway(gateway);
             if (gatewaySvc.checkStatusSync) {
-              isActuallyPaid = await gatewaySvc.checkStatusSync(gatewayId);
+              isActuallyPaid = await gatewaySvc.checkStatusSync(gatewayId, paymentTenantId);
             }
           } catch (e: unknown) {
             console.error(`[order-status] ${gateway} sync fallback failed:`, (e instanceof Error ? e.message : String(e)));
@@ -198,7 +202,7 @@ export async function GET(req: NextRequest) {
         }
 
         if (isActuallyPaid) {
-          const isTestMode = await SettingsManager.isTestMode();
+          const isTestMode = await SettingsManager.isTestMode(paymentTenantId);
           const { paymentService } = await import('@/services/financial/payment.service');
           await paymentService.confirmPayment(
             gatewayId,

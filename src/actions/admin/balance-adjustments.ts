@@ -398,6 +398,7 @@ export async function approveBalanceAdjustmentAction(formData: FormData) {
             email: freshTargetUser.email || adjustment.user?.email,
             reason: adjustment.reasonNote || 'Возврат средств по заявке',
             idempotencyKey: `yoo_refund_${adjustment.id}`,
+            tenantId: payment.tenantId || adjustment.user?.tenantId || 'smmplan',
           });
           refundReceiptId = refundRes.receiptRegistration || refundRes.refundId;
         }

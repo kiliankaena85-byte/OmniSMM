@@ -713,7 +713,7 @@ export async function bulkRefundOrdersAction(ticketId: string, orderIds: string[
 
     const { calculatePartialRefund } = await import('@/utils/refund');
 
-    const calculatedRefunds: { order: { id: string; numericId: number; userId: string; remains: number; quantity: number; charge: bigint }; calculatedAmount: number }[] = [];
+    const calculatedRefunds: { order: { id: string; numericId: number; userId: string; remains: number; quantity: number; charge: bigint; tenantId: string }; calculatedAmount: number }[] = [];
 
     await db.$transaction(async (tx) => {
       // Calculate total refund cents first
@@ -762,7 +762,7 @@ export async function bulkRefundOrdersAction(ticketId: string, orderIds: string[
         const idempotencyKey = `refund_ticket_${ticketId}_order_${item.order.id}`;
         await WalletOps.refund(tx, ticket.userId, item.calculatedAmount,
           `Компенсация (частичный возврат) по тикету #${ticketId} за недовыполненный заказ #${item.order.numericId}`,
-          { idempotencyKey, adminId: admin.id }
+          { idempotencyKey, adminId: admin.id, tenantId: item.order.tenantId || ticket.tenantId }
         );
 
         processedCount++;

@@ -31,13 +31,14 @@ export async function forceSyncMyPaymentsAction(): Promise<boolean> {
 
     if (pendingPayments.length === 0) return false;
 
-    const secrets = await SettingsManager.getPaymentSecrets();
+    const tenantId = session.tenantId || 'smmplan';
+    const secrets = await SettingsManager.getPaymentSecrets(tenantId);
     const shopId = secrets.yookassaShopId;
     const secretKey = secrets.yookassaSecretKey;
     if (!shopId || !secretKey) return false;
 
     const authHeader = 'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64');
-    const isTestMode = await SettingsManager.isTestMode();
+    const isTestMode = await SettingsManager.isTestMode(tenantId);
 
     for (const payment of pendingPayments) {
       if (!payment.gatewayId) continue;

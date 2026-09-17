@@ -724,6 +724,7 @@ export async function runPendingCheckTTLSweep(): Promise<void> {
       userId: true,
       charge: true,
       externalId: true,
+      tenantId: true,
       service: {
         select: {
           provider: true
@@ -789,14 +790,19 @@ export async function runPendingCheckTTLSweep(): Promise<void> {
 
         if (order.charge > 0) {
           const refundKey = `refund-pending-check-ttl-${order.id}`;
-          const existing = await tx.ledgerEntry.findFirst({ where: { idempotencyKey: refundKey } });
+          const existing = await tx.ledgerEntry.findFirst({
+            where: {
+              idempotencyKey: refundKey,
+              ...(order.tenantId ? { tenantId: order.tenantId } : {})
+            }
+          });
           if (!existing) {
             await WalletOps.refund(
               tx,
               order.userId,
               Number(order.charge),
               `Авто-возврат: заказ #${order.numericId} отменён провайдером`,
-              { idempotencyKey: refundKey }
+              { idempotencyKey: refundKey, tenantId: order.tenantId }
             );
           }
         }

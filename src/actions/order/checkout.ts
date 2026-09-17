@@ -952,9 +952,9 @@ const retryCheckoutSchema = z.object({
 });
 
 // Утилита для синхронной проверки статуса YooKassa (предотвращение двойной оплаты)
-async function checkYookassaStatusSync(gatewayId: string): Promise<boolean> {
+async function checkYookassaStatusSync(gatewayId: string, tenantId: string = 'smmplan'): Promise<boolean> {
   try {
-    const secrets = await SettingsManager.getPaymentSecrets();
+    const secrets = await SettingsManager.getPaymentSecrets(tenantId);
     const shopId = secrets.yookassaShopId;
     const secretKey = secrets.yookassaSecretKey;
     if (!shopId || !secretKey) return false;
@@ -1021,11 +1021,11 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 
     // Защита от двойной оплаты: если предыдущий платеж был через YooKassa и имеет gatewayId
     if (order.payment?.gateway === 'yookassa' && order.payment.gatewayId) {
-      const isActuallyPaid = await checkYookassaStatusSync(order.payment.gatewayId);
+      const isActuallyPaid = await checkYookassaStatusSync(order.payment.gatewayId, currentTenantId);
       if (isActuallyPaid) {
         // Платеж уже успешен, вебхук запаздывает. Обновляем статус и возвращаем ссылку на success.
         const { paymentService } = await import('@/services/financial/payment.service');
-        const isTestMode = await SettingsManager.isTestMode();
+        const isTestMode = await SettingsManager.isTestMode(currentTenantId);
         await paymentService.confirmPayment(
           order.payment.gatewayId,
           Number(order.payment.amount),
@@ -1327,11 +1327,20 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 };
 
 /** @public Public gateway configuration for checkout */
-export async function getAvailableGatewaysAction() {
+export async function getAvailableGatewaysAction(explicitTenantId?: string) {
   try {
+    let resolvedTenantId = explicitTenantId;
+    if (!resolvedTenantId) {
+      try {
+        const reqHeaders = await headers();
+        resolvedTenantId = normalizeTenantId(reqHeaders.get('x-tenant-id')) || 'smmplan';
+      } catch {
+        resolvedTenantId = 'smmplan';
+      }
+    }
     const { SettingsProvider } = await import('@/lib/settings');
-    const secrets = await SettingsProvider.getPaymentSecrets();
-    const isTest = await SettingsProvider.isTestMode();
+    const secrets = await SettingsProvider.getPaymentSecrets(resolvedTenantId);
+    const isTest = await SettingsProvider.isTestMode(resolvedTenantId);
 
     const hasValidYookassa = Boolean(
       secrets.yookassaShopId &&
