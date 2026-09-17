@@ -459,7 +459,7 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
   }).then(m => {
     // Optionally delete the cleanup message
     setTimeout(() => {
-      ctx.telegram.deleteMessage(ctx.chat!.id, m.message_id).catch(() => {});
+      ctx.telegram?.deleteMessage(ctx.chat!.id, m.message_id).catch(() => {});
     }, 1000);
   }).catch(() => {});
 
@@ -607,6 +607,9 @@ export async function dispatchDynamicMenuAction(ctx: BotContext, text: string): 
   const btn = buttons.find(b => b.label.toLowerCase() === trimmed.toLowerCase() || b.label.replace(/^[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim().toLowerCase() === trimmed.toLowerCase());
   
   if (btn) {
+    if (ctx.scene) {
+      await ctx.scene.leave().catch(() => {});
+    }
     return executeDynamicAction(ctx, btn);
   }
   return false;

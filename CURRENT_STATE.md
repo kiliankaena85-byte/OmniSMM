@@ -1,3 +1,15 @@
+- [x] ⚡ [TELEGRAM-BOT-DAEMON-AND-DELIVERY-STABILITY-2026] Устранение сбоев запуска демона Long Polling и двусторонней доставки сообщений Telegram-бота (100% COMPLETE & VERIFIED):
+  * 🤖 **Устранение первопричин остановки демона и сбоев доставки:**
+    - В `docker-compose.yml`: в сервисе `bot` явно переопределен параметр `SKIP_BOT=false`, предотвращая наследование `SKIP_BOT="true"` из `.env`, из-за которого бот-контейнер не запускал Long Polling.
+    - В `src/bot/index.ts`: удалена ошибочная мутация read-only геттера `(bot as any).token = activeToken;`, вызывавшая краш `TypeError` при чтении токена из БД. Токен передается строго в `(bot.telegram as any).token` и `bot.options.token`.
+    - Добавлен подписчик Redis Pub/Sub на канал `bot:reload`, обеспечивающий мгновенный горячий релоад конфигурации бота при сохранении настроек в админ-панели без перезапуска контейнера.
+    - В `src/services/support/support-bot.service.ts`: методы `sendSupportReply`, `editSupportReply`, `deleteSupportReply`, `sendTicketClosedRating` параметризованы по `tenantId`, исключая подмешивание чужого токена и гарантируя надежную доставку ответов оператора клиенту в Telegram с человекочитаемой расшифровкой ошибок.
+  * 🧪 **Сквозная верификация и регрессионный контроль:**
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Тесты Telegram API и агентов: `telegram-proxy-agent.test.ts`, `token-resolver.test.ts`, `support-bot.test.ts` — 16/16 PASS (100%).
+    - Серверные экшены и изоляция: `telegram-bot-actions.test.ts`, `bot.test.ts`, `tenant-settings-bot-and-legal-isolation.test.ts` — 14/14 PASS (100%).
+    - Пакет бот-сценариев `src/bot/__tests__/` (`bot-admin-settings-ecosystem`, `bot-catalog-taxonomy-and-isolation`, `bot-client-journey-smoke`, `bot-interactive-buttons-and-error-ux`) — 15/15 PASS (100%).
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
 - [x] ⚡ [PAYMENT-SYNC-AND-FINANCIAL-LEDGER-TENANT-ISOLATION-2026] Изоляция платежных ключей, синхронизации статусов, возвратов и финансовой книги (100% COMPLETE & VERIFIED):
   * 💳 **Многотенантная изоляция платежных шлюзов и синхронизации статусов:**
     - В `src/workers/processors/payment-sync.ts`: кэширование и получение учетных данных ЮKassa/тестового режима переведено на изолированное разрешение по `payment.tenantId || 'smmplan'`, исключая кросс-тенантные сбои 401/404 при проверке платежей SMMflux.

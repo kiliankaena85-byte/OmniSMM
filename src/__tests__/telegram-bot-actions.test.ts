@@ -50,7 +50,7 @@ describe('Telegram Bot Server Actions & RBAC Suite', () => {
       const res = await saveTelegramMenuConfigAction(customButtons);
       expect(res.success).toBe(true);
 
-      const settings = await db.systemSettings.findFirst();
+      const settings = await db.systemSettings.findUnique({ where: { id: 'smmplan' } });
       const saved = settings?.telegramMenuConfig as unknown as TelegramMenuButton[];
       expect(saved).toHaveLength(2);
       expect(saved[1].value).toBe('https://smmplan.pro');
@@ -88,7 +88,7 @@ describe('Telegram Bot Server Actions & RBAC Suite', () => {
       const res = await saveTelegramRatingReasonsAction(customReasons);
       expect(res.success).toBe(true);
 
-      const settings = await db.systemSettings.findFirst();
+      const settings = await db.systemSettings.findUnique({ where: { id: 'smmplan' } });
       const saved = settings?.telegramRatingReasons as unknown as typeof customReasons;
       expect(saved.positive).toContain('Супер сервис');
     });
@@ -116,7 +116,7 @@ describe('Telegram Bot Server Actions & RBAC Suite', () => {
       const res = await saveTelegramTemplatesAction(customTemplates);
       expect(res.success).toBe(true);
 
-      const settings = await db.systemSettings.findFirst();
+      const settings = await db.systemSettings.findUnique({ where: { id: 'smmplan' } });
       const saved = settings?.telegramTemplates as unknown as typeof customTemplates;
       expect(saved.welcome).toContain('Привет в {siteName}!');
     });

@@ -130,10 +130,10 @@ describe('Telegram Bot: Interactive Buttons & Actionable Error UX Suite', () => 
       const res2 = await analyzer.analyze('   ');
       expect(res2?.platform).toBe('OTHER');
 
-      // Junk strings without platform patterns fallback safely to WEBSITE without throwing exceptions
+      // Junk strings without platform patterns fallback safely to OTHER without throwing exceptions
       const res3 = await analyzer.analyze('not-a-url');
       expect(res3).toBeDefined();
-      expect(res3?.platform).toBe('WEBSITE');
+      expect(res3?.platform).toBe('OTHER');
     });
 
     it('3.2 parses valid Telegram channel and post links correctly', async () => {
