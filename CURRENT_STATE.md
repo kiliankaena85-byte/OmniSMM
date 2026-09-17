@@ -1,3 +1,17 @@
+- [x] ⚡ [PRE-PRODUCTION-STEP-3-ROBOKASSA-REFUND-GUARD-AND-CBR-2026] Защитный барьер ручных возвратов Robokassa/CryptoBot и отказоустойчивость курса ЦБ РФ (100% COMPLETE & VERIFIED):
+  * 💳 **Защитный барьер возвратов на карту для неавтоматизированных шлюзов (`balance-adjustments.ts`, `BalanceAdjustmentDrawer.tsx`):**
+    - В серверном действии `approveBalanceAdjustmentAction` устранён опасный сайд-эффект ложного перевода заявки в статус `EXECUTED` для шлюзов без API возвратов (Robokassa, CryptoBot): операция блокируется и статус откатывается в `PENDING_APPROVAL`, если администратор не подтвердил ручной возврат в личном кабинете эквайринга.
+    - При наличии флага `manualConfirmed: 'true'` формируется идентификатор чека `MANUAL_${GATEWAY}_${timestamp}`, статус заявки переводится в `EXECUTED`, а действие логируется в аудит как `CARD_REFUND_CONFIRMED_MANUAL`.
+    - В `getBalanceAdjustmentsAction` данные обогащены информацией о шлюзе платежа (`payment`), отображая точный эквайринг в журнале заявок.
+    - В интерфейсе `BalanceAdjustmentDrawer.tsx` для платежей Robokassa выводится предупреждающий блок с чекбоксом ручного подтверждения возврата в ЛК и кнопка «Подтвердить возврат в ROBOKASSA».
+    - В `users.ts` (`requestCardRefundAction`) и модалке возврата `payments-refund-modal.tsx` динамически подставляется имя шлюза и отображается предупреждение о необходимости ручной обработки в ЛК.
+  * 💱 **Отказоустойчивость курса валют CBR (`src/services/system/cbr-rate.service.ts`):**
+    - В методе `getLiveCrossRates` устранён краш вызова исключения `INVALID_USD_RATE`. При отсутствии или сбое чтения настроек базы данных курс безопасно откатывается на дефолтный `95.0`, защищая от сбоев синхронизацию каталога и фоновые воркеры.
+  * 🧪 **Верификация:**
+    - Сквозные юнит-тесты `src/__tests__/financial/pre-production-step3-robokassa-refund-guard-and-cbr.test.ts` (4/4 PASS — 100%).
+    - Регрессионные тесты `yookassa-automated-refund.test.ts`, `client-crm-balance.test.ts`, `pre-production-step2-hardening.test.ts` (14/14 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Изменения зафиксированы и запушены в `origin/main` (коммит `f4b61551`).
 - [x] ⚡ [PRE-PRODUCTION-STEP-2-INFRA-RESILIENCE-2026] Комплексное усиление инфраструктуры, Redis backoff, Drip-Feed Floor UI и маппинга статусов провайдеров (100% COMPLETE & VERIFIED):
   * 🐳 **Синхронизация ранеров Docker Compose и ротация логов (`docker-compose.prod.yml`):**
     - Для сервисов `worker` и `bot` исправлены точки входа: сервис `worker` использует ранер `node worker.js`, сервис `bot` переведён на образ `bot-runner` и команду `node bot.js` (устранены фатальные сбои отсутствия `./node_modules/.bin/tsx` и исходного каталога `src/` в минимальных production-образах).
