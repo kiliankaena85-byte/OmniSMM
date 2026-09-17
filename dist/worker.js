@@ -41885,6 +41885,7 @@ var init_sensitive_data_filter = __esm({
 // src/lib/redis.ts
 var redis_exports = {};
 __export2(redis_exports, {
+  calculateRedisRetryDelay: () => calculateRedisRetryDelay,
   redis: () => redis,
   validateRedisUrl: () => validateRedisUrl
 });
@@ -41907,6 +41908,12 @@ function validateRedisUrl(url, env = process.env.NODE_ENV || "development", expl
   }
   return { valid: true };
 }
+function calculateRedisRetryDelay(times, env = process.env.NODE_ENV || "development") {
+  if (env === "test") {
+    return Math.min(times * 50, 500);
+  }
+  return Math.min(times * 100, 3e3);
+}
 var import_ioredis, globalForRedis, redisUrl, redisCheck, redis;
 var init_redis = __esm({
   "src/lib/redis.ts"() {
@@ -41926,13 +41933,7 @@ var init_redis = __esm({
       maxRetriesPerRequest: process.env.NODE_ENV === "test" ? null : 3,
       connectTimeout: 5e3,
       lazyConnect: true,
-      retryStrategy: (times) => {
-        if (process.env.NODE_ENV === "test") {
-          return Math.min(times * 50, 500);
-        }
-        if (times > 5) return null;
-        return Math.min(times * 50, 2e3);
-      }
+      retryStrategy: (times) => calculateRedisRetryDelay(times, process.env.NODE_ENV)
     });
     if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
     redis.on("error", (err) => {
@@ -111501,6 +111502,13 @@ var init_link_rules = __esm({
       {
         platform: "TELEGRAM" /* TELEGRAM */,
         type: "channel",
+        pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:boost\/(?:c\/)?@?([\w-]+)\/?(?:\?.*)?$|(?:s\/)?(?:c\/)?@?([\w-]+)(?:\/boost\/?(?:\?.*)?|\/?\?(?:.*&)?boost(?:[=&].*)?)$)/i,
+        suggestedCategories: [CATEGORY_LABELS.BOOSTS, CATEGORY_LABELS.SUBSCRIBERS, CATEGORY_LABELS.PREMIUM],
+        context: "channel_boost_target"
+      },
+      {
+        platform: "TELEGRAM" /* TELEGRAM */,
+        type: "channel",
         pattern: /(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+)([\w-]+)\/?(?:\?.*)?$/i,
         suggestedCategories: [CATEGORY_LABELS.SUBSCRIBERS],
         context: "private_invite"
@@ -138703,12 +138711,15 @@ var init_cbr_rate_service = __esm({
           }
         } catch {
         }
-        const usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
-        if (!usdRate || usdRate <= 0 || !Number.isFinite(usdRate)) {
-          throw new Error("INVALID_USD_RATE: Exchange rate USD is not configured in SystemSettings");
+        let usdRate = null;
+        try {
+          usdRate = await SettingsManager.getExchangeRateUSD(tenantId);
+        } catch (err) {
+          console.warn("[CBRRateService] Failed to read USD exchange rate from settings:", err instanceof Error ? err.message : String(err));
         }
+        const safeUsdRate = usdRate && Number.isFinite(usdRate) && usdRate > 0 ? usdRate : 95;
         return {
-          usdToRub: usdRate,
+          usdToRub: safeUsdRate,
           eurToUsd: 1.08,
           uahToUsd: 0.027,
           kztToUsd: 23e-4,
@@ -139509,7 +139520,10 @@ var init_payment_gateway_service = __esm({
         const signature = import_crypto5.default.createHash("sha256").update(sigStr).digest("hex");
         const isVatThresholdExceeded = await checkVatThreshold(tenantId);
         const taxRate = isVatThresholdExceeded ? "vat22" : "none";
+        const cleanEmail = typeof params.email === "string" ? params.email.trim() : void 0;
+        const hasValidEmail = Boolean(cleanEmail && cleanEmail.length > 0);
         const receipt = {
+          ...hasValidEmail && cleanEmail ? { client: { email: cleanEmail } } : {},
           items: [{
             name: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u0443\u0441\u043B\u0443\u0433\u0438",
             quantity: 1,
@@ -139528,6 +139542,9 @@ var init_payment_gateway_service = __esm({
           shp_paymentId: params.paymentId,
           Receipt: JSON.stringify(receipt)
         });
+        if (hasValidEmail && cleanEmail) {
+          queryParams.set("Email", cleanEmail);
+        }
         const robokassaUrl = `https://auth.robokassa.ru/Merchant/Index.aspx?${queryParams.toString()}`;
         return {
           paymentUrl: robokassaUrl,
@@ -140480,8 +140497,12 @@ function stripTrackingParams(urlObj, platform, targetType) {
     const hasSingle = urlObj.searchParams.has("single");
     const isPrivate = urlObj.pathname.includes("/+") || urlObj.pathname.includes("/joinchat/");
     if (normTarget === "CHANNEL" || normTarget === "PROFILE" || normTarget === "CHANNEL_POSTS") {
+      const hasBoostParam = urlObj.searchParams.has("boost");
       if (!isPrivate) {
         urlObj.search = "";
+        if (hasBoostParam) {
+          urlObj.search = "?boost";
+        }
       }
       return;
     }
@@ -140644,6 +140665,7 @@ function canonicalizeUrl(rawUrl, platform, targetType) {
       }
       urlObj.pathname = urlObj.pathname.replace(/^\/s\/([a-zA-Z0-9_]+)/i, "/$1");
       urlObj.pathname = urlObj.pathname.replace(/^\/@/, "/");
+      urlObj.pathname = urlObj.pathname.replace(/^\/boost\/@/, "/boost/");
       urlObj.pathname = urlObj.pathname.replace(/\/topic\/(\d+)\/(\d+)/i, "/$1/$2");
       if (normTarget === "CHANNEL" || normTarget === "CHANNEL_POSTS" || normTarget === "PROFILE") {
         const postMatch = urlObj.pathname.match(/^\/([\w-]+)\/\d+\/?$/i);
@@ -140876,7 +140898,7 @@ function getUnifiedLinkSpecification(platform, targetType, activityType = "OTHER
         targetType: "CHANNEL",
         placeholder: "https://t.me/channel_name \u0438\u043B\u0438 https://t.me/+joinchat_hash",
         hint: "\u0421\u0441\u044B\u043B\u043A\u0430 \u043D\u0430 \u043F\u0443\u0431\u043B\u0438\u0447\u043D\u044B\u0439 \u0438\u043B\u0438 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 Telegram \u043A\u0430\u043D\u0430\u043B/\u0447\u0430\u0442",
-        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/)?@?[\\w-]+",
+        regex: "^https?:\\/\\/(?:t\\.me|telegram\\.me|telegram\\.dog)\\/(?:joinchat\\/|\\+|s\\/|boost\\/)?(?:c\\/\\d+|@?[\\w-]+)",
         clientRequirement: "\u041A\u0430\u043D\u0430\u043B/\u0433\u0440\u0443\u043F\u043F\u0430 \u0434\u043E\u043B\u0436\u043D\u044B \u0431\u044B\u0442\u044C \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B (\u0435\u0441\u043B\u0438 \u0437\u0430\u043A\u0440\u044B\u0442\u044B\u0439 \u2014 \u0441\u0441\u044B\u043B\u043A\u0430 \u0441 + \u0438\u043B\u0438 joinchat)",
         requiresBotAdmin: false,
         isMediaGroupAware: false,
@@ -141154,8 +141176,8 @@ var init_link_rules_registry = __esm({
     init_zod();
     UNIFIED_REGEX = {
       TELEGRAM: {
-        // Allows public channel / group / profile: t.me/durov, t.me/@durov, t.me/joinchat/xxx, t.me/+xxx, t.me/s/durov
-        CHANNEL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+|s\/)?@?[\w-]+\/?(?:\?.*)?$/i,
+        // Allows public channel / group / profile: t.me/durov, t.me/@durov, t.me/joinchat/xxx, t.me/+xxx, t.me/s/durov, t.me/boost/xxx, t.me/xxx/boost, t.me/c/xxx/boost
+        CHANNEL: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:joinchat\/|\+|s\/|boost\/)?(?:c\/\d+|@?[\w-]+)(?:\/boost)?\/?(?:\?.*)?$/i,
         // Allows posts: t.me/channel/123, topic posts: t.me/group/100/250, web previews: t.me/s/channel/123
         POST: /^https?:\/\/(?:t\.me|telegram\.me|telegram\.dog)\/(?:s\/)?[\w-]+\/(?:topic\/)?\d+(?:\/\d+)?\/?(?:\?.*)?$/i,
         // Allows stories: t.me/channel/s/123
@@ -144299,7 +144321,7 @@ async function sendMainMenu(ctx, isEdit = false) {
     ...persistentKeyboard
   }).then((m) => {
     setTimeout(() => {
-      ctx.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(() => {
+      ctx.telegram?.deleteMessage(ctx.chat.id, m.message_id).catch(() => {
       });
     }, 1e3);
   }).catch(() => {
@@ -144424,6 +144446,10 @@ async function dispatchDynamicMenuAction(ctx, text) {
   const buttons = await BotSettingsService.getMenuButtons(botTenantId4);
   const btn = buttons.find((b) => b.label.toLowerCase() === trimmed.toLowerCase() || b.label.replace(/^[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim().toLowerCase() === trimmed.toLowerCase());
   if (btn) {
+    if (ctx.scene) {
+      await ctx.scene.leave().catch(() => {
+      });
+    }
     return executeDynamicAction(ctx, btn);
   }
   return false;
