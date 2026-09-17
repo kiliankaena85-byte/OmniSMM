@@ -10,15 +10,26 @@ export class QuarantineService {
     static async evaluateTriggerA(serviceId: string, errorDetails: string) {
         try {
             const errLower = (errorDetails || '').toLowerCase();
-            // L-arch3: USER_ERROR filtering (invalid user link, deleted post, private channel, bad input)
-            const isUserError = errLower.includes('link') ||
-                                errLower.includes('private') ||
+            // Distinguish user errors (private channel, invalid link) from provider/network errors (Private IP blocked, SSRF)
+            const isSsrfOrNetwork = errLower.includes('private ip') ||
+                                    errLower.includes('ssrf') ||
+                                    errLower.includes('private network') ||
+                                    errLower.includes('blocked url') ||
+                                    errLower.includes('gateway');
+
+            const isUserError = !isSsrfOrNetwork && (
+                                errLower.includes('link') ||
+                                errLower.includes('account is private') ||
+                                errLower.includes('channel is private') ||
+                                errLower.includes('profile is private') ||
+                                errLower.includes('group is private') ||
+                                (errLower.includes('private') && !errLower.includes('ip') && !errLower.includes('network') && !errLower.includes('host')) ||
                                 errLower.includes('deleted') ||
                                 errLower.includes('not found') ||
                                 errLower.includes('invalid url') ||
                                 errLower.includes('неверн') ||
                                 errLower.includes('ссылк') ||
-                                errLower.includes('закрыт');
+                                errLower.includes('закрыт'));
 
             if (isUserError) {
                 // User-side errors do NOT increment provider quarantine counters

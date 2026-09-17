@@ -464,9 +464,18 @@ export class SettingsProvider {
   }
 
 
+  static clearMemoryCache(tenantId?: string) {
+    if (tenantId) {
+      delete localSettingsCache[tenantId];
+    }
+    delete localSettingsCache['smmplan'];
+    delete localSettingsCache['flux'];
+  }
+
   static async setMaintenanceMode(enable: boolean, tenantId?: string) {
     const activeTenantId = tenantId || await this.getTenantId();
-    delete localSettingsCache[activeTenantId];
+    SettingsProvider.clearMemoryCache(activeTenantId);
+
     await db.systemSettings.upsert({
       where: { id: activeTenantId },
       update: { maintenanceMode: enable },
@@ -479,7 +488,16 @@ export class SettingsProvider {
       // audit-ignore: Redis cache update is secondary to DB persistence
     }
     try {
+      const { revalidateTag, revalidatePath } = (await import('next/cache')) as unknown as {
+        revalidateTag: (tag: string, profile?: string) => unknown;
+        revalidatePath: (path: string, type?: 'layout' | 'page') => unknown;
+      };
       revalidateTag('settings', 'default');
+      revalidateTag(`settings-${activeTenantId}`, 'default');
+      revalidateTag(`system-settings-${activeTenantId}-v3`, 'default');
+      revalidatePath('/', 'layout');
+      revalidatePath('/admin/settings');
+      revalidatePath('/admin/tenants');
     } catch (cacheErr) {
       console.error('[SettingsProvider] Warning: Failed to invalidate cache tag:', cacheErr);
     }

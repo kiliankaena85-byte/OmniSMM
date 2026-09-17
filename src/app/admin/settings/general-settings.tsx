@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { updateGlobalSettings, disconnectTelegramBotAction } from '@/actions/admin/settings';
+import { toggleTenantMaintenanceAction } from '@/actions/admin/tenants';
 import { toast } from 'sonner';
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { 
@@ -43,9 +44,32 @@ interface GeneralSettingsProps {
 
 export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSettingsProps) {
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [isTogglingMaintenance, setIsTogglingMaintenance] = useState(false);
   const [isDisconnectBotModalOpen, setIsDisconnectBotModalOpen] = useState(false);
   const [isDisconnectingBot, startDisconnectBotTransition] = useTransition();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleToggleMaintenance = async (enable: boolean) => {
+    setIsTogglingMaintenance(true);
+    try {
+      const res = await toggleTenantMaintenanceAction(tenantId, enable);
+      if (res && res.success) {
+        setMaintenance(enable);
+        setIsMaintenanceModalOpen(false);
+        if (enable) {
+          toast.success('🔴 Режим техработ активирован! Витрина закрыта для посетителей.');
+        } else {
+          toast.success('🟢 Режим техработ отключен! Витрина переведена в штатный режим.');
+        }
+      } else {
+        toast.error((res && 'error' in res && res.error) ? res.error : 'Ошибка переключения режима техработ');
+      }
+    } catch {
+      toast.error('Сетевой сбой при переключении режима техработ');
+    } finally {
+      setIsTogglingMaintenance(false);
+    }
+  };
 
   const copyToClipboard = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
@@ -291,16 +315,17 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
                   id="maintenanceMode"
                   name="maintenanceMode"
                   checked={maintenance}
-                  onChange={(e) => {
+                  disabled={isTogglingMaintenance}
+                  onChange={() => {
                     if (!maintenance) {
                       setIsMaintenanceModalOpen(true);
                     } else {
-                      setMaintenance(false);
+                      handleToggleMaintenance(false);
                     }
                   }}
                   className="sr-only peer"
                 />
-                <div className="w-12 h-6.5 bg-muted-foreground/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-background after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                <div className={`w-12 h-6.5 bg-muted-foreground/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-background after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600 ${isTogglingMaintenance ? 'opacity-50 cursor-wait' : ''}`}></div>
               </label>
             </div>
           </div>
@@ -326,6 +351,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={isTogglingMaintenance}
                   onClick={() => setIsMaintenanceModalOpen(false)}
                 >
                   Отмена
@@ -334,13 +360,11 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => {
-                    setMaintenance(true);
-                    setIsMaintenanceModalOpen(false);
-                    toast.warning('Режим техработ активирован в форме. Нажмите «Сохранить все настройки» для применения.');
-                  }}
-                  className="font-bold gap-1.5"
+                  disabled={isTogglingMaintenance}
+                  onClick={() => handleToggleMaintenance(true)}
+                  className="font-bold gap-1.5 cursor-pointer"
                 >
+                  {isTogglingMaintenance && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
                   Включить техработы
                 </Button>
               </DialogFooter>

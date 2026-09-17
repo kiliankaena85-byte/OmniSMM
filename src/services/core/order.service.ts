@@ -564,7 +564,7 @@ class OrderService {
             tx,
             order.userId,
             Number(order.charge),
-            `Авто-возврат (Fail-Fast): Заказ #${order.numericId} отменен из-за ошибки провайдера. Причина: ${reason}`,
+            `Возврат средств: Заказ #${order.numericId} отменён системой. Средства в полном объёме возвращены на баланс.`,
             { idempotencyKey: refundKey, tenantId: order.tenantId }
           );
         }

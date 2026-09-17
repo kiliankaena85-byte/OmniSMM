@@ -1688,20 +1688,15 @@ class AdminCatalogService {
   }
 
   /**
-   * Catalog stats for the header.
+   * Catalog stats for the header and dashboard.
+   * Services and categories represent current inventory catalog state, not temporal transactions.
    */
-  async getCatalogStats(tenantId?: string, startDate?: Date, endDate?: Date) {
-        const where: Prisma.ServiceWhereInput = {};
-    if (tenantId) where.tenantId = { in: [tenantId, 'all'] };
-    if (startDate && endDate) {
-      where.createdAt = { gte: startDate, lte: endDate };
-    }
+  async getCatalogStats(tenantId?: string, _startDate?: Date, _endDate?: Date) {
+    const where: Prisma.ServiceWhereInput = {};
+    if (tenantId && tenantId !== 'all') where.tenantId = { in: [tenantId, 'all'] };
 
-        const categoryWhere: Prisma.CategoryWhereInput = {};
-    if (tenantId) categoryWhere.tenantId = { in: [tenantId, 'all'] };
-    if (startDate && endDate) {
-      categoryWhere.createdAt = { gte: startDate, lte: endDate };
-    }
+    const categoryWhere: Prisma.CategoryWhereInput = {};
+    if (tenantId && tenantId !== 'all') categoryWhere.tenantId = { in: [tenantId, 'all'] };
 
     const [totalServices, activeServices, categories] = await Promise.all([
       db.service.count({ where }),

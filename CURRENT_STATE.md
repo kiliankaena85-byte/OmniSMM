@@ -1,3 +1,23 @@
+- [x] ⚡ [ZERO-VENDOR-LEAK-AND-MAINTENANCE-MODE-2026] Ликвидация утечки имен поставщиков (Vexboost, Clash/Mihomo, SSRF) и обеспечение надежного режима сервисного обслуживания (100% COMPLETE & VERIFIED):
+  * 🛡️ **Zero Vendor Leak Invariant & Presentation Gate (CWE-209 / RAC-2026):**
+    - Создан модуль `src/utils/order-customer-error.ts`: клиенту гарантированно не отдаются имена провайдеров, системные теги (`[GATEWAY_SSRF_BLOCKED]`, `[INSUFFICIENT_PROVIDER_BALANCE]`) и инструкции техподдержки (`Clash/Mihomo`, `DNS-резолв`, `админка`).
+    - В `src/app/dashboard/orders/page.tsx`, `src/components/dashboard/FluxOrdersList.tsx` и `src/components/dashboard/FluxOrdersKanban.tsx` внедрена безопасная проекция ошибок для клиента.
+    - Для заказов в статусе `PENDING_CHECK`, `PENDING`, `PROVISIONING` красные плашки ошибок скрыты (`null`), отображается спокойный бейдж «На проверке».
+    - Защищен финансовый леджер: в `src/services/core/order.service.ts` (`failOrderTerminalFast`) текст назначения автовозврата в `WalletOps.refund` очищен от технических причин провайдеров, предотвращая утечку в `/dashboard/finance`.
+    - В `src/services/providers/quarantine.service.ts` исправлен триггер автокарантина: `private ip` сетевого шлюза больше не принимается за закрытый канал соцсети (`isUserError`).
+    - Полная поддержка `PENDING_CHECK`: добавлен в `FluxOrderStatus`, включен в очередь `queueOrders` канбан-доски, фильтры заказов и бейджи `status-helpers.ts`.
+  * 🚧 **Надежный режим технического обслуживания (Maintenance Mode):**
+    - В `src/app/layout.tsx` исправлен `isTestDomain`: снято ложное исключение с нод Tailscale Funnel (`.ts.net`). Заглушка гарантированно отображается всем неавторизованным посетителям на боевых доменах и туннелях.
+    - Персонал с ролями `OWNER`, `ADMIN`, `MANAGER`, `SUPPORT`, `OPERATOR` сохраняет сквозной беспрепятственный доступ.
+    - В `src/app/admin/settings/general-settings.tsx` подключен мгновенный Server Action `toggleTenantMaintenanceAction` с сохранением в PostgreSQL и Redis сразу при подтверждении в модалке.
+    - В `src/lib/settings.ts` и `settings.service.ts` добавлена очистка локального in-memory кэша `SettingsProvider.clearMemoryCache(tenantId)`.
+  * 🧪 **Верификация & CI-гейты:**
+    - Сьют `src/__tests__/unit/zero-vendor-leak.test.ts` — 4/4 PASS.
+    - Сьют `src/__tests__/maintenance-screens.test.ts` — 3/3 PASS.
+    - Сьют триажа заказов `src/__tests__/orders/order-triage-and-autoflush-logic.test.ts` — 10/10 PASS.
+    - Скан бандлов на секреты `check-bundle-secrets.mjs` — 0 утечек.
+    - Проверка доменов документации `check-api-docs-domains.ts` — 0 нарушений.
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
 - [x] ⚡ [CLIENTS-FULLSTACK-2026] Комплексный аудит и устранение логических, финансовых и визуальных дефектов вкладки /admin/clients, карточки клиента /admin/clients/[id], VIP-фильтра и быстрого переключения платформ (100% COMPLETE & VERIFIED):
   * 🌐 **Мгновенное переключение платформ и ликвидация утечки данных (Split-Brain):**
     - В `src/actions/admin/tenants.ts` удалена деструктивная глобальная инвалидация `revalidatePath('/', 'layout')`, заменена на точечную инвалидацию `/admin` и тегов кэша тенанта.

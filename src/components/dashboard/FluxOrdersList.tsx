@@ -14,6 +14,7 @@ import { ChargeBreakdownModal } from '@/components/orders/ChargeBreakdownModal';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { ExternalLink, AlertCircle } from 'lucide-react';
 import { formatRubles } from '@/utils/format-price';
+import { getCustomerFacingOrderError } from '@/utils/order-customer-error';
 
 export interface FluxOrder {
   id: string;
@@ -185,11 +186,15 @@ export function FluxOrdersList({
                 />
               </div>
 
-              {order.error && (
-                <p className="text-[9px] text-destructive font-semibold flex items-center gap-0.5 truncate min-w-0" title={order.error}>
-                  <AlertCircle className="w-3 h-3 shrink-0" /> {order.error}
-                </p>
-              )}
+              {(() => {
+                const customerError = getCustomerFacingOrderError(order.status, order.error);
+                if (!customerError) return null;
+                return (
+                  <p className="text-[9px] text-destructive font-semibold flex items-center gap-0.5 truncate min-w-0" title={customerError}>
+                    <AlertCircle className="w-3 h-3 shrink-0" /> {customerError}
+                  </p>
+                );
+              })()}
             </div>
 
             {/* Column 4: Cost & Status info */}

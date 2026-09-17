@@ -1,5 +1,6 @@
 export type FluxOrderStatus = 
   | 'PENDING'
+  | 'PENDING_CHECK'
   | 'PROVISIONING'
   | 'AWAITING_PAYMENT'
   | 'IN_PROGRESS'

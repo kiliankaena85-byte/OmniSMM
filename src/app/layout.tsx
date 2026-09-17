@@ -125,7 +125,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     normalized.startsWith('/_next') ||
     isStaticFile;
 
-  const settings = await SettingsProvider.get();
+  const tenantId = normalizeTenantId(reqHeaders.get('x-tenant-id')) || 'smmplan';
+  const settings = await SettingsProvider.get(tenantId);
   const isMaintenanceMode = settings.maintenanceMode;
   
   let isStaff = false;
@@ -137,13 +138,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         where: { id: session.userId },
         select: { role: true }
       });
-      if (user && ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'].includes(user.role)) {
+      if (user && (['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'].includes(user.role) || user.role === 'OPERATOR')) {
         isStaff = true;
       }
     }
   }
 
-  const tenantId = normalizeTenantId(reqHeaders.get('x-tenant-id'));
   const isFlux = tenantId === 'flux' || tenantId === 'smmflux';
   const siteName = isFlux ? 'SMMflux' : (settings.siteName || 'SMMplan');
   const supportEmail = isFlux
@@ -152,9 +152,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const nonce = reqHeaders.get('x-nonce') || undefined;
   const host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
-  const isTestDomain = host.includes('test.') || host.includes('flux.') || host.includes('localhost') || host.includes('127.0.0.1') || host.includes('.ts.net') || host.includes('tailscale');
+  
+  // Only pure isolated sandbox test subdomains bypass maintenance screen; official domains and Tailscale funnel nodes enforce it
+  const isTestDomain = host.startsWith('test.') && !host.includes('.ts.net') && !host.includes('tailscale');
 
-  // test.smmplan.pro, flux.smmplan.pro and local dev remain fully open for testing, while smmplan.pro displays holding screen
   const isMaintenanceModeForDomain = isMaintenanceMode && !isTestDomain;
   const showMaintenance = isMaintenanceModeForDomain && !isStaff && !isExcluded;
 
@@ -162,8 +163,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (showMaintenance) {
     return (
-      <html lang="ru" suppressHydrationWarning>
+      <html lang="ru" className={`theme-${tenantId}`} suppressHydrationWarning>
         <head>
+          <title>{siteName} — Сервисное обслуживание</title>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />

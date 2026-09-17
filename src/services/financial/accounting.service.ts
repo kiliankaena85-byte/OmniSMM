@@ -43,32 +43,70 @@ class AccountingService {
       const amount = Number(group._sum.amount || 0);
       revenueGross += amount;
       
-      if (group.gateway === 'yookassa') {
-        gatewayFees += amount * 0.035; // ЮKassa берет ~3.5%
-      } else if (group.gateway === 'cryptobot') {
-        gatewayFees += amount * 0.01; // CryptoBot берет ~1%
+      const g = (group.gateway || '').toLowerCase();
+      let feeRate = 0.035;
+      if (g.includes('sbp') || g.includes('qr')) {
+        feeRate = 0.007; // СБП 0.7%
+      } else if (g.includes('crypto')) {
+        feeRate = 0.01; // CryptoBot 1.0%
+      } else if (g.includes('robo')) {
+        feeRate = 0.039; // Robokassa 3.9%
+      } else if (g.includes('yoo')) {
+        feeRate = 0.035; // ЮKassa 3.5%
+      } else {
+        feeRate = 0.035; // Default 3.5%
       }
+
+      gatewayFees += amount * feeRate;
     }
     
     gatewayFees = Math.round(gatewayFees);
 
-    // 2. Calculate Refunds (For canceled/partial orders)
+    // 2. Calculate Refunds (For canceled/partial orders that were actually paid)
     const refundedOrders = await db.order.findMany({
       where: {
         ...dateFilter,
         status: { in: ['PARTIAL', 'CANCELED'] },
-        ...(isSingleTenant ? { tenantId } : {})
+        ...(isSingleTenant ? { tenantId } : {}),
+        NOT: {
+          status: 'CANCELED',
+          payment: {
+            status: { not: 'SUCCEEDED' }
+          }
+        }
       },
       select: {
         status: true,
         quantity: true,
         remains: true,
         charge: true,
+        error: true,
+        payment: {
+          select: {
+            status: true
+          }
+        }
       }
     });
 
     let refunds = 0;
     for (const order of refundedOrders) {
+      // Guard against unpaid canceled orders (e.g. cart checkout where payment was abandoned/expired)
+      if (order.status === 'CANCELED') {
+        const pStatus = (order as { payment?: { status?: string } | null }).payment?.status;
+        if (pStatus && pStatus !== 'SUCCEEDED') {
+          continue;
+        }
+        const err = (order as { error?: string | null }).error || '';
+        if (
+          err.includes('auto-expire') ||
+          err.includes('Оплата не поступила') ||
+          err.includes('Ожидание оплаты истекло')
+        ) {
+          continue;
+        }
+      }
+
       if (order.quantity > 0 && order.remains > 0) {
         refunds += calculatePartialRefund(order);
       } else if (order.status === 'CANCELED') {

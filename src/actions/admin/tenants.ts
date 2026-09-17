@@ -233,9 +233,19 @@ export async function toggleTenantMaintenanceAction(id: string, maintenanceMode:
         newValue: { maintenanceMode },
       });
 
+      sendAdminAlert(
+        `🚨 <b>РЕЖИМ ТЕХРАБОТ ИЗМЕНЁН</b>\n` +
+        `<b>Тенант / Бренд:</b> <code>${id}</code>\n` +
+        `<b>Статус:</b> ${maintenanceMode ? '🔴 ВКЛЮЧЁН (Витрина закрыта)' : '🟢 ВЫКЛЮЧЕН (Витрина доступна)'}\n` +
+        `<b>Сотрудник:</b> ${staffUser.email}`,
+        'CRITICAL',
+        id
+      );
+
       revalidatePath('/admin/tenants');
+      revalidatePath('/admin/settings');
       revalidatePath('/', 'layout');
-      return { success: true };
+      return { success: true, maintenanceMode };
     } catch (error) {
       console.error('[TenantsAction] Failed to toggle tenant maintenance:', error);
       return { success: false, error: 'Ошибка переключения режима техработ' };

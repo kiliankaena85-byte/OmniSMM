@@ -21,6 +21,7 @@ import { RetryPaymentModal } from '@/components/orders/RetryPaymentModal';
 import { DripFeedProgress } from '@/components/orders/DripFeedProgress';
 import { ChargeBreakdownModal } from '@/components/orders/ChargeBreakdownModal';
 import { formatRubles } from '@/utils/format-price';
+import { getCustomerFacingOrderError } from '@/utils/order-customer-error';
 
 export function FluxOrdersKanban({ 
   orders, 
@@ -33,7 +34,7 @@ export function FluxOrdersKanban({
   
   // Categorize orders into kanban columns
   const queueOrders = orders.filter(o => 
-    ['PENDING', 'PROVISIONING', 'AWAITING_PAYMENT'].includes(o.status)
+    ['PENDING', 'PROVISIONING', 'AWAITING_PAYMENT', 'PENDING_CHECK'].includes(o.status)
   );
   
   const inProgressOrders = orders.filter(o => 
@@ -222,12 +223,16 @@ export function FluxOrdersKanban({
           </div>
         </div>
 
-        {order.error && (
-          <div className="p-2 bg-destructive/10 border border-destructive/20 text-destructive text-[9px] font-semibold rounded-xl flex items-center gap-1.5">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate min-w-0">{order.error}</span>
-          </div>
-        )}
+        {(() => {
+          const customerError = getCustomerFacingOrderError(order.status, order.error);
+          if (!customerError) return null;
+          return (
+            <div className="p-2 bg-destructive/10 border border-destructive/20 text-destructive text-[9px] font-semibold rounded-xl flex items-center gap-1.5" title={customerError}>
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate min-w-0">{customerError}</span>
+            </div>
+          );
+        })()}
       </div>
     );
   };

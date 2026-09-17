@@ -103452,9 +103452,16 @@ var init_settings = __esm({
         const mode = enable ? "SANDBOX" : "PRODUCTION";
         return this.setEnvironmentMode(mode, tenantId);
       }
+      static clearMemoryCache(tenantId) {
+        if (tenantId) {
+          delete localSettingsCache[tenantId];
+        }
+        delete localSettingsCache["smmplan"];
+        delete localSettingsCache["flux"];
+      }
       static async setMaintenanceMode(enable, tenantId) {
         const activeTenantId = tenantId || await this.getTenantId();
-        delete localSettingsCache[activeTenantId];
+        _SettingsProvider.clearMemoryCache(activeTenantId);
         await db.systemSettings.upsert({
           where: { id: activeTenantId },
           update: { maintenanceMode: enable },
@@ -103466,7 +103473,13 @@ var init_settings = __esm({
         } catch {
         }
         try {
-          (0, import_cache.revalidateTag)("settings", "default");
+          const { revalidateTag: revalidateTag2, revalidatePath: revalidatePath2 } = await Promise.resolve().then(() => __toESM(require_cache4()));
+          revalidateTag2("settings", "default");
+          revalidateTag2(`settings-${activeTenantId}`, "default");
+          revalidateTag2(`system-settings-${activeTenantId}-v3`, "default");
+          revalidatePath2("/", "layout");
+          revalidatePath2("/admin/settings");
+          revalidatePath2("/admin/tenants");
         } catch (cacheErr) {
           console.error("[SettingsProvider] Warning: Failed to invalidate cache tag:", cacheErr);
         }
@@ -126827,7 +126840,7 @@ error: ${e instanceof Error ? e.message : String(e)}`,
                 tx,
                 order.userId,
                 Number(order.charge),
-                `\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442 (Fail-Fast): \u0417\u0430\u043A\u0430\u0437 #${order.numericId} \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u0438\u0437-\u0437\u0430 \u043E\u0448\u0438\u0431\u043A\u0438 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430. \u041F\u0440\u0438\u0447\u0438\u043D\u0430: ${reason}`,
+                `\u0412\u043E\u0437\u0432\u0440\u0430\u0442 \u0441\u0440\u0435\u0434\u0441\u0442\u0432: \u0417\u0430\u043A\u0430\u0437 #${order.numericId} \u043E\u0442\u043C\u0435\u043D\u0451\u043D \u0441\u0438\u0441\u0442\u0435\u043C\u043E\u0439. \u0421\u0440\u0435\u0434\u0441\u0442\u0432\u0430 \u0432 \u043F\u043E\u043B\u043D\u043E\u043C \u043E\u0431\u044A\u0451\u043C\u0435 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u044B \u043D\u0430 \u0431\u0430\u043B\u0430\u043D\u0441.`,
                 { idempotencyKey: refundKey, tenantId: order.tenantId }
               );
             }
@@ -126984,7 +126997,8 @@ var init_quarantine_service = __esm({
       static async evaluateTriggerA(serviceId, errorDetails) {
         try {
           const errLower = (errorDetails || "").toLowerCase();
-          const isUserError = errLower.includes("link") || errLower.includes("private") || errLower.includes("deleted") || errLower.includes("not found") || errLower.includes("invalid url") || errLower.includes("\u043D\u0435\u0432\u0435\u0440\u043D") || errLower.includes("\u0441\u0441\u044B\u043B\u043A") || errLower.includes("\u0437\u0430\u043A\u0440\u044B\u0442");
+          const isSsrfOrNetwork = errLower.includes("private ip") || errLower.includes("ssrf") || errLower.includes("private network") || errLower.includes("blocked url") || errLower.includes("gateway");
+          const isUserError = !isSsrfOrNetwork && (errLower.includes("link") || errLower.includes("account is private") || errLower.includes("channel is private") || errLower.includes("profile is private") || errLower.includes("group is private") || errLower.includes("private") && !errLower.includes("ip") && !errLower.includes("network") && !errLower.includes("host") || errLower.includes("deleted") || errLower.includes("not found") || errLower.includes("invalid url") || errLower.includes("\u043D\u0435\u0432\u0435\u0440\u043D") || errLower.includes("\u0441\u0441\u044B\u043B\u043A") || errLower.includes("\u0437\u0430\u043A\u0440\u044B\u0442"));
           if (isUserError) {
             return;
           }

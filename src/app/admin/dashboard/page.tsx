@@ -191,7 +191,11 @@ export default async function AdminDashboardPage({
   const netPositionStr = formatKopecks(netPositionBigInt);
 
   const profitMargin = metrics.revenueNet > 0 ? (metrics.profitNet / metrics.revenueNet) * 100 : 0;
-  const successOrderRate = oStats.total > 0 ? ((oStats.completed / oStats.total) * 100).toFixed(1) : '100';
+  const fulfilledOrders = (oStats.completed || 0) + (oStats.partial || 0);
+  const terminalOrders = fulfilledOrders + (oStats.error || 0) + (oStats.canceled || 0);
+  const successOrderRate = terminalOrders > 0
+    ? ((fulfilledOrders / terminalOrders) * 100).toFixed(1)
+    : '100';
 
   return (
     <div className="space-y-5 w-full max-w-full pb-10 select-none">
@@ -246,18 +250,18 @@ export default async function AdminDashboardPage({
               {formatKopecks(revenueGross)}
             </div>
             <div className="text-[11px] text-muted-foreground flex items-center justify-between pt-1 border-t border-border/40">
-              <span>Эквайринг: {formatKopecks(metrics.gatewayFees)}</span>
-              <span className="font-semibold text-foreground">100%</span>
+              <span>Эквайринг: {formatKopecks(metrics.gatewayFees)}{metrics.refunds > 0 ? ` · Возвраты: ${formatKopecks(metrics.refunds)}` : ''}</span>
+              <span>Чистая: {formatKopecks(metrics.revenueNet)}</span>
             </div>
           </Link>
 
-          {/* Card 2: Чистая маржа */}
+          {/* Card 2: Чистая прибыль */}
           <Link
             href="/admin/finance"
             className="bg-card text-card-foreground border border-border/70 hover:border-primary/50 hover:shadow-md rounded-lg p-4 shadow-sm flex flex-col justify-between space-y-2 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Чистая маржа</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Чистая прибыль (Net Profit)</span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
                 profitMargin >= 30
                   ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
@@ -271,7 +275,7 @@ export default async function AdminDashboardPage({
             </div>
             <div className="text-[11px] text-muted-foreground flex items-center justify-between pt-1 border-t border-border/40">
               <span>Себестоимость: {formatKopecks(metrics.cogs)}</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{profitMargin.toFixed(0)}%</span>
+              <span>Налог (УСН {metrics.effectiveTaxRate}%): {formatKopecks(metrics.taxes)}</span>
             </div>
           </Link>
 

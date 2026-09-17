@@ -634,7 +634,7 @@ class AdminOrderService {
   }
 
   // Fast cache for order status stats (15s TTL) to prevent 5x full table scans on rapid pagination
-  private static statsCache = new Map<string, { data: { total: number; pending: number; inProgress: number; completed: number; error: number }; expiresAt: number }>();
+  private static statsCache = new Map<string, { data: { total: number; pending: number; inProgress: number; completed: number; error: number; partial: number; canceled: number; awaitingPayment: number }; expiresAt: number }>();
 
   /**
    * Retrieves order stats using a single high-performance groupBy query with 15s cache.
@@ -668,6 +668,9 @@ class AdminOrderService {
     let inProgress = 0;
     let completed = 0;
     let error = 0;
+    let partial = 0;
+    let canceled = 0;
+    let awaitingPayment = 0;
 
     for (const group of statusGroups) {
       const count = group._count._all;
@@ -676,9 +679,12 @@ class AdminOrderService {
       else if (group.status === 'IN_PROGRESS') inProgress += count;
       else if (group.status === 'COMPLETED') completed += count;
       else if (group.status === 'ERROR') error += count;
+      else if (group.status === 'PARTIAL') partial += count;
+      else if (group.status === 'CANCELED') canceled += count;
+      else if (group.status === 'AWAITING_PAYMENT') awaitingPayment += count;
     }
 
-    const result = { total, pending, inProgress, completed, error };
+    const result = { total, pending, inProgress, completed, error, partial, canceled, awaitingPayment };
     AdminOrderService.statsCache.set(cacheKey, { data: result, expiresAt: now + 15000 });
 
     return result;

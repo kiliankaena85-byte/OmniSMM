@@ -152,6 +152,8 @@ class SettingsService {
       create: { id: activeTenantId, ...data }
     });
 
+    SettingsProvider.clearMemoryCache(activeTenantId);
+
     if (data.maintenanceMode !== undefined) {
       try {
         await redis.set(`settings:${activeTenantId}:maintenanceMode`, String(data.maintenanceMode));

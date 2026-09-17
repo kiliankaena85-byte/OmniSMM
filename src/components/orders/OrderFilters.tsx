@@ -74,6 +74,7 @@ export function OrderFilters({
   const statuses = [
     { value: 'ALL', label: 'Все' },
     { value: 'PENDING', label: 'В очереди' },
+    { value: 'PENDING_CHECK', label: 'На проверке' },
     { value: 'IN_PROGRESS', label: 'В работе' },
     { value: 'COMPLETED', label: 'Выполнены' },
     { value: 'AWAITING_PAYMENT', label: 'Ожидают оплаты' },

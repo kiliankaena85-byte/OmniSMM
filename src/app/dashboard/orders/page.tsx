@@ -17,6 +17,7 @@ import { CopyText } from '@/components/ui/CopyText';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { getTenantDashboardViews } from '@/tenants/factory';
 import { formatRubles } from '@/utils/format-price';
+import { getCustomerFacingOrderError } from '@/utils/order-customer-error';
 import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
 import { Metadata } from 'next';
 import {
@@ -39,6 +40,7 @@ const STATUS_LABEL: Record<string, string> = {
   COMPLETED:       'Выполнен',
   IN_PROGRESS:     'В работе',
   PENDING:         'Ожидание',
+  PENDING_CHECK:   'На проверке',
   AWAITING_PAYMENT:'Ожидает оплаты',
   ERROR:           'Ошибка',
   CANCELED:        'Отменён',
@@ -50,6 +52,7 @@ const STATUS_COLOR: Record<string, string> = {
   COMPLETED:       'text-emerald-800 dark:text-success bg-success/10 border-emerald-500/20',
   IN_PROGRESS:     'text-blue-800 dark:text-blue-500    bg-blue-500/10    border-blue-500/20',
   PENDING:         'text-orange-800 dark:text-orange-500  bg-orange-500/10  border-orange-500/20',
+  PENDING_CHECK:   'text-amber-800 dark:text-amber-500  bg-amber-500/10   border-amber-500/20',
   AWAITING_PAYMENT:'text-orange-800 dark:text-orange-500  bg-orange-500/10  border-orange-500/20',
   PROVISIONING:    'text-indigo-800 dark:text-indigo-500  bg-indigo-500/10  border-indigo-500/20',
   ERROR:           'text-red-800 dark:text-destructive     bg-destructive/10     border-red-500/20',
@@ -373,14 +376,18 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                     <TableCell className="px-3">
                       <div className="flex flex-col gap-1.5">
                         <OrderStatusBadge status={order.status} size="sm" />
-                        {order.error && (
-                          <div
-                            className="text-[10px] text-destructive max-w-[150px] truncate font-semibold"
-                            title={order.error}
-                          >
-                            {order.error}
-                          </div>
-                        )}
+                        {(() => {
+                          const customerError = getCustomerFacingOrderError(order.status, order.error);
+                          if (!customerError) return null;
+                          return (
+                            <div
+                              className="text-[10px] text-destructive max-w-[150px] truncate font-semibold"
+                              title={customerError}
+                            >
+                              {customerError}
+                            </div>
+                          );
+                        })()}
                         {['IN_PROGRESS', 'PARTIAL', 'COMPLETED'].includes(order.status) && (
                           <div className="space-y-0.5 max-w-[130px]">
                             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
