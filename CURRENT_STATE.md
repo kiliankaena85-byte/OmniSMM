@@ -19,6 +19,7 @@
     - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
     - Проверка изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
     - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
+    - Изменения зафиксированы и запушены в `origin/main` (коммит `c5a7ee70`).
 - [x] ⚡ [CLIENTS-CRM-BALANCE-HARDENING-AND-IDOR-DEFENSE-2026] Усиление лимитов баланса, защита от Cross-Tenant IDOR и стабилизация логики вкладок CRM клиентов (100% COMPLETE & VERIFIED):
   * 🛡️ **Финансовая защита и лимиты корректировок (WalletOps & Escrow):**
     - Расширен лимит схемы `updateBalanceSchema` до 100 млн ₽ с размаскированием ошибок валидации Zod для операторов.
