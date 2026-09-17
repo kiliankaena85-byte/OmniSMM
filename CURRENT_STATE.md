@@ -1,4 +1,14 @@
+- [x] ⚡ [INFRA-DB-SYNC-2026] Автоматическая синхронизация схемы БД при старте контейнеров и сборке (100% COMPLETE & VERIFIED):
+  * 🛡️ **Zero-Drift Architecture & Авто-миграция БД:**
+    - В `docker-entrypoint.sh` внедрена безопасная авто-синхронизация схемы (`node node_modules/prisma/build/index.js db push --skip-generate`) с перехватом некритичных сбоев.
+    - В `Dockerfile` разблокировано и добавлено копирование полного CLI Prisma (`node_modules/prisma` и `node_modules/@prisma`), а также обновлен `.dockerignore`.
+    - В `docker-compose.yml` активирован параметр `RUN_MIGRATIONS=true` для сервиса `web`.
+    - В `scripts/lean-docker-build.ps1` интегрирован автоматический шаг предварительной проверки и применения схемы Prisma перед сборкой Docker-контейнеров.
+  * 🧪 **Верификация:**
+    - Контейнер `smmplan_web` успешно пересобран, протестирован старт: `[entrypoint] ✅ Database schema sync check completed.` отрабатывает за 1 секунду.
+    - Ошибка `Order.environmentMode does not exist` ликвидирована навсегда.
 - [x] ⚡ [SETTINGS-FULLSTACK-2026] Комплексный аудит и устранение логических и визуальных дефектов вкладки /admin/settings (100% COMPLETE & VERIFIED):
+
   * 📐 **Ликвидация «каши» и унификация форм («Кассы и Шлюзы»):**
     - В `src/app/admin/settings/integrations-settings.tsx` удален устаревший дублирующий блок Telegram-бота с отдельной формой, заменен на навигационный баннер со ссылкой на специализированную вкладку `?tab=telegram`.
     - Все 3 секции интеграций (Платёжные шлюзы, Почтовый сервис, Google Gemini AI) объединены в единую синхронную форму со сквозным сохранением и общим Sticky Action Bar внизу.
