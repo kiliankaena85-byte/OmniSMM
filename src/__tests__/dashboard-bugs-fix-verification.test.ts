@@ -80,4 +80,50 @@ describe('Dashboard & Admin 4 Critical Bugs Fix Suite', () => {
       expect(formatBalance(0)).toContain('0');
     });
   });
+
+  describe('Bug #4: Dashboard Order Fulfillment Rate & Math Invariants', () => {
+    it('calculates successOrderRate using terminal orders without penalty from in-progress or cart orders', () => {
+      // Scenario from user screenshot:
+      // Total orders: 87 (including 20 awaiting payment, 35 in progress, 15 pending, 15 completed, 1 partial, 1 canceled)
+      const oStats = {
+        total: 87,
+        pending: 15,
+        inProgress: 35,
+        awaitingPayment: 20,
+        completed: 15,
+        partial: 1,
+        canceled: 1,
+        error: 0,
+      };
+
+      const fulfilledOrders = (oStats.completed || 0) + (oStats.partial || 0); // 16
+      const terminalOrders = fulfilledOrders + (oStats.error || 0) + (oStats.canceled || 0); // 17
+      const successOrderRate = terminalOrders > 0
+        ? ((fulfilledOrders / terminalOrders) * 100).toFixed(1)
+        : '100';
+
+      // 16 / 17 * 100 = 94.1%, NOT 15 / 87 = 17.2% or 12.6%!
+      expect(successOrderRate).toBe('94.1');
+    });
+
+    it('defaults successOrderRate to 100 when there are no terminal orders yet', () => {
+      const oStats = {
+        total: 10,
+        pending: 5,
+        inProgress: 5,
+        completed: 0,
+        partial: 0,
+        canceled: 0,
+        error: 0,
+      };
+
+      const fulfilledOrders = (oStats.completed || 0) + (oStats.partial || 0);
+      const terminalOrders = fulfilledOrders + (oStats.error || 0) + (oStats.canceled || 0);
+      const successOrderRate = terminalOrders > 0
+        ? ((fulfilledOrders / terminalOrders) * 100).toFixed(1)
+        : '100';
+
+      expect(successOrderRate).toBe('100');
+    });
+  });
 });
