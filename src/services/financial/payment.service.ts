@@ -34,7 +34,7 @@ export class PaymentService {
     metadataType?: string,
     receiptId?: string
   ): Promise<boolean> {
-    const activatedOrders: { id: string; isDripFeed: boolean; userId: string; amount: number; userEmail?: string | null; serviceName?: string | null; numericId?: number }[] = [];
+    const activatedOrders: { id: string; isDripFeed: boolean; userId: string; amount: number; userEmail?: string | null; serviceName?: string | null; numericId?: number; tenantId?: string }[] = [];
     let paidAmountBigInt = BigInt(amount);
     let isOrderFlow = false;
 
@@ -224,15 +224,16 @@ export class PaymentService {
               amount: Number(creditAmount),
               userEmail: order.user?.email ?? null,
               serviceName: order.service?.name ?? null,
-              numericId: order.numericId 
+              numericId: order.numericId,
+              tenantId: order.tenantId
             });
             await WalletOps.credit(tx, targetUserId, creditAmount,
               `Оплата заказа #${order.numericId} через шлюз`,
-              { idempotencyKey: `gateway-credit-${processedPaymentId}` }
+              { idempotencyKey: `gateway-credit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
             );
             await WalletOps.charge(tx, targetUserId, order.charge,
               `Списание за заказ #${order.numericId}`,
-              { idempotencyKey: `gateway-charge-${order.id}` }
+              { idempotencyKey: `gateway-charge-${order.id}`, tenantId: currentPayment?.tenantId }
             );
           }
         }
@@ -265,7 +266,8 @@ export class PaymentService {
                 amount: Number(order.charge),
                 userEmail: order.user?.email ?? null,
                 serviceName: order.service?.name ?? null,
-                numericId: order.numericId 
+                numericId: order.numericId,
+                tenantId: order.tenantId
               });
               await logPromoCodeUsageIfNeeded(tx, order.id, targetUserId);
            }
@@ -273,7 +275,7 @@ export class PaymentService {
             // Credit full expected paid amount first to currentPayment.userId
             await WalletOps.credit(tx, targetUserId, creditAmount,
               `Оплата корзины заказов через шлюз`,
-              { idempotencyKey: `gateway-credit-${processedPaymentId}` }
+              { idempotencyKey: `gateway-credit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
             );
 
             // Batch deduct total charge and log ledger entries
@@ -290,7 +292,7 @@ export class PaymentService {
               targetUserId,
               totalChargeCents,
               `Списание за оплату корзины заказов (${basketOrders.length} шт.)`,
-              { idempotencyKey: `gateway-basket-charge-${processedPaymentId}` }
+              { idempotencyKey: `gateway-basket-charge-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
             );
 
         }
@@ -299,7 +301,7 @@ export class PaymentService {
           // Direct top-up (Deposit) - Increment User Balance securely via targetUserId and expected creditAmount!
           await WalletOps.credit(tx, targetUserId, creditAmount,
             `Пополнение баланса через ${gatewayType}`,
-            { idempotencyKey: `deposit-${processedPaymentId}` }
+            { idempotencyKey: `deposit-${processedPaymentId}`, tenantId: currentPayment?.tenantId }
           );
         }
 
@@ -320,7 +322,8 @@ export class PaymentService {
             void sendOrderPaidMail(
               activated.userEmail,
               activated.numericId?.toString() ?? activated.id,
-              activated.serviceName
+              activated.serviceName,
+              activated.tenantId
             ).catch(err => console.error('[H1] sendOrderPaidMail failed', err));
           }
         }
@@ -430,7 +433,7 @@ export class PaymentService {
   async confirmPaymentById(paymentId: string): Promise<boolean> {
     try {
       let capturedUserId: string | null = null;
-      const activatedOrders: { id: string; isDripFeed: boolean; userEmail?: string | null; serviceName?: string | null; numericId?: number }[] = [];
+      const activatedOrders: { id: string; isDripFeed: boolean; userEmail?: string | null; serviceName?: string | null; numericId?: number; tenantId?: string }[] = [];
 
       await db.$transaction(async (tx) => {
         const payment = await tx.payment.findUniqueOrThrow({
@@ -475,16 +478,17 @@ export class PaymentService {
               isDripFeed: order.isDripFeed,
               userEmail: order.user?.email ?? null,
               serviceName: order.service?.name ?? null,
-              numericId: order.numericId
+              numericId: order.numericId,
+              tenantId: order.tenantId
             });
             
             await WalletOps.credit(tx, payment.userId, Number(payment.amount),
               `Оплата заказа #${order.numericId} через шлюз`,
-              { idempotencyKey: `gateway-credit-${paymentId}` }
+              { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
             );
             await WalletOps.charge(tx, payment.userId, Number(order.charge),
               `Списание за заказ #${order.numericId}`,
-              { idempotencyKey: `gateway-charge-${order.id}` }
+              { idempotencyKey: `gateway-charge-${order.id}`, tenantId: payment.tenantId }
             );
           }
         }
@@ -506,7 +510,8 @@ export class PaymentService {
                 isDripFeed: order.isDripFeed,
                 userEmail: order.user?.email ?? null,
                 serviceName: order.service?.name ?? null,
-                numericId: order.numericId
+                numericId: order.numericId,
+                tenantId: order.tenantId
               });
               await logPromoCodeUsageIfNeeded(tx, order.id, payment.userId);
            }
@@ -514,7 +519,7 @@ export class PaymentService {
             // Credit full paid amount first
             await WalletOps.credit(tx, payment.userId, Number(payment.amount),
               `Оплата корзины заказов через шлюз`,
-              { idempotencyKey: `gateway-credit-${paymentId}` }
+              { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
             );
 
             // Batch deduct total charge and log ledger entries
@@ -525,7 +530,7 @@ export class PaymentService {
               payment.userId,
               totalChargeCents,
               `Списание за оплату корзины заказов (${basketOrders.length} шт.)`,
-              { idempotencyKey: `gateway-basket-charge-${paymentId}` }
+              { idempotencyKey: `gateway-basket-charge-${paymentId}`, tenantId: payment.tenantId }
             );
 
         }
@@ -534,7 +539,7 @@ export class PaymentService {
           // Direct top-up (Deposit) - Increment User Balance securely!
           await WalletOps.credit(tx, payment.userId, Number(payment.amount),
             `Пополнение баланса через yookassa`,
-            { idempotencyKey: `deposit-${paymentId}` }
+            { idempotencyKey: `deposit-${paymentId}`, tenantId: payment.tenantId }
           );
         }
       }, { isolationLevel: 'Serializable', timeout: 15000 });
@@ -551,7 +556,8 @@ export class PaymentService {
             void sendOrderPaidMail(
               activated.userEmail,
               activated.numericId?.toString() ?? activated.id,
-              activated.serviceName
+              activated.serviceName,
+              activated.tenantId
             ).catch(err => console.error('[H1] sendOrderPaidMail failed', err));
           }
         }

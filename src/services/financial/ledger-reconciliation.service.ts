@@ -217,6 +217,7 @@ export class LedgerReconciliationService {
         totalSpent: true,
         isActive: true,
         role: true,
+        tenantId: true,
         createdAt: true,
       },
     });
@@ -226,7 +227,10 @@ export class LedgerReconciliationService {
     }
 
     const entries = await db.ledgerEntry.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(user.tenantId ? { tenantId: user.tenantId } : {}),
+      },
       orderBy: [
         { createdAt: 'asc' },
         { id: 'asc' },
@@ -297,7 +301,11 @@ export class LedgerReconciliationService {
         const freshUser = await tx.user.findUniqueOrThrow({ where: { id: userId } });
       const ledgerAgg = await tx.ledgerEntry.aggregate({
         _sum: { amount: true },
-        where: { userId, status: 'APPROVED' },
+        where: {
+          userId,
+          status: 'APPROVED',
+          ...(freshUser.tenantId ? { tenantId: freshUser.tenantId } : {}),
+        },
       });
       const ledgerSum = ledgerAgg._sum.amount ?? BigInt(0);
       const diff = freshUser.balance - ledgerSum;

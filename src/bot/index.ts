@@ -351,7 +351,7 @@ bot.start(async (ctx: BotContext) => {
     const paymentId = payload.replace(/^pay_ok_/, '').replace(/^pay_/, '');
     try {
       let payment = await db.payment.findUnique({ where: { id: paymentId } });
-      if (payment) {
+      if (payment && payment.userId === user.id && (!botTenantId || payment.tenantId === botTenantId)) {
         if (payment.status !== 'SUCCEEDED' && payment.gateway === 'yookassa' && payment.gatewayId) {
           // Fast sync-check with YooKassa if webhook has slight latency
           try {
@@ -731,7 +731,9 @@ export async function sendUserProfile(ctx: BotContext) {
   const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId } });
   if (!user) return ctx.reply('Используйте /start для регистрации.');
 
-  const orderCount = await db.order.count({ where: { userId: user.id } });
+  const orderCount = await db.order.count({
+    where: { userId: user.id, ...(botTenantId ? { tenantId: botTenantId } : {}) }
+  });
 
   const text =
     `👤 <b>Личный кабинет ${botSiteName}</b>\n\n` +
@@ -847,7 +849,7 @@ async function sendUserTransactions(ctx: BotContext) {
   if (!user) return ctx.reply('Используйте /start для регистрации.');
 
   const transactions = await db.ledgerEntry.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...(botTenantId ? { tenantId: botTenantId } : {}) },
     take: 8,
     orderBy: { createdAt: 'desc' }
   });
@@ -932,7 +934,7 @@ bot.action('my_orders', async (ctx: BotContext) => {
   const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId: botTenantId } });
   if (!user) return;
   const orders = await db.order.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...(botTenantId ? { tenantId: botTenantId } : {}) },
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: { service: { select: { name: true } } }
@@ -1086,7 +1088,7 @@ export async function sendUserOrders(ctx: BotContext) {
   if (!user) return ctx.reply('Используйте /start для регистрации.');
 
   const orders = await db.order.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...(botTenantId ? { tenantId: botTenantId } : {}) },
     take: 10,
     orderBy: { createdAt: 'desc' },
     include: { service: { select: { name: true } } }

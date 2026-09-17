@@ -17,6 +17,7 @@ vi.mock('@/services/financial/payment.service', () => ({
 
 vi.mock('@/lib/settings', () => ({
   SettingsManager: {
+    isTestMode: vi.fn().mockResolvedValue(false),
     getPaymentSecrets: vi.fn().mockResolvedValue({
       yookassaShopId: 'mock_shop_123',
       yookassaSecretKey: 'mock_secret_key',

@@ -473,7 +473,9 @@ function setupStorePipeline(bot: Telegraf<BotContext>, opts: BotHandlerOptions):
     const user = await db.user.findFirst({ where: { telegramId: tgId, tenantId } });
     if (!user) return ctx.reply('Используйте /start для регистрации.');
 
-    const orderCount = await db.order.count({ where: { userId: user.id } });
+    const orderCount = await db.order.count({
+      where: { userId: user.id, ...(tenantId ? { tenantId } : {}) }
+    });
     const isOwner = await isOwnerOrAdmin(tgId);
 
     const text =
@@ -505,7 +507,7 @@ function setupStorePipeline(bot: Telegraf<BotContext>, opts: BotHandlerOptions):
     if (!user) return ctx.reply('Используйте /start для регистрации.');
 
     const orders = await db.order.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...(tenantId ? { tenantId } : {}) },
       take: 10,
       orderBy: { createdAt: 'desc' },
       include: { service: { select: { name: true } } }
@@ -660,7 +662,7 @@ function setupStorePipeline(bot: Telegraf<BotContext>, opts: BotHandlerOptions):
     if (!user) return ctx.reply('Используйте /start для регистрации.');
 
     const transactions = await db.ledgerEntry.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...(tenantId ? { tenantId } : {}) },
       take: 8,
       orderBy: { createdAt: 'desc' }
     });

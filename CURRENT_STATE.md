@@ -1,3 +1,30 @@
+- [x] ⚡ [FINANCIAL-LEDGER-AND-BOT-TENANT-ISOLATION-2026] Изоляция финансовой книги, платежей, возвратов, пополнений и Telegram-ботов между тенантами (100% COMPLETE & VERIFIED):
+  * 📒 **Изоляция финансовой книги (Ledger) и ночного аудита:**
+    - В `NightlyLedgerAuditService` (`src/services/financial/nightly-ledger-audit.service.ts`):
+      - Добавлена фильтрация `status: 'APPROVED'` в `db.ledgerEntry.groupBy`, исключая искажение балансов неподтверждёнными/карантинными проводками.
+      - Параметризован запуск по `tenantId`: группировка и выборка пользователей изолируются по тенанту.
+      - В интерфейс `LedgerAuditDiscrepancy` и алерты P0 добавлено поле `tenantId`.
+    - В `LedgerReconciliationService` (`src/services/financial/ledger-reconciliation.service.ts`):
+      - В `getUserAuditTimeline`: выборка проводок пользователя строго фильтруется по `tenantId: user.tenantId`.
+      - В `remediateUser`: агрегация проводок перед авто-выравниванием баланса (`tx.ledgerEntry.aggregate`) скоупирована по `freshUser.tenantId`.
+  * 💳 **Изоляция обработки платежей и вебхуков (`payment.service.ts`):**
+    - В `confirmPayment` и `confirmPaymentById`:
+      - Все вызовы `WalletOps.credit` и `WalletOps.charge` (оплата заказа, корзины, пополнение баланса) теперь явно получают `tenantId: currentPayment?.tenantId` / `payment.tenantId`.
+      - В массив `activatedOrders` сохраняется `tenantId: order.tenantId`.
+      - Функция `sendOrderPaidMail` получает явный `activated.tenantId`, гарантируя отправку уведомлений с правильным брендированием тенанта (SMMplan vs SMMflux).
+  * 🤖 **Изоляция Telegram-ботов и защита от IDOR (`src/bot/index.ts`, `role-handlers.ts`):**
+    - В `src/bot/index.ts`:
+      - Защищен перехват статуса оплаты (`/start pay_ok_*`): добавлена валидация `payment.userId === user.id` и `payment.tenantId === botTenantId`, блокируя IDOR и кросс-тенантную утечку чужих чеков.
+      - Количество заказов в профиле пользователя (`db.order.count`) скоупировано по `botTenantId`.
+      - Список заказов в `my_orders` и команде `/orders` (`db.order.findMany`) изолирован по `botTenantId`.
+      - История транзакций (`sendUserTransactions`: `db.ledgerEntry.findMany`) скоупирована по `botTenantId`.
+    - В `src/bot/constructors/role-handlers.ts`:
+      - Профиль пользователя (`db.order.count`), список заказов (`sendUserOrders`: `db.order.findMany`) и история транзакций (`sendUserTransactions`: `db.ledgerEntry.findMany`) строго изолированы по `tenantId` конкретного инстанса бота.
+  * 🧪 **Верификация:**
+    - `vitest run src/__tests__/architecture/multitenant-checkout-and-payment-retry.test.ts src/__tests__/financial/webhook-latency-and-reconciliation-stream.test.ts` — 4/4 PASS.
+    - `vitest run src/__tests__/security/pci-dss-fintech-concurrency-audit.test.ts src/__tests__/payment-vs-provider-lifecycle.test.ts` — 6/6 PASS.
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
 - [x] ⚡ [MULTITENANT-ISOLATION-HARDENING-2026] Комплексный аудит и устранение кросс-тенантных аномалий, утечек платежей, реферальной системы, SMTP и инвалидации кэша (100% COMPLETE & VERIFIED):
   * 💳 **Кросс-тенантная изоляция платежей и чекаута (`checkout.ts`, `payment.service.ts`):**
     - В `retryCheckoutPayment` (`src/actions/order/checkout.ts`): передача `tenantId: order.tenantId || 'smmplan'` в `tx.payment.create` (как при переключении шлюза, так и на первичном пути), устраняя тихий откат платежей с Flux в дефолтный `smmplan`.
