@@ -1,3 +1,24 @@
+- [x] ⚡ [CLIENTS-CRM-BALANCE-HARDENING-AND-IDOR-DEFENSE-2026] Усиление лимитов баланса, защита от Cross-Tenant IDOR и стабилизация логики вкладок CRM клиентов (100% COMPLETE & VERIFIED):
+  * 🛡️ **Финансовая защита и лимиты корректировок (WalletOps & Escrow):**
+    - Расширен лимит схемы `updateBalanceSchema` до 100 млн ₽ с размаскированием ошибок валидации Zod для операторов.
+    - В `WalletOps.adminAdjust` и `EscrowService` добавлен параметр `allowElevatedCap`, позволяющий роли `OWNER` проводить крупные корректировки до 10 млн ₽ без блокировки защитным капом 100 000 ₽.
+  * 🔒 **Защита от утечек и изоляция данных (Cross-Tenant & RBAC):**
+    - Закрыта уязвимость Cross-Tenant IDOR на `/admin/clients/[id]`: добавлен строгий авторизационный барьер доступа к профилю клиента.
+    - Запросы `loginLog` изолированы по `userId` и `tenantId`.
+    - Исправлен сбой проверки прав на скидку для роли SUPPORT переключением гарда на `clients:edit`.
+    - Magic Link и токены сброса пароля генерируются с учётом тенанта и абсолютных канонических хостов брендов.
+  * 📋 **CRM & UI стабилизация:**
+    - Очищены строковые литералы 'null' в `updateUserApiAction` и `ApiTab`.
+    - Реализована авто-миграция устаревших заметок (`legacy-note`) в `UserNote` с безопасным определением `authorId`.
+    - Проброшена реальная роль оператора в модалку возвратов платежей клиента.
+    - Интегрирован мост Dual-Engine AI-харнессов и AST-тестирование утечек транзакций (`ast-transaction-escape.test.ts`).
+  * 🧪 **Верификация:**
+    - Тесты `wallet-ops-safety-cap.test.ts`, `client-crm-balance.test.ts`, `client-ledger-and-notes.test.ts`, `harness-bridge.test.ts`, `ast-transaction-escape.test.ts` (41/41 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Линтер изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
+    - Линтер AST-гардов `npm run lint:guardrails` — 0 блокеров.
+    - Изменения зафиксированы и синхронизированы в `origin/main` (коммит `5294e4db`).
 - [x] ⚡ [FINANCE-TABLES-WIDTH-AUDIT-AND-BALANCE-SAFETY-2026] Оптимизация ширины таблиц (Rule 9 Viewport 100% Fit), аудит и устранение уязвимостей в /admin/finance/balance-requests, /admin/settings/balance-policies, /admin/finance (100% COMPLETE & VERIFIED):
   * 📐 **Оптимизация ширины таблиц и Правило 9 (Zero Horizontal Scroll & Viewport 100% Fit):**
     - В `src/components/ui/data-table.tsx` добавлен режим `compact={true}` (`table-fixed`, ячейки `py-2 px-2.5 text-xs`, заголовки `py-2 px-2.5 text-[11px]`, поддержка ширин колонок через `columnDef.size` и `meta.width`), устранивший раздутый паддинг `px-[1.5rem]` (48px на ячейку).
