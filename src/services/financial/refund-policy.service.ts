@@ -11,7 +11,7 @@ export class RefundPolicyService {
    * Supports PARTIAL, CANCELED, and ERROR statuses.
    */
   static async processRefund(
-    order: { id: string, userId: string, charge: number, quantity: number, remains: number, status: string },
+    order: { id: string, userId: string, charge: number, quantity: number, remains: number, status: string, tenantId?: string },
     reasonDetail: string = '',
     txClient: Prisma.TransactionClient = db
   ) {
@@ -38,7 +38,10 @@ export class RefundPolicyService {
       // 100% Full Refund MINUS any previous partial refunds
       let previousRefunds = 0;
       const partialRefundLedger = await txClient.ledgerEntry.findFirst({
-        where: { idempotencyKey: `refund_${order.id}_PARTIAL` }
+        where: {
+          idempotencyKey: `refund_${order.id}_PARTIAL`,
+          ...(order.tenantId ? { tenantId: order.tenantId } : {})
+        }
       });
       if (partialRefundLedger) {
         previousRefunds += Number(partialRefundLedger.amount);
@@ -56,9 +59,9 @@ export class RefundPolicyService {
       // Generates a unique deduplication key for this refund operation
       const idempotencyKey = `refund_${order.id}_${order.status}`;
       if (txClient === db) {
-        return await WalletService.refund(order.userId, refundCents, reason, idempotencyKey);
+        return await WalletService.refund(order.userId, refundCents, reason, idempotencyKey, undefined, order.tenantId);
       } else {
-        return await WalletOps.refund(txClient, order.userId, refundCents, reason, { idempotencyKey });
+        return await WalletOps.refund(txClient, order.userId, refundCents, reason, { idempotencyKey, tenantId: order.tenantId });
       }
     }
 

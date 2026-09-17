@@ -315,7 +315,7 @@ class OrderService {
           db.user.findUnique({ where: { id: userId }, select: { email: true } }).then(u => {
             if (u?.email) {
               db.service.findUnique({ where: { id: order.serviceId }, select: { name: true } }).then(s => {
-                if (s?.name) sendOrderCanceledMail(u.email, order.numericId.toString(), s.name).catch(console.error);
+                if (s?.name) sendOrderCanceledMail(u.email, order.numericId.toString(), s.name, order.tenantId).catch(console.error);
               });
             }
           });
@@ -487,7 +487,8 @@ class OrderService {
         return {
           email: order.user?.email,
           numericId: order.numericId.toString(),
-          serviceName: order.service?.name
+          serviceName: order.service?.name,
+          tenantId: order.tenantId
         };
       });
 
@@ -495,7 +496,7 @@ class OrderService {
       if (txResult?.email && txResult?.serviceName) {
         try {
           const { sendOrderCanceledMail } = await import('../../lib/smtp');
-          await sendOrderCanceledMail(txResult.email, txResult.numericId, txResult.serviceName);
+          await sendOrderCanceledMail(txResult.email, txResult.numericId, txResult.serviceName, txResult.tenantId);
         } catch (mailErr: unknown) {
           console.error(`[OrderService] Failed to send cancellation email for ${orderId}:`, (mailErr instanceof Error ? mailErr.message : String(mailErr)));
         }
@@ -572,7 +573,8 @@ class OrderService {
         return {
           numericId: order.numericId,
           serviceName: order.service?.name || 'Неизвестная услуга',
-          email: order.user?.email
+          email: order.user?.email,
+          tenantId: order.tenantId
         };
       });
 
@@ -596,7 +598,8 @@ class OrderService {
             await sendOrderCanceledMail(
               txResult.email,
               txResult.numericId.toString(),
-              txResult.serviceName
+              txResult.serviceName,
+              txResult.tenantId
             );
           } catch (err) { console.warn('[OrderService] Auto-status refund notification failed:', err); }
         }

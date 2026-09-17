@@ -188,6 +188,7 @@ export async function runCleanup(): Promise<void> {
         numericId: true,
         paymentId: true,
         promoCodeId: true,
+        tenantId: true,
         user: { select: { email: true } },
         service: { select: { name: true } }
       },
@@ -244,7 +245,8 @@ export async function runCleanup(): Promise<void> {
         sendOrderCanceledMail(
           zombie.user.email,
           zombie.numericId.toString(),
-          zombie.service.name
+          zombie.service.name,
+          zombie.tenantId
         ).catch(err => log.error('Failed to send zombie cancellation email', { orderId: zombie.id, error: (err instanceof Error ? err.message : String(err)) }));
       }
     }
@@ -505,6 +507,7 @@ export async function runInProgressTTLSweep(): Promise<void> {
         runs: true,
         interval: true,
         createdAt: true,
+        tenantId: true,
         service: {
           select: {
             provider: true
@@ -601,6 +604,24 @@ export async function runInProgressTTLSweep(): Promise<void> {
         refundCents = calculatePartialRefund({ remains, quantity, charge });
         delivered = Math.max(0, quantity - remains);
         reasonText = `Заказ частично выполнен провайдером. Выполнено ${delivered} из ${quantity}. Невыполненный остаток возвращён на баланс.`;
+      } else if (!order.externalId || !order.service?.provider) {
+        // Fallback for orders without an active external provider (local sandbox/seed or orphaned orders)
+        if (remains <= 0) {
+          targetStatus = 'COMPLETED';
+          refundCents = 0;
+          delivered = quantity;
+          reasonText = `Заказ завершён по таймауту (72ч IN_PROGRESS). Выполнено ${delivered} из ${quantity}.`;
+        } else if (remains >= quantity) {
+          targetStatus = 'ERROR';
+          refundCents = Number(charge);
+          delivered = 0;
+          reasonText = `Заказ завершён по таймауту (72ч IN_PROGRESS). Выполнено 0 из ${quantity}. Стоимость возвращена на баланс.`;
+        } else {
+          targetStatus = 'PARTIAL';
+          refundCents = calculatePartialRefund({ remains, quantity, charge });
+          delivered = Math.max(0, quantity - remains);
+          reasonText = `Заказ завершён по таймауту (72ч IN_PROGRESS). Выполнено ${delivered} из ${quantity}. Невыполненный остаток возвращён на баланс.`;
+        }
       } else {
         // Safe Invariant: Never auto-cancel long-running orders unless the provider explicitly answered terminal status
         log.info(`Order ${order.id} has no terminal status from provider (status: ${statusFromProvider || 'unknown'}). Keeping in IN_PROGRESS.`);
@@ -637,7 +658,10 @@ export async function runInProgressTTLSweep(): Promise<void> {
           if (refundCents > 0) {
             const refundKey = `refund-ttl-${order.id}`;
             const existingLedger = await tx.ledgerEntry.findFirst({
-              where: { idempotencyKey: refundKey }
+              where: {
+                idempotencyKey: refundKey,
+                ...(order.tenantId ? { tenantId: order.tenantId } : {})
+              }
             });
 
             if (!existingLedger) {
@@ -646,7 +670,7 @@ export async function runInProgressTTLSweep(): Promise<void> {
                 order.userId,
                 refundCents,
                 reasonText,
-                { idempotencyKey: refundKey }
+                { idempotencyKey: refundKey, tenantId: order.tenantId }
               );
             }
           }

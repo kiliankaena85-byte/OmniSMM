@@ -184,7 +184,7 @@ export async function POST(req: Request) {
           const { LoyaltyService } = await import('@/services/users/loyalty.service');
           await LoyaltyService.confirmCommission(tx, order.id);
           
-          sendOrderCompletedMail(order.user.email, order.numericId.toString(), order.service.name).catch(console.error);
+          sendOrderCompletedMail(order.user.email, order.numericId.toString(), order.service.name, order.tenantId).catch(console.error);
           CompensationService.trackCompensation(order.id, s.charge).catch(err => console.error('[Webhook] Failed to track compensation', err));
         }
       });

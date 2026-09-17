@@ -1,3 +1,22 @@
+- [x] ⚡ [WORKER-AND-REFUND-ISOLATION-2026] Изоляция авто-возвратов фоновых воркеров (DripFeed, Cleanup, Sync), провайдерских вебхуков и SLA-метрик (100% COMPLETE & VERIFIED):
+  * 🔄 **Изоляция авто-возвратов в DripFeed и TTL-свипере (`dripfeed.processor.ts`, `cleanup.processor.ts`):**
+    - В `src/workers/processors/dripfeed.processor.ts`: выборка заказа при сбое кампании обогащена `tenantId: true`, проверка идемпотентности в `tx.ledgerEntry.findFirst` и вызов `WalletOps.refund` получили строгий `tenantId: order.tenantId`.
+    - В `src/workers/processors/cleanup.processor.ts`: в `runInProgressTTLSweep` выборка зависших заказов обогащена `tenantId: true`, возврат `WalletOps.refund` и поиск по `refundKey` скоупированы по `tenantId: order.tenantId`.
+    - Восстановлен безопасный фоллбэк для заказов без внешнего поставщика (sandbox/seed/manual): заказы корректно завершаются по таймауту 72ч с пропорциональным возвратом остатка.
+  * 🛡️ **Мульти-тенантная политика возвратов (`RefundPolicyService`):**
+    - В `src/services/financial/refund-policy.service.ts`: метод `processRefund` теперь принимает `tenantId?: string`, поиск частичных возвратов `partialRefundLedger` и вызовы `WalletService.refund` / `WalletOps.refund` жестко скоупированы по тенанту заказа.
+    - В `src/workers/processors/sync.processor.ts`: передача `tenantId: order.tenantId` в `RefundPolicyService.processRefund` при отмене (`CANCELED`) и частичном выполнении (`PARTIAL`).
+  * 📧 **Изоляция почтовых уведомлений о завершении и отмене заказов:**
+    - В `src/workers/processors/sync.processor.ts` и `src/app/api/webhooks/provider/route.ts`: передача `order.tenantId` в `sendOrderCompletedMail`, исключая отправку брендинга SMMplan клиентам SMMflux.
+    - В `src/services/core/order.service.ts`: передача `order.tenantId` в `sendOrderCanceledMail` во всех сценариях отмены (клиентская отмена, `failOrderTerminal`, `failOrderTerminalFast`).
+    - В `src/workers/processors/cleanup.processor.ts`: передача `zombie.tenantId` в `sendOrderCanceledMail` при очистке неоплаченных брошенных заказов.
+  * 📈 **SLA-метрики и обработка таймаутов провайдеров (`sync.processor.ts`):**
+    - В `sync.processor.ts`: в блоке перехвата сбоев батч-опроса (`catch (batchErr)`) добавлено корректное логирование метрик сбоя провайдера (`lastErrorAt: new Date()`, `errorCount5m: { increment: 1 }`).
+  * 🧪 **Верификация:**
+    - `vitest run src/workers/processors/__tests__/sync.processor.test.ts src/workers/processors/__tests__/cleanup.processor.test.ts src/__tests__/payment-vs-provider-lifecycle.test.ts src/__tests__/financial/balance-payment-notifications-and-ux.test.ts` — 14/14 PASS (100%).
+    - `vitest run src/__tests__/architecture/multitenant-checkout-and-payment-retry.test.ts src/__tests__/financial/webhook-latency-and-reconciliation-stream.test.ts src/__tests__/security/pci-dss-fintech-concurrency-audit.test.ts` — 7/7 PASS (100%).
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
 - [x] ⚡ [FINANCIAL-LEDGER-AND-BOT-TENANT-ISOLATION-2026] Изоляция финансовой книги, платежей, возвратов, пополнений и Telegram-ботов между тенантами (100% COMPLETE & VERIFIED):
   * 📒 **Изоляция финансовой книги (Ledger) и ночного аудита:**
     - В `NightlyLedgerAuditService` (`src/services/financial/nightly-ledger-audit.service.ts`):

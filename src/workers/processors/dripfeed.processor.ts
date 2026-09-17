@@ -50,7 +50,7 @@ async function checkAndCompleteCampaign(campaignId: string) {
         if (orderTargetStatus === 'ERROR') {
           const order = await tx.order.findUnique({
             where: { id: parentOrderId },
-            select: { userId: true, charge: true, numericId: true }
+            select: { userId: true, charge: true, numericId: true, tenantId: true }
           });
           
           if (order && order.charge > 0) {
@@ -65,14 +65,19 @@ async function checkAndCompleteCampaign(campaignId: string) {
             if (refundCents > 0) {
               const { WalletOps } = await import('@/services/financial/wallet-ops');
               const refundKey = `refund-dripfeed-final-${parentOrderId}`;
-              const existing = await tx.ledgerEntry.findFirst({ where: { idempotencyKey: refundKey } });
+              const existing = await tx.ledgerEntry.findFirst({
+                where: {
+                  idempotencyKey: refundKey,
+                  ...(order.tenantId ? { tenantId: order.tenantId } : {})
+                }
+              });
               if (!existing) {
                 await WalletOps.refund(
                   tx,
                   order.userId,
                   refundCents,
                   `Авто-возврат (${errorQty}/${totalQty} шт): SmartCampaign #${order.numericId} не полностью выполнена`,
-                  { idempotencyKey: refundKey }
+                  { idempotencyKey: refundKey, tenantId: order.tenantId }
                 );
               }
             }

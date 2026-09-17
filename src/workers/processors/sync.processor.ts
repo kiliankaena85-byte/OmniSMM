@@ -105,6 +105,18 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
           });
         } catch (batchErr) {
           log.warn(`[SyncProcessor] Batch status polling failed for ${providerDef.name}, falling back to 1-by-1 query:`, { error: batchErr });
+          try {
+            await db.provider.update({
+              where: { id: providerDef.id },
+              data: {
+                lastErrorAt: new Date(),
+                errorCount5m: { increment: 1 }
+              }
+            });
+          } catch (slaErr) {
+            log.error(`Failed to update SLA error metrics for ${providerDef.id}`, { cause: slaErr });
+          }
+
           // Fallback: poll sequentially so 1 broken ID does not break remaining 49 orders
           for (const extId of allExtIds) {
             try {
@@ -186,7 +198,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             });
 
             if (updated && order.email) {
-              await sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name).catch(err => log.error('Failed to send order completed email', { error: err }));
+              await sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name, order.tenantId).catch(err => log.error('Failed to send order completed email', { error: err }));
             }
           });
         } else if (targetStatus === 'CANCELED') {
@@ -198,7 +210,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             });
 
             if (updated) {
-              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: 'CANCELED' }, 'Авто-возврат: провайдер отменил заказ', tx);
+              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: 'CANCELED', tenantId: order.tenantId }, 'Авто-возврат: провайдер отменил заказ', tx);
             }
           });
         } else if (targetStatus === 'PARTIAL') {
@@ -214,7 +226,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             });
 
             if (updated) {
-              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: 'PARTIAL' }, 'Авто-возврат за недовыполненную часть заказа', tx);
+              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: 'PARTIAL', tenantId: order.tenantId }, 'Авто-возврат за недовыполненную часть заказа', tx);
             }
           });
         } else if (targetStatus === 'IN_PROGRESS') {
