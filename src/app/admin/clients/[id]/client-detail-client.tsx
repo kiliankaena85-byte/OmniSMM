@@ -64,6 +64,7 @@ export function ClientDetailClient({
         ledgerEntries={ledgerEntries}
         ledgerSummary={ledgerSummary}
         initialNotes={initialNotes}
+        operatorRole={operatorRole}
       />
     );
   }

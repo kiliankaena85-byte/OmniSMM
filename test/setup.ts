@@ -488,7 +488,11 @@ beforeEach(async () => {
         'link-analyzer.comprehensive',
         'api-v2-link-validation',
         'telegram-boost-link-recognition',
-        'checkout.test.ts'
+        'checkout.test.ts',
+        'ai-harnesses',
+        'stage1-economic',
+        'harness',
+        'ast-transaction-escape'
       ];
       if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
         shouldReset = false;

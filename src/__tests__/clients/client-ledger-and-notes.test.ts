@@ -63,4 +63,84 @@ describe('Client CRM, Ledger & Poka-Yoke Invariants', () => {
       expect(res.error).toContain('не может быть пустым');
     }
   });
+
+  it('should cleanly migrate legacy-note to UserNote on edit without 500 error', async () => {
+    const { db } = await import('@/lib/db');
+    const timestamp = Date.now() + Math.random().toString(36).slice(2, 6);
+    const testClient = await db.user.create({
+      data: {
+        email: `legacy_client_${timestamp}@smmplan.local`,
+        role: 'USER',
+        isActive: true,
+        adminNote: 'Старая текстовая заметка из V1',
+      }
+    });
+
+    try {
+      const res = await editClientNoteAction('legacy-note', testClient.id, 'Обновленная заметка из V2');
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.note.content).toBe('Обновленная заметка из V2');
+        expect(res.note.id).not.toBe('legacy-note'); // Generated real CUID
+      }
+
+      // Check DB sync
+      const checkUser = await db.user.findUniqueOrThrow({ where: { id: testClient.id } });
+      expect(checkUser.adminNote).toBe('Обновленная заметка из V2');
+
+      const userNotes = await db.userNote.findMany({ where: { userId: testClient.id } });
+      expect(userNotes.length).toBe(1);
+      expect(userNotes[0].content).toBe('Обновленная заметка из V2');
+    } finally {
+      await db.userNote.deleteMany({ where: { userId: testClient.id } });
+      await db.user.deleteMany({ where: { id: testClient.id } });
+    }
+  });
+
+  it('should cleanly delete legacy-note without 500 error and clear User.adminNote', async () => {
+    const { db } = await import('@/lib/db');
+    const timestamp = Date.now() + Math.random().toString(36).slice(2, 6);
+    const testClient = await db.user.create({
+      data: {
+        email: `legacy_del_${timestamp}@smmplan.local`,
+        role: 'USER',
+        isActive: true,
+        adminNote: 'Заметка под удаление',
+      }
+    });
+
+    try {
+      const res = await deleteClientNoteAction('legacy-note', testClient.id);
+      expect(res.success).toBe(true);
+
+      const checkUser = await db.user.findUniqueOrThrow({ where: { id: testClient.id } });
+      expect(checkUser.adminNote).toBeNull();
+    } finally {
+      await db.user.deleteMany({ where: { id: testClient.id } });
+    }
+  });
+
+  it('should allow SUPPORT role to update client discount via updateClientDiscountAction', async () => {
+    const { updateClientDiscountAction } = await import('@/actions/admin/clients');
+    const { db } = await import('@/lib/db');
+    const timestamp = Date.now() + Math.random().toString(36).slice(2, 6);
+    const testClient = await db.user.create({
+      data: {
+        email: `discount_client_${timestamp}@smmplan.local`,
+        role: 'USER',
+        isActive: true,
+        personalDiscount: 0,
+      }
+    });
+
+    try {
+      const res = await updateClientDiscountAction(testClient.id, 15);
+      expect(res.success).toBe(true);
+
+      const checkUser = await db.user.findUniqueOrThrow({ where: { id: testClient.id } });
+      expect(checkUser.personalDiscount).toBe(15);
+    } finally {
+      await db.user.deleteMany({ where: { id: testClient.id } });
+    }
+  });
 });

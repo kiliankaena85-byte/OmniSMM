@@ -82,7 +82,7 @@ export function SecurityTab({ user, loginLogs }: SecurityTabProps) {
     startMagicLinkTransition(async () => {
       const res = await adminGenerateMagicLinkAction(user.id);
       if (res.success && res.magicUrl) {
-        const fullUrl = `${window.location.origin}${res.magicUrl}`;
+        const fullUrl = res.magicUrl.startsWith('http') ? res.magicUrl : `${window.location.origin}${res.magicUrl}`;
         await navigator.clipboard.writeText(fullUrl);
         setCopiedMagicLink(true);
         toast.success(

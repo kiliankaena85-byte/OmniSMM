@@ -98,7 +98,9 @@ class AdminUserService {
     sortBy?: UserSortField;
     sortOrder?: SortOrder;
   }): Promise<PaginatedResult<AdminUserRow>> {
-    const andConditions: Prisma.UserWhereInput[] = [];
+    const andConditions: Prisma.UserWhereInput[] = [
+      { isDeleted: false },
+    ];
 
     if (params.search?.trim()) {
       const q = params.search.trim();
@@ -324,7 +326,7 @@ class AdminUserService {
    * Get aggregate user stats for the header.
    */
   async getUserStats(startDate?: Date, endDate?: Date, tenantId?: string) {
-    const where: Prisma.UserWhereInput = {};
+    const where: Prisma.UserWhereInput = { isDeleted: false };
     if (startDate && endDate) {
       where.createdAt = { gte: startDate, lte: endDate };
     }
@@ -367,7 +369,7 @@ class AdminUserService {
    */
   async getTopSpenders(limit = 6, tenantId?: string) {
     const isSingleTenant = tenantId && tenantId !== 'all';
-    const where: Prisma.UserWhereInput = { role: { not: 'BANNED' } };
+    const where: Prisma.UserWhereInput = { role: { not: 'BANNED' }, isDeleted: false };
     if (isSingleTenant) {
       where.tenantId = tenantId;
     }

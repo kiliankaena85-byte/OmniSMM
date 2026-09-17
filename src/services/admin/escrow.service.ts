@@ -46,18 +46,21 @@ export class EscrowService {
   ) {
     const isOwnerOrAdmin = admin.role === 'OWNER' || admin.role === 'ADMIN';
 
-    // 2. Owners and Admins bypass all Escrow trust limits except for extreme anomalies (e.g. > 100k RUB)
+    const isOwner = admin.role === 'OWNER';
+
+    // 2. Owners and Admins bypass all Escrow trust limits except for extreme anomalies (e.g. > 10M RUB for Owner, > 100k RUB for Admin)
     if (isOwnerOrAdmin) {
-      const ANOMALOUS_LIMIT_CENTS = 10000000; // 100,000 RUB
-      if (amountCents > ANOMALOUS_LIMIT_CENTS) {
+      const ANOMALOUS_LIMIT_CENTS = isOwner ? 1000000000 : 10000000;
+      if (Math.abs(amountCents) > ANOMALOUS_LIMIT_CENTS) {
         await db.$transaction(async (tx) => {
           await this.executeQuarantineAdjustmentTx(tx, targetUserId, amountCents, reason, admin);
         }, { isolationLevel: 'Serializable', timeout: 15000 });
 
+        const opWord = amountCents >= 0 ? 'начислить' : 'списать';
         // Trigger critical alert for Owner/Admin anomalous action
         try {
           sendAdminAlert(
-            `🚨 [ANOMALY DETECTED] Администратор ${admin.email} (${admin.role}) попытался вручную начислить крупную сумму: ${(amountCents/100).toFixed(2)} ₽.\n` +
+            `🚨 [ANOMALY DETECTED] Администратор ${admin.email} (${admin.role}) попытался вручную ${opWord} крупную сумму: ${(Math.abs(amountCents)/100).toFixed(2)} ₽.\n` +
             `Операция заблокирована и отправлена в карантин на согласование!`,
             'CRITICAL'
           );
@@ -158,7 +161,11 @@ export class EscrowService {
       sendAdminAlert(`⚠️ Внимание: Баланс клиента ${user.email} уйдёт в минус (${(newBalance / 100).toFixed(2)} ₽) после операции на ${(amountCents / 100).toFixed(2)} ₽.`, 'WARNING');
     }
 
-    await WalletOps.adminAdjust(tx, targetUserId, amountCents, reason, { adminId: admin.id, idempotencyKey });
+    await WalletOps.adminAdjust(tx, targetUserId, amountCents, reason, {
+      adminId: admin.id,
+      idempotencyKey,
+      allowElevatedCap: admin.role === 'OWNER' || admin.role === 'ADMIN',
+    });
 
     await auditAdminAwaitable({
       adminId: admin.id,

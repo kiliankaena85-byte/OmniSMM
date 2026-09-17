@@ -16,10 +16,10 @@ export function ApiTab({ user }: ApiTabProps) {
   const [prioritySupport, setPrioritySupport] = useState(
     user.apiConfig?.prioritySupport ?? false
   );
-  const [companyName, setCompanyName] = useState(user.companyName);
-  const [inn, setInn] = useState(user.inn);
-  const [kpp, setKpp] = useState(user.kpp);
-  const [legalAddress, setLegalAddress] = useState(user.legalAddress);
+  const [companyName, setCompanyName] = useState(user.companyName ?? '');
+  const [inn, setInn] = useState(user.inn ?? '');
+  const [kpp, setKpp] = useState(user.kpp ?? '');
+  const [legalAddress, setLegalAddress] = useState(user.legalAddress ?? '');
   const [webhookUrl, setWebhookUrl] = useState(user.apiConfig?.webhookUrl ?? '');
   const [isPendingApi, startApiTransition] = useTransition();
 

@@ -39,7 +39,7 @@ export default async function ClientDetailPage({ params }: Props) {
   const session = await verifySession();
   const currentUser = session ? await db.user.findUnique({ 
     where: { id: session.userId },
-    select: { id: true, role: true }
+    select: { id: true, role: true, tenantId: true, allowedTenants: true }
   }) : null;
 
   const isOwner = currentUser?.role === 'OWNER';
@@ -54,6 +54,7 @@ export default async function ClientDetailPage({ params }: Props) {
       id: true,
       email: true,
       role: true,
+      tenantId: true,
       balance: true,
       quarantineBalance: true,
       totalSpent: true,
@@ -82,6 +83,15 @@ export default async function ClientDetailPage({ params }: Props) {
   });
 
   if (!user) notFound();
+
+  // Cross-tenant IDOR Protection: non-OWNER can only view clients from their authorized tenant(s)
+  if (currentUser?.role !== 'OWNER') {
+    const { isTenantAllowedForUser } = await import('@/utils/admin-tenant');
+    const targetTenant = user.tenantId || 'smmplan';
+    if (!isTenantAllowedForUser(currentUser, targetTenant)) {
+      notFound();
+    }
+  }
 
   const [orders, payments, countResult, loginLogs, rawLedgerEntries, rawSummary, rawNotes] = await Promise.all([
     db.order.findMany({
@@ -121,7 +131,15 @@ export default async function ClientDetailPage({ params }: Props) {
       },
     }),
     db.loginLog.findMany({
-      where: { email: user.email },
+      where: {
+        OR: [
+          { userId: user.id },
+          {
+            email: user.email,
+            tenantId: user.tenantId || 'smmplan',
+          },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: {
@@ -240,6 +258,7 @@ export default async function ClientDetailPage({ params }: Props) {
     id: user.id,
     email: user.email,
     role: user.role,
+    tenantId: user.tenantId || 'smmplan',
     personalDiscount: user.personalDiscount,
     discountEndsAt: user.discountEndsAt?.toISOString() ?? null,
     adminNote: user.adminNote ?? '',

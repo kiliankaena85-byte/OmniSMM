@@ -14,6 +14,7 @@ interface ClientPaymentsModalProps {
   user: UserDTO;
   payments: PaymentDTO[];
   totalDepositedRub?: number;
+  currentUserRole?: string;
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -31,6 +32,7 @@ export function ClientPaymentsModal({
   user,
   payments,
   totalDepositedRub: propTotalDepositedRub,
+  currentUserRole = 'ADMIN',
 }: ClientPaymentsModalProps) {
   const [approvalTarget, setApprovalTarget] = useState<PendingPaymentTarget | null>(null);
 
@@ -195,7 +197,7 @@ export function ClientPaymentsModal({
         {approvalTarget && (
           <ManualPaymentApprovalModal
             payment={approvalTarget}
-            currentUserRole="ADMIN"
+            currentUserRole={currentUserRole}
             supportLimitRub={3000}
             onClose={() => setApprovalTarget(null)}
             onSuccess={() => {

@@ -7,6 +7,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import ts from 'typescript';
 
 export interface PreAuditFinding {
   vector: string;
@@ -153,19 +154,11 @@ export class MakerCheckerHarness {
           snippet: trimmed,
         });
       }
-
-      // Вектор 2: Transaction Escape (db.* внутри tx)
-      if (/db\.(user|order|service|wallet|ledgerEntry)\.(update|create|delete|find)/.test(trimmed) && content.includes('$transaction')) {
-        findings.push({
-          vector: 'Vector 2: Financial & ACID',
-          severity: 'BLOCKER',
-          file: filePath,
-          line: lineNum,
-          message: 'Потенциальный Transaction Escape: использование db.* внутри транзакционного файла.',
-          snippet: trimmed,
-        });
-      }
     });
+
+    // Вектор 2: True AST Transaction Escape (db.* внутри tx контекста)
+    const astEscapeFindings = detectTransactionEscapesAst(filePath, content, lines);
+    findings.push(...astEscapeFindings);
 
     return findings;
   }
@@ -247,6 +240,195 @@ export class MakerCheckerHarness {
       console.log('\n🔴 [Pre-Audit FAIL] Maker must fix Blockers and Majors before invoking Checker.');
     }
   }
+}
+
+/**
+ * AST-based Transaction Escape Detector using TypeScript Compiler API.
+ * Identifies calls to global `db.*` within:
+ * 1) A callback inside `$transaction` (e.g. `db.$transaction(async (tx) => { ... })`)
+ * 2) A function/method taking a parameter representing a transaction (`tx: PrismaTx`, `tx: Prisma.TransactionClient`, or parameter named `tx`)
+ * Eliminates false positives on multi-function files where non-transactional functions invoke `db.*`.
+ */
+export function detectTransactionEscapesAst(
+  filePath: string,
+  content: string,
+  lines: string[]
+): PreAuditFinding[] {
+  const findings: PreAuditFinding[] = [];
+
+  // Exclude tests or non-code files
+  if (
+    filePath.includes('.test.') ||
+    filePath.includes('__tests__') ||
+    !/\.(ts|tsx|js|mjs)$/.test(filePath)
+  ) {
+    return findings;
+  }
+
+  // Fast filter: file must contain 'db' or 'prisma' and transaction-related markers
+  const hasPrismaOrDb = content.includes('db') || content.includes('prisma');
+  const hasTxMarkers =
+    content.includes('$transaction') ||
+    content.includes('runSerializableTransaction') ||
+    content.includes('runInTransaction') ||
+    content.includes('PrismaTx') ||
+    content.includes('TransactionClient') ||
+    /\btx\b/.test(content);
+
+  if (!hasPrismaOrDb || !hasTxMarkers) {
+    return findings;
+  }
+
+  let sourceFile: ts.SourceFile;
+  try {
+    sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true
+    );
+  } catch {
+    return findings;
+  }
+
+  const getSnippet = (node: ts.Node): string => {
+    const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+    return (lines[line] || '').trim();
+  };
+
+  const getLine = (node: ts.Node): number => {
+    return sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+  };
+
+  const getBaseIdentifier = (expr: ts.Expression): string => {
+    let cur: ts.Expression = expr;
+    while (true) {
+      if (ts.isParenthesizedExpression(cur)) {
+        cur = cur.expression;
+      } else if (ts.isAsExpression(cur)) {
+        cur = cur.expression;
+      } else if (ts.isNonNullExpression(cur)) {
+        cur = cur.expression;
+      } else if (ts.isTypeAssertionExpression(cur)) {
+        cur = cur.expression;
+      } else {
+        break;
+      }
+    }
+    return cur.getText(sourceFile);
+  };
+
+  const visit = (node: ts.Node, activeTxParam: string | null) => {
+    // Check for transaction escape
+    if (activeTxParam && ts.isPropertyAccessExpression(node)) {
+      const objText = getBaseIdentifier(node.expression);
+      const propName = node.name.getText(sourceFile);
+
+      if ((objText === 'db' || objText === 'prisma') && propName !== '$transaction') {
+        findings.push({
+          vector: 'Vector 2: Financial & ACID',
+          severity: 'BLOCKER',
+          file: filePath,
+          line: getLine(node),
+          message: `Обнаружен Transaction Escape (AST): обращение к глобальному '${objText}.${propName}' внутри транзакционного контекста ('${activeTxParam}')! Все операции обязаны использовать '${activeTxParam}.*'.`,
+          snippet: getSnippet(node),
+        });
+      }
+    }
+
+    // Check $transaction, runSerializableTransaction, or runInTransaction call
+    if (ts.isCallExpression(node)) {
+      const text = node.expression.getText(sourceFile);
+      const isTxCall =
+        text.endsWith('$transaction') ||
+        text.endsWith('runSerializableTransaction') ||
+        text.endsWith('runInTransaction');
+
+      if (isTxCall && node.arguments.length > 0) {
+        // Visit the caller expression itself with current context
+        visit(node.expression, activeTxParam);
+
+        // Process arguments
+        for (const arg of node.arguments) {
+          if (ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) {
+            let callbackTxName = 'tx';
+            if (arg.parameters.length > 0) {
+              const param0 = arg.parameters[0];
+              if (ts.isIdentifier(param0.name)) {
+                callbackTxName = param0.name.text;
+              } else if (ts.isObjectBindingPattern(param0.name)) {
+                for (const el of param0.name.elements) {
+                  const elName = el.name.getText(sourceFile);
+                  if (elName === 'tx' || elName === 'prismaTx' || elName.toLowerCase().includes('tx')) {
+                    callbackTxName = elName;
+                    break;
+                  }
+                }
+              } else {
+                callbackTxName = param0.name.getText(sourceFile);
+              }
+            }
+            // Traverse callback body with callbackTxName
+            arg.forEachChild((child) => visit(child, callbackTxName));
+          } else {
+            visit(arg, activeTxParam);
+          }
+        }
+        return;
+      }
+    }
+
+    // Check function declarations, methods, function expressions, arrow functions
+    if (
+      ts.isFunctionDeclaration(node) ||
+      ts.isMethodDeclaration(node) ||
+      ts.isArrowFunction(node) ||
+      ts.isFunctionExpression(node)
+    ) {
+      let fnTxParam: string | null = null;
+      for (const param of node.parameters) {
+        // Skip higher-order callback types like fn: (tx: PrismaTx) => Promise<T>
+        if (param.type && ts.isFunctionTypeNode(param.type)) {
+          continue;
+        }
+
+        const paramName = param.name.getText(sourceFile);
+        const typeText = param.type ? param.type.getText(sourceFile) : '';
+
+        if (ts.isObjectBindingPattern(param.name)) {
+          for (const el of param.name.elements) {
+            const elName = el.name.getText(sourceFile);
+            if (elName === 'tx' || elName === 'prismaTx' || elName.toLowerCase().includes('tx')) {
+              fnTxParam = elName;
+              break;
+            }
+          }
+        } else if (
+          paramName === 'tx' ||
+          paramName === 'prismaTx' ||
+          paramName === 'trx' ||
+          typeText.includes('PrismaTx') ||
+          typeText.includes('TransactionClient')
+        ) {
+          fnTxParam = paramName;
+          break;
+        }
+      }
+
+      if (fnTxParam) {
+        if (node.body) {
+          visit(node.body, fnTxParam);
+        }
+        return;
+      }
+    }
+
+    // Default recursive traversal
+    ts.forEachChild(node, (child) => visit(child, activeTxParam));
+  };
+
+  visit(sourceFile, null);
+  return findings;
 }
 
 // CLI Execution

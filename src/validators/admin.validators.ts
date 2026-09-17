@@ -45,7 +45,7 @@ function validateOgrn(ogrn: string): boolean {
 // Users / Finance
 export const updateBalanceSchema = z.object({
   userId: z.string().min(1),
-  amount: z.coerce.number().int().min(-50000000, "Превышен лимит списания (500 тыс. руб)").max(50000000, "Превышен лимит начисления (500 тыс. руб)"),
+  amount: z.coerce.number().int().min(-10000000000, "Превышен лимит списания (100 млн руб)").max(10000000000, "Превышен лимит начисления (100 млн руб)"),
   reason: z.string().trim().min(5, "Причина должна быть содержательной (не менее 5 символов)").max(500, "Описание причины не должно превышать 500 символов")
 });
 

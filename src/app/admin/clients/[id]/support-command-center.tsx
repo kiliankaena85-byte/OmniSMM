@@ -52,6 +52,7 @@ interface Props {
   ledgerEntries?: ClientLedgerEntryDTO[];
   ledgerSummary?: ClientLedgerSummaryDTO;
   initialNotes?: UserNoteDTO[];
+  operatorRole?: string;
 }
 
 export function SupportCommandCenter({ 
@@ -61,7 +62,8 @@ export function SupportCommandCenter({
   orders, 
   ledgerEntries = [], 
   ledgerSummary = { totalDepositedRub: 0, totalSpentRub: 0, totalRefundedRub: 0, totalAdjustedRub: 0 },
-  initialNotes = []
+  initialNotes = [],
+  operatorRole,
 }: Props) {
   const [discount, setDiscount] = useState(user.personalDiscount || 0);
   const [isPendingDiscount, startDiscountTransition] = useTransition();
@@ -143,7 +145,8 @@ export function SupportCommandCenter({
     startMagicTransition(async () => {
       const res = await adminGenerateMagicLinkAction(user.id);
       if (res.success && res.magicUrl) {
-        await navigator.clipboard.writeText(`${window.location.origin}${res.magicUrl}`);
+        const linkToCopy = res.magicUrl.startsWith('http') ? res.magicUrl : `${window.location.origin}${res.magicUrl}`;
+        await navigator.clipboard.writeText(linkToCopy);
         setCopiedMagic(true);
         toast.success('Magic-ссылка скопирована (15 мин)');
         setTimeout(() => setCopiedMagic(false), 3000);
@@ -402,6 +405,7 @@ export function SupportCommandCenter({
         user={user}
         payments={payments}
         totalDepositedRub={ledgerSummary.totalDepositedRub}
+        currentUserRole={operatorRole || 'SUPPORT'}
       />
 
       <SecurityEmailModal user={user} isOpen={showEmailModal} onClose={() => setShowEmailModal(false)} />

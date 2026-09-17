@@ -13,6 +13,7 @@ import {
 } from './types';
 import { zodToGeminiFunctionDeclaration } from './zod-to-gemini-schema';
 import { z } from 'zod';
+import { registerEconomicHarnesses } from './harness-bridge';
 
 const FALLBACK_MODEL_CASCADES = [
   'gemini-flash-latest',
@@ -39,6 +40,10 @@ export class GeminiToolClient {
       temperature: 0.1,
       ...options,
     };
+
+    if (this.options.autoRegisterEconomicHarnesses) {
+      this.registerEconomicHarnesses();
+    }
   }
 
   public registerTool<TSchema extends z.ZodTypeAny, TOutput>(
@@ -49,6 +54,42 @@ export class GeminiToolClient {
     }
     this.tools.set(tool.name, tool as unknown as GeminiToolDefinition<z.ZodTypeAny, unknown>);
     return this;
+  }
+
+  public getTool(name: string): GeminiToolDefinition<z.ZodTypeAny, unknown> | undefined {
+    return this.tools.get(name);
+  }
+
+  public getRegisteredToolNames(): string[] {
+    return Array.from(this.tools.keys());
+  }
+
+  public registerEconomicHarnesses(): this {
+    registerEconomicHarnesses(this);
+    return this;
+  }
+
+  public async executeToolDirectly(
+    name: string,
+    args: Record<string, unknown>,
+    context?: Partial<GeminiExecutionContext>
+  ): Promise<unknown> {
+    const tool = this.tools.get(name);
+    if (!tool) {
+      throw new Error(
+        `Tool '${name}' is not registered in GeminiToolClient. Available tools: ${this.getRegisteredToolNames().join(', ')}`
+      );
+    }
+    const validatedArgs = tool.schema.parse(args || {});
+    const execContext: GeminiExecutionContext = {
+      turnIndex: 0,
+      totalTokensUsed: 0,
+      traceId: `direct-${Date.now()}`,
+      staffUserId: this.options.staffUserId,
+      tenantId: this.options.tenantId,
+      ...context,
+    };
+    return await tool.handler(validatedArgs, execContext);
   }
 
   public getFunctionDeclarations(): GeminiFunctionDeclaration[] {
@@ -197,7 +238,7 @@ export class GeminiToolClient {
       keyRotationIndex = (keyRotationIndex + 1) % 100000;
       const keysToTry = [...activeKeys.slice(startIndex), ...activeKeys.slice(0, startIndex)];
 
-      let responsePayload: any = null;
+      let responsePayload: Record<string, unknown> | null = null;
       let lastError: Error | null = null;
       const dispatchers = await GeminiToolClient.getDispatchers();
 
@@ -272,13 +313,13 @@ export class GeminiToolClient {
         throw lastError || new Error('All Gemini API keys, proxies, and models exhausted');
       }
 
-      const candidate = responsePayload?.candidates?.[0];
-      const modelParts = candidate?.content?.parts || [];
+      const candidate = (responsePayload?.candidates as Array<{ content?: { parts?: GeminiPart[] } }>)?.[0];
+      const modelParts: GeminiPart[] = candidate?.content?.parts || [];
 
-      const functionCalls = modelParts.filter((p: any) => p.functionCall);
+      const functionCalls = modelParts.filter((p) => p.functionCall);
 
       if (functionCalls.length === 0) {
-        const textParts = modelParts.map((p: any) => p.text || '').join('');
+        const textParts = modelParts.map((p) => p.text || '').join('');
         return {
           finalResponse: textParts,
           steps,
@@ -295,13 +336,15 @@ export class GeminiToolClient {
 
       const responseParts: GeminiPart[] = [];
       for (const fc of functionCalls) {
+        if (!fc.functionCall) continue;
         const { name, args } = fc.functionCall;
         const tool = this.tools.get(name);
         const stepStart = Date.now();
 
+        const usage = responsePayload?.usageMetadata as { totalTokenCount?: number } | undefined;
         const execContext: GeminiExecutionContext = {
           turnIndex: turnCount,
-          totalTokensUsed: responsePayload?.usageMetadata?.totalTokenCount || 0,
+          totalTokensUsed: usage?.totalTokenCount || 0,
           traceId,
           staffUserId: this.options.staffUserId,
           tenantId: this.options.tenantId,

@@ -319,4 +319,71 @@ describe('Client CRM & FinTech Balance Safety Test Suite (Get Shit Done)', () =>
     expect(updatedUser.apiConfig?.prioritySupport).toBe(true);
     expect(updatedUser.apiConfig?.webhookUrl).toBe('https://api.tech.ru/smm-webhook');
   });
+
+  // TEST 8: 1,000,000 RUB DEBIT (EXACT ISSUE REPORTED BY USER)
+  it('should allow OWNER to debit 1,000,000 RUB without hitting safety cap or schema limit', async () => {
+    (verifySession as any).mockResolvedValue({
+      userId: ownerUser.id,
+      email: ownerUser.email,
+      role: ownerUser.role,
+    });
+
+    // Credit client with 1,500,000 RUB first
+    await db.user.update({
+      where: { id: clientUser.id },
+      data: { balance: BigInt(150_000_000) } // 1,500,000.00 ₽ in kopecks
+    });
+
+    const fd = new FormData();
+    fd.append('userId', clientUser.id);
+    fd.append('amount', '-100000000'); // -1,000,000.00 ₽ in kopecks
+    fd.append('reason', 'Крупная корректировка по акту сверки за квартал');
+    fd.append('idempotencyKey', `debit-1m-${Date.now()}`);
+
+    const res = await updateBalanceAction(fd);
+    expect(res.success).toBe(true);
+
+    const userCheck = await db.user.findUniqueOrThrow({ where: { id: clientUser.id } });
+    expect(userCheck.balance).toBe(BigInt(50_000_000)); // 500,000.00 ₽ remaining
+  });
+
+  // TEST 9: ZERO AMOUNT REJECTION
+  it('should reject zero amount adjustment with specific error message', async () => {
+    (verifySession as any).mockResolvedValue({
+      userId: ownerUser.id,
+      email: ownerUser.email,
+      role: ownerUser.role,
+    });
+
+    const fd = new FormData();
+    fd.append('userId', clientUser.id);
+    fd.append('amount', '0');
+    fd.append('reason', 'Корректировка нулевой суммы');
+
+    const res = await updateBalanceAction(fd);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toBe('Сумма изменения баланса не может быть равна нулю');
+    }
+  });
+
+  // TEST 10: UNMASKED ZOD VALIDATION ERROR
+  it('should return unmasked Zod validation issue instead of generic message', async () => {
+    (verifySession as any).mockResolvedValue({
+      userId: ownerUser.id,
+      email: ownerUser.email,
+      role: ownerUser.role,
+    });
+
+    const fd = new FormData();
+    fd.append('userId', clientUser.id);
+    fd.append('amount', '5000');
+    fd.append('reason', 'ok'); // Too short (min 5 chars)
+
+    const res = await updateBalanceAction(fd);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toContain('не менее 5 символов');
+    }
+  });
 });

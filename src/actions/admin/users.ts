@@ -25,10 +25,14 @@ export async function updateBalanceAction(formData: FormData) {
     const parsed = updateBalanceSchema.safeParse(payload);
     
     if (!parsed.success) {
-      return { success: false as const, error: 'userId, amount (копейки) и reason обязательны' };
+      return { success: false as const, error: parsed.error.issues[0]?.message || 'userId, amount (копейки) и reason обязательны' };
     }
 
     const { userId, amount, reason } = parsed.data;
+
+    if (amount === 0) {
+      return { success: false as const, error: 'Сумма изменения баланса не может быть равна нулю' };
+    }
 
     // 1. SECURITY GUARD: Block self-balance modification (only OWNER permitted with audit warning)
     if (userId === admin.id && admin.role !== 'OWNER') {
@@ -150,77 +154,83 @@ export async function updateBalanceAction(formData: FormData) {
       }
     }
 
-    const escrowResult = await escrowService.evaluateBalanceAdjustment(
-      userId,
-      amount,
-      reason.trim(),
-      admin,
-      idempotencyKey
-    );
+    try {
+      const escrowResult = await escrowService.evaluateBalanceAdjustment(
+        userId,
+        amount,
+        reason.trim(),
+        admin,
+        idempotencyKey
+      );
 
-    // If policyCheck was executed, create a SupportFinancialAction record
-    if (policyCheck && policyCheck.allowed) {
-      const ledgerEntry = await db.ledgerEntry.findFirst({
-        where: {
-          adminId: admin.id,
-          userId: userId,
-          ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
-        },
-        orderBy: { createdAt: 'desc' }
+      // If policyCheck was executed, create a SupportFinancialAction record
+      if (policyCheck && policyCheck.allowed) {
+        const ledgerEntry = await db.ledgerEntry.findFirst({
+          where: {
+            adminId: admin.id,
+            userId: userId,
+            ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+
+        const isFlagged = Math.abs(amount) >= 500000 || policyCheck.warnings.length > 0;
+        const reviewStatus = isFlagged ? 'FLAGGED' : 'PENDING';
+
+        await db.supportFinancialAction.create({
+          data: {
+            staffUserId: admin.id,
+            targetUserId: userId,
+            direction: amount >= 0 ? 'CREDIT' : 'DEBIT',
+            source: 'DIRECT_ADJUSTMENT',
+            amountCents: BigInt(Math.abs(amount)),
+            reasonCode: amount >= 0 ? 'GOODWILL_LOYALTY' : 'DIRECT_DEBIT',
+            reasonNote: reason.trim(),
+            policyId: policyCheck.policy.id,
+            policySnapshot: JSON.parse(JSON.stringify(policyCheck.policy, (_, v) => typeof v === 'bigint' ? v.toString() : v)),
+            idempotencyKey,
+            status: escrowResult.status === 'APPROVED' ? 'EXECUTED' : 'QUARANTINE',
+            ledgerEntryId: ledgerEntry?.id || null,
+            consentId: policyCheck.consentId || null,
+            reviewStatus,
+            ipAddress,
+            userAgent
+          }
+        });
+      }
+
+      // SD-13 SECURITY FIX: Await audit for balance modification (financial operation)
+      await auditAdminAwaitable({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'UPDATE_BALANCE_REQUEST',
+        target: userId,
+        targetType: 'USER',
+        newValue: { amountCents: amount, reason: reason.trim(), status: escrowResult.status },
+        ipAddress
       });
 
-      const isFlagged = Math.abs(amount) >= 500000 || policyCheck.warnings.length > 0;
-      const reviewStatus = isFlagged ? 'FLAGGED' : 'PENDING';
+      const rubAmount = (Number(amount) / 100).toFixed(2);
+      const isCredit = amount >= 0;
+      const isBigAmount = Math.abs(amount) >= 100000; // >= 1000 RUB
+      sendAdminAlert(
+        `${isBigAmount ? '🚨' : '💳'} <b>РУЧНАЯ КОРРЕКТИРОВКА БАЛАНСА КЛИЕНТА</b>\n` +
+        `<b>Сотрудник:</b> ${admin.email} (IP: ${ipAddress || 'unknown'})\n` +
+        `<b>Клиент ID:</b> <code>${userId}</code>\n` +
+        `<b>Операция:</b> ${isCredit ? '➕ Начисление' : '➖ Списание'} <b>${rubAmount} ₽</b>\n` +
+        `<b>Статус:</b> <code>${escrowResult.status}</code>\n` +
+        `<b>Причина:</b> <i>${reason.trim()}</i>`,
+        isBigAmount ? 'CRITICAL' : 'INFO'
+      );
 
-      await db.supportFinancialAction.create({
-        data: {
-          staffUserId: admin.id,
-          targetUserId: userId,
-          direction: amount >= 0 ? 'CREDIT' : 'DEBIT',
-          source: 'DIRECT_ADJUSTMENT',
-          amountCents: BigInt(Math.abs(amount)),
-          reasonCode: amount >= 0 ? 'GOODWILL_LOYALTY' : 'DIRECT_DEBIT',
-          reasonNote: reason.trim(),
-          policyId: policyCheck.policy.id,
-          policySnapshot: JSON.parse(JSON.stringify(policyCheck.policy, (_, v) => typeof v === 'bigint' ? v.toString() : v)),
-          idempotencyKey,
-          status: escrowResult.status === 'APPROVED' ? 'EXECUTED' : 'QUARANTINE',
-          ledgerEntryId: ledgerEntry?.id || null,
-          consentId: policyCheck.consentId || null,
-          reviewStatus,
-          ipAddress,
-          userAgent
-        }
-      });
+      revalidatePath(`/admin/clients/${userId}`);
+      revalidatePath('/admin/clients');
+      return { success: true as const, status: escrowResult.status };
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Ошибка при обновлении баланса';
+      console.error('[UPDATE_BALANCE_ERROR]', errorMsg);
+      return { success: false as const, error: errorMsg };
     }
-
-    // SD-13 SECURITY FIX: Await audit for balance modification (financial operation)
-    await auditAdminAwaitable({
-      adminId: admin.id,
-      adminEmail: admin.email,
-      action: 'UPDATE_BALANCE_REQUEST',
-      target: userId,
-      targetType: 'USER',
-      newValue: { amountCents: amount, reason: reason.trim(), status: escrowResult.status },
-      ipAddress
-    });
-
-    const rubAmount = (Number(amount) / 100).toFixed(2);
-    const isCredit = amount >= 0;
-    const isBigAmount = Math.abs(amount) >= 100000; // >= 1000 RUB
-    sendAdminAlert(
-      `${isBigAmount ? '🚨' : '💳'} <b>РУЧНАЯ КОРРЕКТИРОВКА БАЛАНСА КЛИЕНТА</b>\n` +
-      `<b>Сотрудник:</b> ${admin.email} (IP: ${ipAddress || 'unknown'})\n` +
-      `<b>Клиент ID:</b> <code>${userId}</code>\n` +
-      `<b>Операция:</b> ${isCredit ? '➕ Начисление' : '➖ Списание'} <b>${rubAmount} ₽</b>\n` +
-      `<b>Статус:</b> <code>${escrowResult.status}</code>\n` +
-      `<b>Причина:</b> <i>${reason.trim()}</i>`,
-      isBigAmount ? 'CRITICAL' : 'INFO'
-    );
-
-    revalidatePath(`/admin/clients/${userId}`);
-    revalidatePath('/admin/clients');
-    return { success: true as const, status: escrowResult.status };
   });
 }
 
@@ -312,7 +322,7 @@ export async function requestCardRefundAction(formData: FormData) {
         userId,
         -amountKopecks,
         `REFUND_TO_CARD: Запрос на возврат через ${gwName} (${payment.gatewayId || payment.id})`,
-        { idempotencyKey, adminId: admin.id, transactionType: 'REFUND' }
+        { idempotencyKey, adminId: admin.id, transactionType: 'REFUND', allowElevatedCap: admin.role === 'OWNER' || admin.role === 'ADMIN' }
       );
 
       // Step B: Create adjustment / refund ticket for financier
@@ -373,11 +383,18 @@ export async function updateUserApiAction(formData: FormData) {
     const userId = formData.get('userId') as string;
     const isApiEnabled = formData.get('isApiEnabled') === 'true';
     const prioritySupport = formData.get('prioritySupport') === 'true';
-    const companyName = (formData.get('companyName') as string)?.trim() || null;
-    const inn = (formData.get('inn') as string)?.trim() || null;
-    const kpp = (formData.get('kpp') as string)?.trim() || null;
-    const legalAddress = (formData.get('legalAddress') as string)?.trim() || null;
-    const webhookUrl = (formData.get('webhookUrl') as string)?.trim() || null;
+    const sanitizeStr = (val: unknown): string | null => {
+      if (typeof val !== 'string') return null;
+      const trimmed = val.trim();
+      if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return null;
+      return trimmed;
+    };
+
+    const companyName = sanitizeStr(formData.get('companyName'));
+    const inn = sanitizeStr(formData.get('inn'));
+    const kpp = sanitizeStr(formData.get('kpp'));
+    const legalAddress = sanitizeStr(formData.get('legalAddress'));
+    const webhookUrl = sanitizeStr(formData.get('webhookUrl'));
 
     if (!userId) {
       return { success: false as const, error: 'ID пользователя обязателен' };
@@ -866,7 +883,7 @@ export async function adminGenerateMagicLinkAction(userId: string) {
 
     const targetUser = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, isActive: true, isDeleted: true }
+      select: { id: true, email: true, isActive: true, isDeleted: true, tenantId: true }
     });
 
     if (!targetUser || targetUser.isDeleted || !targetUser.isActive) {
@@ -877,11 +894,13 @@ export async function adminGenerateMagicLinkAction(userId: string) {
     const rawToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+    const targetTenant = targetUser.tenantId || 'smmplan';
 
     await db.authToken.create({
       data: {
         token: hashedToken,
         userId: targetUser.id,
+        tenantId: targetTenant,
         expiresAt,
         used: false
       }
@@ -894,11 +913,18 @@ export async function adminGenerateMagicLinkAction(userId: string) {
       action: 'ADMIN_GENERATE_MAGIC_LINK',
       target: targetUser.id,
       targetType: 'USER',
-      newValue: { targetEmail: targetUser.email, expiresAt },
+      newValue: { targetEmail: targetUser.email, expiresAt, tenantId: targetTenant },
       ipAddress
     });
 
-    const magicUrl = `/api/auth/verify?token=${rawToken}`;
+    const { absoluteCanonical } = await import('@/lib/seo-helpers');
+    const reqHeaders = await headers();
+    const incomingHost = reqHeaders.get('host');
+    const magicUrl = absoluteCanonical(
+      targetTenant,
+      `/api/auth/verify?token=${rawToken}&tenant=${targetTenant}`,
+      incomingHost
+    );
     return { 
       success: true as const, 
       magicUrl,

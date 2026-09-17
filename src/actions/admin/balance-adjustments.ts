@@ -636,6 +636,7 @@ const getAdjustmentsSchema = z.object({
   requestedBy: z.string().optional(),
   reasonCode: z.string().optional(),
   ticketId: z.string().optional(),
+  search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20)
 });
@@ -658,7 +659,7 @@ export async function getBalanceAdjustmentsAction(formData: FormData) {
       return { success: false, error: parsed.error.errors[0]?.message || "Некорректные параметры фильтра" };
     }
 
-    const { status, direction, userId, requestedBy, reasonCode, ticketId, page, pageSize } = parsed.data;
+    const { status, direction, userId, requestedBy, reasonCode, ticketId, search, page, pageSize } = parsed.data;
 
     // Filter construction
     const where: Prisma.ManualBalanceAdjustmentWhereInput = {};
@@ -674,6 +675,16 @@ export async function getBalanceAdjustmentsAction(formData: FormData) {
     if (userId) where.userId = userId;
     if (reasonCode) where.reasonCode = reasonCode;
     if (ticketId) where.ticketId = ticketId;
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { id: { contains: q, mode: 'insensitive' } },
+        { ticketId: { contains: q, mode: 'insensitive' } },
+        { reasonNote: { contains: q, mode: 'insensitive' } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
 
     const total = await db.manualBalanceAdjustment.count({ where });
     const items = await db.manualBalanceAdjustment.findMany({

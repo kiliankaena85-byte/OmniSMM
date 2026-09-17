@@ -88,4 +88,5 @@ export interface GeminiToolClientOptions {
   staffUserId?: string;
   customApiKey?: string;
   tenantId?: string;
+  autoRegisterEconomicHarnesses?: boolean;
 }

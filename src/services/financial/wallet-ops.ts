@@ -39,9 +39,12 @@ export interface WalletOpsOptions {
   tenantId?: string;
   /** Явный тип транзакции. Если не задан — метод использует свой дефолт. */
   transactionType?: LedgerTransactionType;
+  /** Разрешить повышенный лимит корректировки баланса (до 10 млн ₽ для OWNER) */
+  allowElevatedCap?: boolean;
 }
 
 export const MAX_ADJUSTMENT_CAP_KOPECKS = BigInt(10_000_000); // 100,000.00 RUB safety cap
+export const ELEVATED_ADJUSTMENT_CAP_KOPECKS = BigInt(1_000_000_000); // 10,000,000.00 RUB safety cap (Owner elevated)
 
 export const WalletOps = {
   /**
@@ -258,15 +261,16 @@ export const WalletOps = {
       throw new WalletInvalidAmountError('Adjustment');
     }
 
-    // Safety cap check: prevent unbounded negative/positive adjustments (P2-14)
-    if (rawCents < -MAX_ADJUSTMENT_CAP_KOPECKS) {
-      throw new Error(`🚨 [WALLET-OPS] Negative adjustment exceeds safety cap limit (-${MAX_ADJUSTMENT_CAP_KOPECKS / BigInt(100)} ₽)!`);
-    }
-    if (rawCents > MAX_ADJUSTMENT_CAP_KOPECKS) {
-      throw new Error(`🚨 [WALLET-OPS] Positive adjustment exceeds safety cap limit (+${MAX_ADJUSTMENT_CAP_KOPECKS / BigInt(100)} ₽)!`);
-    }
+    const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride, allowElevatedCap } = opts || {};
+    const effectiveCap = allowElevatedCap ? ELEVATED_ADJUSTMENT_CAP_KOPECKS : MAX_ADJUSTMENT_CAP_KOPECKS;
 
-    const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride } = opts || {};
+    // Safety cap check: prevent unbounded negative/positive adjustments (P2-14)
+    if (rawCents < -effectiveCap) {
+      throw new Error(`🚨 [WALLET-OPS] Negative adjustment exceeds safety cap limit (-${effectiveCap / BigInt(100)} ₽)!`);
+    }
+    if (rawCents > effectiveCap) {
+      throw new Error(`🚨 [WALLET-OPS] Positive adjustment exceeds safety cap limit (+${effectiveCap / BigInt(100)} ₽)!`);
+    }
 
     // Fetch user tenantId for ledger entry (also validates user existence)
     const userRecord = await tx.user.findUnique({

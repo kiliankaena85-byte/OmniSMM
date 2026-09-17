@@ -2,6 +2,7 @@ export interface UserDTO {
   id: string;
   email: string;
   role: string;
+  tenantId?: string;
   personalDiscount: number;
   discountEndsAt: string | null;
   adminNote: string;

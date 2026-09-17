@@ -47,7 +47,7 @@ export async function updateClientDiscountAction(
   discount: number,
   endsAt?: string
 ) {
-  return requireStaffPermission('finance', 'edit', async (admin) => {
+  return requireStaffPermission('clients', 'edit', async (admin) => {
     const parsed = discountSchema.safeParse({ userId, discount, endsAt });
     if (!parsed.success) {
       return { success: false as const, error: `Максимальная скидка ${MAX_DISCOUNT}%` };
@@ -126,10 +126,12 @@ export async function createClientNoteAction(userId: string, content: string) {
       return { success: false as const, error: 'Заметка слишком длинная (макс 2000 символов)' };
     }
 
+    const authorExists = admin.id ? await db.user.findUnique({ where: { id: admin.id }, select: { id: true } }) : null;
+
     const newNote = await db.userNote.create({
       data: {
         userId,
-        authorId: admin.id,
+        authorId: authorExists ? admin.id : null,
         content: trimmed,
       },
       include: {
@@ -177,10 +179,60 @@ export async function editClientNoteAction(noteId: string, userId: string, conte
       return { success: false as const, error: 'Текст заметки не может быть пустым' };
     }
 
+    if (noteId === 'legacy-note') {
+      const authorExists = admin.id ? await db.user.findUnique({ where: { id: admin.id }, select: { id: true } }) : null;
+      const created = await db.userNote.create({
+        data: {
+          userId,
+          authorId: authorExists ? admin.id : null,
+          content: trimmed,
+        },
+        include: { author: { select: { email: true } } }
+      });
+
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          adminNote: trimmed,
+          adminNoteUpdatedAt: new Date(),
+          adminNoteUpdatedBy: admin.email,
+        }
+      });
+
+      auditAdmin({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'CLIENT_NOTE_CREATE',
+        target: created.id,
+        targetType: 'USER',
+      });
+
+      revalidatePath(`/admin/clients/${userId}`);
+      return {
+        success: true as const,
+        note: {
+          id: created.id,
+          userId: created.userId,
+          content: created.content,
+          authorEmail: created.author?.email || admin.email,
+          createdAt: created.createdAt.toISOString(),
+        }
+      };
+    }
+
     const updated = await db.userNote.update({
       where: { id: noteId },
       data: { content: trimmed },
       include: { author: { select: { email: true } } }
+    });
+
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        adminNote: trimmed,
+        adminNoteUpdatedAt: new Date(),
+        adminNoteUpdatedBy: admin.email,
+      }
     });
 
     auditAdmin({
@@ -210,6 +262,19 @@ export async function deleteClientNoteAction(noteId: string, userId: string) {
   return requireStaffPermission('clients', 'edit', async (admin) => {
     if (!noteId) {
       return { success: false as const, error: 'Не указан ID заметки' };
+    }
+
+    if (noteId === 'legacy-note') {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          adminNote: null,
+          adminNoteUpdatedAt: null,
+          adminNoteUpdatedBy: null,
+        }
+      });
+      revalidatePath(`/admin/clients/${userId}`);
+      return { success: true as const };
     }
 
     await db.userNote.delete({
@@ -298,18 +363,28 @@ export async function sendPasswordResetEmailAction(userId: string) {
     const rawToken = (await import('crypto')).randomBytes(32).toString('hex');
     const hashedToken = (await import('crypto')).createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const targetTenant = user.tenantId || 'smmplan';
 
     await db.authToken.create({
       data: {
         userId: user.id,
         token: hashedToken,
+        tenantId: targetTenant,
         expiresAt,
         ipIssued: '127.0.0.1',
         userAgentIssued: `password-reset:staff:${admin.email}`,
       },
     });
 
-    const resetUrl = `/login?tab=reset&token=${rawToken}`;
+    const { headers } = await import('next/headers');
+    const reqHeaders = await headers();
+    const incomingHost = reqHeaders.get('host');
+    const { absoluteCanonical } = await import('@/lib/seo-helpers');
+    const resetUrl = absoluteCanonical(
+      targetTenant,
+      `/login?tab=reset&token=${rawToken}&tenant=${targetTenant}`,
+      incomingHost
+    );
 
     auditAdmin({
       adminId: admin.id,
@@ -465,8 +540,8 @@ export async function supportGoodwillCreditAction(formData: FormData) {
           {
             adminId: admin.id,
             tenantId: resolvedTenant,
-            transactionType: 'ADJUSTMENT',
             idempotencyKey: txIdempotencyKey,
+            allowElevatedCap: admin.role === 'OWNER' || admin.role === 'ADMIN',
           }
         );
       }

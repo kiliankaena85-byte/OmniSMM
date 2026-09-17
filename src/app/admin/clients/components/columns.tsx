@@ -112,10 +112,10 @@ export const columns: ColumnDef<ClientColumn>[] = [
       const u = row.original;
       return (
         <div className="font-bold text-[13px] font-mono tabular-nums tracking-tight text-right text-foreground">
-          {Math.round(Number(u.balance) / 100).toLocaleString('ru-RU')} ₽
+          {(Number(u.balance) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
           {Number(u.quarantineBalance) > 0 && (
             <span className="block text-[10px] text-warning font-medium whitespace-nowrap mt-0.5">
-              🔒 {Math.round(Number(u.quarantineBalance) / 100).toLocaleString('ru-RU')} ₽
+              🔒 {(Number(u.quarantineBalance) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
             </span>
           )}
         </div>
@@ -128,7 +128,7 @@ export const columns: ColumnDef<ClientColumn>[] = [
     cell: ({ row }) => {
       return (
         <div className="text-[13px] font-bold font-mono tabular-nums tracking-tight text-right text-foreground">
-          {Math.round(Number(row.original.totalSpent) / 100).toLocaleString('ru-RU')} ₽
+          {(Number(row.original.totalSpent) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
         </div>
       );
     },
