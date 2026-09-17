@@ -141,7 +141,7 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
         paymentId: 'pay_test_3',
         userId: 'user_1',
         amountRub: 1500,
-        email: 'test@example.com',
+        email: '  test@example.com  ',
         successUrl: 'http://localhost:3000/dashboard',
         description: 'Оплата услуг'
       });
@@ -160,7 +160,7 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
       expect(parsedReceipt.items[0].sum).toBe('1500.00');
     });
 
-    it('omits client email block from Robokassa receipt and queryParams when email is empty or null', async () => {
+    it('omits client email block from Robokassa receipt and queryParams when email is empty or whitespace', async () => {
       vi.spyOn(SettingsProvider, 'getPaymentSecrets').mockResolvedValue({
         yookassaShopId: '',
         yookassaSecretKey: '',
@@ -187,6 +187,60 @@ describe('Payment System Deep Audit & Dynamic Gateway Filtering E2E', () => {
       const parsedReceipt = JSON.parse(parsedUrl.searchParams.get('Receipt') || '{}');
       expect(parsedReceipt.client).toBeUndefined();
       expect(parsedReceipt.items).toHaveLength(1);
+    });
+
+    it('omits client email block and Email queryParam when email is null, undefined, or non-string', async () => {
+      vi.spyOn(SettingsProvider, 'getPaymentSecrets').mockResolvedValue({
+        yookassaShopId: '',
+        yookassaSecretKey: '',
+        robokassaLogin: 'my_merchant_login',
+        robokassaPassword: 'my_merchant_pass_1',
+        robokassaWebhookPassword: 'my_merchant_webhook_pass',
+        yookassaWebhookSecret: '',
+        cryptoBotToken: '',
+      });
+      vi.spyOn(SettingsProvider, 'isTestMode').mockResolvedValue(false);
+
+      const roboGateway = PaymentGatewayFactory.getGateway('robokassa');
+
+      // 1. null email
+      const resNull = await roboGateway.createPayment({
+        paymentId: 'pay_test_null_email',
+        userId: 'user_1',
+        amountRub: 500,
+        email: null,
+        successUrl: 'http://localhost:3000/dashboard',
+        description: 'Оплата с null email'
+      });
+      const urlNull = new URL(resNull.paymentUrl);
+      expect(urlNull.searchParams.has('Email')).toBe(false);
+      expect(JSON.parse(urlNull.searchParams.get('Receipt') || '{}').client).toBeUndefined();
+
+      // 2. undefined / omitted email
+      const resUndef = await roboGateway.createPayment({
+        paymentId: 'pay_test_undef_email',
+        userId: 'user_1',
+        amountRub: 500,
+        email: undefined as unknown as string,
+        successUrl: 'http://localhost:3000/dashboard',
+        description: 'Оплата с undefined email'
+      });
+      const urlUndef = new URL(resUndef.paymentUrl);
+      expect(urlUndef.searchParams.has('Email')).toBe(false);
+      expect(JSON.parse(urlUndef.searchParams.get('Receipt') || '{}').client).toBeUndefined();
+
+      // 3. non-string email (defensive runtime protection against invalid data)
+      const resNonStr = await roboGateway.createPayment({
+        paymentId: 'pay_test_num_email',
+        userId: 'user_1',
+        amountRub: 500,
+        email: 12345 as unknown as string,
+        successUrl: 'http://localhost:3000/dashboard',
+        description: 'Оплата с non-string email'
+      });
+      const urlNonStr = new URL(resNonStr.paymentUrl);
+      expect(urlNonStr.searchParams.has('Email')).toBe(false);
+      expect(JSON.parse(urlNonStr.searchParams.get('Receipt') || '{}').client).toBeUndefined();
     });
   });
 

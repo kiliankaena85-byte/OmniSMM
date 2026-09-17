@@ -720,10 +720,11 @@ class RobokassaGateway extends BasePaymentGateway {
     const isVatThresholdExceeded = await checkVatThreshold(tenantId);
     const taxRate = isVatThresholdExceeded ? "vat22" : "none"; // vat22 = 22% (п. 3 ст. 164 НК РФ), none = без НДС
 
-    const cleanEmail = params.email?.trim();
+    const cleanEmail = typeof params.email === 'string' ? params.email.trim() : undefined;
+    const hasValidEmail = Boolean(cleanEmail && cleanEmail.length > 0);
 
     const receipt = {
-      ...(cleanEmail ? { client: { email: cleanEmail } } : {}),
+      ...(hasValidEmail && cleanEmail ? { client: { email: cleanEmail } } : {}),
       items: [{
         name: "Информационные услуги",
         quantity: 1,
@@ -744,7 +745,7 @@ class RobokassaGateway extends BasePaymentGateway {
       Receipt: JSON.stringify(receipt)
     });
 
-    if (cleanEmail) {
+    if (hasValidEmail && cleanEmail) {
       queryParams.set('Email', cleanEmail);
     }
 

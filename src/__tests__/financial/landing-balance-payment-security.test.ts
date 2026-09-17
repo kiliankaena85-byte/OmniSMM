@@ -90,6 +90,7 @@ vi.mock('@/lib/settings', () => ({
       yookassaSecretKey: 'mock-secret',
     }),
     getExchangeRates: vi.fn().mockResolvedValue({ USD: 90 }),
+    getEnvironmentMode: vi.fn().mockResolvedValue('sandbox'),
   },
   SettingsProvider: {
     isTestMode: vi.fn().mockResolvedValue(true),
