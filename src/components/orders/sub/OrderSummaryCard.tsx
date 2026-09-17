@@ -463,10 +463,24 @@ export function OrderSummaryCard({
               setDripFeedEnabled(val);
               if (val) {
                 setIsSmartDrip(false);
+                if (selectedService) {
+                  const minReq = selectedService.minQty * runs;
+                  if (quantity < minReq) {
+                    setQuantity(minReq);
+                  }
+                }
               }
             }}
             runs={runs}
-            setRuns={setRuns}
+            setRuns={(val) => {
+              setRuns(val);
+              if (selectedService) {
+                const minReq = selectedService.minQty * val;
+                if (quantity < minReq) {
+                  setQuantity(minReq);
+                }
+              }
+            }}
             interval={dripInterval}
             setInterval={setDripInterval}
           />
@@ -495,6 +509,12 @@ export function OrderSummaryCard({
                       setIsSmartDrip(checked);
                       if (checked) {
                         setDripFeedEnabled(false); // Reset normal dripfeed
+                        if (selectedService) {
+                          const minReq = selectedService.minQty * smartDripDays;
+                          if (quantity < minReq) {
+                            setQuantity(minReq);
+                          }
+                        }
                       }
                     }}
                     className="w-5 h-5 accent-primary rounded cursor-pointer"
@@ -514,7 +534,15 @@ export function OrderSummaryCard({
                       <button
                         key={d}
                         type="button"
-                        onClick={() => setSmartDripDays(d)}
+                        onClick={() => {
+                          setSmartDripDays(d);
+                          if (selectedService) {
+                            const minReq = selectedService.minQty * d;
+                            if (quantity < minReq) {
+                              setQuantity(minReq);
+                            }
+                          }
+                        }}
                         aria-label={`${d} дней`}
                         className={`flex-1 h-11 rounded-lg text-xs font-bold border transition-all flex items-center justify-center ${
                           smartDripDays === d 

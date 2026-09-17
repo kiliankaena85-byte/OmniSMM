@@ -428,7 +428,7 @@ export async function bulkRestartOrdersAction(orderIds: string[]) {
 
     let restartedCount = 0;
     for (const order of orders) {
-      if (['ERROR', 'PENDING'].includes(order.status)) {
+      if (['ERROR', 'PENDING', 'PENDING_CHECK', 'CANCELED'].includes(order.status)) {
         try {
           await adminOrderService.restartOrder(order.id, {
             id: admin.id,

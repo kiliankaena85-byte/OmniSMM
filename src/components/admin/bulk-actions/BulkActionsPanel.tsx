@@ -90,15 +90,17 @@ export function BulkActionsPanel({
   const canSubmitCancel = isSanityMatch && (ticketId.trim().length > 0 || reasonCode.length > 0);
 
   const handleBulkRestart = useCallback(() => {
-    const errorIds = selectedOrders.filter(o => o.status === 'ERROR' || o.status === 'PENDING').map(o => o.id);
-    if (errorIds.length === 0) {
-      toast.warning('Нет заказов в статусе ERROR или PENDING для перезапуска');
+    const restartableIds = selectedOrders
+      .filter(o => o.status === 'ERROR' || o.status === 'PENDING' || o.status === 'PENDING_CHECK' || o.status === 'CANCELED')
+      .map(o => o.id);
+    if (restartableIds.length === 0) {
+      toast.warning('Нет заказов в статусе ERROR, PENDING, PENDING_CHECK или CANCELED для перезапуска');
       return;
     }
 
     startTransition(async () => {
       try {
-        const res = await bulkRestartOrdersAction(errorIds);
+        const res = await bulkRestartOrdersAction(restartableIds);
         if (res.success) {
           toast.success(`⟳ Перезапущено заказов: ${res.restartedCount}`);
           onClearSelection();

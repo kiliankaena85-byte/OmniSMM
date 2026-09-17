@@ -136,14 +136,14 @@ export async function POST(req: Request) {
       // For drip-feed, we just blindly update the specific run. 
       // The massive Cron worker will eventually finalize the overarching drip order.
       // But we can trigger a micro-update here.
-      if (['COMPLETED', 'PARTIAL', 'CANCELED'].includes(providerStatus)) {
+      if (['COMPLETED', 'PARTIAL', 'CANCELED', 'CANCELLED', 'FAILED', 'FAIL'].includes(providerStatus)) {
         console.info(`[Webhook] DripFeed run ${externalId} completed/canceled. Waiting for main Cron to aggregate.`);
       }
       return NextResponse.json({ success: true, message: "DripFeed signal acknowledged" });
     }
 
     // 4. Single Order Logic
-    if (['CANCELED'].includes(providerStatus)) {
+    if (['CANCELED', 'CANCELLED', 'FAILED', 'FAIL'].includes(providerStatus)) {
       await runSerializableTransaction(async (tx) => {
         const updated = await tx.order.updateMany({
           where: { id: order.id, status: { in: ['PENDING', 'IN_PROGRESS', 'PENDING_CHECK'] } },

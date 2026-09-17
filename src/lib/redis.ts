@@ -61,19 +61,24 @@ if (redisCheck.warning) {
   console.warn(redisCheck.warning);
 }
 
+/**
+ * Calculates exponential reconnect backoff delay in ms.
+ * In production, caps at 3000ms and NEVER returns null to prevent connection drop (P0-REDIS-RESILIENCE).
+ */
+export function calculateRedisRetryDelay(times: number, env: string = process.env.NODE_ENV || 'development'): number {
+  if (env === 'test') {
+    return Math.min(times * 50, 500);
+  }
+  return Math.min(times * 100, 3000);
+}
+
 export const redis =
   globalForRedis.redis ||
   new Redis(redisUrl, {
     maxRetriesPerRequest: process.env.NODE_ENV === 'test' ? null : 3,
     connectTimeout: 5000,
     lazyConnect: true,
-    retryStrategy: (times) => {
-      if (process.env.NODE_ENV === 'test') {
-        return Math.min(times * 50, 500);
-      }
-      if (times > 5) return null;
-      return Math.min(times * 50, 2000);
-    },
+    retryStrategy: (times) => calculateRedisRetryDelay(times, process.env.NODE_ENV),
   });
 
 if (process.env.NODE_ENV !== 'production') globalForRedis.redis = redis;
