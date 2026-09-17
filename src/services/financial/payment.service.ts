@@ -380,19 +380,31 @@ export class PaymentService {
         if (!payment || payment.status !== 'PENDING') return false;
 
         const updated = await tx.payment.updateMany({
-          where: { id: payment.id, status: 'PENDING' },
+          where: { 
+            id: payment.id, 
+            status: 'PENDING',
+            ...(payment.tenantId ? { tenantId: payment.tenantId } : {})
+          },
           data: { status: 'CANCELED' }
         });
 
         if (updated.count === 0) return false;
 
         const orders = await tx.order.findMany({
-          where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' }
+          where: { 
+            paymentId: payment.id, 
+            status: 'AWAITING_PAYMENT',
+            ...(payment.tenantId ? { tenantId: payment.tenantId } : {})
+          }
         });
 
         if (orders.length > 0) {
           await tx.order.updateMany({
-            where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' },
+            where: { 
+              paymentId: payment.id, 
+              status: 'AWAITING_PAYMENT',
+              ...(payment.tenantId ? { tenantId: payment.tenantId } : {})
+            },
             data: { status: 'CANCELED' }
           });
 

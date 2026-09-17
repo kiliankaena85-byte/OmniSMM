@@ -33,7 +33,7 @@ const articleSchema = z.object({
     z.string().min(2, "Имя автора должно состоять минимум из 2 символов").max(100).optional()
   ),
   authorRole: z.preprocess(
-    (val) => (val === "" || val === undefined || val === null) ? "Системный архитектор прокси-сетей SMMplan" : val,
+    (val) => (val === "" || val === undefined || val === null) ? "Ведущий специалист по продвижению" : val,
     z.string().min(2, "Роль автора должна состоять минимум из 2 символов").max(200).optional()
   ),
   priority: z.preprocess(

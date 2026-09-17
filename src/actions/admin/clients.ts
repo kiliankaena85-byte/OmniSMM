@@ -476,6 +476,7 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
 
     const where: Prisma.LedgerEntryWhereInput = {
       userId,
+      ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
     };
 
     if (filterType === 'TOPUP') {
@@ -522,13 +523,17 @@ export async function getClientLedgerAction(userId: string, filterType = 'ALL') 
       }),
       db.ledgerEntry.groupBy({
         by: ['transactionType'],
-        where: { userId },
+        where: {
+          userId,
+          ...(targetUser.tenantId ? { tenantId: targetUser.tenantId } : {})
+        },
         _sum: { amount: true },
       })
     ]);
 
     // Fetch admin emails if needed
     const adminIds = Array.from(new Set(entries.map(e => e.adminId).filter(Boolean))) as string[];
+    // tenant-isolation-ignore: Global staff account lookup to display admin email on ledger entries
     const admins = adminIds.length > 0 ? await db.user.findMany({
       where: { id: { in: adminIds } },
       select: { id: true, email: true }

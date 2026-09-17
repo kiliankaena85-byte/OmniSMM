@@ -6,6 +6,8 @@ import { triggerCacheRevalidation } from '../../lib/revalidate-cache';
 
 const log = logger.child({ component: 'CatalogProcessor' });
 
+const MULTI_TENANT_CATALOG_TAGS = ['catalog', 'services', 'catalog-smmplan', 'catalog-flux', 'catalog-global'];
+
 async function safeTriggerCacheRevalidation(tags: string[]): Promise<void> {
   try {
     await triggerCacheRevalidation(tags);
@@ -40,7 +42,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
         log.info(`[CatalogProcessor] Starting background price sync with rate ${effectiveRate}...`);
         await adminCatalogService.syncDenormalizedPrices(effectiveRate);
         log.info(`[CatalogProcessor] Price sync completed successfully.`);
-        await safeTriggerCacheRevalidation(['catalog', 'services']);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
 
@@ -177,7 +179,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
           currencyQuarantined,
           lowMarkupReported
         });
-        await triggerCacheRevalidation(['catalog', 'services']);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
       
@@ -214,7 +216,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
             const errMsg = postSyncErr instanceof Error ? postSyncErr.message : String(postSyncErr);
             log.error(`[CatalogProcessor] applyPostSyncRules failed: ${errMsg}`);
           }
-          await safeTriggerCacheRevalidation(['catalog', 'services']);
+          await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         } catch (syncErr: unknown) {
           const errMsg = syncErr instanceof Error ? syncErr.message : String(syncErr);
           log.warn(`[CatalogProcessor] Skipping catalog sync for provider ${providerId} due to provider API error: ${errMsg}`);
@@ -246,7 +248,7 @@ export default async function catalogProcessor(job: Job<CatalogMutationPayload>)
           admin
         );
         log.info(`[CatalogProcessor] Bulk markup completed. Updated ${result.updatedCount} services.`);
-        await safeTriggerCacheRevalidation(['catalog', 'services']);
+        await safeTriggerCacheRevalidation(MULTI_TENANT_CATALOG_TAGS);
         break;
       }
 

@@ -1,3 +1,29 @@
+- [x] ⚡ [MULTITENANT-ISOLATION-HARDENING-2026] Комплексный аудит и устранение кросс-тенантных аномалий, утечек платежей, реферальной системы, SMTP и инвалидации кэша (100% COMPLETE & VERIFIED):
+  * 💳 **Кросс-тенантная изоляция платежей и чекаута (`checkout.ts`, `payment.service.ts`):**
+    - В `retryCheckoutPayment` (`src/actions/order/checkout.ts`): передача `tenantId: order.tenantId || 'smmplan'` в `tx.payment.create` (как при переключении шлюза, так и на первичном пути), устраняя тихий откат платежей с Flux в дефолтный `smmplan`.
+    - `WalletOps.charge` теперь явно получает `order.tenantId`, исключая дефолтный тенант при оплате с баланса.
+    - Откат промокодов при повторной оплате (`tx.order.updateMany` и `db.order.updateMany`) ограничен тенантом заказа.
+    - В `cancelPayment` (`src/services/financial/payment.service.ts`) все выборки и отмены заказов (`tx.payment.updateMany`, `tx.order.findMany`, `tx.order.updateMany`) жестко скоупированы по `payment.tenantId`.
+  * 🤝 **Изоляция реферальной системы и начислений (`referral-validator.service.ts`, `referral.action.ts`):**
+    - В `ReferralValidatorService.validateReferralLink` заблокирована кросс-тенантная регистрация рефералов (`CROSS_TENANT_REFERRAL_FORBIDDEN`): пользователь SMMplan не может стать рефералом пользователя SMMflux и наоборот.
+    - В `src/actions/user/referral.action.ts` при ручной активации кода `WalletOps.credit` и `tx.payment.create` получают явный `tenantId: user.tenantId || 'smmplan'`.
+  * ⚖️ **Харденинг финансовых атак и возвратов (`orders.ts`, `order.service.ts`, `clients.ts`):**
+    - В `src/actions/admin/orders.ts` и `src/services/admin/order.service.ts` агрегации предыдущих возвратов `tx.ledgerEntry.aggregate` и подсчет зависимых заказов `tx.order.count` скоупированы по `tenantId: order.tenantId`, устраняя риск учета возвратов из смежных тенантов.
+    - В `src/actions/admin/clients.ts` `getClientLedgerAction` скоупирован по `targetUser.tenantId` в `where` и `groupBy`, а системный поиск администраторов помечен `tenant-isolation-ignore`.
+    - В `src/actions/admin/catalog/categories.ts` `hideCategoryAndServicesAction` и `mergeCategoriesAction` скоупированы по `tenantId` категории.
+  * 📧 **Брендирование и изоляция SMTP (`src/lib/smtp.ts`, `knowledge.ts`):**
+    - В `src/lib/smtp.ts` метод `getTransporter(tenantId?: string)` параметризован и запрашивает настройки `SettingsProvider.getEmailSettings(tenantId)`. При использовании Resend обратный адрес формируется динамически: `no-reply@smmflux.ru` для Flux и `no-reply@smmplan.pro` для SMMplan.
+    - В `sendMagicLink` и `sendMail` передан `tenantId`.
+    - Экспортирован `getEmailContext` для валидации контекста отправки писем.
+    - В `src/actions/knowledge.ts` захардкоженная роль «Системный архитектор прокси-сетей SMMplan» заменена на нейтральную «Ведущий специалист по продвижению».
+  * 🔄 **Инвалидация кэша воркеров и AST-линтер изоляции (`catalog.processor.ts`, `lint-tenant-isolation.ts`):**
+    - В `src/workers/processors/catalog.processor.ts` внедрена константа `MULTI_TENANT_CATALOG_TAGS = ['catalog', 'services', 'catalog-smmplan', 'catalog-flux', 'catalog-global']` для безопасной инвалидации кэша во всех фоновых процессах (SYNC_PRICES, RECONCILE_PRICES, SYNC_PROVIDER_CATALOG, BULK_MARKUP).
+    - AST-линтер `scripts/lint-tenant-isolation.ts` пройден со статусом: 0 BLOCKERS!
+  * 🧪 **Верификация & TDD-сьюты:**
+    - Новый юнит-тест `src/__tests__/architecture/multitenant-checkout-and-payment-retry.test.ts` (3/3 PASS).
+    - Интеграционный сьют `src/__tests__/multitenant-isolation.test.ts` (4/4 PASS).
+    - AST-линтер `scripts/lint-tenant-isolation.ts` — 0 BLOCKERS (PASS).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
 - [x] ⚡ [CATEGORY-PURGE-PARADOX-AND-CROSS-TENANT-CATEGORIES-2026] Устранение парадокса очистки категорий и поддержка раздельного подсчета услуг по тенантам (100% COMPLETE & VERIFIED):
   * 🗂️ **Разделение глобального и тенантного счетчиков услуг в каталоге:**
     - В `src/app/admin/catalog/categories/page.tsx` категории обогащаются как `tenantServicesCount` (активные услуги выбранного проекта), так и `globalServicesCount` (все услуги в БД по этой категории).

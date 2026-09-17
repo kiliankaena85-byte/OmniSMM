@@ -501,7 +501,12 @@ class AdminOrderService {
       let refundCents = 0;
       if (calculatedRefundCents > 0) {
         const previousRefunds = await tx.ledgerEntry.aggregate({
-          where: { userId: order.userId, idempotencyKey: { startsWith: `refund_${order.id}_` }, status: 'APPROVED' },
+          where: {
+            userId: order.userId,
+            idempotencyKey: { startsWith: `refund_${order.id}_` },
+            status: 'APPROVED',
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           _sum: { amount: true },
         });
         refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));
@@ -524,7 +529,8 @@ class AdminOrderService {
             paymentId: order.paymentId,
             promoCodeId: order.promoCodeId,
             id: { not: order.id },
-            status: 'AWAITING_PAYMENT'
+            status: 'AWAITING_PAYMENT',
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
           }
         }) : 0;
 

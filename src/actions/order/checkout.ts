@@ -528,6 +528,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
                 promoCodeId,
                 userId: user.id,
                 status: { in: ['AWAITING_PAYMENT', 'PENDING'] },
+                tenantId,
                 ...(effectiveIdempotencyKey ? { idempotencyKey: { not: effectiveIdempotencyKey } } : {})
               }
             });
@@ -1056,7 +1057,11 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
       let ordersToProcess = [order];
       if (existingPayment) {
         const linkedOrders = await tx.order.findMany({
-          where: { paymentId: existingPayment.id, status: 'AWAITING_PAYMENT' }
+          where: { 
+            paymentId: existingPayment.id, 
+            status: 'AWAITING_PAYMENT',
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          }
         });
         if (linkedOrders.length > 0) {
           const orderMap = new Map();
@@ -1082,7 +1087,8 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
       // If gateway is balance, atomically deduct balance first
       if (gateway === 'balance') {
         balanceChargeResult = await WalletOps.charge(tx, order.userId, paymentAmount, `Оплата заказа с баланса`, {
-          idempotencyKey: `balance-charge-retry-${order.id}`
+          idempotencyKey: `balance-charge-retry-${order.id}`,
+          tenantId: order.tenantId || 'smmplan'
         });
       }
 
@@ -1108,12 +1114,16 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
             gateway,
             consentIp,
             consentUserAgent,
-            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) }
+            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) },
+            tenantId: order.tenantId || 'smmplan'
           }
         });
 
         await tx.order.updateMany({
-          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          where: { 
+            id: { in: ordersToProcess.map(o => o.id) },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { paymentId: newPayment.id }
         });
 
@@ -1132,7 +1142,10 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 
         // Самовосстановление связи, если она была утеряна из-за старой архитектуры
         await tx.order.updateMany({
-          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          where: { 
+            id: { in: ordersToProcess.map(o => o.id) },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { paymentId: updatedPayment.id }
         });
 
@@ -1148,12 +1161,16 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
             gateway,
             consentIp,
             consentUserAgent,
-            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) } // Правильное связывание
+            orders: { connect: ordersToProcess.map(o => ({ id: o.id })) }, // Правильное связывание
+            tenantId: order.tenantId || 'smmplan'
           }
         });
         
         await tx.order.updateMany({
-          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          where: { 
+            id: { in: ordersToProcess.map(o => o.id) },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { paymentId: newPayment.id }
         });
 
@@ -1162,7 +1179,10 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
 
       if (orderStatus) {
         await tx.order.updateMany({
-          where: { id: { in: ordersToProcess.map(o => o.id) } },
+          where: { 
+            id: { in: ordersToProcess.map(o => o.id) },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { status: orderStatus }
         });
       }
@@ -1284,7 +1304,10 @@ export const retryCheckoutAction = async (input: z.infer<typeof retryCheckoutSch
         }).catch(e => console.error('[RetryCheckout] Failed to cancel payment:', e)),
         
         db.order.updateMany({
-          where: { id: { in: result.linkedOrderIds } },
+          where: { 
+            id: { in: result.linkedOrderIds },
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+          },
           data: { status: 'ERROR', error: errMsg }
         }).catch(e => console.error('[RetryCheckout] Failed to error order:', e))
       ];

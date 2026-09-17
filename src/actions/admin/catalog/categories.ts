@@ -221,7 +221,10 @@ export async function hideCategoryAndServicesAction(categoryId: string) {
     }
 
     await db.service.updateMany({
-      where: { categoryId: id },
+      where: {
+        categoryId: id,
+        ...(category.tenantId && category.tenantId !== 'all' ? { tenantId: category.tenantId } : {})
+      },
       data: { isActive: false }
     });
 
@@ -299,7 +302,10 @@ export async function mergeCategoriesAction(sourceCategoryId: string, targetCate
     await db.$transaction(async (tx) => {
       // 1. Move all services from source to target
       await tx.service.updateMany({
-        where: { categoryId: sourceCategoryId },
+        where: {
+          categoryId: sourceCategoryId,
+          ...(sourceCat.tenantId && sourceCat.tenantId !== 'all' ? { tenantId: sourceCat.tenantId } : {})
+        },
         data: { categoryId: targetCategoryId }
       });
 

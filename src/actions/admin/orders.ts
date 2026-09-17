@@ -171,6 +171,7 @@ export async function setOrderStatusAction(
             userId: order.userId,
             idempotencyKey: { startsWith: `refund_${order.id}_` },
             status: 'APPROVED',
+            ...(order.tenantId ? { tenantId: order.tenantId } : {})
           },
           _sum: { amount: true },
         });
@@ -358,7 +359,12 @@ export async function bulkCancelOrdersAction(
             let refundCents = 0;
             if (calculatedRefundCents > 0) {
               const previousRefunds = await tx.ledgerEntry.aggregate({
-                where: { userId: safeOrder.userId, idempotencyKey: { startsWith: `refund_${safeOrder.id}_` }, status: 'APPROVED' },
+                where: { 
+                  userId: safeOrder.userId, 
+                  idempotencyKey: { startsWith: `refund_${safeOrder.id}_` }, 
+                  status: 'APPROVED',
+                  ...(safeOrder.tenantId ? { tenantId: safeOrder.tenantId } : {})
+                },
                 _sum: { amount: true },
               });
               refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));

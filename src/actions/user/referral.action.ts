@@ -48,7 +48,10 @@ export async function transferReferralBalanceAction() {
       session.userId,
       transferAmount,
       `Перевод реферального баланса на основной`,
-      { idempotencyKey: `referral-transfer-${session.userId}-${transferId}` }
+      { 
+        idempotencyKey: `referral-transfer-${session.userId}-${transferId}`,
+        tenantId: user.tenantId || 'smmplan'
+      }
     );
 
     await tx.payment.create({
@@ -58,7 +61,8 @@ export async function transferReferralBalanceAction() {
         currency: "RUB",
         status: "COMPLETED",
         gateway: "referral_transfer",
-        gatewayId: transferId
+        gatewayId: transferId,
+        tenantId: user.tenantId || 'smmplan'
       }
     });
   }, { isolationLevel: 'Serializable' });

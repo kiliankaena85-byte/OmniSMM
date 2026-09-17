@@ -111,7 +111,7 @@ export async function verifyDirectSmtpConnection(
   });
 }
 
-async function getEmailContext(tenantId?: string | null) {
+export async function getEmailContext(tenantId?: string | null) {
   const normTenant = normalizeTenantId(tenantId);
   const companyName = getTenantSiteName(normTenant);
   const supportDomain = getTenantHost(normTenant);
@@ -122,8 +122,9 @@ type TransporterResult =
   | { provider: 'RESEND'; resend: Resend; fromEmail: string; smtpUser: string | null }
   | { provider: 'SMTP'; transporter: nodemailer.Transporter; fromEmail: string; smtpUser: string | null };
 
-async function getTransporter(): Promise<TransporterResult | null> {
-  const s = await SettingsProvider.getEmailSettings();
+async function getTransporter(tenantId?: string): Promise<TransporterResult | null> {
+  const normTenant = normalizeTenantId(tenantId);
+  const s = await SettingsProvider.getEmailSettings(normTenant);
 
   // DEPLOYMENT NOTE (РФ-инфраструктура):
   // Resend и Twilio могут блокировать отправку на домены .ru или с российских IP.
@@ -138,7 +139,8 @@ async function getTransporter(): Promise<TransporterResult | null> {
       log.error('RESEND selected but API key is not configured');
       throw new Error('Email provider is set to Resend but API key is missing. Check admin settings.');
     }
-    return { provider: 'RESEND', resend: new Resend(s.resendApiKey), smtpUser: s.smtpUser, fromEmail: s.smtpUser || 'no-reply@smmplan.pro' };
+    const defaultFrom = normTenant === 'flux' ? 'no-reply@smmflux.ru' : 'no-reply@smmplan.pro';
+    return { provider: 'RESEND', resend: new Resend(s.resendApiKey), smtpUser: s.smtpUser, fromEmail: s.smtpUser || defaultFrom };
   }
 
   if (!s.smtpHost || !s.smtpUser || !s.smtpPassword) {
@@ -209,7 +211,7 @@ export async function sendMagicLink(email: string, token: string, tenantId?: str
 
   console.info(`\n========================================\n[MAGIC LINK FOR ${email} (${companyName})]:\n${link}\n========================================\n`);
 
-  const result = await getTransporter();
+  const result = await getTransporter(tenantId);
 
   if (!result) {
     log.warn('SMTP Not configured. Magic link printed to console.', { email, link });
@@ -247,7 +249,7 @@ export async function sendMagicLink(email: string, token: string, tenantId?: str
 
 export async function sendMail(email: string, subject: string, htmlContent: string, replyTo?: string, tenantId?: string) {
   const { companyName } = await getEmailContext(tenantId);
-  const result = await getTransporter();
+  const result = await getTransporter(tenantId);
 
   if (!result) {
     if (process.env.NODE_ENV === 'production') {

@@ -73,6 +73,11 @@ export class ReferralValidatorService {
       return { valid: false, riskLevel: 'CRITICAL', reason: 'SELF_REFERRAL_BY_EMAIL' };
     }
 
+    // 1.5. Cross-tenant referral isolation
+    if (context?.tenantId && inviter.tenantId !== context.tenantId) {
+      return { valid: false, riskLevel: 'HIGH', reason: 'CROSS_TENANT_REFERRAL_FORBIDDEN' };
+    }
+
     // 2. Cycle graph detection: ensure prospective user is not already an ancestor of inviter
     if (prospectiveUserId) {
       const ancestors = await this.getReferralAncestors(inviterId);
