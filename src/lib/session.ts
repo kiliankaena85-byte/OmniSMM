@@ -86,6 +86,14 @@ export async function createSession(userId: string, canResetPassword: boolean = 
       sameSite: 'lax',
       path: '/',
     });
+    // Auto-consent cookie on authenticated session creation (152-FZ compliance via Terms & Privacy acceptance)
+    cookieStore.set('cookie_consent', 'true', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 31536000,
+      sameSite: 'lax',
+      path: '/',
+    });
   } catch (err) {
     // In Route Handlers (GET/etc) cookies() is read-only and throws an error.
     // The caller must use the returned sessionToken to set the cookie manually on the Response.

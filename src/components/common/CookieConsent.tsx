@@ -16,6 +16,18 @@ export function CookieConsent() {
       return;
     }
 
+    // Authenticated dashboard users have already accepted Terms of Service & Privacy Policy on login/registration (152-FZ)
+    if (pathname?.startsWith('/dashboard')) {
+      document.cookie = 'cookie_consent=true; path=/; max-age=31536000; SameSite=Lax; Secure';
+      try {
+        localStorage.setItem('cookie_consent', 'true');
+      } catch {
+        // Ignore localStorage security/private mode errors
+      }
+      setIsVisible(false);
+      return;
+    }
+
     // Check if user has already accepted cookies
     const cookieConsent = document.cookie.includes('cookie_consent=true');
     const localConsent = typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'true';
@@ -26,8 +38,8 @@ export function CookieConsent() {
     }
   }, [pathname]);
 
-  // Completely omit rendering for admin routes
-  if (pathname?.startsWith('/admin')) return null;
+  // Completely omit rendering for admin and authenticated dashboard routes
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/dashboard')) return null;
 
   const handleAccept = () => {
     // Save cookie consent for 1 year (compliant with 152-FZ)

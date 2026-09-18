@@ -133,6 +133,15 @@ export async function GET(request: Request) {
     path: '/',
   });
 
+  // Auto-consent cookie on authenticated session creation (152-FZ compliance via Terms & Privacy acceptance)
+  response.cookies.set('cookie_consent', 'true', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 31536000,
+    sameSite: 'lax',
+    path: '/',
+  });
+
   if (['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT', 'OPERATOR'].includes(user.role)) {
     try {
       const { redis } = await import('@/lib/redis');
