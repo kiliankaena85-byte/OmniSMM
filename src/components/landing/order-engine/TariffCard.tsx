@@ -4,6 +4,7 @@ import React from "react";
 import { PublicService } from "@/actions/order/catalog";
 import { CheckCircle2, Clock, Zap, ShieldCheck } from "lucide-react";
 import { BrandStyle } from "@/utils/brand-styles";
+import { ServiceIdBadge } from "@/components/ui/service-id-badge";
 
 interface TariffCardProps {
   service: PublicService;
@@ -85,6 +86,7 @@ export function TariffCard({ service, isSelected, onSelect, compact, brandStyle 
             {isSelected && (
               <CheckCircle2 className={`w-4 h-4 shrink-0 ${checkColorClass}`} />
             )}
+            <ServiceIdBadge numericId={service.numericId} />
             {service.badge && (
               <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
                 isBranded 

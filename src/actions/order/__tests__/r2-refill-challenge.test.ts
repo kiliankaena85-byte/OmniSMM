@@ -54,10 +54,10 @@ describe('R2 Refill Feature Challenge & Verification Suite', () => {
       // Verify db query explicitly scoped to session userId
       expect(db.order.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: {
+          where: expect.objectContaining({
             id: 'order-belonging-to-user-B',
             userId: 'user-A',
-          },
+          }),
         })
       );
     });

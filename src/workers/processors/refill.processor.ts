@@ -3,6 +3,7 @@ import { db } from '../../lib/db';
 import { RefillJobPayload } from '@/lib/queue-manager';
 import { providerService } from '../../services/providers/provider.service';
 import { logger } from '../../lib/logger';
+import { classifyRefillError } from '@/services/refill/refill-error-classifier';
 
 const log = logger.child({ component: 'RefillProcessor' });
 
@@ -50,9 +51,10 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
   if (order.status === 'CANCELED' || order.status === 'ERROR') {
     await db.refill.update({
       where: { id: refillId },
-      data: { status: 'ERROR' }
+      data: { status: 'REJECTED' }
     });
-    throw new UnrecoverableError(`Order status is ${order.status}. Refill aborted.`);
+    log.warn(`[RefillProcessor] Refill ${refillId} rejected: order status is ${order.status}`);
+    return { success: false, status: 'REJECTED', reason: `Order status is ${order.status}` };
   }
 
   if (!order.externalId) {
@@ -60,7 +62,8 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
       where: { id: refillId },
       data: { status: 'ERROR' }
     });
-    throw new UnrecoverableError(`Order ${order.id} has no external ID.`);
+    log.error(`[RefillProcessor] Refill ${refillId} aborted: Order ${order.id} has no external ID`);
+    return { success: false, status: 'ERROR', reason: 'Order has no external ID' };
   }
 
   const providerDef = order.service.provider;
@@ -87,11 +90,31 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
     const response = await provider.refill(order.externalId);
 
     if (response.error) {
+      const classification = classifyRefillError(response.error);
+      if (classification.type === 'BUSINESS_REJECTION') {
+        await db.refill.update({
+          where: { id: refill.id },
+          data: { status: 'REJECTED' }
+        });
+        await redis.del(mutexKey).catch(() => {});
+        log.warn(
+          `[RefillProcessor] Refill ${refill.id} for order #${order.numericId} rejected by provider (${providerDef.name}): ${response.error} [${classification.code}]`
+        );
+        return {
+          success: false,
+          status: 'REJECTED',
+          reason: response.error,
+          code: classification.code,
+          userMessage: classification.userMessage
+        };
+      }
+
+      // Transient failure: throw so BullMQ retries
       throw new Error(response.error);
     }
 
-    if (!response.refill) {
-      throw new Error('No refill ID returned by provider');
+    if (!response.refill || response.refill === 0 || response.refill === '0' || typeof response.refill === 'object') {
+      throw new Error('No valid refill ID returned by provider');
     }
 
     const extId = response.refill.toString();
@@ -104,10 +127,12 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
       }
     });
 
-    log.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order ${order.id} | External ID: ${extId}`);
+    log.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order #${order.numericId} | External ID: ${extId}`);
+    return { success: true, status: 'IN_PROGRESS', externalId: extId };
   } catch (error: unknown) {
     log.error(`[RefillProcessor] Failed to process refill ${refill.id}: ${(error instanceof Error ? error.message : String(error))}`);
     await redis.del(mutexKey).catch(() => {});
     throw error;
   }
 }
+

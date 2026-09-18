@@ -88,6 +88,68 @@ export async function requestClientRefillAction(input: string | { orderId: strin
       };
     }
 
+    const latestRefill = order.refills && order.refills.length > 0 ? order.refills[0] : null;
+    if (latestRefill) {
+      const elapsedMs = Date.now() - new Date(latestRefill.createdAt).getTime();
+      const COOLDOWN_24H_MS = 24 * 60 * 60 * 1000;
+      const COOLDOWN_1H_MS = 60 * 60 * 1000;
+
+      if (latestRefill.status === 'REJECTED' && elapsedMs < COOLDOWN_24H_MS - 1000) {
+        const remainingHours = Math.max(1, Math.ceil((COOLDOWN_24H_MS - elapsedMs) / (1000 * 60 * 60)));
+        return {
+          success: false as const,
+          error: `Предыдущая заявка была отклонена поставщиком (списания не зафиксированы или гарантия недоступна). Повторный запрос будет доступен через ${remainingHours} ч.`,
+          refill: {
+            id: latestRefill.id,
+            status: latestRefill.status,
+            createdAt: latestRefill.createdAt.toISOString(),
+          },
+        };
+      }
+
+      if (latestRefill.status === 'COMPLETED' && elapsedMs < COOLDOWN_24H_MS - 1000) {
+        const remainingHours = Math.max(1, Math.ceil((COOLDOWN_24H_MS - elapsedMs) / (1000 * 60 * 60)));
+        return {
+          success: false as const,
+          error: `Предыдущая докрутка была успешно выполнена. Повторный запрос возможен через ${remainingHours} ч.`,
+          refill: {
+            id: latestRefill.id,
+            status: latestRefill.status,
+            createdAt: latestRefill.createdAt.toISOString(),
+          },
+        };
+      }
+
+      if (latestRefill.status === 'ERROR' && elapsedMs < COOLDOWN_1H_MS - 1000) {
+        const remainingMinutes = Math.max(1, Math.ceil((COOLDOWN_1H_MS - elapsedMs) / (1000 * 60)));
+        return {
+          success: false as const,
+          error: `При отправке предыдущей заявки произошла ошибка. Повторный запрос будет доступен через ${remainingMinutes} мин.`,
+          refill: {
+            id: latestRefill.id,
+            status: latestRefill.status,
+            createdAt: latestRefill.createdAt.toISOString(),
+          },
+        };
+      }
+    }
+
+    try {
+      const { getRedisConnection } = await import('@/lib/queue-manager');
+      const redis = getRedisConnection();
+      if (redis && typeof redis.set === 'function') {
+        const acquired = await redis.set(`refill:client-lock:${order.id}`, '1', 'EX', 15, 'NX').catch(() => 'OK');
+        if (!acquired) {
+          return {
+            success: false as const,
+            error: 'Запрос на докрутку уже обрабатывается. Пожалуйста, подождите.',
+          };
+        }
+      }
+    } catch {
+      // Redis unavailable or mock in unit test
+    }
+
     const refill = await db.refill.create({
       data: {
         orderId: order.id,

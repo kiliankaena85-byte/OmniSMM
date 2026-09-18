@@ -6,6 +6,7 @@ import { checkServiceRefill } from '@/utils/service-refill';
 import { formatEtaSpeedBadge } from '@/utils/format-eta';
 import { formatPricePerUnit } from '@/utils/format-price';
 import { TariffSubtypeFilter } from './types';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 
 interface WizardStepServiceProps {
   selectedNetwork: PublicNetwork | null;
@@ -108,7 +109,10 @@ export function WizardStepService({
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-base text-foreground line-clamp-2">{srv.name}</h3>
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <ServiceIdBadge numericId={srv.numericId} />
+                      <h3 className="font-bold text-base text-foreground line-clamp-2">{srv.name}</h3>
+                    </div>
                     {smartBadge && (
                       <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 rounded-md shrink-0">
                         {smartBadge}

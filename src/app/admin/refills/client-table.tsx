@@ -572,7 +572,7 @@ export function RefillsTable({
                             {isPending ? '...' : 'Повтор'}
                           </button>
                         )}
-                        {['PENDING', 'IN_PROGRESS', 'ERROR'].includes(r.status) && (
+                        {['PENDING', 'IN_PROGRESS', 'ERROR', 'REJECTED'].includes(r.status) && (
                           <>
                             <button
                               onClick={() => handleUpdateStatus(r, 'COMPLETED')}

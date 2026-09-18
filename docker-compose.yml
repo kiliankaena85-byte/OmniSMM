@@ -241,6 +241,7 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: smmplan_tailscale
+    hostname: smmplan
     restart: always
     mem_limit: 128m
     cap_add:
@@ -250,7 +251,7 @@ services:
     volumes:
       - smm_tailscale_data:/var/lib/tailscale
     entrypoint: tailscaled
-    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock
+    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock --tun=userspace-networking
     depends_on:
       web:
         condition: service_healthy

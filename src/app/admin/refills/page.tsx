@@ -11,43 +11,53 @@ export const dynamic = 'force-dynamic';
 export default async function AdminRefillsPage() {
   await enforceSectionAccess('orders');
 
-  const [rawRefills, totalCount, pendingCount, inProgressCount, completedCount, isRefillModuleEnabled] =
-    await Promise.all([
-      db.refill.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 100,
-        include: {
-          order: {
-            select: {
-              id: true,
-              numericId: true,
-              link: true,
-              quantity: true,
-              createdAt: true,
-              user: { select: { id: true, email: true } },
-              service: {
-                select: {
-                  id: true,
-                  name: true,
-                  provider: { select: { id: true, name: true } },
-                  category: {
-                    select: {
-                      name: true,
-                      network: { select: { name: true, slug: true } },
-                    },
+  const [
+    rawRefills,
+    totalCount,
+    pendingCount,
+    inProgressCount,
+    completedCount,
+    rejectedCount,
+    errorCount,
+    isRefillModuleEnabled,
+  ] = await Promise.all([
+    db.refill.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        order: {
+          select: {
+            id: true,
+            numericId: true,
+            link: true,
+            quantity: true,
+            createdAt: true,
+            user: { select: { id: true, email: true } },
+            service: {
+              select: {
+                id: true,
+                name: true,
+                provider: { select: { id: true, name: true } },
+                category: {
+                  select: {
+                    name: true,
+                    network: { select: { name: true, slug: true } },
                   },
                 },
               },
             },
           },
         },
-      }),
-      db.refill.count(),
-      db.refill.count({ where: { status: 'PENDING' } }),
-      db.refill.count({ where: { status: 'IN_PROGRESS' } }),
-      db.refill.count({ where: { status: 'COMPLETED' } }),
-      SettingsProvider.isRefillModuleEnabled(),
-    ]);
+      },
+    }),
+    db.refill.count(),
+    db.refill.count({ where: { status: 'PENDING' } }),
+    db.refill.count({ where: { status: 'IN_PROGRESS' } }),
+    db.refill.count({ where: { status: 'COMPLETED' } }),
+    db.refill.count({ where: { status: 'REJECTED' } }),
+    db.refill.count({ where: { status: 'ERROR' } }),
+    SettingsProvider.isRefillModuleEnabled(),
+  ]);
 
   const refills: RefillItemDTO[] = rawRefills.map((r) => ({
     id: r.id,
@@ -80,7 +90,7 @@ export default async function AdminRefillsPage() {
       <AdminTabbedHeader
         icon={RefreshCw}
         title="Гарантийные Докрутки (Refills)"
-        description={`Всего: ${totalCount} • Ожидают: ${pendingCount} • В работе: ${inProgressCount} • Выполнены: ${completedCount}`}
+        description={`Всего: ${totalCount} • Ожидают: ${pendingCount} • В работе: ${inProgressCount} • Выполнены: ${completedCount} • Отклонены: ${rejectedCount} • Ошибки: ${errorCount}`}
         tabs={OPERATIONS_TABS}
         onboardingKey="refills"
         onboarding={ONBOARDING_CONFIGS.refills}

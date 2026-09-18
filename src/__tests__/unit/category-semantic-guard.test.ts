@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ensureCategoryForActivityType, inferCanonicalActivityType } from '@/services/admin/catalog.service';
+import { ensureCategoryForActivityType, inferCanonicalActivityType, formatFullServiceName } from '@/services/admin/catalog.service';
+import { inferTargetTypeFromName, resolveServiceTargetType, TargetTypeEnum } from '@/utils/target-type-mapper';
 
 // Mock dependencies
 vi.mock('@/lib/db', () => ({
@@ -158,5 +159,43 @@ describe('Semantic Category Guard & Canonical Activity Inference', () => {
       expect(result.category).toBe('SUBSCRIBERS');
     });
   });
+
+  describe('Remediation Invariants (Part A & B)', () => {
+    it('infers SUBSCRIBERS for services with участники even when containing просмотры', () => {
+      expect(inferCanonicalActivityType(undefined, '🇨🇳 Telegram Premium Участники [Китай] + Просмотры')).toBe('SUBSCRIBERS');
+      expect(inferCanonicalActivityType(undefined, '🇹🇷 Telegram Premium Участники [Турция] [Просмотры + из поиска]')).toBe('SUBSCRIBERS');
+    });
+
+    it('infers STORIES before general VIEWS when service mentions stories/истории', () => {
+      expect(inferCanonicalActivityType(undefined, 'Telegram Просмотры Историй')).toBe('STORIES');
+      expect(inferCanonicalActivityType(undefined, 'Telegram Просмотры сторис')).toBe('STORIES');
+    });
+
+    it('enforces Canonical Platform Naming Invariant in formatFullServiceName', () => {
+      expect(formatFullServiceName('🇷🇺 Просмотры [1-20 постов]', 'Просмотры', 'Telegram')).toBe('Telegram 🇷🇺 Просмотры [1-20 постов]');
+      expect(formatFullServiceName('🇷🇺 Просмотры [для вывода в топ, 1-20 постов]', 'Telegram - Просмотры')).toBe('Telegram 🇷🇺 Просмотры [для вывода в топ, 1-20 постов]');
+      expect(formatFullServiceName('Telegram Просмотры [Последние 50 постов]', 'Просмотры', 'Telegram')).toBe('Telegram Просмотры [Последние 50 постов]');
+      expect(formatFullServiceName('ТГ Просмотры [1-20 постов]', 'Просмотры', 'Telegram')).toBe('ТГ Просмотры [1-20 постов]');
+      expect(formatFullServiceName('ВК Подписчики в группу', 'Подписчики', 'VK')).toBe('ВК Подписчики в группу');
+      expect(formatFullServiceName('ЮТ Лайки на видео', 'Лайки', 'YouTube')).toBe('ЮТ Лайки на видео');
+      expect(formatFullServiceName('Стандарт', 'Подписчики', 'Telegram')).toBe('Telegram Подписчики - Стандарт');
+    });
+
+    it('resolves multi-post services to CHANNEL_POSTS targetType', () => {
+      expect(inferTargetTypeFromName('Telegram 🇷🇺 Просмотры [1-20 постов]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+      expect(inferTargetTypeFromName('Telegram 🇷🇺 Просмотры [1-5 постов]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+      expect(inferTargetTypeFromName('Telegram Просмотры [Последние 50 постов]')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+      expect(inferTargetTypeFromName('Просмотры на 20 постов')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+      expect(inferTargetTypeFromName('Просмотры на несколько постов')).toBe(TargetTypeEnum.CHANNEL_POSTS);
+
+      // resolveServiceTargetType corrects POST to CHANNEL_POSTS
+      const resolved = resolveServiceTargetType({
+        name: 'Telegram 🇷🇺 Просмотры [1-20 постов]',
+        targetType: 'POST',
+      });
+      expect(resolved).toBe(TargetTypeEnum.CHANNEL_POSTS);
+    });
+  });
 });
+
 

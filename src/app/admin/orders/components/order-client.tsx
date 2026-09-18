@@ -7,6 +7,7 @@ import { OrderColumn, TenantBrandBadge, STATUS_LABELS } from './columns';
 import { OrderSortableHeader } from './order-sortable-header';
 import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
 import { resolveOrderEnvironmentMode, ORDER_ENV_CONFIG } from '@/utils/order-environment';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 import Link from 'next/link';
 import { 
   Clock, 
@@ -98,6 +99,12 @@ function InfoStack({ order }: { order: OrderColumn }) {
           {catName}
         </span>
         <span className="text-muted-foreground font-normal">·</span>
+        {order.service?.numericId && (
+          <ServiceIdBadge 
+            numericId={order.service.numericId}
+            href={`/admin/catalog?q=${order.service.numericId}`}
+          />
+        )}
         <span className="text-muted-foreground font-medium truncate max-w-[220px]" title={srvName}>
           «{srvName}»
         </span>

@@ -193,6 +193,43 @@ export async function ensureCategoryForActivityType(
 }
 
 /**
+ * Platform brand regexes and canonical display names.
+ */
+const PLATFORM_BRAND_PATTERNS: Array<{
+  platform: string;
+  pattern: RegExp;
+}> = [
+  { platform: 'Telegram', pattern: /(?:telegram|телеграм|(?<![а-яёa-z0-9])тг(?![а-яёa-z0-9]))/i },
+  { platform: 'Instagram', pattern: /(?:instagram|инстаграм|инста|(?<![а-яёa-z0-9])(?:инст|ig)(?![а-яёa-z0-9]))/i },
+  { platform: 'VK', pattern: /(?:вконтакте|(?<![а-яёa-z0-9])(?:vk|вк)(?![а-яёa-z0-9]))/i },
+  { platform: 'YouTube', pattern: /(?:youtube|ютуб|(?<![а-яёa-z0-9])(?:ют|yt)(?![а-яёa-z0-9]))/i },
+  { platform: 'TikTok', pattern: /(?:tiktok|тикток|(?<![а-яёa-z0-9])(?:тт|tt)(?![а-яёa-z0-9]))/i },
+  { platform: 'Rutube', pattern: /(?:rutube|рутуб)/i },
+  { platform: 'Twitch', pattern: /(?:twitch|твич)/i },
+  { platform: 'Twitter', pattern: /(?:twitter|твиттер|(?<![а-яёa-z0-9])x(?![а-яёa-z0-9]))/i },
+  { platform: 'Facebook', pattern: /(?:facebook|фейсбук|(?<![а-яёa-z0-9])(?:фб|fb)(?![а-яёa-z0-9]))/i },
+  { platform: 'Discord', pattern: /(?:discord|дискорд|(?<![а-яёa-z0-9])(?:дс|ds)(?![а-яёa-z0-9]))/i },
+  { platform: 'Kick', pattern: /(?:kick|кик)/i },
+  { platform: 'Likee', pattern: /(?:likee|лайки)/i },
+  { platform: 'Threads', pattern: /(?:threads|тредс)/i },
+  { platform: 'Dzen', pattern: /(?:dzen|дзен)/i },
+  { platform: 'OK', pattern: /(?:одноклассники|(?<![а-яёa-z0-9])(?:ок|ok)(?![а-яёa-z0-9]))/i },
+];
+
+function detectTargetPlatform(categoryName?: string | null, networkName?: string | null): string | null {
+  if (networkName) {
+    const matched = PLATFORM_BRAND_PATTERNS.find(p => p.pattern.test(networkName));
+    if (matched) return matched.platform;
+    return networkName;
+  }
+  if (categoryName) {
+    const matched = PLATFORM_BRAND_PATTERNS.find(p => p.pattern.test(categoryName));
+    if (matched) return matched.platform;
+  }
+  return null;
+}
+
+/**
  * Resolves canonical activity type from normalized category, service name, and target type.
  * Acts as a strict invariant guard against provider misclassifications or operator bulk import traps.
  */
@@ -204,10 +241,22 @@ export function inferCanonicalActivityType(
   const n = (serviceName || '').toLowerCase();
 
   // 1. Strong title keywords (highest priority — what the service actually is)
-  if (/подписч|member|follower|читател|фолловер/i.test(n) && !/авто.*просмотр|просмотр.*подпис/i.test(n)) {
+  // Include root 'участник' under SUBSCRIBERS (unless poll/vote: !/опрос|голос|викторин|poll|vote/i)
+  if (
+    (/подписч|member|follower|читател|фолловер/i.test(n) ||
+      (/участник/i.test(n) && !/опрос|голос|викторин|poll|vote/i.test(n))) &&
+    !/авто.*просмотр|просмотр.*подпис/i.test(n)
+  ) {
     return 'SUBSCRIBERS';
   }
-  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|реакц|лайк/i.test(n)) {
+
+  // Stories check must run before general VIEWS so stories views map to STORIES
+  if (/истори|сторис|story|stories/i.test(n) && !/подписч/i.test(n)) {
+    return 'STORIES';
+  }
+
+  // General VIEWS: exclude участник, подписч, истори, сторис, реакц, лайк
+  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|участник|истори|сторис|реакц|лайк/i.test(n)) {
     return /авто|auto|будущ/i.test(n) ? 'AUTO_VIEWS' : 'VIEWS';
   }
   if (/лайк|like|сердеч|мне нравится/i.test(n) && !/подписч|просмотр|репост/i.test(n)) {
@@ -227,9 +276,6 @@ export function inferCanonicalActivityType(
   }
   if (/опрос|голос|викторин|poll|vote/i.test(n)) {
     return 'POLLS';
-  }
-  if (/истори|сторис|story|stories/i.test(n) && !/лайк|просмотр/i.test(n)) {
-    return 'STORIES';
   }
   if (/стрим|stream|live|эфир|баттл|battle/i.test(n) && !/подписч/i.test(n)) {
     return 'STREAMS';
@@ -254,10 +300,17 @@ export function inferCanonicalActivityType(
 /**
  * Ensures a service name has full context: "Action — Tariff"
  * E.g. "Стандарт" in category "Подписчики" -> "Подписчики — Стандарт"
+ * Enforces Canonical Platform Naming Invariant: prepends network brand if missing.
  */
-export function formatFullServiceName(rawName: string, categoryName?: string | null): string {
-  const clean = ServiceAuditEngine.cleanText(rawName);
-  if (!categoryName) return clean;
+export function formatFullServiceName(
+  rawName: string,
+  categoryName?: string | null,
+  networkName?: string | null
+): string {
+  let clean = ServiceAuditEngine.cleanText(rawName);
+  if (!categoryName && !networkName) return clean;
+
+  const targetPlatform = detectTargetPlatform(categoryName, networkName);
 
   const catKeywords = [
     'подпис', 'лайк', 'просмотр', 'реакц', 'коммент', 'репост', 'буст', 'бот', 'голос', 'истори',
@@ -266,15 +319,25 @@ export function formatFullServiceName(rawName: string, categoryName?: string | n
     'share', 'boost', 'bot', 'poll', 'vote', 'story', 'friend', 'play', 'traffic'
   ];
   const hasCat = catKeywords.some(k => clean.toLowerCase().includes(k));
-  if (hasCat) return clean;
 
-  const cleanCat = categoryName.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-  const platformKeywords = ['telegram', 'instagram', 'tiktok', 'youtube', 'vk', 'вконтакте', 'max', 'ok', 'likee', 'dzen', 'twitch', 'twitter', 'facebook', 'other', 'другое'];
-  if (platformKeywords.includes(cleanCat.toLowerCase())) {
-    return clean;
+  if (!hasCat && categoryName) {
+    const cleanCat = categoryName.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+    const platformKeywords = ['telegram', 'instagram', 'tiktok', 'youtube', 'vk', 'вконтакте', 'max', 'ok', 'likee', 'dzen', 'twitch', 'twitter', 'facebook', 'other', 'другое'];
+    if (!platformKeywords.includes(cleanCat.toLowerCase())) {
+      clean = `${cleanCat} - ${clean}`;
+    }
   }
 
-  return `${cleanCat} - ${clean}`;
+  // Enforce Canonical Platform Naming Invariant
+  if (targetPlatform) {
+    const brandEntry = PLATFORM_BRAND_PATTERNS.find(p => p.platform.toLowerCase() === targetPlatform.toLowerCase());
+    const hasBrand = brandEntry ? brandEntry.pattern.test(clean) : clean.toLowerCase().includes(targetPlatform.toLowerCase());
+    if (!hasBrand) {
+      clean = `${targetPlatform} ${clean}`;
+    }
+  }
+
+  return clean;
 }
 
 
@@ -354,7 +417,8 @@ export type ImportSkipReason =
   | 'NOT_IN_SHADOW_CATALOG'
   | 'CURRENCY_CONVERSION_FAILED'
   | 'PRICE_DRIFT_BLOCKED'
-  | 'INVALID_MIN_MAX';
+  | 'INVALID_MIN_MAX'
+  | 'UNKNOWN_PLATFORM';
 
 export type ImportSkippedItem = {
   externalId: string;
@@ -480,9 +544,10 @@ class AdminCatalogService {
 
     if (params.search?.trim()) {
       const q = params.search.trim();
+      const normalizedNumericQ = q.replace(/^[#№\s]+/, '').replace(/^id[\s:]*/i, '').trim();
       const lowerQ = q.toLowerCase();
-      const numId = parseInt(q, 10);
-      const isPureNumber = !isNaN(numId) && q === String(numId);
+      const numId = parseInt(normalizedNumericQ, 10);
+      const isPureNumber = !isNaN(numId) && normalizedNumericQ === String(numId);
       const orConditions: Prisma.ServiceWhereInput[] = [];
 
       // Vector 1: Numeric ID Match
@@ -1469,6 +1534,21 @@ class AdminCatalogService {
       const minQty = isNaN(rawMin) || rawMin <= 0 ? 10 : rawMin;
       const maxQty = isNaN(rawMax) || rawMax < minQty ? Math.max(minQty * 10, 10000) : rawMax;
 
+      // P0-8: Strict Platform Verification Barrier (Zero Unknown Platforms)
+      // Если у услуги нет явного ручного маппинга от администратора (categoryIdMap)
+      // и социальную сеть невозможно достоверно определить, импорт строго отклоняется.
+      const isExplicitlyMapped = Boolean(categoryIdMap?.[extId]);
+      const servicePlatform = (shadowExt.platform || '').toLowerCase().trim();
+      if (!isExplicitlyMapped && (!servicePlatform || servicePlatform === 'other' || servicePlatform === 'unknown')) {
+        skipped.push({ 
+          externalId: extId, 
+          name: shadowExt.cleanName || shadowExt.name, 
+          reason: 'UNKNOWN_PLATFORM' 
+        });
+        warnings.push(`Услуга ${extId} («${shadowExt.name}») отклонена: не определена социальная сеть. Авто-импорт без подтверждённой платформы запрещён.`);
+        continue;
+      }
+
       const importedName = shadowExt.cleanName || liveExt.name;
       const importedDesc = liveExt.desc || null;
       const baseSlug = importedName.toLowerCase().trim().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-+|-+$/g, '') || `service-${extId}`;
@@ -1527,24 +1607,48 @@ class AdminCatalogService {
         takenSlugs.add(`${tId}:${stableSlug}`);
 
         // CATEGORY-FIX (Level 3): resolve the most specific category for this service.
-        // Priority: Semantic Invariant Guard > operator's explicit mapping > auto-created by normalizedCategory > fallback categoryId
+        // Priority 1: Operator's explicit mapping (РУЧНОЙ ВЫБОР АДМИНИСТРАТОРА — ПРИОРИТЕТ 1, БЕЗ АНАЛИЗА)
+        // Priority 2: Strict Semantic Invariant Guard against auto-sync bulk misclassifications
+        // Priority 3: Auto-created by normalizedCategory
+        // Priority 4: Fallback categoryId
+        let effectiveServiceNetwork: { id: string; name: string; slug: string } | null = null;
         const resolvedCategoryId = await (async () => {
+          // 1. PRIORITY 1: Explicit Operator Mapping
+          // Если администратор сам выбрал категорию для услуги, его решение закон — алгоритм не вмешивается
+          const explicitId = categoryIdMap?.[extId];
+          if (explicitId) {
+            return explicitId;
+          }
+
           const normCat = shadowExt.normalizedCategory;
           const serviceCanonicalType = inferCanonicalActivityType(normCat, shadowExt.cleanName || shadowExt.name || '', shadowExt.targetType);
 
           // Determine target candidate category
-          const explicitId = categoryIdMap?.[extId];
-          const candidateCatId = explicitId || categoryId;
-          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || (candidateCatId === categoryId ? fallbackCategoryRecord?.activityType : '') || '';
+          const candidateCatId = categoryId;
+          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || fallbackCategoryRecord?.activityType || '';
           const candidateName = (categoryNameMap.get(candidateCatId) || '').toLowerCase();
 
-          // Resolve target network
-          const targetNetwork = categoryNetworkMap.get(candidateCatId) 
+          // Resolve target network & protect against cross-platform pollution
+          const detectedPlatformName = detectTargetPlatform(null, shadowExt.cleanName || shadowExt.name) || shadowExt.platform;
+          const detectedServiceNetwork = detectedPlatformName ? networkBySlug.get(detectedPlatformName.toLowerCase()) : null;
+
+          let targetNetwork = categoryNetworkMap.get(candidateCatId) 
             || fallbackCategoryRecord?.network 
             || networkBySlug.get((shadowExt.platform || '').toLowerCase());
 
-          // Strict Semantic Invariant Guard: Prevent category cross-contamination
+          if (detectedServiceNetwork && targetNetwork && detectedServiceNetwork.id !== targetNetwork.id) {
+            targetNetwork = detectedServiceNetwork;
+          }
+          effectiveServiceNetwork = targetNetwork || null;
+
+          // Strict Semantic Invariant Guard: Prevent category & platform cross-contamination
           let isContradiction = false;
+
+          if (detectedServiceNetwork && targetNetwork && detectedServiceNetwork.id !== targetNetwork.id) {
+            isContradiction = true;
+            targetNetwork = detectedServiceNetwork;
+          }
+
           if (serviceCanonicalType && targetNetwork) {
             if (serviceCanonicalType === 'SUBSCRIBERS') {
               if (candidateActivityType && candidateActivityType !== 'SUBSCRIBERS') isContradiction = true;
@@ -1552,6 +1656,12 @@ class AdminCatalogService {
             } else if (serviceCanonicalType === 'VIEWS' || serviceCanonicalType === 'AUTO_VIEWS') {
               if (candidateActivityType && !['VIEWS', 'AUTO_VIEWS', 'AUTO_SERVICES'].includes(candidateActivityType)) isContradiction = true;
               else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('лайк') || candidateName.includes('коммент'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'STORIES') {
+              if (candidateActivityType && candidateActivityType !== 'STORIES') isContradiction = true;
+              else if (candidateName && ((candidateName.includes('просмотр') && !candidateName.includes('истори') && !candidateName.includes('сторис')) || candidateName.includes('подписч') || candidateName.includes('лайк'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'POLLS') {
+              if (candidateActivityType && candidateActivityType !== 'POLLS') isContradiction = true;
+              else if (candidateName && (candidateName.includes('просмотр') || candidateName.includes('подписч') || candidateName.includes('лайк'))) isContradiction = true;
             } else if (serviceCanonicalType === 'LIKES' || serviceCanonicalType === 'AUTO_LIKES') {
               if (candidateActivityType && !['LIKES', 'AUTO_LIKES', 'AUTO_SERVICES'].includes(candidateActivityType)) isContradiction = true;
               else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('просмотр') || candidateName.includes('коммент'))) isContradiction = true;
@@ -1563,6 +1673,7 @@ class AdminCatalogService {
               else if (candidateName && (candidateName.includes('просмотр') || candidateName.includes('подписч'))) isContradiction = true;
             } else if (serviceCanonicalType === 'BOOSTS') {
               if (candidateActivityType && candidateActivityType !== 'BOOSTS') isContradiction = true;
+              else if (candidateName && (candidateName.includes('просмотр') || candidateName.includes('подписч') || candidateName.includes('лайк'))) isContradiction = true;
             } else if (serviceCanonicalType === 'REPOSTS') {
               if (candidateActivityType && candidateActivityType !== 'REPOSTS') isContradiction = true;
             } else if (serviceCanonicalType === 'STREAMS') {
@@ -1573,7 +1684,7 @@ class AdminCatalogService {
             }
           }
 
-          // If there is a contradiction, reroute to the correct category for this network
+          // If there is a contradiction in automated/fallback assignment, reroute to correct category
           if (isContradiction && serviceCanonicalType && targetNetwork) {
             const cacheKey = `${targetNetwork.id}_${serviceCanonicalType}_${tId}`;
             if (!autoCreatedCategoryCache.has(cacheKey)) {
@@ -1587,11 +1698,6 @@ class AdminCatalogService {
               autoCreatedCategoryCache.set(cacheKey, autoId);
             }
             return autoCreatedCategoryCache.get(cacheKey)!;
-          }
-
-          // If operator explicitly mapped this service without contradiction, use it
-          if (explicitId) {
-            return explicitId;
           }
 
           // Fallback auto-split if normalizedCategory differs from fallback category
@@ -1619,6 +1725,7 @@ class AdminCatalogService {
         })();
 
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || '';
+        const resolvedNetworkName = categoryNetworkMap.get(resolvedCategoryId)?.name || effectiveServiceNetwork?.name || fallbackCategoryRecord?.network?.name || shadowExt.platform || '';
         const serviceCanonicalType = inferCanonicalActivityType(shadowExt.normalizedCategory, shadowExt.cleanName || shadowExt.name || '', shadowExt.targetType);
         
         let effectiveTargetType = shadowExt.targetType;
@@ -1637,7 +1744,7 @@ class AdminCatalogService {
         servicesToCreate.push({
           tenantId: tId,
           slug: stableSlug,
-          name: formatFullServiceName(importedName, resolvedCategoryName), // Use formatted Action — Tariff Name
+          name: formatFullServiceName(importedName, resolvedCategoryName, resolvedNetworkName), // Use formatted Action — Tariff Name
           description: importedDesc ? sanitizeServiceDescription(ServiceAuditEngine.cleanText(importedDesc)) : null,
           externalId: extId,
           categoryId: resolvedCategoryId,

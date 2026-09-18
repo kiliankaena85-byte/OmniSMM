@@ -24,6 +24,7 @@ export interface MobileOrderItem {
   }[];
   service?: {
     id: string;
+    numericId?: number;
     categoryId: string;
     name: string;
     isRefillEnabled?: boolean;
@@ -58,6 +59,7 @@ import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { CopyText } from '@/components/ui/CopyText';
 import { formatRubles } from '@/utils/format-price';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 
 const STATUS_ACCENT_BORDER: Record<string, string> = {
   COMPLETED:       'border-l-success',
@@ -119,8 +121,9 @@ export function MobileOrderList({ orders, user }: { orders: MobileOrderItem[], u
                   )}
                 </div>
                 
-                <div className="text-sm font-medium text-foreground line-clamp-2 mt-1 leading-snug break-words">
-                  {order.service?.name}
+                <div className="text-sm font-medium text-foreground line-clamp-2 mt-1 leading-snug break-words flex items-center gap-1.5 flex-wrap">
+                  {order.service?.numericId && <ServiceIdBadge numericId={order.service.numericId} />}
+                  <span>{order.service?.name}</span>
                 </div>
               </div>
               <div className="text-right shrink-0">
@@ -257,7 +260,10 @@ export function MobileOrderList({ orders, user }: { orders: MobileOrderItem[], u
                     {/* Service */}
                     <div>
                       <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1.5 block">Услуга</label>
-                      <div className="text-sm font-semibold">{selectedOrder?.service?.name}</div>
+                      <div className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
+                        {selectedOrder?.service?.numericId && <ServiceIdBadge numericId={selectedOrder.service.numericId} />}
+                        <span>{selectedOrder?.service?.name}</span>
+                      </div>
                       <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
                         <LayoutDashboard className="w-3 h-3 shrink-0" />
                         {selectedOrder?.service?.category?.name || 'Без категории'}

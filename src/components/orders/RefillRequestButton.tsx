@@ -67,17 +67,64 @@ export function RefillRequestButton({
     );
   }
 
-  if (refillStatus === 'COMPLETED') {
+  const latestRefill = refills && refills.length > 0 ? refills[0] : null;
+  const latestRefillAgeHours = latestRefill
+    ? (Date.now() - new Date(latestRefill.createdAt).getTime()) / (1000 * 60 * 60)
+    : 999;
+  const isCooldownActive = latestRefillAgeHours < 24;
+  const remainingCooldownHours = Math.max(1, Math.ceil(24 - latestRefillAgeHours));
+
+  if (refillStatus === 'COMPLETED' && isCooldownActive) {
     return (
       <span
         className={cn(
           'inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg whitespace-nowrap shadow-xs',
           className
         )}
-        title="Гарантийная докрутка успешно выполнена"
+        title={`Гарантийная докрутка успешно выполнена. Повторный запрос будет доступен через ${remainingCooldownHours} ч.`}
       >
         <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
         Докрутка выполнена
+        <span className="px-1 py-0.2 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[9px] rounded font-mono font-bold">
+          {remainingCooldownHours}ч
+        </span>
+      </span>
+    );
+  }
+
+  if (refillStatus === 'REJECTED' && isCooldownActive) {
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg whitespace-nowrap shadow-xs',
+          className
+        )}
+        title={`Заявка отклонена поставщиком (списания не зафиксированы или гарантия недоступна). Повторный запрос будет доступен через ${remainingCooldownHours} ч.`}
+      >
+        <ShieldAlert className="w-3 h-3 text-destructive shrink-0" />
+        Докрутка отклонена
+        <span className="px-1 py-0.2 bg-destructive/20 text-destructive text-[9px] rounded font-mono font-bold">
+          {remainingCooldownHours}ч
+        </span>
+      </span>
+    );
+  }
+
+  if (refillStatus === 'ERROR' && latestRefillAgeHours < 1) {
+    const remainingMins = Math.max(1, Math.ceil(60 - latestRefillAgeHours * 60));
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg whitespace-nowrap shadow-xs',
+          className
+        )}
+        title={`В процессе обработки возникла ошибка. Повтор доступен через ${remainingMins} мин.`}
+      >
+        <ShieldAlert className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+        Ошибка запроса
+        <span className="px-1 py-0.2 bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] rounded font-mono font-bold">
+          {remainingMins}м
+        </span>
       </span>
     );
   }

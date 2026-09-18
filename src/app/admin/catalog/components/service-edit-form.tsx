@@ -10,6 +10,7 @@ import { updateServiceAction, createServiceAction } from '@/actions/admin/catalo
 import { applyBeautifulRounding, SAFETY_FLOOR_MARKUP } from '@/lib/financial-constants';
 import { IconPicker } from '@/components/admin/icon-picker/IconPicker';
 import { ProviderServiceSearchModal } from '@/components/admin/catalog/provider-service-search-modal';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 import {
   TargetTypeEnum,
   inferTargetTypeFromName,
@@ -36,6 +37,7 @@ interface ProviderOption {
 
 export interface InitialServiceData {
   id?: string;
+  numericId?: number;
   name: string;
   description: string | null;
   icon?: string | null;
@@ -285,9 +287,18 @@ export function ServiceEditForm({
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
-                {isCreateMode ? 'Добавление новой услуги' : 'Редактирование услуги'}
-              </h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold text-foreground">
+                  {isCreateMode ? 'Добавление новой услуги' : 'Редактирование услуги'}
+                </h1>
+                {!isCreateMode && initialData.numericId && (
+                  <ServiceIdBadge 
+                    numericId={initialData.numericId} 
+                    showProviderId={Boolean(initialData.externalId)}
+                    providerId={initialData.externalId}
+                  />
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {isCreateMode
                   ? 'Ручное добавление услуги в каталог платформы и привязка к API провайдера'

@@ -94,12 +94,14 @@ export function MobileCatalogModal({
     );
   }, [catalog, searchQuery]);
 
-  // Filter services based on serviceQuery
+  // Filter services based on serviceQuery (supports name, description, and numericId e.g. #101, 101)
   const filteredServices = useMemo(() => {
     if (!serviceQuery) return services;
     const query = serviceQuery.toLowerCase();
+    const normalizedNumeric = query.replace(/^[#№\s]+/, '').replace(/^id[\s:]*/i, '').trim();
     return services.filter(
       (srv) =>
+        (normalizedNumeric && String(srv.numericId).includes(normalizedNumeric)) ||
         srv.name.toLowerCase().includes(query) ||
         (srv.description && srv.description.toLowerCase().includes(query))
     );

@@ -69,6 +69,17 @@ export async function directRestartRefillAction(refillId: string) {
         },
       });
 
+      try {
+        const { getRedisConnection } = await import('@/lib/queue-manager');
+        const redis = getRedisConnection();
+        if (redis && typeof redis.del === 'function') {
+          await redis.del(`refill:dispatched:${refillId}`).catch(() => {});
+          await redis.del(`refill:client-lock:${refill.orderId}`).catch(() => {});
+        }
+      } catch {
+        // Non-blocking Redis cleanup
+      }
+
       const { refillQueue } = await import('@/lib/queue-manager');
       await refillQueue.add('process-refill', { refillId });
 

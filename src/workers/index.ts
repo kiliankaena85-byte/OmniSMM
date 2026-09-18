@@ -174,7 +174,7 @@ async function handleDeadLetter(
       }
 
       // ── Smart Alert Triage (P0 Critical vs P1 Maintenance with Deduplication) ─────
-      const isFinancialQueue = ['ordersQueue', 'paymentSyncQueue', 'paymentGatewayQueue', 'refillQueue'].includes(queueName);
+      const isFinancialQueue = ['ordersQueue', 'paymentSyncQueue', 'paymentGatewayQueue'].includes(queueName);
       
       if (isFinancialQueue && !isParkedForTriage) {
         // P0: Always alert immediately for customer money and orders

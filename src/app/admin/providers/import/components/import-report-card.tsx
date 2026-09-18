@@ -18,6 +18,7 @@ const SKIP_REASON_LABELS: Record<string, string> = {
   REMOVED_BY_PROVIDER: 'Удалена провайдером',
   INVALID_RATE: 'Некорректная цена у провайдера',
   NOT_IN_SHADOW_CATALOG: 'Не найдена в теневом каталоге',
+  UNKNOWN_PLATFORM: 'Не определена социальная сеть',
 };
 
 const MAX_ITEMS_PER_REASON = 8;

@@ -18,6 +18,7 @@ import { LinkGuideService } from "@/services/catalog/link-guide.service";
 import { CategoryIcon, cleanCategoryName } from "@/components/ui/CategoryIcon";
 import { toast } from "sonner";
 import { CheckoutAuthModal } from "@/components/landing/order-engine/modals/CheckoutAuthModal";
+import { ServiceIdBadge } from "@/components/ui/service-id-badge";
 
 type Step = 'link' | 'network' | 'category' | 'service' | 'checkout';
 
@@ -669,7 +670,10 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
                   >
                     <div className="p-5 pb-14 sm:p-6 sm:pb-16">
                       <div className="flex justify-between items-start gap-2 mb-2">
-                        <h4 className="font-bold text-foreground text-lg sm:text-xl leading-snug">{service.name}</h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {service.numericId && <ServiceIdBadge numericId={service.numericId} />}
+                          <h4 className="font-bold text-foreground text-lg sm:text-xl leading-snug">{service.name}</h4>
+                        </div>
                       </div>
                       
                       <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
@@ -710,7 +714,10 @@ function FluxOrderClientInner({ initialCatalog, initialEmail, tenantId = 'flux',
             >
               <div className="mb-4 sm:mb-5 flex justify-between items-start gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight">{selectedService.name}</h2>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {selectedService.numericId && <ServiceIdBadge numericId={selectedService.numericId} />}
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight">{selectedService.name}</h2>
+                  </div>
                 </div>
                 <div className="flex-shrink-0 text-right">
                   <span className="text-primary font-black text-lg sm:text-xl tabular-nums font-mono">{selectedService.pricePerUnitRub.toFixed(2)} ₽</span>

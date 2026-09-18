@@ -12,6 +12,7 @@ import { RefillRequestButton } from '@/components/orders/RefillRequestButton';
 import { DripFeedProgress } from '@/components/orders/DripFeedProgress';
 import { ChargeBreakdownModal } from '@/components/orders/ChargeBreakdownModal';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 import { CopyText } from '@/components/ui/CopyText';
 import { formatRubles } from '@/utils/format-price';
 
@@ -140,8 +141,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
               Услуга
             </label>
-            <div className="text-base font-semibold text-foreground">
-              {order.service.name}
+            <div className="text-base font-semibold text-foreground flex items-center gap-2 flex-wrap">
+              <ServiceIdBadge numericId={order.service.numericId} />
+              <span>{order.service.name}</span>
             </div>
             <div className="text-xs font-medium text-muted-foreground/80 mt-1 flex items-center gap-1">
                <LayoutDashboard className="w-3.5 h-3.5" /> {order.service.category?.name || 'Без категории'}

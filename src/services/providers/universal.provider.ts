@@ -393,14 +393,25 @@ export class UniversalProvider implements BaseProvider {
   }
 
   async refill(orderId: string | number): Promise<{ refill?: string | number; error?: string }> {
-    const res = await this.request<{ refill?: string | number; error?: string }>({ action: 'refill', order: orderId }, 0);
-    if (res.error) return { error: res.error };
+    const res = await this.request<any>({ action: 'refill', order: orderId }, 0);
+    if (!res) return { error: 'Empty response from provider' };
+    if (res.error) return { error: String(res.error) };
+    if (res.refill && typeof res.refill === 'object' && res.refill.error) {
+      return { error: String(res.refill.error) };
+    }
+    if (res.status === 'fail' && (res.message || res.error)) {
+      return { error: String(res.message || res.error) };
+    }
     return res;
   }
 
   async getRefillStatus(refillId: string | number): Promise<{ status?: string; error?: string }> {
-    const res = await this.request<{ status?: string; error?: string }>({ action: 'refill_status', refill: refillId });
-    if (res.error) return { error: res.error };
+    const res = await this.request<any>({ action: 'refill_status', refill: refillId });
+    if (!res) return { error: 'Empty response from provider' };
+    if (res.error) return { error: String(res.error) };
+    if (res.status && typeof res.status === 'object' && res.status.error) {
+      return { error: String(res.status.error) };
+    }
     return res;
   }
 }

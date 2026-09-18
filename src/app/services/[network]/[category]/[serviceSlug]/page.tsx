@@ -10,6 +10,7 @@ import { absoluteCanonical, getTenantHost, getTenantSiteName, normalizeTenantId 
 import { db } from "@/lib/db";
 import { Header } from "@/components/landing/Header";
 import { MegaFooter } from "@/components/landing/MegaFooter";
+import { ServiceIdBadge } from "@/components/ui/service-id-badge";
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export async function generateMetadata({
   }
 
   const canonical = absoluteCanonical(tenantId, `/services/${network}/${category}/${serviceSlug}`);
-  const title = `${service.name} — ${service.pricePer1kRub} ₽/1000 шт | ${siteName}`;
+  const title = `${service.name} — ${service.pricePerUnitRub.toFixed(4)} ₽ / шт | ${siteName}`;
   const description = service.description 
     ? `${service.description.slice(0, 150)}... Купить ${service.name} по цене от ${service.pricePerUnitRub.toFixed(4)} ₽ за шт.`
     : `Быстрый заказ ${service.name} в ${siteName}. Минимальный заказ ${service.minQty} шт., гарантия качества и высокая скорость исполнения.`;
@@ -146,15 +147,18 @@ export default async function ServiceDetailPage({
         <div className="bg-card border border-border p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-full uppercase tracking-wider">
-                {net.name} • {cat.name}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-full uppercase tracking-wider">
+                  {net.name} • {cat.name}
+                </span>
+                <ServiceIdBadge numericId={service.numericId} />
+              </div>
               <h1 className="text-2xl md:text-4xl font-extrabold mt-2 text-foreground">{service.name}</h1>
             </div>
             <div className="text-left md:text-right bg-muted/40 p-4 rounded-xl border border-border/50 min-w-[200px]">
-              <span className="text-xs text-muted-foreground block font-medium">Цена за 1000 шт.</span>
-              <span className="text-3xl font-black text-primary">{service.pricePer1kRub} ₽</span>
-              <span className="text-xs text-muted-foreground block mt-1">({service.pricePerUnitRub.toFixed(4)} ₽ / шт)</span>
+              <span className="text-xs text-muted-foreground block font-medium">Цена за 1 шт.</span>
+              <span className="text-3xl font-black text-primary">{service.pricePerUnitRub.toFixed(4)} ₽</span>
+              <span className="text-xs text-muted-foreground block mt-1 font-mono">/ шт</span>
             </div>
           </div>
 

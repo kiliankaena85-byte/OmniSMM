@@ -11,6 +11,7 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { formatEta } from '@/utils/format-eta';
 import { OrderEnvironmentBadge } from '@/components/admin/OrderEnvironmentBadge';
 import { resolveOrderEnvironmentMode, type OrderEnvironmentMode } from '@/utils/order-environment';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 
 export type OrderColumn = {
   id: string;
@@ -43,6 +44,8 @@ export type OrderColumn = {
   } | null;
   resolvedEnvironmentMode?: OrderEnvironmentMode;
   service: { 
+    id?: string;
+    numericId?: number;
     name: string;
     isCancelEnabled?: boolean;
     etaP50Seconds: number | null;
@@ -255,6 +258,12 @@ function InfoColumnCell({ order, canSeeRates }: { order: OrderColumn; canSeeRate
           {catName}
         </span>
         <span className="text-muted-foreground font-normal">·</span>
+        {order.service.numericId && (
+          <ServiceIdBadge 
+            numericId={order.service.numericId}
+            href={`/admin/catalog?q=${order.service.numericId}`}
+          />
+        )}
         <span className="text-muted-foreground font-medium truncate max-w-[200px]" title={srvName}>
           «{srvName}»
         </span>

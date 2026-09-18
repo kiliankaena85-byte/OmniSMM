@@ -28,6 +28,7 @@ export interface FluxCategory {
 
 export interface FluxService {
   id: string;
+  numericId?: number;
   name: string;
   description?: string | null;
   pricePer1kRub: number;

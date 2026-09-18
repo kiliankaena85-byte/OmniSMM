@@ -19,6 +19,7 @@ import { getTenantDashboardViews } from '@/tenants/factory';
 import { formatRubles } from '@/utils/format-price';
 import { getCustomerFacingOrderError } from '@/utils/order-customer-error';
 import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
+import { ServiceIdBadge } from '@/components/ui/service-id-badge';
 import { Metadata } from 'next';
 import {
   Table,
@@ -170,6 +171,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         service: { 
           select: { 
             id: true,
+            numericId: true,
             categoryId: true,
             name: true,
             isRefillEnabled: true,
@@ -325,8 +327,9 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                             <span className="text-muted-foreground/80">{order.service.category.name}</span>
                           )}
                         </div>
-                        <div className="font-semibold text-foreground line-clamp-2 max-w-[240px] hover:text-primary transition-colors leading-tight">
-                          {order.service.name}
+                        <div className="font-semibold text-foreground line-clamp-2 max-w-[240px] hover:text-primary transition-colors leading-tight flex items-center gap-1.5 flex-wrap">
+                          <ServiceIdBadge numericId={order.service.numericId} />
+                          <span>{order.service.name}</span>
                         </div>
                       </Link>
                     </TableCell>

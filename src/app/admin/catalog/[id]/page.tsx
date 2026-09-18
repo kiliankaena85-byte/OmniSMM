@@ -69,6 +69,7 @@ export default async function AdminEditServicePage({ params, searchParams }: Pro
 
   const initialData = {
     id: service.id,
+    numericId: service.numericId,
     name: service.name,
     description: service.description,
     icon: service.icon,

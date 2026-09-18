@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { checkServiceRefill } from "@/utils/service-refill";
 import { CheckoutMode, CheckoutVariantProps } from "./variants/types";
 import { InCardAccordionCheckout } from "./variants/InCardAccordionCheckout";
+import { ServiceIdBadge } from "@/components/ui/service-id-badge";
 
 interface ServiceGridProps {
   engine: OrderEngine;
@@ -114,19 +115,10 @@ export function ServiceGrid({ engine, checkoutMode, checkoutProps }: ServiceGrid
           
           <div className="flex-1 flex flex-col pt-2 relative z-10">
              <h4 className={`font-extrabold text-base transition-colors duration-300 leading-snug mb-4 min-h-[44px] break-words flex items-center flex-wrap gap-2 ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-               <span 
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   navigator.clipboard.writeText(srv.numericId.toString());
-                   toast.success(`ID услуги ${srv.numericId} скопирован в буфер обмена!`);
-                 }}
-                 className={`text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded cursor-pointer hover:scale-105 active:scale-95 transition-all select-all flex items-center gap-1 ${
-                   isSelected ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-muted text-muted-foreground border border-border/40'
-                 }`}
-                 title="Кликните, чтобы скопировать ID"
-               >
-                 ID {srv.numericId}
-               </span>
+               <ServiceIdBadge 
+                 numericId={srv.numericId} 
+                 className={isSelected ? 'bg-primary-foreground/25 text-primary-foreground border-primary-foreground/30' : ''} 
+               />
                <span>{srv.name}</span>
              </h4>
               <div className="flex-1 mb-6 flex flex-col">
