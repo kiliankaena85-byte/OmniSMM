@@ -265,7 +265,7 @@ model Service {
   costPer1kRub     Float?    // Frozen RUB cost at import/sync time (Immutable Base Cost)
   currencyCapturedAt DateTime? // Timestamp when costPer1kRub was captured
   usdRateAtCapture Float?    // Exchange rate USD used at capture time
-  markup           Float     @default(3.0) // 300% markup
+  markup           Float     @default(8.0) // ~700% markup (x8 multiplier)
   anomalyScore     Int       @default(0) // Data Intelligence: 0-100 score for suspicious provider claims
   minQty           Int       @default(10)
   maxQty           Int       @default(100000)

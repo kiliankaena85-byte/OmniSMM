@@ -51,7 +51,7 @@ export default async function AdminNewServicePage({ searchParams }: Props) {
     icon: null,
     categoryId: defaultCategory?.id || '',
     rate: 0.1,
-    markup: 2.0,
+    markup: 8.0,
     minQty: 10,
     maxQty: 10000,
     providerId: providers[0]?.id || null,

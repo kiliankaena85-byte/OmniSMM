@@ -116,7 +116,7 @@ export function ServiceEditForm({
   const [externalId, setExternalId] = useState(initialData.externalId || '');
   const [rate, setRate] = useState(initialData.rate || 0.01);
   const [markupPercent, setMarkupPercent] = useState(
-    initialData.markup > 0 ? Math.round((initialData.markup - 1) * 100) : 50
+    initialData.markup > 0 ? Math.round((initialData.markup - 1) * 100) : 700
   );
   const [minQty, setMinQty] = useState(initialData.minQty || 10);
   const [maxQty, setMaxQty] = useState(initialData.maxQty || 10000);

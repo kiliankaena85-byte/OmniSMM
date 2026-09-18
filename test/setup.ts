@@ -409,6 +409,8 @@ beforeEach(async () => {
         'pricing-hardening',
         'pricing-order-and-marketing',
         'pricing-invariants',
+        'pricing-import-guardrails',
+        'catalog-ui',
         'sync-provider-catalog',
         'bot-order-real-execution',
         'bot-negative-and-cross-platform',

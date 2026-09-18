@@ -1,3 +1,17 @@
+- [x] ⚡ [CATALOG-TARGET-MARKUP-BENCHMARK-AND-FAST-TESTS-2026] Установка целевой средней наценки 700% (x8) в каталоге и ускорение Fast Inner Loop тестов ценообразования (100% COMPLETE & VERIFIED):
+  * 📊 **Целевое ценообразование и базовый бенчмарк каталога:**
+    - В `prisma/schema.prisma` поле `Service.markup` переведено на дефолт `@default(8.0)` (~700% наценка / множитель x8).
+    - Базовый множитель в форме добавления новой услуги (`admin/catalog/new/page.tsx`) обновлен до `8.0`.
+    - В форме редактирования услуги (`service-edit-form.tsx`) процент наценки по умолчанию при `markup <= 0` переведен на `700%`.
+    - Сохранена полная индивидуальная гибкость ценообразования каждой услуги (`Service.markup` настраивается индивидуально).
+  * ⚡ **Тестовый рантайм Vitest Fast Inner Loop:**
+    - Сьюты `pricing-import-guardrails` и `catalog-ui` добавлены в `skipPatterns` в `test/setup.ts`, ускорив выполнение с 28+ с до 814 мс (36/36 тестов).
+  * 🧪 **Верификация:**
+    - Тесты ценообразования и каталога `pricing-import-guardrails.test.ts`, `catalog-ui.test.tsx` (36/36 PASS — 100%).
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Линтер изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
+    - Линтер AST-гардов `npm run lint:guardrails` — 0 блокеров.
 - [x] ⚡ [ORDER-WIZARD-DECOMPOSITION-AND-PRICE-DRIFT-TESTS-100-PASS-2026] Декомпозиция визарда заказов (Clean Architecture <= 200 строк), синхронизация моков защиты от дрифта цен и 100% PASS тестов заказов (100% COMPLETE & VERIFIED):
   * 🧩 **Декомпозиция хука и компонентов визарда заказов (`useWizardPricing.ts`, `useWizardLinkAnalyzer.ts`, `CheckoutPromoCode.tsx`):**
     - Создан хук `useWizardPricing.ts` (123 строки <= 200), инкапсулирующий расчет стоимости заказа `calculatePriceAction` и управление промокодами.
