@@ -1,3 +1,24 @@
+- [x] ⚡ [PRODUCTION-DEPLOYMENT-HARDENING-GATE-2026] Устранение блокирующих дефектов боевого деплоя и инфраструктурная готовность (100% COMPLETE & VERIFIED):
+  * 🛑 **Ликвидация ловушки сборки Docker (`scripts/deploy.sh`, `scripts/deploy-remote.ps1`):**
+    - В скрипты деплоя добавлен обязательный шаг `npm ci && npm run build` перед `docker compose build`, гарантирующий наличие `.next/standalone` и `dist/worker.js` в контексте сборки Dockerfile.
+  * 🛡️ **Симметрия `REDIS_URL` и имена контейнеров (`docker-compose.prod.yml`):**
+    - Для сервисов `app` и `worker` явно прописана переменная `REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379` (SEC-001 Hardening).
+    - Зафиксированы детерминированные имена контейнеров (`smmplan_app`, `smmplan_worker`, `smmplan_bot`, `smmplan_db`, `smmplan_redis`, `smmplan_nginx`).
+  * 🔒 **Защита SSL мульти-тенанта & Certbot (`nginx/default.conf`, `scripts/init-letsencrypt.sh`):**
+    - В `nginx/default.conf` зафиксирована директива SAN-сертификата Let's Encrypt для обоих брендов (`smmplan.pro` и `smmflux.ru`).
+    - Путь `data_path` в `scripts/init-letsencrypt.sh` синхронизирован с `./certbot` из compose-файла.
+  * 🗄️ **Безопасные миграции БД (`docker-entrypoint.sh`):**
+    - Команда `prisma db push` заменена на версионированный `prisma migrate deploy`, исключая drift схемы в продакшене.
+  * 🛡️ **Контракт Server Actions (`src/actions/user/referral.action.ts`, `deletion.test.ts`):**
+    - Устранены сырые `throw new Error(...)`, добавлен типизированный возврат `{ success: false, error }`, в UI поддержана чистая обработка ошибок.
+  * 📋 **Эталонный шаблон боевой среды (`.env.production.example`):**
+    - Шаблон расширен полным перечнем критических переменных: Telegram-боты, SMTP Direct SSL 465, ключи платежей, криптографические секреты.
+  * 🧪 **Верификация & CI-гейты:**
+    - Сьют `production-hardening-triad.test.ts` — 11/11 PASS.
+    - Сьют `deletion.test.ts` — 4/4 PASS.
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
+    - Линтер изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
 - [x] ⚡ [CATALOG-TAXONOMY-SEMANTIC-GUARD-AND-IMPORT-FIX-2026] Защита таксономии каталога от смешивания категорий (Подписчики vs Просмотры), Semantic Guard и устранение ловушек импорта (100% COMPLETE & VERIFIED):
   * 🛡️ **Backend Semantic Guard (`src/services/admin/catalog.service.ts`):**
     - Внедрена проверка семантической совместимости при импорте: если услуга является подписчиками (`normalizedCategory === 'SUBSCRIBERS'` или `targetType === 'CHANNEL'` или имя содержит `подписч`/`member`), а выбранная категория относится к `VIEWS` (`activityType === 'VIEWS'` или имя содержит `просмотр`), бэкенд блокирует ошибочную привязку и автоматически перенаправляет услугу в категорию `SUBSCRIBERS` для данной соцсети.

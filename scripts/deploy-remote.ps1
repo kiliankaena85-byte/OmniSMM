@@ -23,14 +23,17 @@ mkdir -p $ServerPath;
 tar -xzf /tmp/src_archive.tar.gz -C $ServerPath;
 rm /tmp/src_archive.tar.gz;
 cd $ServerPath;
+echo 'Installing dependencies and building Next.js standalone + workers...';
+npm ci;
+npm run build;
 echo 'Building Docker image natively on Ubuntu...';
 docker compose -f docker-compose.prod.yml build;
 echo 'Restarting containers...';
 docker compose -f docker-compose.prod.yml up -d;
 echo 'Running migrations...';
-docker exec -u 0 smmplan_lite_prod_app npx prisma migrate deploy;
+docker exec -u 0 smmplan_app npx prisma migrate deploy;
 echo 'Restarting Nginx to clear upstream cache...';
-docker restart smmplan_lite_prod_nginx;
+docker restart smmplan_nginx;
 echo 'Remote deployment finished!';
 "
 

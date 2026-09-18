@@ -5,9 +5,9 @@ set -e
 if [ "$RUN_MIGRATIONS" = "true" ]; then
   echo "[entrypoint] 🔄 Checking and synchronizing database schema..."
   if [ -f "./node_modules/prisma/build/index.js" ]; then
-    node ./node_modules/prisma/build/index.js db push --skip-generate || echo "[entrypoint] ⚠️ WARNING: Prisma db push encountered non-fatal issues, continuing startup..."
+    node ./node_modules/prisma/build/index.js migrate deploy || echo "[entrypoint] ⚠️ WARNING: Prisma migrate deploy encountered non-fatal issues, continuing startup..."
   elif [ -x "./node_modules/.bin/prisma" ]; then
-    ./node_modules/.bin/prisma db push --skip-generate || echo "[entrypoint] ⚠️ WARNING: Prisma db push encountered non-fatal issues, continuing startup..."
+    ./node_modules/.bin/prisma migrate deploy || echo "[entrypoint] ⚠️ WARNING: Prisma migrate deploy encountered non-fatal issues, continuing startup..."
   else
     echo "[entrypoint] ℹ️ NOTICE: Prisma CLI binary not found in container, skipping auto schema sync."
   fi

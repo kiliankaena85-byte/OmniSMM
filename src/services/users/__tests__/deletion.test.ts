@@ -207,14 +207,14 @@ describe('User Account Soft-Deletion Flow', () => {
     }
 
     // 2. Blocked from Balance Deposits / Top-ups
-    await expect(
-      createTopUpPaymentAction(10, 'yookassa')
-    ).rejects.toThrow('Ваш аккаунт заблокирован или удален');
+    const topUpRes = await createTopUpPaymentAction(10, 'yookassa');
+    expect(topUpRes.success).toBe(false);
+    expect(topUpRes.error).toContain('Ваш аккаунт заблокирован или удален');
 
     // 3. Blocked from Transferring Referral Balance
-    await expect(
-      transferReferralBalanceAction()
-    ).rejects.toThrow('Ваш аккаунт заблокирован или удален');
+    const referralRes = await transferReferralBalanceAction();
+    expect(referralRes.success).toBe(false);
+    expect(referralRes.error).toContain('Ваш аккаунт заблокирован или удален');
 
     // 4. Blocked from Referral Commission Awards
     const referrer = await db.user.create({

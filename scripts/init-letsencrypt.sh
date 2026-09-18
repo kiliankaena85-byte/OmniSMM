@@ -7,7 +7,7 @@ fi
 
 domains=(smmplan.pro www.smmplan.pro smmflux.ru www.smmflux.ru)
 rsa_key_size=4096
-data_path="./nginx/certbot"
+data_path="./certbot"
 email="admin@smmplan.pro" # Added contact email
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 

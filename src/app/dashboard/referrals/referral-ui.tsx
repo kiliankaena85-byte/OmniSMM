@@ -119,9 +119,11 @@ export function ReferralUi({
     startTransition(async () => {
       try {
         const res = await transferReferralBalanceAction();
-        if (res.success) {
+        if (res.success && res.amount !== undefined) {
           setTransferSuccess(`Успешно переведено ${(res.amount / 100).toFixed(2)} ₽ на основной баланс!`);
           router.refresh();
+        } else {
+          setTransferError(res.error || 'Ошибка перевода средств');
         }
       } catch (e: unknown) {
         setTransferError(e instanceof Error ? e.message : 'Ошибка перевода средств');
