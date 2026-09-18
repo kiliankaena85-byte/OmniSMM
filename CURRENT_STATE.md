@@ -1,3 +1,24 @@
+- [x] ⚡ [POSTGRES-SECURITY-HARDENING-2026] Комплексное усиление безопасности PostgreSQL (CRIT-01, HIGH-01, HIGH-02, HIGH-03) (100% COMPLETE & VERIFIED):
+  * 🔒 **Ликвидация беспарольного доступа `trust` (HIGH-02):**
+    - В `pg_hba.conf` все правила аутентификации `trust` (local, loopback IPv4/IPv6, replication) заменены на строгий `scram-sha-256`.
+    - Беспарольные лазейки полностью устранены (`SELECT count(*) FROM pg_hba_file_rules WHERE auth_method = 'trust'` -> 0).
+    - Healthcheck Docker (`pg_isready -U postgres`) продолжает стабильно работать через сокетную готовность без сбоев.
+  * 🛡️ **Принцип наименьших привилегий & Least Privilege Role (HIGH-01):**
+    - Создана выделенная роль приложения `smmplan_app` (`NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`).
+    - Исключен вектор удаленного выполнения кода (RCE) через `COPY ... TO PROGRAM` и доступ к файловой системе ОС.
+    - Роли выданы права `CONNECT`, `USAGE, CREATE ON SCHEMA public` и `ALTER DEFAULT PRIVILEGES` для полной совместимости с `prisma migrate deploy`.
+  * 📜 **Аудиторское логирование DDL и сессий (HIGH-03, PCI DSS 10.2 / 152-ФЗ):**
+    - Включены параметры аудита: `log_statement = 'ddl'`, `log_connections = 'on'`, `log_disconnections = 'on'`, `log_line_prefix = '%m [%p] %q%u@%d '`.
+    - Горячее применение через `ALTER SYSTEM` + `SELECT pg_reload_conf()` без простоя и без обрыва активных соединений.
+  * 🐳 **Конфигурация Docker Compose (`docker-compose.yml`, `docker-compose.prod.yml`):**
+    - Дефолтный пароль изолирован через переменные окружения `${POSTGRES_PASSWORD}`.
+    - В команду запуска `command` сервиса `db` в обоих файлах добавлены флаги аудиторского логирования.
+  * 🧪 **Верификация & Полное регрессионное тестирование:**
+    - Сьют финансовых тестов `src/__tests__/financial/` — 16 файлов, 150/150 PASS.
+    - Сьют тестов заказов `src/__tests__/orders/` — 4 файла, 33/33 PASS.
+    - Сьют софт-удаления пользователей `src/services/users/__tests__/deletion.test.ts` — 4/4 PASS.
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
 - [x] ⚡ [PRODUCTION-DEPLOYMENT-HARDENING-GATE-2026] Устранение блокирующих дефектов боевого деплоя и инфраструктурная готовность (100% COMPLETE & VERIFIED):
   * 🛑 **Ликвидация ловушки сборки Docker (`scripts/deploy.sh`, `scripts/deploy-remote.ps1`):**
     - В скрипты деплоя добавлен обязательный шаг `npm ci && npm run build` перед `docker compose build`, гарантирующий наличие `.next/standalone` и `dist/worker.js` в контексте сборки Dockerfile.

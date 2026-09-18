@@ -138,6 +138,12 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      postgres
+      -c log_statement=ddl
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_line_prefix='%m [%p] %q%u@%d '
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

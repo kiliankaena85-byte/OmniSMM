@@ -7,9 +7,15 @@ services:
     restart: always
     mem_limit: 128m
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=smmplan_lite
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-smmplan_lite}
+    command: >
+      postgres
+      -c log_statement=ddl
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_line_prefix='%m [%p] %q%u@%d '
     volumes:
       - lite_postgres_data:/var/lib/postgresql/data
     ports:
