@@ -264,7 +264,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       />
 
       {/* Desktop table */}
-      <div className="hidden sm:block bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="hidden lg:block bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <Table aria-label="Список заказов">
             <TableHeader>
@@ -452,7 +452,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       </div>
 
       {/* Mobile cards (Drawer + Instant touch) */}
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <MobileOrderList orders={orders} user={user} />
       </div>
 
