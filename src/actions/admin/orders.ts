@@ -51,22 +51,47 @@ export async function cancelOrderAction(formData: FormData) {
     if (!parsed.success) return { success: false as const, error: 'Missing orderId' };
     const { orderId } = parsed.data;
 
-    await adminOrderService.cancelOrder(orderId, {
-      id: admin.id,
-      email: admin.email,
-    });
+    try {
+      const result = await adminOrderService.cancelOrder(orderId, {
+        id: admin.id,
+        email: admin.email,
+      });
 
-    // SD-13 SECURITY FIX: Await audit for financial operations to guarantee non-repudiation
-    await auditAdminAwaitable({
-      adminId: admin.id,
-      adminEmail: admin.email,
-      action: 'ORDER_CANCEL',
-      target: orderId,
-      targetType: 'ORDER',
-    });
+      // SD-13 SECURITY FIX: Await audit for financial operations to guarantee non-repudiation
+      await auditAdminAwaitable({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'ORDER_CANCEL',
+        target: orderId,
+        targetType: 'ORDER',
+      });
 
-    revalidatePath('/admin/orders');
-    return { success: true as const };
+      revalidatePath('/admin/orders');
+      return {
+        success: true as const,
+        status: result.status,
+        message: result.status === 'CANCELING'
+          ? 'Запрос на отмену отправлен провайдеру. Средства удерживаются в эскроу до подтверждения.'
+          : 'Заказ отменен, средства возвращены клиенту.',
+      };
+    } catch (err: any) {
+      return { success: false as const, error: err?.message || 'Ошибка отмены заказа' };
+    }
+  });
+}
+
+export async function syncSingleOrderStatusAction(orderId: string) {
+  return requireStaffPermission('orders', 'edit', async (admin) => {
+    try {
+      const result = await adminOrderService.syncOrderStatusWithProvider(orderId, {
+        id: admin.id,
+        email: admin.email,
+      });
+      revalidatePath('/admin/orders');
+      return { success: true as const, ...result };
+    } catch (err: any) {
+      return { success: false as const, error: err?.message || 'Ошибка сверки статуса с провайдером' };
+    }
   });
 }
 

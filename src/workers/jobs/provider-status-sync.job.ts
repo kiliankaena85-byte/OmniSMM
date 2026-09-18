@@ -6,19 +6,20 @@
 import { db } from '@/lib/db';
 import { CircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import { ProviderService } from '@/services/providers/provider.service';
+import { RefundPolicyService } from '@/services/financial/refund-policy.service';
 
 export class ProviderStatusSyncJob {
   private static readonly providerService = new ProviderService();
 
   /**
-   * Polls stuck orders in IN_PROGRESS state older than 10 minutes.
+   * Polls stuck orders in IN_PROGRESS or CANCELING state older than 10 minutes.
    */
   static async syncStuckOrders(): Promise<{ synced: number; skipped: number; errors: number }> {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
     const stuckOrders = await db.order.findMany({
       where: {
-        status: 'IN_PROGRESS',
+        status: { in: ['IN_PROGRESS', 'CANCELING'] },
         externalId: { not: null },
         updatedAt: { lte: tenMinutesAgo },
       },
@@ -53,12 +54,49 @@ export class ProviderStatusSyncJob {
 
           if (statusResult && statusResult.status) {
             const raw = statusResult.status.toLowerCase();
-            const targetStatus = raw === 'completed' ? 'COMPLETED' : raw === 'canceled' ? 'CANCELED' : 'IN_PROGRESS';
-            await db.order.update({
-              where: { id: order.id },
-              data: { status: targetStatus },
-            });
-            synced++;
+            const targetStatus = raw === 'completed' ? 'COMPLETED' : raw === 'canceled' ? 'CANCELED' : raw === 'partial' ? 'PARTIAL' : null;
+
+            if (targetStatus && targetStatus !== order.status) {
+              await db.$transaction(async (tx) => {
+                await tx.order.update({
+                  where: { id: order.id },
+                  data: { status: targetStatus },
+                });
+
+                if (targetStatus === 'CANCELED') {
+                  await RefundPolicyService.processRefund(
+                    {
+                      id: order.id,
+                      userId: order.userId,
+                      charge: Number(order.charge),
+                      quantity: order.quantity,
+                      remains: order.quantity,
+                      status: 'CANCELED',
+                      tenantId: order.tenantId,
+                    },
+                    'Авто-возврат: провайдер подтвердил отмену заказа (фоновая сверка)',
+                    tx
+                  );
+                } else if (targetStatus === 'PARTIAL') {
+                  const remainsNum = statusResult.remains !== undefined ? parseInt(String(statusResult.remains), 10) : 0;
+                  const safeRemains = Math.min(order.quantity, Math.max(0, isNaN(remainsNum) ? 0 : remainsNum));
+                  await RefundPolicyService.processRefund(
+                    {
+                      id: order.id,
+                      userId: order.userId,
+                      charge: Number(order.charge),
+                      quantity: order.quantity,
+                      remains: safeRemains,
+                      status: 'PARTIAL',
+                      tenantId: order.tenantId,
+                    },
+                    'Авто-возврат: частичное выполнение у провайдера (фоновая сверка)',
+                    tx
+                  );
+                }
+              });
+              synced++;
+            }
           }
         });
       } catch (err) {

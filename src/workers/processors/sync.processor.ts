@@ -15,7 +15,7 @@ async function safeUpdateOrderStatus(
   data: Prisma.OrderUpdateInput
 ): Promise<Order | null> {
   const fresh = await tx.order.findUnique({ where: { id: orderId } });
-  if (!fresh || !['PENDING', 'IN_PROGRESS', 'PENDING_CHECK'].includes(fresh.status)) {
+  if (!fresh || !['PENDING', 'IN_PROGRESS', 'PENDING_CHECK', 'CANCELING'].includes(fresh.status)) {
     return null; // already terminal or not found
   }
   return await tx.order.update({
@@ -51,7 +51,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
     try {
       const MAX_SYNC_PER_PROVIDER = 1000;
       const activeOrderIds = await db.order.findMany({
-        where: { status: 'IN_PROGRESS', providerId: providerDef.id },
+        where: { status: { in: ['IN_PROGRESS', 'CANCELING'] }, providerId: providerDef.id },
         select: { id: true },
         take: MAX_SYNC_PER_PROVIDER,
         orderBy: { updatedAt: 'asc' }

@@ -7,6 +7,8 @@ import { paginatedQuery, type PaginatedResult } from '@/lib/pagination';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
 import type { Order, User, Service, Category, Network } from '@prisma/client';
 import { CompensationService } from '@/services/financial/compensation.service';
+import { providerService } from '../providers/provider.service';
+import { RefundPolicyService } from '../financial/refund-policy.service';
 
 /**
  * MANDATORY INTEGRITY WARNING:
@@ -459,9 +461,104 @@ class AdminOrderService {
    * refund only the undelivered portion.
    */
   // C-02 FIX: Accept tenantId for cross-tenant order isolation
-  async cancelOrder(orderId: string, admin: { id: string; email: string; tenantId?: string }) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const orderBefore = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+  // ADR-2026-19: 2PC Escrow Protocol for order cancellation
+  async cancelOrder(
+    orderId: string, 
+    admin: { id: string; email: string; tenantId?: string },
+    options?: { forceWriteOff?: boolean }
+  ) {
+    const orderBefore = await db.order.findUniqueOrThrow({ 
+      where: { id: orderId },
+      include: { provider: true, service: true }
+    });
+
+    if (['CANCELED', 'ERROR', 'PARTIAL'].includes(orderBefore.status)) {
+      throw new Error(`Order ${orderBefore.numericId} is already in terminal state ${orderBefore.status} and cannot be canceled.`);
+    }
+
+    if (orderBefore.status === 'CANCELING') {
+      throw new Error(`Заказ ${orderBefore.numericId} уже находится в процессе отмены у провайдера.`);
+    }
+
+    const hasExternalOrder = Boolean(orderBefore.externalId && orderBefore.externalId.trim().length > 0);
+
+    // If order was already dispatched to upstream provider
+    if (hasExternalOrder) {
+      if (!orderBefore.service.isCancelEnabled && !options?.forceWriteOff) {
+        const caller = await db.user.findUniqueOrThrow({
+          where: { id: admin.id },
+          select: { role: true },
+        });
+        if (caller.role === 'SUPPORT') {
+          throw new Error(
+            `Отмена невозможна: услуга "${orderBefore.service.name}" не поддерживает отмену на стороне провайдера. Только Администратор или Владелец могут принудительно отменить этот заказ со списанием в убыток.`
+          );
+        } else {
+          throw new Error(
+            `Услуга "${orderBefore.service.name}" не поддерживает автоматическую отмену на стороне провайдера. Вы можете запросить отмену у поддержки провайдера либо подтвердить принудительное списание в убыток компании.`
+          );
+        }
+      }
+
+      // ADR-2026-19: If service supports cancellation and not force-loss write-off -> 2PC Escrow Protocol!
+      if (orderBefore.service.isCancelEnabled && !options?.forceWriteOff) {
+        let parsedCustomData: Record<string, unknown> = {};
+        if (orderBefore.customData) {
+          try {
+            parsedCustomData = JSON.parse(orderBefore.customData);
+          } catch {
+            parsedCustomData = {};
+          }
+        }
+        await db.order.update({
+          where: { id: orderId },
+          data: {
+            status: 'CANCELING',
+            customData: JSON.stringify({
+              ...parsedCustomData,
+              cancelRequestedAt: new Date().toISOString(),
+              cancelRequestedBy: admin.id,
+            }),
+          },
+        });
+
+        // Trigger upstream provider cancel API
+        if (orderBefore.provider) {
+          try {
+            const providerInstance = await providerService.getProviderInstance(orderBefore.provider);
+            if (providerInstance.cancelOrder) {
+              await providerInstance.cancelOrder(orderBefore.externalId!);
+            }
+          } catch (pErr) {
+            console.warn(`[OrderService] Provider cancelOrder failed for ${orderId}:`, pErr);
+          }
+        }
+
+        await auditAdminAwaitable({
+          adminId: admin.id,
+          adminEmail: admin.email,
+          action: 'ORDER_CANCEL_REQUESTED',
+          target: orderId,
+          targetType: 'ORDER',
+          oldValue: { status: orderBefore.status },
+          newValue: {
+            status: 'CANCELING',
+            externalId: orderBefore.externalId,
+            description: `Запрос на отмену отправлен провайдеру (ID: ${orderBefore.externalId}). Средства на эскроу-холде.`,
+          },
+        });
+
+        return {
+          status: 'CANCELING',
+          refundCents: 0,
+          orderNumericId: orderBefore.numericId,
+          statusBefore: orderBefore.status,
+          remainsBefore: orderBefore.remains,
+          requiresProviderConfirmation: true,
+          message: 'Запрос на отмену отправлен поставщику. Средства удерживаются в эскроу до подтверждения отмены.',
+        };
+      }
+    }
 
     const result = await runSerializableTransaction(async (tx) => {
       const order = await tx.order.findUniqueOrThrow({
@@ -469,28 +566,10 @@ class AdminOrderService {
         include: { user: true, service: true },
       });
 
-      if (['CANCELED', 'ERROR', 'PARTIAL'].includes(order.status)) { // Removed COMPLETED
-        throw new Error(`Order ${order.numericId} is already in terminal state ${order.status} and cannot be canceled.`);
-      }
-
-      // Loss Prevention: Support cannot cancel active orders if upstream provider has disabled cancellations
-      const isPendingState = ['PENDING', 'PENDING_CHECK'].includes(order.status);
-      if (!isPendingState && order.status !== 'AWAITING_PAYMENT' && order.status !== 'COMPLETED' && !order.service.isCancelEnabled) {
-        const caller = await tx.user.findUniqueOrThrow({
-          where: { id: admin.id },
-          select: { role: true },
-        });
-        if (caller.role === 'SUPPORT') {
-          throw new Error(
-            `Отмена невозможна: услуга "${order.service.name}" не поддерживает отмену на стороне провайдера. Только Администратор или Владелец могут принудительно отменить этот заказ.`
-          );
-        }
-      }
-
       let calculatedRefundCents = 0;
       if (order.status === 'AWAITING_PAYMENT') {
         calculatedRefundCents = 0;
-      } else if (isPendingState) {
+      } else if (['PENDING', 'PENDING_CHECK'].includes(order.status)) {
         calculatedRefundCents = Number(order.charge);
       } else if (order.status === 'COMPLETED') {
         calculatedRefundCents = calculatePartialRefund({ ...order, remains: order.quantity });
@@ -523,7 +602,6 @@ class AdminOrderService {
 
       // R1-003 Fix: Roll back promo code uses if it was never paid
       if (order.status === 'AWAITING_PAYMENT' && order.promoCodeId) {
-        // Prevent double decrement for media group checkouts when cancelled individually
         const otherActiveOrdersCount = order.paymentId ? await tx.order.count({
           where: {
             paymentId: order.paymentId,
@@ -553,22 +631,167 @@ class AdminOrderService {
         );
       }
 
-      return { refundCents, orderNumericId: order.numericId, statusBefore: order.status, remainsBefore: order.remains };
+      return { status: 'CANCELED', refundCents, orderNumericId: order.numericId, statusBefore: order.status, remainsBefore: order.remains };
     });
 
     await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
-      action: 'ORDER_CANCEL',
+      action: options?.forceWriteOff ? 'ORDER_CANCEL_WRITE_OFF' : 'ORDER_CANCEL',
       target: orderId,
       targetType: 'ORDER',
       oldValue: { status: result.statusBefore, remains: result.remainsBefore },
-      newValue: { status: 'CANCELED', refundCents: result.refundCents },
+      newValue: { status: 'CANCELED', refundCents: result.refundCents, isForceWriteOff: Boolean(options?.forceWriteOff) },
     });
 
     CompensationService.trackCompensation(orderId).catch(err => console.error('[AdminOrderService] Failed to track compensation', err));
 
-    return { refundCents: result.refundCents, orderNumericId: result.orderNumericId };
+    return { status: 'CANCELED', refundCents: result.refundCents, orderNumericId: result.orderNumericId };
+  }
+
+  /**
+   * Sync single order status directly from upstream provider.
+   * Useful when an operator requests manual cancellation from provider support via Telegram,
+   * or when an order in CANCELING / IN_PROGRESS needs immediate verification.
+   */
+  async syncOrderStatusWithProvider(
+    orderId: string,
+    admin?: { id: string; email: string; tenantId?: string }
+  ) {
+    const order = await db.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { provider: true, service: true, user: true },
+    });
+
+    if (!order.provider || !order.externalId) {
+      throw new Error(`У заказа #${order.numericId} отсутствует внешний ID провайдера.`);
+    }
+
+    const providerInstance = await providerService.getProviderInstance(order.provider);
+    const statusResult = await providerInstance.getOrderStatus(order.externalId);
+
+    if (!statusResult || typeof statusResult !== 'object' || !statusResult.status) {
+      throw new Error(`Провайдер вернул некорректный ответ: ${JSON.stringify(statusResult)}`);
+    }
+
+    const rawStatus = String(statusResult.status).toLowerCase();
+    let targetStatus: 'COMPLETED' | 'CANCELED' | 'PARTIAL' | 'IN_PROGRESS' | null = null;
+
+    if (['completed', 'complete', 'success'].includes(rawStatus)) {
+      targetStatus = 'COMPLETED';
+    } else if (['canceled', 'cancelled', 'cancel'].includes(rawStatus)) {
+      targetStatus = 'CANCELED';
+    } else if (['partial', 'partially completed'].includes(rawStatus)) {
+      targetStatus = 'PARTIAL';
+    } else if (['processing', 'in progress', 'in_progress', 'pending'].includes(rawStatus)) {
+      targetStatus = 'IN_PROGRESS';
+    }
+
+    const remainsNum = statusResult.remains !== undefined ? parseInt(String(statusResult.remains), 10) : undefined;
+    const startCountNum = statusResult.start_count !== undefined ? parseInt(String(statusResult.start_count), 10) : undefined;
+
+    let updatedStatus = order.status;
+    let message = `Статус у провайдера: ${statusResult.status}`;
+
+    if (targetStatus === 'CANCELED') {
+      await db.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: 'CANCELED',
+            remains: order.quantity,
+            error: statusResult.error || 'Провайдер подтвердил отмену заказа',
+          },
+        });
+        await RefundPolicyService.processRefund(
+          {
+            id: order.id,
+            userId: order.userId,
+            charge: Number(order.charge),
+            quantity: order.quantity,
+            remains: order.quantity,
+            status: 'CANCELED',
+            tenantId: order.tenantId,
+          },
+          'Возврат: отмена подтверждена провайдером',
+          tx
+        );
+      });
+      updatedStatus = 'CANCELED';
+      message = `Провайдер подтвердил отмену заказа #${order.numericId}. Средства возвращены клиенту.`;
+    } else if (targetStatus === 'PARTIAL') {
+      const rawRemains = (remainsNum !== undefined && !isNaN(remainsNum) && remainsNum > 0) ? remainsNum : 0;
+      const safeRemains = Math.min(order.quantity, Math.max(0, rawRemains));
+      await db.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: 'PARTIAL',
+            remains: safeRemains,
+            startCount: startCountNum !== undefined && !isNaN(startCountNum) ? startCountNum : undefined,
+          },
+        });
+        await RefundPolicyService.processRefund(
+          {
+            id: order.id,
+            userId: order.userId,
+            charge: Number(order.charge),
+            quantity: order.quantity,
+            remains: safeRemains,
+            status: 'PARTIAL',
+            tenantId: order.tenantId,
+          },
+          'Возврат за недовыполненную часть заказа',
+          tx
+        );
+      });
+      updatedStatus = 'PARTIAL';
+      message = `Провайдер выполнил заказ #${order.numericId} частично (остаток: ${safeRemains}). Возврат оформлен.`;
+    } else if (targetStatus === 'COMPLETED') {
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'COMPLETED',
+          remains: 0,
+          startCount: startCountNum !== undefined && !isNaN(startCountNum) ? startCountNum : undefined,
+        },
+      });
+      updatedStatus = 'COMPLETED';
+      message = `Провайдер завершил выполнение заказа #${order.numericId}.`;
+    } else {
+      // IN_PROGRESS or still processing
+      const safeProgressRemains = (remainsNum !== undefined && !isNaN(remainsNum)) ? Math.min(order.quantity, Math.max(0, remainsNum)) : undefined;
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          remains: safeProgressRemains,
+          startCount: startCountNum !== undefined && !isNaN(startCountNum) ? startCountNum : undefined,
+        },
+      });
+      if (order.status === 'CANCELING') {
+        message = `Заказ #${order.numericId} всё ещё отменяется. Провайдер сообщает статус: ${statusResult.status}. Средства на эскроу-холде.`;
+      } else {
+        message = `Статус заказа #${order.numericId} у провайдера: ${statusResult.status}.`;
+      }
+    }
+
+    if (admin) {
+      await auditAdminAwaitable({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'ORDER_SYNC_PROVIDER',
+        target: orderId,
+        targetType: 'ORDER',
+        oldValue: { status: order.status },
+        newValue: { status: updatedStatus, providerStatus: statusResult.status, description: message },
+      });
+    }
+
+    return {
+      status: updatedStatus,
+      providerStatus: statusResult.status,
+      message,
+    };
   }
 
   /**

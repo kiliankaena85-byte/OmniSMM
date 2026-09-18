@@ -49,12 +49,20 @@ export interface OrderCreationParams {
   [key: string]: unknown;
 }
 
+export interface ProviderCancelResultDto {
+  success: boolean;
+  error?: string;
+  raw?: unknown;
+}
+
 export interface BaseProvider {
   getBalance(): Promise<ProviderBalanceDto>;
   getServices(): Promise<ProviderServiceDto[]>;
   createOrder(params: OrderCreationParams): Promise<ProviderOrderResponseDto>;
   getOrderStatus(orderId: string | number): Promise<ProviderOrderStatusDto>;
   getMultiOrderStatus(orderIds: (string | number)[]): Promise<ProviderMultiStatusResponse>;
+  cancelOrder?(orderId: string | number): Promise<ProviderCancelResultDto>;
   refill(orderId: string | number): Promise<{ refill?: string | number; error?: string }>;
   getRefillStatus(refillId: string | number): Promise<{ status?: string; error?: string }>;
 }
+

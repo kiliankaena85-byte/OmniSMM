@@ -29,12 +29,27 @@
     - Линтер изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
     - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
     - Линтер AST-гардов `npm run lint:guardrails` — 0 блокеров.
-- [x] ⚡ [ADR-2026-19-ASYNC-ORDER-CANCELLATION-AND-ESCROW-2026] Архитектурное решение (MADR 3.0): двухфазная асинхронная отмена заказов, эскроу-холд возвратов и ликвидация двойных убытков (ADR-2026-19 ACCEPTED):
-  * 📜 **Архитектурный стандарт `docs/architecture/ADR-2026-19-ASYNC-ORDER-CANCELLATION-AND-FINANCIAL-ESCROW.md`:**
+- [x] ⚡ [ADR-2026-19-ASYNC-ORDER-CANCELLATION-AND-ESCROW-2026] Архитектурное решение (MADR 3.0) и реализация: двухфазная асинхронная отмена заказов, эскроу-холд возвратов и ликвидация двойных убытков (100% COMPLETE & VERIFIED):
+  * 📜 **Архитектурный стандарт & Спецификация (`docs/architecture/ADR-2026-19-*.md`, `docs/specs/SPEC-2026-09-18-*.md`):**
     - Разобран инцидент заказа #174 (Vexboost `externalId: 298641822`), повлекший двойной финансовый убыток (возврат средств клиенту при продолжающемся платном исполнении у провайдера).
     - Зафиксирован 2PC Escrow протокол: разделение отмен до отправки (`externalId == null`, мгновенный возврат) и после отправки (`externalId !== null`, переход в `CANCELING`, вызов API `action: cancel`, эскроу-холд без преждевременного возврата).
     - Установлена статусная машина: `CANCELING` -> поллинг подтверждения провайдера (`Canceled` -> 100% возврат; `Partial` -> частичный возврат; `Completed` -> 0 возврата, услуга оказана).
     - Введены ролевые барьеры: запрет саппорту отменять неотменяемые услуги (`isCancelEnabled: false`) и выделение принудительного списания в убыток (`ADMIN_WRITE_OFF`) только для `OWNER`/`ADMIN`.
+  * ⚙️ **Бэкенд, интеграция с провайдерами и фоновые воркеры (`UniversalProvider`, `order.service.ts`, `sync.processor.ts`, `provider-status-sync.job.ts`):**
+    - В `BaseProvider` и `UniversalProvider` реализован метод `cancelOrder(orderId)` с поддержкой протокола SMM Panel API v2 (`action: cancel`).
+    - В `adminOrderService.cancelOrder` внедрен двухфазный протокол с удержанием средств в эскроу при статусе `CANCELING`.
+    - Добавлен метод `adminOrderService.syncOrderStatusWithProvider` и Server Action `syncSingleOrderStatusAction` для мгновенной сверки заказов, отмененных вручную через техподдержку провайдера (Telegram).
+    - В `sync.processor.ts` и `provider-status-sync.job.ts` расширены запросы для автоматической сверки заказов в статусе `CANCELING` с безопасным триггером возврата `RefundPolicyService.processRefund()` при подтверждении отмены провайдером.
+  * 🎨 **Интерфейс оператора (`OrderDetailsModal.tsx`, `OrderStatusBadge.tsx`, `status-helpers.ts`):**
+    - Добавлен статус `CANCELING` («Отменяется», янтарный пульсирующий бейдж).
+    - В модальное окно деталей заказа добавлена кнопка «Сверить статус» с прямым опросом API провайдера.
+    - В модальном окне подтверждения отмены добавлено ясное предупреждение об эскроу-холде и отправке запроса провайдеру.
+  * 🧪 **Верификация & Тесты:**
+    - Новый сьют `src/__tests__/orders/order-cancellation-escrow-state-machine.test.ts` — **8 из 8 тестов PASS (100%)** (все кейсы A–E: немедленный возврат неотправленных, блокировка саппорта, эскроу-холд, авто-возврат при подтверждении отмены провайдером, предотвращение двойного убытка при завершении).
+    - Все тесты пакета заказов `src/__tests__/orders/` — **33 из 33 PASS (100%)**.
+    - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
+    - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
+    - Проверка изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
 - [x] ⚡ [ORDER-WIZARD-DECOMPOSITION-AND-PRICE-DRIFT-TESTS-100-PASS-2026] Декомпозиция визарда заказов (Clean Architecture <= 200 строк), синхронизация моков защиты от дрифта цен и 100% PASS тестов заказов (100% COMPLETE & VERIFIED):
   * 🧩 **Декомпозиция хука и компонентов визарда заказов (`useWizardPricing.ts`, `useWizardLinkAnalyzer.ts`, `CheckoutPromoCode.tsx`):**
     - Создан хук `useWizardPricing.ts` (123 строки <= 200), инкапсулирующий расчет стоимости заказа `calculatePriceAction` и управление промокодами.

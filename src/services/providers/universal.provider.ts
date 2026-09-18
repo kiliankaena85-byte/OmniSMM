@@ -5,7 +5,8 @@ import {
   ProviderMultiStatusResponse, 
   ProviderOrderResponseDto, 
   ProviderOrderStatusDto, 
-  ProviderServiceDto 
+  ProviderServiceDto,
+  ProviderCancelResultDto
 } from './base-provider';
 import { ApiMappingDTO } from '../admin/provider.service';
 import { CircuitBreaker } from '@/lib/circuit-breaker';
@@ -353,6 +354,42 @@ export class UniversalProvider implements BaseProvider {
     const res = await this.request<Record<string, unknown>>({ action: 'status', orders: orderIds.join(',') });
     if (res.error) throw new Error(String(res.error));
     return res as unknown as ProviderMultiStatusResponse;
+  }
+
+  async cancelOrder(orderId: string | number): Promise<ProviderCancelResultDto> {
+    try {
+      const res = await this.request<unknown>({ action: 'cancel', orders: String(orderId) }, 0);
+      
+      if (Array.isArray(res) && res.length > 0) {
+        const item = res[0];
+        if (item && typeof item === 'object') {
+          if (item.cancel === 1 || item.cancel === true || item.status === 'canceled' || item.status === 'Canceled') {
+            return { success: true, raw: res };
+          }
+          if (item.cancel && typeof item.cancel === 'object' && item.cancel.error) {
+            return { success: false, error: String(item.cancel.error), raw: res };
+          }
+          if (item.error) {
+            return { success: false, error: String(item.error), raw: res };
+          }
+        }
+      }
+
+      if (res && typeof res === 'object') {
+        const obj = res as Record<string, unknown>;
+        if (obj.cancel === 1 || obj.cancel === true || obj.status === 'canceled' || obj.status === 'Canceled') {
+          return { success: true, raw: res };
+        }
+        if (obj.error) {
+          return { success: false, error: String(obj.error), raw: res };
+        }
+      }
+
+      return { success: true, raw: res };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: errMsg };
+    }
   }
 
   async refill(orderId: string | number): Promise<{ refill?: string | number; error?: string }> {

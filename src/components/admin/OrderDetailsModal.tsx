@@ -23,8 +23,10 @@ import {
   Clock, 
   Zap, 
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  RefreshCw
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import {
   cancelOrderAction,
@@ -34,6 +36,7 @@ import {
   getFailoverPreview,
   manualRerouteOrder,
   getOrderDetailsAction,
+  syncSingleOrderStatusAction,
 } from '@/actions/admin/orders';
 import { formatKopecks } from '@/utils/format-kopecks';
 import { classifyOrderError } from '@/lib/order-error-classifier';
@@ -331,13 +334,20 @@ export function OrderDetailsModal({
 
     if (confirmAction === 'cancel') {
       startTransition(async () => {
-        if (addOptimisticUpdate) {
-          addOptimisticUpdate({ id: currentOrder.id, status: 'CANCELED' });
-        }
         try {
           const r = await cancelOrderAction(fd);
           if (r.success) {
-            toast.success(`Заказ #${currentOrder.numericId} отменен с возвратом средств клиенту`);
+            if (r.status === 'CANCELING') {
+              toast.info(r.message || 'Запрос на отмену отправлен провайдеру. Средства удерживаются в эскроу до подтверждения.');
+              if (addOptimisticUpdate) {
+                addOptimisticUpdate({ id: currentOrder.id, status: 'CANCELING' });
+              }
+            } else {
+              toast.success(r.message || `Заказ #${currentOrder.numericId} отменен с возвратом средств клиенту`);
+              if (addOptimisticUpdate) {
+                addOptimisticUpdate({ id: currentOrder.id, status: 'CANCELED' });
+              }
+            }
             if (onSuccess) onSuccess();
             onClose();
           } else {
@@ -384,6 +394,28 @@ export function OrderDetailsModal({
         }
       });
     }
+  };
+
+  // Direct Provider Status Sync
+  const handleSyncStatus = () => {
+    if (!currentOrder) return;
+    startTransition(async () => {
+      try {
+        const r = await syncSingleOrderStatusAction(currentOrder.id);
+        if (r.success) {
+          toast.success(r.message || 'Статус успешно сверен с провайдером');
+          if (r.status && addOptimisticUpdate) {
+            addOptimisticUpdate({ id: currentOrder.id, status: r.status });
+          }
+          if (onSuccess) onSuccess();
+          onClose();
+        } else {
+          toast.error(r.error || 'Не удалось сверить статус');
+        }
+      } catch (e) {
+        toast.error((e as Error).message || 'Ошибка запроса к провайдеру');
+      }
+    });
   };
 
   // Failover Handler
@@ -914,6 +946,19 @@ export function OrderDetailsModal({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+            {/* Sync status with provider button */}
+            {Boolean(currentOrder.externalId) && (
+              <button
+                onClick={handleSyncStatus}
+                disabled={isPending}
+                className="px-3.5 py-2 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-bold text-xs transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                title="Запросить актуальный статус напрямую у провайдера"
+              >
+                <RefreshCw className={cn("w-3.5 h-3.5", isPending && "animate-spin")} />
+                <span>Сверить статус</span>
+              </button>
+            )}
+
             {/* Failover Button */}
             <button
               onClick={() => {
@@ -1012,7 +1057,9 @@ export function OrderDetailsModal({
       >
         <p className="text-xs text-muted-foreground">
           {confirmAction === 'cancel'
-            ? `Средства (${chargeRub.toFixed(2)} ₽) будут автоматически возвращены на баланс клиента.`
+            ? currentOrder.externalId
+              ? `Заказ передан провайдеру (ID: ${currentOrder.externalId}). Запрос на отмену будет отправлен провайдеру, а средства (${chargeRub.toFixed(2)} ₽) будут удержаны в эскроу до подтверждения отмены. При подтверждении возврат поступит автоматически.`
+              : `Средства (${chargeRub.toFixed(2)} ₽) будут автоматически возвращены на баланс клиента.`
             : confirmAction === 'restart'
             ? `Заказ будет повторно отправлен текущему провайдеру с новыми параметрами.`
             : `Статус заказа будет переведен в "Выполнен".`}

@@ -36,6 +36,11 @@ export const STATUS_CONFIG: Record<string, StatusConfig> = {
     badgeClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
     dotClass: 'bg-purple-500',
   },
+  CANCELING: {
+    label: 'Отменяется',
+    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    dotClass: 'bg-amber-500',
+  },
   CANCELED: {
     label: 'Отменён',
     badgeClass: 'bg-slate-500/10 text-slate-500 border-slate-500/20',

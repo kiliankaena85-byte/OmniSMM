@@ -130,6 +130,7 @@ export default defineConfig({
       'src/__tests__/multitenant-staff-isolation.test.ts',
       'src/__tests__/security/transactional-bulkhead-dlq-2026.test.ts',
       'src/__tests__/orders/order-wizard-cro-and-dripfeed.test.ts',
+      'src/__tests__/orders/order-cancellation-escrow-state-machine.test.ts',
       'src/__tests__/financial/wave3-fintech-fiscal-and-liquidity.test.ts',
       'src/lib/finance/__tests__/immutable-ledger-reconciliation.test.ts',
       'src/__tests__/qa-sentinel/**/*.test.ts',
