@@ -4,7 +4,6 @@ import React from "react";
 import { PublicNetwork, PublicService } from "@/actions/order/catalog";
 import { useOrderEngine } from "@/hooks/useOrderEngine";
 import { Header } from "./Header";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { PlanSlideOrderClient } from "./order-engine/variants/PlanSlideOrderClient";
 import { PlanFullscreenCheckout } from "./order-engine/variants/PlanFullscreenCheckout";
 import { type OrderFlowVariant } from "./order-engine/LayoutVariantToggle";
@@ -86,9 +85,6 @@ export function SmartLinkLanding({
 
         {flow === 'slide' ? (
           <div className="w-full flex flex-col items-center animate-in fade-in duration-300">
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-4 md:mb-6">
-              <ThemeSwitcher />
-            </div>
             <div className="w-full">
               <PlanSlideOrderClient 
                 initialCatalog={initialCatalog} 
@@ -102,9 +98,6 @@ export function SmartLinkLanding({
           <>
             {selectedService && (
               <div className="hidden md:flex w-full flex-col items-center animate-in fade-in duration-300">
-                <div className="flex flex-wrap items-center justify-center gap-3 mb-2 sm:mb-4">
-                  <ThemeSwitcher />
-                </div>
                 <PlanFullscreenCheckout
                   engine={engine}
                   selectedService={selectedService}

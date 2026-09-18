@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { HeroInput } from "./order-engine/HeroInput";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { SocialIcon } from "@/components/ui/SocialIcon";
@@ -32,9 +31,6 @@ export function LandingHeroArea({
     <>
       {/* Мобильный блок позиционирования и доверия: Mobile Trust Header (First-Screen Viewport Fit) */}
       <div className="block md:hidden text-center mb-3 w-full px-2 animate-in fade-in duration-300">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <ThemeSwitcher />
-        </div>
 
         {/* Микро-бейдж доверия */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold shadow-xs">
@@ -100,9 +96,6 @@ export function LandingHeroArea({
 
       {/* Десктопный Hero блок */}
       <div className="hidden md:block text-center space-y-4 mb-8 max-w-4xl mx-auto relative z-20 w-full mt-2 px-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="mb-2 flex items-center justify-center gap-3">
-          <ThemeSwitcher />
-        </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.08] drop-shadow-md text-balance">
           {customHeroTitle || (
             <>
