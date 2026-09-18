@@ -25,7 +25,9 @@ export async function GET(req: Request) {
   const settings = await SettingsProvider.get(tenantId);
 
   const isTestDomain = host.startsWith('test.') && !host.includes('.ts.net') && !host.includes('tailscale');
-  const isMaintenanceMode = settings.maintenanceMode && !isTestDomain;
+  const isEnvExplicitFalse = process.env.MAINTENANCE_MODE === 'false';
+  const isEnvMaintenance = process.env.MAINTENANCE_MODE === 'true';
+  const isMaintenanceMode = !isEnvExplicitFalse && (isEnvMaintenance || Boolean(settings.maintenanceMode)) && !isTestDomain;
 
   if (isMaintenanceMode) {
     const contactSettings = await SettingsProvider.getContactAndLegalSettings(tenantId);
