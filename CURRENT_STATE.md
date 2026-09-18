@@ -1,3 +1,22 @@
+- [x] ⚡ [ORDERS-VIEW-SWITCHER-AND-COMPACT-LIST-2026] Внедрение переключателя видов «Список / Таблица» vs «Карточки» в истории заказов (/dashboard/orders) (100% COMPLETE & VERIFIED):
+  * 🔀 **Селектор режимов отображения (`OrderViewModeSwitcher.tsx`):**
+    - Сегментированный контроллер с иконками `List` и `LayoutGrid`, доступность W3C WAI-ARIA `role="radiogroup"`, `role="radio"`, `aria-checked`, тач-таргеты $\ge 44\text{px}$ на мобильных.
+    - Персистенция в `localStorage` (`smmplan_orders_view_mode`), кросс-вкладочная синхронизация через `window.addEventListener('storage', ...)`.
+    - Динамический счетчик заказов с русским склонением (`заказ`, `заказа`, `заказов`).
+  * 🖥️ **Десктопный режим (1280px+):**
+    - Режим «Таблица» (`DesktopOrderTable.tsx`): сверхплотная компоновка (ID с кликабельным копированием, соцсеть + бейдж `#ID` услуги, целевая ссылка с копированием, объем, Drip-индикатор, сумма с модалкой расшифровки скидки, статус-бейдж с прогресс-баром и текстом ошибки, действия Refill / Repeat / Cancel / Retry, дата).
+    - Режим «Карточки» (`DesktopOrderCards.tsx`): визуальная Bento-сетка для просторного обзора.
+  * 📱 **Планшетный и мобильный режим (1024px, 390px):**
+    - Режим «Список» (`MobileOrderList.tsx` с `viewMode="table"`): компактные строки (~52px на заказ) с ID, иконкой соцсети, названием, суммой, статусом, количеством, ссылкой и шевроном. Клик по строке открывает нижнюю шторку деталей (`Drawer`).
+    - Режим «Карточки» (`MobileOrderList.tsx` с `viewMode="cards"`): 2-колоночные / 1-колоночные карточки с полным отображением ошибок без обрезания.
+  * 🛡️ **Защитные инварианты & Flight Boundary:**
+    - Изолирована BigInt сериализация: `Number(user.balance ?? 0)` предотвращает падение RSC в Next.js 16.
+    - Безопасная обработка дат в `<ClientDate>` без сбоев `RangeError: Invalid time value`.
+  * 🧪 **Тестирование & CI/CD:**
+    - 17/17 юнит-тестов пройдено (`order-view-switcher.test.tsx`, `orders-mobile-layout-responsiveness.test.tsx`).
+    - `npx tsc --noEmit` — 0 ошибок компиляции.
+    - Standalone сборка Next.js 16 и сканирование секретов успешно пройдены.
+    - 7 сквозных браузерных тестов Playwright на Stage (:3005) подтвердили нулевой горизонтальный скролл (`docWidth === winWidth`) на всех разрешениях.
 - [x] ⚡ [FOOLPROOF-MINIMALIST-UX-AND-AUTOFOLDING-2026] Внедрение ИИ-скилла foolproof-minimalist-ux, авто-схлопывания категорий и масштабирования (8 категорий, 10+ тарифов) (100% COMPLETE & VERIFIED):
   * 📦 **Архитектурный ИИ-скилл `foolproof-minimalist-ux`:**
     - Разработана Tier 2 спецификация `docs/specs/SPEC-2026-09-18-foolproof-minimalist-ux.md`.

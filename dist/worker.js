@@ -109429,12 +109429,23 @@ var init_universal_provider = __esm({
       }
       async refill(orderId) {
         const res = await this.request({ action: "refill", order: orderId }, 0);
-        if (res.error) return { error: res.error };
+        if (!res) return { error: "Empty response from provider" };
+        if (res.error) return { error: String(res.error) };
+        if (res.refill && typeof res.refill === "object" && res.refill.error) {
+          return { error: String(res.refill.error) };
+        }
+        if (res.status === "fail" && (res.message || res.error)) {
+          return { error: String(res.message || res.error) };
+        }
         return res;
       }
       async getRefillStatus(refillId) {
         const res = await this.request({ action: "refill_status", refill: refillId });
-        if (res.error) return { error: res.error };
+        if (!res) return { error: "Empty response from provider" };
+        if (res.error) return { error: String(res.error) };
+        if (res.status && typeof res.status === "object" && res.status.error) {
+          return { error: String(res.status.error) };
+        }
         return res;
       }
     };
@@ -110438,7 +110449,7 @@ function inferTargetTypeFromName(name) {
   if (!name) return "POST" /* POST */;
   const n = name.toLowerCase().replace(/vexboost/gi, "").replace(/smmboost/gi, "");
   const nNoPunct = n.replace(/[^a-zа-яё0-9]/gi, "");
-  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
+  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || /\d+-\d+\s*пост/i.test(n) || /\d+\s*пост/i.test(n) || /на\s+несколько\s+постов/i.test(n) || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
   n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u043E\u0441\u0442") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u0443\u0431\u043B\u0438\u043A") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D") && (n.includes("\u043F\u043E\u0441\u0442") || n.includes("\u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u0443\u0431\u043B\u0438\u043A")) || n.includes("last post") || n.includes("last 5 post") || n.includes("last 10 post") || n.includes("last 20 post") || n.includes("last 50 post") || // "Пакет охвата" — views package on last N posts of a channel
   n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440")) {
     return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
@@ -161135,12 +161146,44 @@ async function ensureCategoryForActivityType(networkId, networkName, networkSlug
   });
   return newCat.id;
 }
+var PLATFORM_BRAND_PATTERNS = [
+  { platform: "Telegram", pattern: /(?:telegram|телеграм|(?<![а-яёa-z0-9])тг(?![а-яёa-z0-9]))/i },
+  { platform: "Instagram", pattern: /(?:instagram|инстаграм|инста|(?<![а-яёa-z0-9])(?:инст|ig)(?![а-яёa-z0-9]))/i },
+  { platform: "VK", pattern: /(?:вконтакте|(?<![а-яёa-z0-9])(?:vk|вк)(?![а-яёa-z0-9]))/i },
+  { platform: "YouTube", pattern: /(?:youtube|ютуб|(?<![а-яёa-z0-9])(?:ют|yt)(?![а-яёa-z0-9]))/i },
+  { platform: "TikTok", pattern: /(?:tiktok|тикток|(?<![а-яёa-z0-9])(?:тт|tt)(?![а-яёa-z0-9]))/i },
+  { platform: "Rutube", pattern: /(?:rutube|рутуб)/i },
+  { platform: "Twitch", pattern: /(?:twitch|твич)/i },
+  { platform: "Twitter", pattern: /(?:twitter|твиттер|(?<![а-яёa-z0-9])x(?![а-яёa-z0-9]))/i },
+  { platform: "Facebook", pattern: /(?:facebook|фейсбук|(?<![а-яёa-z0-9])(?:фб|fb)(?![а-яёa-z0-9]))/i },
+  { platform: "Discord", pattern: /(?:discord|дискорд|(?<![а-яёa-z0-9])(?:дс|ds)(?![а-яёa-z0-9]))/i },
+  { platform: "Kick", pattern: /(?:kick|кик)/i },
+  { platform: "Likee", pattern: /(?:likee|лайки)/i },
+  { platform: "Threads", pattern: /(?:threads|тредс)/i },
+  { platform: "Dzen", pattern: /(?:dzen|дзен)/i },
+  { platform: "OK", pattern: /(?:одноклассники|(?<![а-яёa-z0-9])(?:ок|ok)(?![а-яёa-z0-9]))/i }
+];
+function detectTargetPlatform(categoryName, networkName) {
+  if (networkName) {
+    const matched = PLATFORM_BRAND_PATTERNS.find((p) => p.pattern.test(networkName));
+    if (matched) return matched.platform;
+    return networkName;
+  }
+  if (categoryName) {
+    const matched = PLATFORM_BRAND_PATTERNS.find((p) => p.pattern.test(categoryName));
+    if (matched) return matched.platform;
+  }
+  return null;
+}
 function inferCanonicalActivityType(normalizedCategory, serviceName, targetType) {
   const n = (serviceName || "").toLowerCase();
-  if (/подписч|member|follower|читател|фолловер/i.test(n) && !/авто.*просмотр|просмотр.*подпис/i.test(n)) {
+  if ((/подписч|member|follower|читател|фолловер/i.test(n) || /участник/i.test(n) && !/опрос|голос|викторин|poll|vote/i.test(n)) && !/авто.*просмотр|просмотр.*подпис/i.test(n)) {
     return "SUBSCRIBERS";
   }
-  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|реакц|лайк/i.test(n)) {
+  if (/истори|сторис|story|stories/i.test(n) && !/подписч/i.test(n)) {
+    return "STORIES";
+  }
+  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|участник|истори|сторис|реакц|лайк/i.test(n)) {
     return /авто|auto|будущ/i.test(n) ? "AUTO_VIEWS" : "VIEWS";
   }
   if (/лайк|like|сердеч|мне нравится/i.test(n) && !/подписч|просмотр|репост/i.test(n)) {
@@ -161161,9 +161204,6 @@ function inferCanonicalActivityType(normalizedCategory, serviceName, targetType)
   if (/опрос|голос|викторин|poll|vote/i.test(n)) {
     return "POLLS";
   }
-  if (/истори|сторис|story|stories/i.test(n) && !/лайк|просмотр/i.test(n)) {
-    return "STORIES";
-  }
   if (/стрим|stream|live|эфир|баттл|battle/i.test(n) && !/подписч/i.test(n)) {
     return "STREAMS";
   }
@@ -161178,9 +161218,10 @@ function inferCanonicalActivityType(normalizedCategory, serviceName, targetType)
   }
   return null;
 }
-function formatFullServiceName(rawName, categoryName) {
-  const clean = ServiceAuditEngine.cleanText(rawName);
-  if (!categoryName) return clean;
+function formatFullServiceName(rawName, categoryName, networkName) {
+  let clean = ServiceAuditEngine.cleanText(rawName);
+  if (!categoryName && !networkName) return clean;
+  const targetPlatform = detectTargetPlatform(categoryName, networkName);
   const catKeywords = [
     "\u043F\u043E\u0434\u043F\u0438\u0441",
     "\u043B\u0430\u0439\u043A",
@@ -161219,13 +161260,21 @@ function formatFullServiceName(rawName, categoryName) {
     "traffic"
   ];
   const hasCat = catKeywords.some((k) => clean.toLowerCase().includes(k));
-  if (hasCat) return clean;
-  const cleanCat = categoryName.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim();
-  const platformKeywords = ["telegram", "instagram", "tiktok", "youtube", "vk", "\u0432\u043A\u043E\u043D\u0442\u0430\u043A\u0442\u0435", "max", "ok", "likee", "dzen", "twitch", "twitter", "facebook", "other", "\u0434\u0440\u0443\u0433\u043E\u0435"];
-  if (platformKeywords.includes(cleanCat.toLowerCase())) {
-    return clean;
+  if (!hasCat && categoryName) {
+    const cleanCat = categoryName.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim();
+    const platformKeywords = ["telegram", "instagram", "tiktok", "youtube", "vk", "\u0432\u043A\u043E\u043D\u0442\u0430\u043A\u0442\u0435", "max", "ok", "likee", "dzen", "twitch", "twitter", "facebook", "other", "\u0434\u0440\u0443\u0433\u043E\u0435"];
+    if (!platformKeywords.includes(cleanCat.toLowerCase())) {
+      clean = `${cleanCat} - ${clean}`;
+    }
   }
-  return `${cleanCat} - ${clean}`;
+  if (targetPlatform) {
+    const brandEntry = PLATFORM_BRAND_PATTERNS.find((p) => p.platform.toLowerCase() === targetPlatform.toLowerCase());
+    const hasBrand = brandEntry ? brandEntry.pattern.test(clean) : clean.toLowerCase().includes(targetPlatform.toLowerCase());
+    if (!hasBrand) {
+      clean = `${targetPlatform} ${clean}`;
+    }
+  }
+  return clean;
 }
 var rawServiceSchema = external_exports.object({
   service: external_exports.union([external_exports.string(), external_exports.number()]),
@@ -161297,9 +161346,10 @@ var AdminCatalogService = class {
     }
     if (params.search?.trim()) {
       const q = params.search.trim();
+      const normalizedNumericQ = q.replace(/^[#№\s]+/, "").replace(/^id[\s:]*/i, "").trim();
       const lowerQ = q.toLowerCase();
-      const numId = parseInt(q, 10);
-      const isPureNumber = !isNaN(numId) && q === String(numId);
+      const numId = parseInt(normalizedNumericQ, 10);
+      const isPureNumber = !isNaN(numId) && normalizedNumericQ === String(numId);
       const orConditions = [];
       if (isPureNumber) {
         orConditions.push({ numericId: numId });
@@ -162078,6 +162128,17 @@ var AdminCatalogService = class {
       const rawMax = parseInt(String(liveExt.max), 10);
       const minQty = isNaN(rawMin) || rawMin <= 0 ? 10 : rawMin;
       const maxQty = isNaN(rawMax) || rawMax < minQty ? Math.max(minQty * 10, 1e4) : rawMax;
+      const isExplicitlyMapped = Boolean(categoryIdMap?.[extId]);
+      const servicePlatform = (shadowExt.platform || "").toLowerCase().trim();
+      if (!isExplicitlyMapped && (!servicePlatform || servicePlatform === "other" || servicePlatform === "unknown")) {
+        skipped.push({
+          externalId: extId,
+          name: shadowExt.cleanName || shadowExt.name,
+          reason: "UNKNOWN_PLATFORM"
+        });
+        warnings.push(`\u0423\u0441\u043B\u0443\u0433\u0430 ${extId} (\xAB${shadowExt.name}\xBB) \u043E\u0442\u043A\u043B\u043E\u043D\u0435\u043D\u0430: \u043D\u0435 \u043E\u043F\u0440\u0435\u0434\u0435\u043B\u0435\u043D\u0430 \u0441\u043E\u0446\u0438\u0430\u043B\u044C\u043D\u0430\u044F \u0441\u0435\u0442\u044C. \u0410\u0432\u0442\u043E-\u0438\u043C\u043F\u043E\u0440\u0442 \u0431\u0435\u0437 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u043E\u0439 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u044B \u0437\u0430\u043F\u0440\u0435\u0449\u0451\u043D.`);
+        continue;
+      }
       const importedName = shadowExt.cleanName || liveExt.name;
       const importedDesc = liveExt.desc || null;
       const baseSlug = importedName.toLowerCase().trim().replace(/[^a-z0-9а-яё]+/gi, "-").replace(/^-+|-+$/g, "") || `service-${extId}`;
@@ -162120,15 +162181,29 @@ var AdminCatalogService = class {
           }
         }
         takenSlugs.add(`${tId}:${stableSlug}`);
+        let effectiveServiceNetwork = null;
         const resolvedCategoryId = await (async () => {
+          const explicitId = categoryIdMap?.[extId];
+          if (explicitId) {
+            return explicitId;
+          }
           const normCat = shadowExt.normalizedCategory;
           const serviceCanonicalType2 = inferCanonicalActivityType(normCat, shadowExt.cleanName || shadowExt.name || "", shadowExt.targetType);
-          const explicitId = categoryIdMap?.[extId];
-          const candidateCatId = explicitId || categoryId;
-          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || (candidateCatId === categoryId ? fallbackCategoryRecord?.activityType : "") || "";
+          const candidateCatId = categoryId;
+          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || fallbackCategoryRecord?.activityType || "";
           const candidateName = (categoryNameMap.get(candidateCatId) || "").toLowerCase();
-          const targetNetwork = categoryNetworkMap.get(candidateCatId) || fallbackCategoryRecord?.network || networkBySlug.get((shadowExt.platform || "").toLowerCase());
+          const detectedPlatformName = detectTargetPlatform(null, shadowExt.cleanName || shadowExt.name) || shadowExt.platform;
+          const detectedServiceNetwork = detectedPlatformName ? networkBySlug.get(detectedPlatformName.toLowerCase()) : null;
+          let targetNetwork = categoryNetworkMap.get(candidateCatId) || fallbackCategoryRecord?.network || networkBySlug.get((shadowExt.platform || "").toLowerCase());
+          if (detectedServiceNetwork && targetNetwork && detectedServiceNetwork.id !== targetNetwork.id) {
+            targetNetwork = detectedServiceNetwork;
+          }
+          effectiveServiceNetwork = targetNetwork || null;
           let isContradiction = false;
+          if (detectedServiceNetwork && targetNetwork && detectedServiceNetwork.id !== targetNetwork.id) {
+            isContradiction = true;
+            targetNetwork = detectedServiceNetwork;
+          }
           if (serviceCanonicalType2 && targetNetwork) {
             if (serviceCanonicalType2 === "SUBSCRIBERS") {
               if (candidateActivityType && candidateActivityType !== "SUBSCRIBERS") isContradiction = true;
@@ -162136,6 +162211,12 @@ var AdminCatalogService = class {
             } else if (serviceCanonicalType2 === "VIEWS" || serviceCanonicalType2 === "AUTO_VIEWS") {
               if (candidateActivityType && !["VIEWS", "AUTO_VIEWS", "AUTO_SERVICES"].includes(candidateActivityType)) isContradiction = true;
               else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043B\u0430\u0439\u043A") || candidateName.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "STORIES") {
+              if (candidateActivityType && candidateActivityType !== "STORIES") isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") && !candidateName.includes("\u0438\u0441\u0442\u043E\u0440\u0438") && !candidateName.includes("\u0441\u0442\u043E\u0440\u0438\u0441") || candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043B\u0430\u0439\u043A"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "POLLS") {
+              if (candidateActivityType && candidateActivityType !== "POLLS") isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043B\u0430\u0439\u043A"))) isContradiction = true;
             } else if (serviceCanonicalType2 === "LIKES" || serviceCanonicalType2 === "AUTO_LIKES") {
               if (candidateActivityType && !["LIKES", "AUTO_LIKES", "AUTO_SERVICES"].includes(candidateActivityType)) isContradiction = true;
               else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442"))) isContradiction = true;
@@ -162147,6 +162228,7 @@ var AdminCatalogService = class {
               else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447"))) isContradiction = true;
             } else if (serviceCanonicalType2 === "BOOSTS") {
               if (candidateActivityType && candidateActivityType !== "BOOSTS") isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043B\u0430\u0439\u043A"))) isContradiction = true;
             } else if (serviceCanonicalType2 === "REPOSTS") {
               if (candidateActivityType && candidateActivityType !== "REPOSTS") isContradiction = true;
             } else if (serviceCanonicalType2 === "STREAMS") {
@@ -162170,9 +162252,6 @@ var AdminCatalogService = class {
             }
             return autoCreatedCategoryCache.get(cacheKey);
           }
-          if (explicitId) {
-            return explicitId;
-          }
           if (serviceCanonicalType2 && serviceCanonicalType2 !== "OTHER" && targetNetwork && serviceCanonicalType2 !== fallbackCategoryRecord?.activityType) {
             const cacheKey = `${targetNetwork.id}_${serviceCanonicalType2}_${tId}`;
             if (!autoCreatedCategoryCache.has(cacheKey)) {
@@ -162190,6 +162269,7 @@ var AdminCatalogService = class {
           return categoryId;
         })();
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || "";
+        const resolvedNetworkName = categoryNetworkMap.get(resolvedCategoryId)?.name || effectiveServiceNetwork?.name || fallbackCategoryRecord?.network?.name || shadowExt.platform || "";
         const serviceCanonicalType = inferCanonicalActivityType(shadowExt.normalizedCategory, shadowExt.cleanName || shadowExt.name || "", shadowExt.targetType);
         let effectiveTargetType = shadowExt.targetType;
         if (serviceCanonicalType === "SUBSCRIBERS") {
@@ -162205,7 +162285,7 @@ var AdminCatalogService = class {
         servicesToCreate.push({
           tenantId: tId,
           slug: stableSlug,
-          name: formatFullServiceName(importedName, resolvedCategoryName),
+          name: formatFullServiceName(importedName, resolvedCategoryName, resolvedNetworkName),
           // Use formatted Action — Tariff Name
           description: importedDesc ? sanitizeServiceDescription(ServiceAuditEngine.cleanText(importedDesc)) : null,
           externalId: extId,
@@ -163171,6 +163251,99 @@ var import_bullmq3 = __toESM(require_cjs());
 init_db();
 init_provider_service();
 init_logger();
+
+// src/services/refill/refill-error-classifier.ts
+var BUSINESS_PATTERNS = [
+  {
+    // Vexboost / Universal / SMM Panel: "is_not_available", "not_available", "refill is not available"
+    pattern: /(is_not_available|not_available|\bnot available\b|refill is not available|refill not available|refill_not_available|service does not support refill|service does not provide refill|\bno refill\b|refill is not supported|refill not supported|refill[_\s]+(?:is[_\s]+)?disabled)/i,
+    code: "REFILL_NOT_AVAILABLE",
+    userMessage: "\u0413\u0430\u0440\u0430\u043D\u0442\u0438\u0439\u043D\u0430\u044F \u0434\u043E\u043A\u0440\u0443\u0442\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u0434\u043B\u044F \u0434\u0430\u043D\u043D\u043E\u0439 \u0443\u0441\u043B\u0443\u0433\u0438 \u0438\u043B\u0438 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u043B refill."
+  },
+  {
+    pattern: /(guarantee_expired|guarantee expired|warranty_expired|warranty expired|out of guarantee|warranty ended|guarantee ended|refill period has ended|refill period ended|refill ended|guarantee has ended|warranty has ended)/i,
+    code: "GUARANTEE_EXPIRED",
+    userMessage: "\u0421\u0440\u043E\u043A \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044F \u0433\u0430\u0440\u0430\u043D\u0442\u0438\u0439\u043D\u043E\u0433\u043E \u043F\u0435\u0440\u0438\u043E\u0434\u0430 \u043D\u0430 \u0434\u043E\u043A\u0440\u0443\u0442\u043A\u0443 \u0438\u0441\u0442\u0451\u043A."
+  },
+  {
+    pattern: /(order_must_be_completed|order must be completed|order is not completed|not completed|has not yet ended|order still in progress|order is in progress|order in progress)/i,
+    code: "ORDER_NOT_COMPLETED",
+    userMessage: "\u0417\u0430\u043A\u0430\u0437 \u0435\u0449\u0451 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u043E\u043C. \u0414\u043E\u043A\u0440\u0443\u0442\u043A\u0430 \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u0441\u043B\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F."
+  },
+  {
+    pattern: /(already_refilled|already refilled|refill already in progress|refill in progress|refill is already running|refill already submitted|already submitted|refill already queued|refill already requested|refill is processing|already queued)/i,
+    code: "ALREADY_REFILLED",
+    userMessage: "\u0417\u0430\u044F\u0432\u043A\u0430 \u043D\u0430 \u0434\u043E\u043A\u0440\u0443\u0442\u043A\u0443 \u0443\u0436\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u043E\u043C \u0438 \u043D\u0430\u0445\u043E\u0434\u0438\u0442\u0441\u044F \u0432 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u044F."
+  },
+  {
+    pattern: /(drop_not_detected|drop not detected|no drop|no drop detected|drop is not detected|count not dropped|drop not found|not enough drops|no drops|greater than or equal to start count|higher than start count)/i,
+    code: "DROP_NOT_DETECTED",
+    userMessage: "\u041F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A \u043D\u0435 \u0437\u0430\u0444\u0438\u043A\u0441\u0438\u0440\u043E\u0432\u0430\u043B \u0441\u043F\u0438\u0441\u0430\u043D\u0438\u044F \u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A\u043E\u0432 \u0438\u043B\u0438 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u043E\u0432 \u043F\u043E \u0446\u0435\u043B\u0435\u0432\u043E\u0439 \u0441\u0441\u044B\u043B\u043A\u0435."
+  },
+  {
+    pattern: /(refill[_\s]+limit[_\s]+reached|max[_\s]+refills?[_\s]+reached|refill[_\s]+limit[_\s]+exceeded|max_refill_reached|refill count exceeded|maximum refill reached)/i,
+    code: "LIMIT_REACHED",
+    userMessage: "\u041F\u0440\u0435\u0432\u044B\u0448\u0435\u043D \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u043B\u0438\u043C\u0438\u0442 \u0433\u0430\u0440\u0430\u043D\u0442\u0438\u0439\u043D\u044B\u0445 \u0434\u043E\u043A\u0440\u0443\u0442\u043E\u043A \u0434\u043B\u044F \u0434\u0430\u043D\u043D\u043E\u0433\u043E \u0437\u0430\u043A\u0430\u0437\u0430."
+  },
+  {
+    pattern: /(too soon to refill|\btoo soon\b|wait before refill|please wait \d+|try again in|cooldown active|wait \d+\s*hours|can only request refill after)/i,
+    code: "TOO_SOON",
+    userMessage: "\u0421\u043B\u0438\u0448\u043A\u043E\u043C \u0440\u0430\u043D\u043E \u0434\u043B\u044F \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u043E\u0439 \u0434\u043E\u043A\u0440\u0443\u0442\u043A\u0438, \u043F\u043E\u0434\u043E\u0436\u0434\u0438\u0442\u0435 \u043D\u0435\u043A\u043E\u0442\u043E\u0440\u043E\u0435 \u0432\u0440\u0435\u043C\u044F."
+  },
+  {
+    pattern: /(order canceled|order refunded|order is canceled|order was canceled|order_canceled|order_refunded|order has been canceled)/i,
+    code: "ORDER_CANCELED",
+    userMessage: "\u0417\u0430\u043A\u0430\u0437 \u0431\u044B\u043B \u043E\u0442\u043C\u0435\u043D\u0451\u043D \u0438\u043B\u0438 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0451\u043D \u0443 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430."
+  },
+  {
+    pattern: /(incorrect order id|order not found|order does not exist|invalid order id|wrong order id|order_not_found)/i,
+    code: "ORDER_NOT_FOUND",
+    userMessage: "\u0417\u0430\u043A\u0430\u0437 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D \u0432 \u0431\u0430\u0437\u0435 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430 \u0443\u0441\u043B\u0443\u0433."
+  },
+  {
+    pattern: /(link is private|account is private|profile is private|channel not found|post not found|post deleted|page not found|invalid link|link not accessible|private account|private link)/i,
+    code: "TARGET_UNAVAILABLE_OR_PRIVATE",
+    userMessage: "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u0438\u043B\u0438 \u0441\u0441\u044B\u043B\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 (\u043F\u0440\u0438\u0432\u0430\u0442\u043D\u044B\u0439 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 \u0438\u043B\u0438 \u043F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044F \u0431\u044B\u043B\u0430 \u0443\u0434\u0430\u043B\u0435\u043D\u0430)."
+  }
+];
+function classifyRefillError(rawError) {
+  const normalized = (rawError || "").trim();
+  if (!normalized) {
+    return {
+      type: "TRANSIENT_FAILURE",
+      code: "TRANSIENT_NETWORK_OR_SERVER_ERROR",
+      retryable: true,
+      reason: "Empty error response from provider"
+    };
+  }
+  const isHttpOrInfrastructureError = /\b(50[0-4]|52[0-9]|408|429)\b/.test(normalized) || /(bad gateway|gateway timeout|service temporarily unavailable|service unavailable|internal server error|web server is down|web server is not available)/i.test(normalized) || /(etimedout|econnreset|econnrefused|enotfound|enetunreach|socket hang up|fetch failed|network error|request timeout|upstream request failed)/i.test(normalized) || /(rate[_\s]*limit|too many requests|cloudflare)/i.test(normalized);
+  if (isHttpOrInfrastructureError) {
+    return {
+      type: "TRANSIENT_FAILURE",
+      code: "TRANSIENT_NETWORK_OR_SERVER_ERROR",
+      retryable: true,
+      reason: normalized
+    };
+  }
+  for (const def of BUSINESS_PATTERNS) {
+    if (def.pattern.test(normalized)) {
+      return {
+        type: "BUSINESS_REJECTION",
+        code: def.code,
+        userMessage: def.userMessage,
+        reason: normalized
+      };
+    }
+  }
+  return {
+    type: "TRANSIENT_FAILURE",
+    code: "TRANSIENT_NETWORK_OR_SERVER_ERROR",
+    retryable: true,
+    reason: normalized
+  };
+}
+
+// src/workers/processors/refill.processor.ts
 var log23 = logger.child({ component: "RefillProcessor" });
 async function refillProcessor(job) {
   let refillId;
@@ -163211,16 +163384,18 @@ async function refillProcessor(job) {
   if (order.status === "CANCELED" || order.status === "ERROR") {
     await db.refill.update({
       where: { id: refillId },
-      data: { status: "ERROR" }
+      data: { status: "REJECTED" }
     });
-    throw new import_bullmq3.UnrecoverableError(`Order status is ${order.status}. Refill aborted.`);
+    log23.warn(`[RefillProcessor] Refill ${refillId} rejected: order status is ${order.status}`);
+    return { success: false, status: "REJECTED", reason: `Order status is ${order.status}` };
   }
   if (!order.externalId) {
     await db.refill.update({
       where: { id: refillId },
       data: { status: "ERROR" }
     });
-    throw new import_bullmq3.UnrecoverableError(`Order ${order.id} has no external ID.`);
+    log23.error(`[RefillProcessor] Refill ${refillId} aborted: Order ${order.id} has no external ID`);
+    return { success: false, status: "ERROR", reason: "Order has no external ID" };
   }
   const providerDef = order.service.provider;
   if (!providerDef || !providerDef.apiUrl || !providerDef.apiKey) {
@@ -163242,10 +163417,29 @@ async function refillProcessor(job) {
     const provider = await providerService.getWorkerProviderInstance(providerDef);
     const response = await provider.refill(order.externalId);
     if (response.error) {
+      const classification = classifyRefillError(response.error);
+      if (classification.type === "BUSINESS_REJECTION") {
+        await db.refill.update({
+          where: { id: refill.id },
+          data: { status: "REJECTED" }
+        });
+        await redis2.del(mutexKey).catch(() => {
+        });
+        log23.warn(
+          `[RefillProcessor] Refill ${refill.id} for order #${order.numericId} rejected by provider (${providerDef.name}): ${response.error} [${classification.code}]`
+        );
+        return {
+          success: false,
+          status: "REJECTED",
+          reason: response.error,
+          code: classification.code,
+          userMessage: classification.userMessage
+        };
+      }
       throw new Error(response.error);
     }
-    if (!response.refill) {
-      throw new Error("No refill ID returned by provider");
+    if (!response.refill || response.refill === 0 || response.refill === "0" || typeof response.refill === "object") {
+      throw new Error("No valid refill ID returned by provider");
     }
     const extId = response.refill.toString();
     await db.refill.update({
@@ -163255,7 +163449,8 @@ async function refillProcessor(job) {
         externalId: extId
       }
     });
-    log23.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order ${order.id} | External ID: ${extId}`);
+    log23.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order #${order.numericId} | External ID: ${extId}`);
+    return { success: true, status: "IN_PROGRESS", externalId: extId };
   } catch (error) {
     log23.error(`[RefillProcessor] Failed to process refill ${refill.id}: ${error instanceof Error ? error.message : String(error)}`);
     await redis2.del(mutexKey).catch(() => {
@@ -164841,7 +165036,7 @@ async function handleDeadLetter(queueName, job, err) {
           log30.info(`Marked dead-letter refill ${payload.refillId} as ERROR`);
         }
       }
-      const isFinancialQueue = ["ordersQueue", "paymentSyncQueue", "paymentGatewayQueue", "refillQueue"].includes(queueName);
+      const isFinancialQueue = ["ordersQueue", "paymentSyncQueue", "paymentGatewayQueue"].includes(queueName);
       if (isFinancialQueue && !isParkedForTriage) {
         await sendAdminAlert(
           `\u{1FAA6} *Dead Letter Job (P0 \u0424\u0438\u043D\u0430\u043D\u0441\u043E\u0432\u044B\u0439)*

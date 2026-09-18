@@ -70772,7 +70772,7 @@ function inferTargetTypeFromName(name) {
   if (!name) return "POST" /* POST */;
   const n = name.toLowerCase().replace(/vexboost/gi, "").replace(/smmboost/gi, "");
   const nNoPunct = n.replace(/[^a-zа-яё0-9]/gi, "");
-  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
+  if (nNoPunct.includes("\u0430\u0432\u0442\u043E\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u043B\u0430\u0439\u043A") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u0430\u043A\u0446\u0438") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0440\u0435\u043F\u043E\u0441\u0442") || nNoPunct.includes("\u0430\u0432\u0442\u043E\u0430\u043A\u0442\u0438\u0432\u043D\u043E") || nNoPunct.includes("autoview") || nNoPunct.includes("autolike") || nNoPunct.includes("autoreact") || nNoPunct.includes("autoshare") || nNoPunct.includes("autorepost") || nNoPunct.includes("futureview") || nNoPunct.includes("futurelike") || n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A\u0430") && !n.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447\u0438\u043A") && !n.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("\u0431\u0443\u0434\u0443\u0449\u0438\u0445 \u043F\u043E\u0441\u0442\u043E\u0432") || n.includes("\u043C\u0430\u0441\u0441\u043E\u0432\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B") || n.includes("channel posts") || /\d+-\d+\s*пост/i.test(n) || /\d+\s*пост/i.test(n) || /на\s+несколько\s+постов/i.test(n) || // "Просмотры на последних N постов" / "Последних 50 постов" — applies to channel, NOT post
   n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u043E\u0441\u0442") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u043F\u0443\u0431\u043B\u0438\u043A") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u043E\u0441\u043B\u0435\u0434\u043D") && (n.includes("\u043F\u043E\u0441\u0442") || n.includes("\u0437\u0430\u043F\u0438\u0441") || n.includes("\u043F\u0443\u0431\u043B\u0438\u043A")) || n.includes("last post") || n.includes("last 5 post") || n.includes("last 10 post") || n.includes("last 20 post") || n.includes("last 50 post") || // "Пакет охвата" — views package on last N posts of a channel
   n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043E\u0445\u0432\u0430\u0442") || n.includes("\u043F\u0430\u043A\u0435\u0442") && n.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440")) {
     return "CHANNEL_POSTS" /* CHANNEL_POSTS */;
@@ -139264,12 +139264,23 @@ var init_universal_provider = __esm({
       }
       async refill(orderId) {
         const res = await this.request({ action: "refill", order: orderId }, 0);
-        if (res.error) return { error: res.error };
+        if (!res) return { error: "Empty response from provider" };
+        if (res.error) return { error: String(res.error) };
+        if (res.refill && typeof res.refill === "object" && res.refill.error) {
+          return { error: String(res.refill.error) };
+        }
+        if (res.status === "fail" && (res.message || res.error)) {
+          return { error: String(res.message || res.error) };
+        }
         return res;
       }
       async getRefillStatus(refillId) {
         const res = await this.request({ action: "refill_status", refill: refillId });
-        if (res.error) return { error: res.error };
+        if (!res) return { error: "Empty response from provider" };
+        if (res.error) return { error: String(res.error) };
+        if (res.status && typeof res.status === "object" && res.status.error) {
+          return { error: String(res.status.error) };
+        }
         return res;
       }
     };
