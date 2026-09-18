@@ -1,3 +1,13 @@
+- [x] ⚡ [AUTH-COOKIE-CONSENT-AUTOCONFIRM-2026] Автоматическое подтверждение Cookie (152-ФЗ) при авторизации и устранение плашки в /dashboard (100% COMPLETE & VERIFIED):
+  * 🍪 **Серверная авто-установка (`src/lib/session.ts` & `/api/auth/verify/route.ts`):**
+    - При входе / регистрации / Magic Link сервер вместе с `session_token` выставляет `cookie_consent=true` (1 год, SameSite=Lax, httpOnly=false).
+  * 🚫 **Подавление баннера в личном кабинете (`CookieConsent.tsx`):**
+    - Для маршрутов `/dashboard` плашка полностью отключена (`return null`), согласие автоматически фиксируется в `document.cookie` и `localStorage`.
+    - Для гостей на публичных страницах (`/`, `/services`, `/knowledge`) 152-ФЗ уведомление сохранено в полном объёме.
+  * 🧪 **Тестирование & Верификация:**
+    - Спецификация `docs/specs/SPEC-2026-09-18-auth-cookie-consent-autoconfirm.md`.
+    - 5/5 тестов Vitest (`cookie-consent-auth-autoconfirm.test.tsx`) — 100% PASS (всего 24 теста в сьюте).
+    - Playwright браузерная проверка на Stage (:3005) подтвердила наличие баннера для гостей и чистоту `/dashboard` для авторизованных пользователей.
 - [x] ⚡ [ORDERS-VIEW-SWITCHER-AND-COMPACT-LIST-2026] Внедрение переключателя видов «Список / Таблица» vs «Карточки» в истории заказов (/dashboard/orders) (100% COMPLETE & VERIFIED):
   * 🔀 **Селектор режимов отображения (`OrderViewModeSwitcher.tsx`):**
     - Сегментированный контроллер с иконками `List` и `LayoutGrid`, доступность W3C WAI-ARIA `role="radiogroup"`, `role="radio"`, `aria-checked`, тач-таргеты $\ge 44\text{px}$ на мобильных.
