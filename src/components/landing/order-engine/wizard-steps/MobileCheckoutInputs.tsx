@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React from "react";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 import { PublicService } from "@/actions/order/catalog";
 import { LegalCheckbox } from "../LegalCheckbox";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 import { MobileCheckoutLinkField } from "./MobileCheckoutLinkField";
 import { MobileCheckoutQuantity } from "./MobileCheckoutQuantity";
+import { MobileCheckoutPromo } from "./MobileCheckoutPromo";
 
 export interface MobileCheckoutInputsProps {
   engine: OrderEngine;
@@ -37,19 +38,12 @@ export function MobileCheckoutInputs({
   setLocalError,
   onOpenDocument,
 }: MobileCheckoutInputsProps) {
-  const [showPromo, setShowPromo] = useState(false);
-
   const {
     email, setEmail,
     promoCode, setPromoCode,
     agreedToTerms, setAgreedToTerms,
+    isCalculating, pricing, pricingError,
   } = engine;
-
-  React.useEffect(() => {
-    if (promoCode && promoCode.length > 0) {
-      setShowPromo(true);
-    }
-  }, [promoCode]);
 
   return (
     <div className="space-y-4">
@@ -95,33 +89,14 @@ export function MobileCheckoutInputs({
       </div>
 
       {/* Промокод */}
-      <div className="space-y-1.5">
-        {!showPromo ? (
-          <button
-            type="button"
-            onClick={() => setShowPromo(true)}
-            className="text-xs font-extrabold text-primary uppercase tracking-wider pl-1 hover:underline flex items-center gap-1 transition-all h-11 min-h-[44px] cursor-pointer"
-          >
-            + Есть промокод?
-          </button>
-        ) : (
-          <div className="space-y-1 animate-in fade-in duration-200">
-            <label htmlFor="promo-input" className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">
-              Промокод
-            </label>
-            <div className="relative">
-              <input
-                id="promo-input"
-                type="text"
-                value={promoCode}
-                onChange={e => setPromoCode(e.target.value)}
-                placeholder="Введите промокод..."
-                className="w-full h-11 px-4 rounded-2xl border border-border bg-background text-base text-foreground outline-none focus:border-primary focus:ring-2 ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
-        )}
-      </div>
+      <MobileCheckoutPromo
+        promoCode={promoCode}
+        setPromoCode={setPromoCode}
+        isCalculating={isCalculating}
+        pricing={pricing}
+        pricingError={pricingError}
+        setLocalError={setLocalError}
+      />
 
       {/* Согласие 152-ФЗ */}
       <LegalCheckbox

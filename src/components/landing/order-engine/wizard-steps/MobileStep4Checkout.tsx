@@ -47,49 +47,35 @@ export function MobileStep4Checkout({
     let isMounted = true;
     import("@/actions/order/checkout").then(({ getAvailableGatewaysAction }) => {
       getAvailableGatewaysAction().then((res) => {
-        if (isMounted && res.success && res.data) {
-          setAvailableGateways(res.data);
-          setSelectedGateway((current) => {
-            if (current !== 'balance' && !res.data[current as keyof typeof res.data]) {
-              const first = (["yookassa", "robokassa", "cryptobot"] as const).find((g) => res.data?.[g]);
-              return first || current;
-            }
-            return current;
-          });
-        }
+        if (!isMounted || !res.success || !res.data) return;
+        setAvailableGateways(res.data);
+        setSelectedGateway((current) => {
+          if (current !== 'balance' && !res.data[current as keyof typeof res.data]) {
+            return (["yookassa", "robokassa", "cryptobot"] as const).find((g) => res.data?.[g]) || current;
+          }
+          return current;
+        });
       });
     });
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const {
-    url,
-    selectedService,
-    quantity,
-    email,
-    agreedToTerms,
-    isCalculating,
-    totalPriceFormatted,
+    url, selectedService, quantity, email, agreedToTerms,
+    isCalculating, totalPriceFormatted,
   } = engine;
 
   const linkConfig = useMemo(() => {
     const activeCat = engine.availableCategories.find(c => c.id === engine.categoryId);
     return getSocialLinkConfig(
       engine.activeNetwork?.slug || engine.platform,
-      activeCat?.name,
-      selectedService?.name,
-      selectedService?.targetType,
-      selectedService?.linkPlaceholder,
-      selectedService?.linkHint
+      activeCat?.name, selectedService?.name, selectedService?.targetType,
+      selectedService?.linkPlaceholder, selectedService?.linkHint
     );
-  }, [engine.activeNetwork?.slug, engine.platform, engine.availableCategories, engine.categoryId, selectedService?.name, selectedService?.targetType, selectedService?.linkPlaceholder, selectedService?.linkHint]);
+  }, [engine.activeNetwork?.slug, engine.platform, engine.availableCategories, engine.categoryId, selectedService]);
 
   useEffect(() => {
-    if (agreedToTerms && email && email.includes('@')) {
-      setLocalError(null);
-    }
+    if (agreedToTerms && email && email.includes('@')) setLocalError(null);
   }, [agreedToTerms, email]);
 
   if (currentStep !== 4 || !shouldShowParameters || !selectedService) {
@@ -100,13 +86,30 @@ export function MobileStep4Checkout({
   const totalCents = engine.pricing?.totalCents || Math.round(parseFloat(totalPriceFormatted || "0") * 100);
 
   const onOrderClick = () => {
+    if (isCalculating) {
+      setLocalError("Пожалуйста, дождитесь завершения проверки промокода");
+      setShakeKey(prev => prev + 1);
+      return;
+    }
+    if (engine.pricingError === 'voucher') {
+      setLocalError("Введён ваучер на пополнение баланса. Активируйте в личном кабинете или очистите поле");
+      setShakeKey(prev => prev + 1);
+      return;
+    }
+    if (engine.promoCode && engine.promoCode.trim().length >= 3 && (!engine.pricing || engine.pricing.discountCents === 0)) {
+      setLocalError("Указан недействительный промокод. Очистите поле или укажите верный промокод");
+      setShakeKey(prev => prev + 1);
+      const promoEl = document.getElementById("mobile-promo-input");
+      if (promoEl) safeFocus(promoEl, true);
+      return;
+    }
+
     if (!url || url.trim().length < 3) {
       setLocalError("Пожалуйста, укажите ссылку для продвижения");
       setTimeout(() => {
         const step4UrlInput = document.getElementById("mobile-checkout-url-input");
-        if (step4UrlInput) {
-          safeFocus(step4UrlInput, true);
-        } else {
+        if (step4UrlInput) safeFocus(step4UrlInput, true);
+        else {
           setActiveStep(1);
           const urlInput = document.getElementById("standard-url-input");
           if (urlInput) safeFocus(urlInput, true);
@@ -120,9 +123,7 @@ export function MobileStep4Checkout({
       setShakeKey(prev => prev + 1);
       if (engine.setTermsHasError) engine.setTermsHasError(true);
       const checkboxEl = document.getElementById("standard-legal-checkbox");
-      if (checkboxEl) {
-        safeFocus(checkboxEl, true);
-      }
+      if (checkboxEl) safeFocus(checkboxEl, true);
       return;
     }
 
@@ -130,9 +131,7 @@ export function MobileStep4Checkout({
       setLocalError("Укажите корректный email для отправки чека и доступа к заказу");
       setShakeKey(prev => prev + 1);
       const emailEl = emailInputRef?.current || document.getElementById("email-input");
-      if (emailEl) {
-        safeFocus(emailEl, true);
-      }
+      if (emailEl) safeFocus(emailEl, true);
       return;
     }
 
@@ -160,25 +159,15 @@ export function MobileStep4Checkout({
       </div>
 
       <MobileCheckoutInputs
-        engine={engine}
-        selectedService={selectedService}
-        linkConfig={linkConfig}
-        setActiveStep={setActiveStep}
-        emailInputRef={emailInputRef}
-        emailHasError={emailHasError}
-        localError={localError}
-        setLocalError={setLocalError}
-        onOpenDocument={onOpenDocument}
+        engine={engine} selectedService={selectedService} linkConfig={linkConfig}
+        setActiveStep={setActiveStep} emailInputRef={emailInputRef} emailHasError={emailHasError}
+        localError={localError} setLocalError={setLocalError} onOpenDocument={onOpenDocument}
       />
 
       <MobileCheckoutGateways
-        selectedGateway={selectedGateway}
-        setSelectedGateway={setSelectedGateway}
-        availableGateways={availableGateways}
-        userBalanceCents={userBalanceCents}
-        totalCents={totalCents}
-        setLocalError={setLocalError}
-        setShakeKey={setShakeKey}
+        selectedGateway={selectedGateway} setSelectedGateway={setSelectedGateway}
+        availableGateways={availableGateways} userBalanceCents={userBalanceCents}
+        totalCents={totalCents} setLocalError={setLocalError} setShakeKey={setShakeKey}
       />
 
       <MobileCheckoutOrderSummary
@@ -192,6 +181,7 @@ export function MobileStep4Checkout({
         selectedGateway={selectedGateway}
         totalPriceFormatted={totalPriceFormatted}
         onOrderClick={onOrderClick}
+        pricing={engine.pricing}
       />
     </motion.div>
   );

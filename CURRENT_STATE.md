@@ -1,3 +1,25 @@
+- [x] ⚡ [CHECKOUT-PROMOCODE-INTEGRATION-2026] Архитектура промокодов и внедрение поля ввода в форму заказа на десктопе и мобильных устройствах (100% COMPLETE & VERIFIED):
+  * 🎟️ **Архитектурная интеграция (OmniSMM Engine & useOrderEngine):**
+    - Подключен штатный механизм дисконтирования `marketingService.calculatePrice` и Server Action `calculatePriceAction`.
+    - В `useOrderEngine` и `useCheckoutOrchestrator` внедрены: `promoCode`, `setPromoCode`, debounced-валидация, `isCalculating`, расчет скидки и ваучеров.
+    - В `useOrderEngine.ts` исправлен fallback: расчет стоимости никогда не сбрасывается в `null` или 0.00 ₽ во время набора/debouncing промокода.
+  * 🖥️ **Десктопный чекаут (PlanFullscreenCheckout):**
+    - Создан компонент `PlanCheckoutPromo.tsx`: кнопка-триггер `+ У меня есть промокод`, авто-UPPERCASE, очистка пробелов, пульсирующий статус «Проверяем промокод...», бейдж активной скидки, инлайн-очистка без сворачивания секции.
+    - Вынесен компонент `PlanCheckoutLink.tsx` для строгого соблюдения норматива $\le 200$ строк на файл (`PlanFullscreenCheckout` — 185 строк, `PlanCheckoutInputs` — 167 строк).
+    - В `PlanCheckoutSummary.tsx` добавлен баннер скидки (`Скидка по промокоду (X%): -Y.YY ₽`) и зачеркнутая базовая цена.
+    - В `usePlanCheckoutValidation.ts` добавлены защитные барьеры: блокировка сабмита при незавершенной проверке промокода, ваучере или невалидном коде.
+  * 📱 **Мобильный чекаут (MobileCheckoutInputs & MobileCheckoutOrderSummary):**
+    - Создан компонент `MobileCheckoutPromo.tsx`: адаптирован под мобильную эргономику (touch target $\ge 44$px), семантические токены темы `destructive` (Tailwind 4), инлайн-очистка.
+    - В `MobileCheckoutOrderSummary.tsx` добавлено отображение примененной скидки по промокоду и зачеркнутой цены на кнопке оплаты.
+    - В `MobileStep4Checkout.tsx` проброшен `pricing` и добавлены пре-валидационные барьеры перед переходом к шлюзам (189 строк, $\le 200$ limit).
+  * 🧪 **Автоматические тесты & CI-гейты:**
+    - `checkout-promo-code-integration.test.tsx` (16 из 16 тестов) — 100% PASS.
+    - `order-engine-promo-pricing.test.ts` (4 из 4 тестов) — 100% PASS.
+    - `component-size-hygiene.test.ts` (23 из 23 тестов) — 100% PASS.
+    - `plan-fullscreen-checkout.test.tsx` и `mobile-wizard-smoke.test.tsx` (23 теста) — 100% PASS.
+    - Проверка типов `npx tsc --noEmit` — 0 ошибок.
+    - Проверка стилей `npx eslint` — 0 ошибок, 0 ворнингов.
+    - Проверка секретов `node scripts/check-bundle-secrets.mjs` — 0 утечек.
 - [x] ⚡ [POSTGRES-SECURITY-HARDENING-2026] Комплексное усиление безопасности PostgreSQL (CRIT-01, HIGH-01, HIGH-02, HIGH-03) (100% COMPLETE & VERIFIED):
   * 🔒 **Ликвидация беспарольного доступа `trust` (HIGH-02):**
     - В `pg_hba.conf` все правила аутентификации `trust` (local, loopback IPv4/IPv6, replication) заменены на строгий `scram-sha-256`.

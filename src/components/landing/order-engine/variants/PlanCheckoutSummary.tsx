@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { PricingResult } from '@/services/marketing.service';
 
 export interface PlanCheckoutSummaryProps {
   agreedToTerms: boolean;
@@ -14,6 +15,7 @@ export interface PlanCheckoutSummaryProps {
   isSubmitting: boolean;
   totalPriceFormatted: string;
   setLocalError: (err: string | null) => void;
+  pricing?: PricingResult | null;
 }
 
 export function PlanCheckoutSummary({
@@ -26,8 +28,10 @@ export function PlanCheckoutSummary({
   isSubmitting,
   totalPriceFormatted,
   setLocalError,
+  pricing,
 }: PlanCheckoutSummaryProps) {
   const activeError = localError || checkoutError;
+  const hasDiscount = Boolean(pricing && pricing.discountCents > 0);
 
   return (
     <>
@@ -75,6 +79,14 @@ export function PlanCheckoutSummary({
         </label>
       </div>
 
+      {/* ── DISCOUNT BANNER ── */}
+      {hasDiscount && (
+        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-between text-xs font-bold animate-in fade-in">
+          <span>Скидка по промокоду ({pricing!.discountPercent}%):</span>
+          <span>-{(pricing!.discountCents / 100).toFixed(2)} ₽</span>
+        </div>
+      )}
+
       {/* ── ERROR MESSAGE BANNER ── */}
       {activeError && (
         <div
@@ -99,6 +111,13 @@ export function PlanCheckoutSummary({
               <span className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               <span>Создание заказа...</span>
             </>
+          ) : hasDiscount ? (
+            <div className="flex items-center gap-2.5">
+              <span className="line-through opacity-70 text-sm font-semibold">
+                {(pricing!.originalTotalCents / 100).toFixed(2)} ₽
+              </span>
+              <span>Оплатить {totalPriceFormatted} ₽</span>
+            </div>
           ) : (
             <span>Оплатить {totalPriceFormatted} ₽</span>
           )}

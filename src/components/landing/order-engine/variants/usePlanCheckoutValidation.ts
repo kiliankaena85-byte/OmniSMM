@@ -1,6 +1,7 @@
 import React from 'react';
 import { PublicService } from '@/actions/order/catalog';
 import { safeFocus } from '@/utils/scroll-helpers';
+import { PricingResult } from '@/services/marketing.service';
 
 export interface PlanCheckoutValidationOptions {
   url: string;
@@ -24,6 +25,10 @@ export interface PlanCheckoutValidationOptions {
   handleCheckout: (gateway: string) => void;
   compatibilityWarning?: string | null;
   isLinkOverridden?: boolean;
+  promoCode?: string;
+  isCalculating?: boolean;
+  pricing?: PricingResult | null;
+  pricingError?: 'voucher' | null;
 }
 
 export function validateAndSubmitPlanCheckout({
@@ -48,7 +53,31 @@ export function validateAndSubmitPlanCheckout({
   handleCheckout,
   compatibilityWarning,
   isLinkOverridden,
+  promoCode,
+  isCalculating,
+  pricing,
+  pricingError,
 }: PlanCheckoutValidationOptions): boolean {
+  if (isCalculating) {
+    setLocalError('Пожалуйста, дождитесь завершения проверки промокода');
+    setShakeKey(Date.now());
+    return false;
+  }
+
+  if (pricingError === 'voucher') {
+    setLocalError('Введён ваучер на пополнение баланса. Активируйте его в личном кабинете или очистите поле');
+    setShakeKey(Date.now());
+    return false;
+  }
+
+  if (promoCode && promoCode.trim().length >= 3 && (!pricing || pricing.discountCents === 0)) {
+    setLocalError('Указан недействительный промокод. Очистите поле или укажите верный промокод');
+    setShakeKey(Date.now());
+    const promoInput = document.getElementById('promo-input');
+    if (promoInput) safeFocus(promoInput, true);
+    return false;
+  }
+
   if (!url || url.trim().length < 3) {
     setLocalError('Пожалуйста, укажите ссылку на объект продвижения');
     setShakeKey(Date.now());

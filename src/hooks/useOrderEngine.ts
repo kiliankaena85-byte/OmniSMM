@@ -10,14 +10,6 @@ import { mutateLink, getLinkValidator } from "@/validators/link-mutators";
 import { formatCents } from "@/lib/utils";
 import { orderFormSchema } from "@/validators/order.validators";
 import { matchesSuggestedCategory } from "@/services/analyzer/category-matcher";
-import {
-  inferTargetTypeFromCategory,
-  inferTargetTypeFromName,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  normalizeTargetType,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  TargetTypeEnum
-} from "@/utils/target-type";
 import { resolveServiceTargetType } from "@/utils/target-type-mapper";
 import {
   isLinkServiceCompatible,
@@ -230,7 +222,9 @@ export function useOrderEngine(
           const urlObj = new URL(window.location.href);
           urlObj.searchParams.delete('auth_resume');
           window.history.replaceState({}, '', urlObj.pathname + (urlObj.search ? urlObj.search : '') + '#step-4');
-        } catch {}
+        } catch {
+          /* ignore history state error */
+        }
       }
     } catch (e) {
       console.warn('[useOrderEngine] Failed to restore pending order snapshot:', e);
@@ -658,20 +652,16 @@ export function useOrderEngine(
   const pricing = useMemo(() => {
     if (!selectedService || quantity < 1) return null;
 
-    if (promoCode && promoCode.trim().length > 0) {
-      return promoPricing;
-    }
-
     const totalQty = quantity;
     const originalTotalCents = Math.max(1, Math.ceil(selectedService.pricePerUnitRub * 100 * totalQty));
 
-    let totalCents = originalTotalCents;
+    let baseTotalCents = originalTotalCents;
     if (isSmartDrip && selectedService.smartConfig?.isEnabled) {
-      totalCents = Math.round(totalCents * (1 + selectedService.smartConfig.markup));
+      baseTotalCents = Math.round(baseTotalCents * (1 + selectedService.smartConfig.markup));
     }
 
-    return {
-      totalCents,
+    const defaultPricing: PricingResult = {
+      totalCents: baseTotalCents,
       originalTotalCents,
       discountCents: 0,
       discountPercent: 0,
@@ -679,6 +669,12 @@ export function useOrderEngine(
       safetyFloorCents: 0,
       tier: 'REGULAR'
     };
+
+    if (promoCode && promoCode.trim().length > 0 && promoPricing) {
+      return promoPricing;
+    }
+
+    return defaultPricing;
   }, [selectedService, quantity, promoCode, promoPricing, dripFeedEnabled, runs, isSmartDrip]);
 
   // 5.2 Server-side calculation only if a promo code needs validation

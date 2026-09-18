@@ -6,7 +6,7 @@ import { OrderEngine } from '@/hooks/useOrderEngine';
 import { getAvailableGatewaysAction } from '@/actions/order/checkout';
 import { safeFocus } from '@/utils/scroll-helpers';
 import { PlanCheckoutHeader } from './PlanCheckoutHeader';
-import { PlanCheckoutInputs } from './PlanCheckoutInputs';
+import { PlanCheckoutInputs, PlanCheckoutInputsProps } from './PlanCheckoutInputs';
 import { PlanCheckoutGateways } from './PlanCheckoutGateways';
 import { PlanCheckoutSummary } from './PlanCheckoutSummary';
 import { validateAndSubmitPlanCheckout } from './usePlanCheckoutValidation';
@@ -39,6 +39,7 @@ export function PlanFullscreenCheckout({
     dripInterval, setDripInterval, catalog, networkId, pricing,
     totalPriceFormatted, isWarningConfirmed, setIsWarningConfirmed,
     compatibilityWarning, isLinkOverridden, setIsLinkOverridden,
+    promoCode, setPromoCode, isCalculating, pricingError,
   } = engine;
 
   const [selectedGateway, setSelectedGateway] = useState<string>('yookassa');
@@ -49,34 +50,25 @@ export function PlanFullscreenCheckout({
   const linkInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const quantityInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const activeNetwork = catalog.find(n => n.id === networkId) ||
     catalog.find(n => n.categories.some(c => c.id === selectedService.categoryId)) ||
     catalog[0] || null;
-
   const activeCategory = activeNetwork?.categories.find(c => c.id === selectedService.categoryId) || null;
 
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.history.pushState({ smmplan_fullscreen_checkout: true }, '', window.location.href);
     }
-    const handlePopState = () => {
-      onCloseRef.current();
-    };
+    const handlePopState = () => onCloseRef.current();
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // On desktop: scroll checkout form into view on open (mount-only).
-  // The form renders at the TOP of the page but the user may be scrolled to
-  // the service grid below. Without this, the user's scroll position stays at
-  // the service grid, leaving them looking at the payment button or empty space.
-  // Runs EXACTLY ONCE on mount — never fires again on input/checkbox re-renders.
   useEffect(() => {
     if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (containerRef.current) {
@@ -107,7 +99,6 @@ export function PlanFullscreenCheckout({
     }
   }, []);
 
-
   const minQty = selectedService.minQty || 100;
   const maxQty = selectedService.maxQty || 1000000;
   const effectiveMinQty = dripFeedEnabled && runs > 0 ? minQty * runs : minQty;
@@ -120,8 +111,7 @@ export function PlanFullscreenCheckout({
 
   const handleStepQuantity = (delta: number) => {
     const current = Number(quantity) || minQty;
-    const next = Math.max(effectiveMinQty, Math.min(maxQty, current + delta));
-    setQuantity(next);
+    setQuantity(Math.max(effectiveMinQty, Math.min(maxQty, current + delta)));
     setLocalError(null);
   };
 
@@ -133,7 +123,18 @@ export function PlanFullscreenCheckout({
       agreedToTerms, selectedGateway, linkInputRef, emailInputRef,
       quantityInputRef, setLocalError, setShakeKey, handleCheckout,
       compatibilityWarning, isLinkOverridden,
+      promoCode, isCalculating, pricing, pricingError,
     });
+  };
+
+  const inputsProps: PlanCheckoutInputsProps = {
+    url, setUrl, selectedService, activeNetwork, linkInputRef, emailInputRef,
+    quantityInputRef, isWarningConfirmed, setIsWarningConfirmed, customData,
+    setCustomData, quantity, setQuantity, minQty, maxQty, effectiveMinQty,
+    handleStepQuantity, dripFeedEnabled, setDripFeedEnabled, runs, setRuns,
+    dripInterval, setDripInterval, email, setEmail, setLocalError,
+    compatibilityWarning, isLinkOverridden, setIsLinkOverridden,
+    promoCode, setPromoCode, isCalculating, pricing, pricingError,
   };
 
   return (
@@ -153,37 +154,7 @@ export function PlanFullscreenCheckout({
 
       <div className="w-full max-w-2xl sm:max-w-3xl bg-card border border-border/80 shadow-2xl rounded-3xl p-4 sm:p-7 md:p-8 relative">
         <form onSubmit={handleFormSubmit} noValidate className="space-y-5">
-          <PlanCheckoutInputs
-            url={url}
-            setUrl={setUrl}
-            selectedService={selectedService}
-            activeNetwork={activeNetwork}
-            linkInputRef={linkInputRef}
-            emailInputRef={emailInputRef}
-            quantityInputRef={quantityInputRef}
-            isWarningConfirmed={isWarningConfirmed}
-            setIsWarningConfirmed={setIsWarningConfirmed}
-            customData={customData}
-            setCustomData={setCustomData}
-            quantity={quantity}
-            setQuantity={setQuantity}
-            minQty={minQty}
-            maxQty={maxQty}
-            effectiveMinQty={effectiveMinQty}
-            handleStepQuantity={handleStepQuantity}
-            dripFeedEnabled={dripFeedEnabled}
-            setDripFeedEnabled={setDripFeedEnabled}
-            runs={runs}
-            setRuns={setRuns}
-            dripInterval={dripInterval}
-            setDripInterval={setDripInterval}
-            email={email}
-            setEmail={setEmail}
-            setLocalError={setLocalError}
-            compatibilityWarning={compatibilityWarning}
-            isLinkOverridden={isLinkOverridden}
-            setIsLinkOverridden={setIsLinkOverridden}
-          />
+          <PlanCheckoutInputs {...inputsProps} />
 
           <PlanCheckoutGateways
             selectedGateway={selectedGateway}
@@ -204,6 +175,7 @@ export function PlanFullscreenCheckout({
             isSubmitting={isSubmitting}
             totalPriceFormatted={totalPriceFormatted}
             setLocalError={setLocalError}
+            pricing={pricing}
           />
         </form>
       </div>

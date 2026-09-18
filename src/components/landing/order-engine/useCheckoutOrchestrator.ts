@@ -9,6 +9,12 @@ interface OrchestratorCheckoutParams {
   idempotencyKey?: string;
   isLinkOverridden?: boolean;
   isRequirementsConfirmed?: boolean;
+  promoCodeStr?: string;
+  customData?: string;
+  mediaGroupUrl?: string;
+  isSmartDrip?: boolean;
+  smartDripDays?: number;
+  abVariant?: 'A' | 'B' | 'C';
   [key: string]: unknown;
 }
 
@@ -104,6 +110,10 @@ export function useCheckoutOrchestrator({
 
     if (engine.isCalculating) {
       toast.error("Идет расчет стоимости заказа. Пожалуйста, подождите...", { position: 'top-center' });
+      return;
+    }
+    if (engine.pricingError === 'voucher') {
+      toast.error("Введён ваучер на пополнение баланса. Активируйте его в личном кабинете или очистите поле.", { position: 'top-center' });
       return;
     }
     if (!engine.pricing) {
@@ -368,6 +378,7 @@ export function useCheckoutOrchestrator({
       runs: engine.dripFeedEnabled ? engine.runs : undefined,
       interval: engine.dripFeedEnabled ? engine.dripInterval : undefined,
       abVariant: abVariant || undefined,
+      isRequirementsConfirmed: engine.isWarningConfirmed,
       idempotencyKey: stableIdempotencyKey
     };
 
@@ -389,7 +400,9 @@ export function useCheckoutOrchestrator({
                 existing.unshift(res.data.orderId);
                 localStorage.setItem('guest_orders', JSON.stringify(existing.slice(0, 10)));
               }
-            } catch {}
+            } catch {
+              /* ignore storage error */
+            }
           }
 
           const orderData = res.data as OrderCheckoutResultData | undefined;
@@ -499,6 +512,12 @@ export function useCheckoutOrchestrator({
         idempotencyKey: pendingCheckoutParams.idempotencyKey || stableIdempotencyKey,
         isLinkOverridden: pendingCheckoutParams.isLinkOverridden,
         isRequirementsConfirmed: pendingCheckoutParams.isRequirementsConfirmed,
+        promoCodeStr: pendingCheckoutParams.promoCodeStr,
+        customData: pendingCheckoutParams.customData,
+        mediaGroupUrl: pendingCheckoutParams.mediaGroupUrl,
+        isSmartDrip: pendingCheckoutParams.isSmartDrip,
+        smartDripDays: pendingCheckoutParams.smartDripDays,
+        abVariant: pendingCheckoutParams.abVariant,
         gateway
       });
       setIsSubmitting(false);
@@ -513,7 +532,9 @@ export function useCheckoutOrchestrator({
               existing.unshift(res.data.orderId);
               localStorage.setItem('guest_orders', JSON.stringify(existing.slice(0, 10)));
             }
-          } catch {}
+          } catch {
+            /* ignore storage error */
+          }
         }
 
         const checkoutData = res.data as OrderCheckoutResultData | undefined;
@@ -612,7 +633,9 @@ export function useCheckoutOrchestrator({
     try {
       const { refreshBalanceAction } = await import('@/actions/auth/refresh-balance');
       await refreshBalanceAction();
-    } catch {}
+    } catch {
+      /* ignore balance refresh error */
+    }
     if (pendingCheckoutParams) {
       setShowPaymentModal(true);
     } else {

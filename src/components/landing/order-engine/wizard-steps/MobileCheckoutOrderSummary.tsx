@@ -4,6 +4,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PricingResult } from "@/services/marketing.service";
 
 export interface MobileCheckoutOrderSummaryProps {
   localError: string | null;
@@ -16,6 +17,7 @@ export interface MobileCheckoutOrderSummaryProps {
   selectedGateway: string;
   totalPriceFormatted: string;
   onOrderClick: () => void;
+  pricing?: PricingResult | null;
 }
 
 export function MobileCheckoutOrderSummary({
@@ -29,8 +31,10 @@ export function MobileCheckoutOrderSummary({
   selectedGateway,
   totalPriceFormatted,
   onOrderClick,
+  pricing,
 }: MobileCheckoutOrderSummaryProps) {
   const activeError = localError || checkoutError;
+  const hasDiscount = Boolean(pricing && pricing.discountCents > 0);
 
   return (
     <div className="pt-2 border-t border-border/30 space-y-2">
@@ -41,19 +45,27 @@ export function MobileCheckoutOrderSummary({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="p-3 rounded-2xl bg-danger/10 border border-danger/30 text-danger text-xs font-bold flex items-center gap-2 animate-shake"
+            className="p-3 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-bold flex items-center gap-2 animate-shake"
           >
-            <AlertCircle className="w-4 h-4 shrink-0 text-danger" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-destructive" />
             <span>{activeError}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ── DISCOUNT BANNER ── */}
+      {hasDiscount && (
+        <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-between text-xs font-bold animate-in fade-in">
+          <span>Скидка по промокоду ({pricing!.discountPercent}%):</span>
+          <span>-{(pricing!.discountCents / 100).toFixed(2)} ₽</span>
+        </div>
+      )}
+
       <Button
         onClick={onOrderClick}
         disabled={isSubmitting || quantity < minQty}
         className={`w-full h-12 rounded-2xl bg-primary text-primary-foreground font-black text-sm shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed ${
-          activeError ? 'ring-2 ring-danger/40 animate-shake' : ''
+          activeError ? 'ring-2 ring-destructive/40 animate-shake' : ''
         }`}
       >
         {isSubmitting ? (
@@ -66,14 +78,21 @@ export function MobileCheckoutOrderSummary({
         ) : (
           <>
             <Zap className="w-4 h-4 fill-current shrink-0" />
-            <span className="truncate">
-              {selectedGateway === 'balance'
-                ? `Оплатить с баланса — ${totalPriceFormatted} ₽`
-                : selectedGateway === 'yookassa'
-                ? `Оплатить СБП / Картой — ${totalPriceFormatted} ₽`
-                : selectedGateway === 'cryptobot'
-                ? `Оплатить в CryptoBot — ${totalPriceFormatted} ₽`
-                : `Оплатить картой — ${totalPriceFormatted} ₽`}
+            <span className="truncate flex items-center gap-2">
+              {hasDiscount && (
+                <span className="line-through opacity-70 text-xs font-semibold">
+                  {(pricing!.originalTotalCents / 100).toFixed(2)} ₽
+                </span>
+              )}
+              <span>
+                {selectedGateway === 'balance'
+                  ? `Оплатить с баланса — ${totalPriceFormatted} ₽`
+                  : selectedGateway === 'yookassa'
+                  ? `Оплатить СБП / Картой — ${totalPriceFormatted} ₽`
+                  : selectedGateway === 'cryptobot'
+                  ? `Оплатить в CryptoBot — ${totalPriceFormatted} ₽`
+                  : `Оплатить картой — ${totalPriceFormatted} ₽`}
+              </span>
             </span>
           </>
         )}
