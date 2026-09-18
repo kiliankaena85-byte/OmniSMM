@@ -1,3 +1,25 @@
+- [x] ⚡ [SECURITY-REGRESSION-REMEDIATION-2026] Устранение дефектов в сьютах безопасности, RBAC и CI-гейтах (100% COMPLETE & VERIFIED):
+  * 🔐 **RBAC & Права роли SUPPORT (`src/lib/server/rbac.ts`):**
+    - Восстановлено право `FINANCE: { canView: true, canEdit: false }` для роли `SUPPORT` в `BUILTIN_ROLE_PERMISSIONS`.
+    - Саппорт теперь корректно валидируется на просмотр финансовых транзакций и выполнение разрешенных операций (ручное подтверждение до лимита 3 000 ₽).
+    - Защитные барьеры `self-approval` (запрет подтверждать собственные платежи) и `grant ceiling` (блокировка превышения лимита) работают штатно.
+  * 🛠️ **Maintenance Mode Environment Override (`src/app/api/maintenance-status/route.ts`):**
+    - Внедрена поддержка переменной окружения `MAINTENANCE_MODE` с приоритетом над БД при явном `'true'` / `'false'`.
+    - Тесты изоляции maintenance-статуса проходят на 100%.
+  * 🔍 **CI-гейт проверки секретов (`scripts/check-bundle-secrets.mjs`):**
+    - Удален shebang `#!/usr/bin/env node`, вызывавший `SyntaxError: Invalid or unexpected token` при ESM-импорте файла в Vitest.
+    - Все 6 тестов `check-bundle-secrets.test.ts` проходят чисто (PASS).
+  * ⏱️ **Транзакции и пул соединений (`payments.ts`, `.env.test`):**
+    - Таймаут интерактивной транзакции ручного подтверждения увеличен с 15с до 60с (время отсчитывается с момента открытия транзакции).
+    - Пул соединений в `.env.test` расширен (`connection_limit=15`, `pool_timeout=30`) для предотвращения исчерпания коннектов при параллельных стресс-тестах гонок.
+  * 🧪 **Верификация & CI-контроль:**
+    - `pci-dss-fintech-concurrency-audit.test.ts` (3/3 PASS).
+    - `owasp-2026-comprehensive-adversarial.test.ts` (6/6 PASS).
+    - `maintenance-status.test.ts` (2/2 PASS).
+    - `auditor-findings-remediation.test.ts` (8/8 PASS).
+    - `check-bundle-secrets.test.ts` (6/6 PASS).
+    - Проверка типов `npx tsc --noEmit` — **0 ошибок**.
+    - Контроль секретов `node scripts/check-bundle-secrets.mjs` — **0 утечек**.
 - [x] ⚡ [CHECKOUT-PROMOCODE-INTEGRATION-2026] Архитектура промокодов и внедрение поля ввода в форму заказа на десктопе и мобильных устройствах (100% COMPLETE & VERIFIED):
   * 🎟️ **Архитектурная интеграция (OmniSMM Engine & useOrderEngine):**
     - Подключен штатный механизм дисконтирования `marketingService.calculatePrice` и Server Action `calculatePriceAction`.
