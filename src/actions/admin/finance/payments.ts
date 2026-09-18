@@ -454,7 +454,7 @@ export async function manualApprovePaymentAction(input: z.infer<typeof manualApp
           ipAddress,
           tx,
         });
-      }, { timeout: 15000, maxWait: 10000 });
+      }, { timeout: 60000, maxWait: 30000 });
 
       safeRevalidatePath('/admin/transactions');
       safeRevalidatePath('/admin/finance');
