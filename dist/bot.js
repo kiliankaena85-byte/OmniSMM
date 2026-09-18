@@ -139216,6 +139216,38 @@ var init_universal_provider = __esm({
         if (res.error) throw new Error(String(res.error));
         return res;
       }
+      async cancelOrder(orderId) {
+        try {
+          const res = await this.request({ action: "cancel", orders: String(orderId) }, 0);
+          if (Array.isArray(res) && res.length > 0) {
+            const item = res[0];
+            if (item && typeof item === "object") {
+              if (item.cancel === 1 || item.cancel === true || item.status === "canceled" || item.status === "Canceled") {
+                return { success: true, raw: res };
+              }
+              if (item.cancel && typeof item.cancel === "object" && item.cancel.error) {
+                return { success: false, error: String(item.cancel.error), raw: res };
+              }
+              if (item.error) {
+                return { success: false, error: String(item.error), raw: res };
+              }
+            }
+          }
+          if (res && typeof res === "object") {
+            const obj = res;
+            if (obj.cancel === 1 || obj.cancel === true || obj.status === "canceled" || obj.status === "Canceled") {
+              return { success: true, raw: res };
+            }
+            if (obj.error) {
+              return { success: false, error: String(obj.error), raw: res };
+            }
+          }
+          return { success: true, raw: res };
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          return { success: false, error: errMsg };
+        }
+      }
       async refill(orderId) {
         const res = await this.request({ action: "refill", order: orderId }, 0);
         if (res.error) return { error: res.error };

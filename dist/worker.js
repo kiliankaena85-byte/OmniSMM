@@ -109395,6 +109395,38 @@ var init_universal_provider = __esm({
         if (res.error) throw new Error(String(res.error));
         return res;
       }
+      async cancelOrder(orderId) {
+        try {
+          const res = await this.request({ action: "cancel", orders: String(orderId) }, 0);
+          if (Array.isArray(res) && res.length > 0) {
+            const item = res[0];
+            if (item && typeof item === "object") {
+              if (item.cancel === 1 || item.cancel === true || item.status === "canceled" || item.status === "Canceled") {
+                return { success: true, raw: res };
+              }
+              if (item.cancel && typeof item.cancel === "object" && item.cancel.error) {
+                return { success: false, error: String(item.cancel.error), raw: res };
+              }
+              if (item.error) {
+                return { success: false, error: String(item.error), raw: res };
+              }
+            }
+          }
+          if (res && typeof res === "object") {
+            const obj = res;
+            if (obj.cancel === 1 || obj.cancel === true || obj.status === "canceled" || obj.status === "Canceled") {
+              return { success: true, raw: res };
+            }
+            if (obj.error) {
+              return { success: false, error: String(obj.error), raw: res };
+            }
+          }
+          return { success: true, raw: res };
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          return { success: false, error: errMsg };
+        }
+      }
       async refill(orderId) {
         const res = await this.request({ action: "refill", order: orderId }, 0);
         if (res.error) return { error: res.error };
@@ -158840,7 +158872,7 @@ init_logger();
 var log10 = logger.child({ component: "SyncProcessor" });
 async function safeUpdateOrderStatus(tx, orderId, data) {
   const fresh = await tx.order.findUnique({ where: { id: orderId } });
-  if (!fresh || !["PENDING", "IN_PROGRESS", "PENDING_CHECK"].includes(fresh.status)) {
+  if (!fresh || !["PENDING", "IN_PROGRESS", "PENDING_CHECK", "CANCELING"].includes(fresh.status)) {
     return null;
   }
   return await tx.order.update({
@@ -158867,7 +158899,7 @@ async function syncProcessor(job) {
     try {
       const MAX_SYNC_PER_PROVIDER = 1e3;
       const activeOrderIds = await db.order.findMany({
-        where: { status: "IN_PROGRESS", providerId: providerDef.id },
+        where: { status: { in: ["IN_PROGRESS", "CANCELING"] }, providerId: providerDef.id },
         select: { id: true },
         take: MAX_SYNC_PER_PROVIDER,
         orderBy: { updatedAt: "asc" }
