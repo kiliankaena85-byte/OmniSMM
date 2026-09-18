@@ -231,6 +231,41 @@ describe('Storefront API v1 Routes Suite', () => {
         })
       );
     });
+
+    it('returns 400 with structured fieldErrors when invalid payload is sent to POST /orders', async () => {
+      vi.mocked(resolveStorefrontContext).mockResolvedValueOnce(mockSecretCtx);
+      vi.mocked(RateLimitService.checkCustomKeyDetail).mockResolvedValueOnce({
+        allowed: true,
+        limit: 30,
+        remaining: 29,
+        resetSeconds: 60,
+      });
+
+      const req = new NextRequest('http://localhost/api/storefront/v1/orders', {
+        method: 'POST',
+        headers: {
+          'x-storefront-key': 'sk_live_secret_key_123',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceId: '', // invalid empty
+          link: '', // invalid empty
+          quantity: -5, // invalid negative
+          email: 'not-an-email',
+        }),
+      });
+
+      const res = await postOrdersRoute(req);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.fieldErrors).toBeDefined();
+      expect(body.fieldErrors.serviceId).toBeDefined();
+      expect(body.fieldErrors.link).toBeDefined();
+      expect(body.fieldErrors.quantity).toBeDefined();
+      expect(body.fieldErrors.email).toBeDefined();
+      expect(checkoutAction).not.toHaveBeenCalled();
+    });
   });
 
   describe('4. Order Lookup by numericId vs id in GET /orders/[id]', () => {

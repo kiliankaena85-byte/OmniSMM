@@ -1,3 +1,16 @@
+- [x] ⚡ [API-CONTRACT-HARDENING-2026] Комплексный аудит и усиление API-эндпоинтов платформы OmniSMM 1.0 (100% COMPLETE & VERIFIED):
+  * 🛡️ **Криптографическая защита ревалидации кэша (`/api/internal/revalidate`):**
+    - Заменено строковое сравнение Bearer-токена на `crypto.timingSafeEqual` с предварительной проверкой длины буферов (OWASP Top 10:2026 A02).
+  * 📋 **Contract-First Zod Валидация в Storefront API Orders (`/api/storefront/v1/orders`):**
+    - Внедрена строгая схема валидации `storefrontOrderSchema = z.object({...})` со стандартизированным ответом `fieldErrors` на 400 Bad Request до выполнения Server Actions.
+  * 🔒 **Ликвидация оракула IDOR (`/api/order-status`):**
+    - Неавторизованные запросы без валидной сессии или токена немедленно получают `401 Unauthorized` до обращения к БД, исключая перебор и идентификацию существующих заказов.
+  * 🧪 **Автоматизированное тестирование & CI:**
+    - `api-v2-rate-limit-headers.test.ts` (2/2 PASS).
+    - `api-v2-link-validation.test.ts` (5/5 PASS).
+    - `storefront-api-routes.test.ts` (12/12 PASS).
+    - `vulnerability-vectors-remediation.test.ts` (19/19 PASS).
+    - Итого: **38 из 38 тестов PASS (100%)**, `npx tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек.
 - [x] ⚡ [SECURITY-REGRESSION-REMEDIATION-2026] Устранение дефектов в сьютах безопасности, RBAC и CI-гейтах (100% COMPLETE & VERIFIED):
   * 🔐 **RBAC & Права роли SUPPORT (`src/lib/server/rbac.ts`):**
     - Восстановлено право `FINANCE: { canView: true, canEdit: false }` для роли `SUPPORT` в `BUILTIN_ROLE_PERMISSIONS`.

@@ -45,6 +45,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Zero-Oracle Defense: Reject unauthenticated requests immediately without querying DB
+    if (!session && !token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (orderId) {
       let order = await db.order.findUnique({
         where: session ? { id: orderId, userId: session.userId } : { id: orderId },
@@ -54,16 +59,16 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      if (!order) {
-        return NextResponse.json({ error: 'Not found' }, { status: 404 });
-      }
-
-      if (token && !isTokenValid && verifyGuestOrderToken(order.id, order.numericId, token)) {
+      if (order && token && !isTokenValid && verifyGuestOrderToken(order.id, order.numericId, token)) {
         isTokenValid = true;
       }
 
       if (!session && !isTokenValid) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      if (!order) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
 
       // Synchronous status check fallback
@@ -149,12 +154,12 @@ export async function GET(req: NextRequest) {
         where: session ? { id: paymentId, userId: session.userId } : { id: paymentId },
       });
 
-      if (!payment) {
-        return NextResponse.json({ error: 'Not found' }, { status: 404 });
-      }
-
       if (!session && !isTokenValid) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      if (!payment) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
       }
 
       // Synchronous status check fallback

@@ -13,7 +13,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Server misconfiguration.' }, { status: 500 });
     }
 
-    if (authHeader !== `Bearer ${secret}`) {
+    const expectedAuth = `Bearer ${secret}`;
+    const crypto = await import('crypto');
+    const authBuf = Buffer.from(authHeader || '');
+    const expectedBuf = Buffer.from(expectedAuth);
+
+    if (authBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(authBuf, expectedBuf)) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
