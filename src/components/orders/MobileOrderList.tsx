@@ -89,128 +89,126 @@ export function MobileOrderList({ orders, user }: { orders: MobileOrderItem[], u
   return (
     <>
       {/* Mobile cards list (plain render — 15 items/page, no virtualization needed) */}
-      <div className="sm:hidden -mx-4 px-4">
+      <div className="space-y-3">
         {orders.map((order) => (
-          <div key={order.id} className="py-2">
-            {/* 4.1 Карточки вместо таблиц + 4.3 Touch Targets */}
-            <div 
-              role="button"
-              tabIndex={0}
-              onClick={() => handleOrderClick(order)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOrderClick(order); } }}
-              className={`bg-card border border-border border-l-4 ${STATUS_ACCENT_BORDER[order.status] || 'border-l-muted-foreground/30'} rounded-2xl p-4 shadow-xs active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
-              style={{ minHeight: '120px' }} // Ensures large enough touch target
-            >
-              <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-mono text-muted-foreground">#{order.numericId}</div>
-                      
-                      <div className="text-[10px] uppercase font-bold text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                        {order.service?.category?.network?.slug && (
-                          <SocialIcon slug={order.service?.category.network.slug} size={10} className="inline-block" />
-                        )}
-                        {order.service?.category?.network?.name && (
-                          <span className="text-primary">{order.service?.category.network.name}</span>
-                        )}
-                        {order.service?.category?.name && (
-                          <>
-                            <span className="text-muted-foreground/50">•</span>
-                            <span className="truncate">{order.service?.category.name}</span>
-                          </>
-                        )}
-                      </div>
-                      
-                      <div className="text-sm font-medium text-foreground line-clamp-2 mt-1 leading-snug">
-                        {order.service?.name}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                        <div className="text-sm font-bold text-foreground tabular-nums">
-                          {formatRubles(Number(order.charge) / 100)}
-                        </div>
-                        <ChargeBreakdownModal
-                          numericId={order.numericId ?? 0}
-                          chargeCents={order.charge}
-                          discountCents={order.discountCents ?? undefined}
-                          usdToRubRate={order.usdToRubRate}
-                        />
-                      </div>
-                      <div className="mt-1.5 flex justify-end">
-                        <OrderStatusBadge status={order.status} size="sm" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 4.3 Progress bar for Partial / In Progress / Completed */}
-                  {order.status === 'IN_PROGRESS' && order.remains != null && (
-                    <div className="mt-3 space-y-1">
-                      <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>
-                          {order.quantity - order.remains >= order.quantity 
-                            ? 'Завершение...' 
-                            : order.quantity - order.remains <= 0 
-                              ? 'Начинаем работу...' 
-                              : 'В работе'}
-                        </span>
-                        <span className="tabular-nums font-mono">{Math.min(order.quantity, Math.max(0, order.quantity - order.remains))} / {order.quantity}</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={`h-full bg-primary rounded-full transition-all duration-500 ${(order.quantity - order.remains >= order.quantity) || (order.quantity - order.remains <= 0) ? 'animate-pulse opacity-80' : ''}`}
-                          style={{ width: `${Math.min(100, Math.max(0, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%` }}
-                        />
-                      </div>
-                    </div>
+          <div 
+            key={order.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => handleOrderClick(order)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOrderClick(order); } }}
+            className={`bg-card border border-border border-l-4 ${STATUS_ACCENT_BORDER[order.status] || 'border-l-muted-foreground/30'} rounded-2xl p-4 shadow-xs active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+            style={{ minHeight: '120px' }} // Ensures large enough touch target
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-mono text-muted-foreground">#{order.numericId}</div>
+                
+                <div className="text-[10px] uppercase font-bold text-muted-foreground mt-1.5 flex items-center gap-1.5 min-w-0">
+                  {order.service?.category?.network?.slug && (
+                    <SocialIcon slug={order.service?.category.network.slug} size={10} className="inline-block shrink-0" />
                   )}
-
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span className="tabular-nums font-medium">{order.quantity.toLocaleString('ru-RU')} шт.</span>
-                      <span>
-                        <ClientDate date={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt} format="date-short" />
-                      </span>
-                      <DripFeedProgress
-                        isDripFeed={order.isDripFeed ?? undefined}
-                        runs={order.runs ?? undefined}
-                        interval={order.interval}
-                        currentRun={order.currentRun ?? undefined}
-                        nextRunAt={order.nextRunAt ?? undefined}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <RefillRequestButton
-                        orderId={order.id}
-                        isRefillEnabled={order.service?.isRefillEnabled}
-                        orderStatus={order.status}
-                        createdAt={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt}
-                        refills={order.refills}
-                      />
-                      {['PENDING', 'AWAITING_PAYMENT'].includes(order.status) ? (
-                        <>
-                          <CancelOrderButton orderId={order.id} createdAt={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt} status={order.status} />
-                          {order.status === 'AWAITING_PAYMENT' && user && (
-                            <RetryPaymentModal 
-                              orderId={order.id} 
-                              charge={Number(order.charge)} 
-                              balance={Number(user.balance)} 
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <RepeatOrderButton 
-                          serviceId={order.service?.id || ""} 
-                          categoryId={order.service?.categoryId || ""} 
-                          link={order.link} 
-                          quantity={order.quantity} 
-                          remains={order.remains}
-                          status={order.status}
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {order.service?.category?.network?.name && (
+                    <span className="text-primary truncate">{order.service?.category.network.name}</span>
+                  )}
+                  {order.service?.category?.name && (
+                    <>
+                      <span className="text-muted-foreground/50 shrink-0">•</span>
+                      <span className="truncate">{order.service?.category.name}</span>
+                    </>
+                  )}
                 </div>
+                
+                <div className="text-sm font-medium text-foreground line-clamp-2 mt-1 leading-snug break-words">
+                  {order.service?.name}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="text-sm font-bold text-foreground tabular-nums">
+                    {formatRubles(Number(order.charge) / 100)}
+                  </div>
+                  <ChargeBreakdownModal
+                    numericId={order.numericId ?? 0}
+                    chargeCents={order.charge}
+                    discountCents={order.discountCents ?? undefined}
+                    usdToRubRate={order.usdToRubRate}
+                  />
+                </div>
+                <div className="mt-1.5 flex justify-end">
+                  <OrderStatusBadge status={order.status} size="sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* 4.3 Progress bar for Partial / In Progress / Completed */}
+            {order.status === 'IN_PROGRESS' && order.remains != null && (
+              <div className="mt-3 space-y-1">
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>
+                    {order.quantity - order.remains >= order.quantity 
+                      ? 'Завершение...' 
+                      : order.quantity - order.remains <= 0 
+                        ? 'Начинаем работу...' 
+                        : 'В работе'}
+                  </span>
+                  <span className="tabular-nums font-mono">{Math.min(order.quantity, Math.max(0, order.quantity - order.remains))} / {order.quantity}</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full bg-primary rounded-full transition-all duration-500 ${(order.quantity - order.remains >= order.quantity) || (order.quantity - order.remains <= 0) ? 'animate-pulse opacity-80' : ''}`}
+                    style={{ width: `${Math.min(100, Math.max(0, Math.round(((order.quantity - order.remains) / order.quantity) * 100)))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="tabular-nums font-medium">{order.quantity.toLocaleString('ru-RU')} шт.</span>
+                <span>
+                  <ClientDate date={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt} format="date-short" />
+                </span>
+                <DripFeedProgress
+                  isDripFeed={order.isDripFeed ?? undefined}
+                  runs={order.runs ?? undefined}
+                  interval={order.interval}
+                  currentRun={order.currentRun ?? undefined}
+                  nextRunAt={order.nextRunAt ?? undefined}
+                />
+              </div>
+              
+              <div className="flex items-center gap-1.5 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                <RefillRequestButton
+                  orderId={order.id}
+                  isRefillEnabled={order.service?.isRefillEnabled}
+                  orderStatus={order.status}
+                  createdAt={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt}
+                  refills={order.refills}
+                />
+                {['PENDING', 'AWAITING_PAYMENT'].includes(order.status) ? (
+                  <>
+                    <CancelOrderButton orderId={order.id} createdAt={typeof order.createdAt === "string" ? new Date(order.createdAt) : order.createdAt} status={order.status} />
+                    {order.status === 'AWAITING_PAYMENT' && user && (
+                      <RetryPaymentModal 
+                        orderId={order.id} 
+                        charge={Number(order.charge)} 
+                        balance={Number(user.balance)} 
+                      />
+                    )}
+                  </>
+                ) : (
+                  <RepeatOrderButton 
+                    serviceId={order.service?.id || ""} 
+                    categoryId={order.service?.categoryId || ""} 
+                    link={order.link} 
+                    quantity={order.quantity} 
+                    remains={order.remains}
+                    status={order.status}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>

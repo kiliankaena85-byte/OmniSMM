@@ -237,16 +237,16 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <DashboardBreadcrumbs items={[{ label: 'Мои заказы' }]} />
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Мои заказы</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Мои заказы</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">
             История всех заказов — всего найдено: {totalCount}
           </p>
         </div>
         <Link
           href="/dashboard/new-order"
-          className="h-11 px-4 flex items-center text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm animate-hover-pulse whitespace-nowrap shrink-0"
+          className="h-10 sm:h-11 px-3.5 sm:px-4 flex items-center text-xs sm:text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm animate-hover-pulse whitespace-nowrap shrink-0"
         >
           + Новый заказ
         </Link>
@@ -263,9 +263,9 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         statusCounts={countsMap}
       />
 
-      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
-        {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto">
+      {/* Desktop table */}
+      <div className="hidden sm:block bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
           <Table aria-label="Список заказов">
             <TableHeader>
               <TableRow>
@@ -449,23 +449,25 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
             </TableBody>
           </Table>
         </div>
-
-        {/* Mobile cards (Virtualized + Drawer) */}
-        <MobileOrderList orders={orders} user={user} />
-
-        {orders.length === 0 && (
-          <div className="py-16 text-center">
-            <div className="text-4xl mb-3">📭</div>
-            <p className="text-muted-foreground text-sm">Заказов не найдено</p>
-            <Link
-              href="/dashboard/new-order"
-              className="mt-4 h-11 px-5 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all duration-200"
-            >
-              + Создать заказ
-            </Link>
-          </div>
-        )}
       </div>
+
+      {/* Mobile cards (Drawer + Instant touch) */}
+      <div className="sm:hidden">
+        <MobileOrderList orders={orders} user={user} />
+      </div>
+
+      {orders.length === 0 && (
+        <div className="bg-card border border-border/60 rounded-2xl py-16 text-center shadow-sm">
+          <div className="text-4xl mb-3">📭</div>
+          <p className="text-muted-foreground text-sm">Заказов не найдено</p>
+          <Link
+            href="/dashboard/new-order"
+            className="mt-4 h-11 px-5 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all duration-200"
+          >
+            + Создать заказ
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

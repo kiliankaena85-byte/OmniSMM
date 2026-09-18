@@ -122,89 +122,94 @@ export function OrderFilters({
           e.preventDefault();
           handleApplyFilters({ search });
         }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-card border border-border/60 rounded-2xl p-4 shadow-sm select-none"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 bg-card border border-border/60 rounded-2xl p-3 sm:p-4 shadow-sm select-none"
       >
-        <div className="flex flex-wrap items-center gap-3 flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-1 w-full min-w-0">
           
           {/* Smart Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-full">
+          <div className="relative flex-1 min-w-0 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder="Поиск по ID или названию тарифа..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 md:h-9 pl-9 pr-4 bg-muted border border-border/60 rounded-xl text-base sm:text-xs font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
+              className="w-full h-10 sm:h-9 pl-9 pr-4 bg-muted border border-border/60 rounded-xl text-xs font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
             />
           </div>
 
-          {/* Status filter (Mobile only, hidden on desktop since we have tabs there) */}
-          <div className="block sm:hidden w-full">
-            <Select
-              value={initialStatus || 'ALL'}
-              onValueChange={(val) => handleApplyFilters({ status: val ?? 'ALL' })}
-            >
-              <SelectTrigger 
-                className="h-11 bg-muted border border-border/60 rounded-xl px-3 text-base sm:text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 w-full"
-                aria-label="Фильтр по статусу"
+          {/* Dropdown filters: 2 equal columns on mobile, inline on sm+ */}
+          <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+            {/* Status filter (Mobile only, hidden on desktop since we have tabs there) */}
+            <div className="sm:hidden w-full min-w-0">
+              <Select
+                value={initialStatus || 'ALL'}
+                onValueChange={(val) => handleApplyFilters({ status: val ?? 'ALL' })}
               >
-                <SelectValue placeholder="Все статусы">
-                  {(value: string) => {
-                    if (!value || value === 'ALL') return 'Все статусы';
-                    const matched = statuses.find(s => s.value === value);
-                    if (!matched) return value;
-                    const count = statusCounts[value] || 0;
-                    return count > 0 ? `${matched.label} (${count})` : matched.label;
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-popover text-popover-foreground border border-border rounded-xl shadow-md p-1">
-                {statuses.map((stat) => {
-                  const count = stat.value === 'ALL'
-                    ? Object.values(statusCounts).reduce((a, b) => a + b, 0)
-                    : statusCounts[stat.value] || 0;
-                  return (
-                    <SelectItem key={stat.value} value={stat.value}>
-                      {stat.label} {count > 0 ? `(${count})` : ''}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+                <SelectTrigger 
+                  className="h-10 bg-muted border border-border/60 rounded-xl px-2.5 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1 w-full min-w-0"
+                  aria-label="Фильтр по статусу"
+                >
+                  <SelectValue placeholder="Все статусы" className="min-w-0 truncate text-left">
+                    {(value: string) => {
+                      if (!value || value === 'ALL') return 'Все статусы';
+                      const matched = statuses.find(s => s.value === value);
+                      if (!matched) return value;
+                      const count = statusCounts[value] || 0;
+                      return count > 0 ? `${matched.label} (${count})` : matched.label;
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-popover text-popover-foreground border border-border rounded-xl shadow-md p-1 max-h-60 overflow-y-auto">
+                  {statuses.map((stat) => {
+                    const count = stat.value === 'ALL'
+                      ? Object.values(statusCounts).reduce((a, b) => a + b, 0)
+                      : statusCounts[stat.value] || 0;
+                    return (
+                      <SelectItem key={stat.value} value={stat.value}>
+                        {stat.label} {count > 0 ? `(${count})` : ''}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Social Network filter */}
-          <Select
-            value={initialNetwork || 'ALL'}
-            onValueChange={(val) => handleApplyFilters({ network: val ?? 'ALL' })}
-          >
-            <SelectTrigger 
-              className="h-11 md:h-9 bg-muted border border-border/60 rounded-xl px-3 text-base sm:text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1.5 min-w-[130px]"
-              aria-label="Фильтр по соцсети"
-            >
-              <SelectValue placeholder="Все соцсети">
-                {(value: string) => {
-                  if (!value || value === 'ALL') return 'Все соцсети';
-                  return availableNetworks.find(net => net.slug === value)?.name ?? value;
-                }}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-popover text-popover-foreground border border-border rounded-xl shadow-md p-1">
-              <SelectItem value="ALL">Все соцсети</SelectItem>
-              {availableNetworks.map((net) => (
-                <SelectItem key={net.slug} value={net.slug}>
-                  {net.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {/* Social Network filter */}
+            <div className="w-full sm:w-[170px] min-w-0">
+              <Select
+                value={initialNetwork || 'ALL'}
+                onValueChange={(val) => handleApplyFilters({ network: val ?? 'ALL' })}
+              >
+                <SelectTrigger 
+                  className="h-10 sm:h-9 bg-muted border border-border/60 rounded-xl px-2.5 sm:px-3 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none transition-all hover:bg-muted/80 flex items-center justify-between gap-1 w-full min-w-0"
+                  aria-label="Фильтр по соцсети"
+                >
+                  <SelectValue placeholder="Все соцсети" className="min-w-0 truncate text-left">
+                    {(value: string) => {
+                      if (!value || value === 'ALL') return 'Все соцсети';
+                      return availableNetworks.find(net => net.slug === value)?.name ?? value;
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-popover text-popover-foreground border border-border rounded-xl shadow-md p-1 max-h-60 overflow-y-auto">
+                  <SelectItem value="ALL">Все соцсети</SelectItem>
+                  {availableNetworks.map((net) => (
+                    <SelectItem key={net.slug} value={net.slug}>
+                      {net.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <button
             type="submit"
-            className="h-11 md:h-9 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs transition-all cursor-pointer shadow-sm active:scale-95"
+            className="flex-1 sm:flex-initial h-10 sm:h-9 px-5 sm:px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs transition-all cursor-pointer shadow-sm active:scale-95 text-center whitespace-nowrap"
           >
             Применить
           </button>
@@ -213,7 +218,7 @@ export function OrderFilters({
             <button
               type="button"
               onClick={handleReset}
-              className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center bg-content2 border border-border/60 hover:bg-content3 text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+              className="h-10 w-10 sm:h-9 sm:w-9 shrink-0 flex items-center justify-center bg-content2 border border-border/60 hover:bg-content3 text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               title="Сбросить все фильтры"
             >
               <RotateCcw className="w-4 h-4 shrink-0" />

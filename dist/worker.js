@@ -111279,25 +111279,28 @@ var init_smart_analyzer_logic = __esm({
           if (fullContent.includes("group") || fullContent.includes("\u0433\u0440\u0443\u043F\u043F")) category = "SUBSCRIBERS";
           else if (fullContent.includes("reel") || fullContent.includes("video")) category = "VIEWS";
         } else if (effectivePlatform === "TELEGRAM") {
+          const vIdx = nameNode.indexOf("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440");
+          const vIdx2 = nameNode.indexOf("view");
+          const rIdx = nameNode.indexOf("\u0440\u0435\u0430\u043A\u0446\u0438");
+          const rIdx2 = nameNode.indexOf("reaction");
+          const minV = Math.min(vIdx === -1 ? Infinity : vIdx, vIdx2 === -1 ? Infinity : vIdx2);
+          const minR = Math.min(rIdx === -1 ? Infinity : rIdx, rIdx2 === -1 ? Infinity : rIdx2);
+          const isReactionsPrimary = minR < minV;
           const isStory = nameNode.includes("\u0438\u0441\u0442\u043E\u0440\u0438") || nameNode.includes("story");
-          const isAutoViews = (nameNode.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A") || nameNode.includes("auto") || nameNode.includes("\u0430\u0432\u0442\u043E")) && (nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nameNode.includes("view") || nameNode.includes("\u0433\u043B\u0430\u0437"));
-          if (fullContent.includes("stars")) category = "STARS";
+          const isAutoViews = !isReactionsPrimary && (nameNode.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u043A") || nameNode.includes("auto") || nameNode.includes("\u0430\u0432\u0442\u043E")) && (nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nameNode.includes("view") || nameNode.includes("\u0433\u043B\u0430\u0437"));
+          const isSubscribers = (/подписч|member|follower|читател|фолловер/i.test(nameNode) || nameNode.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") && !nameNode.includes("\u043E\u043F\u0440\u043E\u0441") && !nameNode.includes("\u0433\u043E\u043B\u043E\u0441")) && !isAutoViews;
+          const isBoost = (nameNode.includes("boost") || nameNode.includes("\u0431\u0443\u0441\u0442") || fullContent.includes("\u0433\u043E\u043B\u043E\u0441 \u0434\u043B\u044F \u0431\u0443\u0441\u0442") || fullContent.includes("\u0433\u043E\u043B\u043E\u0441\u0430 \u0434\u043B\u044F \u0431\u0443\u0441\u0442")) && !isSubscribers;
+          const isStars = (fullContent.includes("stars") || nameNode.includes("\u0437\u0432\u0435\u0437\u0434") || nameNode.includes("star")) && !isSubscribers;
+          if (isStars) category = "STARS";
           else if (fullContent.includes("\u0436\u0430\u043B\u043E\u0431\u0430") || fullContent.includes("report")) category = "COMPLAINTS";
-          else if (fullContent.includes("boost") || fullContent.includes("\u0431\u0443\u0441\u0442")) category = "BOOSTS";
+          else if (isBoost) category = "BOOSTS";
           else if (isStory) category = "STORIES";
           else if (isAutoViews) category = "AUTO_VIEWS";
+          else if (isSubscribers) category = "SUBSCRIBERS";
           else if (nameNode.includes("\u0440\u0435\u0430\u043A\u0446\u0438") || nameNode.includes("reaction")) {
-            const vIdx = nameNode.indexOf("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440");
-            const vIdx2 = nameNode.indexOf("view");
-            const rIdx = nameNode.indexOf("\u0440\u0435\u0430\u043A\u0446\u0438");
-            const rIdx2 = nameNode.indexOf("reaction");
-            const minV = Math.min(vIdx === -1 ? Infinity : vIdx, vIdx2 === -1 ? Infinity : vIdx2);
-            const minR = Math.min(rIdx === -1 ? Infinity : rIdx, rIdx2 === -1 ? Infinity : rIdx2);
             if (minV < minR) category = "VIEWS";
             else category = "REACTIONS";
-          } else if (nameNode.includes("\u043F\u043E\u0434\u043F\u0438\u0441") || nameNode.includes("member")) {
-            category = "SUBSCRIBERS";
-          } else if (nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nameNode.includes("view")) category = "VIEWS";
+          } else if (nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nameNode.includes("view") || nameNode.includes("\u0433\u043B\u0430\u0437") || nameNode.includes("\u0433\u043B\u044F\u0434\u0435\u043B\u043E\u043A")) category = "VIEWS";
         } else if (effectivePlatform === "YOUTUBE") {
           if (fullContent.includes("\u0447\u0430\u0441") && !fullContent.includes("\u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A") || fullContent.includes("hour")) category = "VIEWS";
           if (fullContent.includes("short")) category = "VIEWS";
@@ -111306,9 +111309,9 @@ var init_smart_analyzer_logic = __esm({
           if (fullContent.includes("\u0441\u0442\u0430\u0442\u044C") || fullContent.includes("article")) category = "VIEWS";
         } else if (effectivePlatform === "INSTAGRAM") {
           if (nameNode.includes("story") || nameNode.includes("\u0441\u0442\u043E\u0440\u0438\u0441")) category = "STORIES";
-          else if (nameNode.includes("\u043F\u043E\u0434\u043F\u0438\u0441") || nameNode.includes("follow")) category = "SUBSCRIBERS";
+          else if (/подписч|follow/i.test(nameNode)) category = "SUBSCRIBERS";
           else if (nameNode.includes("\u043B\u0430\u0439\u043A") || nameNode.includes("like")) category = "LIKES";
-          else if (nameNode.includes(" reels") || nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440")) category = "VIEWS";
+          else if (nameNode.includes(" reels") || nameNode.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || nameNode.includes("view")) category = "VIEWS";
         }
         let targetType;
         const isPrivate = fullContent.includes("private") || fullContent.includes("\u0437\u0430\u043A\u0440\u044B\u0442") || fullContent.includes("\u043F\u0440\u0438\u0432\u0430\u0442");
@@ -160871,10 +160874,30 @@ var CATEGORY_SORT_ORDER = {
 };
 async function ensureCategoryForActivityType(networkId, networkName, networkSlug, activityType, tenantId) {
   const existing = await db.category.findFirst({
-    where: { networkId, activityType, tenantId: { in: [tenantId, "all"] } },
-    select: { id: true }
+    where: {
+      networkId,
+      tenantId: { in: [tenantId, "all"] },
+      OR: [
+        { activityType },
+        ...activityType === "SUBSCRIBERS" ? [{ name: { contains: "\u043F\u043E\u0434\u043F\u0438\u0441\u0447", mode: "insensitive" } }] : [],
+        ...activityType === "VIEWS" ? [{ name: { contains: "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440", mode: "insensitive" } }] : [],
+        ...activityType === "LIKES" ? [{ name: { contains: "\u043B\u0430\u0439\u043A", mode: "insensitive" } }] : [],
+        ...activityType === "COMMENTS" ? [{ name: { contains: "\u043A\u043E\u043C\u043C\u0435\u043D\u0442", mode: "insensitive" } }] : [],
+        ...activityType === "REACTIONS" ? [{ name: { contains: "\u0440\u0435\u0430\u043A\u0446", mode: "insensitive" } }] : []
+      ]
+    },
+    orderBy: [
+      { sort: "asc" },
+      { createdAt: "asc" }
+    ],
+    select: { id: true, activityType: true }
   });
-  if (existing) return existing.id;
+  if (existing) {
+    if (!existing.activityType && activityType) {
+      await db.category.update({ where: { id: existing.id }, data: { activityType } });
+    }
+    return existing.id;
+  }
   const displayName = CATEGORY_DISPLAY_NAMES[activityType] || activityType;
   const fullName = displayName;
   const baseSlug = `${networkSlug}-${activityType.toLowerCase().replace(/_/g, "-")}`;
@@ -160904,6 +160927,49 @@ async function ensureCategoryForActivityType(networkId, networkName, networkSlug
     categoryId: newCat.id
   });
   return newCat.id;
+}
+function inferCanonicalActivityType(normalizedCategory, serviceName, targetType) {
+  const n = (serviceName || "").toLowerCase();
+  if (/подписч|member|follower|читател|фолловер/i.test(n) && !/авто.*просмотр|просмотр.*подпис/i.test(n)) {
+    return "SUBSCRIBERS";
+  }
+  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|реакц|лайк/i.test(n)) {
+    return /авто|auto|будущ/i.test(n) ? "AUTO_VIEWS" : "VIEWS";
+  }
+  if (/лайк|like|сердеч|мне нравится/i.test(n) && !/подписч|просмотр|репост/i.test(n)) {
+    return /авто|auto|будущ/i.test(n) ? "AUTO_LIKES" : "LIKES";
+  }
+  if (/реакци|emoji|reaction|эмодзи/i.test(n) && !/подписч/i.test(n)) {
+    return /авто|auto/i.test(n) ? "AUTO_REACTIONS" : "REACTIONS";
+  }
+  if (/коммент|отзыв|comment/i.test(n) && !/подписч|лайк|просмотр/i.test(n)) {
+    return /авто|auto/i.test(n) ? "AUTO_COMMENTS" : "COMMENTS";
+  }
+  if (/репост|share|repost|поделиться/i.test(n) && !/подписч/i.test(n)) {
+    return /авто|auto/i.test(n) ? "AUTO_REPOSTS" : "REPOSTS";
+  }
+  if (/буст|boost/i.test(n) && !/подписч/i.test(n)) {
+    return "BOOSTS";
+  }
+  if (/опрос|голос|викторин|poll|vote/i.test(n)) {
+    return "POLLS";
+  }
+  if (/истори|сторис|story|stories/i.test(n) && !/лайк|просмотр/i.test(n)) {
+    return "STORIES";
+  }
+  if (/стрим|stream|live|эфир|баттл|battle/i.test(n) && !/подписч/i.test(n)) {
+    return "STREAMS";
+  }
+  if (/stars|звезд/i.test(n) && !/подписч/i.test(n)) {
+    return "STARS";
+  }
+  if (normalizedCategory && normalizedCategory !== "OTHER") {
+    return normalizedCategory;
+  }
+  if (targetType === "CHANNEL") {
+    return "SUBSCRIBERS";
+  }
+  return null;
 }
 function formatFullServiceName(rawName, categoryName) {
   const clean = ServiceAuditEngine.cleanText(rawName);
@@ -161732,10 +161798,26 @@ var AdminCatalogService = class {
         id: { in: Array.from(uniqueCategoryIds) },
         ...targetTenantId === "both" ? { tenantId: { in: ["smmplan", "flux", "all"] } } : { tenantId: { in: [targetTenantId, "all"] } }
       },
-      select: { id: true, name: true, activityType: true }
+      select: {
+        id: true,
+        name: true,
+        activityType: true,
+        networkId: true,
+        network: { select: { id: true, name: true, slug: true } }
+      }
     });
     const categoryNameMap = new Map(categoriesDb.map((c) => [c.id, c.name]));
     const categoryActivityTypeMap = new Map(categoriesDb.map((c) => [c.id, c.activityType]));
+    const categoryNetworkMap = new Map(categoriesDb.map((c) => [c.id, c.network]));
+    const networksDb = await db.network.findMany({
+      select: { id: true, name: true, slug: true }
+    });
+    const networkBySlug = new Map(networksDb.map((n) => [n.slug.toLowerCase(), n]));
+    if (networkBySlug.has("vk") && !networkBySlug.has("vkontakte")) {
+      networkBySlug.set("vkontakte", networkBySlug.get("vk"));
+    } else if (networkBySlug.has("vkontakte") && !networkBySlug.has("vk")) {
+      networkBySlug.set("vk", networkBySlug.get("vkontakte"));
+    }
     for (const catId of Array.from(uniqueCategoryIds)) {
       const changed = await ensureTaxonomyTenantAccess(catId);
       if (changed) {
@@ -161833,48 +161915,81 @@ var AdminCatalogService = class {
         takenSlugs.add(`${tId}:${stableSlug}`);
         const resolvedCategoryId = await (async () => {
           const normCat = shadowExt.normalizedCategory;
-          const isServiceSubscribers = normCat === "SUBSCRIBERS" || shadowExt.targetType === "CHANNEL" || /подписч|member/i.test(shadowExt.cleanName || shadowExt.name || "");
-          if (categoryIdMap?.[extId]) {
-            const explicitId = categoryIdMap[extId];
-            const explicitName = categoryNameMap.get(explicitId) || "";
-            const explicitActivityType = categoryActivityTypeMap.get(explicitId) || "";
-            const isTargetViews = explicitActivityType === "VIEWS" || explicitName.toLowerCase().includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440");
-            if (isServiceSubscribers && isTargetViews && fallbackCategoryRecord?.network?.id && fallbackCategoryRecord.networkId) {
-              const cacheKey = "SUBSCRIBERS";
-              if (!autoCreatedCategoryCache.has(cacheKey)) {
-                const autoId = await ensureCategoryForActivityType(
-                  fallbackCategoryRecord.networkId,
-                  fallbackCategoryRecord.network.name,
-                  fallbackCategoryRecord.network.slug,
-                  "SUBSCRIBERS",
-                  fallbackCategoryRecord.tenantId || tId
-                );
-                autoCreatedCategoryCache.set(cacheKey, autoId);
-              }
-              return autoCreatedCategoryCache.get(cacheKey);
+          const serviceCanonicalType2 = inferCanonicalActivityType(normCat, shadowExt.cleanName || shadowExt.name || "", shadowExt.targetType);
+          const explicitId = categoryIdMap?.[extId];
+          const candidateCatId = explicitId || categoryId;
+          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || (candidateCatId === categoryId ? fallbackCategoryRecord?.activityType : "") || "";
+          const candidateName = (categoryNameMap.get(candidateCatId) || "").toLowerCase();
+          const targetNetwork = categoryNetworkMap.get(candidateCatId) || fallbackCategoryRecord?.network || networkBySlug.get((shadowExt.platform || "").toLowerCase());
+          let isContradiction = false;
+          if (serviceCanonicalType2 && targetNetwork) {
+            if (serviceCanonicalType2 === "SUBSCRIBERS") {
+              if (candidateActivityType && candidateActivityType !== "SUBSCRIBERS") isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043B\u0430\u0439\u043A") || candidateName.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442") || candidateName.includes("\u0440\u0435\u043F\u043E\u0441\u0442") || candidateName.includes("\u0440\u0435\u0430\u043A\u0446"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "VIEWS" || serviceCanonicalType2 === "AUTO_VIEWS") {
+              if (candidateActivityType && !["VIEWS", "AUTO_VIEWS", "AUTO_SERVICES"].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043B\u0430\u0439\u043A") || candidateName.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "LIKES" || serviceCanonicalType2 === "AUTO_LIKES") {
+              if (candidateActivityType && !["LIKES", "AUTO_LIKES", "AUTO_SERVICES"].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043A\u043E\u043C\u043C\u0435\u043D\u0442"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "COMMENTS" || serviceCanonicalType2 === "AUTO_COMMENTS") {
+              if (candidateActivityType && !["COMMENTS", "AUTO_COMMENTS"].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043B\u0430\u0439\u043A"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "REACTIONS" || serviceCanonicalType2 === "AUTO_REACTIONS") {
+              if (candidateActivityType && !["REACTIONS", "AUTO_REACTIONS"].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "BOOSTS") {
+              if (candidateActivityType && candidateActivityType !== "BOOSTS") isContradiction = true;
+            } else if (serviceCanonicalType2 === "REPOSTS") {
+              if (candidateActivityType && candidateActivityType !== "REPOSTS") isContradiction = true;
+            } else if (serviceCanonicalType2 === "STREAMS") {
+              if (candidateActivityType && candidateActivityType !== "STREAMS") isContradiction = true;
+              else if (candidateName && (candidateName.includes("\u043F\u043E\u0434\u043F\u0438\u0441\u0447") || candidateName.includes("\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440") || candidateName.includes("\u043B\u0430\u0439\u043A"))) isContradiction = true;
+            } else if (serviceCanonicalType2 === "STARS") {
+              if (candidateActivityType && candidateActivityType !== "STARS") isContradiction = true;
             }
+          }
+          if (isContradiction && serviceCanonicalType2 && targetNetwork) {
+            const cacheKey = `${targetNetwork.id}_${serviceCanonicalType2}_${tId}`;
+            if (!autoCreatedCategoryCache.has(cacheKey)) {
+              const autoId = await ensureCategoryForActivityType(
+                targetNetwork.id,
+                targetNetwork.name,
+                targetNetwork.slug,
+                serviceCanonicalType2,
+                fallbackCategoryRecord?.tenantId || tId
+              );
+              autoCreatedCategoryCache.set(cacheKey, autoId);
+            }
+            return autoCreatedCategoryCache.get(cacheKey);
+          }
+          if (explicitId) {
             return explicitId;
           }
-          if (normCat && normCat !== "OTHER" && fallbackCategoryRecord?.network?.id && fallbackCategoryRecord.networkId) {
-            if (normCat !== fallbackCategoryRecord.activityType) {
-              const cacheKey = normCat;
-              if (!autoCreatedCategoryCache.has(cacheKey)) {
-                const autoId = await ensureCategoryForActivityType(
-                  fallbackCategoryRecord.networkId,
-                  fallbackCategoryRecord.network.name,
-                  fallbackCategoryRecord.network.slug,
-                  normCat,
-                  fallbackCategoryRecord.tenantId || tId
-                );
-                autoCreatedCategoryCache.set(cacheKey, autoId);
-              }
-              return autoCreatedCategoryCache.get(cacheKey);
+          if (serviceCanonicalType2 && serviceCanonicalType2 !== "OTHER" && targetNetwork && serviceCanonicalType2 !== fallbackCategoryRecord?.activityType) {
+            const cacheKey = `${targetNetwork.id}_${serviceCanonicalType2}_${tId}`;
+            if (!autoCreatedCategoryCache.has(cacheKey)) {
+              const autoId = await ensureCategoryForActivityType(
+                targetNetwork.id,
+                targetNetwork.name,
+                targetNetwork.slug,
+                serviceCanonicalType2,
+                fallbackCategoryRecord?.tenantId || tId
+              );
+              autoCreatedCategoryCache.set(cacheKey, autoId);
             }
+            return autoCreatedCategoryCache.get(cacheKey);
           }
           return categoryId;
         })();
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || "";
-        const effectiveTargetType = shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || "");
+        const serviceCanonicalType = inferCanonicalActivityType(shadowExt.normalizedCategory, shadowExt.cleanName || shadowExt.name || "", shadowExt.targetType);
+        let effectiveTargetType = shadowExt.targetType;
+        if (serviceCanonicalType === "SUBSCRIBERS") {
+          effectiveTargetType = "CHANNEL";
+        } else if (!effectiveTargetType) {
+          effectiveTargetType = inferTargetTypeFromCategory(resolvedCategoryName || shadowExt.normalizedCategory || "");
+        }
         const linkSpec = getUnifiedLinkSpecification(
           shadowExt.platform || fallbackCategoryRecord?.network?.slug || "",
           effectiveTargetType,

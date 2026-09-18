@@ -52,11 +52,11 @@ export function FluxDashboardShell({
       </div>
 
       {/* ── Top Navigation Bar ── */}
-      <header className="relative z-40 w-full px-4 sm:px-8 py-3.5 flex items-center justify-between backdrop-blur-2xl bg-white/60 dark:bg-black/60 border-b border-border/30 shadow-sm sticky top-0">
-        <div className="flex items-center gap-4 sm:gap-8">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 font-black text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity" title="Перейти на главную страницу (Витрина)" aria-label="На главную">
-              <TenantLogo tenantId="flux" className="w-9 h-9" iconClassName="w-4 h-4" />
+      <header className="relative z-40 w-full px-2.5 sm:px-8 py-2 sm:py-3.5 flex items-center justify-between backdrop-blur-2xl bg-white/60 dark:bg-black/60 border-b border-border/30 shadow-sm sticky top-0 min-h-[56px]">
+        <div className="flex items-center gap-2 sm:gap-8 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 font-black text-base sm:text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity min-w-0 shrink-0" title="Перейти на главную страницу (Витрина)" aria-label="На главную">
+              <TenantLogo tenantId="flux" className="w-7 h-7 sm:w-9 sm:h-9 shrink-0" iconClassName="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="truncate tracking-tight font-black min-w-0">SMMflux</span>
             </Link>
             <Link
@@ -105,21 +105,23 @@ export function FluxDashboardShell({
           </nav>
         </div>
 
-        <div className="flex items-center gap-2.5 sm:gap-4">
-          <ThemeSwitcher variant="toggle" className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-border/70 bg-card/60" />
+        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+          <ThemeSwitcher variant="toggle" className="hidden min-[400px]:flex w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-border/70 bg-card/60 shrink-0" />
           <BalanceDisplay initialBalance={balanceRub} variant="mobile-header" />
           <Link
             href="/dashboard/finance"
-            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
+            className="px-2 sm:px-4 py-1.5 sm:py-2 min-h-[34px] sm:min-h-[40px] text-xs sm:text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1 sm:gap-1.5 shrink-0"
+            title="Пополнить баланс"
+            aria-label="Пополнить баланс"
           >
-            <Wallet className="w-4 h-4 shrink-0" />
-            <span className="hidden xs:inline">+ Пополнить</span>
+            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="hidden sm:inline">Пополнить</span>
           </Link>
 
           {/* Mobile Profile Avatar Link (Variant A) */}
           <Link
             href="/dashboard/settings"
-            className="md:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-xs uppercase"
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-xs uppercase shrink-0"
             title="Профиль и настройки"
           >
             {user.email.substring(0, 2)}

@@ -382,32 +382,31 @@ export const SmartAnalyzerLogic = class {
             if (fullContent.includes('group') || fullContent.includes('групп')) category = 'SUBSCRIBERS';
             else if (fullContent.includes('reel') || fullContent.includes('video')) category = 'VIEWS';
         } else if (effectivePlatform === 'TELEGRAM') {
+            const vIdx = nameNode.indexOf('просмотр');
+            const vIdx2 = nameNode.indexOf('view');
+            const rIdx = nameNode.indexOf('реакци');
+            const rIdx2 = nameNode.indexOf('reaction');
+            const minV = Math.min(vIdx === -1 ? Infinity : vIdx, vIdx2 === -1 ? Infinity : vIdx2);
+            const minR = Math.min(rIdx === -1 ? Infinity : rIdx, rIdx2 === -1 ? Infinity : rIdx2);
+            const isReactionsPrimary = minR < minV;
+
             const isStory = nameNode.includes('истори') || nameNode.includes('story');
-            const isAutoViews = (nameNode.includes('подписк') || nameNode.includes('auto') || nameNode.includes('авто')) && (nameNode.includes('просмотр') || nameNode.includes('view') || nameNode.includes('глаз'));
-            
-            if (fullContent.includes('stars')) category = 'STARS';
+            const isAutoViews = !isReactionsPrimary && (nameNode.includes('подписк') || nameNode.includes('auto') || nameNode.includes('авто')) && (nameNode.includes('просмотр') || nameNode.includes('view') || nameNode.includes('глаз'));
+            const isSubscribers = (/подписч|member|follower|читател|фолловер/i.test(nameNode) || (nameNode.includes('участник') && !nameNode.includes('опрос') && !nameNode.includes('голос'))) && !isAutoViews;
+            const isBoost = (nameNode.includes('boost') || nameNode.includes('буст') || fullContent.includes('голос для буст') || fullContent.includes('голоса для буст')) && !isSubscribers;
+            const isStars = (fullContent.includes('stars') || nameNode.includes('звезд') || nameNode.includes('star')) && !isSubscribers;
+
+            if (isStars) category = 'STARS';
             else if (fullContent.includes('жалоба') || fullContent.includes('report')) category = 'COMPLAINTS';
-            else if (fullContent.includes('boost') || fullContent.includes('буст')) category = 'BOOSTS';
+            else if (isBoost) category = 'BOOSTS';
             else if (isStory) category = 'STORIES';
             else if (isAutoViews) category = 'AUTO_VIEWS';
+            else if (isSubscribers) category = 'SUBSCRIBERS';
             else if (nameNode.includes('реакци') || nameNode.includes('reaction')) {
-                // Earliest match check within name for views vs reactions
-                const vIdx = nameNode.indexOf('просмотр');
-                const vIdx2 = nameNode.indexOf('view');
-                const rIdx = nameNode.indexOf('реакци');
-                const rIdx2 = nameNode.indexOf('reaction');
-                
-                const minV = Math.min(vIdx === -1 ? Infinity : vIdx, vIdx2 === -1 ? Infinity : vIdx2);
-                const minR = Math.min(rIdx === -1 ? Infinity : rIdx, rIdx2 === -1 ? Infinity : rIdx2);
-                
                 if (minV < minR) category = 'VIEWS';
                 else category = 'REACTIONS';
             }
-            else if (nameNode.includes('подпис') || nameNode.includes('member')) {
-                // ПРИОРИТЕТ: "Подписчики" (Subscribers) > "Подписка" (Boosts/Auto)
-                category = 'SUBSCRIBERS';
-            }
-            else if (nameNode.includes('просмотр') || nameNode.includes('view')) category = 'VIEWS';
+            else if (nameNode.includes('просмотр') || nameNode.includes('view') || nameNode.includes('глаз') || nameNode.includes('гляделок')) category = 'VIEWS';
         } else if (effectivePlatform === 'YOUTUBE') {
             if ((fullContent.includes('час') && !fullContent.includes('участник')) || fullContent.includes('hour')) category = 'VIEWS';
             if (fullContent.includes('short')) category = 'VIEWS';
@@ -416,9 +415,9 @@ export const SmartAnalyzerLogic = class {
             if (fullContent.includes('стать') || fullContent.includes('article')) category = 'VIEWS';
         } else if (effectivePlatform === 'INSTAGRAM') {
             if (nameNode.includes('story') || nameNode.includes('сторис')) category = 'STORIES';
-            else if (nameNode.includes('подпис') || nameNode.includes('follow')) category = 'SUBSCRIBERS';
+            else if (/подписч|follow/i.test(nameNode)) category = 'SUBSCRIBERS';
             else if (nameNode.includes('лайк') || nameNode.includes('like')) category = 'LIKES';
-            else if (nameNode.includes(' reels') || nameNode.includes('просмотр')) category = 'VIEWS';
+            else if (nameNode.includes(' reels') || nameNode.includes('просмотр') || nameNode.includes('view')) category = 'VIEWS';
         }
 
         // 3. Target Type

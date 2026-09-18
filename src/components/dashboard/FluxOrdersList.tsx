@@ -96,10 +96,10 @@ export function FluxOrdersList({
         return (
           <div
             key={order.id}
-            className="p-6 bg-card/60 backdrop-blur-md border border-border/30 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-primary/20 transition-all duration-200"
+            className="p-4 sm:p-6 bg-card/60 backdrop-blur-md border border-border/30 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 hover:border-primary/20 transition-all duration-200"
           >
             {/* Column 1: Platform & Service Details */}
-            <div className="flex items-start gap-4 min-w-[280px] max-w-sm">
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0 max-w-sm flex-1">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
                 <SocialIcon slug={order.service.network.slug} size={20} />
               </div>

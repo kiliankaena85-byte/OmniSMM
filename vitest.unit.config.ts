@@ -141,6 +141,7 @@ export default defineConfig({
       'src/__tests__/notifications/multitenant-alerts-and-customer-branding.test.ts',
       'src/__tests__/proxy-tenant-override-auth.test.ts',
       'src/__tests__/landing/mobile-trust-header.test.tsx',
+      'src/__tests__/unit/orders-mobile-layout-responsiveness.test.tsx',
       'src/__tests__/skills/**/*.test.ts',
       'src/__tests__/unit/**/*.test.ts',
     ],

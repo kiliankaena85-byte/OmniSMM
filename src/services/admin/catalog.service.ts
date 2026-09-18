@@ -115,12 +115,32 @@ export async function ensureCategoryForActivityType(
   activityType: string,
   tenantId: string
 ): Promise<string> {
-  // 1. Look for an existing category with this activityType in the network
+  // 1. Look for an existing category with this activityType or semantic name in the network
   const existing = await db.category.findFirst({
-    where: { networkId, activityType, tenantId: { in: [tenantId, 'all'] } },
-    select: { id: true },
+    where: {
+      networkId,
+      tenantId: { in: [tenantId, 'all'] },
+      OR: [
+        { activityType },
+        ...(activityType === 'SUBSCRIBERS' ? [{ name: { contains: 'подписч', mode: 'insensitive' as const } }] : []),
+        ...(activityType === 'VIEWS' ? [{ name: { contains: 'просмотр', mode: 'insensitive' as const } }] : []),
+        ...(activityType === 'LIKES' ? [{ name: { contains: 'лайк', mode: 'insensitive' as const } }] : []),
+        ...(activityType === 'COMMENTS' ? [{ name: { contains: 'коммент', mode: 'insensitive' as const } }] : []),
+        ...(activityType === 'REACTIONS' ? [{ name: { contains: 'реакц', mode: 'insensitive' as const } }] : []),
+      ]
+    },
+    orderBy: [
+      { sort: 'asc' },
+      { createdAt: 'asc' }
+    ],
+    select: { id: true, activityType: true },
   });
-  if (existing) return existing.id;
+  if (existing) {
+    if (!existing.activityType && activityType) {
+      await db.category.update({ where: { id: existing.id }, data: { activityType } });
+    }
+    return existing.id;
+  }
 
   // 2. Build the category name and slug (concise display name in UI, unique network-prefixed slug in DB)
   const displayName = CATEGORY_DISPLAY_NAMES[activityType] || activityType;
@@ -157,6 +177,65 @@ export async function ensureCategoryForActivityType(
   });
 
   return newCat.id;
+}
+
+/**
+ * Resolves canonical activity type from normalized category, service name, and target type.
+ * Acts as a strict invariant guard against provider misclassifications or operator bulk import traps.
+ */
+export function inferCanonicalActivityType(
+  normalizedCategory: string | undefined | null,
+  serviceName: string,
+  targetType?: string
+): string | null {
+  const n = (serviceName || '').toLowerCase();
+
+  // 1. Strong title keywords (highest priority — what the service actually is)
+  if (/подписч|member|follower|читател|фолловер/i.test(n) && !/авто.*просмотр|просмотр.*подпис/i.test(n)) {
+    return 'SUBSCRIBERS';
+  }
+  if (/просмотр|view|гляделок|глаз/i.test(n) && !/подписч|member|реакц|лайк/i.test(n)) {
+    return /авто|auto|будущ/i.test(n) ? 'AUTO_VIEWS' : 'VIEWS';
+  }
+  if (/лайк|like|сердеч|мне нравится/i.test(n) && !/подписч|просмотр|репост/i.test(n)) {
+    return /авто|auto|будущ/i.test(n) ? 'AUTO_LIKES' : 'LIKES';
+  }
+  if (/реакци|emoji|reaction|эмодзи/i.test(n) && !/подписч/i.test(n)) {
+    return /авто|auto/i.test(n) ? 'AUTO_REACTIONS' : 'REACTIONS';
+  }
+  if (/коммент|отзыв|comment/i.test(n) && !/подписч|лайк|просмотр/i.test(n)) {
+    return /авто|auto/i.test(n) ? 'AUTO_COMMENTS' : 'COMMENTS';
+  }
+  if (/репост|share|repost|поделиться/i.test(n) && !/подписч/i.test(n)) {
+    return /авто|auto/i.test(n) ? 'AUTO_REPOSTS' : 'REPOSTS';
+  }
+  if (/буст|boost/i.test(n) && !/подписч/i.test(n)) {
+    return 'BOOSTS';
+  }
+  if (/опрос|голос|викторин|poll|vote/i.test(n)) {
+    return 'POLLS';
+  }
+  if (/истори|сторис|story|stories/i.test(n) && !/лайк|просмотр/i.test(n)) {
+    return 'STORIES';
+  }
+  if (/стрим|stream|live|эфир|баттл|battle/i.test(n) && !/подписч/i.test(n)) {
+    return 'STREAMS';
+  }
+  if (/stars|звезд/i.test(n) && !/подписч/i.test(n)) {
+    return 'STARS';
+  }
+
+  // 2. Normalized category if valid
+  if (normalizedCategory && normalizedCategory !== 'OTHER') {
+    return normalizedCategory;
+  }
+
+  // 3. Fallback based on targetType
+  if (targetType === 'CHANNEL') {
+    return 'SUBSCRIBERS';
+  }
+
+  return null;
 }
 
 /**
@@ -1279,10 +1358,27 @@ class AdminCatalogService {
         id: { in: Array.from(uniqueCategoryIds) },
         ...(targetTenantId === 'both' ? { tenantId: { in: ['smmplan', 'flux', 'all'] } } : { tenantId: { in: [targetTenantId, 'all'] } })
       },
-      select: { id: true, name: true, activityType: true }
+      select: { 
+        id: true, 
+        name: true, 
+        activityType: true,
+        networkId: true,
+        network: { select: { id: true, name: true, slug: true } }
+      }
     });
     const categoryNameMap = new Map(categoriesDb.map(c => [c.id, c.name]));
     const categoryActivityTypeMap = new Map(categoriesDb.map(c => [c.id, c.activityType]));
+    const categoryNetworkMap = new Map(categoriesDb.map(c => [c.id, c.network]));
+
+    const networksDb = await db.network.findMany({
+      select: { id: true, name: true, slug: true }
+    });
+    const networkBySlug = new Map(networksDb.map(n => [n.slug.toLowerCase(), n]));
+    if (networkBySlug.has('vk') && !networkBySlug.has('vkontakte')) {
+      networkBySlug.set('vkontakte', networkBySlug.get('vk')!);
+    } else if (networkBySlug.has('vkontakte') && !networkBySlug.has('vk')) {
+      networkBySlug.set('vk', networkBySlug.get('vkontakte')!);
+    }
 
     for (const catId of Array.from(uniqueCategoryIds)) {
       // AUD-05 (3.1): taxonomy sharing is reported, not silent
@@ -1418,65 +1514,107 @@ class AdminCatalogService {
         takenSlugs.add(`${tId}:${stableSlug}`);
 
         // CATEGORY-FIX (Level 3): resolve the most specific category for this service.
-        // Priority: operator's explicit per-service mapping > auto-created by normalizedCategory > fallback categoryId
+        // Priority: Semantic Invariant Guard > operator's explicit mapping > auto-created by normalizedCategory > fallback categoryId
         const resolvedCategoryId = await (async () => {
           const normCat = shadowExt.normalizedCategory;
-          const isServiceSubscribers = normCat === 'SUBSCRIBERS' || shadowExt.targetType === 'CHANNEL' || /подписч|member/i.test(shadowExt.cleanName || shadowExt.name || '');
+          const serviceCanonicalType = inferCanonicalActivityType(normCat, shadowExt.cleanName || shadowExt.name || '', shadowExt.targetType);
 
-          // If operator explicitly mapped this service to a category, use it
-          if (categoryIdMap?.[extId]) {
-            const explicitId = categoryIdMap[extId];
-            const explicitName = categoryNameMap.get(explicitId) || '';
-            const explicitActivityType = categoryActivityTypeMap.get(explicitId) || '';
-            const isTargetViews = explicitActivityType === 'VIEWS' || explicitName.toLowerCase().includes('просмотр');
+          // Determine target candidate category
+          const explicitId = categoryIdMap?.[extId];
+          const candidateCatId = explicitId || categoryId;
+          const candidateActivityType = categoryActivityTypeMap.get(candidateCatId) || (candidateCatId === categoryId ? fallbackCategoryRecord?.activityType : '') || '';
+          const candidateName = (categoryNameMap.get(candidateCatId) || '').toLowerCase();
 
-            if (isServiceSubscribers && isTargetViews && fallbackCategoryRecord?.network?.id && fallbackCategoryRecord.networkId) {
-              const cacheKey = 'SUBSCRIBERS';
-              if (!autoCreatedCategoryCache.has(cacheKey)) {
-                const autoId = await ensureCategoryForActivityType(
-                  fallbackCategoryRecord.networkId,
-                  fallbackCategoryRecord.network.name,
-                  fallbackCategoryRecord.network.slug,
-                  'SUBSCRIBERS',
-                  fallbackCategoryRecord.tenantId || tId
-                );
-                autoCreatedCategoryCache.set(cacheKey, autoId);
-              }
-              return autoCreatedCategoryCache.get(cacheKey)!;
+          // Resolve target network
+          const targetNetwork = categoryNetworkMap.get(candidateCatId) 
+            || fallbackCategoryRecord?.network 
+            || networkBySlug.get((shadowExt.platform || '').toLowerCase());
+
+          // Strict Semantic Invariant Guard: Prevent category cross-contamination
+          let isContradiction = false;
+          if (serviceCanonicalType && targetNetwork) {
+            if (serviceCanonicalType === 'SUBSCRIBERS') {
+              if (candidateActivityType && candidateActivityType !== 'SUBSCRIBERS') isContradiction = true;
+              else if (candidateName && (candidateName.includes('просмотр') || candidateName.includes('лайк') || candidateName.includes('коммент') || candidateName.includes('репост') || candidateName.includes('реакц'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'VIEWS' || serviceCanonicalType === 'AUTO_VIEWS') {
+              if (candidateActivityType && !['VIEWS', 'AUTO_VIEWS', 'AUTO_SERVICES'].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('лайк') || candidateName.includes('коммент'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'LIKES' || serviceCanonicalType === 'AUTO_LIKES') {
+              if (candidateActivityType && !['LIKES', 'AUTO_LIKES', 'AUTO_SERVICES'].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('просмотр') || candidateName.includes('коммент'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'COMMENTS' || serviceCanonicalType === 'AUTO_COMMENTS') {
+              if (candidateActivityType && !['COMMENTS', 'AUTO_COMMENTS'].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('просмотр') || candidateName.includes('лайк'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'REACTIONS' || serviceCanonicalType === 'AUTO_REACTIONS') {
+              if (candidateActivityType && !['REACTIONS', 'AUTO_REACTIONS'].includes(candidateActivityType)) isContradiction = true;
+              else if (candidateName && (candidateName.includes('просмотр') || candidateName.includes('подписч'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'BOOSTS') {
+              if (candidateActivityType && candidateActivityType !== 'BOOSTS') isContradiction = true;
+            } else if (serviceCanonicalType === 'REPOSTS') {
+              if (candidateActivityType && candidateActivityType !== 'REPOSTS') isContradiction = true;
+            } else if (serviceCanonicalType === 'STREAMS') {
+              if (candidateActivityType && candidateActivityType !== 'STREAMS') isContradiction = true;
+              else if (candidateName && (candidateName.includes('подписч') || candidateName.includes('просмотр') || candidateName.includes('лайк'))) isContradiction = true;
+            } else if (serviceCanonicalType === 'STARS') {
+              if (candidateActivityType && candidateActivityType !== 'STARS') isContradiction = true;
             }
+          }
+
+          // If there is a contradiction, reroute to the correct category for this network
+          if (isContradiction && serviceCanonicalType && targetNetwork) {
+            const cacheKey = `${targetNetwork.id}_${serviceCanonicalType}_${tId}`;
+            if (!autoCreatedCategoryCache.has(cacheKey)) {
+              const autoId = await ensureCategoryForActivityType(
+                targetNetwork.id,
+                targetNetwork.name,
+                targetNetwork.slug,
+                serviceCanonicalType,
+                fallbackCategoryRecord?.tenantId || tId
+              );
+              autoCreatedCategoryCache.set(cacheKey, autoId);
+            }
+            return autoCreatedCategoryCache.get(cacheKey)!;
+          }
+
+          // If operator explicitly mapped this service without contradiction, use it
+          if (explicitId) {
             return explicitId;
           }
 
-          // If a network is known and service has a normalizedCategory, auto-create/reuse the right category
+          // Fallback auto-split if normalizedCategory differs from fallback category
           if (
-            normCat &&
-            normCat !== 'OTHER' &&
-            fallbackCategoryRecord?.network?.id &&
-            fallbackCategoryRecord.networkId
+            serviceCanonicalType &&
+            serviceCanonicalType !== 'OTHER' &&
+            targetNetwork &&
+            serviceCanonicalType !== fallbackCategoryRecord?.activityType
           ) {
-            // Only auto-split if the service's type differs from the fallback category's type
-            if (normCat !== fallbackCategoryRecord.activityType) {
-              const cacheKey = normCat;
-              if (!autoCreatedCategoryCache.has(cacheKey)) {
-                const autoId = await ensureCategoryForActivityType(
-                  fallbackCategoryRecord.networkId,
-                  fallbackCategoryRecord.network.name,
-                  fallbackCategoryRecord.network.slug,
-                  normCat,
-                  fallbackCategoryRecord.tenantId || tId
-                );
-                autoCreatedCategoryCache.set(cacheKey, autoId);
-              }
-              return autoCreatedCategoryCache.get(cacheKey)!;
+            const cacheKey = `${targetNetwork.id}_${serviceCanonicalType}_${tId}`;
+            if (!autoCreatedCategoryCache.has(cacheKey)) {
+              const autoId = await ensureCategoryForActivityType(
+                targetNetwork.id,
+                targetNetwork.name,
+                targetNetwork.slug,
+                serviceCanonicalType,
+                fallbackCategoryRecord?.tenantId || tId
+              );
+              autoCreatedCategoryCache.set(cacheKey, autoId);
             }
+            return autoCreatedCategoryCache.get(cacheKey)!;
           }
 
-          // Fallback: use the operator-provided catch-all category
           return categoryId;
         })();
 
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || '';
-        const effectiveTargetType = shadowExt.targetType || inferTargetTypeFromCategory(categoryNameMap.get(categoryIdMap?.[extId] || categoryId) || shadowExt.normalizedCategory || '');
+        const serviceCanonicalType = inferCanonicalActivityType(shadowExt.normalizedCategory, shadowExt.cleanName || shadowExt.name || '', shadowExt.targetType);
+        
+        let effectiveTargetType = shadowExt.targetType;
+        if (serviceCanonicalType === 'SUBSCRIBERS') {
+          effectiveTargetType = 'CHANNEL';
+        } else if (!effectiveTargetType) {
+          effectiveTargetType = inferTargetTypeFromCategory(resolvedCategoryName || shadowExt.normalizedCategory || '');
+        }
+
         const linkSpec = getUnifiedLinkSpecification(
           shadowExt.platform || fallbackCategoryRecord?.network?.slug || '',
           effectiveTargetType,

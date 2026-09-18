@@ -3,6 +3,7 @@ import { SidebarNav, MobileBottomNav } from '@/app/dashboard/sidebar-nav';
 import { formatBalance } from '@/lib/utils';
 import { BalanceDisplay } from '@/components/dashboard/balance/BalanceDisplay';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { Plus } from 'lucide-react';
 
 import { TenantLogo } from '@/components/ui/TenantLogo';
 
@@ -29,31 +30,34 @@ export function ClassicDashboardShell({
       </div>
 
       {/* ── Mobile top bar ── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-2xl border-b border-border/80 px-3 sm:px-4 py-2 flex items-center justify-between min-h-[56px] shadow-sm gap-2">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-2xl border-b border-border/80 px-2.5 sm:px-4 py-2 flex items-center justify-between min-h-[56px] shadow-sm gap-1.5 sm:gap-2">
         <Link
           href="/"
-          className="flex items-center gap-2 font-black text-foreground shrink-0 min-h-[44px] hover:opacity-90 active:scale-95 transition-all"
+          className="flex items-center gap-1.5 sm:gap-2 font-black text-foreground shrink-0 min-h-[44px] hover:opacity-90 active:scale-95 transition-all min-w-0"
           title="Перейти на главную страницу (Витрина)"
           aria-label="На главную"
         >
           <TenantLogo tenantId="smmplan" className="w-7 h-7 shrink-0" iconClassName="w-3.5 h-3.5" />
           <span className="truncate tracking-tight font-bold text-sm sm:text-base min-w-0">SMMplan</span>
-          <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/60">
+          <span className="hidden sm:inline-block text-[10px] font-semibold text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/60">
             На главную
           </span>
         </Link>
-        <div className="flex items-center gap-2 shrink-0">
-          <ThemeSwitcher variant="toggle" className="w-9 h-9 rounded-xl border border-border/70 bg-card/60" />
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <ThemeSwitcher variant="toggle" className="hidden min-[400px]:flex w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-border/70 bg-card/60 shrink-0" />
           <BalanceDisplay initialBalance={formatBalance(user.balanceCents)} variant="mobile-header" />
           <Link
             href="/dashboard/finance"
-            className="px-3 py-2 min-h-[40px] flex items-center text-xs font-bold bg-primary text-primary-foreground rounded-xl shadow-sm shadow-primary/20 hover:scale-105 active:scale-95 transition-all shrink-0"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 min-h-[34px] sm:min-h-[40px] flex items-center justify-center gap-1 text-xs font-bold bg-primary text-primary-foreground rounded-xl shadow-sm shadow-primary/20 hover:scale-105 active:scale-95 transition-all shrink-0"
+            title="Пополнить баланс"
+            aria-label="Пополнить баланс"
           >
-            + Пополнить
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Пополнить</span>
           </Link>
           <Link
             href="/dashboard/settings"
-            className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs uppercase shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs uppercase shrink-0"
             title="Профиль и настройки"
           >
             {user.email.substring(0, 2)}

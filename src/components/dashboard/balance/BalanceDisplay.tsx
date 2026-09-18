@@ -34,11 +34,11 @@ export function BalanceDisplay({ initialBalance, variant }: BalanceDisplayProps)
 
   if (variant === 'mobile-header') {
     return (
-      <div className="flex items-center gap-1.5 text-foreground shrink-0 select-none bg-secondary/80 px-2.5 py-1 rounded-xl border border-border/60">
-        <span className="text-xs font-black font-mono tabular-nums tracking-wide">{balance}</span>
+      <div className="flex items-center gap-1 sm:gap-1.5 text-foreground shrink-0 select-none bg-secondary/80 px-2 sm:px-2.5 py-1 rounded-xl border border-border/60">
+        <span className="text-[11px] sm:text-xs font-black font-mono tabular-nums tracking-tight sm:tracking-wide truncate max-w-[95px] sm:max-w-none" title={balance}>{balance}</span>
         <button
           onClick={handleManualClick}
-          className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90 cursor-pointer"
+          className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90 cursor-pointer shrink-0"
           title="Обновить баланс"
           aria-label="Обновить баланс"
           disabled={isRefreshing}
