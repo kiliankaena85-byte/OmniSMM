@@ -122,7 +122,7 @@ export default async function ClientSettingsPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { icon: CreditCard, label: 'Баланс',       value: balanceFormatted,        color: 'text-primary bg-primary/10' },
           { icon: TrendingUp, label: 'Потрачено всего', value: spentFormatted,        color: 'text-success bg-success/10' },

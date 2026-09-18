@@ -134,11 +134,11 @@ export function ClassicDashboardHome({
       {/* ══════════ HERO GREETING BANNER ══════════ */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-border/80 p-6 sm:p-8 shadow-xl shadow-primary/5">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>155 тарифов онлайн • Мгновенный запуск</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="whitespace-nowrap">155 тарифов онлайн • Мгновенный запуск</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
               {greeting}, {user.email?.split('@')[0] || 'клиент'}! 👋
@@ -152,10 +152,10 @@ export function ClassicDashboardHome({
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-muted-foreground hover:text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-muted-foreground hover:text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap shrink-0"
               title="Перейти на главный сайт и витрину услуг"
               aria-label="На витрину"
             >
@@ -164,14 +164,14 @@ export function ClassicDashboardHome({
             </Link>
             <Link
               href="/dashboard/new-order"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap shrink-0"
             >
               <Zap className="w-4 h-4 shrink-0" />
               <span>Новый заказ</span>
             </Link>
             <Link
               href="/dashboard/add-funds"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap shrink-0"
             >
               <Wallet className="w-4 h-4 text-primary shrink-0" />
               <span>Пополнить</span>
@@ -181,24 +181,24 @@ export function ClassicDashboardHome({
       </div>
 
       {/* ══════════ BENTO KPI CARDS ══════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         {/* Карточка 1: Финансовый кошелёк */}
-        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate">
               Доступный баланс
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
                 +{loyalty.cashbackPercent}% кэшбэк
               </span>
-              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shrink-0">
                 <Wallet className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-600 to-violet-700 dark:from-sky-400 dark:via-indigo-400 dark:to-pink-400">
+            <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-600 to-violet-700 dark:from-sky-400 dark:via-indigo-400 dark:to-pink-400 whitespace-nowrap tabular-nums">
               {liveBalance}
             </div>
             <span className="text-[11px] text-muted-foreground font-medium block mt-0.5">
@@ -216,23 +216,23 @@ export function ClassicDashboardHome({
         </div>
 
         {/* Карточка 2: Оборот & Лояльность */}
-        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-border transition-all duration-300 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-border transition-all duration-300 flex flex-col justify-between space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate">
               Оборот & Статус
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${loyalty.badgeColor}`}>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full whitespace-nowrap ${loyalty.badgeColor}`}>
                 {loyalty.tierName}
               </span>
-              <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform">
+              <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform shrink-0">
                 <Award className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-foreground">
+            <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-foreground tabular-nums">
                 {formatBalance(totalSpentKopecks)}
               </span>
               <span className="text-sm font-bold text-muted-foreground">₽</span>
@@ -246,7 +246,7 @@ export function ClassicDashboardHome({
                   style={{ width: `${loyalty.progressPercent}%` }}
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground font-medium block">
+              <span className="text-[10px] text-muted-foreground font-medium block truncate">
                 {loyalty.nextTierName 
                   ? `Еще ${loyalty.remainingToNextTierRub.toLocaleString('ru-RU')} ₽ до ${loyalty.nextTierName}`
                   : 'Максимальный Gold уровень'}
@@ -264,12 +264,12 @@ export function ClassicDashboardHome({
         </div>
 
         {/* Карточка 3: Заказы в работе */}
-        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-sky-500/40 transition-all duration-300 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-sky-500/40 transition-all duration-300 flex flex-col justify-between space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate">
               Заказы в работе
             </span>
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500">
+            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 shrink-0">
               {activeOrders > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
               )}
@@ -277,14 +277,14 @@ export function ClassicDashboardHome({
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight flex items-center gap-2">
-              <span>{activeOrders}</span>
+            <div className="text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight flex items-center gap-2 whitespace-nowrap">
+              <span className="tabular-nums">{activeOrders}</span>
               {activeOrders > 0 ? (
-                <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2.5 py-0.5 rounded-full animate-pulse">
+                <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2.5 py-0.5 rounded-full animate-pulse whitespace-nowrap">
                   Исполняются
                 </span>
               ) : (
-                <span className="text-xs font-bold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full whitespace-nowrap">
                   Все закрыты
                 </span>
               )}
@@ -304,23 +304,23 @@ export function ClassicDashboardHome({
         </div>
 
         {/* Карточка 4: Реферальная сеть */}
-        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+        <div className="group relative overflow-hidden bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate">
               Партнёрка
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
                 10% доход
               </span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform shrink-0">
                 <Users className="w-4 h-4 shrink-0" />
               </div>
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight flex items-baseline gap-1.5">
-              <span>{referralCount}</span>
+            <div className="text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="tabular-nums">{referralCount}</span>
               <span className="text-xs font-bold text-muted-foreground">партнёров</span>
             </div>
             <div className="mt-2">
@@ -337,8 +337,8 @@ export function ClassicDashboardHome({
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4" />
-                    <span>Скопировать реф-ссылку</span>
+                    <Copy className="w-4 h-4 shrink-0" />
+                    <span className="truncate">Скопировать реф-ссылку</span>
                   </>
                 )}
               </button>
@@ -378,7 +378,7 @@ export function ClassicDashboardHome({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
           {TOP_LAUNCHPAD_NETWORKS.map((item) => (
             <Link
               key={item.slug}
@@ -482,10 +482,10 @@ export function ClassicDashboardHome({
 
                     <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
                       <div className="text-right">
-                        <div className="text-sm font-black text-foreground font-mono tabular-nums">
+                        <div className="text-sm font-black text-foreground font-mono tabular-nums whitespace-nowrap">
                           {formatBalance(BigInt(order.charge ?? 0))}
                         </div>
-                        <span className={`inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase tracking-wider ${color}`}>
+                        <span className={`inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase tracking-wider whitespace-nowrap shrink-0 ${color}`}>
                           {label}
                         </span>
                       </div>

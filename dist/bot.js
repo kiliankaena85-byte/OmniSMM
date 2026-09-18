@@ -129535,6 +129535,20 @@ var init_order_service = __esm({
             if (updated.count === 0) {
               return { success: false, error: "\u0417\u0430\u043A\u0430\u0437 \u0443\u0436\u0435 \u0443\u0448\u0435\u043B \u0432 \u0440\u0430\u0431\u043E\u0442\u0443 \u0438\u043B\u0438 \u043E\u0442\u043C\u0435\u043D\u0435\u043D" };
             }
+            const campaigns = await tx.smartCampaign.findMany({
+              where: { orderId: order.id, status: { in: ["PLANNED", "RUNNING", "PAUSED"] } },
+              select: { id: true }
+            });
+            for (const camp of campaigns) {
+              await tx.smartCampaign.update({
+                where: { id: camp.id },
+                data: { status: "ERROR" }
+              });
+              await tx.smartTask.updateMany({
+                where: { campaignId: camp.id, status: "PLANNED" },
+                data: { status: "ERROR", error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u043A\u043B\u0438\u0435\u043D\u0442\u043E\u043C" }
+              });
+            }
             const { LoyaltyService: LoyaltyService2 } = await Promise.resolve().then(() => (init_loyalty_service(), loyalty_service_exports));
             await LoyaltyService2.reverseCommission(tx, order.id);
             if (!wasAwaitingPayment) {

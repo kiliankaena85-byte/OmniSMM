@@ -102,7 +102,7 @@ function MobileTransactionList({
   if (entries.length === 0) return null;
 
   return (
-    <div className="lg:hidden divide-y divide-border/40 select-none">
+    <div className="xl:hidden divide-y divide-border/40 select-none">
       {entries.map((item) => {
         const isCredit = item.amountRub > 0;
         const isRefund = item.transactionType === 'REFUND';
@@ -374,7 +374,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
     <div className="space-y-6">
       
       {/* ── SECTION 1: FINANCIAL KPI CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 print:hidden">
         
         {/* KPI: Deposits */}
         <div className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm relative overflow-hidden group">
@@ -456,41 +456,39 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
       </div>
 
       {/* ── SECTION 2: INTERACTIVE CONTROLS (FILTERS + PROFILE TOGGLE) ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card border border-border/60 rounded-2xl p-4 shadow-sm print:hidden">
-        
-        {/* Left: Type and Date Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
-          
+      <div className="bg-card border border-border/70 rounded-2xl p-3 sm:p-3.5 shadow-sm space-y-2.5 print:hidden">
+        {/* Row 1: Segmented Filters + Date Range */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 w-full min-w-0">
           {/* Type filters */}
-          <div className="flex bg-muted p-1 rounded-xl border border-border/40 select-none w-full sm:w-auto shrink-0">
+          <div className="flex bg-muted/80 p-1 rounded-xl border border-border/40 select-none w-full sm:w-auto shrink-0 overflow-x-auto scrollbar-none">
             <button
               onClick={() => setTypeFilter('ALL')}
-              className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold min-h-[44px] flex items-center justify-center rounded-lg transition-all ${
-                typeFilter === 'ALL' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                typeFilter === 'ALL' ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Все
             </button>
             <button
               onClick={() => setTypeFilter('DEPOSIT')}
-              className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold min-h-[44px] flex items-center justify-center rounded-lg transition-all ${
-                typeFilter === 'DEPOSIT' ? 'bg-success text-success-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                typeFilter === 'DEPOSIT' ? 'bg-success text-success-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Пополнения
             </button>
             <button
               onClick={() => setTypeFilter('SPENT')}
-              className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold min-h-[44px] flex items-center justify-center rounded-lg transition-all ${
-                typeFilter === 'SPENT' ? 'bg-background text-foreground shadow-sm border border-rose-500/10' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                typeFilter === 'SPENT' ? 'bg-background text-foreground shadow-xs border border-rose-500/10' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Списания
             </button>
             <button
               onClick={() => setTypeFilter('REFUND')}
-              className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold min-h-[44px] flex items-center justify-center rounded-lg transition-all ${
-                typeFilter === 'REFUND' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                typeFilter === 'REFUND' ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Возвраты
@@ -501,7 +499,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as "ALL" | "TODAY" | "WEEK" | "MONTH")}
-            className="h-11 w-full sm:w-auto bg-content2 border border-border/60 rounded-xl px-3 py-2 text-base sm:text-sm font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none"
+            className="h-9 w-full sm:w-auto bg-content2 border border-border/60 rounded-xl px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer select-none shrink-0"
             aria-label="Фильтр по дате"
           >
             <option value="ALL">За всё время</option>
@@ -511,44 +509,43 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
           </select>
         </div>
 
-        {/* Right: Search & Profile Toggles */}
-        <div className="flex flex-wrap items-center gap-3">
-          
+        {/* Row 2: Search, Print & Accountant Toggle */}
+        <div className="flex items-center gap-2 sm:gap-2.5 w-full min-w-0">
           {/* Search bar */}
-          <div className="relative flex-1 md:w-60 min-w-[200px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground shrink-0" />
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
-              placeholder="Поиск по ID или причине..."
+              placeholder="Поиск по ID или причине операции..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 bg-muted border border-border/60 rounded-xl text-base sm:text-sm font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              className="w-full h-9 pl-9 pr-3 bg-muted border border-border/60 rounded-xl text-xs font-medium placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all truncate"
             />
           </div>
 
-          {/* Unofficial Statement Printer Button */}
+          {/* Print Button */}
           <button
             onClick={handlePrint}
-            className="h-11 px-4 flex items-center justify-center gap-2 bg-content2 border border-border/60 hover:bg-content3 rounded-xl text-sm font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-sm"
+            className="h-9 px-3 flex items-center justify-center gap-1.5 bg-content2 border border-border/60 hover:bg-content3 rounded-xl text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
             title="Распечатать финансовый отчет"
           >
-            <Printer className="w-4 h-4 shrink-0" />
+            <Printer className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Печать</span>
           </button>
 
           {/* Dual-Mode Accountant Toggle */}
-          <div className="flex items-center gap-2 bg-muted/60 border border-border/40 px-3 h-11 rounded-xl select-none">
+          <div className="flex items-center gap-2 bg-muted/60 border border-border/40 px-2.5 h-9 rounded-xl select-none shrink-0">
             <span className="text-[10px] font-extrabold uppercase text-muted-foreground">Бухгалтер</span>
             <button
               onClick={() => setIsAccountantMode(!isAccountantMode)}
-              className="h-11 flex items-center text-primary hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+              className="flex items-center text-primary hover:opacity-90 active:scale-95 transition-all cursor-pointer"
               title="Переключить в режим бухгалтера"
               aria-label="Переключить в режим бухгалтера"
             >
               {isAccountantMode ? (
-                <ToggleRight className="w-8 h-8 text-primary fill-current" />
+                <ToggleRight className="w-6 h-6 text-primary fill-current" />
               ) : (
-                <ToggleLeft className="w-8 h-8 text-muted-foreground" />
+                <ToggleLeft className="w-6 h-6 text-muted-foreground" />
               )}
             </button>
           </div>
@@ -557,11 +554,17 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
 
       {/* ── SECTION 3: TRANSACTIONS GRID/TABLE ── */}
       <div className="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
-        
-        {/* Simple User Mode (Clean layouts) */}
-        {!isAccountantMode ? (
+        {filteredEntries.length === 0 ? (
+          <div className="py-16 text-center select-none print:hidden">
+            <div className="text-4xl mb-3">💸</div>
+            <h4 className="text-sm font-extrabold text-foreground">История операций пуста</h4>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed mt-1">
+              Здесь будут отображаться пополнения счета, оплаты тарифов продвижения и отмены заказов.
+            </p>
+          </div>
+        ) : !isAccountantMode ? (
           <>
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden xl:block overflow-x-auto">
               <table className="w-full text-sm" aria-label="История транзакций (простой вид)">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-widest text-foreground/75 bg-muted/20 border-b border-border/40 select-none">
@@ -661,7 +664,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
         ) : (
           <>
             {/* Meticulous Accountant Mode (High Density Database properties) */}
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden xl:block overflow-x-auto">
               <table className="w-full text-xs" aria-label="История транзакций (бухгалтерский аудит)">
                 <thead>
                   <tr className="text-left text-[9px] uppercase tracking-widest text-foreground/75 bg-muted/30 border-b border-border/40 select-none">
@@ -770,17 +773,6 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
               copiedId={copiedId}
             />
           </>
-        )}
-
-        {/* Empty state container */}
-        {filteredEntries.length === 0 && (
-          <div className="py-16 text-center select-none print:hidden">
-            <div className="text-4xl mb-3">💸</div>
-            <h4 className="text-sm font-extrabold text-foreground">История операций пуста</h4>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed mt-1">
-              Здесь будут отображаться пополнения счета, оплаты тарифов продвижения и отмены заказов.
-            </p>
-          </div>
         )}
       </div>
     </div>

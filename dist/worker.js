@@ -126730,6 +126730,20 @@ var init_order_service = __esm({
             if (updated.count === 0) {
               return { success: false, error: "\u0417\u0430\u043A\u0430\u0437 \u0443\u0436\u0435 \u0443\u0448\u0435\u043B \u0432 \u0440\u0430\u0431\u043E\u0442\u0443 \u0438\u043B\u0438 \u043E\u0442\u043C\u0435\u043D\u0435\u043D" };
             }
+            const campaigns = await tx.smartCampaign.findMany({
+              where: { orderId: order.id, status: { in: ["PLANNED", "RUNNING", "PAUSED"] } },
+              select: { id: true }
+            });
+            for (const camp of campaigns) {
+              await tx.smartCampaign.update({
+                where: { id: camp.id },
+                data: { status: "ERROR" }
+              });
+              await tx.smartTask.updateMany({
+                where: { campaignId: camp.id, status: "PLANNED" },
+                data: { status: "ERROR", error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u043A\u043B\u0438\u0435\u043D\u0442\u043E\u043C" }
+              });
+            }
             const { LoyaltyService: LoyaltyService2 } = await Promise.resolve().then(() => (init_loyalty_service(), loyalty_service_exports));
             await LoyaltyService2.reverseCommission(tx, order.id);
             if (!wasAwaitingPayment) {
@@ -127551,6 +127565,100 @@ var init_adaptive_rate_limiter_service = __esm({
   }
 });
 
+// src/lib/redis-lock.ts
+var import_crypto3, RELEASE_LOCK_LUA, EXTEND_LOCK_LUA, MutexManager;
+var init_redis_lock = __esm({
+  "src/lib/redis-lock.ts"() {
+    "use strict";
+    init_redis();
+    import_crypto3 = __toESM(require("crypto"));
+    RELEASE_LOCK_LUA = `
+if redis.call("get", KEYS[1]) == ARGV[1] then
+    return redis.call("del", KEYS[1])
+else
+    return 0
+end
+`;
+    EXTEND_LOCK_LUA = `
+if redis.call("get", KEYS[1]) == ARGV[1] then
+    return redis.call("pexpire", KEYS[1], ARGV[2])
+else
+    return 0
+end
+`;
+    MutexManager = class {
+      /**
+       * Acquires a lock in Redis with a unique owner token.
+       * Returns the owner token if acquired, null if timed out.
+       */
+      static async acquireLock(key, ttlMs, maxWaitMs = 5e3) {
+        const lockKey = key.startsWith("lock:") ? key : `lock:${key}`;
+        const token = import_crypto3.default.randomUUID();
+        const start = Date.now();
+        const waitTime = 50;
+        while (Date.now() - start < maxWaitMs) {
+          const acquired = await redis.set(lockKey, token, "PX", ttlMs, "NX");
+          if (acquired === "OK") {
+            return token;
+          }
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+        return null;
+      }
+      /**
+       * Extends the TTL of an active lock if and only if the caller owns the lock token.
+       */
+      static async extendLock(key, token, extraTtlMs) {
+        if (!token) return false;
+        const lockKey = key.startsWith("lock:") ? key : `lock:${key}`;
+        try {
+          const result = await redis.eval(EXTEND_LOCK_LUA, 1, lockKey, token, extraTtlMs);
+          return result === 1;
+        } catch {
+          return false;
+        }
+      }
+      /**
+       * Releases a lock in Redis safely via Lua script compare-and-delete.
+       * Prevents removing a lock owned by another process after TTL expiry.
+       */
+      static async releaseLock(key, token) {
+        if (!token) return false;
+        const lockKey = key.startsWith("lock:") ? key : `lock:${key}`;
+        try {
+          const result = await redis.eval(RELEASE_LOCK_LUA, 1, lockKey, token);
+          return result === 1;
+        } catch {
+          return false;
+        }
+      }
+      /**
+       * Wrapper execute function that ensures mutual exclusion on a specific key.
+       * Periodically extends the lock TTL in the background while the task executes.
+       */
+      static async withLock(key, ttlMs, maxWaitMs, fn) {
+        const token = await this.acquireLock(key, ttlMs, maxWaitMs);
+        if (!token) {
+          throw new Error(`Failed to acquire lock for key: ${key}`);
+        }
+        const intervalMs = Math.max(100, Math.floor(ttlMs / 3));
+        const heartbeatTimer = setInterval(async () => {
+          try {
+            await this.extendLock(key, token, ttlMs);
+          } catch {
+          }
+        }, intervalMs);
+        try {
+          return await fn();
+        } finally {
+          clearInterval(heartbeatTimer);
+          await this.releaseLock(key, token);
+        }
+      }
+    };
+  }
+});
+
 // src/workers/processors/quality-detector.processor.ts
 var quality_detector_processor_exports = {};
 __export2(quality_detector_processor_exports, {
@@ -127582,7 +127690,7 @@ async function scanSubscriberQuality(campaignId, taskQuantity, link) {
     const suspiciousUsers = [];
     const botReasons = ["NO_PHOTO", "RECENT_JOIN", "NUMERIC_USERNAME", "ARABIC_CHARS", "SUSPICIOUS_BIO"];
     for (let i = 0; i < taskQuantity; i++) {
-      const tgId = import_crypto3.default.randomBytes(8).toString("hex");
+      const tgId = import_crypto4.default.randomBytes(8).toString("hex");
       newMembers.push(tgId);
       if (Math.random() < 0.12) {
         const score = Math.floor(Math.random() * 56) + 40;
@@ -127625,12 +127733,12 @@ async function scanSubscriberQuality(campaignId, taskQuantity, link) {
     log7.error(`[QualityDetector] Critical error during silent quality scanning for campaign ${campaignId}:`, err instanceof Error ? err.message : String(err));
   }
 }
-var import_crypto3, log7;
+var import_crypto4, log7;
 var init_quality_detector_processor = __esm({
   "src/workers/processors/quality-detector.processor.ts"() {
     "use strict";
     init_db();
-    import_crypto3 = __toESM(require("crypto"));
+    import_crypto4 = __toESM(require("crypto"));
     init_logger();
     log7 = logger.child({ component: "QualityDetector" });
   }
@@ -127721,191 +127829,195 @@ async function checkAndCompleteCampaign(campaignId) {
   }
 }
 async function runSmartDripfeedTick() {
-  const activeExecutions = await db.smartExecution.findMany({
-    where: { status: "IN_PROGRESS" },
-    include: {
-      task: {
-        include: {
-          campaign: {
-            include: {
-              service: { include: { provider: true } }
+  return MutexManager.withLock("lock:dripfeed:tick", 55e3, 100, async () => {
+    const activeExecutions = await db.smartExecution.findMany({
+      where: { status: "IN_PROGRESS" },
+      include: {
+        task: {
+          include: {
+            campaign: {
+              include: {
+                service: { include: { provider: true } }
+              }
             }
           }
         }
       }
-    }
-  });
-  for (const exec of activeExecutions) {
-    try {
-      if (!exec.externalOrderId) continue;
-      const task = exec.task;
-      const campaign = task.campaign;
-      const service = campaign.service;
-      if (!service.provider) continue;
-      const provider = await providerService.getWorkerProviderInstance(service.provider);
-      const statusRes = await provider.getOrderStatus(exec.externalOrderId);
-      if (statusRes && statusRes.status) {
-        const providerStatus = statusRes.status.toUpperCase();
-        const remains = parseInt(statusRes.remains || "0", 10);
-        const delivered = Math.max(0, exec.qtySent - remains);
-        if (["COMPLETED"].includes(providerStatus)) {
-          await db.$transaction([
-            db.smartExecution.update({
+    });
+    for (const exec of activeExecutions) {
+      try {
+        if (!exec.externalOrderId) continue;
+        const task = exec.task;
+        const campaign = task.campaign;
+        const service = campaign.service;
+        if (!service.provider) continue;
+        const provider = await providerService.getWorkerProviderInstance(service.provider);
+        const statusRes = await provider.getOrderStatus(exec.externalOrderId);
+        if (statusRes && statusRes.status) {
+          const providerStatus = statusRes.status.toUpperCase();
+          const remains = parseInt(statusRes.remains || "0", 10);
+          const delivered = Math.max(0, exec.qtySent - remains);
+          if (["COMPLETED"].includes(providerStatus)) {
+            await db.$transaction([
+              db.smartExecution.update({
+                where: { id: exec.id },
+                data: { status: "COMPLETED", qtyDelivered: exec.qtySent }
+              }),
+              db.smartTask.update({
+                where: { id: task.id },
+                data: { status: import_client3.SmartTaskStatus.COMPLETED }
+              })
+            ]);
+            const { scanSubscriberQuality: scanSubscriberQuality2 } = await Promise.resolve().then(() => (init_quality_detector_processor(), quality_detector_processor_exports));
+            void scanSubscriberQuality2(campaign.id, exec.qtySent, campaign.link).catch(
+              (err) => log8.error("[Dripfeed] Failed to run silent quality scanner:", { error: err })
+            );
+            await checkAndCompleteCampaign(campaign.id);
+          } else if (["CANCELED", "PARTIAL", "FAILED"].includes(providerStatus)) {
+            await db.$transaction([
+              db.smartExecution.update({
+                where: { id: exec.id },
+                data: {
+                  status: "FAILED",
+                  qtyDelivered: delivered,
+                  error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u0438\u043B\u0438 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C"
+                }
+              }),
+              db.smartTask.update({
+                where: { id: task.id },
+                data: {
+                  status: import_client3.SmartTaskStatus.ERROR,
+                  error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u0438\u043B\u0438 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C"
+                }
+              })
+            ]);
+            await checkAndCompleteCampaign(campaign.id);
+          } else {
+            await db.smartExecution.update({
               where: { id: exec.id },
-              data: { status: "COMPLETED", qtyDelivered: exec.qtySent }
-            }),
-            db.smartTask.update({
-              where: { id: task.id },
-              data: { status: import_client3.SmartTaskStatus.COMPLETED }
-            })
-          ]);
+              data: { qtyDelivered: delivered }
+            });
+          }
+        }
+      } catch (err) {
+        log8.error(
+          `[Dripfeed Status Sync] \u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0441\u0442\u0430\u0442\u0443\u0441 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u044F ${exec.id}:`,
+          err instanceof Error ? err.message : String(err)
+        );
+      }
+    }
+    const plannedTasks = await db.smartTask.findMany({
+      where: {
+        status: import_client3.SmartTaskStatus.PLANNED,
+        runAt: { lte: /* @__PURE__ */ new Date() },
+        campaign: {
+          status: import_client3.SmartCampaignStatus.RUNNING
+        }
+      },
+      include: {
+        campaign: {
+          include: {
+            service: { include: { provider: true } }
+          }
+        }
+      }
+    });
+    for (const task of plannedTasks) {
+      try {
+        const affected = await db.smartTask.updateMany({
+          where: { id: task.id, status: import_client3.SmartTaskStatus.PLANNED },
+          data: { status: import_client3.SmartTaskStatus.SENT }
+        });
+        if (affected.count === 0) {
+          log8.warn(`[Dripfeed Worker] \u0417\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0443\u0436\u0435 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 \u0434\u0440\u0443\u0433\u0438\u043C \u0438\u043D\u0441\u0442\u0430\u043D\u0441\u043E\u043C \u0432\u043E\u0440\u043A\u0435\u0440\u0430. \u041F\u0440\u043E\u043F\u0443\u0441\u043A\u0430\u0435\u043C.`);
+          continue;
+        }
+        const campaign = task.campaign;
+        const service = campaign.service;
+        if (campaign.isTestMode) {
+          await db.smartExecution.create({
+            data: {
+              taskId: task.id,
+              qtySent: task.quantity,
+              qtyDelivered: task.quantity,
+              status: "COMPLETED"
+            }
+          });
+          await db.smartTask.update({
+            where: { id: task.id },
+            data: { status: import_client3.SmartTaskStatus.COMPLETED }
+          });
+          log8.info(`[Dripfeed Worker] \u0422\u0435\u0441\u0442\u043E\u0432\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0438\u043C\u0438\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.`);
           const { scanSubscriberQuality: scanSubscriberQuality2 } = await Promise.resolve().then(() => (init_quality_detector_processor(), quality_detector_processor_exports));
-          void scanSubscriberQuality2(campaign.id, exec.qtySent, campaign.link).catch(
+          void scanSubscriberQuality2(campaign.id, task.quantity, campaign.link).catch(
             (err) => log8.error("[Dripfeed] Failed to run silent quality scanner:", { error: err })
           );
           await checkAndCompleteCampaign(campaign.id);
-        } else if (["CANCELED", "PARTIAL", "FAILED"].includes(providerStatus)) {
-          await db.$transaction([
-            db.smartExecution.update({
-              where: { id: exec.id },
-              data: {
-                status: "FAILED",
-                qtyDelivered: delivered,
-                error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u0438\u043B\u0438 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C"
-              }
-            }),
-            db.smartTask.update({
-              where: { id: task.id },
-              data: {
-                status: import_client3.SmartTaskStatus.ERROR,
-                error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u0438\u043B\u0438 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u043C"
-              }
-            })
-          ]);
-          await checkAndCompleteCampaign(campaign.id);
-        } else {
-          await db.smartExecution.update({
-            where: { id: exec.id },
-            data: { qtyDelivered: delivered }
-          });
+          continue;
         }
-      }
-    } catch (err) {
-      log8.error(
-        `[Dripfeed Status Sync] \u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0441\u0442\u0430\u0442\u0443\u0441 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u044F ${exec.id}:`,
-        err instanceof Error ? err.message : String(err)
-      );
-    }
-  }
-  const plannedTasks = await db.smartTask.findMany({
-    where: {
-      status: import_client3.SmartTaskStatus.PLANNED,
-      runAt: { lte: /* @__PURE__ */ new Date() },
-      campaign: {
-        status: import_client3.SmartCampaignStatus.RUNNING
-      }
-    },
-    include: {
-      campaign: {
-        include: {
-          service: { include: { provider: true } }
+        if (!service.provider) {
+          throw new Error(`\u0423\u0441\u043B\u0443\u0433\u0430 ${service.id} \u043D\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u0430 \u043A \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443`);
         }
-      }
-    }
-  });
-  for (const task of plannedTasks) {
-    try {
-      const affected = await db.smartTask.updateMany({
-        where: { id: task.id, status: import_client3.SmartTaskStatus.PLANNED },
-        data: { status: import_client3.SmartTaskStatus.SENT }
-      });
-      if (affected.count === 0) {
-        log8.warn(`[Dripfeed Worker] \u0417\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0443\u0436\u0435 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 \u0434\u0440\u0443\u0433\u0438\u043C \u0438\u043D\u0441\u0442\u0430\u043D\u0441\u043E\u043C \u0432\u043E\u0440\u043A\u0435\u0440\u0430. \u041F\u0440\u043E\u043F\u0443\u0441\u043A\u0430\u0435\u043C.`);
-        continue;
-      }
-      const campaign = task.campaign;
-      const service = campaign.service;
-      if (campaign.isTestMode) {
-        await db.smartExecution.create({
+        const execution = await db.smartExecution.create({
           data: {
             taskId: task.id,
+            providerId: service.provider.id,
             qtySent: task.quantity,
-            qtyDelivered: task.quantity,
-            status: "COMPLETED"
+            status: "PENDING"
           }
         });
-        await db.smartTask.update({
-          where: { id: task.id },
-          data: { status: import_client3.SmartTaskStatus.COMPLETED }
+        const provider = await providerService.getWorkerProviderInstance(service.provider);
+        const response = await provider.createOrder({
+          service: service.externalId || "",
+          link: campaign.link,
+          quantity: task.quantity,
+          ref: task.id,
+          custom_id: task.id
         });
-        log8.info(`[Dripfeed Worker] \u0422\u0435\u0441\u0442\u043E\u0432\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0438\u043C\u0438\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E.`);
-        const { scanSubscriberQuality: scanSubscriberQuality2 } = await Promise.resolve().then(() => (init_quality_detector_processor(), quality_detector_processor_exports));
-        void scanSubscriberQuality2(campaign.id, task.quantity, campaign.link).catch(
-          (err) => log8.error("[Dripfeed] Failed to run silent quality scanner:", { error: err })
-        );
-        await checkAndCompleteCampaign(campaign.id);
-        continue;
-      }
-      if (!service.provider) {
-        throw new Error(`\u0423\u0441\u043B\u0443\u0433\u0430 ${service.id} \u043D\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u0430 \u043A \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443`);
-      }
-      const execution = await db.smartExecution.create({
-        data: {
-          taskId: task.id,
-          providerId: service.provider.id,
-          qtySent: task.quantity,
-          status: "PENDING"
+        if (response.error && !response.order) {
+          await db.smartExecution.update({
+            where: { id: execution.id },
+            data: { status: "FAILED", error: response.error }
+          });
+          throw new Error(response.error);
         }
-      });
-      const provider = await providerService.getWorkerProviderInstance(service.provider);
-      const response = await provider.createOrder({
-        service: service.externalId || "",
-        link: campaign.link,
-        quantity: task.quantity,
-        ref: task.id,
-        custom_id: task.id
-      });
-      if (response.error && !response.order) {
+        const extOrderId = response.order ? response.order.toString() : "";
         await db.smartExecution.update({
           where: { id: execution.id },
-          data: { status: "FAILED", error: response.error }
-        });
-        throw new Error(response.error);
-      }
-      const extOrderId = response.order ? response.order.toString() : "";
-      await db.smartExecution.update({
-        where: { id: execution.id },
-        data: {
-          externalOrderId: extOrderId,
-          status: "IN_PROGRESS"
-        }
-      });
-      log8.info(
-        `[Dripfeed Worker] \u0417\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443. External ID: ${extOrderId}`
-      );
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      log8.error(`[Dripfeed Worker] \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0438 \u0437\u0430\u0434\u0430\u0447\u0438 ${task.id}:`, errorMsg);
-      const isBalanceError = errorMsg.toLowerCase().includes("balance") || errorMsg.toLowerCase().includes("not enough") || errorMsg.toLowerCase().includes("low balance") || errorMsg.toLowerCase().includes("insufficient");
-      if (isBalanceError) {
-        log8.warn(`[Dripfeed Worker] \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043B \u0431\u0430\u043B\u0430\u043D\u0441. \u041E\u0442\u043A\u043B\u0430\u0434\u044B\u0432\u0430\u0435\u043C \u0437\u0430\u0434\u0430\u0447\u0443 ${task.id} \u043D\u0430 20 \u043C\u0438\u043D\u0443\u0442.`);
-        await db.smartTask.update({
-          where: { id: task.id },
           data: {
-            status: import_client3.SmartTaskStatus.PLANNED,
-            runAt: new Date(Date.now() + 20 * 60 * 1e3),
-            error: `\u041E\u0442\u043B\u043E\u0436\u0435\u043D\u043E \u0438\u0437-\u0437\u0430 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430: ${errorMsg}`
+            externalOrderId: extOrderId,
+            status: "IN_PROGRESS"
           }
         });
-        continue;
+        log8.info(
+          `[Dripfeed Worker] \u0417\u0430\u0434\u0430\u0447\u0430 ${task.id} \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0443. External ID: ${extOrderId}`
+        );
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        log8.error(`[Dripfeed Worker] \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0438 \u0437\u0430\u0434\u0430\u0447\u0438 ${task.id}:`, errorMsg);
+        const isBalanceError = errorMsg.toLowerCase().includes("balance") || errorMsg.toLowerCase().includes("not enough") || errorMsg.toLowerCase().includes("low balance") || errorMsg.toLowerCase().includes("insufficient");
+        if (isBalanceError) {
+          log8.warn(`[Dripfeed Worker] \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u0438\u0441\u0447\u0435\u0440\u043F\u0430\u043B \u0431\u0430\u043B\u0430\u043D\u0441. \u041E\u0442\u043A\u043B\u0430\u0434\u044B\u0432\u0430\u0435\u043C \u0437\u0430\u0434\u0430\u0447\u0443 ${task.id} \u043D\u0430 20 \u043C\u0438\u043D\u0443\u0442.`);
+          await db.smartTask.update({
+            where: { id: task.id },
+            data: {
+              status: import_client3.SmartTaskStatus.PLANNED,
+              runAt: new Date(Date.now() + 20 * 60 * 1e3),
+              error: `\u041E\u0442\u043B\u043E\u0436\u0435\u043D\u043E \u0438\u0437-\u0437\u0430 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0430: ${errorMsg}`
+            }
+          });
+          continue;
+        }
+        await db.smartTask.update({
+          where: { id: task.id },
+          data: { status: import_client3.SmartTaskStatus.ERROR, error: errorMsg }
+        });
+        await checkAndCompleteCampaign(task.campaignId);
       }
-      await db.smartTask.update({
-        where: { id: task.id },
-        data: { status: import_client3.SmartTaskStatus.ERROR, error: errorMsg }
-      });
-      await checkAndCompleteCampaign(task.campaignId);
     }
-  }
+  }).catch((err) => {
+    log8.warn("[Dripfeed] Tick lock skipped or failed:", { error: err instanceof Error ? err.message : String(err) });
+  });
 }
 var import_client3, log8;
 var init_dripfeed_processor = __esm({
@@ -127915,6 +128027,7 @@ var init_dripfeed_processor = __esm({
     init_provider_service();
     import_client3 = require("@prisma/client");
     init_logger();
+    init_redis_lock();
     log8 = logger.child({ component: "DripfeedProcessor" });
   }
 });
@@ -128874,12 +128987,12 @@ var init_marketing_utils = __esm({
 });
 
 // src/services/users/promo-automation.service.ts
-var import_crypto4, PromoAutomationService;
+var import_crypto5, PromoAutomationService;
 var init_promo_automation_service = __esm({
   "src/services/users/promo-automation.service.ts"() {
     "use strict";
     init_db();
-    import_crypto4 = __toESM(require("crypto"));
+    import_crypto5 = __toESM(require("crypto"));
     PromoAutomationService = class {
       /**
        * Evaluates the user's total spend and instantly issues a unique promo code
@@ -128903,7 +129016,7 @@ var init_promo_automation_service = __esm({
                 console.error("[PromoAutomation] FATAL: JWT_SECRET is not configured. Cannot issue promo codes securely. Skipping.");
                 return;
               }
-              const uniqueHash = import_crypto4.default.createHmac("sha256", secret).update(userId + rule.percent).digest("hex").substring(0, 8).toUpperCase();
+              const uniqueHash = import_crypto5.default.createHmac("sha256", secret).update(userId + rule.percent).digest("hex").substring(0, 8).toUpperCase();
               const deterministicCode = `VIP${rule.percent}-${uniqueHash}`;
               await db.promoCode.upsert({
                 where: { code: deterministicCode },
@@ -139085,7 +139198,7 @@ async function checkVatThreshold(tenantId = "smmplan") {
   vatThresholdCache.set(cleanTenant, { result: isExceeded, expiresAt: now + 3600 * 1e3 });
   return isExceeded;
 }
-var import_crypto5, VAT_THRESHOLD_KOPECKS, vatThresholdCache, BasePaymentGateway, YooKassaGateway, CryptoBotGateway, BalanceGateway, RobokassaGateway, MockGateway, PaymentGatewayFactory;
+var import_crypto6, VAT_THRESHOLD_KOPECKS, vatThresholdCache, BasePaymentGateway, YooKassaGateway, CryptoBotGateway, BalanceGateway, RobokassaGateway, MockGateway, PaymentGatewayFactory;
 var init_payment_gateway_service = __esm({
   "src/services/financial/payment-gateway.service.ts"() {
     "use strict";
@@ -139093,7 +139206,7 @@ var init_payment_gateway_service = __esm({
     init_get_base_url();
     init_settings();
     init_wallet_ops();
-    import_crypto5 = __toESM(require("crypto"));
+    import_crypto6 = __toESM(require("crypto"));
     init_network_router();
     VAT_THRESHOLD_KOPECKS = BigInt(2e7) * BigInt(100);
     vatThresholdCache = /* @__PURE__ */ new Map();
@@ -139148,7 +139261,7 @@ var init_payment_gateway_service = __esm({
           }]
         };
         const idempString = `yookassa_${params.userId}_${params.paymentId}_${Math.floor(Date.now() / 6e4)}`;
-        const idempKey = import_crypto5.default.createHash("sha256").update(idempString).digest("hex").substring(0, 36);
+        const idempKey = import_crypto6.default.createHash("sha256").update(idempString).digest("hex").substring(0, 36);
         let resp;
         try {
           resp = await UniversalNetworkRouter.fetch("https://api.yookassa.ru/v3/payments", {
@@ -139560,7 +139673,7 @@ var init_payment_gateway_service = __esm({
         const outSum = params.amountRub.toFixed(2);
         const invId = 0;
         const sigStr = `${login}:${outSum}:${invId}:${password}:shp_paymentId=${params.paymentId}`;
-        const signature = import_crypto5.default.createHash("sha256").update(sigStr).digest("hex");
+        const signature = import_crypto6.default.createHash("sha256").update(sigStr).digest("hex");
         const isVatThresholdExceeded = await checkVatThreshold(tenantId);
         const taxRate = isVatThresholdExceeded ? "vat22" : "none";
         const cleanEmail = typeof params.email === "string" ? params.email.trim() : void 0;
@@ -142950,13 +143063,13 @@ async function showOwnerMain(ctx, isEdit = false) {
   }
   await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
 }
-var import_telegraf4, import_os2, import_crypto6, ownerHubWizard;
+var import_telegraf4, import_os2, import_crypto7, ownerHubWizard;
 var init_owner_hub_wizard = __esm({
   "src/bot/scenes/owner-hub.wizard.ts"() {
     "use strict";
     import_telegraf4 = __toESM(require_lib4());
     import_os2 = __toESM(require("os"));
-    import_crypto6 = __toESM(require("crypto"));
+    import_crypto7 = __toESM(require("crypto"));
     init_db();
     init_redis();
     init_balance_verifier();
@@ -143189,8 +143302,8 @@ ${errorLogSummary}`;
           await ctx.reply("\u26A0\uFE0F \u0410\u0434\u043C\u0438\u043D\u0438\u0441\u0442\u0440\u0430\u0442\u043E\u0440 \u0432 \u0431\u0430\u0437\u0435 \u0434\u0430\u043D\u043D\u044B\u0445 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D.");
           return;
         }
-        const rawToken = `owner_magic_${import_crypto6.default.randomBytes(32).toString("hex")}`;
-        const hashedToken = import_crypto6.default.createHash("sha256").update(rawToken).digest("hex");
+        const rawToken = `owner_magic_${import_crypto7.default.randomBytes(32).toString("hex")}`;
+        const hashedToken = import_crypto7.default.createHash("sha256").update(rawToken).digest("hex");
         const expiresAt = new Date(Date.now() + 60 * 60 * 1e3);
         await db.authToken.create({
           data: {
@@ -158375,6 +158488,10 @@ async function orderProcessor(job) {
     log6.warn(`[OrderProcessor] Order ${orderId} not found.`);
     return;
   }
+  if (order.status !== "PENDING") {
+    log6.warn(`[OrderProcessor] Order ${orderId} is not PENDING (current status: ${order.status}). Skip.`);
+    return;
+  }
   if (order.smartCampaign) {
     log6.info(`[OrderProcessor] Intercepted SmartDrip parent order ${orderId}. Activating SmartCampaign.`);
     await db.$transaction([
@@ -158387,10 +158504,6 @@ async function orderProcessor(job) {
         data: { status: "RUNNING" }
       })
     ]);
-    return;
-  }
-  if (order.status !== "PENDING") {
-    log6.warn(`[OrderProcessor] Order ${orderId} is not PENDING. Skip.`);
     return;
   }
   const envMode = order.environmentMode;
@@ -158921,7 +159034,11 @@ async function syncProcessor(job) {
         const allExtIds = [];
         ordersBatch.forEach((o) => {
           if (o.isDripFeed) {
-            allExtIds.push(...o.dripExternalIds);
+            if (o.dripExternalIds && o.dripExternalIds.length > 0) {
+              allExtIds.push(...o.dripExternalIds);
+            } else if (o.externalId) {
+              allExtIds.push(o.externalId);
+            }
           } else if (o.externalId) {
             allExtIds.push(o.externalId);
           }
@@ -158968,31 +159085,60 @@ async function syncProcessor(job) {
           }
         }
         for (const order of ordersBatch) {
-          if (order.isDripFeed) {
+          if (order.isDripFeed && order.dripExternalIds && order.dripExternalIds.length > 0) {
             let totalRemainsText = 0;
             let anyCanceled = false;
+            let anyPartial = false;
             let allCompleted = true;
+            let allTerminal = true;
+            let hasAnyStatus = false;
             for (const extId of order.dripExternalIds) {
               const s = statuses[extId];
-              if (!s || typeof s === "string") continue;
-              if (s.remains) totalRemainsText += parseInt(s.remains, 10) || 0;
-              if (["Canceled", "Cancel"].includes(s.status)) anyCanceled = true;
-              if (!["Completed", "Complete"].includes(s.status)) allCompleted = false;
+              if (!s || typeof s === "string" || !s.status) {
+                allCompleted = false;
+                allTerminal = false;
+                continue;
+              }
+              hasAnyStatus = true;
+              const subStatus = String(s.status).toLowerCase();
+              if (s.remains) totalRemainsText += parseInt(String(s.remains), 10) || 0;
+              if (["canceled", "cancelled", "cancel"].includes(subStatus)) {
+                anyCanceled = true;
+                allCompleted = false;
+              } else if (["partial", "partially completed"].includes(subStatus)) {
+                anyPartial = true;
+                allCompleted = false;
+              } else if (["completed", "complete", "success"].includes(subStatus)) {
+              } else {
+                allCompleted = false;
+                allTerminal = false;
+              }
             }
-            if (allCompleted) {
+            if (hasAnyStatus && allCompleted) {
               await db.$transaction(async (tx) => {
                 await safeUpdateOrderStatus(tx, order.id, {
                   status: "COMPLETED",
                   remains: 0
                 });
               });
-            } else if (anyCanceled) {
+            } else if (allTerminal && (anyCanceled || anyPartial)) {
               const clampedDripRemains = Math.min(order.quantity, Math.max(0, totalRemainsText));
               await db.$transaction(async (tx) => {
-                await safeUpdateOrderStatus(tx, order.id, {
+                const updated = await safeUpdateOrderStatus(tx, order.id, {
                   status: "PARTIAL",
                   remains: clampedDripRemains
                 });
+                if (updated && clampedDripRemains > 0) {
+                  await RefundPolicyService.processRefund({
+                    id: order.id,
+                    userId: order.userId,
+                    charge: Number(order.charge),
+                    quantity: order.quantity,
+                    remains: clampedDripRemains,
+                    status: "PARTIAL",
+                    tenantId: order.tenantId
+                  }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442 \u0437\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u043D\u0443\u044E/\u043D\u0435\u0434\u043E\u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043D\u0443\u044E \u0447\u0430\u0441\u0442\u044C Drip-Feed \u0437\u0430\u043A\u0430\u0437\u0430", tx);
+                }
               });
             }
             continue;
@@ -159029,14 +159175,16 @@ async function syncProcessor(job) {
               }
             });
           } else if (targetStatus === "CANCELED") {
+            const rawRemains = remainsNum !== void 0 && !isNaN(remainsNum) && remainsNum > 0 ? remainsNum : order.quantity;
+            const safeCancelRemains = Math.min(order.quantity, Math.max(0, rawRemains));
             await db.$transaction(async (tx) => {
               const updated = await safeUpdateOrderStatus(tx, order.id, {
                 status: "CANCELED",
-                remains: order.quantity,
+                remains: safeCancelRemains,
                 error: statusObj.error || "\u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437"
               });
-              if (updated) {
-                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: "CANCELED", tenantId: order.tenantId }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442: \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437", tx);
+              if (updated && safeCancelRemains > 0) {
+                await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeCancelRemains, status: "CANCELED", tenantId: order.tenantId }, "\u0410\u0432\u0442\u043E-\u0432\u043E\u0437\u0432\u0440\u0430\u0442: \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u043E\u0442\u043C\u0435\u043D\u0438\u043B \u0437\u0430\u043A\u0430\u0437", tx);
               }
             });
           } else if (targetStatus === "PARTIAL") {
@@ -159140,10 +159288,9 @@ async function syncProcessor(job) {
       take: 20
     });
     for (const order of slowOrders) {
-      if (order.remains === order.quantity) {
-        const hoursWaiting = Math.floor((Date.now() - order.createdAt.getTime()) / (1e3 * 60 * 60));
-        log10.info(`[SyncProcessor] Order #${order.numericId} in progress for ${hoursWaiting}h awaiting provider execution (remains: ${order.remains}/${order.quantity}). Kept active.`);
-      }
+      const createdTime = order.createdAt ? new Date(order.createdAt).getTime() : Date.now();
+      const hoursWaiting = Math.floor((Date.now() - createdTime) / (1e3 * 60 * 60));
+      log10.info(`[SyncProcessor] Order #${order.numericId} in progress for ${hoursWaiting}h awaiting provider execution (remains: ${order.remains}/${order.quantity}). Kept active.`);
     }
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
@@ -159570,6 +159717,26 @@ async function runCleanup() {
               });
             }
           }
+          const campaigns = await tx.smartCampaign.findMany({
+            where: {
+              OR: [
+                { orderId: zombie.id },
+                ...zombie.paymentId ? [{ paymentId: zombie.paymentId }] : []
+              ],
+              status: { in: ["PLANNED", "RUNNING", "PAUSED"] }
+            },
+            select: { id: true }
+          });
+          for (const camp of campaigns) {
+            await tx.smartCampaign.update({
+              where: { id: camp.id },
+              data: { status: "ERROR" }
+            });
+            await tx.smartTask.updateMany({
+              where: { campaignId: camp.id, status: "PLANNED" },
+              data: { status: "ERROR", error: "\u0417\u0430\u043A\u0430\u0437 \u043E\u0442\u043C\u0435\u043D\u0435\u043D \u043F\u043E \u0442\u0430\u0439\u043C\u0430\u0443\u0442\u0443 \u043E\u043F\u043B\u0430\u0442\u044B" }
+            });
+          }
           canceledCount++;
           if (zombie.paymentId) {
             shouldSendEmail = true;
@@ -159778,6 +159945,7 @@ async function runInProgressTTLSweep() {
   let hasMore = true;
   let iterations = 0;
   let processedCount = 0;
+  let lastOrderId = void 0;
   const processedDetails = [];
   log16.info("InProgress TTL sweep started", { threshold: threshold.toISOString() });
   while (hasMore && iterations < MAX_ITERATIONS) {
@@ -159785,8 +159953,10 @@ async function runInProgressTTLSweep() {
     const stuckOrders = await db.order.findMany({
       where: {
         status: "IN_PROGRESS",
-        createdAt: { lt: threshold }
+        createdAt: { lt: threshold },
+        ...lastOrderId ? { id: { gt: lastOrderId } } : {}
       },
+      orderBy: { id: "asc" },
       select: {
         id: true,
         numericId: true,
@@ -159804,12 +159974,23 @@ async function runInProgressTTLSweep() {
           select: {
             provider: true
           }
+        },
+        smartCampaign: {
+          select: {
+            id: true,
+            status: true,
+            totalDays: true
+          }
         }
       },
       take: IN_PROGRESS_TTL_BATCH_SIZE
     });
     if (stuckOrders.length === 0) {
       break;
+    }
+    lastOrderId = stuckOrders[stuckOrders.length - 1].id;
+    if (stuckOrders.length < IN_PROGRESS_TTL_BATCH_SIZE) {
+      hasMore = false;
     }
     for (const order of stuckOrders) {
       const isDripFeed = Boolean(order.runs && order.runs > 1 && order.interval);
@@ -159818,6 +159999,14 @@ async function runInProgressTTLSweep() {
         const orderDynamicThreshold = new Date(Date.now() - dynamicTtlHours * 60 * 60 * 1e3);
         if (order.createdAt > orderDynamicThreshold) {
           log16.info(`Skipping Drip-Feed order ${order.id} TTL sweep (within scheduled run window: ${dynamicTtlHours}h)`);
+          continue;
+        }
+      }
+      if (order.smartCampaign && ["RUNNING", "PAUSED"].includes(order.smartCampaign.status)) {
+        const smartTtlHours = Math.max(72, (order.smartCampaign.totalDays || 1) * 24 + 48);
+        const smartDynamicThreshold = new Date(Date.now() - smartTtlHours * 60 * 60 * 1e3);
+        if (order.createdAt > smartDynamicThreshold) {
+          log16.info(`Skipping Smart Drip order ${order.id} TTL sweep (active campaign ${order.smartCampaign.id}, within scheduled run window: ${smartTtlHours}h)`);
           continue;
         }
       }
@@ -159919,6 +160108,16 @@ async function runInProgressTTLSweep() {
           if (updated.count === 0) {
             return;
           }
+          if (order.smartCampaign && targetStatus !== "COMPLETED") {
+            await tx.smartCampaign.update({
+              where: { id: order.smartCampaign.id },
+              data: { status: "ERROR" }
+            });
+            await tx.smartTask.updateMany({
+              where: { campaignId: order.smartCampaign.id, status: "PLANNED" },
+              data: { status: "ERROR", error: "\u0417\u0430\u043A\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D \u043F\u043E \u0442\u0430\u0439\u043C\u0430\u0443\u0442\u0443 TTL" }
+            });
+          }
           if (targetStatus === "COMPLETED") {
             await LoyaltyService.confirmCommission(tx, order.id);
           } else {
@@ -159932,7 +160131,7 @@ async function runInProgressTTLSweep() {
                 ...order.tenantId ? { tenantId: order.tenantId } : {}
               }
             });
-            if (!existingLedger) {
+            if (!existingLedger && order.userId) {
               await WalletOps.refund(
                 tx,
                 order.userId,
@@ -160218,7 +160417,7 @@ async function runETARecalculation() {
 init_queue_manager();
 
 // src/services/admin/catalog.service.ts
-var import_crypto7 = __toESM(require("crypto"));
+var import_crypto8 = __toESM(require("crypto"));
 init_db();
 init_redis();
 init_logger();
@@ -160792,6 +160991,14 @@ var SecuritySanitizer = class {
 // src/services/admin/catalog.service.ts
 init_smart_analyzer_logic();
 init_link_rules_registry();
+function parseProviderBoolean(val) {
+  if (val === true || val === 1 || val === "1" || val === "true") return true;
+  return false;
+}
+function parseProviderBooleanOptional(val) {
+  if (val === void 0 || val === null || val === "") return void 0;
+  return parseProviderBoolean(val);
+}
 async function ensureTaxonomyTenantAccess(categoryId) {
   const category = await db.category.findUnique({
     where: { id: categoryId },
@@ -161234,7 +161441,7 @@ var AdminCatalogService = class {
     if (!Array.isArray(rawServices) || rawServices.length === 0) {
       throw new Error("API \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 \u0432\u0435\u0440\u043D\u0443\u043B\u043E \u043F\u0443\u0441\u0442\u043E\u0439 \u0441\u043F\u0438\u0441\u043E\u043A \u0438\u043B\u0438 \u043E\u0448\u0438\u0431\u043A\u0443. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043F\u0440\u0435\u0440\u0432\u0430\u043D\u0430 (\u0437\u0430\u0449\u0438\u0442\u0430).");
     }
-    const catalogHash = import_crypto7.default.createHash("sha256").update(JSON.stringify(rawServices)).digest("hex");
+    const catalogHash = import_crypto8.default.createHash("sha256").update(JSON.stringify(rawServices)).digest("hex");
     const cacheKey = `provider:${providerId}:catalog:hash`;
     try {
       const cachedHash = await redis.get(cacheKey);
@@ -161297,9 +161504,9 @@ var AdminCatalogService = class {
         rateRub,
         min: typeof s.min === "number" ? s.min : parseInt(String(s.min), 10) || 0,
         max: typeof s.max === "number" ? s.max : parseInt(String(s.max), 10) || 0,
-        refill: s.refill || false,
-        cancel: s.cancel || false,
-        dripfeed: s.dripfeed || false,
+        refill: parseProviderBoolean(s.refill),
+        cancel: parseProviderBoolean(s.cancel),
+        dripfeed: parseProviderBoolean(s.dripfeed),
         cleanName: s.cleanName || null,
         platform: (s.metrics?.platform || "other").toLowerCase(),
         normalizedCategory: s.metrics?.category || null,
@@ -161727,9 +161934,9 @@ var AdminCatalogService = class {
         rate: String(s.rate),
         min: String(s.min),
         max: String(s.max),
-        dripfeed: s.dripfeed === void 0 ? void 0 : Boolean(s.dripfeed),
-        refill: s.refill === void 0 ? void 0 : Boolean(s.refill),
-        cancel: s.cancel === void 0 ? void 0 : Boolean(s.cancel),
+        dripfeed: parseProviderBooleanOptional(s.dripfeed),
+        refill: parseProviderBooleanOptional(s.refill),
+        cancel: parseProviderBooleanOptional(s.cancel),
         desc: s.desc
       }));
     };
@@ -162038,9 +162245,9 @@ var AdminCatalogService = class {
           customDataLabel: linkSpec.customDataLabel || null,
           isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
           isActive: true,
-          isDripFeedEnabled: Boolean(liveExt.dripfeed),
-          isRefillEnabled: Boolean(liveExt.refill),
-          isCancelEnabled: Boolean(liveExt.cancel),
+          isDripFeedEnabled: parseProviderBoolean(liveExt.dripfeed),
+          isRefillEnabled: parseProviderBoolean(liveExt.refill),
+          isCancelEnabled: parseProviderBoolean(liveExt.cancel),
           lastSeenAt: /* @__PURE__ */ new Date()
         });
       }
@@ -164148,94 +164355,7 @@ async function aiObserverProcessor(job) {
 
 // src/workers/processors/ai-economic-optimizer.processor.ts
 init_logger();
-
-// src/lib/redis-lock.ts
-init_redis();
-var import_crypto8 = __toESM(require("crypto"));
-var RELEASE_LOCK_LUA = `
-if redis.call("get", KEYS[1]) == ARGV[1] then
-    return redis.call("del", KEYS[1])
-else
-    return 0
-end
-`;
-var EXTEND_LOCK_LUA = `
-if redis.call("get", KEYS[1]) == ARGV[1] then
-    return redis.call("pexpire", KEYS[1], ARGV[2])
-else
-    return 0
-end
-`;
-var MutexManager = class {
-  /**
-   * Acquires a lock in Redis with a unique owner token.
-   * Returns the owner token if acquired, null if timed out.
-   */
-  static async acquireLock(key, ttlMs, maxWaitMs = 5e3) {
-    const lockKey = `lock:${key}`;
-    const token = import_crypto8.default.randomUUID();
-    const start = Date.now();
-    const waitTime = 50;
-    while (Date.now() - start < maxWaitMs) {
-      const acquired = await redis.set(lockKey, token, "PX", ttlMs, "NX");
-      if (acquired === "OK") {
-        return token;
-      }
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-    return null;
-  }
-  /**
-   * Extends the TTL of an active lock if and only if the caller owns the lock token.
-   */
-  static async extendLock(key, token, extraTtlMs) {
-    if (!token) return false;
-    const lockKey = `lock:${key}`;
-    try {
-      const result = await redis.eval(EXTEND_LOCK_LUA, 1, lockKey, token, extraTtlMs);
-      return result === 1;
-    } catch {
-      return false;
-    }
-  }
-  /**
-   * Releases a lock in Redis safely via Lua script compare-and-delete.
-   * Prevents removing a lock owned by another process after TTL expiry.
-   */
-  static async releaseLock(key, token) {
-    if (!token) return false;
-    const lockKey = `lock:${key}`;
-    try {
-      const result = await redis.eval(RELEASE_LOCK_LUA, 1, lockKey, token);
-      return result === 1;
-    } catch {
-      return false;
-    }
-  }
-  /**
-   * Wrapper execute function that ensures mutual exclusion on a specific key.
-   * Periodically extends the lock TTL in the background while the task executes.
-   */
-  static async withLock(key, ttlMs, maxWaitMs, fn) {
-    const token = await this.acquireLock(key, ttlMs, maxWaitMs);
-    if (!token) {
-      throw new Error(`Failed to acquire lock for key: ${key}`);
-    }
-    const intervalMs = Math.max(100, Math.floor(ttlMs / 3));
-    const heartbeatTimer = setInterval(async () => {
-      try {
-        await this.extendLock(key, token, ttlMs);
-      } catch {
-      }
-    }, intervalMs);
-    try {
-      return await fn();
-    } finally {
-      clearInterval(heartbeatTimer);
-      await this.releaseLock(key, token);
-    }
-  }
-};
+init_redis_lock();
 
 // src/services/pricing/ai-economic-optimizer.service.ts
 init_db();

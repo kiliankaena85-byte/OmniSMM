@@ -26,14 +26,14 @@ export function OrderStatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 font-bold uppercase tracking-wider rounded-lg border transition-all duration-200 shadow-xs',
+        'inline-flex items-center gap-1.5 font-bold uppercase tracking-wider rounded-lg border transition-all duration-200 shadow-xs whitespace-nowrap shrink-0 select-none',
         size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[10px]',
         config.badgeClass,
         className
       )}
     >
       {showDot && (
-        <span className="relative flex h-2 w-2 items-center justify-center">
+        <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
           {isLive && (
             <span
               className={cn(
@@ -50,7 +50,7 @@ export function OrderStatusBadge({
           />
         </span>
       )}
-      <span>{config.label}</span>
+      <span className="whitespace-nowrap shrink-0">{config.label}</span>
     </span>
   );
 }

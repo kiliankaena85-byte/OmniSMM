@@ -1,3 +1,19 @@
+- [x] ⚡ [FOOLPROOF-MINIMALIST-UX-AND-AUTOFOLDING-2026] Внедрение ИИ-скилла foolproof-minimalist-ux, авто-схлопывания категорий и масштабирования (8 категорий, 10+ тарифов) (100% COMPLETE & VERIFIED):
+  * 📦 **Архитектурный ИИ-скилл `foolproof-minimalist-ux`:**
+    - Разработана Tier 2 спецификация `docs/specs/SPEC-2026-09-18-foolproof-minimalist-ux.md`.
+    - Создан L1 Core `CORE.md` (24 строки, $\le 30$) с жесткими инвариантами: запрет бесконечных гармошек, лимит высоты виджета ($\le 220\text{px}$), откат в 1 клик, запрет технического жаргона.
+    - Создано L2 руководство `SKILL.md` с диаграммой FSM, антипаттернами и чеклистом простоты («UX для дураков»).
+    - Зарегистрирован в `scripts/skill-router.ts` и сводной матрице `.agents/skills/INDEX.md`.
+  * 🎨 **Интерактивные шаблоны вайрфрейма (Auto-Folding UX & Scale Invariants):**
+    - `wireframe-desktop.html`: 
+      * Масштабирование на 8 категорий (Подписчики, Просмотры, Реакции, Комментарии, TG Stars, Бусты, Опросы, Репосты). При выборе сетка 2x4 мгновенно схлопывается в 32px строку `[✓ Категория: ...] [Сменить категорию (8)]`.
+      * Масштабирование услуг (Goldilocks Rule): 3 ключевые карточки в главном фокусе + аккордеон с ограниченным скроллом (`max-h-36`) для дополнительных тарифов (`▾ Показать ещё N тарифов`).
+    - `wireframe-mobile.html`:
+      * 8 категорий в мобильной сетке с тач-кнопками $\ge 44\text{px}$ (WCAG 2.2 AA).
+      * Авто-схлопывание в компактную плашку и аккордеон дополнительных тарифов без выталкивания активных заказов из первого экрана.
+  * 🧪 **Верификация & Тесты:**
+    - `src/__tests__/skills/foolproof-minimalist-ux.test.ts` (3/3 PASS) — 100%.
+    - `src/__tests__/skills/wireframe-nanobanana-stitch.test.ts` (3/3 PASS) — 100%.
 - [x] ⚡ [DRIPFEED-SMARTDRIP-INVARIANTS-REMEDIATION-2026] Комплексная ликвидация 11 архитектурных дефектов Drip-Feed и Smart Drip-Feed (100% COMPLETE & VERIFIED):
   * 🔄 **Синхронизация и возвраты Native Drip-Feed (`sync.processor.ts`):**
     - Добавлен fallback на `order.externalId`, если `order.isDripFeed` активен, но `dripExternalIds = []` (устранено зависание в `IN_PROGRESS`).

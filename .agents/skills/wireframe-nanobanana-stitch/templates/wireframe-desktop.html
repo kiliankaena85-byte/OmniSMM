@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMMplan — Профессиональный Личный Кабинет 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#F8FAFC',
+              100: '#F1F5F9',
+              200: '#E2E8F0',
+              300: '#CBD5E1',
+              400: '#94A3B8',
+              500: '#64748B',
+              600: '#475569',
+              700: '#334155',
+              800: '#1E293B',
+              900: '#0F172A',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 antialiased font-sans p-4 lg:p-6">
+  <div class="max-w-[1440px] mx-auto space-y-4">
+    
+    <!-- ================================================================= -->
+    <!-- 1. HEADER HUD BAR (Только SMMplan, без мульти-тенантного мусора)  -->
+    <!-- ================================================================= -->
+    <header class="bg-white border border-slate-200 rounded-2xl px-5 py-3 flex items-center justify-between shadow-xs">
+      <!-- Left: Чистый бренд SMMplan -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-sm tracking-tight shadow-xs">
+          SP
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-sm text-slate-900 tracking-tight">SMMplan</span>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              155 тарифов онлайн
+            </span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">Оптовые цены от 1 шт. без посредников</span>
+        </div>
+      </div>
+
+      <!-- Center: Quick Search Bar с горячей клавишей -->
+      <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+        <div class="w-full relative">
+          <input 
+            type="text" 
+            placeholder="⌘K Поиск услуги (Telegram, подписчики, просмотры)..." 
+            class="w-full h-9 pl-9 pr-10 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition"
+            readonly
+          />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <span class="absolute right-2.5 top-2 text-[10px] text-slate-400 font-mono bg-slate-200/70 px-1.5 py-0.5 rounded">⌘K</span>
+        </div>
+      </div>
+
+      <!-- Right: Balance HUD, Tickets Badge, User Profile -->
+      <div class="flex items-center gap-3">
+        <!-- Balance Display Widget -->
+        <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200/90 pl-3.5 pr-1.5 py-1.5 rounded-xl">
+          <div>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block leading-none">Баланс</span>
+            <span class="text-sm font-black text-slate-900 font-mono">14 850.50 ₽</span>
+          </div>
+          <button class="h-7 px-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs transition">
+            <span>+</span><span>Пополнить</span>
+          </button>
+        </div>
+
+        <!-- Tickets Notification (1 непрочитанный тикет) -->
+        <button class="w-9 h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 relative hover:bg-slate-50 transition" title="Поддержка / Тикеты">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          <span class="w-2 h-2 bg-slate-900 rounded-full absolute top-2 right-2 ring-2 ring-white"></span>
+        </button>
+
+        <!-- User Profile Avatar -->
+        <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">
+            КА
+          </div>
+          <div class="hidden sm:block text-left">
+            <div class="text-xs font-bold text-slate-800 leading-tight">client@smmplan.pro</div>
+            <div class="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
+              <span>Gold клиент (+3%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================================================================= -->
+    <!-- 2. MAIN 12-COLUMN WORKSPACE (Сайдбар + Контент)                   -->
+    <!-- ================================================================= -->
+    <div class="grid grid-cols-12 gap-4 items-start">
+      
+      <!-- --------------------------------------------------------------- -->
+      <!-- LEFT SIDEBAR (Реальные маршруты SMMplan, растянут на 100%)       -->
+      <!-- --------------------------------------------------------------- -->
+      <aside class="col-span-12 lg:col-span-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between min-h-[calc(100vh-115px)]">
+          
+          <div class="space-y-5">
+            <!-- Navigation Group 1: Главное -->
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 block mb-2">Рабочий стол</span>
+              <nav class="space-y-1">
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xs">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Дашборд</span>
+                  </div>
+                  <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">Live</span>
+                </a>
+
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    <span>Новый заказ</span>
+                  </div>
+                  <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">визард</span>
+                </a>
+
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Мои заказы</span>
+                  </div>
+                  <span class="text-[10px] font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full font-mono">4</span>
+                </a>
+
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <span>Smart Drip-Feed</span>
+                  </div>
+                  <span class="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded font-mono">2</span>
+                </a>
+              </nav>
+            </div>
+
+            <!-- Navigation Group 2: Финансы & Чеки 54-ФЗ -->
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 block mb-2">Биллинг & Чеки</span>
+              <nav class="space-y-1">
+                <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                  <span>Пополнение (СБП, Карты)</span>
+                </a>
+                <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  <span>Чеки 54-ФЗ / ОФД</span>
+                </a>
+                <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>История транзакций</span>
+                </a>
+              </nav>
+            </div>
+
+            <!-- Navigation Group 3: Партнерка & Разработчикам -->
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 block mb-2">Партнерка & API</span>
+              <nav class="space-y-1">
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span>Партнёрка 10%</span>
+                  </div>
+                  <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded font-mono">+3 420 ₽</span>
+                </a>
+
+                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    <span>Поддержка / Тикеты</span>
+                  </div>
+                  <span class="text-[10px] bg-slate-200 text-slate-800 font-bold px-1.5 py-0.2 rounded-full">1</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-medium transition">
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                  <span>API v2 & Вебхуки</span>
+                </a>
+              </nav>
+            </div>
+          </div>
+
+          <!-- Bottom: Status & Quick Telegram Support -->
+          <div class="pt-4 border-t border-dashed border-slate-200 mt-4">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Шлюзы Vexboost: OK
+                </span>
+                <span class="text-[10px] font-mono text-slate-400">18ms</span>
+              </div>
+              <p class="text-[11px] text-slate-500 leading-tight">
+                Оператор онлайн: <span class="font-semibold text-slate-800">@smmplan_support</span>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- --------------------------------------------------------------- -->
+      <!-- RIGHT MAIN CANVAS (Интеллектуальный Cockpit SMMplan)             -->
+      <!-- --------------------------------------------------------------- -->
+      <main class="col-span-12 lg:col-span-9 space-y-4">
+        
+        <!-- ============================================================= -->
+        <!-- ROW 1: СБАЛАНСИРОВАННЫЙ ТРЕХФОКУСНЫЙ ХАБ (БЕЗ ВОДЫ)           -->
+        <!-- ============================================================= -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          
+          <!-- Карточка 1: Кошелек & Лояльность (Главный акцент) -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Кошелёк & Статус</span>
+              <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-900 text-white tracking-wide">
+                Gold • +3% кэшбэк
+              </span>
+            </div>
+            <div>
+              <div class="text-2xl font-black font-mono text-slate-900 tracking-tight">14 850.50 ₽</div>
+              <div class="mt-2 space-y-1">
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-slate-900 h-1.5 rounded-full" style="width: 74%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 font-medium">
+                  <span>Оборот: 74 850 ₽</span>
+                  <span>До Platinum: 5 150 ₽</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-xs">
+                + Пополнить счет
+              </button>
+              <button class="px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                Чеки 54-ФЗ
+              </button>
+            </div>
+          </div>
+
+          <!-- Карточка 2: Задачи в работе & Drip-Feed калькулятор -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Активные задачи</span>
+              <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full font-mono">
+                4 заказа
+              </span>
+            </div>
+            <div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-black font-mono text-slate-900">68%</span>
+                <span class="text-xs font-bold text-slate-500">средний прогресс</span>
+              </div>
+              <div class="mt-2 space-y-1">
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-slate-900 h-1.5 rounded-full" style="width: 68%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500">
+                  <span>2 обычных • 2 Smart Drip</span>
+                  <span class="font-mono text-slate-700">Все шлюзы активны</span>
+                </div>
+              </div>
+            </div>
+            <a href="#" class="w-full py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold text-center block transition">
+              Управление заказами (4) →
+            </a>
+          </div>
+
+          <!-- Карточка 3: Партнерская сеть (10% пассивный доход) -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Партнерская программа</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                10% доход
+              </span>
+            </div>
+            <div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-black font-mono text-slate-900">12</span>
+                <span class="text-xs font-bold text-slate-500">активных рефералов</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-1">
+                Начислено за месяц: <span class="font-bold text-slate-900 font-mono">+3 420.00 ₽</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="flex-1 h-8 bg-slate-50 border border-slate-200 rounded-xl px-2.5 flex items-center text-[11px] font-mono text-slate-600 truncate">
+                smmplan.pro/r/k7a9x
+              </div>
+              <button class="h-8 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition shrink-0" title="Скопировать ссылку">
+                Копировать
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- ROW 2: ИНТЕРАКТИВНЫЙ ЭКСПРЕСС-ЗАКАЗ С ПОШАГОВЫМ РАСКРЫТИЕМ     -->
+        <!-- (Изначально только поле ссылки -> далее категории -> услуги)   -->
+        <!-- ============================================================= -->
+        <div id="express-order-widget" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3 transition-all duration-300">
+          
+          <!-- ШАГ 1: Поле ввода ссылки (Видно всегда) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-black uppercase tracking-tight text-slate-900">Экспресс-заказ по ссылке</span>
+                <span id="detected-badge" class="hidden text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                  ✓ Telegram Канал
+                </span>
+              </div>
+              
+              <!-- Кнопка сброса (видна, когда форма раскрыта) -->
+              <button id="reset-flow-btn" onclick="resetExpressOrder()" class="hidden text-[11px] font-semibold text-slate-400 hover:text-slate-700 transition flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>Сбросить выбор</span>
+              </button>
+            </div>
+
+            <!-- Главный инпут ссылки -->
+            <div class="flex items-center gap-2">
+              <div class="flex-1 relative flex items-center bg-slate-50 border border-slate-300 focus-within:border-slate-900 rounded-xl p-1 transition shadow-xs">
+                <div class="pl-2.5 pr-2 text-slate-400">
+                  <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                </div>
+                <input 
+                  id="smart-link-input"
+                  type="text" 
+                  onkeydown="if(event.key==='Enter') handleLinkSubmit()"
+                  placeholder="Вставьте ссылку на канал, группу, пост или видео (например: https://t.me/fintech_channel)..." 
+                  class="w-full bg-transparent text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none px-1 py-1"
+                />
+              </div>
+
+              <!-- Кнопка подтверждения ссылки -->
+              <button 
+                id="submit-link-btn"
+                onclick="handleLinkSubmit()"
+                class="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 shrink-0"
+              >
+                <span>Найти тарифы</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+            <!-- Тестовые быстрые кликабельные пресеты для проверки интерактива -->
+            <div id="quick-presets" class="flex items-center gap-2 pt-0.5 text-[11px] text-slate-400">
+              <span>Быстрый тест:</span>
+              <button onclick="setSampleLink('https://t.me/fintech_channel', 'Telegram Канал')" class="text-slate-600 hover:text-slate-900 underline decoration-slate-300 font-medium">Telegram канал</button>
+              <span>•</span>
+              <button onclick="setSampleLink('https://vk.com/wall-19283_44', 'ВКонтакте Пост')" class="text-slate-600 hover:text-slate-900 underline decoration-slate-300 font-medium">VK пост</button>
+              <span>•</span>
+              <button onclick="setSampleLink('https://youtube.com/watch?v=9xK1', 'YouTube Видео')" class="text-slate-600 hover:text-slate-900 underline decoration-slate-300 font-medium">YouTube видео</button>
+            </div>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- ШАГ 2: КАТЕГОРИИ УСЛУГ (Раскрываются ТОЛЬКО после ввода ссылки) -->
+          <!-- ========================================================= -->
+          <div id="categories-step" class="hidden pt-3 border-t border-dashed border-slate-200 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-mono font-black">1</span>
+                <span>Выберите категорию услуги:</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-medium">Нажмите на категорию для выбора тарифа</span>
+            </div>
+
+            <!-- Чипсы категорий (Скрываются при выборе для экономии места) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button id="cat-subscribers" onclick="selectCategory('subscribers')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">👥 <span>Подписчики</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.18 ₽</span>
+              </button>
+
+              <button id="cat-views" onclick="selectCategory('views')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">👁️ <span>Просмотры</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.03 ₽</span>
+              </button>
+
+              <button id="cat-reactions" onclick="selectCategory('reactions')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">🔥 <span>Реакции</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.05 ₽</span>
+              </button>
+
+              <button id="cat-comments" onclick="selectCategory('comments')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">💬 <span>Комментарии</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 1.20 ₽</span>
+              </button>
+
+              <!-- Дополнительные 4 категории (Масштабируемый каталог) -->
+              <button id="cat-stars" onclick="selectCategory('stars')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">⭐️ <span>TG Stars</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.45 ₽</span>
+              </button>
+
+              <button id="cat-boosts" onclick="selectCategory('boosts')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">🚀 <span>Бусты канала</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 14.50 ₽</span>
+              </button>
+
+              <button id="cat-votes" onclick="selectCategory('votes')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">🗳️ <span>Опросы/Голоса</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.09 ₽</span>
+              </button>
+
+              <button id="cat-reposts" onclick="selectCategory('reposts')" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white text-slate-800 text-xs font-semibold flex items-center justify-between transition group">
+                <span class="flex items-center gap-1.5">🔄 <span>Репосты/Шеры</span></span>
+                <span class="text-[10px] bg-slate-100 group-hover:bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">от 0.06 ₽</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- СВЕРНУТАЯ ПЛАШКА ВЫБРАННОЙ КАТЕГОРИИ (Появляется вместо сетки для экономии места) -->
+          <div id="category-collapsed-bar" class="hidden pt-2.5 border-t border-dashed border-slate-200 flex items-center justify-between animate-in fade-in duration-200">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+              <span class="text-xs text-slate-500">Выбранная категория:</span>
+              <span id="collapsed-cat-name" class="text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                👥 Подписчики
+              </span>
+            </div>
+            <button onclick="reopenCategories()" class="text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              <span>Сменить категорию (8)</span>
+            </button>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- ШАГ 3: КОНКРЕТНЫЕ УСЛУГИ И ЧЕКАУТ (Раскрываются ПОСЛЕ выбора категории) -->
+          <!-- ========================================================= -->
+          <div id="services-step" class="hidden pt-3 border-t border-dashed border-slate-200 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-mono font-black">2</span>
+                <span id="services-step-title">Выберите подходящий тариф:</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-medium">Мгновенный запуск • Без паролей • Гарантия</span>
+            </div>
+
+            <!-- Динамический контейнер 3-х основных тарифов -->
+            <div id="services-cards-container" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <!-- Карточки генерируются скриптом dynamically -->
+            </div>
+
+            <!-- Дополнительные тарифы категории (Компактный аккордеон со скроллом) -->
+            <div id="more-services-wrapper" class="pt-0.5">
+              <button id="toggle-more-btn" onclick="toggleMoreServices()" class="text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition">
+                <span id="more-btn-text">▾ Показать ещё 3 тарифа этой категории</span>
+              </button>
+
+              <div id="more-services-container" class="hidden mt-2 space-y-1.5 max-h-36 overflow-y-auto pr-1 border border-slate-200 rounded-xl p-2 bg-slate-50">
+                <!-- Генерируется скриптом -->
+              </div>
+            </div>
+
+            <!-- Нижняя панель: Степпер объема и Кнопка мгновенной оплаты с баланса -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-slate-700">Количество:</span>
+                <div class="flex items-center">
+                  <button onclick="changeQty(-250)" class="w-8 h-8 border border-slate-300 bg-white hover:bg-slate-100 rounded-l-lg font-bold text-slate-700 flex items-center justify-center text-xs transition" title="Уменьшить">-</button>
+                  <div id="qty-display" class="h-8 px-3.5 border-y border-slate-300 bg-white flex items-center justify-center font-mono font-bold text-xs text-slate-900 min-w-[75px]">
+                    1 000 шт
+                  </div>
+                  <button onclick="changeQty(250)" class="w-8 h-8 border border-slate-300 bg-white hover:bg-slate-100 rounded-r-lg font-bold text-slate-700 flex items-center justify-center text-xs transition" title="Увеличить">+</button>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                  <span>Итого:</span>
+                  <span id="total-price-display" class="font-black text-slate-900 font-mono text-sm">180.00 ₽</span>
+                </div>
+              </div>
+
+              <!-- Кнопка запуска заказа -->
+              <button onclick="simulateOrderSuccess()" class="h-9 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Оплатить с баланса (14 850.50 ₽)</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- JS Скрипт пошаговой интерактивности (Progressive Disclosure)   -->
+        <!-- ============================================================= -->
+        <script>
+          // Каталог тарифов под каждую из 8 категорий (Domain-grounded)
+          const servicesCatalog = {
+            subscribers: {
+              label: 'Подписчики',
+              items: [
+                { id: 1, title: 'Подписчики RU (Гарантия)', desc: 'Живые русскоязычные профили, без списаний', rate: 0.18, min: 50 },
+                { id: 2, title: 'Премиум с рекламы', desc: 'Максимальное удержание и активность в канале', rate: 0.42, min: 100 },
+                { id: 3, title: 'Быстрые подписчики (Эконом)', desc: 'Эконом-тариф для быстрого старта счетчика', rate: 0.09, min: 100 }
+              ],
+              extraItems: [
+                { id: 4, title: 'Подписчики СНГ (Таргет)', desc: 'Казахстан, Беларусь, Узбекистан', rate: 0.22, min: 100 },
+                { id: 5, title: 'Женская аудитория RU', desc: 'Строго женский пол для бьюти/мам каналов', rate: 0.35, min: 50 }
+              ]
+            },
+            views: {
+              label: 'Просмотры',
+              items: [
+                { id: 11, title: 'Быстрые просмотры постов', desc: 'Мгновенный старт, естественная динамика', rate: 0.03, min: 100 },
+                { id: 12, title: 'Авто-просмотры на 5 постов', desc: 'Автоматический охват будущих публикаций', rate: 0.15, min: 100 },
+                { id: 13, title: 'Премиум охват + показы', desc: 'Вывод постов в рекомендации и топ поиска', rate: 0.08, min: 200 }
+              ],
+              extraItems: [
+                { id: 14, title: 'Плавные просмотры (Drip-Feed)', desc: 'Равномерное распределение на 24 часа', rate: 0.05, min: 500 },
+                { id: 15, title: 'Просмотры историй (Stories)', desc: 'Охват историй канала от премиум-юзеров', rate: 0.12, min: 100 }
+              ]
+            },
+            reactions: {
+              label: 'Реакции',
+              items: [
+                { id: 21, title: 'Живые реакции (микс эмодзи)', desc: 'Случайные позитивные смайлы 👍🔥👏🎉', rate: 0.05, min: 50 },
+                { id: 22, title: 'Позитивные реакции (🔥❤️)', desc: 'Выборочные реакции от живых пользователей', rate: 0.06, min: 50 },
+                { id: 23, title: 'Умный авто-пак реакций', desc: 'Авто-начисление на новые посты канала', rate: 0.12, min: 100 }
+              ],
+              extraItems: [
+                { id: 24, title: 'Кастомные эмодзи Telegram', desc: 'Выбор любого эмодзи из премиум-наборов', rate: 0.09, min: 50 },
+                { id: 25, title: 'Негативные реакции (👎💩)', desc: 'Для реалистичного баланса статистики', rate: 0.07, min: 50 }
+              ]
+            },
+            comments: {
+              label: 'Комментарии',
+              items: [
+                { id: 31, title: 'Осмысленные комментарии RU', desc: 'Живые комментарии строго по теме публикации', rate: 1.20, min: 10 },
+                { id: 32, title: 'Положительные отзывы', desc: 'Одобрительные отзывы с аватарками и именами', rate: 1.45, min: 10 },
+                { id: 33, title: 'Собственный текст комментов', desc: 'Укажите свои фразы построчно в заказе', rate: 1.80, min: 10 }
+              ],
+              extraItems: [
+                { id: 34, title: 'Ветки дискуссий (Ответы)', desc: 'Создание живых споров и обсуждений в чате', rate: 2.10, min: 5 },
+                { id: 35, title: 'Эмодзи-комментарии', desc: 'Быстрые короткие реплики и эмодзи', rate: 0.65, min: 20 }
+              ]
+            },
+            stars: {
+              label: 'TG Stars',
+              items: [
+                { id: 41, title: 'Telegram Stars (Официальные)', desc: 'Прямая передача официальных звёзд на пост', rate: 0.45, min: 10 },
+                { id: 42, title: 'Пакет 100 Stars на пост', desc: 'Повышает пост в рейтинге публикаций', rate: 0.42, min: 100 },
+                { id: 43, title: 'Stars от Premium-пользователей', desc: 'Максимальный авторитет для модерации TG', rate: 0.58, min: 25 }
+              ],
+              extraItems: [
+                { id: 44, title: 'Авто-Stars на 3 будущих поста', desc: 'Автоматический буст реакциями-звездами', rate: 0.49, min: 50 },
+                { id: 45, title: 'Stars на ботов / Mini Apps', desc: 'Донат в Telegram Mini App для рейтинга', rate: 0.52, min: 50 }
+              ]
+            },
+            boosts: {
+              label: 'Бусты канала',
+              items: [
+                { id: 51, title: 'Бусты уровня канала (1 Уровень)', desc: 'Открытие публикации историй и кастомных эмодзи', rate: 14.50, min: 4 },
+                { id: 52, title: 'Бусты с гарантией на 30 дней', desc: 'Удержание уровня без просадки весь месяц', rate: 18.00, min: 4 },
+                { id: 53, title: 'Экспресс-буст (Старт 5 мин)', desc: 'Мгновенный апгрейд уровня для горящих сторис', rate: 22.00, min: 4 }
+              ],
+              extraItems: [
+                { id: 54, title: 'Бусты на 90 дней (Квартал)', desc: 'Экономия 25% при длительном бронировании', rate: 45.00, min: 4 },
+                { id: 55, title: 'Бусты для закрытых групп', desc: 'Активация эмодзи-статусов в приватных чатах', rate: 19.50, min: 4 }
+              ]
+            },
+            votes: {
+              label: 'Опросы/Голоса',
+              items: [
+                { id: 61, title: 'Голоса в опросе (Обычный)', desc: 'Выбор нужного варианта ответа в опросе', rate: 0.09, min: 50 },
+                { id: 62, title: 'Голоса с переходами в канал', desc: 'Имитация реального изучения контента перед кликом', rate: 0.16, min: 50 },
+                { id: 63, title: 'Викторины (Правильный ответ)', desc: 'Безошибочный выбор в тестах и викторинах', rate: 0.14, min: 25 }
+              ],
+              extraItems: [
+                { id: 64, title: 'Голоса с защитой от капчи', desc: 'Для внешних конкурсов и Telegram-ботов', rate: 0.28, min: 50 },
+                { id: 65, title: 'Голосования в закрытых каналах', desc: 'Вход + голосование с гарантией', rate: 0.35, min: 30 }
+              ]
+            },
+            reposts: {
+              label: 'Репосты/Шеры',
+              items: [
+                { id: 71, title: 'Репосты постов в каналы/чаты', desc: 'Виральное распространение вашей записи', rate: 0.06, min: 50 },
+                { id: 72, title: 'Репосты в личные сообщения', desc: 'Шеринг друзьям и коллегам в Telegram', rate: 0.08, min: 50 },
+                { id: 73, title: 'Шеринг историй (Story Shares)', desc: 'Репосты вашей истории в личные сторис юзеров', rate: 0.19, min: 20 }
+              ],
+              extraItems: [
+                { id: 74, title: 'Репосты в тематические группы', desc: 'Тематические бизнес и крипто сообщества', rate: 0.25, min: 20 },
+                { id: 75, title: 'Комплекс: Репост + Реакция', desc: 'Максимальный сигнал для алгоритмов TG', rate: 0.14, min: 50 }
+              ]
+            }
+          };
+
+          let currentCategory = null;
+          let currentServiceId = 1;
+          let currentRate = 0.18;
+          let currentQty = 1000;
+          let selectedServiceTitle = '';
+
+          function setSampleLink(url, badgeText) {
+            const input = document.getElementById('smart-link-input');
+            input.value = url;
+            handleLinkSubmit(badgeText);
+          }
+
+          // ШАГ 1: Обработка ввода ссылки -> РАСКРЫВАЕТ ТОЛЬКО КАТЕГОРИИ
+          function handleLinkSubmit(customBadge) {
+            const input = document.getElementById('smart-link-input');
+            const val = input.value.trim();
+            if (!val) {
+              alert('Пожалуйста, введите или выберите тестовую ссылку');
+              return;
+            }
+
+            // Показываем распознанный бейдж соцсети
+            const badge = document.getElementById('detected-badge');
+            badge.textContent = customBadge || (val.includes('vk.com') ? '✓ ВКонтакте' : val.includes('youtube') ? '✓ YouTube' : '✓ Telegram Канал');
+            badge.classList.remove('hidden');
+
+            // Показываем кнопку сброса
+            document.getElementById('reset-flow-btn').classList.remove('hidden');
+
+            // Скрываем свернутую плашку и услуги (если они были открыты ранее)
+            document.getElementById('category-collapsed-bar').classList.add('hidden');
+            document.getElementById('services-step').classList.add('hidden');
+            currentCategory = null;
+
+            // Раскрываем ШАГ 2 (Сетку категорий)
+            document.getElementById('categories-step').classList.remove('hidden');
+            
+            // Скрываем быстрые пресеты для чистоты
+            document.getElementById('quick-presets').classList.add('hidden');
+          }
+
+          // ШАГ 2: Выбор категории -> СХЛОПЫВАЕТ СЕТКУ И ОТКРЫВАЕТ ШАГ 3 (Экономия места)
+          function selectCategory(catKey) {
+            currentCategory = catKey;
+            const categoryData = servicesCatalog[catKey];
+            if (!categoryData) return;
+
+            // 1. Скрываем большую сетку категорий для максимальной вертикальной экономии!
+            document.getElementById('categories-step').classList.add('hidden');
+
+            // 2. Отображаем ультра-компактную плашку выбранной категории с кнопкой смены
+            const catBadge = document.getElementById('collapsed-cat-name');
+            const icons = { 
+              subscribers: '👥', 
+              views: '👁️', 
+              reactions: '🔥', 
+              comments: '💬',
+              stars: '⭐️',
+              boosts: '🚀',
+              votes: '🗳️',
+              reposts: '🔄'
+            };
+            catBadge.innerHTML = `${icons[catKey] || '✨'} ${categoryData.label}`;
+            document.getElementById('category-collapsed-bar').classList.remove('hidden');
+
+            // 3. Обновляем заголовок Шага 3
+            document.getElementById('services-step-title').textContent = 'Тарифы для «' + categoryData.label + '»:';
+
+            // 4. Генерируем карточки тарифов для выбранной категории (3 основных + аккордеон доп.)
+            renderServiceCards(categoryData);
+
+            // 5. Раскрываем ШАГ 3 (Услуги и Чекаут)
+            document.getElementById('services-step').classList.remove('hidden');
+
+            // Автоматически выбираем первую услугу в категории
+            selectServiceItem(categoryData.items[0]);
+          }
+
+          // ВОЗВРАТ К СЕТКЕ КАТЕГОРИЙ (Клик по "Сменить категорию")
+          function reopenCategories() {
+            // Скрываем свернутую плашку
+            document.getElementById('category-collapsed-bar').classList.add('hidden');
+
+            // Скрываем услуги до выбора новой категории
+            document.getElementById('services-step').classList.add('hidden');
+
+            // Разворачиваем сетку категорий обратно
+            document.getElementById('categories-step').classList.remove('hidden');
+          }
+
+          function toggleMoreServices() {
+            const container = document.getElementById('more-services-container');
+            const text = document.getElementById('more-btn-text');
+            const isHidden = container.classList.contains('hidden');
+            if (isHidden) {
+              container.classList.remove('hidden');
+              text.textContent = '▴ Скрыть дополнительные тарифы';
+            } else {
+              container.classList.add('hidden');
+              const count = (servicesCatalog[currentCategory] && servicesCatalog[currentCategory].extraItems) ? servicesCatalog[currentCategory].extraItems.length : 2;
+              text.textContent = `▾ Показать ещё ${count} тарифа этой категории`;
+            }
+          }
+
+          function renderServiceCards(categoryData) {
+            const items = categoryData.items || [];
+            const extraItems = categoryData.extraItems || [];
+            
+            // 1. Основные 3 карточки (Goldilocks)
+            const container = document.getElementById('services-cards-container');
+            container.innerHTML = items.map(item => `
+              <div 
+                id="service-card-${item.id}" 
+                onclick="selectServiceItemById(${item.id})" 
+                class="p-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl cursor-pointer transition flex flex-col justify-between space-y-1.5"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="font-bold text-xs text-slate-800">${item.title}</div>
+                  <span id="service-badge-${item.id}" class="hidden text-[9px] font-black uppercase px-1.5 py-0.5 bg-slate-900 text-white rounded">Выбран</span>
+                </div>
+                <div class="text-[11px] text-slate-500 leading-snug">${item.desc}</div>
+                <div class="flex justify-between items-baseline pt-1 border-t border-slate-100">
+                  <span class="font-black text-slate-900 text-xs font-mono">${item.rate.toFixed(2)} ₽ <span class="text-[9px] font-normal text-slate-400">/ шт</span></span>
+                  <span class="text-[10px] text-slate-400 font-medium">Мин: ${item.min} шт</span>
+                </div>
+              </div>
+            `).join('');
+
+            // 2. Дополнительные тарифы (Скрыты по умолчанию в аккордеон со скроллом)
+            const moreWrapper = document.getElementById('more-services-wrapper');
+            const moreContainer = document.getElementById('more-services-container');
+            const moreText = document.getElementById('more-btn-text');
+
+            if (extraItems.length > 0) {
+              moreWrapper.classList.remove('hidden');
+              moreContainer.classList.add('hidden'); // всегда свернут изначально
+              moreText.textContent = `▾ Показать ещё ${extraItems.length} тарифа этой категории`;
+              
+              moreContainer.innerHTML = extraItems.map(item => `
+                <div 
+                  id="service-card-${item.id}" 
+                  onclick="selectServiceItemById(${item.id})" 
+                  class="p-2 bg-white border border-slate-200 hover:border-slate-300 rounded-lg cursor-pointer transition flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-2">
+                    <span id="service-badge-${item.id}" class="hidden text-[8px] font-black uppercase px-1 py-0.5 bg-slate-900 text-white rounded">Выбран</span>
+                    <span class="font-bold text-xs text-slate-800">${item.title}</span>
+                    <span class="text-[10px] text-slate-400 hidden sm:inline">(${item.desc})</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-black text-slate-900 text-xs font-mono">${item.rate.toFixed(2)} ₽/шт</span>
+                    <span class="text-[9px] text-slate-400">мин: ${item.min}</span>
+                  </div>
+                </div>
+              `).join('');
+            } else {
+              moreWrapper.classList.add('hidden');
+            }
+          }
+
+          function selectServiceItemById(id) {
+            if (!currentCategory) return;
+            const cat = servicesCatalog[currentCategory];
+            let item = cat.items.find(i => i.id === id);
+            if (!item && cat.extraItems) {
+              item = cat.extraItems.find(i => i.id === id);
+            }
+            if (item) selectServiceItem(item);
+          }
+
+          function selectServiceItem(item) {
+            currentServiceId = item.id;
+            currentRate = item.rate;
+            selectedServiceTitle = item.title;
+
+            // Подсвечиваем активную карточку тарифа (среди основных и дополнительных)
+            if (currentCategory) {
+              const allItems = [...(servicesCatalog[currentCategory].items || []), ...(servicesCatalog[currentCategory].extraItems || [])];
+              allItems.forEach(i => {
+                const card = document.getElementById('service-card-' + i.id);
+                const badge = document.getElementById('service-badge-' + i.id);
+                if (card && badge) {
+                  const isExtra = (servicesCatalog[currentCategory].extraItems || []).some(ex => ex.id === i.id);
+                  if (i.id === item.id) {
+                    if (isExtra) {
+                      card.className = 'p-2 bg-slate-100 border-2 border-slate-900 rounded-lg cursor-pointer shadow-xs flex items-center justify-between transition';
+                    } else {
+                      card.className = 'p-3 bg-white border-2 border-slate-900 rounded-xl cursor-pointer shadow-xs flex flex-col justify-between space-y-1.5 transition';
+                    }
+                    badge.classList.remove('hidden');
+                  } else {
+                    if (isExtra) {
+                      card.className = 'p-2 bg-white border border-slate-200 hover:border-slate-300 rounded-lg cursor-pointer transition flex items-center justify-between';
+                    } else {
+                      card.className = 'p-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl cursor-pointer transition flex flex-col justify-between space-y-1.5';
+                    }
+                    badge.classList.add('hidden');
+                  }
+                }
+              });
+            }
+
+            updateTotal();
+          }
+
+          function changeQty(delta) {
+            currentQty = Math.max(100, currentQty + delta);
+            document.getElementById('qty-display').textContent = currentQty.toLocaleString('ru-RU') + ' шт';
+            updateTotal();
+          }
+
+          function updateTotal() {
+            const sum = (currentQty * currentRate).toFixed(2);
+            document.getElementById('total-price-display').textContent = sum + ' ₽';
+          }
+
+          // Сброс всего визарда к исходному компактному состоянию (только строка ввода)
+          function resetExpressOrder() {
+            document.getElementById('smart-link-input').value = '';
+            document.getElementById('detected-badge').classList.add('hidden');
+            document.getElementById('reset-flow-btn').classList.add('hidden');
+            document.getElementById('categories-step').classList.add('hidden');
+            document.getElementById('category-collapsed-bar').classList.add('hidden');
+            document.getElementById('services-step').classList.add('hidden');
+            document.getElementById('quick-presets').classList.remove('hidden');
+            currentCategory = null;
+          }
+
+          function simulateOrderSuccess() {
+            const sum = (currentQty * currentRate).toFixed(2);
+            alert('✓ Заказ оформлен!\n\nУслуга: ' + selectedServiceTitle + '\nОбъем: ' + currentQty.toLocaleString('ru-RU') + ' шт\nСписано с баланса: ' + sum + ' ₽\n\nСтатус заказа переведен в «В работе».');
+          }
+        </script>
+
+        <!-- ============================================================= -->
+        <!-- ROW 3: ЖИВОЙ ЦЕНТР УПРАВЛЕНИЯ (60% МОНИТОРИНГ / 40% RE-ORDER)   -->
+        <!-- ============================================================= -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- Левая колонка (7 из 12): Активные заказы с живыми полосами прогресса -->
+          <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-dashed border-slate-200">
+              <div>
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Мониторинг активных задач</h3>
+                <span class="text-[11px] text-slate-400">Живой прогресс начисления по шлюзам Vexboost</span>
+              </div>
+              <a href="#" class="text-xs font-bold text-slate-900 hover:underline">
+                Все заказы (142) →
+              </a>
+            </div>
+
+            <!-- Список активных заказов -->
+            <div class="space-y-2.5">
+              
+              <!-- Задача 1: Telegram Подписчики RU -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs text-slate-900">#9021</span>
+                    <span class="font-semibold text-xs text-slate-800">Telegram: Подписчики RU (Гарантия 30д)</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white">
+                    В работе (64%)
+                  </span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="space-y-1">
+                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-slate-900 h-2 rounded-full" style="width: 64%"></div>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>Начислено: 640 / 1 000 шт</span>
+                    <span>Ссылка: t.me/fintech_daily</span>
+                    <span>Сумма: 180.00 ₽</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Задача 2: Smart Drip кампания (День 3 из 7) -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs text-slate-900">#9019</span>
+                    <span class="font-semibold text-xs text-slate-800">Smart Drip: Автопросмотры постов (7 дней)</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800">
+                    День 3 из 7 (42%)
+                  </span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="space-y-1">
+                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-slate-700 h-2 rounded-full" style="width: 42%"></div>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>Выполнено: 2 100 / 5 000 шт</span>
+                    <span>След. запуск: через 1ч 20м</span>
+                    <span>Сумма: 450.00 ₽</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Задача 3: ВКонтакте Просмотры -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs text-slate-900">#9018</span>
+                    <span class="font-semibold text-xs text-slate-800">VK: Просмотры записей на стене</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white">
+                    В работе (85%)
+                  </span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="space-y-1">
+                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-slate-900 h-2 rounded-full" style="width: 85%"></div>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>Начислено: 4 250 / 5 000 шт</span>
+                    <span>vk.com/wall-1928_44</span>
+                    <span>Сумма: 250.00 ₽</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Правая колонка (5 из 12): 1-Click Fast Re-Order (Быстрый повтор в 1 клик) -->
+          <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+            <div class="pb-2 border-b border-dashed border-slate-200">
+              <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Быстрый перезапуск (1 клик)</h3>
+              <span class="text-[11px] text-slate-400">Повторить ваши частые заказы с баланса</span>
+            </div>
+
+            <div class="space-y-2.5">
+              
+              <!-- Карточка повтора 1 -->
+              <div class="p-3 border border-slate-200 hover:border-slate-300 rounded-xl bg-slate-50/60 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="font-bold text-xs text-slate-900 truncate">Telegram: Подписчики RU</div>
+                  <div class="text-[10px] text-slate-500 font-mono truncate">1 000 шт • t.me/fintech_daily</div>
+                  <div class="text-[11px] font-black text-slate-900 font-mono mt-0.5">180.00 ₽</div>
+                </div>
+                <button class="h-8 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition shrink-0">
+                  Повторить
+                </button>
+              </div>
+
+              <!-- Карточка повтора 2 -->
+              <div class="p-3 border border-slate-200 hover:border-slate-300 rounded-xl bg-slate-50/60 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="font-bold text-xs text-slate-900 truncate">VK: Просмотры постов</div>
+                  <div class="text-[10px] text-slate-500 font-mono truncate">5 000 шт • vk.com/wall-1928_44</div>
+                  <div class="text-[11px] font-black text-slate-900 font-mono mt-0.5">250.00 ₽</div>
+                </div>
+                <button class="h-8 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition shrink-0">
+                  Повторить
+                </button>
+              </div>
+
+              <!-- Кнопка перехода в визард для нового заказа -->
+              <div class="pt-2">
+                <button class="w-full py-2.5 border-2 border-dashed border-slate-300 hover:border-slate-400 bg-white text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                  <span>+</span>
+                  <span>Собрать новый заказ в визарде</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+</body>
+</html>

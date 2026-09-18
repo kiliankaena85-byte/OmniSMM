@@ -125,6 +125,12 @@ const SKILL_RULES: SkillRuleDef[] = [
     keywords: ['stitch', 'google stitch', 'дизайн-код', 'генерация ui', 'zero-slop', 'клише', 'дизайн-днк', 'макет']
   },
   {
+    name: 'wireframe-nanobanana-stitch',
+    title: 'Generative UI: Wireframe -> Nano Banana -> Google Stitch Pipeline',
+    domain: 'frontend_ui',
+    keywords: ['wireframe', 'вайрфрейм', 'nanobanana', 'nano banana', 'stitch', 'скетч', 'макет', 'low-fi', 'high-fi', 'дизайн-пайплайн', 'прототип интерфейса']
+  },
+  {
     name: 'yandex-gravity-ui-steward',
     title: 'Дизайн-система Yandex Gravity UI & Enterprise Tables',
     domain: 'frontend_ui',
@@ -147,6 +153,12 @@ const SKILL_RULES: SkillRuleDef[] = [
     title: 'Mobile-First Responsive Engineering (Смартфон -> Десктоп)',
     domain: 'frontend_ui',
     keywords: ['телефон', 'смартфон', 'mobile first', 'мобильн', 'адаптив', 'десктоп', 'safe area', 'dvh', 'thumb zone', 'тач', '44px', 'зум', 'авто-зум', 'safari', 'touch']
+  },
+  {
+    name: 'foolproof-minimalist-ux',
+    title: 'Foolproof Minimalist UX & Auto-Folding Viewport Density',
+    domain: 'frontend_ui',
+    keywords: ['минимализм', 'экономия места', 'дураков', 'foolproof', 'прогрессивное схлопывание', 'auto-folding', 'сворачивание', 'компактный ui', 'понятный интерфейс', 'прогрессивное раскрытие']
   }
 ];
 
