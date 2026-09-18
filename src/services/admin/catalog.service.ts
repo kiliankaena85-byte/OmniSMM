@@ -1725,7 +1725,7 @@ class AdminCatalogService {
         })();
 
         const resolvedCategoryName = categoryNameMap.get(resolvedCategoryId) || fallbackCategoryRecord?.network?.name || '';
-        const resolvedNetworkName = categoryNetworkMap.get(resolvedCategoryId)?.name || effectiveServiceNetwork?.name || fallbackCategoryRecord?.network?.name || shadowExt.platform || '';
+        const resolvedNetworkName = categoryNetworkMap.get(resolvedCategoryId)?.name || (effectiveServiceNetwork as { name?: string } | null)?.name || fallbackCategoryRecord?.network?.name || shadowExt.platform || '';
         const serviceCanonicalType = inferCanonicalActivityType(shadowExt.normalizedCategory, shadowExt.cleanName || shadowExt.name || '', shadowExt.targetType);
         
         let effectiveTargetType = shadowExt.targetType;

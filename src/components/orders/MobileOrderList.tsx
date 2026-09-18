@@ -97,62 +97,6 @@ export function MobileOrderList({ orders, user, viewMode = 'table' }: MobileOrde
   };
 
   return (
-<<<<<<< HEAD
-    <>
-      {/* Mobile cards list (plain render — 15 items/page, no virtualization needed) */}
-      <div className="space-y-3">
-        {orders.map((order) => (
-          <div 
-            key={order.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => handleOrderClick(order)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOrderClick(order); } }}
-            className={`bg-card border border-border border-l-4 ${STATUS_ACCENT_BORDER[order.status] || 'border-l-muted-foreground/30'} rounded-2xl p-4 shadow-xs active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
-            style={{ minHeight: '120px' }} // Ensures large enough touch target
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-mono text-muted-foreground">#{order.numericId}</div>
-                
-                <div className="text-[10px] uppercase font-bold text-muted-foreground mt-1.5 flex items-center gap-1.5 min-w-0">
-                  {order.service?.category?.network?.slug && (
-                    <SocialIcon slug={order.service?.category.network.slug} size={10} className="inline-block shrink-0" />
-                  )}
-                  {order.service?.category?.network?.name && (
-                    <span className="text-primary truncate">{order.service?.category.network.name}</span>
-                  )}
-                  {order.service?.category?.name && (
-                    <>
-                      <span className="text-muted-foreground/50 shrink-0">•</span>
-                      <span className="truncate">{order.service?.category.name}</span>
-                    </>
-                  )}
-                </div>
-                
-                <div className="text-sm font-medium text-foreground line-clamp-2 mt-1 leading-snug break-words flex items-center gap-1.5 flex-wrap">
-                  {order.service?.numericId && <ServiceIdBadge numericId={order.service.numericId} />}
-                  <span>{order.service?.name}</span>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                  <div className="text-sm font-bold text-foreground tabular-nums">
-                    {formatRubles(Number(order.charge) / 100)}
-                  </div>
-                  <ChargeBreakdownModal
-                    numericId={order.numericId ?? 0}
-                    chargeCents={order.charge}
-                    discountCents={order.discountCents ?? undefined}
-                    usdToRubRate={order.usdToRubRate}
-                  />
-                </div>
-                <div className="mt-1.5 flex justify-end">
-                  <OrderStatusBadge status={order.status} size="sm" />
-                </div>
-              </div>
-            </div>
-=======
     <div className="space-y-3">
       {/* ── MODE 1: COMPACT LIST-ROWS (DEFAULT / 'table') ── */}
       {viewMode === 'table' ? (
@@ -161,7 +105,6 @@ export function MobileOrderList({ orders, user, viewMode = 'table' }: MobileOrde
             const createdAtDate =
               typeof order.createdAt === 'string' ? new Date(order.createdAt) : order.createdAt;
             const customerError = getCustomerFacingOrderError(order.status, order.error);
->>>>>>> 3f04ac0a (feat(orders): add compact table vs cards view switcher with localStorage and cross-tab sync)
 
             return (
               <div
