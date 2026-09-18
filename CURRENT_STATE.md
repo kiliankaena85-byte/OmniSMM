@@ -1,3 +1,17 @@
+- [x] ⚡ [PRODUCTION-ROLLOUT-LATEST-VERSION-2026] Успешная выкатка последней версии платформы OmniSMM 1.0 в Production (100% COMPLETE & VERIFIED):
+  * 📦 **Сборка и компиляция Standalone:**
+    - Next.js 16 Webpack standalone build скомпилирован успешно (`npm run build`).
+    - Собраны бандлы фоновых служб `dist/worker.js` (6.5 MB) и `dist/bot.js` (5.6 MB).
+    - База данных `smmplan_lite` синхронизирована с актуальной Prisma-схемой (`prisma db push`).
+    - CI-гейты пройдены: 0 утечек секретов (`check-bundle-secrets.mjs`), 0 неавторизованных доменов (`check-api-docs-domains.ts`).
+  * 🐳 **Развертывание контейнеров Docker:**
+    - Контейнеры `smmplan_web`, `smmplan_lite_worker` и `smmplan_bot` пересобраны и перезапущены на последних образах.
+    - Статус всех сервисов: `Up (healthy)`.
+  * 🌐 **Live-верификация в боевом контуре:**
+    - Эндпоинт здоровья `http://127.0.0.1:3000/api/health` — `HTTP 200 OK` (`{"status":"healthy"}`).
+    - Внешний туннель Tailscale `https://smmplan.tailbb9d28.ts.net/api/health` — `HTTP 200 OK`.
+    - Главная витрина `https://smmplan.tailbb9d28.ts.net/` — `HTTP 200 OK`.
+    - Административные маршруты `/admin/finance/balance-requests` — `HTTP 307` (корректная авторизационная защита).
 - [x] ⚡ [API-CONTRACT-HARDENING-2026] Комплексный аудит и усиление API-эндпоинтов платформы OmniSMM 1.0 (100% COMPLETE & VERIFIED):
   * 🛡️ **Криптографическая защита ревалидации кэша (`/api/internal/revalidate`):**
     - Заменено строковое сравнение Bearer-токена на `crypto.timingSafeEqual` с предварительной проверкой длины буферов (OWASP Top 10:2026 A02).
