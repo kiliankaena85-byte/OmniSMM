@@ -100,6 +100,21 @@ describe('Architectural Component Size & Code Hygiene Standards (Maker-Checker G
       filePath: path.join(rootDir, 'src/components/landing/order-engine/wizard-steps/MobileCheckoutOrderSummary.tsx'),
       maxLines: 200,
       name: 'MobileCheckoutOrderSummary.tsx'
+    },
+    {
+      filePath: path.join(rootDir, 'src/components/landing/order-engine/variants/PlanCheckoutPromo.tsx'),
+      maxLines: 200,
+      name: 'PlanCheckoutPromo.tsx'
+    },
+    {
+      filePath: path.join(rootDir, 'src/components/landing/order-engine/variants/PlanCheckoutLink.tsx'),
+      maxLines: 200,
+      name: 'PlanCheckoutLink.tsx'
+    },
+    {
+      filePath: path.join(rootDir, 'src/components/landing/order-engine/wizard-steps/MobileCheckoutPromo.tsx'),
+      maxLines: 200,
+      name: 'MobileCheckoutPromo.tsx'
     }
   ];
 

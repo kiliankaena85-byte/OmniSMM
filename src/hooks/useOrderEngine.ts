@@ -724,7 +724,7 @@ export function useOrderEngine(
     }, 150);
 
     return () => { stale = true; clearTimeout(handler); };
-  }, [selectedService, quantity, promoCode, dripFeedEnabled, runs]);
+  }, [selectedService, quantity, promoCode, dripFeedEnabled, runs, isSmartDrip]);
 
 
   // Form Validation

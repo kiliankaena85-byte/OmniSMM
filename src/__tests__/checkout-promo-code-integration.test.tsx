@@ -507,5 +507,60 @@ describe('Order Form Promo Code Integration Tests (Desktop & Mobile)', () => {
       expect(setLocalError).toHaveBeenCalledWith('Указан недействительный промокод. Очистите поле или укажите верный промокод');
       expect(handleCheckout).not.toHaveBeenCalled();
     });
+
+    it('blocks checkout when promo code is short (< 3 chars, e.g. "AB") and gives zero discount', () => {
+      const setLocalError = vi.fn();
+      const setShakeKey = vi.fn();
+      const handleCheckout = vi.fn();
+
+      const result = validateAndSubmitPlanCheckout({
+        url: 'https://t.me/channel',
+        selectedService: mockService,
+        isWarningConfirmed: true,
+        customData: '',
+        quantity: 500,
+        minQty: 100,
+        maxQty: 50000,
+        effectiveMinQty: 100,
+        dripFeedEnabled: false,
+        runs: 1,
+        email: 'user@example.com',
+        agreedToTerms: true,
+        selectedGateway: 'yookassa',
+        linkInputRef: { current: null },
+        emailInputRef: { current: null },
+        quantityInputRef: { current: null },
+        setLocalError,
+        setShakeKey,
+        handleCheckout,
+        promoCode: 'AB',
+        isCalculating: false,
+        pricing: {
+          totalCents: 7500,
+          originalTotalCents: 7500,
+          discountCents: 0,
+          discountPercent: 0,
+          providerCostCents: 5000,
+          safetyFloorCents: 5500,
+          tier: 'REGULAR'
+        }
+      });
+
+      expect(result).toBe(false);
+      expect(setLocalError).toHaveBeenCalledWith('Указан недействительный промокод. Очистите поле или укажите верный промокод');
+      expect(handleCheckout).not.toHaveBeenCalled();
+    });
+
+    it('displays min length hint when promo code is 1-2 characters in PlanCheckoutPromo', () => {
+      render(
+        <PlanCheckoutPromo
+          promoCode="A"
+          setPromoCode={vi.fn()}
+          isCalculating={false}
+        />
+      );
+
+      expect(screen.getByText(/Минимальная длина промокода — 3 символа/i)).toBeDefined();
+    });
   });
 });

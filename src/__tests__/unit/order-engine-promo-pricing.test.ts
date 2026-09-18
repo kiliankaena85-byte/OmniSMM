@@ -112,4 +112,23 @@ describe('Order Engine Promo Code Pricing Invariants', () => {
     expect(pricing!.totalCents).toBe(15000);
     expect(pricing!.discountCents).toBe(0);
   });
+
+  it('applies smartDrip markup when isSmartDrip is enabled', () => {
+    const smartService = {
+      pricePerUnitRub: 0.15,
+      smartConfig: { isEnabled: true, markup: 0.2 } // +20%
+    };
+
+    const pricing = calculateTestPricing({
+      selectedService: smartService,
+      quantity: 500,
+      promoCode: '',
+      promoPricing: null,
+      isSmartDrip: true
+    });
+
+    expect(pricing).not.toBeNull();
+    expect(pricing!.totalCents).toBe(9000); // 7500 * 1.2 = 9000 kopecks (90.00 RUB)
+    expect(pricing!.originalTotalCents).toBe(7500);
+  });
 });

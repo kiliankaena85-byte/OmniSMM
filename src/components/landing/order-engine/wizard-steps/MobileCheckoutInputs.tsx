@@ -77,12 +77,12 @@ export function MobileCheckoutInputs({
           placeholder="you@example.com"
           className={`w-full h-11 px-4 rounded-2xl border bg-background text-base text-foreground outline-none transition-all ${
             emailHasError || (localError && (!email || !email.includes('@')))
-              ? 'border-danger focus:border-danger ring-2 ring-danger/30 animate-shake'
+              ? 'border-destructive focus:border-destructive ring-2 ring-destructive/30 animate-shake'
               : 'border-border focus:border-primary focus:ring-2 ring-primary/30'
           }`}
         />
         {(emailHasError || (localError && (!email || !email.includes('@')))) && (
-          <p className="text-[11px] font-bold text-danger pl-1 animate-in fade-in duration-200">
+          <p className="text-[11px] font-bold text-destructive pl-1 animate-in fade-in duration-200">
             Укажите email — на него придёт доступ к заказу
           </p>
         )}

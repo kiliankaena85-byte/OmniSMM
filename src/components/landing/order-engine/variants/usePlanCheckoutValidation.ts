@@ -70,7 +70,7 @@ export function validateAndSubmitPlanCheckout({
     return false;
   }
 
-  if (promoCode && promoCode.trim().length >= 3 && (!pricing || pricing.discountCents === 0)) {
+  if (promoCode && promoCode.trim().length > 0 && (!pricing || pricing.discountCents === 0)) {
     setLocalError('Указан недействительный промокод. Очистите поле или укажите верный промокод');
     setShakeKey(Date.now());
     const promoInput = document.getElementById('promo-input');

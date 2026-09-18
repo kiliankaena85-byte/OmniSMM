@@ -100,7 +100,7 @@ export function PlanCheckoutPromo({
             <button
               type="button"
               onClick={handleResetInput}
-              className="w-7 h-7 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground flex items-center justify-center transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground flex items-center justify-center transition-colors cursor-pointer relative after:absolute after:-inset-2"
               title="Очистить промокод"
             >
               <X className="w-3.5 h-3.5" />
@@ -115,7 +115,13 @@ export function PlanCheckoutPromo({
       </div>
 
       {/* Validation feedback */}
-      {isCalculating && cleanCode.length > 0 && (
+      {!isCalculating && cleanCode.length > 0 && cleanCode.length < 3 && (
+        <p className="text-[11px] text-muted-foreground font-medium pl-1 animate-in fade-in">
+          Минимальная длина промокода — 3 символа
+        </p>
+      )}
+
+      {isCalculating && cleanCode.length >= 3 && (
         <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 font-medium pl-1 animate-pulse">
           <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
           <span>Проверяем промокод...</span>

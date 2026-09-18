@@ -96,7 +96,7 @@ export function MobileStep4Checkout({
       setShakeKey(prev => prev + 1);
       return;
     }
-    if (engine.promoCode && engine.promoCode.trim().length >= 3 && (!engine.pricing || engine.pricing.discountCents === 0)) {
+    if (engine.promoCode && engine.promoCode.trim().length > 0 && (!engine.pricing || engine.pricing.discountCents === 0)) {
       setLocalError("Указан недействительный промокод. Очистите поле или укажите верный промокод");
       setShakeKey(prev => prev + 1);
       const promoEl = document.getElementById("mobile-promo-input");

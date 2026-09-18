@@ -120,6 +120,10 @@ export function useCheckoutOrchestrator({
       toast.error("Не удалось рассчитать стоимость заказа. Пожалуйста, проверьте количество или попробуйте позже.", { position: 'top-center' });
       return;
     }
+    if (promoCode && promoCode.trim().length > 0 && (!engine.pricing || engine.pricing.discountCents === 0)) {
+      toast.error("Указан недействительный промокод. Очистите поле или укажите верный промокод.", { position: 'top-center' });
+      return;
+    }
 
 
     // --- WAVE 4.2 CROSS-PLATFORM MISMATCH PROTECTION ---
