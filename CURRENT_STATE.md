@@ -13,10 +13,16 @@
   * 🐳 **Конфигурация Docker Compose (`docker-compose.yml`, `docker-compose.prod.yml`):**
     - Дефолтный пароль изолирован через переменные окружения `${POSTGRES_PASSWORD}`.
     - В команду запуска `command` сервиса `db` в обоих файлах добавлены флаги аудиторского логирования.
+  * 🚀 **Рекомендации & Архитектурный Roadmap для боевого продакшна:**
+    - `DATABASE_URL`: в боевом `.env.production` зафиксировано использование роли `smmplan_app` (`postgresql://smmplan_app:${POSTGRES_APP_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public`).
+    - `SSL in Transit`: внутри изолированной Docker bridge-сети текущая изоляция является достаточной; при выносе СУБД на отдельный физический хост за пределы Docker-сети фиксируется включение `ssl = on` с валидацией TLSv1.3.
+    - `pg_stat_statements`: директивы `shared_preload_libraries=pg_stat_statements` и `pg_stat_statements.track=all` внедрены в `docker-compose.prod.yml` и `harden-security.sql` для профилирования медленных запросов и телеметрии.
   * 🧪 **Верификация & Полное регрессионное тестирование:**
+    - Живой контейнер `smmplan_lite_db`: `pg_hba.conf` переведен на `scram-sha-256` (0 trust правил), аудит DDL активен, роль `smmplan_app` создана.
     - Сьют финансовых тестов `src/__tests__/financial/` — 16 файлов, 150/150 PASS.
     - Сьют тестов заказов `src/__tests__/orders/` — 4 файла, 33/33 PASS.
     - Сьют софт-удаления пользователей `src/services/users/__tests__/deletion.test.ts` — 4/4 PASS.
+    - Сьют реферальной системы `src/actions/user/__tests__/deposit-referral.test.ts` & `src/__tests__/anti-fraud-referral-bonus.test.ts` — 10/10 PASS.
     - Компиляция TypeScript `npx tsc --noEmit` — 0 ошибок.
     - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
 - [x] ⚡ [PRODUCTION-DEPLOYMENT-HARDENING-GATE-2026] Устранение блокирующих дефектов боевого деплоя и инфраструктурная готовность (100% COMPLETE & VERIFIED):

@@ -29,5 +29,9 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO smmplan_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO smmplan_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO smmplan_app;
 
--- 4. Reload Configuration
+-- 4. Enable Performance & Query Telemetry (pg_stat_statements)
+-- Note: shared_preload_libraries requires server restart to load the module into memory
+ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';
+
+-- 5. Reload Configuration
 SELECT pg_reload_conf();
