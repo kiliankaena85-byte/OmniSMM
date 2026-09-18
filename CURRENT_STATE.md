@@ -35,7 +35,6 @@
     - Зафиксирован 2PC Escrow протокол: разделение отмен до отправки (`externalId == null`, мгновенный возврат) и после отправки (`externalId !== null`, переход в `CANCELING`, вызов API `action: cancel`, эскроу-холд без преждевременного возврата).
     - Установлена статусная машина: `CANCELING` -> поллинг подтверждения провайдера (`Canceled` -> 100% возврат; `Partial` -> частичный возврат; `Completed` -> 0 возврата, услуга оказана).
     - Введены ролевые барьеры: запрет саппорту отменять неотменяемые услуги (`isCancelEnabled: false`) и выделение принудительного списания в убыток (`ADMIN_WRITE_OFF`) только для `OWNER`/`ADMIN`.
->>>>>>> 8f30663a (fix(catalog): add semantic category guard, eliminate import wizard bulk traps, and prioritize subscriber keywords)
 - [x] ⚡ [ORDER-WIZARD-DECOMPOSITION-AND-PRICE-DRIFT-TESTS-100-PASS-2026] Декомпозиция визарда заказов (Clean Architecture <= 200 строк), синхронизация моков защиты от дрифта цен и 100% PASS тестов заказов (100% COMPLETE & VERIFIED):
   * 🧩 **Декомпозиция хука и компонентов визарда заказов (`useWizardPricing.ts`, `useWizardLinkAnalyzer.ts`, `CheckoutPromoCode.tsx`):**
     - Создан хук `useWizardPricing.ts` (123 строки <= 200), инкапсулирующий расчет стоимости заказа `calculatePriceAction` и управление промокодами.
