@@ -106,6 +106,7 @@ export function TenantSwitcher({
       params.delete('page');
 
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      router.refresh(); // Force Server Components re-render with new tenant cookie
     });
   };
 
