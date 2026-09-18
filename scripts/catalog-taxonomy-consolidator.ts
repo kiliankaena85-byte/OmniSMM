@@ -124,6 +124,12 @@ function resolveCanonicalActivity(categoryName: string, networkKey: string): Can
     if (storiesDef) return storiesDef;
   }
 
+  // 4.5 Подписчики (участники, фолловеры)
+  if (n.includes('подписч') || n.includes('участник') || n.includes('фолловер') || n.includes('member') || n.includes('sub') || n.includes('follow') || n.includes('друг')) {
+    const subDef = defs.find(d => d.activityType === 'SUBSCRIBERS');
+    if (subDef) return subDef;
+  }
+
   // 5. Репосты / поделиться (проверяем ДО авто, чтобы "авто-репосты" шли в Репосты)
   if (n.includes('репост') || n.includes('поделит') || n.includes('share') || n.includes('repost')) {
     const repostDef = defs.find(d => d.activityType === 'REPOSTS');
@@ -187,16 +193,10 @@ function resolveCanonicalActivity(categoryName: string, networkKey: string): Can
     if (likeDef) return likeDef;
   }
 
-  // 13. Просмотры
+  // 14. Просмотры
   if (n.includes('просмотр') || n.includes('view') || n.includes('прослуш') || n.includes('play') || n.includes('охват')) {
     const viewDef = defs.find(d => d.activityType === 'VIEWS');
     if (viewDef) return viewDef;
-  }
-
-  // 14. Подписчики (default for channels, accounts, groups)
-  if (n.includes('подписч') || n.includes('участник') || n.includes('фолловер') || n.includes('member') || n.includes('sub') || n.includes('follow') || n.includes('друг')) {
-    const subDef = defs.find(d => d.activityType === 'SUBSCRIBERS');
-    if (subDef) return subDef;
   }
 
   // 15. Прочие ключевые слова

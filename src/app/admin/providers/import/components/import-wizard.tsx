@@ -509,9 +509,11 @@ export function ImportWizard({ categories: initialCategories, providers }: { cat
   // AUD-15 (2.5): bulk-assign covers ALL selected services across pages
   const handleApplyBulkCategory = () => {
     if (!bulkCategory) return;
-    const targets = selectedIds.size > 0
-      ? Array.from(selectedIds)
-      : services.map((s) => String(s.service));
+    if (selectedIds.size === 0) {
+      setErrorWithTimer("Выберите хотя бы одну услугу для массового назначения категории.");
+      return;
+    }
+    const targets = Array.from(selectedIds);
 
     setSelectedCategories((prev) => {
       const next = { ...prev };
@@ -626,7 +628,7 @@ export function ImportWizard({ categories: initialCategories, providers }: { cat
     const firstCatId = selectedCategories[externalIds[0]] || autoMappedCategories[externalIds[0]] || "";
     const categoryIdMap: Record<string, string> = {};
     externalIds.forEach(id => {
-      categoryIdMap[id] = selectedCategories[id] || autoMappedCategories[id] || firstCatId;
+      categoryIdMap[id] = selectedCategories[id] || autoMappedCategories[id];
     });
 
     try {

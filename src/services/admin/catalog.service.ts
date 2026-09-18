@@ -1279,9 +1279,10 @@ class AdminCatalogService {
         id: { in: Array.from(uniqueCategoryIds) },
         ...(targetTenantId === 'both' ? { tenantId: { in: ['smmplan', 'flux', 'all'] } } : { tenantId: { in: [targetTenantId, 'all'] } })
       },
-      select: { id: true, name: true }
+      select: { id: true, name: true, activityType: true }
     });
     const categoryNameMap = new Map(categoriesDb.map(c => [c.id, c.name]));
+    const categoryActivityTypeMap = new Map(categoriesDb.map(c => [c.id, c.activityType]));
 
     for (const catId of Array.from(uniqueCategoryIds)) {
       // AUD-05 (3.1): taxonomy sharing is reported, not silent
@@ -1419,11 +1420,34 @@ class AdminCatalogService {
         // CATEGORY-FIX (Level 3): resolve the most specific category for this service.
         // Priority: operator's explicit per-service mapping > auto-created by normalizedCategory > fallback categoryId
         const resolvedCategoryId = await (async () => {
+          const normCat = shadowExt.normalizedCategory;
+          const isServiceSubscribers = normCat === 'SUBSCRIBERS' || shadowExt.targetType === 'CHANNEL' || /подписч|member/i.test(shadowExt.cleanName || shadowExt.name || '');
+
           // If operator explicitly mapped this service to a category, use it
-          if (categoryIdMap?.[extId]) return categoryIdMap[extId];
+          if (categoryIdMap?.[extId]) {
+            const explicitId = categoryIdMap[extId];
+            const explicitName = categoryNameMap.get(explicitId) || '';
+            const explicitActivityType = categoryActivityTypeMap.get(explicitId) || '';
+            const isTargetViews = explicitActivityType === 'VIEWS' || explicitName.toLowerCase().includes('просмотр');
+
+            if (isServiceSubscribers && isTargetViews && fallbackCategoryRecord?.network?.id && fallbackCategoryRecord.networkId) {
+              const cacheKey = 'SUBSCRIBERS';
+              if (!autoCreatedCategoryCache.has(cacheKey)) {
+                const autoId = await ensureCategoryForActivityType(
+                  fallbackCategoryRecord.networkId,
+                  fallbackCategoryRecord.network.name,
+                  fallbackCategoryRecord.network.slug,
+                  'SUBSCRIBERS',
+                  fallbackCategoryRecord.tenantId || tId
+                );
+                autoCreatedCategoryCache.set(cacheKey, autoId);
+              }
+              return autoCreatedCategoryCache.get(cacheKey)!;
+            }
+            return explicitId;
+          }
 
           // If a network is known and service has a normalizedCategory, auto-create/reuse the right category
-          const normCat = shadowExt.normalizedCategory;
           if (
             normCat &&
             normCat !== 'OTHER' &&

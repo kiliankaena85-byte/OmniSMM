@@ -15484,7 +15484,7 @@ var init_exact_math = __esm({
 });
 
 // src/services/financial/wallet-ops.ts
-var WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError, MAX_ADJUSTMENT_CAP_KOPECKS, WalletOps;
+var WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError, MAX_ADJUSTMENT_CAP_KOPECKS, ELEVATED_ADJUSTMENT_CAP_KOPECKS, WalletOps;
 var init_wallet_ops = __esm({
   "src/services/financial/wallet-ops.ts"() {
     "use strict";
@@ -15513,6 +15513,7 @@ var init_wallet_ops = __esm({
       }
     };
     MAX_ADJUSTMENT_CAP_KOPECKS = BigInt(1e7);
+    ELEVATED_ADJUSTMENT_CAP_KOPECKS = BigInt(1e9);
     WalletOps = {
       /**
        * Safe charge mechanism without creating a new transaction.
@@ -15669,13 +15670,14 @@ var init_wallet_ops = __esm({
         if (rawCents === BigInt(0)) {
           throw new WalletInvalidAmountError("Adjustment");
         }
-        if (rawCents < -MAX_ADJUSTMENT_CAP_KOPECKS) {
-          throw new Error(`\u{1F6A8} [WALLET-OPS] Negative adjustment exceeds safety cap limit (-${MAX_ADJUSTMENT_CAP_KOPECKS / BigInt(100)} \u20BD)!`);
+        const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride, allowElevatedCap } = opts || {};
+        const effectiveCap = allowElevatedCap ? ELEVATED_ADJUSTMENT_CAP_KOPECKS : MAX_ADJUSTMENT_CAP_KOPECKS;
+        if (rawCents < -effectiveCap) {
+          throw new Error(`\u{1F6A8} [WALLET-OPS] Negative adjustment exceeds safety cap limit (-${effectiveCap / BigInt(100)} \u20BD)!`);
         }
-        if (rawCents > MAX_ADJUSTMENT_CAP_KOPECKS) {
-          throw new Error(`\u{1F6A8} [WALLET-OPS] Positive adjustment exceeds safety cap limit (+${MAX_ADJUSTMENT_CAP_KOPECKS / BigInt(100)} \u20BD)!`);
+        if (rawCents > effectiveCap) {
+          throw new Error(`\u{1F6A8} [WALLET-OPS] Positive adjustment exceeds safety cap limit (+${effectiveCap / BigInt(100)} \u20BD)!`);
         }
-        const { idempotencyKey, adminId, tenantId, transactionType: txTypeOverride } = opts || {};
         const userRecord = await tx.user.findUnique({
           where: { id: userId },
           select: { tenantId: true }
@@ -34327,16 +34329,19 @@ var init_settings = __esm({
 
 // src/utils/refund.ts
 function calculatePartialRefund(order) {
-  const charge = Number(order.charge);
-  if (order.quantity <= 0 || order.remains <= 0 || charge <= 0) {
+  const chargeBig = typeof order.charge === "bigint" ? order.charge : BigInt(Math.max(0, Math.floor(Number(order.charge) || 0)));
+  const quantityBig = typeof order.quantity === "bigint" ? order.quantity : BigInt(Math.max(0, Math.floor(Number(order.quantity) || 0)));
+  const remainsBig = typeof order.remains === "bigint" ? order.remains : BigInt(Math.max(0, Math.floor(Number(order.remains) || 0)));
+  if (quantityBig <= BigInt(0) || remainsBig <= BigInt(0) || chargeBig <= BigInt(0)) {
     return 0;
   }
-  const calculated = Math.floor(order.remains / order.quantity * charge);
-  return Math.min(calculated, charge);
+  const refundBigInt = ExactMath.calculatePartialRefund(chargeBig, quantityBig, remainsBig);
+  return Number(refundBigInt);
 }
 var init_refund = __esm({
   "src/utils/refund.ts"() {
     "use strict";
+    init_exact_math();
   }
 });
 
@@ -130128,6 +130133,7 @@ var init_marketing_service = __esm({
     init_currency_invariant();
     init_cbr_rate_service();
     init_anti_negative_margin();
+    init_exact_math();
     MarketingService = class {
       /**
        * Evaluates volume discount tier based on total spent.
@@ -130196,8 +130202,9 @@ var init_marketing_service = __esm({
         if (!Number.isFinite(costPer1kRub) || costPer1kRub <= 0) {
           costPer1kRub = 0.01;
         }
+        const safeQuantity = Math.round(quantity);
         const providerCostPer1000Cents = Math.round(costPer1kRub * 100);
-        const providerCostCents = quantity > 0 ? Math.max(1, Math.ceil(providerCostPer1000Cents / 1e3 * quantity)) : 0;
+        const providerCostCents = safeQuantity > 0 ? Number(ExactMath.calculateOrderCostKopecks(safeQuantity, BigInt(providerCostPer1000Cents), BigInt(0), BigInt(1))) : 0;
         let retailPer1000Cents;
         if (typeof service.pricePer1000Cents === "number" && service.pricePer1000Cents > 0) {
           retailPer1000Cents = service.pricePer1000Cents;
@@ -130207,7 +130214,7 @@ var init_marketing_service = __esm({
           const antiLoss = applyAntiNegativeMargin(costPer1kRub, rawRetailRub);
           retailPer1000Cents = antiLoss.finalRetailPer1kCents;
         }
-        const originalTotalCents = quantity > 0 ? Math.max(1, Math.ceil(retailPer1000Cents / 1e3 * quantity)) : 0;
+        const originalTotalCents = safeQuantity > 0 ? Number(ExactMath.calculateOrderCostKopecks(safeQuantity, BigInt(Math.round(retailPer1000Cents)), BigInt(0), BigInt(1))) : 0;
         const volumeTier = user ? this.getVolumeTier(Number(user.totalSpent)) : { name: "REGULAR", discountPercent: 0 };
         let promoDiscountPercent = 0;
         const promoFixedDiscountCents = 0;

@@ -1,3 +1,20 @@
+- [x] ⚡ [CATALOG-TAXONOMY-SEMANTIC-GUARD-AND-IMPORT-FIX-2026] Защита таксономии каталога от смешивания категорий (Подписчики vs Просмотры), Semantic Guard и устранение ловушек импорта (100% COMPLETE & VERIFIED):
+  * 🛡️ **Backend Semantic Guard (`src/services/admin/catalog.service.ts`):**
+    - Внедрена проверка семантической совместимости при импорте: если услуга является подписчиками (`normalizedCategory === 'SUBSCRIBERS'` или `targetType === 'CHANNEL'` или имя содержит `подписч`/`member`), а выбранная категория относится к `VIEWS` (`activityType === 'VIEWS'` или имя содержит `просмотр`), бэкенд блокирует ошибочную привязку и автоматически перенаправляет услугу в категорию `SUBSCRIBERS` для данной соцсети.
+  * 🪤 **Ликвидация UI-ловушек визарда импорта (`import-wizard.tsx`):**
+    - Устранено опасное поведение массового назначения (`handleApplyBulkCategory`): если ни одна услуга не выбрана (`selectedIds.size === 0`), категория больше не назначается автоматически на все 100% услуг (выводится понятное предупреждение).
+    - Удалён опасный fallback `firstCatId` при подтверждении импорта, который слепо присваивал категорию первой строки всем нераспределённым тарифам.
+  * 📊 **Приоритет ключевых слов в таксономии (`catalog-taxonomy-consolidator.ts`):**
+    - Ключевые слова `SUBSCRIBERS` подняты на приоритетную позицию (4.5), опережая `VIEWS` и `AUTO_VIEWS`, что исключает ошибочную классификацию смешанных названий как просмотров.
+  * 🗄️ **Скрипт ремедиации БД (`scripts/fix-subscriber-views-taxonomy.ts`):**
+    - Разработан и верифицирован скрипт автоматического аудита и переноса любых ошибочно привязанных тарифов подписчиков из категорий просмотров в категории подписчиков.
+  * 🧪 **Верификация & CI-гейты:**
+    - Сьют `src/__tests__/unit/category-semantic-guard.test.ts` — 3/3 PASS.
+    - Сьют `src/__tests__/unit/zero-vendor-leak.test.ts` — 4/4 PASS.
+    - Сьют `src/__tests__/maintenance-screens.test.ts` — 3/3 PASS.
+    - Проверка типов `npx tsc --noEmit` — 0 ошибок.
+    - Проверка секретов `node scripts/check-bundle-secrets.mjs` — 0 утечек.
+    - Бандлы `dist/bot.js` и `dist/worker.js` пересобраны и актуализированы.
 - [x] ⚡ [CATALOG-TARGET-MARKUP-BENCHMARK-AND-FAST-TESTS-2026] Установка целевой средней наценки 700% (x8) в каталоге и ускорение Fast Inner Loop тестов ценообразования (100% COMPLETE & VERIFIED):
   * 📊 **Целевое ценообразование и базовый бенчмарк каталога:**
     - В `prisma/schema.prisma` поле `Service.markup` переведено на дефолт `@default(8.0)` (~700% наценка / множитель x8).
@@ -12,6 +29,13 @@
     - Линтер изоляции тенантов `npm run lint:tenant` — 0 BLOCKERS.
     - Проверка секретов `npm run check:bundle-secrets` — 0 утечек.
     - Линтер AST-гардов `npm run lint:guardrails` — 0 блокеров.
+- [x] ⚡ [ADR-2026-19-ASYNC-ORDER-CANCELLATION-AND-ESCROW-2026] Архитектурное решение (MADR 3.0): двухфазная асинхронная отмена заказов, эскроу-холд возвратов и ликвидация двойных убытков (ADR-2026-19 ACCEPTED):
+  * 📜 **Архитектурный стандарт `docs/architecture/ADR-2026-19-ASYNC-ORDER-CANCELLATION-AND-FINANCIAL-ESCROW.md`:**
+    - Разобран инцидент заказа #174 (Vexboost `externalId: 298641822`), повлекший двойной финансовый убыток (возврат средств клиенту при продолжающемся платном исполнении у провайдера).
+    - Зафиксирован 2PC Escrow протокол: разделение отмен до отправки (`externalId == null`, мгновенный возврат) и после отправки (`externalId !== null`, переход в `CANCELING`, вызов API `action: cancel`, эскроу-холд без преждевременного возврата).
+    - Установлена статусная машина: `CANCELING` -> поллинг подтверждения провайдера (`Canceled` -> 100% возврат; `Partial` -> частичный возврат; `Completed` -> 0 возврата, услуга оказана).
+    - Введены ролевые барьеры: запрет саппорту отменять неотменяемые услуги (`isCancelEnabled: false`) и выделение принудительного списания в убыток (`ADMIN_WRITE_OFF`) только для `OWNER`/`ADMIN`.
+>>>>>>> 8f30663a (fix(catalog): add semantic category guard, eliminate import wizard bulk traps, and prioritize subscriber keywords)
 - [x] ⚡ [ORDER-WIZARD-DECOMPOSITION-AND-PRICE-DRIFT-TESTS-100-PASS-2026] Декомпозиция визарда заказов (Clean Architecture <= 200 строк), синхронизация моков защиты от дрифта цен и 100% PASS тестов заказов (100% COMPLETE & VERIFIED):
   * 🧩 **Декомпозиция хука и компонентов визарда заказов (`useWizardPricing.ts`, `useWizardLinkAnalyzer.ts`, `CheckoutPromoCode.tsx`):**
     - Создан хук `useWizardPricing.ts` (123 строки <= 200), инкапсулирующий расчет стоимости заказа `calculatePriceAction` и управление промокодами.
