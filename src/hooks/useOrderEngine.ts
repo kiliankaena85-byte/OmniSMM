@@ -825,10 +825,7 @@ export function useOrderEngine(
   // Helper getters
   const mediaGroupMultiplier = mediaGroupUrl.trim().length > 5 ? 2 : 1;
   
-  let finalCents = pricing ? pricing.totalCents * mediaGroupMultiplier : 0;
-  if (pricing && isSmartDrip && selectedService?.smartConfig?.isEnabled) {
-    finalCents = Math.round(finalCents * (1 + selectedService.smartConfig.markup));
-  }
+  const finalCents = pricing ? pricing.totalCents * mediaGroupMultiplier : 0;
   
   const totalPriceFormatted = finalCents > 0 
     ? formatCents(finalCents) 

@@ -359,7 +359,7 @@ function FluxDashboardOrderWizardInner({
   // Price Calculation
   const qtyNum = typeof quantity === 'number' ? quantity : parseInt(quantity) || 0;
   const rawPrice = selectedService ? (selectedService.pricePerUnitRub * qtyNum) : 0;
-  const dripMultipliedPrice = isDripFeedEnabled ? rawPrice * dripRuns : rawPrice;
+  const dripMultipliedPrice = rawPrice;
 
   const handleApplyPromo = async () => {
     const clean = promoCode.trim().toUpperCase();
@@ -376,7 +376,7 @@ function FluxDashboardOrderWizardInner({
     setIsApplyingPromo(true);
     setPromoMessage(null);
     try {
-      const calcQty = isDripFeedEnabled ? qtyNum * dripRuns : qtyNum;
+      const calcQty = qtyNum;
       const res = await calculatePriceAction(
         selectedService.id,
         calcQty > 0 ? calcQty : (selectedService.minQty || 10),
@@ -430,7 +430,7 @@ function FluxDashboardOrderWizardInner({
     let cancelled = false;
     calculatePriceAction(
       selectedService.id,
-      isDripFeedEnabled ? qtyNum * dripRuns : qtyNum,
+      qtyNum,
       appliedPromo || undefined,
       isDripFeedEnabled ? dripRuns : undefined
     )
@@ -520,7 +520,7 @@ function FluxDashboardOrderWizardInner({
     }
 
     if (isDripFeedEnabled) {
-      const dripCheck = validateDripFeedLimits(qtyNum, dripRuns, minQty, maxQty);
+      const dripCheck = validateDripFeedLimits(Math.floor(qtyNum / dripRuns), dripRuns, minQty, maxQty);
       if (!dripCheck.isValid) {
         setErrorMessage(dripCheck.error || "Ошибка параметров Drip-Feed");
         setErrorField("quantity");
@@ -545,7 +545,7 @@ function FluxDashboardOrderWizardInner({
       const res = await checkoutAction({
         serviceId: selectedService.id,
         link: link.trim(),
-        quantity: isDripFeedEnabled ? qtyNum * dripRuns : qtyNum,
+        quantity: qtyNum,
         email: email.trim(),
         promoCodeStr: promoValue || undefined,
         gateway: gateway,
@@ -1108,7 +1108,7 @@ function FluxDashboardOrderWizardInner({
                             />
                           </div>
                           <p className="col-span-2 text-xs text-muted-foreground font-medium">
-                            Заказ выполнится за {dripRuns} запусков по {qtyNum} шт. Всего: <strong className="text-foreground">{qtyNum * dripRuns} шт.</strong>
+                            Заказ выполнится за {dripRuns} запусков по {dripRuns > 0 ? Math.floor(qtyNum / dripRuns) : 0} шт. Всего: <strong className="text-foreground">{qtyNum} шт.</strong>
                           </p>
                         </div>
                       )}
@@ -1321,7 +1321,7 @@ function FluxDashboardOrderWizardInner({
                       <span className="text-sm font-bold text-foreground block">Итого к оплате:</span>
                       <span className="text-xs text-muted-foreground font-semibold">
                         {isDripFeedEnabled
-                          ? `(${qtyNum} шт × ${dripRuns} запусков × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`
+                          ? `(${qtyNum} шт всего: ${dripRuns} запусков по ${dripRuns > 0 ? Math.floor(qtyNum / dripRuns) : 0} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`
                           : `(${qtyNum} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`}
                       </span>
                     </div>

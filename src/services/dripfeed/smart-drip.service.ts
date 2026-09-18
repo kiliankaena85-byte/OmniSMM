@@ -162,19 +162,23 @@ export class SmartDripService {
     });
 
     // 2. Распределяем порции (SmartTask)
-    // Smart Step: If using invite buffer, chunk limits can scale down to as small as 10
-    // since we make 1 bulk order and let the bot approve tiny segments smoothly over the week.
-    let effectiveMinChunk = config.minChunk;
-    let effectiveMaxChunk = config.maxChunk;
+    // Floor Invariant: effectiveMinChunk must strictly be >= service.minQty
+    const providerMin = service.minQty || 1;
+    let effectiveMinChunk = Math.max(providerMin, config.minChunk);
+    let effectiveMaxChunk = Math.max(effectiveMinChunk, config.maxChunk);
 
     if (config.useInviteBuffer) {
-      effectiveMinChunk = Math.max(10, Math.floor(quantity / (days * 2)));
-      effectiveMaxChunk = Math.max(30, Math.floor(quantity / days));
+      effectiveMinChunk = Math.max(providerMin, Math.floor(quantity / (days * 2)));
+      effectiveMaxChunk = Math.max(effectiveMinChunk, Math.floor(quantity / days));
       
-      if (effectiveMinChunk > config.minChunk) effectiveMinChunk = config.minChunk;
+      if (effectiveMinChunk > config.minChunk) effectiveMinChunk = Math.max(providerMin, config.minChunk);
       if (effectiveMaxChunk > config.maxChunk) effectiveMaxChunk = config.maxChunk;
       if (effectiveMinChunk > effectiveMaxChunk) effectiveMinChunk = effectiveMaxChunk;
     }
+
+    // Strict Floor Invariant: effectiveMinChunk must never fall below service.minQty
+    effectiveMinChunk = Math.max(providerMin, effectiveMinChunk);
+    effectiveMaxChunk = Math.max(effectiveMinChunk, effectiveMaxChunk);
 
     const taskAllocations = this.generateTaskDistribution(
       quantity,

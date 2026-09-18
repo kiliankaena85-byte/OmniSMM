@@ -25,7 +25,7 @@ export function ClassicDashboardShell({
       </div>
 
       {/* ── Sidebar (desktop, client — for active highlight) ── */}
-      <div className="relative z-20">
+      <div className="relative z-20 shrink-0">
         <SidebarNav email={user.email} balanceRub={balanceRub} initialUnreadCount={user.unreadTicketsCount} />
       </div>
 
@@ -70,7 +70,7 @@ export function ClassicDashboardShell({
 
       {/* ── Main content ── */}
       <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 pt-[72px] sm:pt-20 md:pt-0 pb-24 md:pb-0 overflow-y-auto outline-none relative z-10">
-        <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
+        <div className="p-4 sm:p-6 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>

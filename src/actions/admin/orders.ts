@@ -218,6 +218,21 @@ export async function setOrderStatusAction(
       // Лояльность (Loyalty Sync)
       const { LoyaltyService } = await import('@/services/users/loyalty.service');
       if (['CANCELED', 'ERROR'].includes(newStatus)) {
+        // Cascade cancel associated SmartCampaign and pending SmartTasks
+        const campaigns = await tx.smartCampaign.findMany({
+          where: { orderId: order.id, status: { in: ['PLANNED', 'RUNNING', 'PAUSED'] } },
+          select: { id: true }
+        });
+        for (const camp of campaigns) {
+          await tx.smartCampaign.update({
+            where: { id: camp.id },
+            data: { status: 'ERROR' }
+          });
+          await tx.smartTask.updateMany({
+            where: { campaignId: camp.id, status: 'PLANNED' },
+            data: { status: 'ERROR', error: `Заказ переведен администратором в статус ${newStatus}` }
+          });
+        }
         await LoyaltyService.reverseCommission(tx, order.id);
       } else if (newStatus === 'COMPLETED') {
         await LoyaltyService.confirmCommission(tx, order.id);
@@ -399,6 +414,22 @@ export async function bulkCancelOrdersAction(
               where: { id: safeOrder.id },
               data: { status: 'CANCELED' },
             });
+
+            // Cascade cancel associated SmartCampaign and pending SmartTasks
+            const campaigns = await tx.smartCampaign.findMany({
+              where: { orderId: safeOrder.id, status: { in: ['PLANNED', 'RUNNING', 'PAUSED'] } },
+              select: { id: true }
+            });
+            for (const camp of campaigns) {
+              await tx.smartCampaign.update({
+                where: { id: camp.id },
+                data: { status: 'ERROR' }
+              });
+              await tx.smartTask.updateMany({
+                where: { campaignId: camp.id, status: 'PLANNED' },
+                data: { status: 'ERROR', error: reason ? `Заказ отменен администратором: ${reason}` : 'Заказ отменен администратором' }
+              });
+            }
 
             const { LoyaltyService } = await import('@/services/users/loyalty.service');
             await LoyaltyService.reverseCommission(tx, safeOrder.id);

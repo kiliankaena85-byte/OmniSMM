@@ -50,7 +50,7 @@ function SmmplanOrderWizardInner(props: SmmplanOrderWizardProps) {
         if (w.dripFloorWarning) {
           newErrors.quantity = w.dripFloorWarning;
         } else {
-          const dCheck = validateDripFeedLimits(w.quantity, w.dripRuns, w.selectedService.minQty, w.selectedService.maxQty);
+          const dCheck = validateDripFeedLimits(Math.floor(w.quantity / w.dripRuns), w.dripRuns, w.selectedService.minQty, w.selectedService.maxQty);
           if (!dCheck.isValid) newErrors.quantity = dCheck.error;
         }
       }

@@ -269,13 +269,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
           <Table aria-label="Список заказов">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[8%] px-3">ID</TableHead>
-                <TableHead className="w-[27%] min-w-[200px] px-3">Услуга</TableHead>
-                <TableHead className="w-[25%] px-3">Ссылка / Кол-во</TableHead>
-                <TableHead className="w-[10%] text-right px-3">Сумма</TableHead>
-                <TableHead className="w-[14%] px-3">Статус</TableHead>
-                <TableHead className="w-[8%] px-3">Действия</TableHead>
-                <TableHead className="w-[8%] text-right px-3">Дата</TableHead>
+                <TableHead className="w-[70px] min-w-[65px] px-2.5 sm:px-3 text-xs">ID</TableHead>
+                <TableHead className="w-[26%] min-w-[180px] px-2.5 sm:px-3 text-xs">Услуга</TableHead>
+                <TableHead className="w-[22%] min-w-[150px] px-2.5 sm:px-3 text-xs">Ссылка / Кол-во</TableHead>
+                <TableHead className="w-[90px] min-w-[85px] text-right whitespace-nowrap px-2.5 sm:px-3 text-xs">Сумма</TableHead>
+                <TableHead className="w-[135px] min-w-[125px] px-2.5 sm:px-3 text-xs">Статус</TableHead>
+                <TableHead className="w-[160px] min-w-[150px] px-2.5 sm:px-3 text-xs">Действия</TableHead>
+                <TableHead className="w-[95px] min-w-[90px] text-right whitespace-nowrap px-2.5 sm:px-3 text-xs">Дата</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -301,7 +301,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                     key={order.id}
                     className="cursor-pointer hover:bg-muted/40 transition-colors"
                   >
-                    <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap px-3">
+                    <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap px-2.5 sm:px-3 py-3">
                       <div className="flex items-center gap-1.5">
                         <Link href={`/dashboard/orders/${order.id}`} className="hover:text-primary font-bold transition-colors" aria-label={`Открыть заказ #${order.numericId}`}>
                           #{order.numericId}
@@ -309,7 +309,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         <CopyText text={order.numericId.toString()} iconOnly={true} tooltipText="Копировать ID заказа" />
                       </div>
                     </TableCell>
-                    <TableCell className="px-3">
+                    <TableCell className="px-2.5 sm:px-3 py-3">
                       <Link href={`/dashboard/orders/${order.id}`} className="block" tabIndex={-1}>
                         <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1 flex items-center gap-1.5">
                           {order.service.category?.network?.slug && (
@@ -330,7 +330,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         </div>
                       </Link>
                     </TableCell>
-                    <TableCell className="px-3">
+                    <TableCell className="px-2.5 sm:px-3 py-3">
                       <div className="flex flex-col gap-1">
                         {order.link && (
                           <div className="flex items-center gap-1.5">
@@ -360,7 +360,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-black text-foreground tabular-nums whitespace-nowrap px-3">
+                    <TableCell className="text-right font-black text-foreground tabular-nums whitespace-nowrap px-2.5 sm:px-3 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <span className="font-mono">
                           {formatRubles(Number(order.charge) / 100)}
@@ -373,7 +373,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         />
                       </div>
                     </TableCell>
-                    <TableCell className="px-3">
+                    <TableCell className="px-2.5 sm:px-3 py-3">
                       <div className="flex flex-col gap-1.5">
                         <OrderStatusBadge status={order.status} size="sm" />
                         {(() => {
@@ -408,7 +408,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="px-3">
+                    <TableCell className="px-2.5 sm:px-3 py-3">
                       <div className="flex items-center gap-1.5">
                         <RefillRequestButton
                           orderId={order.id}
@@ -440,7 +440,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap px-3">
+                    <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap px-2.5 sm:px-3 py-3">
                       <ClientDate date={order.createdAt.toISOString()} format="datetime" />
                     </TableCell>
                   </TableRow>

@@ -133,7 +133,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     });
   }, [selectedCategory, initialReorderData, searchParams, linkAnalyzer.detectedType, link, tenantId]);
 
-  const totalQuantity = isDripFeedEnabled ? quantity * dripRuns : quantity;
+  const totalQuantity = quantity;
 
   const pricing = useWizardPricing({
     selectedService,

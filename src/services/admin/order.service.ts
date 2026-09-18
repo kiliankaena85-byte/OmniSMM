@@ -596,6 +596,22 @@ class AdminOrderService {
         data: { status: 'CANCELED' },
       });
 
+      // Cascade cancel associated SmartCampaign and pending SmartTasks
+      const campaigns = await tx.smartCampaign.findMany({
+        where: { orderId, status: { in: ['PLANNED', 'RUNNING', 'PAUSED'] } },
+        select: { id: true }
+      });
+      for (const camp of campaigns) {
+        await tx.smartCampaign.update({
+          where: { id: camp.id },
+          data: { status: 'ERROR' }
+        });
+        await tx.smartTask.updateMany({
+          where: { campaignId: camp.id, status: 'PLANNED' },
+          data: { status: 'ERROR', error: 'Заказ отменен администратором' }
+        });
+      }
+
       // Handle Referral Commissions (Reverse since canceled)
       const { LoyaltyService } = await import('../users/loyalty.service');
       await LoyaltyService.reverseCommission(tx, orderId);

@@ -66,6 +66,16 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
 
+- **ADR-2026-23: Drip-Feed & Smart Drip-Feed Full Architecture & Invariants Remediation (Contract A / OmniSMM 1.0):**
+  - *Решение:*
+    1. **Contract A Invariant:** В интерфейсах оформления (SMMplan, SMMflux, лендинг, дашборд) поле количества всегда отражает суммарный объем заказа ($Q$). Степперы изменяют общий объем с шагом $\text{runs} \times \text{step}$. В UI отображается прозрачный расчет: «$N$ запусков по $\lfloor Q/N \rfloor$ шт. Всего: $Q$ шт.».
+    2. **Синхронизация Native Drip-Feed:** В `sync.processor.ts` добавлен fallback на `order.externalId` при пустом `dripExternalIds = []`. При статусах провайдера `PARTIAL`/`CANCELED` с ненулевым `remains` вызывается `RefundPolicyService.processRefund()`. Для многозадачного пула статус `PARTIAL`/`COMPLETED` фиксируется только после завершения всех подзадач.
+    3. **Динамический TTL и Keyset пагинация:** В `cleanup.processor.ts` TTL для заказов с активной `SmartCampaign` расширен до `Math.max(72, totalDays * 24 + 48)` часов. Keyset пагинация (`id: { gt: lastOrderId }`) исключает зацикливание свипа. Добавлена каскадная отмена кампаний (`SmartCampaign.status = 'ERROR'`) и подзадач при отмене заказа.
+    4. **Защита от зомби-заказов:** В `order.processor.ts` проверка `order.status !== 'PENDING'` выполняется до проверки `order.smartCampaign`, предотвращая воскрешение отмененных кампаний.
+    5. **Мьютекс планировщика тиков:** В `dripfeed.processor.ts` тик `runSmartDripfeedTick()` защищен распределенным Redis-мьютексом `lock:dripfeed:tick` (55s) для предотвращения параллельного исполнения тика при масштабировании воркеров.
+    6. **Строгий парсинг булевых флагов:** В `catalog.service.ts` реализованы `parseProviderBoolean` / `parseProviderBooleanOptional`, предотвращающие ложноположительную активацию функций из-за уязвимости JavaScript `Boolean("0") === true`.
+  - *Причина:* Полная ликвидация 11 критических дефектов синхронизации, ценообразования, очистки и жизненного цикла Drip-Feed и Smart Drip-Feed на платформе OmniSMM.
+
 - **ADR-2026-21: Multi-Tenant Legal, Fiscal and RBAC Isolation (54.1 НК РФ / 54-ФЗ / 176-ФЗ / 152-ФЗ / NIST SP 800-162):**
   - *Решение:*
     1. **Изоляция юридических лиц и реквизитов (ст. 54.1 НК РФ, 152-ФЗ):** Устранена кросс-тенантовая утечка реквизитов ИП Соколов в бренд SMMflux. `LegalPageContent.tsx`, `legal.ts` и `legal-fallbacks.ts` поддерживают подстановку раздельных реквизитов (`{{COMPANY_NAME}}`, `{{COMPANY_INN}}`, `{{COMPANY_OGRNIP}}`, `{{COMPANY_ADDRESS}}`, `{{SUPPORT_EMAIL}}`, `{{PRIVACY_EMAIL}}`) строго для каждого тенанта.

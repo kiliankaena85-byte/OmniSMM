@@ -109,7 +109,7 @@ export function useOrderWizard(options: UseOrderWizardOptions = {}) {
   const isDripFeedValid = !isDripFeedEnabled || dripFeedDurationMinutes <= 43200;
 
   const numericQuantity = typeof quantity === 'string' ? (parseInt(quantity) || 0) : quantity;
-  const effectiveQuantity = isDripFeedEnabled ? numericQuantity * dripRuns : numericQuantity;
+  const effectiveQuantity = numericQuantity;
   const priceRub = selectedService ? (selectedService.pricePerUnitRub * effectiveQuantity).toFixed(2) : '0.00';
 
   const analyzeLink = (url: string) => {

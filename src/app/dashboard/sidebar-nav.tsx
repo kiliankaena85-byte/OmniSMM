@@ -44,16 +44,16 @@ export function SidebarNav({
       : pathname.startsWith(href);
 
   return (
-    <aside className="hidden md:flex w-[260px] flex-col shrink-0 border-r border-border/80 bg-card/90 backdrop-blur-2xl">
+    <aside className="hidden md:flex w-[280px] h-screen sticky top-0 flex-col shrink-0 border-r border-border/80 bg-card/90 backdrop-blur-2xl">
       {/* Logo Header */}
       <div className="p-4 border-b border-border/70 flex items-center justify-between gap-2">
-        <Link href="/" className="flex items-center gap-2.5 group min-w-0" aria-label="Перейти на главную страницу">
+        <Link href="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Перейти на главную страницу">
           <TenantLogo tenantId="smmplan" className="w-8 h-8 group-hover:scale-105 transition-transform shrink-0" iconClassName="text-sm" />
-          <span className="font-black text-foreground text-lg tracking-tight leading-none truncate">SMMplan</span>
+          <span className="font-black text-foreground text-lg tracking-tight leading-none shrink-0">SMMplan</span>
         </Link>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 shrink-0"
+          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 shrink-0"
           title="Перейти на главную страницу (Витрина услуг)"
           aria-label="На главную"
         >
@@ -107,13 +107,13 @@ export function SidebarNav({
       </nav>
 
       {/* User footer */}
-      <div className="p-3 border-t border-border/70">
+      <div className="p-3 border-t border-border/70 mt-auto">
         <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-secondary/60 border border-border/50">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary/20 to-secondary text-primary flex items-center justify-center text-xs font-black uppercase shrink-0 border border-primary/20">
             {email.substring(0, 2)}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-foreground truncate">{email}</div>
+            <div className="text-xs font-bold text-foreground truncate" title={email}>{email}</div>
             <span className="text-[10px] text-muted-foreground font-semibold block">Пользователь</span>
           </div>
           <ThemeSwitcher variant="toggle" className="shrink-0" />

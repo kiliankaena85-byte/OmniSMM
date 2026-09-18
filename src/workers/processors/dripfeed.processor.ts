@@ -2,6 +2,7 @@ import { db as prisma } from '@/lib/db';
 import { providerService } from '@/services/providers/provider.service';
 import { SmartCampaignStatus, SmartTaskStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { MutexManager } from '@/lib/redis-lock';
 
 const log = logger.child({ component: 'DripfeedProcessor' });
 
@@ -114,6 +115,7 @@ async function checkAndCompleteCampaign(campaignId: string) {
  * 2. Запускает SmartTasks, у которых наступило время runAt.
  */
 export async function runSmartDripfeedTick() {
+  return MutexManager.withLock('lock:dripfeed:tick', 55000, 100, async () => {
   // --- ЧАСТЬ 1: Синхронизация активных SmartExecution ---
   const activeExecutions = await prisma.smartExecution.findMany({
     where: { status: 'IN_PROGRESS' },
@@ -336,4 +338,7 @@ export async function runSmartDripfeedTick() {
       await checkAndCompleteCampaign(task.campaignId);
     }
   }
+  }).catch((err: unknown) => {
+    log.warn('[Dripfeed] Tick lock skipped or failed:', { error: err instanceof Error ? err.message : String(err) });
+  });
 }

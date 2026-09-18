@@ -76,7 +76,11 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
         const allExtIds: string[] = [];
         ordersBatch.forEach(o => {
           if (o.isDripFeed) {
-            allExtIds.push(...o.dripExternalIds);
+            if (o.dripExternalIds && o.dripExternalIds.length > 0) {
+              allExtIds.push(...o.dripExternalIds);
+            } else if (o.externalId) {
+              allExtIds.push(o.externalId);
+            }
           } else if (o.externalId) {
             allExtIds.push(o.externalId);
           }
@@ -130,34 +134,66 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
 
         // 3. Update orders based on responses
         for (const order of ordersBatch) {
-        if (order.isDripFeed) {
-          // Complex logic for Drip-Feed (average out the remains and statuses)
+        if (order.isDripFeed && order.dripExternalIds && order.dripExternalIds.length > 0) {
+          // Complex logic for multi-task Drip-Feed (aggregate remains and evaluate terminal statuses)
           let totalRemainsText = 0;
           let anyCanceled = false;
+          let anyPartial = false;
           let allCompleted = true;
+          let allTerminal = true;
+          let hasAnyStatus = false;
 
           for (const extId of order.dripExternalIds) {
              const s = statuses[extId];
-             if (!s || typeof s === 'string') continue; 
-             if (s.remains) totalRemainsText += parseInt(s.remains, 10) || 0;
-             if (['Canceled', 'Cancel'].includes(s.status)) anyCanceled = true;
-             if (!['Completed', 'Complete'].includes(s.status)) allCompleted = false;
+             if (!s || typeof s === 'string' || !s.status) {
+               allCompleted = false;
+               allTerminal = false;
+               continue;
+             }
+             hasAnyStatus = true;
+             const subStatus = String(s.status).toLowerCase();
+             if (s.remains) totalRemainsText += parseInt(String(s.remains), 10) || 0;
+
+             if (['canceled', 'cancelled', 'cancel'].includes(subStatus)) {
+               anyCanceled = true;
+               allCompleted = false;
+             } else if (['partial', 'partially completed'].includes(subStatus)) {
+               anyPartial = true;
+               allCompleted = false;
+             } else if (['completed', 'complete', 'success'].includes(subStatus)) {
+               // completed sub-task
+             } else {
+               // still in-progress, pending, processing, etc.
+               allCompleted = false;
+               allTerminal = false;
+             }
           }
 
-          if (allCompleted) {
+          if (hasAnyStatus && allCompleted) {
              await db.$transaction(async (tx) => {
                await safeUpdateOrderStatus(tx, order.id, {
                  status: 'COMPLETED',
                  remains: 0
                });
              });
-          } else if (anyCanceled) {
+          } else if (allTerminal && (anyCanceled || anyPartial)) {
              const clampedDripRemains = Math.min(order.quantity, Math.max(0, totalRemainsText));
              await db.$transaction(async (tx) => {
-               await safeUpdateOrderStatus(tx, order.id, {
+               const updated = await safeUpdateOrderStatus(tx, order.id, {
                  status: 'PARTIAL',
                  remains: clampedDripRemains
                });
+               if (updated && clampedDripRemains > 0) {
+                 await RefundPolicyService.processRefund({
+                   id: order.id,
+                   userId: order.userId,
+                   charge: Number(order.charge),
+                   quantity: order.quantity,
+                   remains: clampedDripRemains,
+                   status: 'PARTIAL',
+                   tenantId: order.tenantId
+                 }, 'Авто-возврат за отмененную/недовыполненную часть Drip-Feed заказа', tx);
+               }
              });
           }
           continue;
@@ -202,15 +238,18 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             }
           });
         } else if (targetStatus === 'CANCELED') {
+          const rawRemains = (remainsNum !== undefined && !isNaN(remainsNum) && remainsNum > 0) ? remainsNum : order.quantity;
+          const safeCancelRemains = Math.min(order.quantity, Math.max(0, rawRemains));
+
           await db.$transaction(async (tx) => {
             const updated = await safeUpdateOrderStatus(tx, order.id, {
               status: 'CANCELED',
-              remains: order.quantity,
+              remains: safeCancelRemains,
               error: statusObj.error || 'Провайдер отменил заказ'
             });
 
-            if (updated) {
-              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: 'CANCELED', tenantId: order.tenantId }, 'Авто-возврат: провайдер отменил заказ', tx);
+            if (updated && safeCancelRemains > 0) {
+              await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeCancelRemains, status: 'CANCELED', tenantId: order.tenantId }, 'Авто-возврат: провайдер отменил заказ', tx);
             }
           });
         } else if (targetStatus === 'PARTIAL') {
@@ -331,10 +370,9 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
     });
 
     for (const order of slowOrders) {
-      if (order.remains === order.quantity) {
-        const hoursWaiting = Math.floor((Date.now() - order.createdAt.getTime()) / (1000 * 60 * 60));
+        const createdTime = order.createdAt ? new Date(order.createdAt).getTime() : Date.now();
+        const hoursWaiting = Math.floor((Date.now() - createdTime) / (1000 * 60 * 60));
         log.info(`[SyncProcessor] Order #${order.numericId} in progress for ${hoursWaiting}h awaiting provider execution (remains: ${order.remains}/${order.quantity}). Kept active.`);
-      }
     }
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);

@@ -23,7 +23,7 @@ export class MutexManager {
    * Returns the owner token if acquired, null if timed out.
    */
   static async acquireLock(key: string, ttlMs: number, maxWaitMs: number = 5000): Promise<string | null> {
-    const lockKey = `lock:${key}`;
+    const lockKey = key.startsWith('lock:') ? key : `lock:${key}`;
     const token = crypto.randomUUID();
     const start = Date.now();
     const waitTime = 50; // ms between retries
@@ -47,7 +47,7 @@ export class MutexManager {
    */
   static async extendLock(key: string, token: string, extraTtlMs: number): Promise<boolean> {
     if (!token) return false;
-    const lockKey = `lock:${key}`;
+    const lockKey = key.startsWith('lock:') ? key : `lock:${key}`;
     try {
       const result = await redis.eval(EXTEND_LOCK_LUA, 1, lockKey, token, extraTtlMs);
       return result === 1;
@@ -62,7 +62,7 @@ export class MutexManager {
    */
   static async releaseLock(key: string, token: string): Promise<boolean> {
     if (!token) return false;
-    const lockKey = `lock:${key}`;
+    const lockKey = key.startsWith('lock:') ? key : `lock:${key}`;
     try {
       const result = await redis.eval(RELEASE_LOCK_LUA, 1, lockKey, token);
       return result === 1;

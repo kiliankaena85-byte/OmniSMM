@@ -511,7 +511,7 @@ function PlanSlideOrderClientInner({
   }, [step]);
 
   const numericQuantity = typeof quantity === "string" ? (parseInt(quantity) || 0) : quantity;
-  const effectiveQuantity = isDripFeedEnabled ? numericQuantity * dripRuns : numericQuantity;
+  const effectiveQuantity = numericQuantity;
 
   // Sync server pricing with promo code and quantity
   useEffect(() => {
@@ -1183,6 +1183,9 @@ function PlanSlideOrderClientInner({
                             className="w-full h-9 px-2 rounded-lg bg-background border border-border font-mono text-xs"
                           />
                         </div>
+                        <p className="col-span-2 text-xs text-muted-foreground font-medium">
+                          Заказ выполнится за {dripRuns} запусков по {dripRuns > 0 ? Math.floor(numericQuantity / dripRuns) : 0} шт. Всего: <strong className="text-foreground">{numericQuantity} шт.</strong>
+                        </p>
                       </div>
                     )}
                   </div>

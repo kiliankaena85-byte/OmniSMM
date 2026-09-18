@@ -100,7 +100,8 @@ export function useWizardPricing({
 
   const addQuantity = (delta: number) => {
     if (!selectedService) return;
-    setQuantity(Math.min(selectedService.maxQty, Math.max(selectedService.minQty, (quantity || 0) + delta)));
+    const min = selectedService.minQty * (isDripFeedEnabled ? Math.max(1, dripRuns) : 1);
+    setQuantity(Math.min(selectedService.maxQty, Math.max(min, (quantity || 0) + delta)));
   };
 
   return {

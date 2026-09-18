@@ -234,6 +234,28 @@ export async function runCleanup(): Promise<void> {
             }
           }
 
+          // Cascade cancel associated SmartCampaign and pending SmartTasks
+          const campaigns = await tx.smartCampaign.findMany({
+            where: {
+              OR: [
+                { orderId: zombie.id },
+                ...(zombie.paymentId ? [{ paymentId: zombie.paymentId }] : [])
+              ],
+              status: { in: ['PLANNED', 'RUNNING', 'PAUSED'] }
+            },
+            select: { id: true }
+          });
+          for (const camp of campaigns) {
+            await tx.smartCampaign.update({
+              where: { id: camp.id },
+              data: { status: 'ERROR' }
+            });
+            await tx.smartTask.updateMany({
+              where: { campaignId: camp.id, status: 'PLANNED' },
+              data: { status: 'ERROR', error: 'Заказ отменен по таймауту оплаты' }
+            });
+          }
+
           canceledCount++;
           if (zombie.paymentId) {
             shouldSendEmail = true;
@@ -469,6 +491,29 @@ export async function runOrphanSweep(): Promise<void> {
   }
 }
 
+interface StuckOrderSweepItem {
+  id: string;
+  numericId: number;
+  userId: string | null;
+  charge: bigint | number;
+  quantity: number;
+  remains: number | null;
+  serviceId: string;
+  externalId: string | null;
+  runs: number | null;
+  interval: number | null;
+  createdAt: Date;
+  tenantId: string;
+  service: {
+    provider: any;
+  };
+  smartCampaign: {
+    id: string;
+    status: string;
+    totalDays: number;
+  } | null;
+}
+
 /**
  * In-progress TTL Sweep: Finds orders in IN_PROGRESS state for more than 72 hours,
  * and terminates them with PARTIAL, ERROR, or COMPLETED state and appropriate refunds.
@@ -483,6 +528,7 @@ export async function runInProgressTTLSweep(): Promise<void> {
   let hasMore = true;
   let iterations = 0;
   let processedCount = 0;
+  let lastOrderId: string | undefined = undefined;
   const processedDetails: string[] = [];
 
   log.info('InProgress TTL sweep started', { threshold: threshold.toISOString() });
@@ -490,11 +536,13 @@ export async function runInProgressTTLSweep(): Promise<void> {
   while (hasMore && iterations < MAX_ITERATIONS) {
     iterations++;
 
-    const stuckOrders = await db.order.findMany({
+    const stuckOrders: StuckOrderSweepItem[] = (await db.order.findMany({
       where: {
         status: 'IN_PROGRESS',
-        createdAt: { lt: threshold }
+        createdAt: { lt: threshold },
+        ...(lastOrderId ? { id: { gt: lastOrderId } } : {})
       },
+      orderBy: { id: 'asc' },
       select: {
         id: true,
         numericId: true,
@@ -512,13 +560,24 @@ export async function runInProgressTTLSweep(): Promise<void> {
           select: {
             provider: true
           }
+        },
+        smartCampaign: {
+          select: {
+            id: true,
+            status: true,
+            totalDays: true
+          }
         }
       },
       take: IN_PROGRESS_TTL_BATCH_SIZE
-    });
+    })) as unknown as StuckOrderSweepItem[];
 
     if (stuckOrders.length === 0) {
       break;
+    }
+    lastOrderId = stuckOrders[stuckOrders.length - 1].id;
+    if (stuckOrders.length < IN_PROGRESS_TTL_BATCH_SIZE) {
+      hasMore = false;
     }
 
     for (const order of stuckOrders) {
@@ -529,6 +588,16 @@ export async function runInProgressTTLSweep(): Promise<void> {
         const orderDynamicThreshold = new Date(Date.now() - dynamicTtlHours * 60 * 60 * 1000);
         if (order.createdAt > orderDynamicThreshold) {
           log.info(`Skipping Drip-Feed order ${order.id} TTL sweep (within scheduled run window: ${dynamicTtlHours}h)`);
+          continue;
+        }
+      }
+
+      // 1.1 Dynamic TTL check for SmartCampaign orders (do not cancel orders while campaign is actively running or paused)
+      if (order.smartCampaign && ['RUNNING', 'PAUSED'].includes(order.smartCampaign.status)) {
+        const smartTtlHours = Math.max(72, (order.smartCampaign.totalDays || 1) * 24 + 48);
+        const smartDynamicThreshold = new Date(Date.now() - smartTtlHours * 60 * 60 * 1000);
+        if (order.createdAt > smartDynamicThreshold) {
+          log.info(`Skipping Smart Drip order ${order.id} TTL sweep (active campaign ${order.smartCampaign.id}, within scheduled run window: ${smartTtlHours}h)`);
           continue;
         }
       }
@@ -646,6 +715,18 @@ export async function runInProgressTTLSweep(): Promise<void> {
             return;
           }
 
+          // Cascade cancel associated SmartCampaign and pending SmartTasks if terminated with ERROR or PARTIAL
+          if (order.smartCampaign && targetStatus !== 'COMPLETED') {
+            await tx.smartCampaign.update({
+              where: { id: order.smartCampaign.id },
+              data: { status: 'ERROR' }
+            });
+            await tx.smartTask.updateMany({
+              where: { campaignId: order.smartCampaign.id, status: 'PLANNED' },
+              data: { status: 'ERROR', error: 'Заказ завершен по таймауту TTL' }
+            });
+          }
+
           // Handle Referral Commissions
           if (targetStatus === 'COMPLETED') {
             await LoyaltyService.confirmCommission(tx, order.id);
@@ -664,7 +745,7 @@ export async function runInProgressTTLSweep(): Promise<void> {
               }
             });
 
-            if (!existingLedger) {
+            if (!existingLedger && order.userId) {
               await WalletOps.refund(
                 tx,
                 order.userId,

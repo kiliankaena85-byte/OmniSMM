@@ -27,6 +27,19 @@ import { PriceDriftCircuitBreaker, DEFAULT_DRIFT_CONFIG } from '@/lib/pricing/dr
 import { ServiceMutationDetector } from '@/services/providers/service-mutation-detector';
 
 /**
+ * Strict boolean parser for provider API responses (handles '1', 1, 'true', true vs '0', 0, 'false', false)
+ */
+export function parseProviderBoolean(val: unknown): boolean {
+  if (val === true || val === 1 || val === '1' || val === 'true') return true;
+  return false;
+}
+
+export function parseProviderBooleanOptional(val: unknown): boolean | undefined {
+  if (val === undefined || val === null || val === '') return undefined;
+  return parseProviderBoolean(val);
+}
+
+/**
  * Ensures a category (and its network) is visible to every tenant targeted by
  * an import by promoting tenantId to 'all'.
  *
@@ -727,9 +740,9 @@ class AdminCatalogService {
         rateRub,
         min: typeof s.min === "number" ? s.min : parseInt(String(s.min), 10) || 0,
         max: typeof s.max === "number" ? s.max : parseInt(String(s.max), 10) || 0,
-        refill: s.refill || false,
-        cancel: s.cancel || false,
-        dripfeed: s.dripfeed || false,
+        refill: parseProviderBoolean(s.refill),
+        cancel: parseProviderBoolean(s.cancel),
+        dripfeed: parseProviderBoolean(s.dripfeed),
         cleanName: s.cleanName || null,
         platform: (s.metrics?.platform || 'other').toLowerCase(),
         normalizedCategory: s.metrics?.category || null,
@@ -1270,9 +1283,9 @@ class AdminCatalogService {
         rate: String(s.rate),
         min: String(s.min),
         max: String(s.max),
-        dripfeed: s.dripfeed === undefined ? undefined : Boolean(s.dripfeed),
-        refill: s.refill === undefined ? undefined : Boolean(s.refill),
-        cancel: s.cancel === undefined ? undefined : Boolean(s.cancel),
+        dripfeed: parseProviderBooleanOptional(s.dripfeed),
+        refill: parseProviderBooleanOptional(s.refill),
+        cancel: parseProviderBooleanOptional(s.cancel),
         desc: s.desc,
       }));
     };
@@ -1665,9 +1678,9 @@ class AdminCatalogService {
           customDataLabel: linkSpec.customDataLabel || null,
           isMediaGroupAware: linkSpec.isMediaGroupAware ?? shadowExt.isMediaGroupAware ?? false,
           isActive: true,
-          isDripFeedEnabled: Boolean(liveExt.dripfeed),
-          isRefillEnabled: Boolean(liveExt.refill),
-          isCancelEnabled: Boolean(liveExt.cancel),
+          isDripFeedEnabled: parseProviderBoolean(liveExt.dripfeed),
+          isRefillEnabled: parseProviderBoolean(liveExt.refill),
+          isCancelEnabled: parseProviderBoolean(liveExt.cancel),
           lastSeenAt: new Date(),
         });
       }

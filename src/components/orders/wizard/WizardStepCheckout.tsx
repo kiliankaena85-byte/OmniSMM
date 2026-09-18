@@ -145,8 +145,8 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
             className={`w-full px-4 py-3 text-base sm:text-sm font-bold bg-background border rounded-2xl text-foreground focus:outline-none focus:ring-2 transition-all ${errors.quantity ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/60 focus:ring-primary/30'}`}
           />
           <div className="flex items-center gap-2 shrink-0">
-            <button type="button" aria-label="Уменьшить количество" onClick={() => addQuantity(-Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">–</button>
-            <button type="button" aria-label="Увеличить количество" onClick={() => addQuantity(Math.max(10, Math.floor((selectedService.minQty || 100) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">+</button>
+            <button type="button" aria-label="Уменьшить количество" onClick={() => addQuantity(-Math.max(10, Math.floor((selectedService.minQty || 100) * (isDripFeedEnabled ? dripRuns : 1) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">–</button>
+            <button type="button" aria-label="Увеличить количество" onClick={() => addQuantity(Math.max(10, Math.floor((selectedService.minQty || 100) * (isDripFeedEnabled ? dripRuns : 1) / 10)))} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-lg font-bold bg-muted/60 hover:bg-muted text-foreground border border-border/40 rounded-xl transition-all active:scale-95 cursor-pointer">+</button>
           </div>
         </div>
         {errors.quantity && <p className="text-xs font-semibold text-destructive mt-1 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.quantity}</p>}
@@ -176,7 +176,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
           <span className="text-xs text-muted-foreground font-medium block">Итого к оплате:</span>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-primary">{isCalculatingPrice ? <Loader2 className="w-6 h-6 animate-spin inline text-primary" /> : formatRubles(calculatedPriceRub || 0)}</span>
-            <span className="text-xs text-muted-foreground font-semibold">{isDripFeedEnabled ? `(${quantity || 0} шт × ${dripRuns} запусков × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)` : `(${quantity || 0} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`}</span>
+            <span className="text-xs text-muted-foreground font-semibold">{isDripFeedEnabled ? `(${quantity || 0} шт всего: ${dripRuns} запусков по ${dripRuns > 0 ? Math.floor((quantity || 0) / dripRuns) : 0} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)` : `(${quantity || 0} шт × ${formatPricePerUnit(selectedService.pricePerUnitRub)} ₽/шт)`}</span>
           </div>
         </div>
         <button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-8 py-4 bg-primary text-primary-foreground font-black text-base rounded-2xl shadow-lg shadow-primary/25 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">

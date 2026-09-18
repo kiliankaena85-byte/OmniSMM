@@ -45,6 +45,12 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
     return;
   }
 
+  // Double execution guard / Canceled guard: do not process non-PENDING orders (prevents zombie revival of canceled SmartCampaigns)
+  if (order.status !== 'PENDING') {
+    log.warn(`[OrderProcessor] Order ${orderId} is not PENDING (current status: ${order.status}). Skip.`);
+    return;
+  }
+
   // Intercept and activate SmartCampaign if this is a parent order
   if (order.smartCampaign) {
     log.info(`[OrderProcessor] Intercepted SmartDrip parent order ${orderId}. Activating SmartCampaign.`);
@@ -58,12 +64,6 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
         data: { status: 'RUNNING' }
       })
     ]);
-    return;
-  }
-
-  // Double execution guard
-  if (order.status !== 'PENDING') {
-    log.warn(`[OrderProcessor] Order ${orderId} is not PENDING. Skip.`);
     return;
   }
 

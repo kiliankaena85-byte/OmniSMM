@@ -1,3 +1,37 @@
+- [x] ⚡ [DRIPFEED-SMARTDRIP-INVARIANTS-REMEDIATION-2026] Комплексная ликвидация 11 архитектурных дефектов Drip-Feed и Smart Drip-Feed (100% COMPLETE & VERIFIED):
+  * 🔄 **Синхронизация и возвраты Native Drip-Feed (`sync.processor.ts`):**
+    - Добавлен fallback на `order.externalId`, если `order.isDripFeed` активен, но `dripExternalIds = []` (устранено зависание в `IN_PROGRESS`).
+    - Интегрирован вызов `RefundPolicyService.processRefund()` при статусах провайдера `PARTIAL` и `CANCELED` с ненулевым `remains`.
+    - Усилена проверка мульти-таскового Drip-Feed: статус `PARTIAL`/`COMPLETED` выставляется только если все подзадачи терминальны.
+  * 🧹 **Защита долгоживущих кампаний & Keyset пагинация (`cleanup.processor.ts`):**
+    - Внедрен динамический TTL для заказов с активной `SmartCampaign`: `Math.max(72, totalDays * 24 + 48)` часов (ликвидирована ложная отмена через 72ч).
+    - Внедрена keyset-пагинация (`id: { gt: lastOrderId }`, `orderBy: { id: 'asc' }`) в `runInProgressTTLSweep` для предотвращения голодания очереди на пропущенных кампаниях.
+    - Реализована каскадная отмена `SmartCampaign` (в статус `ERROR`) и отмена невыполненных `SmartTask`s при TTL-свипе и очистке просроченных `AWAITING_PAYMENT`.
+  * 🧟 **Предотвращение воскрешения зомби-заказов (`order.processor.ts`):**
+    - Проверка `if (order.status !== 'PENDING') return;` перенесена на самый верх обработчика перед блоком активации кампании, исключая повторный запуск отмененных заказов.
+  * 🔒 **Распределенная блокировка и нормализация ключей (`dripfeed.processor.ts`, `redis-lock.ts`):**
+    - Устранено дублирование префиксов `lock:lock:` в `MutexManager.withLock`.
+    - Тик планировщика `runSmartDripfeedTick()` обернут в мьютекс `lock:dripfeed:tick` (55s TTL) для защиты от параллельных тиков при сбоях воркеров.
+  * 💰 **Ликвидация повторной наценки в калькуляторе (`useOrderEngine.ts`):**
+    - Удалено повторное умножение `finalCents = Math.round(finalCents * (1 + markup))` на строках 829–831 (наценка уже заложена в `pricing.totalCents`).
+  * 🎯 **Единый контракт Контракта А в UI визардов (Total Volume Invariant):**
+    - Во всех визардах (`useSmmplanOrderWizard.ts`, `WizardStepCheckout.tsx`, `CheckoutDripFeed.tsx`, `FluxDashboardOrderWizard.tsx`, `PlanSlideOrderClient.tsx`, `useOrderWizard.ts`) зафиксировано: поле объема — это ВСЕГДА общий итоговый объем, степпер изменяет общий объем, цена отображается за 1 единицу.
+    - В бейджах и подсказках добавлен наглядный расчет: `{dripRuns} запусков по {Math.floor(quantity / dripRuns)} шт. Всего: {quantity} шт.`
+  * 🚫 **Взаимное исключение Drip-Feed и Smart Drip (`checkout.ts`):**
+    - На входе в чекаут нормализуются `effectiveRuns` и `effectiveInterval`: при активном `isSmartDrip` Drip-Feed поля принудительно обнуляются (`isDripFeed: false`, `runs: null`, `interval: null`), исключая конфликты формы.
+  * 🛡️ **Защита минимального объема подзадач (`smart-drip.service.ts`):**
+    - Закреплен жесткий инвариант: `effectiveMinChunk >= service.minQty`, гарантирующий, что ни один сгенерированный под-заказ не будет отклонен провайдером из-за нехватки объема.
+  * ⚙️ **Строгий парсинг булевых флагов провайдера (`catalog.service.ts`):**
+    - Устранена критическая уязвимость JS `Boolean("0") === true` через вспомогательные функции `parseProviderBoolean` и `parseProviderBooleanOptional`.
+  * 🧪 **Автоматизированное тестирование & CI-гейты:**
+    - `drip-feed-remediation-suite.test.ts` (11 из 11 PASS) — 100%.
+    - `drip-feed-min-quantity-and-runs-integrity.test.ts` (5 из 5 PASS) — 100%.
+    - `drip-feed-lifecycle-e2e.test.ts` (5 из 5 PASS) — 100%.
+    - `drip-feed-comprehensive-architecture-and-mock-provider.test.ts` (13 из 13 PASS) — 100%.
+    - `order-wizard-cro-and-dripfeed.test.ts` (8 из 8 PASS) — 100%.
+    - Итого по Drip-Feed: **42 из 42 тестов PASS (100%)**.
+    - Контроль типов `npx tsc --noEmit` — **0 ошибок**.
+    - Контроль секретов `check-bundle-secrets.mjs` — **0 утечек**.
 - [x] ⚡ [TAXONOMY-SUBSCRIBERS-VIEWS-REMEDIATION-2026] Устранение семантических коллизий категорий (Подписчики/Просмотры/Стримы) и защита импорта (100% COMPLETE & VERIFIED):
   * 🔍 **Причинно-следственный анализ коллизии:**
     - В `smart-analyzer.logic.ts` при обработке услуг Telegram проверка корня `'подпис'` перехватывала не только подписчиков, но и авто-просмотры/звёзды/бусты с припиской `[Подписка]`, а при импорте в `catalog.service.ts` отсутствовала валидация противоречия между семантикой названия услуги и выбранной категорией провайдера.

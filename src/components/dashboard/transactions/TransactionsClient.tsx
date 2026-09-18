@@ -102,7 +102,7 @@ function MobileTransactionList({
   if (entries.length === 0) return null;
 
   return (
-    <div className="md:hidden divide-y divide-border/40 select-none">
+    <div className="lg:hidden divide-y divide-border/40 select-none">
       {entries.map((item) => {
         const isCredit = item.amountRub > 0;
         const isRefund = item.transactionType === 'REFUND';
@@ -561,16 +561,16 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
         {/* Simple User Mode (Clean layouts) */}
         {!isAccountantMode ? (
           <>
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-sm" aria-label="История транзакций (простой вид)">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-widest text-foreground/75 bg-muted/20 border-b border-border/40 select-none">
-                    <th className="py-4 px-5 font-bold">Дата операции</th>
-                    <th className="py-4 px-5 font-bold">Тип</th>
-                    <th className="py-4 px-5 font-bold">Описание / Причина</th>
-                    <th className="py-4 px-5 font-bold text-right">Сумма (₽)</th>
-                    <th className="py-4 px-5 font-bold text-right">Баланс после</th>
-                    <th className="py-4 px-5 font-bold text-center">Статус</th>
+                    <th className="py-3 px-3.5 font-bold">Дата операции</th>
+                    <th className="py-3 px-3.5 font-bold">Тип</th>
+                    <th className="py-3 px-3.5 font-bold">Описание / Причина</th>
+                    <th className="py-3 px-3.5 font-bold text-right">Сумма (₽)</th>
+                    <th className="py-3 px-3.5 font-bold text-right">Баланс после</th>
+                    <th className="py-3 px-3.5 font-bold text-center">Статус</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -591,25 +591,25 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         className="border-b border-border/40 hover:bg-muted/10 transition-colors last:border-0"
                       >
                         {/* Date */}
-                        <td className="py-3.5 px-5 text-xs text-muted-foreground font-semibold tabular-nums whitespace-nowrap">
+                        <td className="py-2.5 px-3.5 text-xs text-muted-foreground font-semibold tabular-nums whitespace-nowrap">
                           {formatDate(item.createdAt)}
                         </td>
                         
                         {/* Badge type */}
-                        <td className="py-3.5 px-5">
+                        <td className="py-2.5 px-3.5">
                           <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md border tracking-wider select-none ${typeColor}`}>
                             {typeLabel}
                           </span>
                         </td>
 
                         {/* Decoded Reason & Order Link */}
-                        <td className="py-3.5 px-5 text-xs font-semibold text-foreground leading-normal max-w-[320px]">
+                        <td className="py-2.5 px-3.5 text-xs font-semibold text-foreground leading-normal max-w-[240px]">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span>{item.reason}</span>
+                            <span className="truncate max-w-[170px]" title={item.reason}>{item.reason}</span>
                             {orderId && (
                               <Link
                                 href={`/dashboard/orders/${orderId}`}
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-[10px] font-mono font-bold transition-colors"
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-[10px] font-mono font-bold transition-colors shrink-0"
                                 title={`Перейти к заказу #${orderId}`}
                               >
                                 Заказ #{orderId} ↗
@@ -619,12 +619,12 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         </td>
 
                         {/* Amount with colored sign */}
-                        <td className={`py-3.5 px-5 text-right font-bold tabular-nums text-sm whitespace-nowrap ${isCredit ? 'text-success' : 'text-destructive'}`}>
+                        <td className={`py-2.5 px-3.5 text-right font-bold tabular-nums text-sm whitespace-nowrap ${isCredit ? 'text-success' : 'text-destructive'}`}>
                           {isCredit ? '+' : ''}{item.amountRub.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽
                         </td>
 
                         {/* Running Balance After Transaction */}
-                        <td className="py-3.5 px-5 text-right font-mono font-semibold text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                        <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-xs text-muted-foreground whitespace-nowrap tabular-nums">
                           {typeof item.runningBalanceRub === 'number' ? (
                             <span className="text-foreground font-bold">
                               {item.runningBalanceRub.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽
@@ -635,7 +635,7 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         </td>
 
                         {/* Status */}
-                        <td className="py-3.5 px-5 text-center select-none">
+                        <td className="py-2.5 px-3.5 text-center select-none">
                           <span className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded-md ${
                             item.status === 'APPROVED' ? 'bg-success/10 text-success-text border border-success/20' 
                             : item.status === 'PENDING' ? 'bg-warning/10 text-warning-text border border-warning/20' 
@@ -661,17 +661,17 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
         ) : (
           <>
             {/* Meticulous Accountant Mode (High Density Database properties) */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-xs" aria-label="История транзакций (бухгалтерский аудит)">
                 <thead>
                   <tr className="text-left text-[9px] uppercase tracking-widest text-foreground/75 bg-muted/30 border-b border-border/40 select-none">
-                    <th className="py-4 px-4 font-bold">ISO Время</th>
-                    <th className="py-4 px-4 font-bold">Transaction CUID</th>
-                    <th className="py-4 px-4 font-bold">Копейки (Raw Cents)</th>
-                    <th className="py-4 px-4 font-bold">Тип в БД</th>
-                    <th className="py-4 px-4 font-bold">Идемпотентность (Idempotency Key)</th>
-                    <th className="py-4 px-4 font-bold">Обоснование (Reason)</th>
-                    <th className="py-4 px-4 font-bold text-center">Статус</th>
+                    <th className="py-2.5 px-3 font-bold">ISO Время</th>
+                    <th className="py-2.5 px-3 font-bold">Transaction CUID</th>
+                    <th className="py-2.5 px-3 font-bold">Копейки (Raw Cents)</th>
+                    <th className="py-2.5 px-3 font-bold">Тип в БД</th>
+                    <th className="py-2.5 px-3 font-bold">Идемпотентность (Idempotency Key)</th>
+                    <th className="py-2.5 px-3 font-bold">Обоснование (Reason)</th>
+                    <th className="py-2.5 px-3 font-bold text-center">Статус</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -683,12 +683,12 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         className="border-b border-border/40 hover:bg-muted/20 font-mono transition-colors last:border-0"
                       >
                         {/* Precise Timestamp */}
-                        <td className="py-3 px-4 font-semibold text-muted-foreground whitespace-nowrap text-[11px]">
+                        <td className="py-2 px-3 font-semibold text-muted-foreground whitespace-nowrap text-[11px]">
                           {formatDate(item.createdAt, true)}
                         </td>
 
                         {/* Transaction CUID with Clipboard action */}
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-2 px-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[10px] text-foreground select-all font-semibold max-w-[80px] truncate min-w-0" title={item.id}>
                               {item.id}
@@ -708,17 +708,17 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         </td>
 
                         {/* Raw cents count */}
-                        <td className={`py-3 px-4 text-left font-bold text-[11px] whitespace-nowrap ${isCredit ? 'text-success-text' : 'text-destructive'}`}>
+                        <td className={`py-2 px-3 text-left font-bold text-[11px] whitespace-nowrap ${isCredit ? 'text-success-text' : 'text-destructive'}`}>
                           {isCredit ? '+' : ''}{item.amountCents.toLocaleString('ru-RU')} коп.
                         </td>
 
                         {/* DB Enum type */}
-                        <td className="py-3 px-4 text-foreground font-extrabold text-[10px]">
+                        <td className="py-2 px-3 text-foreground font-extrabold text-[10px]">
                           {item.transactionType}
                         </td>
 
                         {/* Idempotency Key */}
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-2 px-3 whitespace-nowrap">
                           {item.idempotencyKey ? (
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-muted-foreground select-all max-w-[90px] truncate min-w-0" title={item.idempotencyKey}>
@@ -742,12 +742,12 @@ export function TransactionsClient({ initialEntries, userEmail }: TransactionsCl
                         </td>
 
                         {/* Raw Reason string */}
-                        <td className="py-3 px-4 font-semibold text-foreground max-w-[200px] truncate" title={item.reason}>
+                        <td className="py-2 px-3 font-semibold text-foreground max-w-[200px] truncate" title={item.reason}>
                           {item.reason}
                         </td>
 
                         {/* Precise raw Status */}
-                        <td className="py-3 px-4 text-center select-none">
+                        <td className="py-2 px-3 text-center select-none">
                           <span className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-black rounded ${
                             item.status === 'APPROVED' ? 'bg-success/10 text-success-text border border-success/20' 
                             : item.status === 'PENDING' ? 'bg-warning/10 text-warning-text border border-warning/20' 

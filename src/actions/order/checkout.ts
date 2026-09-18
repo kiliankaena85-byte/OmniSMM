@@ -151,6 +151,10 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     const { serviceId, link, quantity, email, promoCodeStr, runs, interval, customData, gateway, idempotencyKey, mediaGroupUrl, isLinkOverridden, isSmartDrip, smartDripDays, abVariant, isRequirementsConfirmed, tenantId: inputTenantId } = data;
     const normalizedPromo = promoCodeStr ? promoCodeStr.trim().toUpperCase() : undefined;
     
+    // Mutual Exclusion Invariant: if isSmartDrip is true, strictly force Drip-Feed flags to undefined
+    const effectiveRuns = isSmartDrip ? undefined : runs;
+    const effectiveInterval = isSmartDrip ? undefined : interval;
+
     const effectiveIdempotencyKey = (idempotencyKey && idempotencyKey.trim().length >= 10)
       ? idempotencyKey.trim()
       : randomUUID();
@@ -164,7 +168,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
       }
     }
 
-    if (isSmartDrip || runs || interval) {
+    if (isSmartDrip || effectiveRuns || effectiveInterval) {
       const isDripEnabled = await featureFlagService.isEnabled('drip_feed');
       if (!isDripEnabled) {
         throw new Error("Функция Drip-feed временно отключена");
@@ -172,9 +176,6 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     }
 
     if (isSmartDrip) {
-      if (runs || interval) {
-        throw new Error("Нельзя одновременно использовать обычный Drip-feed и Умный Dripfeed");
-      }
       if (!smartDripDays || smartDripDays < 1 || smartDripDays > 30) {
         throw new Error("Необходимо указать количество дней (1-30) для Умного Dripfeed");
       }
@@ -263,7 +264,7 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
       throw new Error("Услуга не привязана к провайдеру");
     }
 
-    if (runs && !service.isDripFeedEnabled) {
+    if (effectiveRuns && !service.isDripFeedEnabled) {
       throw new Error("Эта услуга не поддерживает Drip-feed (постепенную подачу)");
     }
 
@@ -390,8 +391,8 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
     // 4. Calculate price based on TOTAL quantity and actual User ID for Loyalty Tier eval
     const totalQuantity = quantity;
 
-    if (runs && runs > 0 && !isSmartDrip) {
-      const runQty = Math.floor(totalQuantity / runs);
+    if (effectiveRuns && effectiveRuns > 0) {
+      const runQty = Math.floor(totalQuantity / effectiveRuns);
       if (runQty < service.minQty) {
         throw new Error(`Для Drip-feed количество на один запуск (${runQty}) не может быть меньше минимального (${service.minQty})`);
       }
@@ -559,7 +560,9 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
           const orderStatus = gateway === 'balance' ? 'PENDING' : 'AWAITING_PAYMENT';
           const paymentStatus = gateway === 'balance' ? 'SUCCEEDED' : 'PENDING';
 
-          const isDripFeedOrder = Boolean(runs && runs > 1);
+          const isDripFeedOrder = Boolean(effectiveRuns && effectiveRuns > 1);
+          const orderRuns = effectiveRuns || null;
+          const orderInterval = effectiveInterval || null;
 
         // Create primary Order (first media / main link)
         const newOrder = await tx.order.create({
@@ -576,8 +579,8 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
             charge: isSmartDrip && smartConfig ? Math.round(pricing.totalCents * (1 + smartConfig.markup)) : pricing.totalCents,
             providerCost: pricing.providerCostCents,
             isDripFeed: isDripFeedOrder,
-            runs,
-            interval,
+            runs: orderRuns,
+            interval: orderInterval,
             isTest: isTestMode,
             customData,
             remains: totalQuantity,
@@ -608,8 +611,8 @@ export const checkoutAction = async (input: z.input<typeof checkoutSchema>) => {
               charge: isSmartDrip && smartConfig ? Math.round(pricing.totalCents * (1 + smartConfig.markup)) : pricing.totalCents,
               providerCost: pricing.providerCostCents,
               isDripFeed: isDripFeedOrder,
-              runs,
-              interval,
+              runs: orderRuns,
+              interval: orderInterval,
               isTest: isTestMode,
               customData: `Медиагруппа: последнее медиа. Основной заказ: ${newOrder.numericId}`,
               remains: totalQuantity,

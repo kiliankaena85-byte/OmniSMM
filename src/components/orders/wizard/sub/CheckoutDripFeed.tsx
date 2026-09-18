@@ -35,8 +35,8 @@ export function CheckoutDripFeed({
             onChange={(e) => {
               const enabled = e.target.checked;
               setIsDripFeedEnabled(enabled);
-              if (enabled && (!quantity || quantity < selectedService.minQty)) {
-                setQuantity(selectedService.minQty);
+              if (enabled && (!quantity || quantity < selectedService.minQty * dripRuns)) {
+                setQuantity(selectedService.minQty * dripRuns);
               }
             }}
             className="sr-only peer"
@@ -55,7 +55,7 @@ export function CheckoutDripFeed({
             <input type="number" min={5} max={1440} value={dripInterval} onChange={(e) => setDripInterval(Math.max(1, parseInt(e.target.value) || 5))} className="w-full px-3 py-2.5 bg-background border border-border/60 rounded-xl text-base sm:text-sm font-bold text-foreground min-h-[44px]" />
           </div>
           <p className="col-span-2 text-xs text-muted-foreground font-medium">
-            Заказ выполнится за {dripRuns} запусков по {quantity} шт. Всего: <strong className="text-foreground">{totalQuantity} шт.</strong>
+            Заказ выполнится за {dripRuns} запусков по {Math.floor(quantity / dripRuns)} шт. Всего: <strong className="text-foreground">{quantity} шт.</strong>
           </p>
           {dripFloorWarning && (
             <div className="col-span-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs text-amber-700 dark:text-amber-300 animate-in fade-in duration-200">
