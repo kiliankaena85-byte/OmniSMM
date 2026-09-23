@@ -636,7 +636,7 @@ export async function bulkRefillOrdersAction(ticketId: string, orderIds: string[
 
     let processedCount = 0;
     const errors: string[] = [];
-    const createdRefills: { id: string }[] = [];
+    const createdRefills: { id: string; tenantId: string }[] = [];
 
     await db.$transaction(async (tx) => {
       for (const orderId of orderIds) {
@@ -686,7 +686,7 @@ export async function bulkRefillOrdersAction(ticketId: string, orderIds: string[
             }
           });
 
-          createdRefills.push({ id: refill.id });
+          createdRefills.push({ id: refill.id, tenantId: order.tenantId });
           processedCount++;
         } catch (err: unknown) {
           errors.push(`Ошибка по заказу ${orderId}: ${(err instanceof Error ? err.message : String(err))}`);
@@ -696,7 +696,7 @@ export async function bulkRefillOrdersAction(ticketId: string, orderIds: string[
 
     const { refillQueue } = await import('@/lib/queue-manager');
     for (const refill of createdRefills) {
-      await refillQueue.add('process-refill', { refillId: refill.id });
+      await refillQueue.add('process-refill', { refillId: refill.id, tenantId: refill.tenantId });
     }
 
     const ipAddress = await getClientIp('unknown');

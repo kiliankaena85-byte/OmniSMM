@@ -213,5 +213,126 @@ describe('Dynamic L1/L2 Domain Resolver & Proxy Integration Suite', () => {
       expect(res.status).not.toBe(403);
       expect(res.headers.get('x-tenant-id')).toBe('custom-vip');
     });
+
+    it('correctly resolves dynamic domain from X-Forwarded-Host when behind reverse proxy with internal Host', async () => {
+      (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+      process.env.CONTOUR = 'prod';
+
+      await DomainRegistryService.registerDomain({
+        slug: 'proxy-brand',
+        domain: 'proxy-brand.com',
+        isActive: true,
+      });
+
+      // Internal Host (e.g. Docker container or reverse proxy loopback) with external client in X-Forwarded-Host
+      const req = new NextRequest('http://127.0.0.1:3000/services', {
+        headers: {
+          host: '127.0.0.1:3000',
+          'x-forwarded-host': 'proxy-brand.com:443',
+          'x-forwarded-proto': 'https',
+        }
+      });
+
+      const res = await proxy(req);
+      expect(res.status).not.toBe(403);
+      expect(res.headers.get('x-tenant-id')).toBe('proxy-brand');
+    });
+
+    it('asynchronously allows CORS preflight and headers from registered custom domain even on cold L1 cache', async () => {
+      mockRedis.hget.mockResolvedValueOnce(
+        JSON.stringify({
+          tenantId: 'cors-partner',
+          slug: 'cors-partner',
+          domain: 'cors-partner.com',
+          isActive: true,
+          isVerified: true,
+        })
+      );
+
+      // OPTIONS preflight from a cold dynamic origin
+      const req = new NextRequest('http://localhost:3000/api/storefront/services', {
+        method: 'OPTIONS',
+        headers: {
+          host: 'localhost:3000',
+          origin: 'https://cors-partner.com',
+        }
+      });
+
+      const res = await proxy(req);
+      expect(res.status).toBe(204);
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://cors-partner.com');
+      expect(res.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+    });
+  });
+
+  describe('3. Edge Cases & Resilience Suite', () => {
+    it('properly cleans bracketed IPv6 hosts with ports and trailing dots', () => {
+      expect(DomainRegistryService.cleanHost('[::1]:3000')).toBe('::1');
+      expect(DomainRegistryService.cleanHost('[2001:db8::1]:8080')).toBe('2001:db8::1');
+      expect(DomainRegistryService.cleanHost('smmplan.pro:443')).toBe('smmplan.pro');
+      expect(DomainRegistryService.cleanHost('custom.agency.')).toBe('custom.agency');
+      expect(DomainRegistryService.cleanHost('www.custom.agency:80')).toBe('www.custom.agency');
+    });
+
+    it('recognizes core brand domains in isKnownInMemory and getCachedTenantId without prior DB/L1 calls', () => {
+      expect(DomainRegistryService.isKnownInMemory('smmplan.pro')).toBe(true);
+      expect(DomainRegistryService.isKnownInMemory('www.smmplan.pro')).toBe(true);
+      expect(DomainRegistryService.isKnownInMemory('smmflux.ru')).toBe(true);
+      expect(DomainRegistryService.isKnownInMemory('flux.smmplan.pro')).toBe(true);
+      expect(DomainRegistryService.getCachedTenantId('smmplan.pro')).toBe('smmplan');
+      expect(DomainRegistryService.getCachedTenantId('smmflux.ru')).toBe('flux');
+    });
+
+    it('coalesces concurrent in-flight domain resolutions to defeat thundering herd attacks', async () => {
+      mockRedis.hget.mockResolvedValue(null);
+      mockDb.tenant.findFirst.mockImplementation(async () => {
+        // Simulate DB latency
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        return {
+          id: 'popular-tenant',
+          slug: 'popular-tenant',
+          domain: 'popular-tenant.pro',
+          isActive: true,
+        };
+      });
+
+      // Fire 10 concurrent requests for the exact same uncached domain
+      const promises = Array.from({ length: 10 }, () =>
+        DomainRegistryService.resolveDomain('popular-tenant.pro')
+      );
+
+      const results = await Promise.all(promises);
+      for (const res of results) {
+        expect(res?.tenantId).toBe('popular-tenant');
+      }
+
+      // Despite 10 concurrent requests, DB findFirst was called exactly ONCE due to in-flight promise coalescing
+      expect(mockDb.tenant.findFirst).toHaveBeenCalledTimes(1);
+    });
+
+    it('symmetrically resolves www and non-www variants from L1 cache', async () => {
+      mockRedis.hget.mockResolvedValueOnce(
+        JSON.stringify({
+          tenantId: 'symm-brand',
+          slug: 'symm-brand',
+          domain: 'symm-brand.com',
+          isActive: true,
+          isVerified: true,
+        })
+      );
+
+      // First query with non-www
+      const nonWww = await DomainRegistryService.resolveDomain('symm-brand.com');
+      expect(nonWww?.tenantId).toBe('symm-brand');
+      expect(mockRedis.hget).toHaveBeenCalledTimes(1);
+
+      // Second query with www. should hit L1 without calling Redis or DB
+      mockRedis.hget.mockClear();
+      const withWww = await DomainRegistryService.resolveDomain('www.symm-brand.com');
+      expect(withWww?.tenantId).toBe('symm-brand');
+      expect(mockRedis.hget).not.toHaveBeenCalled();
+      expect(mockDb.tenant.findFirst).not.toHaveBeenCalled();
+    });
   });
 });
+

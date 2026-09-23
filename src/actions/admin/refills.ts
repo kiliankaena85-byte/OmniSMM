@@ -51,6 +51,7 @@ export async function directRestartRefillAction(refillId: string) {
     try {
       const refill = await db.refill.findUnique({
         where: { id: refillId },
+        include: { order: { select: { tenantId: true } } },
       });
 
       if (!refill) {
@@ -81,7 +82,7 @@ export async function directRestartRefillAction(refillId: string) {
       }
 
       const { refillQueue } = await import('@/lib/queue-manager');
-      await refillQueue.add('process-refill', { refillId });
+      await refillQueue.add('process-refill', { refillId, tenantId: refill.order?.tenantId || 'smmplan' });
 
       await auditAdminAwaitable({
         adminId: admin.id,
