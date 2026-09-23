@@ -44,6 +44,14 @@ export async function requireSession(requiredTenantId?: string): Promise<Validat
     return null;
   }
 
+  if (requiredTenantId) {
+    const { normalizeTenantId } = await import('@/lib/tenant-resolver-edge');
+    const norm = normalizeTenantId(requiredTenantId);
+    if (norm && normalizeTenantId(user.tenantId) !== norm) {
+      return null;
+    }
+  }
+
   return {
     userId: user.id,
     user,

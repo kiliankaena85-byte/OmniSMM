@@ -31,11 +31,11 @@ import { headers } from 'next/headers';
 import { resolveTenantFromRequest } from '@/lib/tenant-resolver-edge';
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
-  const session = await verifySession();
-  if (!session) redirect('/login');
-
   const reqHeaders = await headers();
   const tenantId = resolveTenantFromRequest(reqHeaders);
+
+  const session = await verifySession(tenantId);
+  if (!session) redirect('/login');
 
   const params = await searchParams;
   const currentPage = parseInt(params.page || '1', 10);
@@ -46,8 +46,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const status = params.status || '';
   const network = params.network || '';
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
+  const user = await db.user.findFirst({
+    where: { id: session.userId, tenantId },
     select: { balance: true }
   });
 
@@ -56,6 +56,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   // Build the DB where filter dynamically
   const where: Prisma.OrderWhereInput = {
     userId: session.userId,
+    tenantId,
   };
 
   if (status && status !== 'ALL') {
@@ -155,7 +156,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
     }),
     db.order.groupBy({
       by: ['status'],
-      where: { userId: session.userId },
+      where: { userId: session.userId, tenantId },
       _count: true,
     }),
   ]);

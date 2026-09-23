@@ -8,12 +8,14 @@ import { db } from '@/lib/db';
 import { unstable_cache } from 'next/cache';
 import nextDynamic from 'next/dynamic';
 
-const getCachedHealthData = unstable_cache(
+const getCachedHealthData = (tenantId?: string) => unstable_cache(
   async () => {
+    const tenantWhere = (tenantId && tenantId !== 'all') ? { tenantId } : {};
     return db.service.groupBy({
       by: ['isQuarantined', 'cooldownReason'],
       _count: true,
       where: {
+        ...tenantWhere,
         OR: [
           { isQuarantined: true },
           { cooldownReason: 'ZOMBIE_AUTO_DISABLED' },
@@ -22,9 +24,9 @@ const getCachedHealthData = unstable_cache(
       }
     });
   },
-  ['admin_dashboard_catalog_health'],
-  { revalidate: 60, tags: ['catalog', 'health'] }
-);
+  ['admin_dashboard_catalog_health', tenantId || 'all'],
+  { revalidate: 60, tags: ['catalog', 'health', `tenant:${tenantId || 'all'}`] }
+)();
 
 const OrdersChart = nextDynamic(() => import('./orders-chart').then(mod => mod.OrdersChart), {
   loading: () => <div className="h-64 w-full animate-pulse rounded-xl bg-card/50 border border-border flex items-center justify-center text-xs text-muted-foreground">Загрузка графиков...</div>,
@@ -224,7 +226,7 @@ export default async function AdminDashboardPage({
         action={<PeriodSelector period={period} />}
       />
 
-      <SystemHealthBanner />
+      <SystemHealthBanner tenantFilter={tenantFilter} />
 
       {/* ── 1. HERO SECTION: COLLAPSIBLE FULL-WIDTH WAVE CHART ── */}
       <CollapsibleWaveChart data={timeseries} step={step} />
@@ -516,8 +518,8 @@ export default async function AdminDashboardPage({
   );
 }
 
-async function SystemHealthBanner() {
-  const healthData = await getCachedHealthData();
+async function SystemHealthBanner({ tenantFilter }: { tenantFilter?: string }) {
+  const healthData = await getCachedHealthData(tenantFilter);
 
   if (!healthData || healthData.length === 0) return null;
 

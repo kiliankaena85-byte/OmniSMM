@@ -93,6 +93,19 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     4. **Заземление и безопасность:** 100% заземление на код без галлюцинаций, кликабельные ссылки на файлы и маршруты админки, пре- и пост-санитизация PII и маскирование секретов (`[REDACTED_SECRET]`).
   - *Причина:* Устранение когнитивного барьера для операторов админ-панели, мгновенный онбординг и точные консультации по живой кодовой базе.
 
+- **ADR-2026-27: Comprehensive Multi-Tenant Isolation & Zero Cross-Tenant Leakage Remediation (OmniSMM 1.0):**
+  - *Решение:*
+    1. **Аудит 87 моделей базы данных Prisma:** Выявлены и классифицированы 33 модели с `tenantId`, 14 связанных через `User` без `tenantId` (`Session`, `Invoice`, `Commission`, `PromoCodeUsage`, `ManualBalanceAdjustment`, `BalanceAdjustmentPolicy`, `StaffShift`), и 40 общих справочников.
+    2. **Изоляция сессий клиентов и персонала:** В `verifySession(requiredTenantId)` внедрена строгая проверка совпадения `user.tenantId === requiredTenantId` для всех клиентских маршрутов (`/dashboard/*`). Кросс-тенантный доступ персонала изолирован исключительно маршрутами `/admin` и `/operator`.
+    3. **Глобальный контекст переключателя сайтов:** В `requireStaffPermission` и `requireOwnerPermission` (`src/lib/server/rbac.ts`) активный тенант извлекается динамически из cookie `x_admin_tenant` (Global Site Switcher) через `resolveAdminTenantContext`, исключая хардкод на бренд `smmplan`.
+    4. **Сквозная фильтрация клиентских дашбордов:**
+       - Заказы (`dashboard/orders/page.tsx`, `dashboard/page.tsx`): фильтрация `where: { userId, tenantId }` во всех выборках и группировках `groupBy`.
+       - Финансы (`dashboard/finance/page.tsx`): изоляция журнала `LedgerEntry` фильтром `where: { userId, tenantId }`.
+       - Поддержка (`dashboard/tickets/page.tsx`, `[id]/page.tsx`): создание и просмотр обращений строго привязаны к активному тенанту.
+       - Пополнение баланса (`top-up.action.ts`): разрешение `requestTenantId` исключило биллинг под реквизитами чужого бренда.
+    5. **Изоляция каталога и кэша:** В `src/app/admin/dashboard/page.tsx` кэш `getCachedHealthData` и `SystemHealthBanner` разделены по ключу `['admin_dashboard_catalog_health', tenantId]`. В `catalog-sync.service.ts` устранены 4 BLOCKER-замечания AST-линтера.
+  - *Причина:* Исключение утечек баланса, заказов и финансовых транзакций между брендами `smmplan` и `smmflux` в клиентских и административных интерфейсах.
+
 - **ADR-2026-26: OmniSMM Monolithic Decomposition Waves 15–24 (CDD-TDD & Zero-Regression Guard):**
   - *Решение:*
     1. **SMMplan Core Decomposed (Waves 15–17):** 

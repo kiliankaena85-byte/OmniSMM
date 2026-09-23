@@ -15,15 +15,15 @@ import { resolveTenantFromRequest } from '@/lib/tenant-resolver-edge';
 export default async function DashboardPage(props: { searchParams?: Promise<{ tenant?: string }> }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const searchParams = await props.searchParams;
-  const session = await verifySession();
-  if (!session) redirect('/login');
-
   const reqHeaders = await headers();
   const tenantId = resolveTenantFromRequest(reqHeaders);
 
+  const session = await verifySession(tenantId);
+  if (!session) redirect('/login');
+
   const [user, orders, referralCount] = await Promise.all([
-    db.user.findUnique({
-      where: { id: session.userId },
+    db.user.findFirst({
+      where: { id: session.userId, tenantId },
       select: {
         email: true,
         balance: true,
@@ -34,7 +34,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ te
       },
     }),
     db.order.findMany({
-      where: { userId: session.userId },
+      where: { userId: session.userId, tenantId },
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: {
@@ -49,7 +49,7 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ te
         service: { select: { name: true, categoryId: true } },
       },
     }),
-    db.user.count({ where: { referredById: session.userId } }),
+    db.user.count({ where: { referredById: session.userId, tenantId } }),
   ]);
 
   if (!user) redirect('/login');
@@ -58,11 +58,11 @@ export default async function DashboardPage(props: { searchParams?: Promise<{ te
   const origin = await getBaseUrlAsync();
 
   const activeOrders = await db.order.count({
-    where: { userId: session.userId, status: { in: ['IN_PROGRESS', 'PENDING', 'PROVISIONING'] } },
+    where: { userId: session.userId, tenantId, status: { in: ['IN_PROGRESS', 'PENDING', 'PROVISIONING'] } },
   });
 
   const hasPendingPayments = await db.payment.count({
-    where: { userId: session.userId, status: 'PENDING', gateway: 'yookassa' }
+    where: { userId: session.userId, tenantId, status: 'PENDING', gateway: 'yookassa' }
   }) > 0;
 
   const { HomeView } = await getTenantDashboardViews(tenantId);

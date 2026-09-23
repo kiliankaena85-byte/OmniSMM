@@ -8,6 +8,9 @@ import ChatWindow from '@/components/support/ChatWindow';
 import { getSupportSlaInfo } from '@/utils/support-sla';
 import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs';
 
+import { headers } from 'next/headers';
+import { resolveTenantFromRequest } from '@/lib/tenant-resolver-edge';
+
 export const dynamic = 'force-dynamic';
 
 export default async function ClientTicketChatPage({
@@ -15,7 +18,10 @@ export default async function ClientTicketChatPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await verifySession();
+  const reqHeaders = await headers();
+  const tenantId = resolveTenantFromRequest(reqHeaders);
+
+  const session = await verifySession(tenantId);
   if (!session) redirect('/login');
 
   const { id } = await params;
@@ -28,6 +34,7 @@ export default async function ClientTicketChatPage({
       status: true,
       userId: true,
       orderId: true,
+      tenantId: true,
       user: {
         select: {
           email: true,
@@ -46,14 +53,15 @@ export default async function ClientTicketChatPage({
     },
   });
 
-  if (!ticket || ticket.userId !== session.userId) {
+  if (!ticket || ticket.userId !== session.userId || (ticket.tenantId && ticket.tenantId !== tenantId)) {
     redirect('/dashboard/tickets');
   }
 
-  // 1. Fetch user's 3 most recent CLOSED tickets (excluding the active one)
+  // 1. Fetch user's 3 most recent CLOSED tickets (excluding the active one, strictly within this tenant)
   const historicalTickets = await db.ticket.findMany({
     where: {
       userId: session.userId,
+      tenantId,
       status: 'CLOSED',
       id: { not: id }
     },

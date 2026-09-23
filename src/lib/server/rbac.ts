@@ -91,11 +91,20 @@ export async function requireStaffPermission<T>(
       return { success: false, error: "Forbidden: Administrator/Staff context required" };
     }
 
-    const tenantId = user.tenantId ?? 'smmplan';
+    let activeTenantId = user.tenantId ?? 'smmplan';
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+      const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
+      activeTenantId = resolveAdminTenantContext(user, null, cookieTenant);
+    } catch {
+      // In non-request, testing or worker environments, fallback to user.tenantId
+    }
 
     // OWNER & ADMIN bypass
     if (user.role === 'OWNER' || user.role === 'ADMIN') {
-      return await action(user, user.staffRole, tenantId);
+      return await action(user, user.staffRole, activeTenantId);
     }
 
     const normalizedSection = section.toUpperCase();
@@ -115,7 +124,7 @@ export async function requireStaffPermission<T>(
           SecurityAlertService.record({
             event: 'STAFF_PERMISSION_VIOLATION',
             severity: 'HIGH',
-            tenantId,
+            tenantId: activeTenantId,
             details: {
               staffUserId: user.id,
               staffEmail: user.email,
@@ -134,7 +143,7 @@ export async function requireStaffPermission<T>(
           SecurityAlertService.record({
             event: 'STAFF_PERMISSION_VIOLATION',
             severity: 'HIGH',
-            tenantId,
+            tenantId: activeTenantId,
             details: {
               staffUserId: user.id,
               staffEmail: user.email,
@@ -153,7 +162,7 @@ export async function requireStaffPermission<T>(
           SecurityAlertService.record({
             event: 'STAFF_PERMISSION_VIOLATION',
             severity: 'HIGH',
-            tenantId,
+            tenantId: activeTenantId,
             details: {
               staffUserId: user.id,
               staffEmail: user.email,
@@ -167,7 +176,7 @@ export async function requireStaffPermission<T>(
         return { success: false, error: `Forbidden: Cannot view [${section}]` };
     }
 
-    return await action(user, user.staffRole, tenantId);
+    return await action(user, user.staffRole, activeTenantId);
   } catch (error: unknown) {
     console.error("[RBAC] Execution Error:", error);
     const localized = handleServerError(error);
@@ -188,7 +197,16 @@ export async function requireOwnerPermission<T>(
     });
     if (!user) return { success: false, error: "Forbidden: User not found" };
 
-    const tenantId = user.tenantId ?? 'smmplan';
+    let activeTenantId = user.tenantId ?? 'smmplan';
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
+      const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
+      activeTenantId = resolveAdminTenantContext(user, null, cookieTenant);
+    } catch {
+      // In non-request, testing or worker environments, fallback to user.tenantId
+    }
 
     if (user.role !== 'OWNER') {
        console.warn(`[RBAC] User ${userId} attempted to execute OWNER Action but has role ${user.role}`);
@@ -196,7 +214,7 @@ export async function requireOwnerPermission<T>(
          SecurityAlertService.record({
            event: 'UNAUTHORIZED_OWNER_ACTION_ATTEMPT',
            severity: 'CRITICAL',
-           tenantId,
+           tenantId: activeTenantId,
            details: {
              staffUserId: user.id,
              staffEmail: user.email,
@@ -208,7 +226,7 @@ export async function requireOwnerPermission<T>(
        return { success: false, error: "Forbidden: OWNER context required" };
     }
 
-    return await action(user, tenantId);
+    return await action(user, activeTenantId);
   } catch (error: unknown) {
     console.error("[RBAC] Execution Error:", error);
     const localized = handleServerError(error);

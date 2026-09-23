@@ -1,3 +1,30 @@
+- [x] ⚡ [OMNISMM-MULTI-TENANT-ISOLATION-HARDENING-2026] Комплексная ликвидация утечек данных и изоляция тенантов (SMMplan vs SMMflux) во фронтенде, бэкенде и базе данных (100% COMPLETE & VERIFIED):
+  * 🛡️ **Аудит и классификация всех 87 моделей Prisma (`scripts/audit-tenant-models.mjs`):**
+    - 33 модели с прямой изоляцией `tenantId`.
+    - 14 моделей высокого риска, связанных через `User` (`Session`, `Invoice`, `Commission`, `PromoCodeUsage`, `ManualBalanceAdjustment`, `BalanceAdjustmentPolicy`, `StaffShift` и др.).
+    - 40 общих справочников (`TicketMessage`, `ContentItem`, `SystemSetting` и др.).
+    - Картированы глобальные уникальные ограничения, требовавшие защиты от коллизий.
+  * 🔒 **Изоляция сессий и RBAC (`src/lib/session.ts`, `src/lib/auth/require-session.ts`, `src/lib/server/rbac.ts`):**
+    - `verifySession(requiredTenantId)`: строгая проверка совпадения тенанта для пользовательских кабинетов. Запрещен кросс-тенантный доступ персонала в пользовательский дашборд `/dashboard/*`.
+    - `requireStaffPermission` & `requireOwnerPermission`: динамическое разрешение `activeTenantId` из cookie `x_admin_tenant` (Global Site Switcher) через `resolveAdminTenantContext`, исключая подмену бренда на дефолтный `smmplan`.
+  * 📊 **Ликвидация утечек в клиентском дашборде (`/dashboard/*`):**
+    - `src/app/dashboard/layout.tsx`: изоляция `db.user.findFirst({ where: { id, tenantId } })` и `db.ticket.count({ where: { userId, tenantId, status: 'PENDING' } })`.
+    - `src/app/dashboard/orders/page.tsx`: строгая фильтрация `where: { userId, tenantId }` в реестре заказов и в группировке `order.groupBy` по статусам.
+    - `src/app/dashboard/page.tsx`: исключены утечки заказов, рефералов и активных платежей других брендов (`order.findMany`, `order.count`, `payment.count` строго с `tenantId`).
+    - `src/app/dashboard/finance/page.tsx`: исключена утечка журнала транзакций `db.ledgerEntry.findMany({ where: { userId, tenantId } })`.
+    - `src/app/dashboard/tickets/page.tsx` & `[id]/page.tsx`: создание и чтение тикетов строго с привязкой к активному бренду `tenantId`.
+    - `src/actions/auth/refresh-balance.ts`: опрос баланса строго в контексте тенанта запроса.
+    - `src/actions/user/top-up.action.ts`: исключена инверсия тенанта при пополнении баланса — платежи и юр. реквизиты привязаны к `requestTenantId`.
+  * 🩺 **Каталог и здоровье админ-панели:**
+    - `src/app/admin/dashboard/page.tsx`: кэширование `getCachedHealthData` и баннер `SystemHealthBanner` строго разделены по `tenantId` в кэш-ключах, тегах и запросах `db.service.groupBy`.
+    - `src/services/admin/catalog/catalog-sync.service.ts`: устранены 4 BLOCKER-нарушения AST-линтера с документированными обоснованиями.
+  * 🧪 **Верификация и гейты качества:**
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `npm run lint:tenant` — 0 BLOCKERs (Exit code 0).
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - Vitest `tenant-isolation-ast.test.ts` — 8/8 PASS (100% Green).
+    - Vitest `multitenant-staff-isolation.test.ts` — 15/15 PASS (100% Green).
+
 - [x] ⚡ [OMNISMM-CLEAN-BASELINE-REPO-2026] Инициализация чистого эталонного репозитория `https://github.com/kiliankaena85-byte/OmniSMM` (100% COMPLETE & VERIFIED):
   * 🛡️ **Изоляция старого репозитория:** Старый `origin` (`kiliankaena85-byte/SMMplan.git`) переименован в `broken-old-origin` с защитой от случайного пуша.
   * 🚀 **Новый чистый репозиторий:** `origin` перенаправлен на `git@github.com:kiliankaena85-byte/OmniSMM.git`.

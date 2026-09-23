@@ -247,6 +247,7 @@ export class CatalogSyncService {
     await this.refreshShadowCatalog(providerId);
 
     // 2. Fetch our curated services
+    // tenant-isolation-ignore: Provider catalog sync updates curated services across all tenants for provider
     const ourServices = await db.service.findMany({
       where: { providerId }
     });
@@ -443,6 +444,7 @@ export class CatalogSyncService {
     const ZOMBIE_BATCH_SIZE = 50;
     for (let i = 0; i < zombieIds.length; i += ZOMBIE_BATCH_SIZE) {
       const batch = zombieIds.slice(i, i + ZOMBIE_BATCH_SIZE);
+      // tenant-isolation-ignore: Provider zombie service disable updates matched service IDs across all tenants
       await db.service.updateMany({
         where: { id: { in: batch } },
         data: {
@@ -497,6 +499,7 @@ export class CatalogSyncService {
     const serviceIds = Array.from(oldRates.keys());
     if (serviceIds.length === 0) return anomalies;
 
+    // tenant-isolation-ignore: Anomaly detection checks specific service IDs by primary key across all tenants
     const services = await db.service.findMany({
       where: { id: { in: serviceIds } },
       select: { id: true, name: true, rate: true, providerCurrency: true, isQuarantined: true }
@@ -583,6 +586,7 @@ export class CatalogSyncService {
     const { CBRRateService } = await import('@/services/system/cbr-rate.service');
     const liveCrossRates = await CBRRateService.getLiveCrossRates();
 
+    // tenant-isolation-ignore: CBR price synchronization updates denormalized currency rates across all tenants
     const allServices = await db.service.findMany({
       select: { id: true, name: true, rate: true, markup: true, isActive: true, providerCurrency: true, tenantId: true }
     });

@@ -4,14 +4,20 @@ import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
 import { formatBalance } from '@/lib/utils';
 
+import { headers } from 'next/headers';
+import { resolveTenantFromRequest } from '@/lib/tenant-resolver-edge';
+
 export async function refreshBalanceAction() {
-  const session = await verifySession();
+  const reqHeaders = await headers();
+  const tenantId = resolveTenantFromRequest(reqHeaders);
+
+  const session = await verifySession(tenantId);
   if (!session) {
     return { success: false, error: 'Unauthorized' };
   }
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
+  const user = await db.user.findFirst({
+    where: { id: session.userId, tenantId },
     select: { balance: true },
   });
 

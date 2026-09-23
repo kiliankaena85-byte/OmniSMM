@@ -21,16 +21,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FinancePage() {
-  const session = await verifySession();
+  const reqHeaders = await headers();
+  const tenantId = resolveTenantFromRequest(reqHeaders);
+
+  const session = await verifySession(tenantId);
   if (!session) redirect('/login');
 
   const [user, entries] = await Promise.all([
-    db.user.findUnique({
-      where: { id: session.userId },
+    db.user.findFirst({
+      where: { id: session.userId, tenantId },
       select: { id: true, email: true, balance: true },
     }),
     db.ledgerEntry.findMany({
-      where: { userId: session.userId },
+      where: { userId: session.userId, tenantId },
       orderBy: { createdAt: 'asc' },
       select: {
         id: true,
@@ -85,9 +88,6 @@ export default async function FinancePage() {
   // Reverse so newest transactions are at the top
   const serializedEntries = enrichedEntries.reverse();
   const currentBalanceRub = Number(user.balance ?? 0) / 100;
-
-  const reqHeaders = await headers();
-  const tenantId = resolveTenantFromRequest(reqHeaders);
 
   return (
     <Suspense fallback={<div className="max-w-4xl animate-pulse text-muted-foreground">Загрузка финансов...</div>}>

@@ -8,6 +8,8 @@ import { getClientIp } from "@/utils/ip";
 import { RateLimitService } from "@/services/core/rate-limit.service";
 import { ExactMath } from "@/lib/financial/exact-math";
 
+import { resolveTenantFromRequest } from "@/lib/tenant-resolver-edge";
+
 export interface TopUpActionResult {
   success: boolean;
   paymentUrl?: string;
@@ -21,7 +23,10 @@ export async function createTopUpPaymentAction(
   idempotencyKey?: string
 ): Promise<TopUpActionResult> {
   try {
-    const session = await verifySession();
+    const reqHeaders = await headers();
+    const requestTenantId = resolveTenantFromRequest(reqHeaders);
+
+    const session = await verifySession(requestTenantId);
     if (!session) {
       return { success: false, error: "Требуется авторизация" };
     }
@@ -40,8 +45,8 @@ export async function createTopUpPaymentAction(
       return { success: false, error: "Минимальная сумма пополнения — 10 ₽" };
     }
 
-    // Fetch user
-    const dbUser = await db.user.findUnique({ where: { id: session.userId } });
+    // Fetch user scoped strictly to request tenant
+    const dbUser = await db.user.findFirst({ where: { id: session.userId, tenantId: requestTenantId } });
     if (!dbUser) {
       return { success: false, error: "Пользователь не найден." };
     }
@@ -64,12 +69,12 @@ export async function createTopUpPaymentAction(
     const existingPayment = await db.payment.findFirst({
       where: {
         userId: session.userId,
+        tenantId: requestTenantId,
         amount: amountCents,
         gateway,
         status: 'PENDING',
         createdAt: { gte: twoMinutesAgo },
         checkoutUrl: { not: null },
-        ...(dbUser.tenantId ? { tenantId: dbUser.tenantId } : {})
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -79,7 +84,6 @@ export async function createTopUpPaymentAction(
       return { success: true, paymentUrl: existingPayment.checkoutUrl };
     }
 
-    const reqHeaders = await headers();
     const consentIp = await getClientIp();
     const consentUserAgent = reqHeaders.get("user-agent") || "Unknown";
 
@@ -88,7 +92,7 @@ export async function createTopUpPaymentAction(
       select: { updatedAt: true }
     });
     const { SettingsProvider } = await import('@/lib/settings');
-    const targetTenantId = dbUser.tenantId || 'smmplan';
+    const targetTenantId = requestTenantId;
     const legalSettings = await SettingsProvider.getContactAndLegalSettings(targetTenantId);
     const legalInn = legalSettings.COMPANY_INN || 'default_inn';
     const consentVersion = termsDoc 

@@ -157,13 +157,26 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
 
     const reqHeaders = await headers();
     const host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
+    const pathname = reqHeaders.get('x-pathname') || '';
+    const isAdminOrOperatorPath = pathname.startsWith('/admin') || pathname.startsWith('/operator');
     const currentContour = resolveContourFromHost(host);
     const currentTenantId = normalizeTenantId(requiredTenantId || reqHeaders.get("x-tenant-id")) || "smmplan";
     const userTenantId = normalizeTenantId(user.tenantId) || "smmplan";
     
-    // Staff roles (OWNER, ADMIN, MANAGER, SUPPORT) have global multi-tenant access
+    // Explicit requiredTenantId check (strictly mandatory for both staff and users)
+    if (requiredTenantId) {
+      const normRequired = normalizeTenantId(requiredTenantId);
+      if (normRequired && userTenantId !== normRequired) {
+        console.warn(`[verifySession] null because: user tenant "${user.tenantId}" does not match required tenant "${requiredTenantId}"`);
+        return null;
+      }
+    }
+
+    // Staff roles (OWNER, ADMIN, MANAGER, SUPPORT) have global multi-tenant access ONLY on admin and operator paths.
+    // On customer storefronts and client dashboards (/dashboard/*), customer sessions must match host tenant.
     const isStaffRole = ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'].includes(user.role);
-    if (!isStaffRole && userTenantId !== currentTenantId) {
+    const allowCrossTenantStaff = isStaffRole && isAdminOrOperatorPath;
+    if (!allowCrossTenantStaff && userTenantId !== currentTenantId) {
       console.warn(`[verifySession] null because: user tenant "${user.tenantId}" does not match request tenant "${currentTenantId}"`);
       try {
         const cookieStore = await cookies();

@@ -12,20 +12,21 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await verifySession();
-  if (!session) redirect('/login');
-
   const reqHeaders = await headers();
   const tenantId = resolveTenantFromRequest(reqHeaders);
 
+  const session = await verifySession(tenantId);
+  if (!session) redirect('/login');
+
   const [user, unreadTicketsCount] = await Promise.all([
-    db.user.findUnique({
-      where: { id: session.userId },
+    db.user.findFirst({
+      where: { id: session.userId, tenantId },
       select: { email: true, balance: true, tenantId: true },
     }),
     db.ticket.count({
       where: {
         userId: session.userId,
+        tenantId,
         status: 'PENDING',
       },
     }),
