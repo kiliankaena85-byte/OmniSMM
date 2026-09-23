@@ -68,7 +68,8 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
       count: async () => 0,
       defaultJobOptions: {
         attempts: 3,
-        backoff: { type: 'exponential', delay: 5000 }
+        backoff: { type: 'exponential', delay: 5000 },
+        ...defaultOptions
       }
     };
     return new Proxy(targetObj, {
@@ -106,6 +107,7 @@ export interface OrderJobPayload {
   orderId: string;
   isDripFeedChild?: boolean; // True if this is specifically dispatched from our Drip-Feed cron
   dripParentOrderId?: string;
+  tenantId?: string;
 }
 
 // DripFeed queue has been removed as it is now passed natively to providers.
@@ -140,8 +142,38 @@ export interface ETAJobPayload {
 
 export interface RefillJobPayload {
   refillId: string;
+  tenantId?: string;
 }
 
+
+// Standard execution timeouts per queue (in milliseconds)
+export const QUEUE_TIMEOUTS = {
+  ordersQueue: 60000,          // 60s max per order dispatch
+  syncQueue: 120000,          // 120s max for status sync
+  catalogQueue: 180000,       // 180s max for catalog mutations
+  refillQueue: 60000,         // 60s max for refill request
+  paymentGatewayQueue: 30000, // 30s max for payment generation
+} as const;
+
+/**
+ * Enforces a bounded execution timeout on a background job using AbortSignal.
+ */
+export async function withJobTimeout<T>(
+  jobName: string,
+  timeoutMs: number,
+  fn: (signal: AbortSignal) => Promise<T>
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort(new Error(`[BullMQ] Job ${jobName} timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
+
+  try {
+    return await fn(controller.signal);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 // Instantiate queues using NextJS-safe singleton
 export const ordersQueue = createQueue<OrderJobPayload>('ordersQueue', {
@@ -211,7 +243,8 @@ export interface PaymentGatewayJobPayload {
   description: string;
   isTestMode: boolean;
   gateway: 'yookassa' | 'cryptobot' | 'robokassa';
-    metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  tenantId?: string;
 }
 export const paymentGatewayQueue = createQueue<PaymentGatewayJobPayload>('paymentGatewayQueue', {
   attempts: 3,

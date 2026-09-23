@@ -72,6 +72,23 @@ export class MutexManager {
   }
 
   /**
+   * Acquires a distributed lock with a monotonic fencing token to prevent split-brain execution.
+   */
+  static async acquireLockWithFencing(
+    key: string,
+    ttlMs: number,
+    maxWaitMs: number = 5000
+  ): Promise<{ token: string; fencingToken: number } | null> {
+    const token = await this.acquireLock(key, ttlMs, maxWaitMs);
+    if (!token) return null;
+
+    const lockKey = key.startsWith('lock:') ? key : `lock:${key}`;
+    const fencingKey = `${lockKey}:fence`;
+    const fencingToken = await redis.incr(fencingKey);
+    return { token, fencingToken };
+  }
+
+  /**
    * Wrapper execute function that ensures mutual exclusion on a specific key.
    * Periodically extends the lock TTL in the background while the task executes.
    */
@@ -97,4 +114,38 @@ export class MutexManager {
       await this.releaseLock(key, token);
     }
   }
+
+  /**
+   * Executes a callback within a lock guaranteed with a monotonic fencing token.
+   * Periodically extends the lock TTL in the background while the task executes.
+   */
+  static async withFencingLock<T>(
+    key: string,
+    ttlMs: number,
+    maxWaitMs: number,
+    fn: (fencingToken: number) => Promise<T>
+  ): Promise<T> {
+    const handle = await this.acquireLockWithFencing(key, ttlMs, maxWaitMs);
+    if (!handle) {
+      throw new Error(`Failed to acquire fencing lock for key: ${key}`);
+    }
+
+    const { token, fencingToken } = handle;
+    const intervalMs = Math.max(100, Math.floor(ttlMs / 3));
+    const heartbeatTimer = setInterval(async () => {
+      try {
+        await this.extendLock(key, token, ttlMs);
+      } catch {
+        // Ignore background extension error
+      }
+    }, intervalMs);
+
+    try {
+      return await fn(fencingToken);
+    } finally {
+      clearInterval(heartbeatTimer);
+      await this.releaseLock(key, token);
+    }
+  }
 }
+
