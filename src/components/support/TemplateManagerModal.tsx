@@ -49,6 +49,7 @@ export default function TemplateManagerModal({
   const [text, setText] = useState('');
   const [shortcut, setShortcut] = useState('');
   const [category, setCategory] = useState('GENERAL');
+  const [deletingTemplateId, setDeletingTemplateId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const filteredTemplates = useMemo(() => {
@@ -95,8 +96,6 @@ export default function TemplateManagerModal({
       setEditingId(null);
     });
   };
-
-  const [deletingTemplateId, setDeletingTemplateId] = useState<string | null>(null);
 
   const handleDeleteTrigger = (id: string) => {
     setDeletingTemplateId(id);

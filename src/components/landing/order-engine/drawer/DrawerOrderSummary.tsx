@@ -20,12 +20,13 @@ export function DrawerOrderSummary({
   engine
 }: DrawerOrderSummaryProps) {
   const [isDescExpanded, setIsDescExpanded] = React.useState(false);
-  if (!selectedService) return null;
 
   const selectedNetworkObj = React.useMemo(() => {
     if (!engine) return null;
     return engine.catalog.find(n => n.id === engine.networkId);
   }, [engine]);
+
+  if (!selectedService) return null;
 
   const networkSlug = selectedNetworkObj?.slug || "other";
   const networkName = selectedNetworkObj?.name || "Платформа";

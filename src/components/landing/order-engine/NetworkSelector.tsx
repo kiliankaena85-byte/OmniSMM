@@ -3,6 +3,7 @@ import { OrderEngine } from "@/hooks/useOrderEngine";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { GripHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { sortCategories } from "@/hooks/order-engine/category-demand-sorter";
 
 import { getBrandStyles } from "@/utils/brand-styles";
 
@@ -11,10 +12,6 @@ export function NetworkSelector({ engine }: { engine: OrderEngine }) {
   const [showAllNetworks, setShowAllNetworks] = useState(false);
 
   const activePlatform = platform || manualPlatform;
-
-  if (catalog.length === 0) {
-    return null;
-  }
 
   const DEFAULT_TOP = useMemo(() => ['telegram', 'vk', 'instagram', 'youtube', 'tiktok', 'twitch'], []);
   const [topSlugs, setTopSlugs] = useState<string[]>(DEFAULT_TOP);
@@ -38,11 +35,14 @@ export function NetworkSelector({ engine }: { engine: OrderEngine }) {
     }
   }, [DEFAULT_TOP]);
 
-    const handleNetworkSelect = (net: { id: string; slug: string; categories?: Array<{ id: string }> }) => {
+  const handleNetworkSelect = (net: { id: string; slug: string; categories?: Array<{ id: string; name: string; serviceCount?: number }> }) => {
     setNetworkId(net.id);
     engine.setSelectedService(null);
     if (net.categories && net.categories.length > 0) {
-      engine.setCategoryId(net.categories[0].id);
+      const nonZero = net.categories.filter(c => c.serviceCount === undefined || c.serviceCount > 0);
+      const candidates = nonZero.length > 0 ? nonZero : net.categories;
+      const sorted = sortCategories(candidates);
+      engine.setCategoryId(sorted[0].id);
     }
     setShowAllNetworks(false);
 
@@ -93,6 +93,10 @@ export function NetworkSelector({ engine }: { engine: OrderEngine }) {
 
     return { topNetworks: top, otherNetworks: other };
   }, [catalog, topSlugs, networkId, activePlatform]);
+
+  if (catalog.length === 0) {
+    return null;
+  }
 
   return (
     <div className="hidden md:flex bg-content2 border-b border-border/50 p-4 shrink-0 flex-col gap-4">

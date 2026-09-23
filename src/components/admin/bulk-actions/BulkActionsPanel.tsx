@@ -68,8 +68,6 @@ export function BulkActionsPanel({
   const [ticketId, setTicketId] = useState('');
 
   const count = selectedOrders.length;
-  if (count === 0) return null;
-
   const canExecuteAdminBulk = ['OWNER', 'ADMIN'].includes(userRole);
 
   // Breakdown of selected orders
@@ -135,6 +133,8 @@ export function BulkActionsPanel({
       }
     });
   };
+
+  if (count === 0) return null;
 
   return (
     <>
