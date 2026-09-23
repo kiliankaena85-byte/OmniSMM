@@ -58,6 +58,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
   const [slug, setSlug] = useState('');
   const [domain, setDomain] = useState('');
   const [customDomain, setCustomDomain] = useState('');
+  const [themePreset, setThemePreset] = useState<'sky' | 'violet' | 'emerald' | 'amber' | 'rose' | 'indigo' | 'slate'>('sky');
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -76,7 +77,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
         slug,
         domain,
         customDomain: customDomain ? customDomain : null,
-        themeVariant: 'classic'
+        themeVariant: themePreset
       });
 
       if (res.success && res.data) {
@@ -85,6 +86,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
         setSlug('');
         setDomain('');
         setCustomDomain('');
+        setThemePreset('sky');
         window.location.reload();
       } else {
         setError(res.error || 'Ошибка создания бренда');
@@ -387,6 +389,37 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                   onChange={e => setCustomDomain(e.target.value.toLowerCase().trim())}
                   className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground font-mono text-xs"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="font-semibold text-foreground block">
+                  Цветовая палитра витрины (Theme Preset)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'sky', label: 'Sky Blue', color: '#0369a1' },
+                    { id: 'violet', label: 'Cyber Violet', color: '#9333ea' },
+                    { id: 'emerald', label: 'Emerald', color: '#047857' },
+                    { id: 'amber', label: 'Warm Amber', color: '#d97706' },
+                    { id: 'rose', label: 'Rose Crimson', color: '#e11d48' },
+                    { id: 'indigo', label: 'Tech Indigo', color: '#4f46e5' },
+                    { id: 'slate', label: 'Minimal Slate', color: '#334155' },
+                  ].map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setThemePreset(p.id as any)}
+                      className={`flex items-center gap-2 p-2 rounded-lg border text-left transition-all cursor-pointer ${
+                        themePreset === p.id 
+                          ? 'border-primary bg-primary/10 font-bold text-foreground ring-1 ring-primary' 
+                          : 'border-border/60 hover:border-border bg-card text-muted-foreground'
+                      }`}
+                    >
+                      <span className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: p.color }} />
+                      <span className="text-[11px] truncate">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="p-3.5 rounded-lg bg-secondary/40 border border-border/50 space-y-2 text-[11px] text-muted-foreground">

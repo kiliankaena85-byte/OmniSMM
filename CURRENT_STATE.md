@@ -24,8 +24,8 @@
     - **R6-07..R6-11**: Документирован дрейф `prisma migrate diff`, подтверждены зонды `/api/health` и регламент BGS-2026, модернизирован `vitest.config.ts`.
   * 🧪 **Итоговая верификация:** 35/35 специализированных тестов PASS, 0 уязвимостей в `npm audit`, 0 утечек секретов, 0 ошибок `tsc --noEmit`. Отчёт сформирован в `audit/report-2026-09-23-vuln-sweep.md`.
 
-- [x] ⚡ [OMNISMM-DYNAMIC-DOMAIN-RESOLVER-AND-BULLMQ-TENANT-HOTFIX-2026] Внедрение динамического 3-уровневого резолвера доменов (L1/L2/L3) и ликвидация потери контекста тенанта в BullMQ (100% COMPLETE & VERIFIED):
-  * 📋 **Фаза 1: Устранение потери контекста тенанта в BullMQ `ordersQueue` (Hotfix):**
+- [x] ⚡ [OMNISMM-DYNAMIC-DOMAIN-RESOLVER-AND-BULLMQ-TENANT-HOTFIX-2026] Внедрение динамического 3-уровневого резолвера доменов (L1/L2/L3) и ликвидация потери контекста тенанта в BullMQ (100% COMPLETE & HARDENED BY REVIEWER):
+  * 📋 **Фаза 1: Устранение потери контекста тенанта в BullMQ `ordersQueue` и `refillQueue` (Hotfix):**
     - Аудит и обновление всех 9 точек постановки задач в очередь `ordersQueue` с явной передачей `tenantId`:
       - `src/services/core/order.service.ts` (`tenantId: newOrder.tenantId`)
       - `src/services/orders/checkout-payment.service.ts` (`tenantId` для primary и split-заказов)
@@ -36,27 +36,51 @@
       - `src/services/providers/balance-autoflush.service.ts` (выборка кандидатов с `tenantId` и передача `order.tenantId`)
       - `src/workers/processors/cleanup.processor.ts` (orphan sweep с `tenantId: orphan.tenantId`)
       - `src/workers/processors/sync.processor.ts` (orphan orders с `tenantId: orphan.tenantId`)
-    - В `src/workers/processors/order.processor.ts` внедрен защитный механизм: при отсутствии `tenantId` в данных задачи выполняется запрос через `runWithTenantBypass('BullMQ orderProcessor resolve tenantId', ...)` для безопасного восстановления истинного `tenantId` из БД, исключая зависание заказов и блокировку Prisma Tenant Enforcer.
-  * 🌐 **Фаза 2: Динамический 3-уровневый резолвер доменов в `src/proxy.ts` и синхронизация сессий:**
-    - Разработан сервис `DomainRegistryService` (`src/services/tenant/domain-registry.service.ts`) с 3-уровневой архитектурой:
-      - Встроенное мгновенное распознавание core-доменов (`smmplan.pro`, `smmflux.ru` и поддомены).
-      - **L1 In-Memory Cache**: синхронный и асинхронный быстрый доступ (TTL 60s), негативный кэш (TTL 10s для защиты БД от DDoS/hammering несуществующими доменами).
-      - **L2 Redis Cache**: хэш-таблица `domain:registry` (`HGET` / `HSET` / `HDEL`).
+    - Дополнительно закрыты уязвимости потери контекста в `refillQueue`:
+      - `src/actions/order/refill.ts`, `src/actions/support/ticket.ts`, `src/actions/admin/refills.ts` явно передают `tenantId`.
+      - В `src/workers/processors/refill.processor.ts` и `order.processor.ts` внедрены: `runWithTenantBypass` для безопасного восстановления `tenantId` из БД, `registerValidTenant` для динамических slug, и сохранение `job.data.tenantId` для ретраев BullMQ.
+  * 🌐 **Фаза 2: Динамический 3-уровневый резолвер доменов в `src/proxy.ts` и синхронизация сессий (Harden):**
+    - Сервис `DomainRegistryService` (`src/services/tenant/domain-registry.service.ts`):
+      - Встроенное мгновенное распознавание core-доменов (`smmplan.pro`, `smmflux.ru` и поддомены) в `isKnownInMemory` и `getCachedTenantId`.
+      - Подавление атак типа Thundering Herd через In-flight Promise Coalescing (`inFlightResolutions`).
+      - Симметричный L1-кэш для `www` и non-www вариантов.
+      - Полноценная поддержка IPv6-адресов с квадратными скобками (`[::1]:3000`).
+      - **L2 Redis Cache**: хэш-таблица `domain:registry` (`HGET` / `HSET` / `HDEL`) с прямым негативным кэшированием деактивированных брендов.
       - **L3 PostgreSQL Fallback**: выборка `db.tenant.findFirst` по `domain`, `customDomain`, `slug` при `isActive: true`.
-    - В `src/proxy.ts` ликвидированы жесткие барьеры хостов:
-      - `isKnownOrAllowedHost` и `isAllowedCorsOrigin` используют `DomainRegistryService.isKnownInMemory`.
-      - Ранняя валидация хостов разрешает проверенные динамические домены без 403 ошибки.
-      - Извлечение `fromDynamic` в иерархии определения тенанта.
-      - Обход блокировки контура 403 для проверенных динамических доменов (`!isVerifiedDynamicDomain`).
-    - В `src/actions/admin/tenants.ts` добавлена регистрация и удаление доменов в реестре при создании, изменении и переключении активности тенантов.
-    - В `src/lib/session.ts` добавлены защиты от ложного сброса сессий (`!isCustomDomain`, проверка соответствия хоста и тенанта пользователя).
-  * 🧪 **Верификация и тесты (100% PASS):**
-    - `src/__tests__/unit/bullmq-tenant-context.test.ts` (4/4 PASS).
-    - `src/__tests__/unit/dynamic-domain-registry.test.ts` (9/9 PASS).
-    - `src/__tests__/unit/dynamic-domain-session.test.ts` (3/3 PASS).
+    - В `src/proxy.ts`:
+      - Корректная обработка `X-Forwarded-Host` при работе за обратным прокси/Docker-контейнером (предотвращает ложную 403-ошибку контура).
+      - Асинхронное разрешение CORS origin для кастомных доменов даже при холодном L1-кэше.
+      - Регистрация IPv6 loopback `::1` в `INTERNAL_HOSTS`.
+    - В `src/actions/admin/tenants.ts`:
+      - Очистка реестра доменов (`removeDomains`) и разрегистрация слага (`unregisterValidTenant`) при удалении тенанта в `deleteTenantAction`.
+    - В `src/lib/session.ts`:
+      - Асинхронный фолбэк домена в `verifySession` для сохранения сессий на кастомных доменах при холодном L1-кэше.
+  * 🎨 **Фаза 3: Динамическая дизайн-система и темы оформления (White-Label UI & Theming):**
+    - Разработан сервис `TenantThemeService` (`src/services/tenant/tenant-theme.service.ts`):
+      - 3-уровневое разрешение токенов: L1 (In-Memory Map, 60s TTL), L2 (Redis `tenant:theme:<id>`), L3 (PostgreSQL `SystemSetting` key-value store `tenant_theme_<slug>`).
+      - 7 базовых пресетов: `sky` (SMMplan), `violet` (SMMflux), `emerald`, `amber`, `rose`, `indigo`, `slate`, плюс режим `custom`.
+      - Санитизация HEX, RGB, HSL и radius для защиты от CSS/HTML injection.
+    - Внедрен SSR-компонент `<TenantThemeInjector>` (`src/components/theme/TenantThemeInjector.tsx`):
+      - Рендерится напрямую в `<head>` (`src/app/layout.tsx`) с криптографическим Nonce для CSP.
+      - Исключает мерцание FOUC (Flash of Unstyled Content).
+      - На `<html>` выставляется `data-tenant={tenantId}`.
+    - Динамические метаданные в `generateMetadata()`:
+      - Автоматическое разрешение `siteName`, `description`, favicon (`siteFaviconUrl`) и OpenGraph/Twitter карт для любых динамических тенантов.
+    - Динамический брендинг в личном кабинете:
+      - В `src/tenants/factory.ts` незарегистрированные тенанты получают полноценный дашборд вместо заглушки техобслуживания.
+      - В `ClassicDashboardShell.tsx` и `SidebarNav` логотип и название витрины отображаются динамически.
+    - В панели управления (`src/app/admin/tenants/tenants-manager.tsx`):
+      - Добавлен визуальный селектор цветовых палитр при создании бренда.
+  * 🧪 **Итоговая верификация (57/57 PASS):**
+    - `src/__tests__/unit/bullmq-tenant-context.test.ts` (6/6 PASS).
+    - `src/__tests__/unit/dynamic-domain-registry.test.ts` (15/15 PASS).
+    - `src/__tests__/unit/dynamic-domain-session.test.ts` (4/4 PASS).
+    - `src/__tests__/unit/tenant-delete-cleanup.test.ts` (1/1 PASS).
+    - `src/__tests__/unit/dynamic-tenant-theme.test.ts` (8/8 PASS).
     - `src/workers/processors/__tests__/cleanup.processor.test.ts` (3/3 PASS).
     - `src/__tests__/architecture/tenant-isolation-ast.test.ts` (10/10 PASS).
     - `src/services/__tests__/multitenant-security.test.ts` (5/5 PASS).
+    - `src/__tests__/unit/cors-policy-hardening.test.ts` (5/5 PASS).
     - `npx tsc --noEmit` — 0 ошибок (Clean).
     - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
     - `npm run lint:tenant` — 0 BLOCKERs.

@@ -718,6 +718,27 @@ npx @next/codemod@latest middleware-to-proxy
   - *Контекст:* При сохранении/отмене редактирования услуги на `/admin/catalog/[id]` происходит возврат на чистый `/admin/catalog` без query-параметров. Оператор теряет выбранные фильтры (соцсеть, категорию, поисковый запрос, статус провайдера, страницу).
   - *План:* Прокидывать `returnUrl` / `searchParams` через ссылку редактирования и `router.push(returnUrl || '/admin/catalog')` при завершении действия.
 
+---
+
+## 10. 🏛️ Архитектурные решения (ADR-2026)
+
+### [ADR-2026-32] Hardening of Dynamic Domain Registry, BullMQ Context, and Reverse Proxy Edge Routing
+- **Status:** ACCEPTED & ENFORCED (2026-09-23)
+- **Context:**
+  1. In reverse proxy (Docker, Nginx, ALB) environments, `Host` header often contains loopback/internal addresses (`127.0.0.1:3000`), while the customer domain is passed in `X-Forwarded-Host`. Prior implementation only resolved dynamic domains for `Host`, resulting in 403 Forbidden in production contour.
+  2. Cold L1 caches caused OPTIONS CORS preflight rejections for custom domains.
+  3. Concurrent cache misses on uncached domains created a Thundering Herd vulnerability against PostgreSQL.
+  4. IPv6 bracket parsing (`[::1]:3000`) was corrupted by eager colon splitting.
+  5. BullMQ `refillQueue` omitted `tenantId`, resulting in cross-tenant refill dispatch failures in Prisma Tenant Enforcer.
+- **Decision:**
+  1. Prioritize external `X-Forwarded-Host` for dynamic domain resolution in `src/proxy.ts`.
+  2. Implement in-flight promise coalescing (`inFlightResolutions`) in `DomainRegistryService.resolveDomain` to guarantee single-query deduplication under concurrent load.
+  3. Clean IPv6 bracketed hosts before colon splitting (`cleanHostString` / `cleanHost`).
+  4. Symmetrically cache `www` and root domains in L1.
+  5. Pass `tenantId` in all `refillQueue.add` dispatch sites and implement `runWithTenantBypass` + `registerValidTenant` in `refill.processor.ts`.
+  6. Evict domains from registry and unregister tenant slug upon `deleteTenantAction`.
+- **Consequences:** Zero-downtime, DDoS-immune custom domain routing across all deployment topologies and background queues.
+
 
 
 
