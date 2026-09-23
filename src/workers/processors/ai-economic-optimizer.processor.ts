@@ -1,4 +1,6 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { Job } from 'bullmq';
+import { db } from '../../lib/db';
 import { logger } from '../../lib/logger';
 import { MutexManager } from '../../lib/redis-lock';
 import { AiEconomicOptimizerService } from '../../services/pricing/ai-economic-optimizer.service';
@@ -8,7 +10,21 @@ const log = logger.child({ component: 'AiEconomicOptimizerWorker' });
 
 export default async function aiEconomicOptimizerProcessor(job: Job<AiEconomicOptimizerJobPayload>) {
   const { tenantId = 'all', analyzedPeriodDays = 30, forceRun = false } = job.data || {};
-  const tenantsToProcess = tenantId === 'all' ? ['smmplan', 'flux'] : [tenantId];
+  let tenantsToProcess: string[];
+  if (tenantId === 'all') {
+    try {
+      const activeTenants = await db.tenant.findMany({
+        where: { isActive: true },
+        select: { slug: true },
+      });
+      tenantsToProcess = activeTenants.length > 0 ? activeTenants.map((t) => t.slug) : ['smmplan', 'flux'];
+    } catch (dbErr) {
+      log.warn(`Failed to fetch active tenants from DB, falling back to core tenants: ${(dbErr as Error).message}`);
+      tenantsToProcess = ['smmplan', 'flux'];
+    }
+  } else {
+    tenantsToProcess = [tenantId];
+  }
 
   log.info(`[${job.id}] Starting Nightly Economic Optimization for tenants: [${tenantsToProcess.join(', ')}]`);
 

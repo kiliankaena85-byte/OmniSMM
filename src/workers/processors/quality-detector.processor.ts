@@ -11,6 +11,7 @@ const log = logger.child({ component: 'QualityDetector' });
  * Рассчитывает качество поступивших подписчиков после завершения каждого транша dripfeed.
  * Никогда не выбрасывает исключения в основной поток выполнения, чтобы не прерывать доставку.
  */
+// tenant-isolation-ignore: Helper function executed within a tenant context by the caller.
 export async function scanSubscriberQuality(
   campaignId: string,
   taskQuantity: number,

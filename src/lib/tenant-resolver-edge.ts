@@ -29,6 +29,37 @@ export function registerValidTenant(slug: string): void {
   }
 }
 
+/**
+ * Dynamically registers multiple tenant slugs into the runtime validation set.
+ */
+export function registerValidTenants(slugs: string[]): void {
+  if (Array.isArray(slugs)) {
+    for (const s of slugs) {
+      registerValidTenant(s);
+    }
+  }
+}
+
+/**
+ * Dynamically unregisters a tenant slug from the runtime validation set.
+ */
+export function unregisterValidTenant(slug: string): void {
+  if (slug && typeof slug === 'string') {
+    const clean = slug.trim().toLowerCase();
+    if (clean !== 'smmplan' && clean !== 'flux') {
+      VALID_TENANTS.delete(clean);
+    }
+  }
+}
+
+/**
+ * Checks whether a given tenant slug is currently valid and recognized.
+ */
+export function isValidTenant(tenant: string | null | undefined): boolean {
+  if (!tenant || typeof tenant !== 'string') return false;
+  return VALID_TENANTS.has(tenant.trim().toLowerCase());
+}
+
 export type ContourId = 'test' | 'prod' | 'flux';
 
 /**
@@ -65,9 +96,19 @@ export function resolveContourFromHost(host?: string | null): ContourId {
  */
 export function resolveTenantFromHostEdge(host: string): string {
   if (!host || typeof host !== 'string') return 'smmplan';
-  const cleanHost = host.split(':')[0].toLowerCase().trim();
+  let cleanHost = host.split(':')[0].toLowerCase().trim();
+  if (cleanHost.startsWith('www.')) {
+    cleanHost = cleanHost.slice(4);
+  }
   if (cleanHost.startsWith('flux.') || cleanHost.startsWith('test-flux.') || cleanHost.includes('smmflux') || FLUX_DOMAINS.has(cleanHost)) {
     return 'flux';
+  }
+  for (const tenant of VALID_TENANTS) {
+    if (tenant !== 'smmplan' && tenant !== 'flux') {
+      if (cleanHost === tenant || cleanHost.startsWith(`${tenant}.`) || cleanHost.startsWith(`test-${tenant}.`)) {
+        return tenant;
+      }
+    }
   }
   return 'smmplan';
 }
@@ -80,7 +121,7 @@ export function resolveTenantFromHostEdge(host: string): string {
 export function normalizeTenantId<T extends string | null | undefined>(tenantId: T): string | T {
   if (!tenantId) return tenantId;
   const clean = tenantId.trim().toLowerCase();
-  const normalized = clean === 'lovable' || clean === 'smmflux' ? 'flux' : clean;
+  const normalized = clean === 'lovable' || clean === 'smmflux' || clean === 'fluxsmm' ? 'flux' : clean;
   if (!VALID_TENANTS.has(normalized)) {
     return 'smmplan' as T;
   }

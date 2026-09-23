@@ -103,6 +103,33 @@ describe('Tenant Isolation Architecture & AST Guardrails (SDD-TDD 2026)', () => 
     });
   });
 
+  describe('Rule 4: tenant-worker-wrapper-required (BullMQ Context)', () => {
+    it('should flag BullMQ processor lacking runWithTenant', () => {
+      const snippet = `
+        export default async function myProcessor(job: Job) {
+          await db.order.update({ where: { id: job.data.orderId }, data: { status: 'COMPLETED' } });
+        }
+      `;
+      const violations = linter.analyzeSnippet('src/workers/processors/my.processor.ts', snippet);
+      const wrapperViolation = violations.find((v) => v.ruleId === 'tenant-worker-wrapper-required');
+      expect(wrapperViolation).toBeDefined();
+      expect(wrapperViolation?.severity).toBe('BLOCKER');
+    });
+
+    it('should pass BullMQ processor wrapped in runWithTenant', () => {
+      const snippet = `
+        export default async function myProcessor(job: Job) {
+          return await runWithTenant(job.data.tenantId, async () => {
+            await db.order.update({ where: { id: job.data.orderId }, data: { status: 'COMPLETED' } });
+          });
+        }
+      `;
+      const violations = linter.analyzeSnippet('src/workers/processors/my.processor.ts', snippet);
+      const wrapperViolation = violations.find((v) => v.ruleId === 'tenant-worker-wrapper-required');
+      expect(wrapperViolation).toBeUndefined();
+    });
+  });
+
   describe('Dynamic N-Tenants Scaling & Investor Headless Support', () => {
     it('should dynamically register a new investor tenant without modifying hardcoded sets', () => {
       const investorSlug = 'investor_alpha_99';

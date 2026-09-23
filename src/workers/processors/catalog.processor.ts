@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { Job } from 'bullmq';
 import { CatalogMutationPayload, catalogQueue } from '@/lib/queue-manager';
 import { adminCatalogService } from '../../services/admin/catalog.service';

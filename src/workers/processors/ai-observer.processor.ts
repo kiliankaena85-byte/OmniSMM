@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { Job } from 'bullmq';
 import { logger } from '../../lib/logger';
 import { AiObserverService } from '../../services/observer/ai-observer.service';

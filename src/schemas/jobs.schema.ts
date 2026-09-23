@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const OrderJobSchema = z.object({
   orderId: z.string().min(1),
-  isDripFeedChild: z.boolean().optional()
+  isDripFeedChild: z.boolean().optional(),
+  tenantId: z.string().optional()
 });
 
 export const CatalogJobSchema = z.discriminatedUnion('type', [
@@ -42,7 +43,8 @@ export const CatalogJobSchema = z.discriminatedUnion('type', [
 ]);
 
 export const RefillJobSchema = z.object({
-  refillId: z.string().min(1)
+  refillId: z.string().min(1),
+  tenantId: z.string().optional()
 });
 
 export const SyncJobSchema = z.object({
@@ -61,5 +63,6 @@ export const PaymentGatewayJobSchema = z.object({
   isTestMode: z.boolean(),
   gateway: z.enum(['yookassa', 'cryptobot', 'robokassa']),
    
-  metadata: z.any().optional()
+  metadata: z.any().optional(),
+  tenantId: z.string().optional()
 });

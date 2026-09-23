@@ -79,12 +79,25 @@ export class CatalogImportService {
     admin: { id: string; email: string },
     providerId: string,
     categoryIdMap?: Record<string, string>,
-    targetTenantId: 'smmplan' | 'flux' | 'both' = 'smmplan'
+    targetTenantId: string = 'smmplan'
   ): Promise<ImportServicesResult> {
     const preflight = await runCatalogImportPreflight(providerId, externalIds);
     const { providerDbRecord, shadowServices, liveMap, skipped, warnings, usedLivePrices, shadowCatalogAgeHours } = preflight;
 
-    const tenantsToImport: ('smmplan' | 'flux')[] = targetTenantId === 'both' ? ['smmplan', 'flux'] : [targetTenantId];
+    let tenantsToImport: string[];
+    if (targetTenantId === 'both' || targetTenantId === 'all') {
+      try {
+        const activeTenants = await db.tenant.findMany({
+          where: { isActive: true },
+          select: { slug: true }
+        });
+        tenantsToImport = activeTenants.length > 0 ? activeTenants.map(t => t.slug) : ['smmplan', 'flux'];
+      } catch {
+        tenantsToImport = ['smmplan', 'flux'];
+      }
+    } else {
+      tenantsToImport = [targetTenantId];
+    }
 
     const existingServices = await db.service.findMany({
       where: {
@@ -111,7 +124,7 @@ export class CatalogImportService {
     const categoriesDb = await db.category.findMany({
       where: {
         id: { in: Array.from(uniqueCategoryIds) },
-        ...(targetTenantId === 'both' ? { tenantId: { in: ['smmplan', 'flux', 'all'] } } : { tenantId: { in: [targetTenantId, 'all'] } })
+        tenantId: { in: [...tenantsToImport, 'all'] }
       },
       select: { 
         id: true, 
@@ -224,7 +237,7 @@ export class CatalogImportService {
       const importedDesc = liveExt.desc || null;
       const baseSlug = importedName.toLowerCase().trim().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-+|-+$/g, '') || `service-${extId}`;
 
-      const skippedTenants: ('smmplan' | 'flux')[] = [];
+      const skippedTenants: string[] = [];
 
       for (const tId of tenantsToImport) {
         if (existingSet.has(`${tId}:${extId}`)) {

@@ -367,7 +367,7 @@ const importServicesSchema = z.object({
   }),
   providerId: z.string().min(1, "ID провайдера обязателен"),
   categoryIdMap: z.record(z.string()).optional(),
-  targetTenantId: z.enum(["smmplan", "flux", "both"]).default("smmplan"),
+  targetTenantId: z.string().default("smmplan"),
 });
 
 export type ImportSelectedServicesSuccess = {
@@ -383,7 +383,7 @@ export async function importSelectedServices(
   defaultMarkup: number, 
   providerId: string,
   categoryIdMap?: Record<string, string>,
-  targetTenantId: 'smmplan' | 'flux' | 'both' = 'smmplan'
+  targetTenantId: string = 'smmplan'
 ): Promise<ImportSelectedServicesSuccess | { success: false; error: string }> {
     return requireStaffPermission('catalog', 'edit', async (admin) => {
         try {

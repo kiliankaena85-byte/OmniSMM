@@ -103,8 +103,8 @@ export async function getGapAnalysisAction(): Promise<GapAnalysisResult> {
 
 const copySchema = z.object({
   serviceIds: z.array(z.string()).min(1).max(200),
-  sourceTenantId: z.enum(['smmplan', 'flux']),
-  targetTenantId: z.enum(['smmplan', 'flux']),
+  sourceTenantId: z.string().min(2),
+  targetTenantId: z.string().min(2),
   markupMultiplier: z.number().min(0.5).max(5.0).default(1.0),
 });
 
@@ -118,13 +118,17 @@ export type CopyResult = {
 
 export async function copyServicesToTenantAction(input: z.infer<typeof copySchema>): Promise<CopyResult> {
   return requireStaffPermission('CATALOG', 'edit', async () => {
-    const parsed = copySchema.parse(input);
-    if (parsed.sourceTenantId === parsed.targetTenantId) {
+    const parsed = copySchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false, copied: 0, skipped: 0, errors: [parsed.error.issues[0]?.message || 'Невалидные параметры'], error: parsed.error.issues[0]?.message || 'Невалидные параметры' };
+    }
+    const { sourceTenantId, targetTenantId, serviceIds, markupMultiplier } = parsed.data;
+    if (sourceTenantId === targetTenantId) {
       return { success: false, copied: 0, skipped: 0, errors: ['Source and target must differ'], error: 'Source and target must differ' };
     }
 
     const sources = await db.service.findMany({
-      where: { id: { in: parsed.serviceIds }, tenantId: parsed.sourceTenantId },
+      where: { id: { in: serviceIds }, tenantId: sourceTenantId },
     });
 
     let copied = 0;
@@ -180,8 +184,8 @@ export async function copyServicesToTenantAction(input: z.infer<typeof copySchem
 
 const alignSchema = z.object({
   slugs: z.array(z.string()).min(1).max(500),
-  sourceTenantId: z.enum(['smmplan', 'flux']),
-  targetTenantId: z.enum(['smmplan', 'flux']),
+  sourceTenantId: z.string().min(2),
+  targetTenantId: z.string().min(2),
   markupMultiplier: z.number().min(0.5).max(5.0).default(1.0),
 });
 
@@ -193,10 +197,14 @@ export type AlignResult = {
 
 export async function alignPricesAction(input: z.infer<typeof alignSchema>): Promise<AlignResult> {
   return requireStaffPermission('CATALOG', 'edit', async () => {
-    const parsed = alignSchema.parse(input);
+    const parsed = alignSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false, updated: 0, error: parsed.error.issues[0]?.message || 'Невалидные параметры' };
+    }
+    const { sourceTenantId, targetTenantId, slugs, markupMultiplier } = parsed.data;
 
     const sourceServices = await db.service.findMany({
-      where: { tenantId: parsed.sourceTenantId, slug: { in: parsed.slugs } },
+      where: { tenantId: sourceTenantId, slug: { in: slugs } },
       select: { slug: true, pricePer1000Cents: true, rate: true, providerCurrency: true },
     });
 
@@ -207,11 +215,11 @@ export async function alignPricesAction(input: z.infer<typeof alignSchema>): Pro
         for (const src of chunk) {
           if (!src.slug) continue;
           const target = await tx.service.findUnique({
-            where: { tenantId_slug: { tenantId: parsed.targetTenantId, slug: src.slug } },
+            where: { tenantId_slug: { tenantId: targetTenantId, slug: src.slug } },
           });
           if (!target) continue;
 
-          const targetPrice = Math.round(src.pricePer1000Cents * parsed.markupMultiplier);
+          const targetPrice = Math.round(src.pricePer1000Cents * markupMultiplier);
           const newMarkup =
             target.rate > 0
               ? Math.round((targetPrice / (target.rate * 100)) * 100) / 100

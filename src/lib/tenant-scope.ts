@@ -12,6 +12,8 @@
  *   const order = await db.order.findUnique({ where: { id: params.id } }); // ❌ Lacks tenant filter!
  */
 
+import { normalizeTenantId as normalizeConfigTenantId, TENANTS } from '@/config/tenants';
+
 export interface TenantSession {
   tenantId?: string;
   user?: {
@@ -62,7 +64,7 @@ export function tenantVisibilityFilter(tenantId: string): { in: string[] } {
   return { in: [tenant, 'all'] };
 }
 
-const ALLOWED_TENANTS = new Set(['smmplan', 'flux', 'all']);
+const ALLOWED_TENANTS = new Set<string>([...TENANTS.map((t) => t.id), 'all']);
 
 /**
  * TASK 2: Validates and normalizes client-provided tenantId parameters.
@@ -73,10 +75,7 @@ export function normalizeTenantId(input: unknown): string {
     return 'smmplan';
   }
   const clean = input.trim().toLowerCase();
-  if (clean === 'lovable') return 'flux'; // legacy alias
-  if (ALLOWED_TENANTS.has(clean)) {
-    return clean;
-  }
-  return 'smmplan';
+  if (clean === 'all') return 'all';
+  return normalizeConfigTenantId(clean);
 }
 

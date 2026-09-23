@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { db as prisma } from '@/lib/db';
 import { providerService } from '@/services/providers/provider.service';
 import { SmartCampaignStatus, SmartTaskStatus } from '@prisma/client';

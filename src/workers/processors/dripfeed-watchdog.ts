@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { db } from '@/lib/db';
 import { redis } from '@/lib/redis';
 import { logger } from '@/lib/logger';

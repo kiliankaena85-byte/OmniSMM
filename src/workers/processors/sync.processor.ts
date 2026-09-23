@@ -6,7 +6,9 @@ import { providerService } from '../../services/providers/provider.service';
 import { RefundPolicyService } from '../../services/financial/refund-policy.service';
 import { sendOrderCompletedMail } from '../../lib/smtp';
 import { logger } from '../../lib/logger';
+import { runWithTenantBypass } from '../../lib/tenant-context';
 
+// tenant-isolation-ignore: Global cron job operating on all tenants
 const log = logger.child({ component: 'SyncProcessor' });
 
 async function safeUpdateOrderStatus(

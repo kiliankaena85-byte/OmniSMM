@@ -39,7 +39,7 @@ export async function logManualCompensation(formData: FormData) {
 
     const ticket = await db.ticket.findUnique({
       where: { id: ticketId },
-      select: { userId: true, id: true }
+      select: { userId: true, id: true, tenantId: true }
     });
 
     if (!ticket) {

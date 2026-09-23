@@ -255,6 +255,33 @@ export class TenantIsolationLinter {
         }
       }
 
+      // -------------------------------------------------------------
+      // ПРАВИЛО 4: tenant-worker-wrapper-required (BullMQ Фоновые задачи)
+      // -------------------------------------------------------------
+      if (normPath.includes('src/workers/processors/') && !normPath.includes('__tests__') && !normPath.includes('types.ts')) {
+        // Check if the node is an exported function or default export (the processor entry point)
+        if ((ts.isFunctionDeclaration(node) && node.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) ||
+            (ts.isArrowFunction(node) && node.parent && ts.isVariableDeclaration(node.parent) && node.parent.parent && node.parent.parent.parent && ts.isVariableStatement(node.parent.parent.parent) && node.parent.parent.parent.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword))) {
+          
+          const lineNum = getLine(node);
+          const funcText = node.getText(sourceFile);
+          
+          // order/ directory contains helpers, but main processors are in processors/ root
+          const isMainProcessor = normPath.split('/').length === 4; 
+          
+          if (isMainProcessor && !funcText.includes('runWithTenant') && !hasIgnoreComment(lineNum)) {
+            violations.push({
+              ruleId: 'tenant-worker-wrapper-required',
+              severity: 'BLOCKER',
+              file: filePath,
+              line: lineNum,
+              message: `Фоновая задача BullMQ ОБЯЗАНА быть обернута в runWithTenant(job.data.tenantId, async () => { ... }) для защиты контекста бренда.`,
+              snippet: getSnippet(node),
+            });
+          }
+        }
+      }
+
       ts.forEachChild(node, visit);
     };
 
@@ -293,7 +320,7 @@ export class TenantIsolationLinter {
   /**
    * Сквозной запуск линтера
    */
-  public run(targetDirs = ['src/actions', 'src/services', 'src/app/api', 'src/lib']): {
+  public run(targetDirs = ['src/actions', 'src/services', 'src/app/api', 'src/lib', 'src/workers']): {
     violations: TenantViolation[];
     filesChecked: number;
     blockersCount: number;

@@ -62,6 +62,10 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 **Что случилось:** В `prisma/schema.prisma` поле `Service.targetType` имело `@default("POST")`. В коде хука `useOrderEngine.ts` фильтрация проверялась конструкцией `s.targetType || inferTargetTypeFromName(s.name)`. Поскольку строка `"POST"` истинна (truthy), правая часть `inferTargetTypeFromName` никогда не вычислялась, и все услуги (даже «Подписчики в Telegram канал») получали тип `"POST"`. При вводе ссылки на канал (`detectedType = "channel"`) проверка матрицы `isLinkServiceCompatible("channel", "POST")` возвращала `false`, и каталог становился абсолютно пустым (0 услуг).
 **Правило:** Категорически запрещено использовать `s.targetType || ...` для определения типа услуги. Всегда использовать `resolveServiceTargetType(service)` из `@/utils/target-type-mapper`, которая корректно переопределяет дефолтные типы (`"POST"`, `"CUSTOM"`) на основе семантического анализа названия услуги.
 
+### 🔴 УРОК 10 — Исторический дрейф леджера и реконсиляция (2026-09-23)
+**Что случилось:** При аудите базы данных по стандарту `bank-grade-db-guard` было выявлено расхождение баланса и суммы утвержденных проводок `LedgerEntry` у 1878 аккаунтов (из 4762). Причина: исторические сиды тестов и ручные миграции пользователей создавали `User.balance` напрямую через `db.user.create()` без формирования записей в журнале леджера.
+**Правило:** Ни одна операция создания пользователя или начисления баланса не имеет права обходить `WalletOps` или `LedgerEntry`. Все расхождения устраняются строго через компенсирующие проводки (Append-Only) без прямого изменения балансов руками. В проект внедрен скрипт `scripts/db-testing/reconcile-legacy-ledger-drift.ts`, восстановивший равенство $\text{Balance} = \sum \text{Ledger}$ для 100% аккаунтов.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)
@@ -87,6 +91,31 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
        - Vitest integration tests: **8/8 PASS** (`db-stress-concurrency.test.ts`, `db-chaos-integrity.test.ts`).
        - `tsc --noEmit` — 0 ошибок, `npm run lint:tenant` — 0 блокеров, `check-bundle-secrets.mjs` — 0 утечек, `npm run db:test:all` — 100% Green.
   - *Причина:* Соответствие банковскому стандарту надежности RAC-2026, защита финансовых операций от race conditions, предотвращение деградации БД под высокими нагрузками и наличие полного арсенала диагностики для On-Call инженеров.
+
+- **ADR-2026-30: Complete Brand-Agnostic Multi-Tenant Abstraction & Deprecated Brand Cleanup (OmniSMM 1.0):**
+  - *Решение:*
+    1. **Единый источник правды брендов (`src/config/tenants.ts`):**
+       - Все поддерживаемые платформой бренды объединены в строго типизированный реестр `TENANTS` (id, name, domain, testDomain, allowedHosts).
+       - Централизован словарь псевдонимов `TENANT_ALIASES`: legacy-алиасы (`lovable`, `smmflux`, `fluxsmm`) приводятся к `flux`. Добавление, переименование брендов или доменов происходит строго в одном месте без правок в бизнес-логике.
+       - Экспортированы чистые функции: `normalizeTenantId()`, `getTenantConfig()`, `getTenantSiteName()`, `resolveCanonicalHost()`, `getTenantHost()`, `absoluteCanonical()`.
+    2. **Зачистка хардкода брендов в Telegram Bot:**
+       - `src/bot/index.ts`: устранены тернарные операторы с жестко зашитыми именами сайтов (`(botTenantId === 'flux' || botTenantId === 'lovable') ? 'SMMflux' : 'SMMplan'`). Переведено на `getTenantSiteName(botTenantId)` и `getTenantHost(botTenantId)`.
+       - `src/bot/constructors/role-handlers.ts`: динамический рендеринг имени сайта и ссылок в `setupStorePipeline` и `sendBindInstructions`.
+       - `src/bot/scenes/referral.wizard.ts` & `deposit.wizard.ts`: генерация ссылок рефералов и назначения платежей переведена на `getTenantHost` / `getTenantSiteName`.
+    3. **Очистка хуков и Dev-инструментов:**
+       - `src/components/dev/FloatingQADock.tsx`: определение тенанта переведено на `normalizeTenantId(rawTenant)`.
+       - `src/hooks/admin/use-orders.ts`: метод `handleLovableBulkCancel` заменен на `handleIdsBulkCancel` с сохранением алиаса для обратной совместимости.
+       - `src/tenants/registry.ts`: `getTenantLoader` динамически резолвит псевдонимы через `normalizeTenantId()`.
+       - `src/lib/seo-helpers.ts` & `src/lib/tenant-scope.ts`: делегируют нормализацию и генерацию канонических хостов в `@/config/tenants`.
+    4. **Вывод из эксплуатации устаревшего маршрута `/ab-lovable`:**
+       - `src/app/ab-lovable/page.tsx`: устаревший маршрут переведен на `redirect('/', RedirectType.replace)`.
+    5. **Верификация базы данных и тестов:**
+       - Скрипт `scripts/db-testing/audit-database-tenant-isolation.ts` переведен на динамический список тенантов `TENANTS.map(t => t.id)`. В БД 0 записей с `lovable` (33/33 таблиц 100% чисты).
+       - `npm run typecheck` (`tsc --noEmit`): 0 ошибок (Clean).
+       - `npm test`: 100% тестов пройдены (`seo-opengraph-and-vitals.test.ts`, `multitenant-security.test.ts`, `tenant-isolation-ast.test.ts`).
+       - `node scripts/check-bundle-secrets.mjs`: 0 утечек секретов.
+       - `npm run lint:tenant`: 0 BLOCKERs.
+  - *Причина:* Устранение технического долга и жестких привязок к устаревшим названиям брендов; предоставление платформе OmniSMM 1.0 возможности динамически переименовывать и добавлять любые бренды без риска регрессий.
 
  - **ADR-2026-29: Banking-Grade Database Hardening (PostgreSQL CHECK Constraints, Immutable Ledger Triggers, pg_trgm GIN, MVCC HOT-Updates):**
   - *Решение:*
@@ -167,6 +196,16 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
        - Пополнение баланса (`top-up.action.ts`): разрешение `requestTenantId` исключило биллинг под реквизитами чужого бренда.
     5. **Изоляция каталога и кэша:** В `src/app/admin/dashboard/page.tsx` кэш `getCachedHealthData` и `SystemHealthBanner` разделены по ключу `['admin_dashboard_catalog_health', tenantId]`. В `catalog-sync.service.ts` устранены 4 BLOCKER-замечания AST-линтера.
   - *Причина:* Исключение утечек баланса, заказов и финансовых транзакций между брендами `smmplan` и `smmflux` в клиентских и административных интерфейсах.
+
+- **ADR-2026-27: Dynamic N-Tenants Scaling Architecture & Brand-Agnostic Core:**
+  - *Решение:*
+    1. **Расширение `TenantId` и ядро конфигураций (`src/config/tenants.ts`, `src/lib/tenant-resolver-edge.ts`):** `TenantId` расширен до `string` с сохранением `CORE_TENANTS = ['smmplan', 'flux'] as const` и `type CoreTenantId`. Валидация синхронизирована с динамическим множеством `VALID_TENANTS` (`registerValidTenant` / `registerValidTenants`), предотвращая принудительный сброс динамических тенантов в `'smmplan'`.
+    2. **Zod схемы и сервис импорта каталога:** Схемы `copySchema` и `alignSchema` в `src/actions/admin/catalog/sync.ts` переведены с жесткого `z.enum(['smmplan', 'flux'])` на `z.string().min(2)`. Сервис `catalog-import.service.ts` и экшены импорта переведены на строковый массив `string[]`.
+    3. **Фоновые воркеры:** `ai-economic-optimizer.processor.ts` при `tenantId === 'all'` динамически запрашивает всех активных тенантов из базы данных `db.tenant.findMany({ where: { isActive: true } })`.
+    4. **Фолбеки настроек и устранение brand bleeding:** В `src/lib/settings.ts` реализована функция `getTenantFallbackBranding(tenantSlug)`: ликвидированы бинарные тернарные проверки дефолтов, исключено смешение брендовых атрибутов (названий, email, ботов).
+    5. **UI и скрипты аудита:** В `src/components/ui/TenantLogo.tsx` реализована поддержка `logoUrl` и генерация монограмм для N-тенантов. `scripts/db-testing/audit-database-tenant-isolation.ts` подгружает разрешенные тенанты динамически из таблицы `Tenant`.
+    6. **Верификация:** 35/35 тестов пройдены, `tsc --noEmit` — 0 ошибок, AST-сканер изоляции — 0 блокеров.
+  - *Причина:* Поддержка динамического масштабирования на произвольное количество витрин без рекомпиляции ядра платформы.
 
 - **ADR-2026-26: OmniSMM Monolithic Decomposition Waves 15–24 (CDD-TDD & Zero-Regression Guard):**
   - *Решение:*

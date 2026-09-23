@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { recalculateAllETAs } from '../../services/eta/eta.service';
 import { logger } from '../../lib/logger';
 

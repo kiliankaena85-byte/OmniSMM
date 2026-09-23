@@ -9,6 +9,7 @@ import type { BotContext } from '../types/bot-context';
 import { Scenes, Markup } from 'telegraf';
 import { getBaseUrlSync } from '@/utils/get-base-url';
 import { db } from '@/lib/db';
+import { getTenantHost } from '@/config/tenants';
 
 export const REFERRAL_WIZARD = 'referral-wizard';
 
@@ -75,9 +76,8 @@ export const referralWizard = new Scenes.WizardScene<BotContext>(
         user.referralCode = newCode;
       }
 
-      const host = (botTenantId === 'flux' || botTenantId === 'lovable')
-        ? (process.env.FLUX_APP_URL || 'https://smmflux.ru')
-        : getBaseUrlSync();
+      const tenantHost = getTenantHost(botTenantId);
+      const host = process.env.APP_URL || (tenantHost.startsWith('http') ? tenantHost : `https://${tenantHost}`);
       const link = `${host}/?ref=${user.referralCode}`;
       const earned = (user.referralBalance ?? 0) / 100;
       const refsCount = user._count?.referrals ?? 0;

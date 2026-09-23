@@ -1,6 +1,6 @@
-import { VALID_TENANTS, registerValidTenant, registerValidTenants } from '@/lib/tenant-resolver-edge';
+import { VALID_TENANTS, registerValidTenant, registerValidTenants, unregisterValidTenant } from '@/lib/tenant-resolver-edge';
 
-export { registerValidTenant, registerValidTenants, VALID_TENANTS };
+export { registerValidTenant, registerValidTenants, unregisterValidTenant, VALID_TENANTS };
 
 export const CORE_TENANTS = ['smmplan', 'flux'] as const;
 export type CoreTenantId = (typeof CORE_TENANTS)[number];

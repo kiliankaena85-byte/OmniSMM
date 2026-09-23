@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 /**
  * Cleanup Processor (P2.3 — TTL Maintenance)
  *

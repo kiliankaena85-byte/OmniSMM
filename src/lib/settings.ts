@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { SystemSettings, UsnScheme } from "@prisma/client";
 import { VaultService } from "./vault";
 import { unstable_cache, revalidateTag } from "next/cache";
-import { normalizeTenantId } from "@/lib/tenant-resolver-edge";
+import { normalizeTenantId, registerValidTenant } from "@/lib/tenant-resolver-edge";
+import { TENANT_ALIASES } from "@/config/tenants";
 
 const localSettingsCache: Record<string, { data: SystemSettings; expiresAt: number }> = {};
 const CACHE_TTL_MS = 60 * 1000; // 1 minute cache for workers
@@ -44,6 +45,44 @@ export type ContactAndLegalSettings = {
   LEGAL_OGRNIP: string;
   LEGAL_ADDRESS: string;
 };
+
+/**
+ * Dynamic brand metadata resolver for safe fallbacks on N-tenants.
+ * Eliminates binary ternaries and brand bleeding when new tenants are introduced.
+ */
+export function getTenantFallbackBranding(tenantSlug: string | null | undefined) {
+  const clean = (tenantSlug || '').trim().toLowerCase();
+  if (clean === 'flux') {
+    return {
+      name: 'SMMflux',
+      domain: 'smmflux.ru',
+      supportEmail: 'support@smmflux.ru',
+      privacyEmail: 'privacy@smmflux.ru',
+      bot: 'smmflux_support_bot',
+      channel: 'smmflux_support',
+    };
+  }
+  if (clean === 'smmplan') {
+    return {
+      name: 'SMMplan',
+      domain: 'smmplan.pro',
+      supportEmail: 'support@smmplan.pro',
+      privacyEmail: 'privacy@smmplan.pro',
+      bot: 'smmplan_support_bot',
+      channel: 'smmplan_support',
+    };
+  }
+  const capitalized = clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : 'OmniSMM';
+  const domain = clean ? `${clean}.pro` : 'smmplan.pro';
+  return {
+    name: capitalized,
+    domain,
+    supportEmail: `support@${domain}`,
+    privacyEmail: `privacy@${domain}`,
+    bot: clean ? `${clean}_support_bot` : 'smmplan_support_bot',
+    channel: clean ? `${clean}_support` : 'smmplan_support',
+  };
+}
 
 /**
  * SettingsProvider: Optimized, cached, and Zod-validated source for system settings.
@@ -95,20 +134,22 @@ export class SettingsProvider {
     const cleanTenant = normalizeTenantId(tenantId) || 'smmplan';
     return unstable_cache(
       async () => {
+        const branding = getTenantFallbackBranding(cleanTenant);
+
         // In tests, we want the most fresh data to avoid race conditions between test cases
         if (SettingsProvider.isTestEnvironment()) {
           return await db.systemSettings.upsert({
             where: { id: cleanTenant },
             update: {},
-            create: { id: cleanTenant, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: cleanTenant === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+            create: { id: cleanTenant, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: branding.name, exchangeRateUSD: 95 }
           });
         }
 
-        const defaultName = cleanTenant === 'flux' ? 'SMMflux' : 'SMMplan';
-        const defaultEmail = cleanTenant === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro';
-        const defaultPrivacyEmail = cleanTenant === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
-        const defaultBot = cleanTenant === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot';
-        const defaultChannel = cleanTenant === 'flux' ? 'smmflux_support' : 'smmplan_support';
+        const defaultName = branding.name;
+        const defaultEmail = branding.supportEmail;
+        const defaultPrivacyEmail = branding.privacyEmail;
+        const defaultBot = branding.bot;
+        const defaultChannel = branding.channel;
 
         return await db.systemSettings.upsert({
           where: { id: cleanTenant },
@@ -177,7 +218,7 @@ export class SettingsProvider {
         return await db.systemSettings.upsert({
           where: { id: targetTenantId },
           update: {},
-          create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: normalizedSlug === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+          create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: true, siteName: getTenantFallbackBranding(normalizedSlug).name, exchangeRateUSD: 95 }
         });
       }
       try {
@@ -198,7 +239,7 @@ export class SettingsProvider {
             settings = await db.systemSettings.upsert({
               where: { id: targetTenantId },
               update: {},
-              create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: SettingsProvider.isTestEnvironment(), siteName: normalizedSlug === 'flux' ? 'SMMflux' : 'SMMplan', exchangeRateUSD: 95 }
+              create: { id: targetTenantId, taxRate: 6, opexMonthly: 0, maintenanceMode: false, isTestMode: SettingsProvider.isTestEnvironment(), siteName: getTenantFallbackBranding(normalizedSlug).name, exchangeRateUSD: 95 }
             });
           }
 
@@ -210,11 +251,12 @@ export class SettingsProvider {
     } catch (dbErr: unknown) {
       const dbErrMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
       console.warn(`[SettingsProvider] Failed to fetch system settings for ${normalizedSlug} from DB, using fallback:`, dbErrMsg);
-      const defaultName = (normalizedSlug === 'flux') ? 'SMMflux' : 'SMMplan';
-      const defaultEmail = (normalizedSlug === 'flux') ? 'support@smmflux.ru' : 'support@smmplan.pro';
-      const defaultPrivacyEmail = (normalizedSlug === 'flux') ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
-      const defaultBot = (normalizedSlug === 'flux') ? 'smmflux_support_bot' : 'smmplan_support_bot';
-      const defaultChannel = (normalizedSlug === 'flux') ? 'smmflux_support' : 'smmplan_support';
+      const fallbackBranding = getTenantFallbackBranding(normalizedSlug);
+      const defaultName = fallbackBranding.name;
+      const defaultEmail = fallbackBranding.supportEmail;
+      const defaultPrivacyEmail = fallbackBranding.privacyEmail;
+      const defaultBot = fallbackBranding.bot;
+      const defaultChannel = fallbackBranding.channel;
 
       return {
         id: targetTenantId,
@@ -386,17 +428,17 @@ export class SettingsProvider {
     const activeTenantId = tenantId || await this.getTenantId();
     const settings = await this.get(activeTenantId);
     
-    const isFlux = activeTenantId === 'flux';
-    const defaultSiteName = isFlux ? 'SMMflux' : 'SMMplan';
-    const defaultDomain = isFlux ? 'smmflux.ru' : 'smmplan.pro';
+    const branding = getTenantFallbackBranding(activeTenantId);
+    const defaultSiteName = branding.name;
+    const defaultDomain = branding.domain;
 
     return {
       SITE_NAME: settings.siteName || defaultSiteName,
       SITE_DESCRIPTION: settings.siteDescription || "",
       SUPPORT_EMAIL: settings.contactSupportEmail || `support@${defaultDomain}`,
       PRIVACY_EMAIL: settings.contactPrivacyEmail || `privacy@${defaultDomain}`,
-      TELEGRAM_SUPPORT_BOT: settings.contactTelegramBot || "",
-      TELEGRAM_SUPPORT_CHANNEL: settings.contactTelegramChannel || "",
+      TELEGRAM_SUPPORT_BOT: settings.contactTelegramBot || branding.bot,
+      TELEGRAM_SUPPORT_CHANNEL: settings.contactTelegramChannel || branding.channel,
       WHATSAPP: settings.contactWhatsApp || "",
       VK: settings.contactVk || "",
       COMPANY_NAME: settings.legalCompanyName || defaultSiteName,

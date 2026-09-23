@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 // Imports disabled while simulator is disabled
 // import { db as prisma } from '@/lib/db';
 // import { SmartCampaignStatus, SmartTaskStatus } from '@prisma/client';

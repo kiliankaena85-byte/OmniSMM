@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global job
 import { db } from '@/lib/db';
 import { paymentService } from '@/services/financial/payment.service';
 import { SettingsManager } from '@/lib/settings';

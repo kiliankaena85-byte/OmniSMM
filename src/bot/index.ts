@@ -54,6 +54,7 @@ if (!TOKEN || TOKEN === 'dummy_token') {
 }
 
 import { getTelegramProxyAgent, resolveActiveTelegramProxyUrl, reportTelegramProxyFailure } from '@/lib/telegram-agent';
+import { getTenantSiteName, getTenantHost } from '@/config/tenants';
 const agent = getTelegramProxyAgent();
 
 export const bot = new Telegraf<BotContext>(TOKEN || 'dummy_token', {
@@ -63,7 +64,7 @@ export const bot = new Telegraf<BotContext>(TOKEN || 'dummy_token', {
 });
 
 const botTenantId = process.env.BOT_TENANT_ID || 'smmplan';
-const botSiteName = (botTenantId === 'flux' || botTenantId === 'lovable') ? 'SMMflux' : 'SMMplan';
+const botSiteName = getTenantSiteName(botTenantId);
 
 // ── STAGE ──
 const stage = new Scenes.Stage<BotContext>([
@@ -559,7 +560,8 @@ async function executeDynamicAction(ctx: BotContext, btn: any) {
       return true;
     }
     case 'URL': {
-      const targetUrl = btn.value || `https://${botTenantId === 'flux' ? 'smmflux.ru' : 'test.smmplan.pro'}`;
+      const botHost = getTenantHost(botTenantId);
+      const targetUrl = btn.value || (botHost.startsWith('http') ? botHost : `https://${botHost}`);
       await ctx.reply(
         `🌐 <b>${escapeHtml(btn.label)}</b>\n\nПерейдите по ссылке ниже:`,
         {
@@ -587,7 +589,8 @@ async function executeDynamicAction(ctx: BotContext, btn: any) {
       return true;
     }
     case 'WEB_APP': {
-      const webAppUrl = btn.value || `https://${botTenantId === 'flux' ? 'smmflux.ru' : 'test.smmplan.pro'}`;
+      const botHost = getTenantHost(botTenantId);
+      const webAppUrl = btn.value || (botHost.startsWith('http') ? botHost : `https://${botHost}`);
       await ctx.reply(
         `📱 <b>${escapeHtml(btn.label)}</b>\n\nНажмите кнопку для запуска:`,
         {
@@ -883,7 +886,8 @@ bot.action('my_tx', async (ctx: BotContext) => {
 bot.command('transactions', sendUserTransactions);
 
 async function sendBindInstructions(ctx: BotContext) {
-  const host = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || (botTenantId === 'flux' || botTenantId === 'lovable' ? 'https://smmflux.ru' : 'https://test.smmplan.pro');
+  const resolvedHost = getTenantHost(botTenantId);
+  const host = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || (resolvedHost.startsWith('http') ? resolvedHost : `https://${resolvedHost}`);
   await ctx.reply(
     `🔗 <b>Связывание аккаунта ${botSiteName}</b>\n\n` +
     `Привяжите Telegram к сайту, чтобы синхронизировать баланс, получать уведомления о заказах и обращаться в поддержку без задержек.\n\n` +

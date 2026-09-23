@@ -23,13 +23,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BugReportModal } from "./BugReportModal";
+import { normalizeTenantId } from "@/config/tenants";
 import { qaDirectLoginAction, QARole } from "@/actions/qa-auth";
 
 export function FloatingQADock() {
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
-  const [currentTenant, setCurrentTenant] = useState<"smmplan" | "flux">("smmplan");
+  const [currentTenant, setCurrentTenant] = useState<string>("smmplan");
   const [showQR, setShowQR] = useState(false);
   const [showBugReportModal, setShowBugReportModal] = useState(false);
 
@@ -66,13 +67,8 @@ export function FloatingQADock() {
     // Определение текущего тенанта
     const match = document.cookie.match(/x_tenant=([^;]+)/);
     const bodyTenant = document.body.getAttribute("data-tenant");
-    if (match && match[1] === "flux") {
-      setCurrentTenant("flux");
-    } else if (bodyTenant === "flux" || bodyTenant === "lovable") {
-      setCurrentTenant("flux");
-    } else {
-      setCurrentTenant("smmplan");
-    }
+    const rawTenant = (match && match[1]) || bodyTenant || 'smmplan';
+    setCurrentTenant(normalizeTenantId(rawTenant));
 
     // Слушатель горячих клавиш Ctrl+Shift+B для быстрого баг-репорта
     const handleKeyDown = (e: KeyboardEvent) => {

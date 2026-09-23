@@ -5,12 +5,24 @@ interface TenantLogoProps {
   tenantId?: string;
   className?: string;
   iconClassName?: string;
+  logoUrl?: string | null;
 }
 
-export function TenantLogo({ tenantId, className = "w-8 h-8", iconClassName = "text-sm" }: TenantLogoProps) {
-  const isFlux = normalizeTenantId(tenantId) === 'flux';
+export function TenantLogo({ tenantId, className = "w-8 h-8", iconClassName = "text-sm", logoUrl }: TenantLogoProps) {
+  const norm = normalizeTenantId(tenantId) || 'smmplan';
+  const isFlux = norm === 'flux';
+  const isSmmplan = norm === 'smmplan';
   // Unique ID per instance to prevent SVG gradient/filter collisions across multiple logos on the same page
   const uid = useId().replace(/:/g, '');
+
+  if (logoUrl) {
+    return (
+      <div className={`relative flex items-center justify-center select-none shrink-0 overflow-hidden rounded-lg ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl} alt={norm} className="w-full h-full object-contain" />
+      </div>
+    );
+  }
 
   if (isFlux) {
     return (
@@ -83,21 +95,76 @@ export function TenantLogo({ tenantId, className = "w-8 h-8", iconClassName = "t
     );
   }
 
+  if (isSmmplan) {
+    return (
+      <div className={`relative flex items-center justify-center select-none shrink-0 ${className}`}>
+        <svg
+          viewBox="0 0 100 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full drop-shadow-[0_4px_12px_rgba(2,132,199,0.3)] transition-transform duration-200"
+        >
+          <defs>
+            <linearGradient id={`${uid}planSkyGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38BDF8" />
+              <stop offset="50%" stopColor="#0EA5E9" />
+              <stop offset="100%" stopColor="#0284C7" />
+            </linearGradient>
+            <filter id={`${uid}planInnerShadow`} x="-10%" y="-10%" width="120%" height="120%">
+              <feOffset dx="0" dy="3" />
+              <feGaussianBlur stdDeviation="3" result="offset-blur" />
+              <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
+              <feFlood floodColor="#000000" floodOpacity="0.25" result="color" />
+              <feComposite operator="in" in="color" in2="inverse" result="shadow" />
+              <feComposite operator="over" in="shadow" in2="SourceGraphic" />
+            </filter>
+          </defs>
+
+          <rect
+            x="2"
+            y="2"
+            width="96"
+            height="96"
+            rx="26"
+            fill={`url(#${uid}planSkyGrad)`}
+            filter={`url(#${uid}planInnerShadow)`}
+          />
+          <text
+            x="50%"
+            y="50%"
+            dominantBaseline="central"
+            textAnchor="middle"
+            fill="#FFFFFF"
+            fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            fontWeight="900"
+            fontSize="74"
+            letterSpacing="-0.04em"
+            className="select-none"
+          >
+            S
+          </text>
+        </svg>
+      </div>
+    );
+  }
+
+  // Dynamic monogram for arbitrary N-tenants
+  const initial = norm.charAt(0).toUpperCase();
   return (
     <div className={`relative flex items-center justify-center select-none shrink-0 ${className}`}>
       <svg
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full drop-shadow-[0_4px_12px_rgba(2,132,199,0.3)] transition-transform duration-200"
+        className="w-full h-full drop-shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-transform duration-200"
       >
         <defs>
-          <linearGradient id={`${uid}planSkyGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="50%" stopColor="#0EA5E9" />
-            <stop offset="100%" stopColor="#0284C7" />
+          <linearGradient id={`${uid}dynGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#818CF8" />
+            <stop offset="50%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#4F46E5" />
           </linearGradient>
-          <filter id={`${uid}planInnerShadow`} x="-10%" y="-10%" width="120%" height="120%">
+          <filter id={`${uid}dynInnerShadow`} x="-10%" y="-10%" width="120%" height="120%">
             <feOffset dx="0" dy="3" />
             <feGaussianBlur stdDeviation="3" result="offset-blur" />
             <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
@@ -113,8 +180,8 @@ export function TenantLogo({ tenantId, className = "w-8 h-8", iconClassName = "t
           width="96"
           height="96"
           rx="26"
-          fill={`url(#${uid}planSkyGrad)`}
-          filter={`url(#${uid}planInnerShadow)`}
+          fill={`url(#${uid}dynGrad)`}
+          filter={`url(#${uid}dynInnerShadow)`}
         />
         <text
           x="50%"
@@ -128,7 +195,7 @@ export function TenantLogo({ tenantId, className = "w-8 h-8", iconClassName = "t
           letterSpacing="-0.04em"
           className="select-none"
         >
-          S
+          {initial}
         </text>
       </svg>
     </div>

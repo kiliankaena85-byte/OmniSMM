@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = host.includes('localhost') ? 'http' : 'https';
   const metadataBase = new URL(`${protocol}://${host}`);
 
-  if (tenantId === 'flux' || tenantId === 'smmflux') {
+  if (tenantId === 'flux') {
     return {
       title: {
         default: 'SMMflux — Быстрое продвижение для бизнеса',
@@ -144,7 +144,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
 
-  const isFlux = tenantId === 'flux' || tenantId === 'smmflux';
+  const isFlux = tenantId === 'flux';
   const siteName = isFlux ? 'SMMflux' : (settings.siteName || 'SMMplan');
   const supportEmail = isFlux
     ? (settings.contactSupportEmail || 'support@smmflux.ru')

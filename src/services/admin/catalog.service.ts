@@ -99,7 +99,7 @@ export class AdminCatalogService {
     admin: { id: string; email: string },
     providerId: string,
     categoryIdMap?: Record<string, string>,
-    targetTenantId: 'smmplan' | 'flux' | 'both' = 'smmplan'
+    targetTenantId: string = 'smmplan'
   ): Promise<ImportServicesResult> {
     return CatalogImportService.importServices(
       externalIds,

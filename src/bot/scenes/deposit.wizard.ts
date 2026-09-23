@@ -9,6 +9,7 @@ import type { BotContext } from '../types/bot-context';
 import { Scenes, Markup } from 'telegraf';
 import { db } from '@/lib/db';
 import { UnifiedPaymentService } from '@/services/financial/unified-payment.service';
+import { getTenantSiteName } from '@/config/tenants';
 
 export const DEPOSIT_WIZARD = 'deposit-wizard';
 
@@ -145,7 +146,7 @@ depositWizard.action(/pay_(yookassa|cryptobot)/, async (ctx: BotContext) => {
 
     await ctx.editMessageText('🔄 Создаю платеж, подождите...');
 
-    const siteName = (botTenantId === 'flux' || botTenantId === 'lovable') ? 'SMMflux' : 'SMMplan';
+    const siteName = getTenantSiteName(botTenantId);
     const res = await UnifiedPaymentService.createPayment(
       undefined,
       user.id,

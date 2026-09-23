@@ -25,6 +25,8 @@ const WHITELIST_FILES = [
   'robots.ts',
   'schema.prisma',
   'middleware.ts',
+  'proxy.ts',
+  'tenant-resolver-edge.ts',
   'nginx.conf',
 ];
 

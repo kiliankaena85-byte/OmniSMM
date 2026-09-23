@@ -13,6 +13,7 @@ interface TenantSwitcherProps {
   variant?: 'dropdown' | 'segmented';
   allowedTenants?: string[];
   isOwner?: boolean;
+  allTenants?: Array<{ id: string; name: string; domain: string }>;
 }
 
 export function TenantSwitcher({
@@ -21,6 +22,7 @@ export function TenantSwitcher({
   variant = 'dropdown',
   allowedTenants,
   isOwner = true,
+  allTenants,
 }: TenantSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,13 +32,14 @@ export function TenantSwitcher({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Filter tenants list according to staff RBAC boundary
+  const baseTenants = allTenants && allTenants.length > 0 ? allTenants : TENANTS;
   const visibleTenants = React.useMemo(() => {
-    if (isOwner) return TENANTS;
+    if (isOwner) return baseTenants;
     if (allowedTenants && allowedTenants.length > 0) {
-      return TENANTS.filter((t) => allowedTenants.includes(t.id));
+      return baseTenants.filter((t) => allowedTenants.includes(t.id));
     }
-    return TENANTS.filter((t) => t.id === currentTenant);
-  }, [isOwner, allowedTenants, currentTenant]);
+    return baseTenants.filter((t) => t.id === currentTenant);
+  }, [isOwner, allowedTenants, currentTenant, baseTenants]);
 
   const canSwitch = isOwner || visibleTenants.length > 1;
 

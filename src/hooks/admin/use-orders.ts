@@ -45,8 +45,8 @@ export function useOrderManagement({ initialData }: { initialData: OrderColumn[]
     setBulkConfirmOpen(true);
   }
 
-  function handleLovableBulkCancel(ids: string[]) {
-    // For Lovable Grid, we just have the IDs. Let's build the pseudo selectedRows
+  function handleIdsBulkCancel(ids: string[]) {
+    // Build pseudo selectedRows from IDs
     const pseudoRows = ids.map(id => ({
       original: optimisticData.find(o => o.id === id) || { id }
     }));
@@ -107,7 +107,8 @@ export function useOrderManagement({ initialData }: { initialData: OrderColumn[]
     bulkConfirmOpen,
     setBulkConfirmOpen,
     handleBulkCancel,
-    handleLovableBulkCancel,
+    handleIdsBulkCancel,
+    handleLovableBulkCancel: handleIdsBulkCancel,
     executeBulkCancel,
     closeDrawer,
     bulkSelectedCount: bulkSelectedRows.length,

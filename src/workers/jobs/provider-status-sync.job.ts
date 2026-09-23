@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global job
 /**
  * (c) 2024-2026 SMMplan. All rights reserved.
  * Provider Status Sync Job (Lost in Space Order Polling).

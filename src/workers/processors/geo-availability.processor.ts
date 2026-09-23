@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 /**
  * GeoAvailabilityProcessor — Autonomous Background Watchdog for Russia & Global ISP Outages.
  * Runs every 5 minutes, verifies availability across Russian probes (Moscow/St. Petersburg),

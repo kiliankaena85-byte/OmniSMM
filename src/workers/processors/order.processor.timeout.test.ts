@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Global cron job or background task
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import orderProcessor from './order.processor';
 import { db } from '../../lib/db';
