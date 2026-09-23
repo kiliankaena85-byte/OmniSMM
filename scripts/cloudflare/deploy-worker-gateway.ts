@@ -4,7 +4,7 @@
  */
 
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '0a7a9a7acb363ffba6f1f1d71897b94c';
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
 const SCRIPT_NAME = 'smmplan-russia-gateway';
 
 const WORKER_CODE = `

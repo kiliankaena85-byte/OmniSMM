@@ -1,7 +1,10 @@
 import { db } from '../src/lib/db';
 import { encrypt } from '../src/lib/crypto/encryption';
 
-const VEXBOOST_KEY = process.env.VEXBOOST_API_KEY || 'Pp1kBnSehTsGaC5UmER0Kp6PcqIqG7TljnqNSX650Fpis4u5TwiSYXrDjEAh';
+const VEXBOOST_KEY = process.env.VEXBOOST_API_KEY;
+if (!VEXBOOST_KEY) {
+  throw new Error('[SECURITY FATAL] VEXBOOST_API_KEY environment variable is required');
+}
 const VEXBOOST_URL = 'https://vexboost.ru/api/v2';
 
 const NETWORK_MAP: Record<string, { name: string; slug: string }> = {

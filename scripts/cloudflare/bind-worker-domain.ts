@@ -3,8 +3,8 @@
  */
 
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '0a7a9a7acb363ffba6f1f1d71897b94c';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || 'b67ab9748fc5f42587bc0d455faf0fdd';
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || '';
 const SCRIPT_NAME = 'smmplan-russia-gateway';
 const CUSTOM_HOSTNAME = 'ru.smmplan.pro';
 

@@ -13,7 +13,10 @@ const prisma = new PrismaClient({
 });
 
 function getEncodedKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '58b78402370d7188f93ee41667e3d118892f61de916f8ac0786064b5d7e5c6d5';
+  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    throw new Error('[SECURITY FATAL] JWT_SECRET or NEXTAUTH_SECRET environment variable is required');
+  }
   return new TextEncoder().encode(secret);
 }
 

@@ -1,6 +1,6 @@
-﻿const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '0a7a9a7acb363ffba6f1f1d71897b94c';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || 'b67ab9748fc5f42587bc0d455faf0fdd';
+const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || '';
 const SCRIPT_NAME = 'smmplan-test-proxy';
 const TUNNEL_ORIGIN = process.env.TUNNEL_ORIGIN || 'https://7875a0c9243e97.lhr.life';
 
@@ -84,14 +84,14 @@ async function cfRequest(endpoint, method = 'GET', body = undefined, contentType
 
 async function main() {
   if (!API_TOKEN) {
-    console.error('❌ Set CLOUDFLARE_API_TOKEN first');
+    console.error('? Set CLOUDFLARE_API_TOKEN first');
     process.exit(1);
   }
 
-  console.log('\n═══════════════════════════════════════════════════════');
-  console.log(`  🚀 Deploying Transparent Proxy Worker: ${SCRIPT_NAME}`);
-  console.log(`  🌍 Tunnel origin: ${TUNNEL_ORIGIN}`);
-  console.log('═══════════════════════════════════════════════════════\n');
+  console.log('\n=======================================================');
+  console.log(`  ?? Deploying Transparent Proxy Worker: ${SCRIPT_NAME}`);
+  console.log(`  ?? Tunnel origin: ${TUNNEL_ORIGIN}`);
+  console.log('=======================================================\n');
 
   // 1. Upload ESM worker via multipart/form-data
   console.log('1. Uploading Worker Script to Cloudflare...');
@@ -114,10 +114,10 @@ async function main() {
   );
   const uploadJson = await uploadRes.json();
   if (!uploadJson.success) {
-    console.error('❌ Upload failed:', JSON.stringify(uploadJson.errors, null, 2));
+    console.error('? Upload failed:', JSON.stringify(uploadJson.errors, null, 2));
     process.exit(1);
   }
-  console.log('   ✅ Script uploaded successfully!\n');
+  console.log('   ? Script uploaded successfully!\n');
 
   // 2. Create / update Worker Route for test.smmplan.pro/*
   console.log('2. Configuring Worker Route: test.smmplan.pro/*...');
@@ -130,13 +130,13 @@ async function main() {
       pattern: 'test.smmplan.pro/*',
       script: SCRIPT_NAME
     });
-    console.log(u.success ? '   ✅ Route updated!' : '   ❌ Route update failed: ' + JSON.stringify(u.errors));
+    console.log(u.success ? '   ? Route updated!' : '   ? Route update failed: ' + JSON.stringify(u.errors));
   } else {
     const c = await cfRequest(`/zones/${ZONE_ID}/workers/routes`, 'POST', {
       pattern: 'test.smmplan.pro/*',
       script: SCRIPT_NAME
     });
-    console.log(c.success ? '   ✅ Route created!' : '   ❌ Route create failed: ' + JSON.stringify(c.errors));
+    console.log(c.success ? '   ? Route created!' : '   ? Route create failed: ' + JSON.stringify(c.errors));
   }
 
   // 3. Remove stale Page Rules redirecting test.smmplan.pro to dead Tailscale
@@ -149,12 +149,12 @@ async function main() {
     if (val.includes('test.smmplan.pro')) {
       const d = await cfRequest(`/zones/${ZONE_ID}/pagerules/${rule.id}`, 'DELETE');
       if (d.success) {
-        console.log(`   🗑️  Removed stale page rule: ${val}`);
+        console.log(`   ???  Removed stale page rule: ${val}`);
         removed++;
       }
     }
   }
-  if (removed === 0) console.log('   ℹ️  No stale page rules found.');
+  if (removed === 0) console.log('   ??  No stale page rules found.');
 
   // 4. Verify probe
   console.log('\n4. Probing https://test.smmplan.pro/api/health...');
@@ -165,15 +165,15 @@ async function main() {
       signal: AbortSignal.timeout(15000)
     });
     const text = await probe.text();
-    console.log(`   ✨ HTTP ${probe.status}: ${text.slice(0, 120)}`);
+    console.log(`   ? HTTP ${probe.status}: ${text.slice(0, 120)}`);
   } catch(e) {
-    console.log('   ⚠️ Probe error:', e instanceof Error ? e.message : String(e));
+    console.log('   ?? Probe error:', e instanceof Error ? e.message : String(e));
   }
 
-  console.log('\n═══════════════════════════════════════════════════════');
-  console.log('  ✅ DONE: test.smmplan.pro is now transparently proxied!');
-  console.log(`  🔗 Target Tunnel: ${TUNNEL_ORIGIN}`);
-  console.log('═══════════════════════════════════════════════════════\n');
+  console.log('\n=======================================================');
+  console.log('  ? DONE: test.smmplan.pro is now transparently proxied!');
+  console.log(`  ?? Target Tunnel: ${TUNNEL_ORIGIN}`);
+  console.log('=======================================================\n');
 }
 
 main().catch(e => { console.error('Fatal error:', e); process.exit(1); });

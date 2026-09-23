@@ -2,7 +2,7 @@
  * Test what Cloudflare origin fetch does
  */
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || 'b67ab9748fc5f42587bc0d455faf0fdd';
+const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || '';
 
 async function main() {
   // Check SSL/TLS encryption mode in Cloudflare

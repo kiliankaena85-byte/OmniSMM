@@ -4,7 +4,7 @@
  */
 
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || 'b67ab9748fc5f42587bc0d455faf0fdd';
+const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || '';
 
 async function cfRequest(endpoint: string, method: string = 'GET', body?: unknown) {
   const res = await fetch(`https://api.cloudflare.com/client/v4${endpoint}`, {

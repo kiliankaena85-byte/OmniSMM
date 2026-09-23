@@ -3,7 +3,7 @@
  */
 
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || 'b67ab9748fc5f42587bc0d455faf0fdd';
+const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || '';
 const TAILSCALE_TARGET = 'desktop-25m6el7.tailbb9d28.ts.net';
 
 async function main() {
