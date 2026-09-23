@@ -57,7 +57,7 @@ export function OrderSummarySubmitBar({
         <Link
           href="/legal/terms"
           className="underline hover:text-foreground font-semibold"
-          target="_blank"
+          target="_blank" rel="noopener noreferrer"
         >
           Договором публичной оферты
         </Link>{' '}
@@ -65,7 +65,7 @@ export function OrderSummarySubmitBar({
         <Link
           href="/legal/privacy"
           className="underline hover:text-foreground font-semibold"
-          target="_blank"
+          target="_blank" rel="noopener noreferrer"
         >
           Политике конфиденциальности
         </Link>

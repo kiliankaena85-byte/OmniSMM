@@ -602,7 +602,7 @@ export async function manualRerouteOrder(orderId: string, newRouteId: string, ac
     const result = await runSerializableTransaction(async (tx) => {
       const order = await tx.order.findFirst({
         where: { id: orderId, tenantId: admin.tenantId ?? 'smmplan' },
-        select: { id: true, numericId: true, status: true, charge: true, userId: true, serviceId: true, providerId: true }
+        select: { id: true, numericId: true, status: true, charge: true, userId: true, serviceId: true, providerId: true, tenantId: true }
       });
 
       if (!order) throw new Error('Order not found');
@@ -681,14 +681,14 @@ export async function manualRerouteOrder(orderId: string, newRouteId: string, ac
         }
       });
 
-      return { numericId: order.numericId, newProviderId: newRoute.providerId };
+      return { numericId: order.numericId, newProviderId: newRoute.providerId, tenantId: order.tenantId };
     });
 
     // После транзакции — отправка в BullMQ
     // Clear duplicate dispatch mutex and ensure unique BullMQ jobId with timestamp
     await redis.del(`order:dispatched:${orderId}`).catch(() => {});
     const jobId = `dispatch-${orderId}-${Date.now()}`;
-    await ordersQueue.add('order-dispatch', { orderId }, { jobId });
+    await ordersQueue.add('order-dispatch', { orderId, tenantId: result.tenantId }, { jobId });
 
     // Запись аудита администратора
     await auditAdminAwaitable({

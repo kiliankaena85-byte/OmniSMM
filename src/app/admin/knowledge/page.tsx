@@ -162,7 +162,7 @@ export default async function AdminKnowledgePage() {
                         <div className="flex items-center justify-end gap-3">
                           <Link 
                             href={`/knowledge/${item.slug}`} 
-                            target="_blank"
+                            target="_blank" rel="noopener noreferrer"
                             className="px-3 py-1.5 bg-muted/60 hover:bg-muted active:scale-[0.98] text-foreground font-semibold text-xs rounded-lg transition-all flex items-center justify-center cursor-pointer"
                           >
                             Просмотр

@@ -316,7 +316,7 @@ export class PaymentService {
       if (activatedOrders.length > 0) {
         const { ordersQueue } = await import('@/lib/queue-manager');
         for (const activated of activatedOrders) {
-          await ordersQueue.add('order-dispatch', { orderId: activated.id }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
+          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
           
           if (activated.userEmail && activated.serviceName) {
             void sendOrderPaidMail(
@@ -550,7 +550,7 @@ export class PaymentService {
       if (activatedOrders.length > 0) {
         const { ordersQueue } = await import('@/lib/queue-manager');
         for (const activated of activatedOrders) {
-          await ordersQueue.add('order-dispatch', { orderId: activated.id }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
+          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
           
           if (activated.userEmail && activated.serviceName) {
             void sendOrderPaidMail(

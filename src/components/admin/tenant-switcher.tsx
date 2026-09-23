@@ -229,7 +229,7 @@ export function TenantSwitcher({
                     <a
                       href={`https://${host}`}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       title={`Открыть ${t.name} в новой вкладке`}
                       className="p-1 text-muted-foreground/50 hover:text-foreground rounded-md hover:bg-muted transition-colors"

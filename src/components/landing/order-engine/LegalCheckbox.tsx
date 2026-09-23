@@ -87,7 +87,7 @@ export function LegalCheckbox({
             Я согласен с условиями{" "}
             <Link
               href={ROUTES.LEGAL.TERMS}
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="underline text-primary hover:text-primary-600 transition-colors font-extrabold"
               onClick={(e) => {
                 e.stopPropagation();
@@ -107,7 +107,7 @@ export function LegalCheckbox({
             Я даю согласие на обработку персональных данных в соответствии с{" "}
             <Link
               href={ROUTES.LEGAL.PRIVACY}
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="underline text-primary hover:text-primary-600 transition-colors font-extrabold"
               onClick={(e) => {
                 e.stopPropagation();
@@ -127,7 +127,7 @@ export function LegalCheckbox({
             Я согласен с{" "}
             <Link
               href={ROUTES.LEGAL.TERMS}
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="underline text-primary hover:text-primary-600 transition-colors font-extrabold"
               onClick={(e) => {
                 e.stopPropagation();
@@ -142,7 +142,7 @@ export function LegalCheckbox({
             и{" "}
             <Link
               href={ROUTES.LEGAL.PRIVACY}
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="underline text-primary hover:text-primary-600 transition-colors font-extrabold"
               onClick={(e) => {
                 e.stopPropagation();

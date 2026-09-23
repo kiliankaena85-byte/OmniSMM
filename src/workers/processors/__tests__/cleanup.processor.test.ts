@@ -92,7 +92,8 @@ describe('Cleanup Processor', () => {
       userId: 'u1',
       charge: 100,
       createdAt: new Date(),
-      status: 'PENDING'
+      status: 'PENDING',
+      tenantId: 'smmplan'
     }] as any);
 
     const { ordersQueue } = await import('../../../lib/queue-manager');
@@ -100,7 +101,7 @@ describe('Cleanup Processor', () => {
 
     await runOrphanSweep();
 
-    expect(ordersQueue.add).toHaveBeenCalledWith('order-dispatch', { orderId: 'o1' }, { jobId: 'dispatch-o1' });
+    expect(ordersQueue.add).toHaveBeenCalledWith('order-dispatch', { orderId: 'o1', tenantId: 'smmplan' }, { jobId: 'dispatch-o1' });
   });
 
   it('IN_PROGRESS TTL partial refund', async () => {

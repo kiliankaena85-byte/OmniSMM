@@ -822,7 +822,7 @@ export function SmmFluxFullApp({ initialTab = 'dashboard' }: { initialTab?: Flux
               <a
                 href="https://t.me/smmplan_support"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-extrabold transition-all"
               >
                 <Send className="w-4 h-4 text-[#e0218a]" />

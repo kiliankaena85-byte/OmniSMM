@@ -370,7 +370,7 @@ export async function runOrphanSweep(): Promise<void> {
       status: 'PENDING',
       createdAt: { lt: threshold }
     },
-    select: { id: true, numericId: true, userId: true, charge: true, createdAt: true, status: true, externalId: true }
+    select: { id: true, numericId: true, userId: true, charge: true, createdAt: true, status: true, externalId: true, tenantId: true }
   });
 
   if (orphans.length > 0) {
@@ -463,7 +463,7 @@ export async function runOrphanSweep(): Promise<void> {
 
       // If job does not exist -> Re-enqueue
       try {
-        await ordersQueue.add('order-dispatch', { orderId: orphan.id }, { jobId });
+        await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId });
         sweptCount++;
         const minutesPending = Math.round((Date.now() - orphan.createdAt.getTime()) / 60000);
         log.warn(`[WARNING] recovered orphan orderId=${orphan.id} jobId=${jobId}`);

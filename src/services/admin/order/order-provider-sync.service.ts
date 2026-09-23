@@ -128,7 +128,7 @@ export class OrderProviderSyncService {
         data: { status: 'PENDING', error: null, retryCount: 0, externalId: null, actualProviderCost: null, realMarginDelta: null },
       });
 
-      return { orderNumericId: order.numericId, oldStatus: order.status, oldError: order.error, charge: order.charge };
+      return { orderNumericId: order.numericId, oldStatus: order.status, oldError: order.error, charge: order.charge, tenantId: order.tenantId };
     });
 
     try {
@@ -136,7 +136,7 @@ export class OrderProviderSyncService {
       const connection = getRedisConnection();
       await connection.del(`order:dispatched:${orderId}`);
       const jobId = `dispatch-${orderId}-${Date.now()}`;
-      await ordersQueue.add('order-dispatch', { orderId }, { jobId });
+      await ordersQueue.add('order-dispatch', { orderId, tenantId: result.tenantId }, { jobId });
     } catch (queueErr) {
       console.error(`[AdminOrderService] Failed to enqueue restarted order ${orderId}:`, queueErr);
     }

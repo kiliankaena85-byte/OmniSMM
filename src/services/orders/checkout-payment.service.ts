@@ -49,9 +49,9 @@ export class CheckoutPaymentService {
 
     if (gateway === 'balance') {
       const { ordersQueue } = await import('@/lib/queue-manager');
-      await ordersQueue.add('order-dispatch', { orderId: result.orderId }, { jobId: `dispatch-${result.orderId}`, delay: 3 * 60 * 1000 });
+      await ordersQueue.add('order-dispatch', { orderId: result.orderId, tenantId }, { jobId: `dispatch-${result.orderId}`, delay: 3 * 60 * 1000 });
       if (result.secondOrderId) {
-        await ordersQueue.add('order-dispatch', { orderId: result.secondOrderId }, { jobId: `dispatch-${result.secondOrderId}`, delay: 3 * 60 * 1000 });
+        await ordersQueue.add('order-dispatch', { orderId: result.secondOrderId, tenantId }, { jobId: `dispatch-${result.secondOrderId}`, delay: 3 * 60 * 1000 });
       }
 
       void sendOrderBalanceDebitMail({

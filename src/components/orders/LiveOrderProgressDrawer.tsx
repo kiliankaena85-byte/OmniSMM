@@ -63,7 +63,7 @@ export function LiveOrderProgressDrawer({
         <a 
           href={targetLink.startsWith('http') ? targetLink : `https://${targetLink}`} 
           target="_blank" 
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="text-primary hover:underline truncate flex items-center gap-1 min-w-0"
         >
           {targetLink} <ExternalLink className="w-3 h-3 shrink-0" />

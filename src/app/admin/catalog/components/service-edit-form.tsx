@@ -370,7 +370,7 @@ export function ServiceEditForm({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-foreground block">Категория</label>
-                  <Link href="/admin/catalog/categories" target="_blank" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium">
+                  <Link href="/admin/catalog/categories" target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium">
                     <Plus className="w-3 h-3" /> Создать категорию
                   </Link>
                 </div>

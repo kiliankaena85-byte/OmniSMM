@@ -95,7 +95,7 @@ export default function Consent152FzCard({
           <div className="flex items-center gap-3 shrink-0 text-xs">
             <Link
               href="/privacy"
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary hover:underline font-semibold"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -104,7 +104,7 @@ export default function Consent152FzCard({
             </Link>
             <Link
               href="/terms"
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary hover:underline font-semibold"
             >
               <FileText className="w-3.5 h-3.5" />

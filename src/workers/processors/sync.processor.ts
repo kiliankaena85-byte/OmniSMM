@@ -318,7 +318,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
         updatedAt: { lt: orphanThreshold },
         externalId: null
       },
-      select: { id: true, numericId: true }
+      select: { id: true, numericId: true, tenantId: true }
     });
 
     if (orphanOrders.length > 0) {
@@ -326,7 +326,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
       const { ordersQueue } = await import('@/lib/queue-manager');
       for (const orphan of orphanOrders) {
         try {
-          await ordersQueue.add('order-dispatch', { orderId: orphan.id }, { jobId: `dispatch-${orphan.id}` });
+          await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId: `dispatch-${orphan.id}` });
           log.info(`[SyncProcessor] Re-enqueued orphan order #${orphan.numericId} (ID: ${orphan.id})`);
         } catch (enqueueErr) {
           log.error(`[SyncProcessor] Failed to re-enqueue orphan order #${orphan.numericId}`, { error: enqueueErr });

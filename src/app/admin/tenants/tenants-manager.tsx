@@ -245,7 +245,7 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                       <a 
                         href={`https://${tenant.domain}`} 
                         target="_blank" 
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
                         title="Открыть сайт"
                       >

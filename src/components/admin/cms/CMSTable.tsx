@@ -74,7 +74,7 @@ export function CMSTable({ items }: { items: CMSItem[] }) {
                     <Link href={`/admin/cms/${item.id}`}>Редактировать</Link>
                   </Button>
                   <Button asChild size="sm" intent="ghost">
-                    <Link href={`/api/draft?slug=${item.slug}`} target="_blank">Preview</Link>
+                    <Link href={`/api/draft?slug=${item.slug}`} target="_blank" rel="noopener noreferrer">Preview</Link>
                   </Button>
                 </div>
               </TableCell>

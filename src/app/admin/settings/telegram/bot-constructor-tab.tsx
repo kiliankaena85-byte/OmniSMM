@@ -307,7 +307,7 @@ export function BotConstructorTab({ tenantId }: BotConstructorTabProps) {
                           <a
                             href={`https://t.me/${bot.username}`}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5"
                           >
                             @{bot.username}

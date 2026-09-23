@@ -40,7 +40,7 @@ export default async function EditCmsPage({ params }: EditPageProps) {
           </div>
         </div>
         <Button asChild intent="secondary">
-          <Link href={`/api/draft?slug=${item.slug}`} target="_blank">
+          <Link href={`/api/draft?slug=${item.slug}`} target="_blank" rel="noopener noreferrer">
             Предпросмотр (Draft Mode)
           </Link>
         </Button>

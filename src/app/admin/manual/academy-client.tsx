@@ -935,7 +935,7 @@ export function AcademyClient({ manualHtml, supportManualHtml, sidebarItems }: A
                         <Link
                           key={idx}
                           href={lnk.href}
-                          target="_blank"
+                          target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-background text-primary border border-border rounded-lg text-xs font-bold hover:bg-muted transition-all"
                         >
                           <span>{lnk.label}</span>

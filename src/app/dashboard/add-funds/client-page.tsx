@@ -575,7 +575,7 @@ export default function AddFundsForm() {
           Нажимая «Перейти к оплате», вы принимаете{' '}
           <Link
             href="/legal/terms"
-            target="_blank"
+            target="_blank" rel="noopener noreferrer"
             className="text-primary hover:underline font-semibold"
           >
             Договор оферты
@@ -583,7 +583,7 @@ export default function AddFundsForm() {
           и{' '}
           <Link
             href="/legal/refund"
-            target="_blank"
+            target="_blank" rel="noopener noreferrer"
             className="text-primary hover:underline font-semibold"
           >
             Политику возврата средств

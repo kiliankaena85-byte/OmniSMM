@@ -978,7 +978,7 @@ export function SmmPlanFullApp({ initialTab = 'dashboard' }: { initialTab?: Plan
                 <a
                   href="https://t.me/smmplan_support"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#e7f2fe] text-[#1f9bf0] text-xs font-bold hover:bg-[#d5e7fd] transition-colors"
                 >
                   <Send className="w-4 h-4" />

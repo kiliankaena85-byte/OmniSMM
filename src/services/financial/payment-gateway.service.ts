@@ -579,7 +579,7 @@ class BalanceGateway extends BasePaymentGateway {
     const { ordersQueue } = await import('@/lib/queue-manager');
 
     // Perform atomic deduction inside the transaction to prevent race condition double-spending
-    const updatedOrderIds: string[] = await db.$transaction(async (tx) => {
+    const updatedOrders: Array<{ id: string; tenantId?: string }> = await db.$transaction(async (tx) => {
       // Atomic WalletOps deduction (already handles totalSpent increment securely)
       await WalletOps.charge(tx, params.userId, amountCents, params.description, {
         idempotencyKey: `balance-charge-${params.paymentId}`,
@@ -592,7 +592,7 @@ class BalanceGateway extends BasePaymentGateway {
         });
 
         // Update any specific order if passed
-        const ids = [];
+        const items: Array<{ id: string; tenantId?: string }> = [];
         if (params.orderId) {
           const order = await tx.order.findUnique({
             where: { id: params.orderId }
@@ -627,7 +627,7 @@ class BalanceGateway extends BasePaymentGateway {
                 });
               }
             }
-            ids.push(params.orderId);
+            items.push({ id: params.orderId, tenantId: order.tenantId });
           }
         }
 
@@ -667,14 +667,14 @@ class BalanceGateway extends BasePaymentGateway {
               }
             }
           }
-          ids.push(...basketOrders.map(o => o.id));
+          items.push(...basketOrders.map(o => ({ id: o.id, tenantId: o.tenantId })));
         }
         
-        return ids;
+        return items;
     }, { isolationLevel: 'Serializable', timeout: 15000 });
 
-    for (const id of updatedOrderIds) {
-      await ordersQueue.add('order-dispatch', { orderId: id }, { jobId: `dispatch-${id}`, delay: 3 * 60 * 1000 });
+    for (const item of updatedOrders) {
+      await ordersQueue.add('order-dispatch', { orderId: item.id, tenantId: item.tenantId || params.tenantId || 'smmplan' }, { jobId: `dispatch-${item.id}`, delay: 3 * 60 * 1000 });
     }
 
     return {

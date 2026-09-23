@@ -177,6 +177,7 @@ export class BalanceAutoFlushService {
           charge: true,
           providerCost: true,
           retryCount: true,
+          tenantId: true,
         },
       });
 
@@ -227,7 +228,7 @@ export class BalanceAutoFlushService {
         });
 
         const jobId = `dispatch-${order.id}-${Date.now()}`;
-        await ordersQueue.add('order-dispatch', { orderId: order.id }, { jobId });
+        await ordersQueue.add('order-dispatch', { orderId: order.id, tenantId: order.tenantId }, { jobId });
         flushedCount++;
       }
 
