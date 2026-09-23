@@ -18,12 +18,16 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 
+import { fetchCustomerOrdersKeyset } from '@/services/orders/keyset-pagination.service';
+
 interface OrdersPageProps {
   searchParams: Promise<{
     page?: string;
     status?: string;
     search?: string;
     network?: string;
+    cursor?: string;
+    dir?: 'forward' | 'backward';
   }>;
 }
 
@@ -45,6 +49,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const search = params.search || '';
   const status = params.status || '';
   const network = params.network || '';
+  const cursor = params.cursor || null;
+  const dir = params.dir === 'backward' ? 'backward' : 'forward';
 
   const user = await db.user.findFirst({
     where: { id: session.userId, tenantId },
@@ -93,61 +99,77 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
     ];
   }
 
-  // Fetch paginated dataset concurrently
-  const [orders, totalCount, networks, statusCounts] = await Promise.all([
-    db.order.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-      select: {
-        id: true,
-        numericId: true,
-        status: true,
-        charge: true,
-        discountCents: true,
-        usdToRubRate: true,
-        quantity: true,
-        remains: true,
-        link: true,
-        error: true,
-        createdAt: true,
-        isDripFeed: true,
-        runs: true,
-        interval: true,
-        currentRun: true,
-        nextRunAt: true,
-        refills: {
+  // Fetch paginated dataset concurrently using Keyset $O(1)$ cursor where possible
+  const [keysetResult, totalCount, networks, statusCounts] = await Promise.all([
+    cursor || currentPage === 1
+      ? fetchCustomerOrdersKeyset({
+          userId: session.userId,
+          tenantId,
+          cursor,
+          direction: dir,
+          limit,
+          status,
+          network,
+          search,
+        })
+      : db.order.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          skip,
+          take: limit,
           select: {
             id: true,
-            status: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
-        service: { 
-          select: { 
-            id: true,
             numericId: true,
-            categoryId: true,
-            name: true,
-            isRefillEnabled: true,
-            category: {
+            status: true,
+            charge: true,
+            discountCents: true,
+            usdToRubRate: true,
+            quantity: true,
+            remains: true,
+            link: true,
+            error: true,
+            createdAt: true,
+            isDripFeed: true,
+            runs: true,
+            interval: true,
+            currentRun: true,
+            nextRunAt: true,
+            refills: {
               select: {
+                id: true,
+                status: true,
+                createdAt: true,
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            service: { 
+              select: { 
+                id: true,
+                numericId: true,
+                categoryId: true,
                 name: true,
-                network: {
+                isRefillEnabled: true,
+                category: {
                   select: {
                     name: true,
-                    slug: true
+                    network: {
+                      select: {
+                        name: true,
+                        slug: true
+                      }
+                    }
                   }
                 }
-              }
-            }
-          } 
-        },
-      },
-    }),
+              } 
+            },
+          },
+        }).then((rows) => ({
+          items: rows,
+          nextCursor: rows.length > 0 ? rows[rows.length - 1].id : null,
+          prevCursor: rows.length > 0 ? rows[0].id : null,
+          hasMore: false,
+        })),
     db.order.count({ where }),
     db.network.findMany({
       where: { isActive: true },
@@ -160,6 +182,10 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       _count: true,
     }),
   ]);
+
+  const orders = keysetResult.items;
+  const nextCursor = keysetResult.nextCursor;
+  const prevCursor = keysetResult.prevCursor;
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -221,6 +247,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         currentPage={currentPage}
         totalPages={totalPages}
         statusCounts={countsMap}
+        nextCursor={nextCursor}
+        prevCursor={prevCursor}
       />
 
       {orders.length === 0 ? (

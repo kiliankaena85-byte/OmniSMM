@@ -4,6 +4,7 @@
  */
 
 import { revalidateTag } from 'next/cache';
+import { invalidateCatalogCache } from '@/services/catalog/catalog-cache.service';
 
 /**
  * Invalidates public catalog cache tags upon admin mutations.
@@ -20,5 +21,12 @@ export function revalidateCatalogCache(tenantId?: string) {
     }
   } catch {
     // revalidateTag might throw if called outside Next.js request context during unit tests
+  }
+
+  // Also purge high-performance Redis catalog cache
+  try {
+    void invalidateCatalogCache(tenantId);
+  } catch {
+    // ignore
   }
 }

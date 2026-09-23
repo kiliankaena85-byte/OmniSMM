@@ -19,6 +19,8 @@ interface OrderFiltersProps {
   currentPage: number;
   totalPages: number;
   statusCounts?: Record<string, number>;
+  nextCursor?: string | null;
+  prevCursor?: string | null;
 }
 
 export function OrderFilters({
@@ -29,13 +31,22 @@ export function OrderFilters({
   currentPage,
   totalPages,
   statusCounts = {},
+  nextCursor,
+  prevCursor,
 }: OrderFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState(initialSearch);
 
-  const handleApplyFilters = (updates: { search?: string; status?: string; network?: string; page?: number }) => {
+  const handleApplyFilters = (updates: {
+    search?: string;
+    status?: string;
+    network?: string;
+    page?: number;
+    cursor?: string | null;
+    dir?: 'forward' | 'backward';
+  }) => {
     const params = new URLSearchParams(searchParams.toString());
 
     // Merge search
@@ -56,10 +67,25 @@ export function OrderFilters({
       else params.delete('network');
     }
 
+    // Merge cursor or page
+    if (updates.cursor !== undefined) {
+      if (updates.cursor) {
+        params.set('cursor', updates.cursor);
+        if (updates.dir) params.set('dir', updates.dir);
+      } else {
+        params.delete('cursor');
+        params.delete('dir');
+      }
+    } else if (updates.search !== undefined || updates.status !== undefined || updates.network !== undefined) {
+      // Clear cursor on filter changes
+      params.delete('cursor');
+      params.delete('dir');
+    }
+
     // Merge page
     if (updates.page !== undefined) {
       params.set('page', updates.page.toString());
-    } else {
+    } else if (updates.search !== undefined || updates.status !== undefined || updates.network !== undefined) {
       params.set('page', '1'); // reset to page 1 on filter updates
     }
 
@@ -236,7 +262,13 @@ export function OrderFilters({
 
           <div className="flex gap-1.5">
             <button
-              onClick={() => handleApplyFilters({ page: currentPage - 1 })}
+              onClick={() => {
+                if (prevCursor) {
+                  handleApplyFilters({ cursor: prevCursor, dir: 'backward', page: Math.max(1, currentPage - 1) });
+                } else {
+                  handleApplyFilters({ page: currentPage - 1, cursor: null });
+                }
+              }}
               disabled={currentPage <= 1}
               className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-xl border border-border bg-content1 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
               title="Предыдущая страница"
@@ -257,7 +289,7 @@ export function OrderFilters({
               return (
                 <button
                   key={`page-${p}`}
-                  onClick={() => handleApplyFilters({ page: p })}
+                  onClick={() => handleApplyFilters({ page: p, cursor: null })}
                   className={`h-11 w-11 md:h-9 md:w-9 rounded-xl text-xs font-bold transition-all active:scale-95 ${
                     currentPage === p
                       ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
@@ -270,7 +302,13 @@ export function OrderFilters({
             })}
 
             <button
-              onClick={() => handleApplyFilters({ page: currentPage + 1 })}
+              onClick={() => {
+                if (nextCursor) {
+                  handleApplyFilters({ cursor: nextCursor, dir: 'forward', page: currentPage + 1 });
+                } else {
+                  handleApplyFilters({ page: currentPage + 1, cursor: null });
+                }
+              }}
               disabled={currentPage >= totalPages}
               className="h-11 w-11 md:h-9 md:w-9 flex items-center justify-center rounded-xl border border-border bg-content1 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
               title="Следующая страница"

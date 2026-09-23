@@ -94,6 +94,13 @@ vi.mock('ioredis', () => {
       const regexPattern = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
       return Array.from(this.store.keys()).filter(k => regexPattern.test(k));
     });
+    scan = vi.fn().mockImplementation(async (_cursor: string, ...args: any[]) => {
+      const matchIdx = args.indexOf('MATCH');
+      const pattern = matchIdx !== -1 && args[matchIdx + 1] ? args[matchIdx + 1] : '*';
+      const regexPattern = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      const matchingKeys = Array.from(this.store.keys()).filter(k => regexPattern.test(k));
+      return ['0', matchingKeys];
+    });
     quit = vi.fn().mockResolvedValue(undefined);
     disconnect = vi.fn().mockResolvedValue(undefined);
     eval = vi.fn().mockImplementation(async (script: string, numKeys: number, key: string, ...args: any[]) => {

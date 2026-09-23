@@ -18,11 +18,12 @@ import { MutexManager } from "@/lib/redis-lock";
 import { adminCatalogService } from "@/services/admin/catalog.service";
 import { providerService } from "@/services/providers/provider.service";
 import { ServiceMutationDetector, type ServiceMutationResult } from "@/services/providers/service-mutation-detector";
+import { revalidateCatalogCache } from "@/actions/admin/catalog/revalidate";
 
 function revalidateQuarantineAndAnomalies() {
   try {
+    revalidateCatalogCache();
     revalidateTag('anomaly-count', 'default');
-    revalidateTag('catalog', 'default');
     revalidatePath('/admin/catalog/quarantine');
     revalidatePath('/admin', 'layout');
   } catch (err) {
