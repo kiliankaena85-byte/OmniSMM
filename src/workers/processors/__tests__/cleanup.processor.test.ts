@@ -13,6 +13,7 @@ vi.mock('../../../lib/db', () => ({
     payment: { findMany: vi.fn().mockResolvedValue([]) },
     order: { findMany: vi.fn().mockResolvedValue([]), updateMany: vi.fn().mockResolvedValue({ count: 0 }), update: vi.fn(), findUnique: vi.fn() },
     ledgerEntry: { findFirst: vi.fn().mockResolvedValue(null) },
+    smartCampaign: { findMany: vi.fn().mockResolvedValue([]), updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
     $transaction: vi.fn(async (cb: any) => cb(db))
   }
 }));

@@ -10,6 +10,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 import { normalizeTenantId, registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { sendAdminAlert } from '@/lib/notifications';
+import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
 
 const CreateTenantSchema = z.object({
   name: z.string().min(2, 'Название бренда должно быть не менее 2 символов').max(60),
@@ -107,6 +108,13 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
       });
 
       registerValidTenant(cleanSlug);
+      await DomainRegistryService.registerDomain({
+        id: tenant.id,
+        slug: cleanSlug,
+        domain: cleanDomain,
+        customDomain: customDomain?.toLowerCase().trim() || null,
+        isActive: true,
+      });
 
       await auditAdminAwaitable({
         adminId: staffUser.id,
@@ -161,6 +169,26 @@ export async function updateTenantAction(formData: z.infer<typeof UpdateTenantSc
         }
       });
 
+      // Synchronize changes with DomainRegistryService
+      const oldDomains: string[] = [];
+      if (oldTenant.domain && oldTenant.domain !== updated.domain) {
+        oldDomains.push(oldTenant.domain);
+      }
+      if (oldTenant.customDomain && oldTenant.customDomain !== updated.customDomain) {
+        oldDomains.push(oldTenant.customDomain);
+      }
+      if (oldDomains.length > 0) {
+        await DomainRegistryService.removeDomains(oldDomains);
+      }
+
+      await DomainRegistryService.registerDomain({
+        id: updated.id,
+        slug: updated.slug,
+        domain: updated.domain,
+        customDomain: updated.customDomain,
+        isActive: updated.isActive,
+      });
+
       await auditAdminAwaitable({
         adminId: staffUser.id,
         adminEmail: staffUser.email,
@@ -190,6 +218,14 @@ export async function toggleTenantStatusAction(id: string, isActive: boolean) {
       const updated = await db.tenant.update({
         where: { id },
         data: { isActive }
+      });
+
+      await DomainRegistryService.registerDomain({
+        id: updated.id,
+        slug: updated.slug,
+        domain: updated.domain,
+        customDomain: updated.customDomain,
+        isActive: updated.isActive,
       });
 
       await auditAdminAwaitable({

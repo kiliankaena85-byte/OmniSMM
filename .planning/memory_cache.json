@@ -399,6 +399,16 @@
         "rag",
         "interactive-manual"
       ]
+    },
+    {
+      "title": "Dynamic Domain Resolver and BullMQ Tenant Hotfix",
+      "context": "Multi-tenant routing and order processing",
+      "decision": "DomainRegistryService and BullMQ tenant context",
+      "rationale": "Prevent order hangs and allow dynamic domains",
+      "tags": [
+        "architecture",
+        "multi-tenant"
+      ]
     }
   ]
 }

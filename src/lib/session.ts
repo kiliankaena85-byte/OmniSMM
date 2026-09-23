@@ -22,7 +22,8 @@ export function clearSessionCookies(cookieStore: { delete: (name: string) => voi
 }
 
 import { getClientIp, isInternalOrPrivateIp } from '@/utils/ip';
-import { normalizeTenantId, resolveContourFromHost, type ContourId } from '@/lib/tenant-resolver-edge';
+import { normalizeTenantId, resolveContourFromHost, type ContourId, registerValidTenant } from '@/lib/tenant-resolver-edge';
+import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
 
 export async function createSession(userId: string, canResetPassword: boolean = false) {
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа (V-13)
@@ -157,10 +158,21 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
 
     const reqHeaders = await headers();
     const host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
+    const cleanHost = host.split(':')[0].toLowerCase().trim();
     const pathname = reqHeaders.get('x-pathname') || '';
     const isAdminOrOperatorPath = pathname.startsWith('/admin') || pathname.startsWith('/operator');
+
+    // Ensure valid user tenant and request tenant are recognized in memory so normalizeTenantId does not discard them
+    if (user.tenantId) {
+      registerValidTenant(user.tenantId);
+    }
+    const rawReqTenant = requiredTenantId || reqHeaders.get("x-tenant-id");
+    if (rawReqTenant) {
+      registerValidTenant(rawReqTenant);
+    }
+
     const currentContour = resolveContourFromHost(host);
-    const currentTenantId = normalizeTenantId(requiredTenantId || reqHeaders.get("x-tenant-id")) || "smmplan";
+    const currentTenantId = normalizeTenantId(rawReqTenant) || "smmplan";
     const userTenantId = normalizeTenantId(user.tenantId) || "smmplan";
     
     // Explicit requiredTenantId check (strictly mandatory for both staff and users)
@@ -176,7 +188,12 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
     // On customer storefronts and client dashboards (/dashboard/*), customer sessions must match host tenant.
     const isStaffRole = ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'].includes(user.role);
     const allowCrossTenantStaff = isStaffRole && isAdminOrOperatorPath;
-    if (!allowCrossTenantStaff && userTenantId !== currentTenantId) {
+
+    // Check if the current host is a verified domain belonging to the user's tenant
+    const hostTenantId = DomainRegistryService.getCachedTenantId(cleanHost);
+    const isHostTenantMatch = Boolean(hostTenantId && hostTenantId === userTenantId);
+
+    if (!allowCrossTenantStaff && userTenantId !== currentTenantId && !isHostTenantMatch) {
       console.warn(`[verifySession] null because: user tenant "${user.tenantId}" does not match request tenant "${currentTenantId}"`);
       try {
         const cookieStore = await cookies();
@@ -188,11 +205,12 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
     }
 
     // F-7.3 Strict Contour Isolation:
-    // Regular users and operators cannot cross-use tokens between test and prod environments
+    // Regular users and operators cannot cross-use tokens between test and prod environments.
+    // Verified custom domains / dynamic tenants do not trigger false contour mismatch.
+    const isCustomDomain = DomainRegistryService.isKnownInMemory(cleanHost);
     const tokenContour = (payload.contour as ContourId) || (userTenantId === 'flux' ? 'flux' : 'test');
-    const cleanHost = host.split(':')[0].toLowerCase().trim();
     const isLocalDev = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1') || cleanHost === '0.0.0.0' || cleanHost === 'web' || cleanHost.includes('host.docker.internal');
-    const isStrictMismatch = !isLocalDev && user.role !== 'OWNER' && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
+    const isStrictMismatch = !isLocalDev && !isCustomDomain && user.role !== 'OWNER' && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
     if (isStrictMismatch) {
       console.warn(`[verifySession] Contour mismatch: token was issued for "${tokenContour}", request is on "${currentContour}"`);
       try {

@@ -8,6 +8,7 @@ import {
 } from '@/lib/session-edge';
 import { ROUTES } from '@/lib/routes';
 import { resolveTenantFromHostEdge, normalizeTenantId, resolveContourFromHost, type ContourId } from '@/lib/tenant-resolver-edge';
+import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
 
 function clearSessionCookiesOnResponse(response: NextResponse) {
   const cookieOptions = {
@@ -204,6 +205,11 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
     if (customHosts.includes(clean)) return true;
   }
 
+  // 5. Check dynamic L1 domain registry cache
+  if (DomainRegistryService.isKnownInMemory(clean)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -237,6 +243,11 @@ export function isAllowedCorsOrigin(origin: string | null | undefined): boolean 
 
     if (ALLOWED_CONTOUR_DOMAINS.has(originHost)) {
       if (isProd && isInternalHost(originHost)) return false;
+      return true;
+    }
+
+    // Check dynamic L1 domain registry cache
+    if (DomainRegistryService.isKnownInMemory(originHost)) {
       return true;
     }
 
@@ -349,12 +360,20 @@ export async function proxy(request: NextRequest) {
     return new NextResponse(null, { status: 204 });
   }
 
+  // Check dynamic domain registry for incoming host
+  let dynamicDomainEntry: import('@/services/tenant/domain-registry.service').DomainRegistryEntry | null = null;
+  if (rawHostClean && !isInternalHost(rawHostClean)) {
+    dynamicDomainEntry = await DomainRegistryService.resolveDomain(rawHostClean);
+  }
+
   // EARLY REJECTION — before any host is used for redirects/cookies
   if (!isStorefrontApi && !isSecurityTxt) {
-    if (rawHostClean && !isKnownOrAllowedHost(rawHostClean)) {
+    const isHostAllowed = isKnownOrAllowedHost(rawHostClean) || Boolean(dynamicDomainEntry && dynamicDomainEntry.isActive);
+    if (rawHostClean && !isHostAllowed) {
       return NextResponse.json({ error: 'Forbidden: Invalid Host header' }, { status: 403 });
     }
-    if (rawFwdClean && !isKnownOrAllowedHost(rawFwdClean)) {
+    const isFwdAllowed = !rawFwdClean || isKnownOrAllowedHost(rawFwdClean) || (await DomainRegistryService.isDynamicDomainAllowed(rawFwdClean));
+    if (rawFwdClean && !isFwdAllowed) {
       return NextResponse.json({ error: 'Forbidden: Invalid X-Forwarded-Host header' }, { status: 403 });
     }
   }
@@ -472,7 +491,8 @@ export async function proxy(request: NextRequest) {
   const fromQuery = normalizeTenantId(request.nextUrl.searchParams.get('tenant'));
   const fromCookie = normalizeTenantId(request.cookies.get('x_tenant')?.value);
   const fromAdminCookie = normalizeTenantId(request.cookies.get('x_admin_tenant')?.value);
-  const fromHost = normalizeTenantId(resolveTenantFromHostEdge(host));
+  const fromDynamic = dynamicDomainEntry?.isActive ? dynamicDomainEntry.tenantId : null;
+  const fromHost = fromDynamic || normalizeTenantId(resolveTenantFromHostEdge(host));
 
   let finalTenantId = 'smmplan';
   let isExplicitTenant = false;
@@ -554,8 +574,9 @@ export async function proxy(request: NextRequest) {
   // Strict validation against current active server contour (TRUSTED_CONTOUR_MAP)
   const allowedForContour = TRUSTED_CONTOUR_MAP[activeContour];
   const effectiveHost = (rawFwdClean && !isInternalHost(rawFwdClean)) ? rawFwdClean : rawHostClean;
+  const isVerifiedDynamicDomain = Boolean(dynamicDomainEntry && dynamicDomainEntry.isActive);
 
-  if (!isStorefrontApi && effectiveHost && allowedForContour && !isInternalHost(effectiveHost) && !allowedForContour.has(effectiveHost) && !isSecurityTxt) {
+  if (!isStorefrontApi && effectiveHost && allowedForContour && !isInternalHost(effectiveHost) && !allowedForContour.has(effectiveHost) && !isVerifiedDynamicDomain && !isSecurityTxt) {
     if (process.env.NODE_ENV === 'production') {
       return NextResponse.json(
         { error: 'Forbidden: Host not permitted for active server contour' },
