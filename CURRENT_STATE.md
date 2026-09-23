@@ -23,6 +23,42 @@
     - **H-02**: Параметризация `$executeRawUnsafe` (`$1..$9`) во всех служебных скриптах.
     - **R6-07..R6-11**: Документирован дрейф `prisma migrate diff`, подтверждены зонды `/api/health` и регламент BGS-2026, модернизирован `vitest.config.ts`.
   * 🧪 **Итоговая верификация:** 35/35 специализированных тестов PASS, 0 уязвимостей в `npm audit`, 0 утечек секретов, 0 ошибок `tsc --noEmit`. Отчёт сформирован в `audit/report-2026-09-23-vuln-sweep.md`.
+- [x] 🤖 [OMNISMM-MULTITENANT-TELEGRAM-DISPATCHER-2026] Мульти-тенантный Telegram Bot Dispatcher & Webhook Router (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация и контракты:**
+    - Утверждена спецификация `docs/specs/SPEC-2026-09-23-MULTITENANT-TELEGRAM-BOT-DISPATCHER.md`.
+    - 0 миграций PostgreSQL schema (переиспользование существующих сущностей `TelegramBotInstance` и `SystemSettings`).
+  * 🔑 **Гибридный токен-резолвер (`src/lib/telegram/token-resolver.ts`):**
+    - Иерархия разрешения токена бота: активный `db.telegramBotInstance` (AES-256-GCM Vault) -> `db.systemSettings` (Vault) -> `process.env.TELEGRAM_BOT_TOKEN` для `'smmplan'`.
+    - Реализована функция `resolveTelegramWebhookSecret(tenantId)` для безопасного извлечения HMAC-секрета вебхука.
+    - Внедрена утилита `sanitizeTenantSlug(tenantId)` в `src/lib/tenant-resolver-edge.ts` для бесшовной нормализации динамических слагов без фантомного хардкода.
+  * 🤖 **Диспетчер ботов в `MultiBotManager` (`src/bot/manager/multi-bot-manager.ts`):**
+    - `getBotForTenant(tenantId)`: поиск активного инстанса в пуле `activeBots`, фоллбэк на БД `telegramBotInstance` с автоматическим запуском, и динамическая инициализация Telegraf при наличии токена.
+    - `handleWebhookUpdate(tenantId, update)`: маршрутизация входящих вебхуков в изолированный бот конкретной витрины.
+    - `sendTenantMessage(tenantId, chatId, text, extra)`: отправка брендированных исходящих сообщений от имени бота целевого тенанта.
+  * 🌐 **Централизованный вебхук-роутер и защита OWASP Top 10:**
+    - Разработан общий модуль `src/lib/telegram/webhook-handler.ts`:
+      - Timing-safe HMAC верификация заголовка `x-telegram-bot-api-secret-token` через `crypto.timingSafeEqual` (Fail-Closed).
+      - Защитный барьер техобслуживания `telegramMaintenanceMode` (503 Service Unavailable).
+      - Защита по белому списку IP-адресов `telegramAllowedIps` (403 Forbidden).
+    - Динамический эндпоинт `POST /api/webhooks/telegram/[tenantId]` в `src/app/api/webhooks/telegram/[tenantId]/route.ts`.
+    - Обратно-совместимый эндпоинт `POST /api/webhooks/telegram?tenant=<slug>` в `src/app/api/webhooks/telegram/route.ts`.
+  * 📢 **Изоляция исходящих уведомлений о платежах и тикетах:**
+    - В `src/services/financial/payment.service.ts` уведомления пользователям об успешной оплате и пополнении баланса переведены на `multiBotManager.sendTenantMessage(userWithTg.tenantId, ...)`, исключая Brand Bleeding для сторонних витрин.
+    - В `src/services/support/support-bot.service.ts` отправка файлов и ответов саппорта переведена на `multiBotManager.getBotForTenant(normTenant)`, устранена опасная мутация глобального объекта `(bot.telegram as any).token`.
+  * 🧪 **Итоговая верификация (71/71 PASS):**
+    - `src/__tests__/unit/multitenant-telegram-dispatcher.test.ts` (11/11 PASS).
+    - `src/__tests__/unit/bullmq-tenant-context.test.ts` (7/7 PASS).
+    - `src/__tests__/unit/dynamic-domain-registry.test.ts` (15/15 PASS).
+    - `src/__tests__/unit/dynamic-domain-session.test.ts` (4/4 PASS).
+    - `src/__tests__/unit/tenant-delete-cleanup.test.ts` (1/1 PASS).
+    - `src/__tests__/unit/dynamic-tenant-theme.test.ts` (8/8 PASS).
+    - `src/__tests__/architecture/tenant-isolation-ast.test.ts` (10/10 PASS).
+    - `src/services/__tests__/multitenant-security.test.ts` (5/5 PASS).
+    - `src/__tests__/unit/cors-policy-hardening.test.ts` (5/5 PASS).
+    - `src/workers/processors/__tests__/cleanup.processor.test.ts` (3/3 PASS).
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - `npm run lint:tenant` — 0 BLOCKERs.
 
 - [x] ⚡ [OMNISMM-DYNAMIC-DOMAIN-RESOLVER-AND-BULLMQ-TENANT-HOTFIX-2026] Внедрение динамического 3-уровневого резолвера доменов (L1/L2/L3) и ликвидация потери контекста тенанта в BullMQ (100% COMPLETE & HARDENED BY REVIEWER):
   * 📋 **Фаза 1: Устранение потери контекста тенанта в BullMQ `ordersQueue` и `refillQueue` (Hotfix):**
