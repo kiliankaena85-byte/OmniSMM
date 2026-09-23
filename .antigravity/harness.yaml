@@ -1,0 +1,131 @@
+harness:
+  name: antigravity-evidence-first-audit-harness
+  version: 1.1.0
+  mode: audit-remediation-verify
+
+baseline_gate:
+  require_commit: true
+  reject_uncommitted: true
+  reject_dirty_tree: true
+  allow_dirty_flag: "--allow-dirty"
+  require_schema_sha256: true
+  reject_placeholder_hash: true
+  require_package_versions: true
+  require_branch: true
+
+evidence_gate:
+  require_file_line: true
+  require_code_snippet: true
+  require_positive_test_for_L3: true
+  require_negative_test_for_security_L4: true
+  require_concurrency_test_for_race_L5: true
+  require_reconciliation_for_financial_L6: true
+  require_monitoring_for_L7: true
+  reject_model_existence_as_proof: true
+  reject_viewed_file_as_proof: true
+  reject_empty_db_as_reconciliation: true
+  reject_placeholder_evidence: true
+
+status_taxonomy:
+  - VERIFIED_PASS
+  - VERIFIED_WITH_CONDITIONS
+  - PARTIAL
+  - UNVERIFIED
+  - NOT_IMPLEMENTED
+  - NOT_APPLICABLE
+  - RISK_ACCEPTED
+  - NEEDS_REMEDIATION
+  - NEEDS_TEST
+  - NEEDS_INFRA_PROOF
+
+evidence_levels:
+  - L0_CLAIMED
+  - L1_DESIGN_PRESENT
+  - L2_CODE_IMPLEMENTED
+  - L3_POSITIVE_TEST_PASSED
+  - L4_NEGATIVE_TEST_PASSED
+  - L5_RACE_FUZZ_PASSED
+  - L6_RECONCILIATION_PASSED
+  - L7_MONITORED
+  - L8_PRODUCTION_PROVEN
+
+closure_rules:
+  security_control_min_level: L4_NEGATIVE_TEST_PASSED
+  financial_control_min_level: L6_RECONCILIATION_PASSED
+  race_control_min_level: L5_RACE_FUZZ_PASSED
+  block_closure_if_critical_open: true
+  block_closure_if_high_open_without_acceptance: true
+  require_residual_risk_backlog: true
+  require_unknowns_non_empty_for_large_scope: true
+
+scanners:
+  - route-scanner
+  - schema-scanner
+  - balance-mutations
+  - idempotency-keys
+  - dev-routes
+  - tenant-filters
+  - ownership-filters
+  - security-events
+
+reconciliation:
+  - user_balance_ledger_match
+  - duplicate_idempotency_key
+  - duplicate_commission
+  - negative_referral_balance
+  - orphan_ledger_entry
+  - orphan_drip_order
+  - orphan_smart_campaign
+  - smart_task_quantity_mismatch
+  - stuck_sent_task
+  - sent_task_without_execution
+  - duplicate_smart_execution
+  - completed_campaign_with_unfinished_tasks
+  - refund_overcharge
+
+evals:
+  - golden
+
+roles:
+  - evidence_collector
+  - threat_modeler
+  - auditor
+  - test_engineer
+  - remediation_engineer
+  - verifier
+  - risk_owner
+
+modules:
+  - tenant_isolation
+  - wallet_ops
+  - payment_webhooks
+  - commission
+  - referral
+  - refund
+  - promo
+  - smart_drip
+  - provider_sync
+  - auth
+  - telegram
+  - session
+  - api_keys
+  - rbac
+  - admin
+  - cms
+  - feature_flags
+  - analytics_privacy
+  - b2b_webhooks
+
+tools:
+  - git
+  - grep
+  - file_read
+  - shell
+  - prisma
+  - sql
+  - vitest
+  - route_scanner
+  - schema_scanner
+  - evidence_validator
+  - risk_registry
+  - report_builder

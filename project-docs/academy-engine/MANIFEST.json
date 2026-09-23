@@ -1,0 +1,316 @@
+{
+  "projectTitle": "Академия Клиентского Сервиса и Операционной Безопасности SMMplan",
+  "version": "2.0.0",
+  "projectBible": "MASTER_BIBLE.md",
+  "masterOutputFile": "project-docs/SUPPORT_ACADEMY_MASTER_2026.md",
+  "nodes": [
+    {
+      "id": "mod1-sec1-order-lifecycle",
+      "module": "МОДУЛЬ 1: Жизненный цикл заказа и технические аномалии",
+      "section": "1.1 Механика статусов заказа и транзакции в базе данных (Prisma/PostgreSQL)",
+      "status": "VERIFIED",
+      "file": "modules/mod01_orders.md"
+    },
+    {
+      "id": "mod1-sec2-counter-lag",
+      "module": "МОДУЛЬ 1: Жизненный цикл заказа и технические аномалии",
+      "section": "1.2 Аномалия Counter Lag (кэш CDN мобильных приложений Telegram, Instagram, TikTok)",
+      "status": "VERIFIED",
+      "file": "modules/mod01_orders.md"
+    },
+    {
+      "id": "mod1-sec3-stuck-orders",
+      "module": "МОДУЛЬ 1: Жизненный цикл заказа и технические аномалии",
+      "section": "1.3 Зависшие заказы (Stuck in Progress) и регламент отмены/ресинхронизации",
+      "status": "VERIFIED",
+      "file": "modules/mod01_orders.md"
+    },
+    {
+      "id": "mod1-sec4-private-profiles",
+      "module": "МОДУЛЬ 1: Жизненный цикл заказа и технические аномалии",
+      "section": "1.4 Закрытые аккаунты (Private Profile) и юридически чистые инструкции клиенту",
+      "status": "VERIFIED",
+      "file": "modules/mod01_orders.md"
+    },
+    {
+      "id": "mod1-sec5-link-formats",
+      "module": "МОДУЛЬ 1: Жизненный цикл заказа и технические аномалии",
+      "section": "1.5 Ошибки в формате ссылок (Wrong Link Format) и валидация по типам услуг",
+      "status": "VERIFIED",
+      "file": "modules/mod01_orders.md"
+    },
+    {
+      "id": "mod2-sec1-drop-mechanics",
+      "module": "МОДУЛЬ 2: Гарантии, Списания (Drop) и Политика Лояльности",
+      "section": "2.1 Алгоритмические чистки социальных сетей: разница No Refill vs Refill",
+      "status": "VERIFIED",
+      "file": "modules/mod02_refills_goodwill.md"
+    },
+    {
+      "id": "mod2-sec2-lifetime-trap",
+      "module": "МОДУЛЬ 2: Гарантии, Списания (Drop) и Политика Лояльности",
+      "section": "2.2 Ловушка «вечной гарантии» (Lifetime Trap) и перекупщики провайдеров",
+      "status": "VERIFIED",
+      "file": "modules/mod02_refills_goodwill.md"
+    },
+    {
+      "id": "mod2-sec3-goodwill-matrix",
+      "module": "МОДУЛЬ 2: Гарантии, Списания (Drop) и Политика Лояльности",
+      "section": "2.3 Матрица компенсаций Goodwill: сегментация клиентов по LTV и лимиты оператора",
+      "status": "VERIFIED",
+      "file": "modules/mod02_refills_goodwill.md"
+    },
+    {
+      "id": "mod2-sec4-refill-execution",
+      "module": "МОДУЛЬ 2: Гарантии, Списания (Drop) и Политика Лояльности",
+      "section": "2.4 Регламент запуска Refill в 1 клик и работа со спорными докрутками",
+      "status": "VERIFIED",
+      "file": "modules/mod02_refills_goodwill.md"
+    },
+    {
+      "id": "mod3-sec1-billing-ledger",
+      "module": "МОДУЛЬ 3: Финансовая безопасность, Эквайринг и Налоги",
+      "section": "3.1 Архитектура биллинга (BigInt копейки, LedgerEntry, WalletOps) и кассовый аудит",
+      "status": "VERIFIED",
+      "file": "modules/mod03_finance_54fz.md"
+    },
+    {
+      "id": "mod3-sec2-payment-methods",
+      "module": "МОДУЛЬ 3: Финансовая безопасность, Эквайринг и Налоги",
+      "section": "3.2 Платежные методы (СБП, Карты МИР, Зарубежные карты, Crypto, B2B р/с)",
+      "status": "VERIFIED",
+      "file": "modules/mod03_finance_54fz.md"
+    },
+    {
+      "id": "mod3-sec3-ghost-webhooks",
+      "module": "МОДУЛЬ 3: Финансовая безопасность, Эквайринг и Налоги",
+      "section": "3.3 Зависшие платежи эквайринга (Ghost Webhooks) и ручная квалификация за 10 сек",
+      "status": "VERIFIED",
+      "file": "modules/mod03_finance_54fz.md"
+    },
+    {
+      "id": "mod3-sec4-card-refunds-54fz",
+      "module": "МОДУЛЬ 3: Финансовая безопасность, Эквайринг и Налоги",
+      "section": "3.4 Двухстадийный возврат средств на карту, ст. 32 ЗоЗПП и фискальные чеки 54-ФЗ",
+      "status": "VERIFIED",
+      "file": "modules/mod03_finance_54fz.md"
+    },
+    {
+      "id": "mod4-sec1-zero-knowledge-api",
+      "module": "МОДУЛЬ 4: Безопасность профилей, Доступы и 152-ФЗ",
+      "section": "4.1 Стандарт безопасности Zero-Knowledge (SHA-256 хэширование API-ключей)",
+      "status": "VERIFIED",
+      "file": "modules/mod04_security_152fz.md"
+    },
+    {
+      "id": "mod4-sec2-express-recovery",
+      "module": "МОДУЛЬ 4: Безопасность профилей, Доступы и 152-ФЗ",
+      "section": "4.2 30-секундный экспресс-поиск по ссылке при опечатке в email (< 1000 ₽)",
+      "status": "VERIFIED",
+      "file": "modules/mod04_security_152fz.md"
+    },
+    {
+      "id": "mod4-sec3-vip-verification",
+      "module": "МОДУЛЬ 4: Безопасность профилей, Доступы и 152-ФЗ",
+      "section": "4.3 Двухуровневая верификация крупных сумм (> 3000 ₽ / VIP) по чекам 54-ФЗ",
+      "status": "VERIFIED",
+      "file": "modules/mod04_security_152fz.md"
+    },
+    {
+      "id": "mod4-sec4-magic-links-sessions",
+      "module": "МОДУЛЬ 4: Безопасность профилей, Доступы и 152-ФЗ",
+      "section": "4.4 Magic Links (15 минут) и экстренный сброс сессий взломщика (Force Logout)",
+      "status": "VERIFIED",
+      "file": "modules/mod04_security_152fz.md"
+    },
+    {
+      "id": "mod4-sec5-right-to-be-forgotten",
+      "module": "МОДУЛЬ 4: Безопасность профилей, Доступы и 152-ФЗ",
+      "section": "4.5 Право на забвение (ст. 21 152-ФЗ) и 5-летний архив по ст. 29 402-ФЗ",
+      "status": "VERIFIED",
+      "file": "modules/mod04_security_152fz.md"
+    },
+    {
+      "id": "mod5-sec1-legal-deescalation",
+      "module": "МОДУЛЬ 5: Юридическая самооборона, Претензии и Конфликтология",
+      "section": "5.1 Угрозы полицией (ст. 159 УК РФ), судом и Роскомнадзором: алгоритм деэскалации",
+      "status": "VERIFIED",
+      "file": "modules/mod05_legal_defense.md"
+    },
+    {
+      "id": "mod5-sec2-consumer-fraud",
+      "module": "МОДУЛЬ 5: Юридическая самооборона, Претензии и Конфликтология",
+      "section": "5.2 Потребительский экстремизм и вымогательство (ст. 163 УК РФ): защита сервиса",
+      "status": "VERIFIED",
+      "file": "modules/mod05_legal_defense.md"
+    },
+    {
+      "id": "mod6-sec1-b2b-invoices-vat",
+      "module": "МОДУЛЬ 6: B2B, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)",
+      "section": "6.1 Автоматическое выставление счетов юрлицам/ИП по ИНН (DaData) с НДС 22% / УСН",
+      "status": "VERIFIED",
+      "file": "modules/mod06_b2b_resellers.md"
+    },
+    {
+      "id": "mod6-sec2-b2b-diadoc-api",
+      "module": "МОДУЛЬ 6: B2B, Оптовики, Реселлеры и ЭДО (Диадок / СБИС)",
+      "section": "6.2 Обмен УПД в Диадок/СБИС и подключение реселлеров по API v2",
+      "status": "VERIFIED",
+      "file": "modules/mod06_b2b_resellers.md"
+    },
+    {
+      "id": "mod7-sec1-telegram-traps",
+      "module": "МОДУЛЬ 7: Межплатформенные Тонкости и Ловушки Социальных Сетей",
+      "section": "7.1 Telegram: Заявки на вступление, Опросы, Реакции, Бусты и Внутренние ссылки",
+      "status": "VERIFIED",
+      "file": "modules/mod07_platform_traps.md"
+    },
+    {
+      "id": "mod7-sec2-instagram-traps",
+      "module": "МОДУЛЬ 7: Межплатформенные Тонкости и Ловушки Социальных Сетей",
+      "section": "7.2 Instagram: Скрытие лайков, Спам-фильтр комментариев и Совместные посты",
+      "status": "VERIFIED",
+      "file": "modules/mod07_platform_traps.md"
+    },
+    {
+      "id": "mod7-sec3-youtube-traps",
+      "module": "МОДУЛЬ 7: Межплатформенные Тонкости и Ловушки Социальных Сетей",
+      "section": "7.3 YouTube & Rutube: Часы просмотра (Watch Time), Shorts и Модерация",
+      "status": "VERIFIED",
+      "file": "modules/mod07_platform_traps.md"
+    },
+    {
+      "id": "mod7-sec4-vk-tiktok-twitch",
+      "module": "МОДУЛЬ 7: Межплатформенные Тонкости и Ловушки Социальных Сетей",
+      "section": "7.4 VK, TikTok, Twitch и Discord: Специфика прямых эфиров и бессрочных инвайтов",
+      "status": "VERIFIED",
+      "file": "modules/mod07_platform_traps.md"
+    },
+    {
+      "id": "mod8-sec1-aml-115fz",
+      "module": "МОДУЛЬ 8: Антифрод (115-ФЗ), Контентный Комплаенс и Эскалация L1–L3",
+      "section": "8.1 Антифрод и 115-ФЗ: Запрет транзита/обналичивания и саморефералы",
+      "status": "VERIFIED",
+      "file": "modules/mod08_antifraud_escalation.md"
+    },
+    {
+      "id": "mod8-sec2-content-compliance",
+      "module": "МОДУЛЬ 8: Антифрод (115-ФЗ), Контентный Комплаенс и Эскалация L1–L3",
+      "section": "8.2 Контентный комплаенс и запрещенные тематики (п. 2.4 Оферты)",
+      "status": "VERIFIED",
+      "file": "modules/mod08_antifraud_escalation.md"
+    },
+    {
+      "id": "mod8-sec3-stacking-ad-overlap",
+      "module": "МОДУЛЬ 8: Антифрод (115-ФЗ), Контентный Комплаенс и Эскалация L1–L3",
+      "section": "8.3 Коллизии нахлеста: параллельные заказы и реклама у блогеров",
+      "status": "VERIFIED",
+      "file": "modules/mod08_antifraud_escalation.md"
+    },
+    {
+      "id": "mod8-sec4-third-party-claims",
+      "module": "МОДУЛЬ 8: Антифрод (115-ФЗ), Контентный Комплаенс и Эскалация L1–L3",
+      "section": "8.4 Шпионаж и претензии третьих лиц («Конкуренты крутят мне ботов»)",
+      "status": "VERIFIED",
+      "file": "modules/mod08_antifraud_escalation.md"
+    },
+    {
+      "id": "mod8-sec5-escalation-matrix",
+      "module": "МОДУЛЬ 8: Антифрод (115-ФЗ), Контентный Комплаенс и Эскалация L1–L3",
+      "section": "8.5 Операционный Плейбук: Матрица Эскалации L1 ➔ L2 ➔ L3",
+      "status": "VERIFIED",
+      "file": "modules/mod08_antifraud_escalation.md"
+    },
+    {
+      "id": "mod9-sec1-service-recovery-paradox",
+      "module": "МОДУЛЬ 9: Искусство Лояльности, Service Recovery Paradox и Мягкие Отказы",
+      "section": "9.1 Феномен Service Recovery Paradox: как превратить ошибку клиента в лояльность",
+      "status": "VERIFIED",
+      "file": "modules/mod09_loyalty_paradox.md"
+    },
+    {
+      "id": "mod9-sec2-loyalty-toolkit",
+      "module": "МОДУЛЬ 9: Искусство Лояльности, Service Recovery Paradox и Мягкие Отказы",
+      "section": "9.2 Арсенал инструментов лояльности (промокоды, тестовые подарки, Goodwill)",
+      "status": "VERIFIED",
+      "file": "modules/mod09_loyalty_paradox.md"
+    },
+    {
+      "id": "mod9-sec3-sandwich-method",
+      "module": "МОДУЛЬ 9: Искусство Лояльности, Service Recovery Paradox и Мягкие Отказы",
+      "section": "9.3 Формула «Сэндвича Лояльности» (Эмпатия ➔ Мягкое просвещение ➔ Подарок)",
+      "status": "VERIFIED",
+      "file": "modules/mod09_loyalty_paradox.md"
+    },
+    {
+      "id": "mod9-sec4-soft-landing-scripts",
+      "module": "МОДУЛЬ 9: Искусство Лояльности, Service Recovery Paradox и Мягкие Отказы",
+      "section": "9.4 Эталонные скрипты «Мягкой Лояльности» на каждый день",
+      "status": "VERIFIED",
+      "file": "modules/mod09_loyalty_paradox.md"
+    },
+    {
+      "id": "mod10-sec1-human-first",
+      "module": "МОДУЛЬ 10: Политика Живого Сервиса (Human-First) и Безопасность AI",
+      "section": "10.1 Доктрина Живого Общения (Human-First): категорический запрет AI-автоответов",
+      "status": "VERIFIED",
+      "file": "modules/mod10_human_first_ai_safety.md"
+    },
+    {
+      "id": "mod10-sec2-ai-copilot-role",
+      "module": "МОДУЛЬ 10: Политика Живого Сервиса (Human-First) и Безопасность AI",
+      "section": "10.2 Роль AI: только внутренний помощник оператора (Human-in-the-Loop)",
+      "status": "VERIFIED",
+      "file": "modules/mod10_human_first_ai_safety.md"
+    },
+    {
+      "id": "mod10-sec3-prompt-injection-defense",
+      "module": "МОДУЛЬ 10: Политика Живого Сервиса (Human-First) и Безопасность AI",
+      "section": "10.3 Защита от Prompt Injection и социальной инженерии в тикетах",
+      "status": "VERIFIED",
+      "file": "modules/mod10_human_first_ai_safety.md"
+    },
+    {
+      "id": "mod11-sec1-serm-philosophy",
+      "module": "МОДУЛЬ 11: Управление Внешней Репутацией (SERM) и Отработка Негатива",
+      "section": "11.1 Философия SERM: ответ пишется для 10 000 читателей, а не для одного автора",
+      "status": "VERIFIED",
+      "file": "modules/mod11_serm_reputation.md"
+    },
+    {
+      "id": "mod11-sec2-official-response-formula",
+      "module": "МОДУЛЬ 11: Управление Внешней Репутацией (SERM) и Отработка Негатива",
+      "section": "11.2 Формула Официального Публичного Ответа SMMplan (Otzovik / VC.ru)",
+      "status": "VERIFIED",
+      "file": "modules/mod11_serm_reputation.md"
+    },
+    {
+      "id": "mod11-sec3-legal-slander-removal",
+      "module": "МОДУЛЬ 11: Управление Внешней Репутацией (SERM) и Отработка Негатива",
+      "section": "11.3 Юридическое удаление клеветы конкурентов (ст. 152 ГК РФ)",
+      "status": "VERIFIED",
+      "file": "modules/mod11_serm_reputation.md"
+    },
+    {
+      "id": "mod12-sec1-exam-certification",
+      "module": "МОДУЛЬ 12: Система Аттестации, Экзаменационный Допуск и KPI Качества",
+      "section": "12.1 Экзаменационный Допуск к Смене (15 кейсов, таймер 90с, порог 90%+)",
+      "status": "VERIFIED",
+      "file": "modules/mod12_qa_certification_kpi.md"
+    },
+    {
+      "id": "mod12-sec2-mystery-shopper",
+      "module": "МОДУЛЬ 12: Система Аттестации, Экзаменационный Допуск и KPI Качества",
+      "section": "12.2 Регулярный контроль: Протокол «Тайный Покупатель» (Mystery Shopper)",
+      "status": "VERIFIED",
+      "file": "modules/mod12_qa_certification_kpi.md"
+    },
+    {
+      "id": "mod12-sec3-support-kpi-metrics",
+      "module": "МОДУЛЬ 12: Система Аттестации, Экзаменационный Допуск и KPI Качества",
+      "section": "12.3 Ключевые Метрики и KPI Эффективности Поддержки (FRT < 60с, CSAT > 96%)",
+      "status": "VERIFIED",
+      "file": "modules/mod12_qa_certification_kpi.md"
+    }
+  ]
+}

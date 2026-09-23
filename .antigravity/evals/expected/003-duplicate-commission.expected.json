@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "errorCode": "E004_FINANCIAL_WITHOUT_RECONCILIATION",
+  "rejectedControls": ["FIN-COMM-01"]
+}

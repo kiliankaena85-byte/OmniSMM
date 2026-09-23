@@ -1,0 +1,103 @@
+Задача: Написать тесты для финансовой системы.
+
+Прочитай AGENTS.md перед началом.
+
+========================================
+1. UNIT ТЕСТЫ: WalletOps
+========================================
+
+Создай src/services/financial/__tests__/wallet-ops.test.ts
+
+Тесты:
+- credit увеличивает balance и создаёт LedgerEntry
+- debit уменьшает balance и создаёт LedgerEntry
+- debit не уходит в минус (если запрещено)
+- refund создаёт LedgerEntry с правильным знаком
+- idempotencyKey предотвращает двойную операцию
+- BigInt точность (не Number)
+- quarantine: средства уходят в quarantineBalance, не в balance
+
+========================================
+2. UNIT ТЕСТЫ: SupportBalancePolicyService
+========================================
+
+Создай src/services/admin/__tests__/balance-policy.test.ts
+
+Тесты:
+- getEffectiveBalancePolicy возвращает GLOBAL если нет USER/ROLE
+- USER policy переопределяет GLOBAL
+- maxCreditPerRequest блокирует превышение
+- maxTotalPerDay блокирует превышение (MSK timezone)
+- maxOperationsPerDay блокирует по количеству
+- blockStaffTargets блокирует изменение баланса staff
+- requireConsent блокирует без EmployeeResponsibilityConsent
+- requireTicket блокирует без ticketId
+- allowedCreditReasonCodes фильтрует reason codes
+- fail-closed при повреждённом JSON policy
+
+========================================
+3. UNIT ТЕСТЫ: CompensationService
+========================================
+
+Создай src/services/financial/__tests__/compensation.test.ts
+
+Тесты:
+- logManualCompensation списывает supportLimitCents
+- supportLimitCents не уходит в минус
+- topUpBalance создаёт WalletOps.credit
+- idempotencyKey предотвращает двойное начисление
+- auditAdminAwaitable вызывается (не fire-and-forget)
+- SupportFinancialAction создаётся
+
+========================================
+4. INTEGRATION ТЕСТЫ: Balance Flow
+========================================
+
+Создай src/__tests__/integration/balance-flow.test.ts
+
+Тесты:
+- Пополнение → заказ → отмена → возврат: баланс сходится
+- Promo code voucher → WalletOps.credit → LedgerEntry
+- Referral transfer → balance increase → LedgerEntry
+- Concurrent balance updates (Promise.all) → нет race condition
+- LedgerEntry sum === User.balance (reconciliation)
+
+========================================
+5. ТЕСТЫ: Quality Gate
+========================================
+
+Создай src/__tests__/seo/quality-gate.test.ts
+
+Тесты:
+- Категория с >= 3 сервисами → indexable
+- Категория с < 3 сервисами → noindex
+- Категория с quarantined сервисами → noindex
+- Категория с cooldown сервисами → noindex
+- Категория с pricePer1000Cents = 0 → noindex
+
+========================================
+ПРАВИЛА
+========================================
+
+- Используй Vitest (уже в проекте)
+- Используй TRUNCATE CASCADE в setup, не deleteMany
+- НЕ используй pg_terminate_backend
+- Сбрасывай кэш синглтонов между тестами
+- Каждый тест независим
+- npx vitest run → все PASS
+
+========================================
+ВЕРИФИКАЦИЯ
+========================================
+
+npx vitest run
+npx tsc --noEmit
+npm run build
+
+========================================
+АРТЕФАКТЫ
+========================================
+
+1. Тестовые файлы
+2. TEST_REPORT.md — покрытие, результаты
+3. Git commit: "test: financial system, balance policy, compensation, quality gate"

@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEARH Evidence Pack Schema v1.1",
+  "type": "object",
+  "required": [
+    "module",
+    "baseline_commit",
+    "schema_sha256",
+    "closure_status",
+    "controls"
+  ],
+  "properties": {
+    "module": {
+      "type": "string"
+    },
+    "baseline_commit": {
+      "type": "string"
+    },
+    "schema_sha256": {
+      "type": "string"
+    },
+    "baseline_clean_tree": {
+      "type": "boolean"
+    },
+    "baseline_status": {
+      "type": "string"
+    },
+    "closure_status": {
+      "type": "string",
+      "enum": [
+        "CLOSED",
+        "CONDITIONALLY_CLOSED",
+        "NEEDS_REMEDIATION",
+        "OPEN"
+      ]
+    },
+    "controls": {
+      "type": "array",
+      "items": {
+        "$ref": "control.schema.json"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "$ref": "risk.schema.json"
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

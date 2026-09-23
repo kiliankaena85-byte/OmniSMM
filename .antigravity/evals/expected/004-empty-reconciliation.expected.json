@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "errorCode": "E008_EMPTY_DB_RECONCILIATION",
+  "rejectedControls": ["FIN-WAL-01"]
+}

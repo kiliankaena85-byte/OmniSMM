@@ -1,0 +1,50 @@
+/* Naming Convention Anti-Patterns */
+
+/* ❌ BAD: Component references primitive directly */
+.button-primary {
+  background: var(--color-blue-500);  /* WRONG: component → primitive */
+}
+
+/* ✅ GOOD: Component references semantic */
+.button-primary {
+  background: var(--color-action-primary);  /* CORRECT: component → semantic */
+}
+
+/* ❌ BAD: Semantic describes appearance, not purpose */
+--color-dark-blue: var(--color-blue-700);  /* WRONG: describes "dark blue" */
+
+/* ✅ GOOD: Semantic describes purpose */
+--color-action-primary-hover: var(--color-blue-700);  /* CORRECT: describes purpose */
+
+/* ❌ BAD: Hardcoded values in components */
+.card {
+  padding: 24px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+/* ✅ GOOD: All values from tokens */
+.card {
+  padding: var(--space-component-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-elevated);
+}
+
+/* ❌ BAD: Dark mode = inverting colors */
+[data-theme="dark"] {
+  background: #000000;  /* WRONG: just inverting */
+  color: #ffffff;
+}
+
+/* ✅ GOOD: Dark mode = remapping semantic tokens */
+[data-theme="dark"] {
+  --color-surface-primary: var(--color-neutral-950);
+  --color-text-primary: var(--color-neutral-50);
+}
+
+/* ❌ BAD: Multiple tokens for same purpose */
+--color-button-bg: var(--color-blue-500);
+--color-cta-bg: var(--color-blue-500);  /* DUPLICATE: same purpose, different names */
+
+/* ✅ GOOD: One semantic token per purpose */
+--color-action-primary: var(--color-blue-500);  /* Single source of truth */

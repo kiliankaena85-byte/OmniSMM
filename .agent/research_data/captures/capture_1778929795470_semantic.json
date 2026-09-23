@@ -1,0 +1,3908 @@
+{
+  "role": "body",
+  "children": [
+    {
+      "role": "div"
+    },
+    {
+      "role": "div",
+      "children": [
+        {
+          "role": "section",
+          "children": [
+            {
+              "role": "h1",
+              "name": "Накрутка подписчиков и просмотров в соцсетях"
+            }
+          ]
+        },
+        {
+          "role": "div",
+          "children": [
+            {
+              "role": "div"
+            },
+            {
+              "role": "div"
+            },
+            {
+              "role": "div"
+            },
+            {
+              "role": "header",
+              "children": [
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "a",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "svg",
+                              "children": [
+                                {
+                                  "role": "path"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "span",
+                          "name": "Smmplan"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "nav",
+                      "children": [
+                        {
+                          "role": "a",
+                          "name": "Услуги"
+                        },
+                        {
+                          "role": "a",
+                          "children": [
+                            {
+                              "role": "text",
+                              "name": "Поддержка"
+                            },
+                            {
+                              "role": "span"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "a",
+                          "name": "FAQ"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "a",
+                      "children": [
+                        {
+                          "role": "svg",
+                          "children": [
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "polyline"
+                            },
+                            {
+                              "role": "line"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "span",
+                          "name": "Войти"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "main",
+              "children": [
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "svg",
+                      "children": [
+                        {
+                          "role": "path"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div"
+                    }
+                  ]
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "h1",
+                      "children": [
+                        {
+                          "role": "text",
+                          "name": "Ускоряем ваши"
+                        },
+                        {
+                          "role": "span",
+                          "name": "соцсети"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "p",
+                      "name": "Автоматическая платформа для продвижения в социальных сетях с мгновенным запуском."
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "p",
+                              "name": "15+"
+                            },
+                            {
+                              "role": "p",
+                              "name": "Платформ"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div"
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "p",
+                              "name": "300+"
+                            },
+                            {
+                              "role": "p",
+                              "name": "Услуг"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div"
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "p",
+                              "name": "24/7"
+                            },
+                            {
+                              "role": "p",
+                              "name": "Поддержка"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "svg",
+                                  "children": [
+                                    {
+                                      "role": "path"
+                                    },
+                                    {
+                                      "role": "path"
+                                    },
+                                    {
+                                      "role": "line"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "input"
+                            },
+                            {
+                              "role": "button",
+                              "name": "Начать"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "select",
+                                  "name": "Выберите платформу",
+                                  "children": [
+                                    {
+                                      "role": "option",
+                                      "name": "Платформа..."
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TELEGRAM"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "VK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "INSTAGRAM"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "YOUTUBE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TIKTOK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TWITCH"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "KICK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TWITTER"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "FACEBOOK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "OK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "RUTUBE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "MAX"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "DISCORD"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "SPOTIFY"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "DZEN"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "YANDEX"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "STEAM"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "WEBSITE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "WHATSAPP"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "LIKEE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TROVO"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "LINKEDIN"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "PINTEREST"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "THREADS"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "REDDIT"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "TUMBLR"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "SOUNDCLOUD"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "MEDIUM"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "QUORA"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "RUMBLE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "GOOGLE"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "MUSIC"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "AUDIOMACK"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "OTHER"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "select",
+                                  "name": "Выберите категорию",
+                                  "children": [
+                                    {
+                                      "role": "option",
+                                      "name": "Категория..."
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "‍‍‍ Подписчики / Участники"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Premium Подписчики"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Просмотры / Охват"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Автопросмотры"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Реакции / Эмодзи"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Репосты / Поделиться"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Авторепосты"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Звезды (Telegram Stars)"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Вступление в группы / чаты"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Сториз / Истории"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Рефералы (Apps/Bots)"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Стримы"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Роботы / Боты"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Заявки в друзья"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Бусты (Telegram Levels)"
+                                    },
+                                    {
+                                      "role": "option",
+                                      "name": "Жалобы / Reports"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "TELEGRAM"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "VK"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "Inst"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "Yout"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "Tikt"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "Twit"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "circle"
+                                            },
+                                            {
+                                              "role": "circle"
+                                            },
+                                            {
+                                              "role": "circle"
+                                            },
+                                            {
+                                              "role": "circle"
+                                            },
+                                            {
+                                              "role": "circle"
+                                            },
+                                            {
+                                              "role": "circle"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "‍‍‍ Подписчики / Участники"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "svg",
+                                          "children": [
+                                            {
+                                              "role": "path"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Premium Подписчики"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Просмотры / Охват"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Автопросмотры"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Реакции / Эмодзи"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Репосты / Поделиться"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Авторепосты"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Звезды (Telegram Stars)"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Вступление в группы / чаты"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Сториз / Истории"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Рефералы (Apps/Bots)"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Стримы"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Роботы / Боты"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Заявки в друзья"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Бусты (Telegram Levels)"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "button",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "svg",
+                                              "children": [
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                },
+                                                {
+                                                  "role": "path"
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "span",
+                                              "name": "Жалобы / Reports"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "h3",
+                                              "children": [
+                                                {
+                                                  "role": "text",
+                                                  "name": "Выберите тариф"
+                                                },
+                                                {
+                                                  "role": "span",
+                                                  "name": "8"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "button",
+                                                  "children": [
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "span",
+                                                          "name": "Тарифный план"
+                                                        },
+                                                        {
+                                                          "role": "h4",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "ID"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "3051"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "text",
+                                                              "name": "🇮🇳 Telegram Members India HQ | [Non Drop 3 days]"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "svg",
+                                                          "children": [
+                                                            {
+                                                              "role": "path"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "🇮🇳 Telegram Members India HQ | [Non Drop 3 days]"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "0.06"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "name": "ГАРАНТИЯ"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "TG Подписчики [Канал/Группа | HQ | 0-1/Ч | 4К/Д | Списания Возможны | Гарантия 90Д]"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "0.12"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "830. TG РУ подписчики в бот (клики на старт)"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "50"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "0.13"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "Telegram | Подписчики [Русские профили / AI] [♻️ 3 Days Warranty]"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "0.23"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "name": "ГАРАНТИЯ"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "786. TG Подписчики РФ [Гарантия 60 Дней]⭐⭐⭐"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "1.1"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "name": "ПРЕМИУМ"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "💎 Telegram PREMIUM Members + Online | 10 days"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "1.1"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "name": "ГАРАНТИЯ"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "TG Подписчики [Русские Ники | Канал/Группа | 0-1/Ч | 20К/Д | Без Списаний | Гарантия 180Д]"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "1.2"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "div"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "name": "ПРЕМИУМ"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "h4",
+                                                          "name": "Telegram | Подписчики [Русские профили / AI] [♻️ 45 Days Warranty]"
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "Стандартные условия сервиса. Скорость и качество зависят от выбранного провайдера."
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Запуск:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "В течение часа"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "Мин:"
+                                                                },
+                                                                {
+                                                                  "role": "span",
+                                                                  "name": "10"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "p",
+                                                              "name": "Цена за 1 шт."
+                                                            },
+                                                            {
+                                                              "role": "p",
+                                                              "children": [
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "1.3"
+                                                                },
+                                                                {
+                                                                  "role": "text",
+                                                                  "name": "₽"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "role": "div",
+                                                          "children": [
+                                                            {
+                                                              "role": "svg",
+                                                              "children": [
+                                                                {
+                                                                  "role": "path"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "div",
+                                      "children": [
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "label",
+                                                  "name": "Ссылка на соцсеть / профиль"
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "svg",
+                                                      "children": [
+                                                        {
+                                                          "role": "path"
+                                                        },
+                                                        {
+                                                          "role": "path"
+                                                        },
+                                                        {
+                                                          "role": "line"
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "input"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "label",
+                                                  "name": "Email для чека"
+                                                },
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "svg",
+                                                      "children": [
+                                                        {
+                                                          "role": "rect"
+                                                        },
+                                                        {
+                                                          "role": "path"
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "role": "input"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "label",
+                                                  "name": "Количество"
+                                                },
+                                                {
+                                                  "role": "input"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "button",
+                                                  "children": [
+                                                    {
+                                                      "role": "svg",
+                                                      "children": [
+                                                        {
+                                                          "role": "rect"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "p",
+                                                  "children": [
+                                                    {
+                                                      "role": "text",
+                                                      "name": "Я принимаю условия"
+                                                    },
+                                                    {
+                                                      "role": "a",
+                                                      "name": "Оферты"
+                                                    },
+                                                    {
+                                                      "role": "text",
+                                                      "name": "и"
+                                                    },
+                                                    {
+                                                      "role": "a",
+                                                      "name": "Политики конфиденциальности"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "role": "div",
+                                              "children": [
+                                                {
+                                                  "role": "div",
+                                                  "children": [
+                                                    {
+                                                      "role": "p",
+                                                      "name": "Итого к оплате"
+                                                    },
+                                                    {
+                                                      "role": "div",
+                                                      "children": [
+                                                        {
+                                                          "role": "p",
+                                                          "children": [
+                                                            {
+                                                              "role": "text",
+                                                              "name": "0.60"
+                                                            },
+                                                            {
+                                                              "role": "span",
+                                                              "name": "₽"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "role": "button",
+                                                  "children": [
+                                                    {
+                                                      "role": "text",
+                                                      "name": "Оплатить"
+                                                    },
+                                                    {
+                                                      "role": "svg",
+                                                      "children": [
+                                                        {
+                                                          "role": "path"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "role": "div",
+                                          "children": [
+                                            {
+                                              "role": "p",
+                                              "name": "Оплата картой (РФ) и СБП. Оплата криптовалютой доступна в Личном Кабинете."
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "section",
+                  "name": "Статистика платформы",
+                  "children": [
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div"
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "2,000,000+"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Заказов выполнено"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "4 секунды"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Среднее время старта"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        },
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "99.9%"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Успешных заказов"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "24/7"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Живая поддержка"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "2,000,000+"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Заказов выполнено"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "4 секунды"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Среднее время старта"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        },
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "99.9%"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Успешных заказов"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "24/7"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Живая поддержка"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "2,000,000+"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Заказов выполнено"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "line"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "4 секунды"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Среднее время старта"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "circle"
+                                        },
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "99.9%"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Успешных заказов"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "name": "24/7"
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Живая поддержка"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "section",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "h2",
+                          "name": "Платформа нового поколения"
+                        },
+                        {
+                          "role": "p",
+                          "name": "Более 10 000 клиентов доверяют Smmplan своё продвижение не просто так. Мы переосмыслили B2B опыт накрутки."
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div"
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "h3",
+                                  "name": "AI-подбор услуг"
+                                },
+                                {
+                                  "role": "p",
+                                  "name": "Вам больше не нужно разбираться в десятках категорий. Просто вставьте ссылку — наша система автоматически определит платформу (Telegram, VK, YT) и сама подберёт оптимальный пакет продвижения."
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div"
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "h3",
+                                  "name": "Оптовые цены"
+                                },
+                                {
+                                  "role": "p",
+                                  "name": "Мы работаем напрямую с крупными поставщиками, обеспечивая лучшие цены на рынке для бизнеса и реселлеров."
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "h3",
+                                  "name": "Прозрачные условия"
+                                },
+                                {
+                                  "role": "p",
+                                  "name": "Никаких скрытых условий. Вы получаете ровно то качество и ту скорость, которые указаны в описании услуги."
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div"
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "h3",
+                                  "name": "Программа лояльности VIP"
+                                },
+                                {
+                                  "role": "p",
+                                  "name": "Чем больше массивных заказов вы оформляете — тем ниже персональные цены. Достигайте новых уровней и получайте скидки до 15% на весь каталог услуг пожизненно."
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "section",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "h2",
+                              "name": "Отзывы наших клиентов"
+                            },
+                            {
+                              "role": "p",
+                              "name": "Более 100 000 выполненных заказов. Доверие профессионалов. Средняя оценка 4.9/5"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "p",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "Заказывал подписчиков в канал. Выполнили даже быстрее заявленного, списаний за 2 недели не было. Рекомендую."
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "children": [
+                                        {
+                                          "role": "h4",
+                                          "name": "Александр В."
+                                        },
+                                        {
+                                          "role": "p",
+                                          "name": "TG Подписчики"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "А"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "p",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "Очень удобный интерфейс, всё понятно без лишних кнопок. Заказала услугу с гарантией — всё отлично. Буду пользоваться."
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "children": [
+                                        {
+                                          "role": "h4",
+                                          "name": "Мария К."
+                                        },
+                                        {
+                                          "role": "p",
+                                          "name": "Instagram Лайки"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "М"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "polygon"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "p",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "Топ за свои деньги. Пользовался другим сервисом, тут цены ниже, а качество выше. Радует что оплата без пополнений."
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "\""
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "div",
+                                      "children": [
+                                        {
+                                          "role": "h4",
+                                          "name": "Денис П."
+                                        },
+                                        {
+                                          "role": "p",
+                                          "name": "VK Просмотры"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "role": "div",
+                                      "name": "Д"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "section",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "h2",
+                          "name": "Частые вопросы"
+                        },
+                        {
+                          "role": "p",
+                          "name": "Всё, что нужно знать перед тем, как ваш бренд взлетит"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "button",
+                              "children": [
+                                {
+                                  "role": "span",
+                                  "name": "Как оформить заказ?"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "button",
+                              "children": [
+                                {
+                                  "role": "span",
+                                  "name": "Нужна ли регистрация?"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "button",
+                              "children": [
+                                {
+                                  "role": "span",
+                                  "name": "Какие способы оплаты доступны?"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "button",
+                              "children": [
+                                {
+                                  "role": "span",
+                                  "name": "Безопасна ли накрутка для аккаунта?"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "button",
+                              "children": [
+                                {
+                                  "role": "span",
+                                  "name": "Что если будут отписки?"
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "footer",
+              "children": [
+                {
+                  "role": "div"
+                },
+                {
+                  "role": "div"
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "svg",
+                                  "children": [
+                                    {
+                                      "role": "path"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "span",
+                              "name": "Smmplan"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "p",
+                          "name": "Платформа нового поколения для B2B продвижения. Мгновенный запуск, строгая конфиденциальность и официальная работа с гарантиями."
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "svg",
+                              "children": [
+                                {
+                                  "role": "rect"
+                                },
+                                {
+                                  "role": "line"
+                                }
+                              ]
+                            },
+                            {
+                              "role": "svg",
+                              "children": [
+                                {
+                                  "role": "path"
+                                },
+                                {
+                                  "role": "path"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "p",
+                          "name": "* Сервисы Instagram и Facebook принадлежат компании Meta, признанной экстремистской организацией и запрещенной на территории РФ."
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "h4",
+                          "name": "Документы"
+                        },
+                        {
+                          "role": "ul",
+                          "children": [
+                            {
+                              "role": "li",
+                              "children": [
+                                {
+                                  "role": "a",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Публичная оферта"
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "li",
+                              "children": [
+                                {
+                                  "role": "a",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Конфиденциальность"
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "li",
+                              "children": [
+                                {
+                                  "role": "a",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Возврат средств"
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "li",
+                              "children": [
+                                {
+                                  "role": "a",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Правила сервиса"
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "h4",
+                          "name": "Поддержка"
+                        },
+                        {
+                          "role": "p",
+                          "name": "Наша команда на связи 24/7. Среднее время ответа составляет 15 минут."
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "a",
+                              "name": "Поддержка в Telegram"
+                            },
+                            {
+                              "role": "a",
+                              "children": [
+                                {
+                                  "role": "svg",
+                                  "children": [
+                                    {
+                                      "role": "rect"
+                                    },
+                                    {
+                                      "role": "path"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "text",
+                                  "name": "Email"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "p",
+                      "children": [
+                        {
+                          "role": "text",
+                          "name": "©"
+                        },
+                        {
+                          "role": "text",
+                          "name": "2026"
+                        },
+                        {
+                          "role": "text",
+                          "name": "Smmplan Lite. Все права защищены."
+                        }
+                      ]
+                    },
+                    {
+                      "role": "p",
+                      "children": [
+                        {
+                          "role": "text",
+                          "name": "Designed with"
+                        },
+                        {
+                          "role": "span",
+                          "name": "❤"
+                        },
+                        {
+                          "role": "text",
+                          "name": "for B2B Growth"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "button",
+                      "children": [
+                        {
+                          "role": "svg",
+                          "children": [
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "p",
+                              "name": "Выбрано"
+                            },
+                            {
+                              "role": "p",
+                              "name": "🇮🇳 Telegram Members India HQ | [Non Drop 3 days]"
+                            },
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "line"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "p",
+                                  "name": "Ссылка не указана"
+                                },
+                                {
+                                  "role": "button",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        },
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "input"
+                                    },
+                                    {
+                                      "role": "span",
+                                      "name": "Кол-во"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "span",
+                                  "name": "×"
+                                },
+                                {
+                                  "role": "span",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "0.0600"
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "₽"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "span",
+                                  "name": "="
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "p",
+                                      "children": [
+                                        {
+                                          "role": "text",
+                                          "name": "0.60"
+                                        },
+                                        {
+                                          "role": "span",
+                                          "name": "₽"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "role": "label",
+                              "children": [
+                                {
+                                  "role": "button",
+                                  "children": [
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "rect"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "span",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Я принимаю условия"
+                                    },
+                                    {
+                                      "role": "a",
+                                      "name": "Оферты"
+                                    },
+                                    {
+                                      "role": "text",
+                                      "name": "и"
+                                    },
+                                    {
+                                      "role": "a",
+                                      "name": "Политики"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "role": "div",
+                          "children": [
+                            {
+                              "role": "div",
+                              "children": [
+                                {
+                                  "role": "button",
+                                  "children": [
+                                    {
+                                      "role": "text",
+                                      "name": "Оплатить"
+                                    },
+                                    {
+                                      "role": "svg",
+                                      "children": [
+                                        {
+                                          "role": "path"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "role": "div",
+                                  "children": [
+                                    {
+                                      "role": "span",
+                                      "name": "Оплата:"
+                                    },
+                                    {
+                                      "role": "span",
+                                      "name": "РФ / СБП / Крипта"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "role": "div",
+          "children": [
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "button",
+                  "children": [
+                    {
+                      "role": "svg",
+                      "children": [
+                        {
+                          "role": "circle"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "button",
+                  "children": [
+                    {
+                      "role": "svg",
+                      "children": [
+                        {
+                          "role": "path"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "div"
+            },
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "button",
+                  "name": "Switch to sky accent"
+                },
+                {
+                  "role": "button",
+                  "name": "Switch to emerald accent"
+                },
+                {
+                  "role": "button",
+                  "name": "Switch to violet accent"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "section",
+      "name": "Notifications alt+T"
+    },
+    {
+      "role": "next-route-announcer"
+    }
+  ]
+}

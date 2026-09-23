@@ -1,0 +1,269 @@
+# Smmplan_lite Local Dev Infrastructure
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smmplan_lite_db
+    restart: always
+    mem_limit: 128m
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-smmplan_lite}
+    command: >
+      postgres
+      -c log_statement=ddl
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_line_prefix='%m [%p] %q%u@%d '
+    volumes:
+      - lite_postgres_data:/var/lib/postgresql/data
+    ports:
+      # Expose on 5435 to prevent conflict with other containers (5432, 5433, 5434)
+      - "127.0.0.1:5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  redis:
+    image: redis:7-alpine
+    container_name: smmplan_lite_redis
+    restart: always
+    mem_limit: 64m
+    command: redis-server --requirepass ${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!} --save 60 1 --loglevel warning --maxmemory 64mb --maxmemory-policy volatile-lru
+    volumes:
+      - lite_redis_data:/data
+    ports:
+      # Localhost only: internal containers use docker network, blocks public internet access
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  clash:
+    image: metacubex/mihomo:latest
+    container_name: smmplan_clash
+    restart: always
+    mem_limit: 64m
+    # TUN mode requires NET_ADMIN + /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.rp_filter=0
+      - net.ipv4.conf.default.rp_filter=0
+    volumes:
+      - ./clash:/root/.config/mihomo
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    ports:
+      - "127.0.0.1:7890:7890"
+      - "127.0.0.1:9090:9090"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: bot-runner
+    container_name: smmplan_bot
+    restart: always
+    mem_limit: 128m
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=96
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
+      - BOT_TENANT_ID=smmplan
+      # Override .env SKIP_BOT=true — bot container MUST run the polling daemon
+      - SKIP_BOT=false
+      # TELEGRAM_PROXY_URL is NOT hardcoded — telegram-agent.ts auto-detects:
+      # 1. Direct probe to api.telegram.org (2.5s timeout)
+      #    → OK  → OS-level VPN (Clash Verge TUN) is active, no proxy needed
+      #    → Fail → use internal Mihomo container below
+      - CLASH_INTERNAL_PROXY_URL=http://clash:7890
+    volumes:
+      - lite_uploads_data:/app/private/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clash:
+        condition: service_started
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker-runner
+    container_name: smmplan_lite_worker
+    restart: always
+    mem_limit: 128m
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=96
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
+      - CLASH_PROXY_URL=http://clash:7890
+    healthcheck:
+      test: ["CMD", "node", "/app/healthcheck-worker.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clash:
+        condition: service_started
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: smmplan_web
+    restart: always
+    mem_limit: 384m
+    # Load all secrets from .env (local dev keys, API tokens, etc.)
+    # DATABASE_URL and REDIS_URL are overridden below to use Docker service names
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=256
+      # Override to use Docker internal service DNS (not localhost)
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
+      - CLASH_PROXY_URL=http://clash:7890
+      - RUN_MIGRATIONS=true
+      - SKIP_BOT=true
+
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - ALLOWED_ORIGINS=http://26.178.208.222:3000,http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - lite_uploads_data:/app/private/uploads
+    ports:
+      - "3000:3000"
+    dns:
+      - 77.88.8.8
+      - 8.8.8.8
+      - 1.1.1.1
+    networks:
+      default:
+        aliases:
+          - host.docker.internal
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clash:
+        condition: service_started
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  tunnel:
+    image: node:20-alpine
+    container_name: smmplan_tunnel
+    restart: always
+    mem_limit: 64m
+    working_dir: /app
+    volumes:
+      - ./scripts:/app/scripts:ro
+    environment:
+      - NODE_ENV=production
+      - TUNNEL_TARGET=web:3000
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+    command: sh -c "apk add --no-cache openssh-client && node scripts/tunnel-daemon.mjs"
+    dns:
+      - 77.88.8.8
+      - 8.8.8.8
+      - 1.1.1.1
+    depends_on:
+      web:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: smmplan_tailscale
+    hostname: smmplan
+    restart: always
+    mem_limit: 128m
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - smm_tailscale_data:/var/lib/tailscale
+    entrypoint: tailscaled
+    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock --tun=userspace-networking
+    depends_on:
+      web:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+volumes:
+  lite_postgres_data:
+  lite_redis_data:
+  lite_uploads_data:
+  smm_tailscale_data:
+    external: true

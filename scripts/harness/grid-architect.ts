@@ -1,0 +1,264 @@
+/**
+ * 📐 ANTIGRAVITY GRID & COMPONENT PRECISION ARCHITECT v1.0
+ *
+ * Инженерный харнес доскональной проработки сетки и каждого субкомпонента:
+ * - 8pt Spatial Baseline Grid (Строгая модульная сетка без исключений)
+ * - Concentric Border Radii (R_outer = R_inner + Padding)
+ * - 12-Column Subgrid Architecture (Идеальное выравнивание внутренних окон)
+ * - Zero-Slop Standard Component Hierarchy (Понятный, высококонверсионный UI без вычурности)
+ * - 5 Состояний для каждого интерактивного элемента (Default, Hover, Active/Focus, Loading, Error)
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+export interface UIElementSpec {
+  name: string;
+  role: string;
+  tag: string;
+  minDimensions: { height: string; width?: string };
+  padding: string;
+  borderRadius: string;
+  typography: { size: string; weight: string; lineHeight: string; tracking?: string };
+  states: {
+    default: string;
+    hover: string;
+    focus: string;
+    active: string;
+    error?: string;
+  };
+  accessibility: { role?: string; ariaLabel?: string; keyboardShortcut?: string };
+}
+
+export interface GridWindowContainerSpec {
+  id: string;
+  title: string;
+  gridSpan: { desktop: string; tablet: string; mobile: string };
+  innerPadding: string;
+  outerRadius: string;
+  borderSpec: string;
+  subElements: UIElementSpec[];
+}
+
+export interface LandingGridBlueprint {
+  name: string;
+  containerMaxWidth: string;
+  verticalRhythm: string;
+  windows: GridWindowContainerSpec[];
+}
+
+export const SMM_LANDING_PRECISION_BLUEPRINT: LandingGridBlueprint = {
+  name: 'Standard High-Conversion SMM Grid',
+  containerMaxWidth: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+  verticalRhythm: 'py-16 md:py-24 space-y-16 md:space-y-24',
+  windows: [
+    {
+      id: 'window-1-navbar',
+      title: 'Окно 1: Навигационный хедер (Floating Capsule Header)',
+      gridSpan: { desktop: 'w-full sticky top-4 z-50', tablet: 'w-full', mobile: 'w-full' },
+      innerPadding: 'px-4 py-2.5 sm:px-6 sm:py-3',
+      outerRadius: 'rounded-2xl',
+      borderSpec: 'border border-border/80 bg-background/85 backdrop-blur-md shadow-sm',
+      subElements: [
+        {
+          name: 'Brand Mark & Name',
+          role: 'Логотип с названием',
+          tag: 'Link',
+          minDimensions: { height: '36px' },
+          padding: 'px-1',
+          borderRadius: 'rounded-xl',
+          typography: { size: 'text-base sm:text-lg', weight: 'font-extrabold', lineHeight: 'leading-none', tracking: 'tracking-tight' },
+          states: {
+            default: 'text-foreground',
+            hover: 'opacity-90',
+            focus: 'focus-visible:ring-2 focus-visible:ring-primary',
+            active: 'scale-98',
+          },
+          accessibility: { ariaLabel: 'Главная страница SMMplan' },
+        },
+        {
+          name: 'Platform Fast Navigation Links',
+          role: 'Ссылки быстрого перехода по соцсетям',
+          tag: 'nav > a',
+          minDimensions: { height: '36px' },
+          padding: 'px-3 py-1.5',
+          borderRadius: 'rounded-lg',
+          typography: { size: 'text-xs sm:text-sm', weight: 'font-medium', lineHeight: 'leading-none' },
+          states: {
+            default: 'text-muted-foreground',
+            hover: 'text-foreground bg-muted/60',
+            focus: 'focus-visible:ring-2 focus-visible:ring-primary',
+            active: 'text-foreground bg-muted',
+          },
+          accessibility: { role: 'navigation' },
+        },
+        {
+          name: 'Primary CTA Button (Войти / Заказать)',
+          role: 'Главное целевое действие хедера',
+          tag: 'button | Link',
+          minDimensions: { height: '40px' },
+          padding: 'px-5 py-2',
+          borderRadius: 'rounded-xl',
+          typography: { size: 'text-xs sm:text-sm', weight: 'font-bold', lineHeight: 'leading-none' },
+          states: {
+            default: 'bg-primary text-primary-foreground shadow-sm',
+            hover: 'opacity-95 shadow-md',
+            focus: 'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+            active: 'scale-98',
+          },
+          accessibility: { ariaLabel: 'Перейти к оформлению заказа' },
+        },
+      ],
+    },
+    {
+      id: 'window-2-hero-split',
+      title: 'Окно 2: Главный сплит-экран (Hero Text + Interactive Order Sandbox)',
+      gridSpan: { desktop: 'grid grid-cols-12 gap-8 lg:gap-12 items-center', tablet: 'grid grid-cols-1 gap-8', mobile: 'flex flex-col gap-6' },
+      innerPadding: 'p-0',
+      outerRadius: 'rounded-none',
+      borderSpec: 'none',
+      subElements: [
+        {
+          name: 'Hero Lead Headline H1',
+          role: 'Главный конверсионный заголовок',
+          tag: 'h1',
+          minDimensions: { height: 'auto' },
+          padding: 'p-0 mb-4',
+          borderRadius: 'rounded-none',
+          typography: { size: 'text-3xl sm:text-5xl lg:text-6xl', weight: 'font-black', lineHeight: 'leading-[1.1]', tracking: 'tracking-tight' },
+          states: {
+            default: 'text-foreground text-wrap:balance',
+            hover: 'none',
+            focus: 'none',
+            active: 'none',
+          },
+          accessibility: { role: 'heading' },
+        },
+        {
+          name: 'Interactive Order Sandbox Container',
+          role: 'Рабочий виджет заказа прямо на первом экране',
+          tag: 'div (Client Component)',
+          minDimensions: { height: '360px' },
+          padding: 'p-5 sm:p-6',
+          borderRadius: 'rounded-3xl (Concentric: inner elements 12px + 16px padding = 28px outer)',
+          typography: { size: 'text-sm', weight: 'font-normal', lineHeight: 'leading-normal' },
+          states: {
+            default: 'bg-card border border-border/90 shadow-layered',
+            hover: 'border-primary/40 transition-colors',
+            focus: 'ring-1 ring-primary/20',
+            active: 'none',
+          },
+          accessibility: { role: 'region', ariaLabel: 'Интерактивный калькулятор заказа' },
+        },
+      ],
+    },
+    {
+      id: 'window-3-platform-cards-grid',
+      title: 'Окно 3: Сетка категорий соцсетей (Platform Grid Matrix)',
+      gridSpan: { desktop: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4', tablet: 'grid grid-cols-2 gap-3', mobile: 'grid grid-cols-1 gap-3' },
+      innerPadding: 'p-0',
+      outerRadius: 'rounded-none',
+      borderSpec: 'none',
+      subElements: [
+        {
+          name: 'Platform Card Item',
+          role: 'Карточка отдельной соцсети с минимальной ценой',
+          tag: 'div',
+          minDimensions: { height: '140px' },
+          padding: 'p-4 sm:p-5',
+          borderRadius: 'rounded-2xl',
+          typography: { size: 'text-sm sm:text-base', weight: 'font-bold', lineHeight: 'leading-tight' },
+          states: {
+            default: 'bg-card border border-border/80 hover:border-primary/50 transition-all duration-200 shadow-sm',
+            hover: 'shadow-md -translate-y-0.5',
+            focus: 'ring-2 ring-primary',
+            active: 'scale-98',
+          },
+          accessibility: { role: 'button', ariaLabel: 'Выбрать категорию соцсети' },
+        },
+      ],
+    },
+    {
+      id: 'window-4-pricing-calculator-detail',
+      title: 'Окно 4: Детализированный калькулятор объема и чека',
+      gridSpan: { desktop: 'grid grid-cols-12 gap-8', tablet: 'flex flex-col gap-6', mobile: 'flex flex-col gap-4' },
+      innerPadding: 'p-6 sm:p-8',
+      outerRadius: 'rounded-3xl',
+      borderSpec: 'border border-border bg-card shadow-sm',
+      subElements: [
+        {
+          name: 'Mechanical Stepped Range Slider',
+          role: 'Слайдер выбора количества',
+          tag: 'input[type="range"]',
+          minDimensions: { height: '44px' },
+          padding: 'p-0',
+          borderRadius: 'rounded-full',
+          typography: { size: 'font-mono text-sm tabular-nums', weight: 'font-bold', lineHeight: 'leading-none' },
+          states: {
+            default: 'accent-primary cursor-pointer w-full',
+            hover: 'opacity-90',
+            focus: 'outline-none ring-2 ring-primary/40',
+            active: 'scale-100',
+          },
+          accessibility: { ariaLabel: 'Количество единиц услуги' },
+        },
+        {
+          name: 'Per-Unit Price Tag',
+          role: 'Прозрачная цена за 1 штуку',
+          tag: 'span',
+          minDimensions: { height: 'auto' },
+          padding: 'px-2.5 py-1',
+          borderRadius: 'rounded-md',
+          typography: { size: 'font-mono text-xl sm:text-2xl tabular-nums', weight: 'font-black', lineHeight: 'leading-none' },
+          states: {
+            default: 'text-foreground',
+            hover: 'none',
+            focus: 'none',
+            active: 'none',
+          },
+          accessibility: { ariaLabel: 'Цена за одну штуку' },
+        },
+      ],
+    },
+  ],
+};
+
+export class GridPrecisionArchitect {
+  public static printBlueprint(): void {
+    console.log('\n==================================================================');
+    console.log('📐 BLUEPRINT: ДОСКОНАЛЬНАЯ СЕТКА И АРХИТЕКТУРА ЭЛЕМЕНТОВ (8pt Grid)');
+    console.log('==================================================================\n');
+
+    SMM_LANDING_PRECISION_BLUEPRINT.windows.forEach((win, idx) => {
+      console.log(`\x1b[36m[${idx + 1}] ${win.title}\x1b[0m`);
+      console.log(`  Сетка (Grid Span) : ${win.gridSpan.desktop}`);
+      console.log(`  Внутренний отступ : ${win.innerPadding}`);
+      console.log(`  Скругление        : ${win.outerRadius}`);
+      console.log(`  Субкомпоненты     : ${win.subElements.length} элементов:`);
+      win.subElements.forEach((el) => {
+        console.log(`    • \x1b[33m${el.name}\x1b[0m (${el.tag}) | Высота: ${el.minDimensions.height} | Padding: ${el.padding}`);
+      });
+      console.log('');
+    });
+  }
+}
+
+async function main() {
+  GridPrecisionArchitect.printBlueprint();
+
+  const outDir = path.resolve(process.cwd(), '.planning/grid-blueprint');
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
+  }
+
+  fs.writeFileSync(
+    path.join(outDir, 'landing_precision_blueprint.json'),
+    JSON.stringify(SMM_LANDING_PRECISION_BLUEPRINT, null, 2),
+    'utf-8'
+  );
+  console.log(`✅ Чертеж сохранен в: \x1b[34m${path.join(outDir, 'landing_precision_blueprint.json')}\x1b[0m\n`);
+}
+
+if (require.main === module) {
+  main();
+}

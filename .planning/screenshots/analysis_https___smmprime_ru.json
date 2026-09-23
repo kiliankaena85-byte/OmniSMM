@@ -1,0 +1,500 @@
+{
+  "url": "https://smmprime.ru",
+  "title": "Сервис SMM накрутки лайков, подписчиков и просмотров | SMMPrime",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "timestamp": "2026-08-18T09:15:22.700Z",
+  "hasSidebar": true,
+  "navSections": [
+    {
+      "tag": "nav",
+      "className": "header__nav",
+      "links": [
+        {
+          "text": "Услуги",
+          "href": "#"
+        },
+        {
+          "text": "Цены",
+          "href": "/services"
+        },
+        {
+          "text": "Лайки",
+          "href": "/layki"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/podpischiki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/kommentarii"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/prosmotry"
+        },
+        {
+          "text": "Репосты",
+          "href": "/reposty"
+        },
+        {
+          "text": "Бесплатная накрутка",
+          "href": "/free"
+        },
+        {
+          "text": "Накрутка ботов",
+          "href": "/nakrutka-botov"
+        },
+        {
+          "text": "Телеграм",
+          "href": "#"
+        },
+        {
+          "text": "Главная",
+          "href": "/telegram"
+        },
+        {
+          "text": "Звезды",
+          "href": "/tgstars"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/tgpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/tgprosmotry"
+        },
+        {
+          "text": "Реакции",
+          "href": "/tgreakcii"
+        },
+        {
+          "text": "Голосования",
+          "href": "/tggolosovaniya"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/tgkommentarii"
+        },
+        {
+          "text": "Репосты",
+          "href": "/tgreposty"
+        },
+        {
+          "text": "Бусты",
+          "href": "/tgboost"
+        },
+        {
+          "text": "ПРЕМИУМ подписчики",
+          "href": "/tgpremiumpodpischiki"
+        },
+        {
+          "text": "Hamster Kombat",
+          "href": "/hamsterkombat"
+        },
+        {
+          "text": "Catizen",
+          "href": "/catizen"
+        },
+        {
+          "text": "PixelTap",
+          "href": "/pixeltap"
+        },
+        {
+          "text": "TapSwap",
+          "href": "/tapswap"
+        },
+        {
+          "text": "Blum",
+          "href": "/blum"
+        },
+        {
+          "text": "ВК",
+          "href": "#"
+        },
+        {
+          "text": "Главная",
+          "href": "/vkontakte"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/vkpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/vkprosmotry"
+        },
+        {
+          "text": "Лайки",
+          "href": "/vklayki"
+        },
+        {
+          "text": "Опросы",
+          "href": "/vkoprosy"
+        },
+        {
+          "text": "Прослушивания",
+          "href": "/vkproslushivaniya"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/vkkommentarii"
+        },
+        {
+          "text": "Друзья",
+          "href": "/vkdruzya"
+        },
+        {
+          "text": "Репосты",
+          "href": "/vkreposty"
+        },
+        {
+          "text": "Инстаграм*",
+          "href": "#"
+        },
+        {
+          "text": "Главная",
+          "href": "/instagram"
+        },
+        {
+          "text": "Лайки",
+          "href": "/instlayki"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/instpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/instprosmotry"
+        },
+        {
+          "text": "Голоса",
+          "href": "/instagolosa"
+        },
+        {
+          "text": "Репосты",
+          "href": "/instareposty"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/instakommentarii"
+        },
+        {
+          "text": "Threads",
+          "href": "/threads"
+        },
+        {
+          "text": "Тикток",
+          "href": "#"
+        },
+        {
+          "text": "Главная",
+          "href": "/tiktok"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/ttprosmotry"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/ttpodpischiki"
+        },
+        {
+          "text": "Лайки",
+          "href": "/ttlayki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/ttkommentarii"
+        },
+        {
+          "text": "Ютуб",
+          "href": "#"
+        },
+        {
+          "text": "Главная",
+          "href": "/youtube"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/ytpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/ytprosmotry"
+        },
+        {
+          "text": "Лайки",
+          "href": "/ytlayki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/ytkommentarii"
+        },
+        {
+          "text": "Регистрация",
+          "href": "/signup"
+        },
+        {
+          "text": "Вход",
+          "href": "/#signIn"
+        }
+      ],
+      "subHeadings": []
+    },
+    {
+      "tag": "nav",
+      "className": "burger-menu__nav",
+      "links": [
+        {
+          "text": "Цены",
+          "href": "/services"
+        },
+        {
+          "text": "Лайки",
+          "href": "/layki"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/podpischiki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/kommentarii"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/prosmotry"
+        },
+        {
+          "text": "Репосты",
+          "href": "/reposty"
+        },
+        {
+          "text": "Бесплатная накрутка",
+          "href": "/free"
+        },
+        {
+          "text": "Накрутка ботов",
+          "href": "/nakrutka-botov"
+        },
+        {
+          "text": "Главная",
+          "href": "/telegram"
+        },
+        {
+          "text": "Звезды",
+          "href": "/tgstars"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/tgpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/tgprosmotry"
+        },
+        {
+          "text": "Реакции",
+          "href": "/tgreakcii"
+        },
+        {
+          "text": "Голосования",
+          "href": "/tggolosovaniya"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/tgkommentarii"
+        },
+        {
+          "text": "Репосты",
+          "href": "/tgreposty"
+        },
+        {
+          "text": "Бусты",
+          "href": "/tgboost"
+        },
+        {
+          "text": "ПРЕМИУМ подписчики",
+          "href": "/tgpremiumpodpischiki"
+        },
+        {
+          "text": "Hamster Kombat",
+          "href": "/hamsterkombat"
+        },
+        {
+          "text": "Catizen",
+          "href": "/catizen"
+        },
+        {
+          "text": "PixelTap",
+          "href": "/pixeltap"
+        },
+        {
+          "text": "TapSwap",
+          "href": "/tapswap"
+        },
+        {
+          "text": "Blum",
+          "href": "/blum"
+        },
+        {
+          "text": "Главная",
+          "href": "/vkontakte"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/vkpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/vkprosmotry"
+        },
+        {
+          "text": "Лайки",
+          "href": "/vklayki"
+        },
+        {
+          "text": "Опросы",
+          "href": "/vkoprosy"
+        },
+        {
+          "text": "Прослушивания",
+          "href": "/vkproslushivaniya"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/vkkommentarii"
+        },
+        {
+          "text": "Друзья",
+          "href": "/vkdruzya"
+        },
+        {
+          "text": "Репосты",
+          "href": "/vkreposty"
+        },
+        {
+          "text": "Главная",
+          "href": "/instagram"
+        },
+        {
+          "text": "Лайки",
+          "href": "/instlayki"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/instpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/instprosmotry"
+        },
+        {
+          "text": "Голоса",
+          "href": "/instagolosa"
+        },
+        {
+          "text": "Репосты",
+          "href": "/instareposty"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/instakommentarii"
+        },
+        {
+          "text": "Threads",
+          "href": "/threads"
+        },
+        {
+          "text": "Главная",
+          "href": "/tiktok"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/ttprosmotry"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/ttpodpischiki"
+        },
+        {
+          "text": "Лайки",
+          "href": "/ttlayki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/ttkommentarii"
+        },
+        {
+          "text": "Главная",
+          "href": "/youtube"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/ytpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/ytprosmotry"
+        },
+        {
+          "text": "Лайки",
+          "href": "/ytlayki"
+        },
+        {
+          "text": "Комментарии",
+          "href": "/ytkommentarii"
+        },
+        {
+          "text": "Главная",
+          "href": "/twich"
+        },
+        {
+          "text": "Зрители",
+          "href": "/zritelitwich"
+        },
+        {
+          "text": "Главная",
+          "href": "/max"
+        },
+        {
+          "text": "Реакции",
+          "href": "/maxreakcii"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/maxpodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/maxprosmotry"
+        },
+        {
+          "text": "Главная",
+          "href": "/wibes"
+        },
+        {
+          "text": "Подписчики",
+          "href": "/wibespodpischiki"
+        },
+        {
+          "text": "Просмотры",
+          "href": "/wibesprosmotry"
+        },
+        {
+          "text": "Лайки",
+          "href": "/wibeslikes"
+        }
+      ],
+      "subHeadings": []
+    }
+  ],
+  "summary": "Обнаружено 2 секций навигации/сайдбаров и 118 ссылок.",
+  "screenshotPath": "D:\\SMM_plan_2\\.planning\\screenshots\\capture_https___smmprime_ru_1920x1080.png"
+}

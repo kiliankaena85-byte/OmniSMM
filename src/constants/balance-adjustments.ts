@@ -1,0 +1,33 @@
+export const BALANCE_ADJUSTMENT_DIRECTION = {
+  CREDIT: 'CREDIT',
+  DEBIT: 'DEBIT'
+} as const;
+
+export type BalanceAdjustmentDirection = keyof typeof BALANCE_ADJUSTMENT_DIRECTION;
+
+export const BALANCE_ADJUSTMENT_STATUS = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  EXECUTED: 'EXECUTED',
+  EXECUTION_FAILED: 'EXECUTION_FAILED',
+  CANCELED: 'CANCELED'
+} as const;
+
+export type BalanceAdjustmentStatus = keyof typeof BALANCE_ADJUSTMENT_STATUS;
+
+export const BALANCE_ADJUSTMENT_REASONS = {
+  CREDIT: [
+    'REFUND',
+    'COMPENSATION',
+    'BONUS',
+    'PAYMENT_RECONCILIATION',
+    'GOODWILL'
+  ],
+  DEBIT: [
+    'FRAUD_REVERSAL',
+    'ABUSE_REVERSAL',
+    'ERROR_REVERSAL',
+    'CHARGEBACK_REVERSAL'
+  ]
+} as const;

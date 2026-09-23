@@ -1,0 +1,3 @@
+{"timestamp": "2026-05-22T08:14:18.235225+00:00", "event_type": "ACTIVATION", "skill": "test-skill", "reason": "Manual testing of activation tracker", "trigger": "test run", "error_msg": ""}
+{"timestamp": "2026-05-22T08:14:23.454392+00:00", "event_type": "ERROR", "skill": "test-skill", "reason": "", "trigger": "", "error_msg": "Simulated manual execution error"}
+{"timestamp": "2026-06-15T04:53:47.354888+00:00", "event_type": "ACTIVATION", "skill": "skill-activation-logger", "reason": "Starting work on tracking and diagnosing the Hero block visibility issue using query-rag", "trigger": "\u043f\u0440\u043e\u043f\u0430\u043b hero \u0431\u043b\u043e\u043a", "error_msg": ""}

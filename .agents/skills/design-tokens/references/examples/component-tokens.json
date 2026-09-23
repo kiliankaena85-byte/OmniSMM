@@ -1,0 +1,49 @@
+{
+  "button": {
+    "primary": {
+      "background":       { "$value": "{color.action.primary}",        "$type": "color" },
+      "background-hover": { "$value": "{color.action.primary-hover}",  "$type": "color" },
+      "text":             { "$value": "{color.text.inverse}",          "$type": "color" },
+      "padding-y":        { "$value": "{space.component.sm}",          "$type": "dimension" },
+      "padding-x":        { "$value": "{space.component.md}",          "$type": "dimension" },
+      "border-radius":    { "$value": "{radius.md}",                   "$type": "dimension" },
+      "font-size":        { "$value": "{typography.fontSize.sm}",      "$type": "dimension" },
+      "font-weight":      { "$value": "{typography.fontWeight.medium}", "$type": "fontWeight" }
+    },
+    "secondary": {
+      "background":       { "$value": "{color.action.secondary}",        "$type": "color" },
+      "background-hover": { "$value": "{color.action.secondary-hover}",  "$type": "color" },
+      "text":             { "$value": "{color.text.primary}",            "$type": "color" },
+      "padding-y":        { "$value": "{space.component.sm}",            "$type": "dimension" },
+      "padding-x":        { "$value": "{space.component.md}",            "$type": "dimension" },
+      "border-radius":    { "$value": "{radius.md}",                     "$type": "dimension" },
+      "font-size":        { "$value": "{typography.fontSize.sm}",        "$type": "dimension" },
+      "font-weight":      { "$value": "{typography.fontWeight.medium}",  "$type": "fontWeight" },
+      "border-color":     { "$value": "{color.border.default}",          "$type": "color" }
+    },
+    "destructive": {
+      "background":       { "$value": "{color.action.destructive}",        "$type": "color" },
+      "background-hover": { "$value": "{color.action.destructive-hover}",  "$type": "color" },
+      "text":             { "$value": "{color.text.inverse}",              "$type": "color" },
+      "padding-y":        { "$value": "{space.component.sm}",              "$type": "dimension" },
+      "padding-x":        { "$value": "{space.component.md}",              "$type": "dimension" },
+      "border-radius":    { "$value": "{radius.md}",                       "$type": "dimension" }
+    }
+  },
+  "card": {
+    "background":     { "$value": "{color.surface.elevated}",   "$type": "color" },
+    "border-color":   { "$value": "{color.border.default}",     "$type": "color" },
+    "border-radius":  { "$value": "{radius.lg}",                "$type": "dimension" },
+    "padding":        { "$value": "{space.component.lg}",       "$type": "dimension" },
+    "shadow":         { "$value": "{shadow.sm}",                "$type": "shadow" }
+  },
+  "input": {
+    "background":     { "$value": "{color.surface.primary}",    "$type": "color" },
+    "border-color":   { "$value": "{color.border.default}",     "$type": "color" },
+    "border-radius":  { "$value": "{radius.md}",                "$type": "dimension" },
+    "padding-y":      { "$value": "{space.component.sm}",       "$type": "dimension" },
+    "padding-x":      { "$value": "{space.component.md}",       "$type": "dimension" },
+    "text":           { "$value": "{color.text.primary}",       "$type": "color" },
+    "font-size":      { "$value": "{typography.fontSize.base}", "$type": "dimension" }
+  }
+}

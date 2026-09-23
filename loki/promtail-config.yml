@@ -1,0 +1,55 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Собирать логи из ВСЕХ Docker-контейнеров
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: status
+            values: [running]
+    relabel_configs:
+      # Использовать имя контейнера как label
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(.*)'
+        target_label: container
+      # Использовать имя образа как label
+      - source_labels: [__meta_docker_container_image_name]
+        target_label: image
+      # Добавить label для compose-проекта
+      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+        target_label: compose_project
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: compose_service
+
+    pipeline_stages:
+      # Парсить JSON-логи Pino автоматически
+      - json:
+          expressions:
+            level: level
+            message: msg
+            correlationId: correlationId
+            userId: userId
+            component: component
+            service: service
+      # Добавить level как label для фильтрации в Grafana
+      - labels:
+          level:
+          correlationId:
+          component:
+          service:
+      # Использовать timestamp из лога, а не время получения
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+          fallback_formats:
+            - RFC3339

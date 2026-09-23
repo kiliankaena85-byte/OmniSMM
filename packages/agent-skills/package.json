@@ -1,0 +1,33 @@
+{
+  "name": "@omnismm/agent-skills",
+  "version": "1.0.0",
+  "description": "Enterprise Architectural Skills Suite & Zero-Defect AI Developer Contracts for Antigravity, Cursor, Claude Code, and Windsurf",
+  "author": "OmniSMM Engineering Team",
+  "license": "MIT",
+  "main": "scripts/install.js",
+  "bin": {
+    "omnismm-skills": "./scripts/cli.js"
+  },
+  "scripts": {
+    "install": "node scripts/install.js",
+    "verify": "tsx scripts/verify-skills.ts"
+  },
+  "keywords": [
+    "ai-agents",
+    "skills",
+    "antigravity",
+    "cursor",
+    "claude-code",
+    "windsurf",
+    "architecture",
+    "ddd",
+    "zero-defect",
+    "owasp",
+    "code-quality"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kiliankaena85-byte/SMMplan.git",
+    "directory": "packages/agent-skills"
+  }
+}

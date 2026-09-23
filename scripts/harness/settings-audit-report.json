@@ -1,0 +1,492 @@
+{
+  "General Settings (Система)": {
+    "component": "General Settings (Система)",
+    "overallQualityScore": 62,
+    "topMicroImprovements": [
+      {
+        "area": "Maintenance Mode Kill-Switch",
+        "currentIssue": "Toggling maintenance mode is a high-impact, irreversible action that immediately blocks the storefront for all customers, yet it is a single-click switch with zero confirmation modal — a single misclick can take the platform offline.",
+        "recommendedPolish": "Wrap the toggle in a HeroUI <Modal> confirmation step that explicitly states estimated user impact and requires typing the platform name or clicking a two-step destructive 'Confirm Maintenance' button. Add a scheduled-off reminder (e.g., 'Will auto-disable in 4h if not extended').",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Branding Upload (Logo & Favicon)",
+        "currentIssue": "There is no visible remove/revert button once a logo or favicon is uploaded, and no copy-to-clipboard for the public asset URL. The 16x16 preview tile is also below the 44px touch-target guidance for a primary preview control.",
+        "recommendedPolish": "Add a 'Remove asset' ghost button (with destructive confirmation) and a 'Copy URL' icon button next to each uploaded file. Enlarge preview tiles to at least 64x64 with proper focus rings, and announce upload progress to screen readers using aria-live='polite'.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Tax Rate Auto-Switch Coupling",
+        "currentIssue": "handleUsnChange silently overrides the taxRate when switching USN schemes (15→6 or 6→15), which can surprise users who had customized the rate. There is no preview of what will happen, and no tooltip explaining why.",
+        "recommendedPolish": "Surface a small inline helper note ('При смене режима ставка автоматически изменится с 15% на 6%') and visually flash the taxRate input for ~600ms after the auto-change. Add an 'Undo' affordance and ensure the change is also reflected in the form's hidden submitted value with a clear toast.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Telegram Bot 'Test Connection' Diagnostics",
+        "currentIssue": "BotTestResult is stored but never rendered in the DOM — only the toast surfaces success/error. There is no visible pingMs badge, no last-tested timestamp, no copyable bot link, and no keyboard-accessible trigger label.",
+        "recommendedPolish": "Render a compact HeroUI <Chip>/status pill inside the card showing 'Last tested: 23ms · @username · ✅ verified' with a 'Copy bot link' icon button and an aria-described region. Make the 'Test bot' button a proper <Button> with accessible name and disabled loading announcement.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Form Field Error UX & Live Validation",
+        "currentIssue": "Inline validation errors only appear after server-side submission via useActionState. Fields like email, INN (10/12 digits), OGRNIP (15 digits), and Telegram bot username (must end with 'bot') get no client-side format hint or char counter, leading to avoidable round-trips.",
+        "recommendedPolish": "Add lightweight client-side validation with regex hints ('INN: 10 or 12 digits', 'OGRNIP: 15 digits', 'Telegram bot: must end with \"bot\"'), live char counters on siteName/siteDescription (SEO best-practice limits), and debounced onBlur validation that surfaces format errors before submit.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Typography & Spacing Inconsistencies",
+        "currentIssue": "Card sections use mixed header semantics (no <h2> anchoring for screen readers), labels mix uppercase tracking with sentence case, and helper paragraphs jump between text-[11px], text-[10px], text-xs without a consistent token (Tailwind 4 expects a unified type scale).",
+        "recommendedPolish": "Adopt a single Tailwind 4 type-scale token (e.g., text-xs for helpers, text-sm for body, text-base for section headers), promote each Card header to <h2> with proper id/aria-labelledby wiring, and unify label casing via a shared <SectionLabel> primitive.",
+        "impact": "LOW"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "maintenanceMode (toggle)",
+        "suggestedTooltipText": "Аварийный выключатель: при включении все клиенты мгновенно увидят экран техработ. Действие требует подтверждения. Используйте только во время деплоя или инцидентов."
+      },
+      {
+        "field": "siteName",
+        "suggestedTooltipText": "Публичное название бренда. Используется в <title>, логотипах, email-шаблонах и OpenGraph. Рекомендуемая длина: до 30 символов."
+      },
+      {
+        "field": "siteDescription",
+        "suggestedTooltipText": "Meta description для SEO. Оптимальная длина: 120–160 символов. Будет отображаться в результатах поиска и превью ссылок в мессенджерах."
+      },
+      {
+        "field": "legalCompanyInn",
+        "suggestedTooltipText": "ИНН организации: 10 цифр для юрлица, 12 цифр для ИП. Используется для формирования чеков и интеграции с ФНС."
+      },
+      {
+        "field": "legalCompanyOgrnip",
+        "suggestedTooltipText": "ОГРНИП индивидуального предпринимателя — ровно 15 цифр. Контрольная 15-я цифра проверяется автоматически."
+      },
+      {
+        "field": "taxRate + usnScheme",
+        "suggestedTooltipText": "Схема УСН определяет базовую ставку налога: «Доходы» — 6%, «Доходы минус расходы» — 15%. Значения ниже регионального минимума (1%) блокируются серверной валидацией."
+      },
+      {
+        "field": "contactTelegramBot",
+        "suggestedTooltipText": "Username Telegram-бота поддержки (без @). Должен заканчиваться на «bot». Используйте кнопку «Проверить бота» — выполняется реальный getMe() с измерением пинга."
+      },
+      {
+        "field": "Test Bot button",
+        "suggestedTooltipText": "Отправляет запрос getMe() к Telegram Bot API для проверки токена и задержки. Результат не сохраняется — только отображается в статусе и тосте."
+      },
+      {
+        "field": "Logo upload tile",
+        "suggestedTooltipText": "Загрузите квадратный или горизонтальный логотип (PNG, SVG, WEBP). Максимум 2 МБ. Рекомендуемое разрешение: не менее 256×64 px."
+      },
+      {
+        "field": "Favicon upload tile",
+        "suggestedTooltipText": "Иконка вкладки браузера. Поддерживается ICO, SVG и PNG. Максимум 500 КБ. Лучше всего — многоразмерный ICO 32×32."
+      }
+    ]
+  },
+  "Catalog Settings (Каталог)": {
+    "component": "Catalog Settings (Каталог)",
+    "overallQualityScore": 82,
+    "topMicroImprovements": [
+      {
+        "area": "Exchange Rate Section",
+        "currentIssue": "No live validation or connection ping for the CBR API sync — users cannot verify the API is reachable or test the exchange rate fetch before saving.",
+        "recommendedPolish": "Add a 'Test CBR Connection' button next to the exchange rate input that pings the ЦБ РФ API endpoint and displays a success/failure toast with latency. Also show a small status indicator (green dot / red dot) reflecting last sync result.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Pricing Simulator Inputs",
+        "currentIssue": "The sample wholesale price input in the live calculator has no label associated with it (uses placeholder-like structure), and the input lacks a visible focus ring consistent with the rest of the form. Touch targets for the numeric stepper are small.",
+        "recommendedPolish": "Add an explicit <Label> for the sample wholesale input, ensure focus ring matches design system (focus:ring-primary), and increase touch target padding to meet 44px minimum. Consider adding a 'Reset to Default' button for the simulator.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Global Markup Input",
+        "currentIssue": "The global markup input updates live pricing but has no tooltip explaining the acceptable range or business impact of extreme values (e.g., 100x markup).",
+        "recommendedPolish": "Add a tooltip (via title attribute or Tooltip component) on the markup label: 'Множитель применяется к оптовой цене. Диапазон 1.05–100. Высокие значения могут сделать товары неконкурентоспособными.'",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Safety Floor & Quarantine Threshold",
+        "currentIssue": "These two critical risk-control inputs lack tooltips explaining their purpose and interaction with the global markup. Users may set conflicting values without understanding consequences.",
+        "recommendedPolish": "Add tooltips: Safety Floor → 'Минимальный множитель наценки. Защищает от продажи товаров в убыток даже при низкой закупочной цене.' Quarantine Threshold → 'Если цена провайдера вырастает более чем на X%, товар временно блокируется для пересмотра маржи.'",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Save Button",
+        "currentIssue": "The 'Сохранить настройки каталога' button has no confirmation dialog despite modifying global pricing rules that affect all new orders. A misclick could propagate incorrect margins across the entire catalog.",
+        "recommendedPolish": "Wrap the submit action in a confirmation dialog: 'Вы уверены, что хотите сохранить изменения ценообразования? Это повлияет на цены всех новых заказов.' with Cancel / Confirm buttons.",
+        "impact": "HIGH"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "globalMarkup",
+        "suggestedTooltipText": "Множитель наценки применяется к оптовой цене. Минимум 1.05 (5% прибыли). Максимум 100. Используйте осторожно — высокие значения могут сделать товары неконкурентоспособными."
+      },
+      {
+        "field": "safetyFloor",
+        "suggestedTooltipText": "Нижний порог множителя наценки. Гарантирует минимальную прибыль даже при очень низкой закупочной цене. Не должен быть ниже 1.05."
+      },
+      {
+        "field": "quarantineThreshold",
+        "suggestedTooltipText": "Процентное пороговое значение. Если провайдер увеличивает цену выше этого порога, товар автоматически блокируется на карантин для ручного пересмотра маржи."
+      },
+      {
+        "field": "exchangeRateUSD",
+        "suggestedTooltipText": "Установите 0 для автоматической синхронизации с ЦБ РФ. Любое другое значение фиксирует курс вручную и отключает авто-обновление."
+      },
+      {
+        "field": "sampleWholesale (Simulator)",
+        "suggestedTooltipText": "Введите оптовую цену за 1000 единиц, чтобы увидеть рассчитанную розничную цену с применением наценки и красивого округления."
+      }
+    ]
+  },
+  "Integrations & Fiscal (Интеграции и Кассы)": {
+    "component": "Integrations & Fiscal (Интеграции и Кассы)",
+    "overallQualityScore": 72,
+    "topMicroImprovements": [
+      {
+        "area": "Webhook Secret Management",
+        "currentIssue": "The 'Generate Secret' button has no confirmation dialog, and the generated secret is auto-revealed without explicit user consent. There's also no copy-to-clipboard button for the inbound secret field, forcing manual selection.",
+        "recommendedPolish": "Add a confirmation dialog before generating a new webhook secret (since it invalidates the previous one). Add a copy-to-clipboard button next to the secret input field with visual feedback on copy. Consider requiring explicit 'Show' toggle interaction rather than auto-revealing.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Connection Test Feedback",
+        "currentIssue": "Test result banners for SMTP, Gemini, Telegram, and YooKassa disappear on re-render and lack persistent state. There's no 'last tested' timestamp or ability to re-run tests quickly. The test buttons also lack aria-live regions for screen reader announcements.",
+        "recommendedPolish": "Persist test results in component state with timestamps. Add aria-live='polite' to test result containers for screen reader announcements. Include a 'Last tested: X minutes ago' indicator. Add keyboard shortcut hint (e.g., 'Press T to test').",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Form Submission & Destructive Actions",
+        "currentIssue": "The main 'Save Settings' button has no confirmation for bulk changes, and there's no undo mechanism. The form lacks a 'Reset to defaults' option with confirmation, which is common in admin settings.",
+        "recommendedPolish": "Add a 'Reset to Defaults' button with a confirmation dialog that lists what will be reset. Implement a brief undo toast after saving (e.g., 'Settings saved. Undo?'). Add a loading overlay on the entire form during submission to prevent duplicate submissions.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Input Accessibility & Tooltips",
+        "currentIssue": "Technical fields like 'Test Shop ID', 'YooKassa Shop ID', 'Webhook Secret', and 'SMTP Host' lack tooltips or helper text explaining expected formats. The eye toggle for secret visibility has no aria-label.",
+        "recommendedPolish": "Add tooltips (via title attribute or a Tooltip component) to all technical input labels explaining expected values (e.g., 'Shop ID from YooKassa merchant dashboard'). Add aria-label='Show secret' / 'Hide secret' to the eye toggle button. Ensure all icon-only buttons have accessible labels.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Empty States & Touch Targets",
+        "currentIssue": "Test result areas have no empty state guidance (e.g., 'Click test button to verify connection'). Some buttons use h-8 (32px) which is below the 44px minimum touch target size. The 'Smart Bind Ready' badge has no tooltip explaining what it means.",
+        "recommendedPolish": "Add empty state text in test result containers. Increase button heights to meet 44px minimum (use h-10 or h-11). Add a tooltip to the 'Smart Bind Ready' badge explaining the feature. Ensure all interactive elements have sufficient touch targets.",
+        "impact": "LOW"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "YooKassa Test Shop ID",
+        "suggestedTooltipText": "Идентификатор магазина из тестового аккаунта ЮKassa. Найдите в личном кабинете ЮKassa → Настройки → Продажи."
+      },
+      {
+        "field": "YooKassa Shop ID (Live)",
+        "suggestedTooltipText": "Идентификатор магазина из боевого аккаунта ЮKassa. Используется для реальных платежей."
+      },
+      {
+        "field": "Webhook Secret (Inbound Email)",
+        "suggestedTooltipText": "Секретный ключ для подписи входящих вебхуков email. Генерируется автоматически и должен совпадать с настройками вашей email-системы."
+      },
+      {
+        "field": "SMTP Host",
+        "suggestedTooltipText": "Адрес SMTP-сервера (например, smtp.gmail.com или mail.yourdomain.com). Используется для отправки системных писем."
+      },
+      {
+        "field": "Telegram Bot Username",
+        "suggestedTooltipText": "Имя пользователя бота в Telegram без символа @. Должно точно совпадать с именем, данным BotFather."
+      },
+      {
+        "field": "Smart Bind Ready Badge",
+        "suggestedTooltipText": "Функция безопасной привязки Telegram-аккаунта к сайту без передачи номеров телефонов."
+      },
+      {
+        "field": "Eye Toggle (Show/Hide Secret)",
+        "suggestedTooltipText": "Показать/скрыть секретный ключ"
+      }
+    ]
+  },
+  "Telegram Bot Settings (Telegram Бот)": {
+    "component": "Telegram Bot Settings (Telegram Бот)",
+    "overallQualityScore": 82,
+    "topMicroImprovements": [
+      {
+        "area": "Destructive Action Confirmation",
+        "currentIssue": "The 'Сбросить очередь' (Reset Queue) button triggers `handleResetWebhook` directly without any confirmation dialog. This action deletes webhooks and clears pending updates in Telegram, which is irreversible and could disrupt bot functionality if clicked accidentally.",
+        "recommendedPolish": "Wrap the `handleResetWebhook` call in a confirmation dialog (e.g., using a modal or `window.confirm`) that clearly states the consequences: 'This will delete all active webhooks and clear pending Telegram updates. Continue?' with explicit 'Confirm' and 'Cancel' options.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Live Validation / Connection Testing",
+        "currentIssue": "The 'Тест API' (Test API) button calls `fetchDiagnostics` which pings the bot and shows a toast, but there is no visual inline feedback in the UI itself (e.g., a status indicator, latency badge, or error summary panel) to show real-time connection health beyond the toast notification.",
+        "recommendedPolish": "Add a live status indicator next to the 'Тест API' button that updates with the ping result (e.g., green dot + 'Online' / red dot + 'Offline' / yellow dot + 'Timeout'), and display the last checked timestamp. Consider adding a dedicated 'Connection Health' section that shows webhook URL status, last error, and retry count.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Accessibility & Tooltips",
+        "currentIssue": "Several interactive elements lack accessible tooltips or aria-labels: the 'Тест API' button has no title attribute, the 'Открыть @{botUsername}' link relies solely on visible text, and the tab navigation buttons have no aria-current or aria-selected attributes for screen reader context.",
+        "recommendedPolish": "Add `aria-current={activeTab === 'general' ? 'page' : undefined}` to active tab buttons, `aria-selected` for all tab buttons, and `title` attributes or `aria-label` on icon-only or ambiguous buttons. Add a tooltip component (e.g., Tippy.js or native title) to explain what 'Сбросить очередь' does before clicking.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Touch Target Size & Keyboard Navigation",
+        "currentIssue": "Tab navigation buttons use `px-3.5 py-2` with `text-xs` font, resulting in a height of approximately 28–32px, which is below the WCAG 2.2 Level AA minimum of 44px for touch targets. Additionally, there is no visible focus ring styling for keyboard users navigating between tabs.",
+        "recommendedPolish": "Increase vertical padding to `py-3` or add `min-h-[44px]` to ensure all tab buttons meet the 44px touch target requirement. Add `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2` classes to all interactive tab buttons for clear keyboard focus indication.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Empty States & Loading States",
+        "currentIssue": "When diagnostics are loading (`loadingDiag` is true), the metrics grid shows placeholder dashes ('—') with no skeleton loaders. If diagnostics fail entirely, there is no empty state illustration or retry prompt — only a toast error that disappears.",
+        "recommendedPolish": "Implement skeleton loaders (e.g., pulsing gray boxes) in the metrics grid while `loadingDiag` is true. Add a dedicated error/empty state card below the diagnostics banner when `diagnostics?.success === false` that includes a retry button and a brief explanation of possible causes (invalid token, daemon not running, network issue).",
+        "impact": "MEDIUM"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "Тест API button",
+        "suggestedTooltipText": "Проверить подключение к Telegram API и статус бота. Отображает задержку (ping) и статус демона."
+      },
+      {
+        "field": "Сбросить очередь button",
+        "suggestedTooltipText": "Удаляет все активные вебхуки и очищает накопившиеся обновления в Telegram. Это действие необратимо."
+      },
+      {
+        "field": "Открыть @{botUsername} link",
+        "suggestedTooltipText": "Перейти в Telegram к боту @{{botUsername}} в новой вкладке."
+      },
+      {
+        "field": "Tab navigation buttons (all 9 subtabs)",
+        "suggestedTooltipText": "Перейти на вкладку настроек: {{tab name}}. Используйте клавиши со стрелками для навигации между вкладками."
+      },
+      {
+        "field": "Bot Latency (Ping) metric",
+        "suggestedTooltipText": "Задержка ответа бота в миллисекундах. Ниже 100ms — отлично, 100–300ms — хорошо, выше 300ms — возможны проблемы с сетью."
+      }
+    ]
+  },
+  "Provider Proxy Manager (Прокси)": {
+    "component": "Provider Proxy Manager (Прокси)",
+    "overallQualityScore": 62,
+    "topMicroImprovements": [
+      {
+        "area": "Destructive Action Confirmation",
+        "currentIssue": "handleDelete uses a native browser window.confirm() dialog, which is blocking, non-styled, inaccessible to screen readers, inconsistent with the HeroUI visual language, and does not require typed confirmation for an action that detaches all bound providers.",
+        "recommendedPolish": "Replace confirm() with a HeroUI Modal/Dialog requiring an explicit confirmation click (e.g. a 'Type proxy label to confirm' pattern for HIGH-impact actions). Add a secondary danger variant Button with focus-trapped cancel option and clear warning copy listing affected providers count.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Connection Test / Live Validation",
+        "currentIssue": "Only a single 'Test' button per proxy exists with one fixed testUrl (httpbin.org/ip). There is no inline ping/validation while the user types host/port, no per-protocol test preset, and no visual latency indicator before save — users can persist broken proxy configs.",
+        "recommendedPolish": "Add an inline 'Test connection' button beside host/port inputs in the create/edit form that runs a lightweight validateProxyAction with debounce. Show a small green/red dot + ms badge inline. Also let users pick test target (IP check, DNS leak, Google) from a dropdown instead of a single shared testUrl state at component root.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Touch Target Size (WCAG 2.5.5)",
+        "currentIssue": "Multiple interactive controls use h-8 (32px), text-[10px] font-bold buttons with px-3 py-1.5, and a p-2 (36px) icon-only Refresh button — all below the 44×44 CSS pixel minimum required for Level AA on touch devices.",
+        "recommendedPolish": "Bump toolbar action buttons to min-h-10 (40px) with px-3.5; enlarge the Refresh button to a 44×44 hit area (h-11 w-11) while keeping the 16px icon. Wrap icon-only buttons in a square container with explicit min-w-[44px] min-h-[44px]. Apply same floor to protocol/category tab chips (currently ~26px tall).",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Empty State & Onboarding",
+        "currentIssue": "When health is null (first load) or proxies.length is 0 across all categories, the user sees only a tiny 'Прокси не найдены' card with no guidance on how to add the first proxy, import a subscription URL, or harvest free pools.",
+        "recommendedPolish": "Build a proper empty state Card with Globe illustration, headline 'Пул прокси пуст', a 3-step helper ('1) Вставьте subscription URL, 2) Нажмите Собрать бесплатные, 3) Привяжите к провайдеру'), and a prominent primary CTA 'Добавить первый прокси'. Differentiate from the 'no results for current filter' empty state.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Copy-to-Clipboard & Credential Hygiene",
+        "currentIssue": "host:port and subscriptionUrl are shown read-only in markup but have no copy affordance. The password field is never masked with a reveal toggle in startEdit (always sent empty on update), creating ambiguity on whether updates preserve credentials.",
+        "recommendedPolish": "Add an inline Copy button (lucide Copy/Check icon swap on click) next to host:port, subscriptionUrl, and resolvedIp from test results. For the password input add a show/hide eye toggle and helper text: 'Оставьте пустым, чтобы сохранить прежний пароль' to clarify the empty-string-means-no-change semantics.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Inconsistent Typography & Spacing",
+        "currentIssue": "Mix of text-[10px], text-[9px], text-xs, text-[11px] for labels creates a chaotic type scale. Section headers use uppercase tracking-wider but tab chips use uppercase font-bold without tracking — and the card border-radius alternates between rounded-2xl, rounded-3xl, and rounded-xl across sibling Cards in the same view.",
+        "recommendedPolish": "Establish a 3-step type ramp (xs/sm/base) with explicit tracking classes (tracking-wide for uppercase headers, tracking-tight for data). Unify Card radii to a single token (rounded-2xl for content cards, rounded-3xl only for the hero summary). Standardize label chips to a single Badge component.",
+        "impact": "LOW"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "host",
+        "suggestedTooltipText": "Домен или IPv4/IPv6 адрес прокси-сервера. Пример: proxy.example.com или 198.51.100.10. Без схемы (http://) и без порта."
+      },
+      {
+        "field": "port",
+        "suggestedTooltipText": "TCP-порт прокси. Диапазон 1–65535. По умолчанию 7891 (Clash) / 1080 (SOCKS5) / 8080 (HTTP). Порт должен быть открыт в firewall сервера."
+      },
+      {
+        "field": "protocol",
+        "suggestedTooltipText": "Протокол прокси. SOCKS5 — самый универсальный, поддерживает UDP и TCP без модификации трафика. HTTP/HTTPS — только TCP, часто используется для скрейпинга."
+      },
+      {
+        "field": "isRotating",
+        "suggestedTooltipText": "Если включено, провайдер будет ротировать исходящий IP каждые N запросов (или каждые M секунд). Подходит для обхода rate-limit. Несовместимо с сессионными провайдерами."
+      },
+      {
+        "field": "subscriptionUrl",
+        "suggestedTooltipText": "URL подписки провайдера прокси (формат Clash / V2Ray / Base64). Будет автоматически синхронизирован по кнопке 'Sync' для получения свежего списка узлов."
+      },
+      {
+        "field": "expiresAt",
+        "suggestedTooltipText": "Дата окончания действия подписки. Используется для уведомлений за 7/3/1 день до истечения. Не влияет на работу прокси после этой даты автоматически."
+      },
+      {
+        "field": "geoCountry",
+        "suggestedTooltipText": "ISO 3166-1 alpha-2 код страны (например US, DE, NL). Используется для маршрутизации запросов через прокси конкретной геолокации и для статистики."
+      },
+      {
+        "field": "category",
+        "suggestedTooltipText": "PAID_PREMIUM — платные прокси с SLA; FREE_PUBLIC — собранные бесплатные пулы (низкая надёжность); BACKUP_RESERVE — резервные, активируются при падении основных."
+      },
+      {
+        "field": "tags",
+        "suggestedTooltipText": "Произвольные метки для группировки (например 'mobile', 'datacenter', 'residential'). Максимум 10 тегов. Используются только для фильтрации и поиска."
+      },
+      {
+        "field": "testUrl",
+        "suggestedTooltipText": "URL для проверки работоспособности прокси. По умолчанию httpbin.org/ip — покажет выходной IP. Для DNS-теста используйте dnsleaktest.com, для HTTP-задержки — google.com/generate_204."
+      },
+      {
+        "field": "Refresh button (icon-only)",
+        "suggestedTooltipText": "Обновить список прокси и сводку здоровья. Не вносит изменения."
+      },
+      {
+        "field": "Harvest free SOCKS5 button",
+        "suggestedTooltipText": "Запустить фоновый сбор публичных SOCKS5 прокси из открытых источников. Может занять до 60 секунд. Найденные прокси будут помечены как FREE_PUBLIC с высоким риском сбоев."
+      }
+    ]
+  },
+  "Team & RBAC Management (Команда)": {
+    "component": "Team & RBAC Management (Команда)",
+    "overallQualityScore": 78,
+    "topMicroImprovements": [
+      {
+        "area": "Gemini API Key Management",
+        "currentIssue": "The Gemini API key input field lacks a 'test connection' or validation mechanism before saving. Users can save invalid or malformed keys without feedback, leading to silent failures when the key is actually used.",
+        "recommendedPolish": "Add a 'Test Key' button next to the Gemini API key input that performs a lightweight validation (e.g., checking key format or making a minimal API call) and displays a success/error toast. Also add a copy-to-clipboard icon for the masked key display so admins can verify which key is saved without re-typing.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Role Deletion Confirmation",
+        "currentIssue": "The delete role action uses a native browser confirm() dialog which is visually inconsistent with the app's design system and provides no context about the consequences (e.g., how many staff members are affected).",
+        "recommendedPolish": "Replace the native confirm() with a custom modal dialog that shows the role name, a count of affected staff members, and clear 'Cancel' and 'Delete Role' buttons. Include a checkbox requiring the admin to type the role name to confirm, preventing accidental deletions.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Support Limit Input Validation",
+        "currentIssue": "The daily support limit input (in rubles) has no live validation or formatting. Users can enter non-numeric values, negative numbers, or excessively large amounts without immediate feedback.",
+        "recommendedPolish": "Add live validation that formats the input as currency (₽) on blur, prevents non-numeric input, and shows an inline error message for values outside acceptable bounds (e.g., 0–1,000,000 ₽). Add a tooltip explaining that this is the maximum compensation amount per staff member per day.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Permission Toggle Feedback",
+        "currentIssue": "When toggling view/edit permissions for a role, there is no optimistic UI update or loading indicator. The toggle appears unresponsive during the server action, and if it fails, the user gets a toast but the toggle state doesn't revert.",
+        "recommendedPolish": "Add a loading spinner or disabled state on the specific permission toggle being updated. Implement optimistic updates so the toggle reflects the new state immediately, with automatic rollback and an error toast if the server action fails.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Empty State & Touch Targets",
+        "currentIssue": "The 'Сотрудники не найдены' empty state is minimal with no icon or actionable guidance. Additionally, several interactive elements (e.g., the custom select triggers, small icon buttons) may have touch targets smaller than the recommended 44px minimum for mobile accessibility.",
+        "recommendedPolish": "Enhance the empty state with a descriptive icon, a clear message, and a 'Reset Filters' button. Audit all interactive elements and ensure minimum 44px touch targets by adding appropriate padding. Add aria-labels to all icon-only buttons for screen reader accessibility.",
+        "impact": "LOW"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "Gemini API Key Input",
+        "suggestedTooltipText": "Персональный ключ API Gemini. Если не указан, используется общий пул ключей. Нажмите, чтобы проверить подключение перед сохранением."
+      },
+      {
+        "field": "Daily Support Limit (₽)",
+        "suggestedTooltipText": "Максимальная сумма компенсации в рублях, которую сотрудник может выдать за один день. Влияет на escrow-лимиты."
+      },
+      {
+        "field": "System Role Select",
+        "suggestedTooltipText": "Системная роль пользователя. OWNER имеет полный доступ, ADMIN управляет настройками, MANAGER работает с заказами, SUPPORT обслуживает клиентов, BANNED ограничен."
+      },
+      {
+        "field": "Custom Staff Role Select",
+        "suggestedTooltipText": "Набор прав доступа для сотрудника. 'Все права (OWNER)' предоставляет полный доступ к панели. Остальные роли имеют ограниченные права."
+      },
+      {
+        "field": "Permission View Toggle",
+        "suggestedTooltipText": "Разрешить просмотр раздела. Сотрудники с этой ролью смогут видеть данные в указанном разделе."
+      },
+      {
+        "field": "Permission Edit Toggle",
+        "suggestedTooltipText": "Разрешить редактирование в разделе. Требует право просмотра. Сотрудники смогут изменять данные в указанном разделе."
+      },
+      {
+        "field": "Delete Role Button",
+        "suggestedTooltipText": "Удалить кастомную роль. Все сотрудники с этой ролью потеряют доступ к панели. Действие необратимо."
+      },
+      {
+        "field": "Create Role Form Toggle",
+        "suggestedTooltipText": "Создать новую кастомную роль с индивидуальными правами доступа для сотрудников."
+      }
+    ]
+  },
+  "Support Templates (Шаблоны ответов)": {
+    "component": "Support Templates (Шаблоны ответов)",
+    "overallQualityScore": 78,
+    "topMicroImprovements": [
+      {
+        "area": "Delete confirmation",
+        "currentIssue": "Delete uses native window.confirm() which is not styled, not accessible, and cannot be localized or branded. It also blocks the main thread and provides no context about consequences (e.g., template will be permanently lost).",
+        "recommendedPolish": "Replace window.confirm() with a HeroUI <Modal> confirmation dialog that shows the template label, explains the irreversible nature, and provides 'Cancel' and 'Delete' buttons with proper focus management and Escape-to-close support.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Shortcut input validation & feedback",
+        "currentIssue": "The shortcut field silently strips invalid characters via regex on every keystroke with no visual feedback. Users may not understand why their input disappears or what characters are allowed. There is no duplicate-shortcut check.",
+        "recommendedPolish": "Add a live validation indicator below the shortcut input showing allowed characters (✓ valid / ✗ invalid), and implement a duplicate-shortcut check against existing templates with an inline warning message. Add a tooltip on the label explaining the /shortcut invocation pattern.",
+        "impact": "HIGH"
+      },
+      {
+        "area": "Template text variable insertion UX",
+        "currentIssue": "Variable insertion buttons append tags at the cursor-less end of the textarea with no visual feedback. There is no way to see which variables are already used, no syntax highlighting for variables, and no copy-to-clipboard for the final rendered text preview.",
+        "recommendedPolish": "Add a live preview pane showing the template text with variables highlighted in a distinct color. Add a 'Copy rendered text' button next to the preview. Improve variable buttons with a hover tooltip explaining each variable's purpose (e.g., {user_name} → 'Имя пользователя').",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Empty state & onboarding",
+        "currentIssue": "The empty state message is plain text with no icon, no call-to-action button, and no visual guidance. The table also lacks a 'No results found' state for filtered views.",
+        "recommendedPolish": "Enhance the empty state with a decorative icon (e.g., <Tag className='w-12 h-12' />), a clearer heading, and a primary CTA button 'Добавить первый шаблон' that scrolls to the form. Add consistent empty-state styling across all possible empty conditions.",
+        "impact": "MEDIUM"
+      },
+      {
+        "area": "Action button touch targets & accessibility",
+        "currentIssue": "Edit and Delete buttons in the table have p-1.5 padding with 3.5px icons, resulting in touch targets smaller than the 44px WCAG minimum. They also lack aria-labels on the delete button (only edit has one).",
+        "recommendedPolish": "Increase button padding to ensure 44x44px touch targets (e.g., p-2.5 or add min-width/min-height). Add aria-label='Удалить шаблон {label}' to the delete button. Ensure both buttons have visible focus rings and are keyboard-navigable.",
+        "impact": "MEDIUM"
+      }
+    ],
+    "accessibilityAndTooltips": [
+      {
+        "field": "shortcut input",
+        "suggestedTooltipText": "Введите короткое слово или фразу для быстрого вызова шаблона по слэшу (например, /delay). Только латинские буквы, цифры, дефис и подчеркивание."
+      },
+      {
+        "field": "sort input",
+        "suggestedTooltipText": "Порядок отображения шаблона в списке. Чем меньше число, тем выше шаблон в списке. Используйте 0 для первого шаблона."
+      },
+      {
+        "field": "isActive checkbox",
+        "suggestedTooltipText": "Активные шаблоны доступны операторам в чате. Отключенные шаблоны скрыты из списка быстрых ответов, но сохраняются в базе."
+      },
+      {
+        "field": "category select",
+        "suggestedTooltipText": "Группирует шаблоны по тематике для удобного поиска операторами. Категория 'Юридические / 152-ФЗ' используется для ответов, связанных с персональными данными."
+      },
+      {
+        "field": "variable insertion buttons",
+        "suggestedTooltipText": "Нажмите, чтобы вставить переменную в текст шаблона. Переменная будет автоматически заменена на реальное значение при отправке ответа."
+      },
+      {
+        "field": "delete button",
+        "suggestedTooltipText": "Удалить шаблон без возможности восстановления. Убедитесь, что шаблон больше не нужен."
+      }
+    ]
+  }
+}

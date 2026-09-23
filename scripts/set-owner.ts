@@ -1,0 +1,1 @@
+﻿import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { const result = await prisma.user.updateMany({ where: { email: 'art@artmspektr.ru' }, data: { role: 'OWNER' } }); console.log('Updated ' + result.count + ' users.'); } main().catch(console.error).finally(() => prisma.$disconnect());

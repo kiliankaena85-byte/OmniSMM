@@ -1,0 +1,38 @@
+{
+  "models": {
+    "valid": [
+      "gemini-3.5-flash"
+    ],
+    "deprecated": [
+      "gemini-1.5-pro",
+      "gemini-1.5-flash",
+      "gemini-2.0-flash",
+      "gemini-2.0-pro",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-3-flash-preview",
+      "gemini-3-flash",
+      "gemini-3.5-flash-high"
+    ]
+  },
+  "dependencies": {
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@heroui/react": "^3.0.0",
+    "prisma": "^5.20.0",
+    "eslint": "^10.0.0",
+    "typescript": ">=5.7.0"
+  },
+  "forbidden_patterns": [
+    "forwardRef",
+    "useFormState"
+  ],
+  "forbidden_colors": [
+    "text-white",
+    "bg-black",
+    "text-black",
+    "bg-white"
+  ]
+}

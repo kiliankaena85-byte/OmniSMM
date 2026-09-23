@@ -1,0 +1,748 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ── Background & Off-white base ── */
+  --color-background: #f8fafc; /* slate-50 - softer than pure white for bento backdrops */
+  --color-foreground: #0f172a; /* slate-900 */
+
+  /* ── Card ── */
+  --color-card: #ffffff; /* Pure white cards stand out on slate-50 */
+  --color-card-foreground: #0f172a;
+  
+  /* ── HeroUI Content Tokens (Fallbacks for Tailwind 4) ── */
+  --color-content1: var(--color-card);
+  --color-content2: #f1f5f9; /* slate-100 — intermediate surface */
+  --color-content3: #e2e8f0; /* slate-200 — hover/deep surface */
+
+  /* ── Popover ── */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+
+  /* ── Primary (Friendly Sky Blue) ── */
+  --color-primary: #0369a1; /* sky-700 - deep, trusty blue for WCAG AA compliance */
+  --color-primary-foreground: #ffffff;
+
+  /* ── Secondary (Soft Interactive Background) ── */
+  --color-secondary: #e0f2fe; /* sky-100 */
+  --color-secondary-foreground: #0369a1; /* sky-700 */
+
+  /* ── Muted (slate-100 / slate-500) ── */
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #475569; /* slate-600 for 4.5:1 contrast on slate-50 */
+
+  /* ── Accent ── */
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #0f172a;
+
+  /* ── Destructive (rose-500) ── */
+  --color-destructive: #f43f5e;
+  --color-destructive-foreground: #ffffff;
+  --color-destructive-text: #b91c1c;
+
+  /* ── Success (emerald-500) ── */
+  --color-success: #10b981;
+  --color-success-foreground: #ffffff;
+  --color-success-text: #065f46;
+
+  /* ── Warning (amber-500) ── */
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #ffffff;
+  --color-warning-text: #92400e;
+
+  /* ── Info (indigo-500) ── */
+  --color-info: #6366f1;
+  --color-info-foreground: #ffffff;
+
+  /* ── Brand & Utility Tokens ── */
+  --color-brand-telegram: #3390EC;
+  --color-blob-sky: #38bdf8;
+  --color-notification: #f43f5e; /* rose-500 unread indicator */
+  --color-notification-foreground: #ffffff;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --animate-spin-slow: spin 3s linear infinite;
+
+  /* ── Marquee Animation ── */
+  --animate-marquee: marquee 30s linear infinite;
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── Borders & Inputs ── */
+  --color-border: #e2e8f0;
+  --color-input: #ffffff;
+
+  /* ── Focus Ring ── */
+  --color-ring: #bae6fd; /* sky-200 */
+
+  /* ── Status Badges (Semantic Contrast) ── */
+  --color-status-completed: #10b981; /* emerald-500 */
+  --color-status-completed-bg: rgba(16, 185, 129, 0.1);
+  --color-status-pending: #f59e0b; /* amber-500 */
+  --color-status-pending-bg: rgba(245, 158, 11, 0.1);
+  --color-status-in-progress: #6366f1; /* indigo-500 */
+  --color-status-in-progress-bg: rgba(99, 102, 241, 0.1);
+  --color-status-canceled: #64748b; /* slate-500 */
+  --color-status-canceled-bg: rgba(100, 116, 139, 0.1);
+  --color-status-error: #f43f5e; /* rose-500 */
+  --color-status-error-bg: rgba(244, 63, 94, 0.1);
+
+  /* ── Warm Theme Tokens (Zinc/Ivory, graphite, amber accents) ── */
+  --color-warm-bg: #FAF9F6;        /* Ivory warm background */
+  --color-warm-card: #FFFFFF;      /* Card background */
+  --color-warm-zinc: #F4F4F5;      /* Zinc background */
+  --color-warm-text: #27272A;      /* Graphite slate text */
+  --color-warm-accent: #D97706;    /* Amber accent */
+  --color-warm-accent-hover: #B45309; /* Darker amber for hover */
+  --color-warm-border: #E4E4E7;    /* Zinc border */
+
+  /* ── Radius (Massive app-like curve) ── */
+  --radius: 1.25rem; /* 20px default for soft app feel */
+  
+  /* ── Aceternity UI Aurora ── */
+  --animate-aurora: aurora 60s linear infinite;
+  
+  @keyframes aurora {
+    from {
+      background-position: 50% 50%, 50% 50%;
+    }
+    to {
+      background-position: 350% 50%, 350% 50%;
+    }
+  }
+
+  /* ── Form Error Shake ── */
+  --animate-shake: shake 0.5s ease-in-out;
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  /* ── CTA Hover Pulse (Fintech Soft) ── */
+  --animate-hover-pulse: hover-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  
+  @keyframes hover-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(3, 105, 161, 0.4); /* sky-700 */
+    }
+    100% {
+      box-shadow: 0 0 0 1em rgba(3, 105, 161, 0); /* Transparent */
+    }
+  }
+}
+/* --- THEME: SKY LIGHT / ROOT DEFAULTS --- */
+:root,
+.sky-light,
+[data-theme="sky-light"] {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #475569;
+  --color-border: #e2e8f0;
+  --color-primary: #0369a1;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e0f2fe;
+  --color-secondary-foreground: #0369a1;
+  --color-ring: #bae6fd;
+
+  --color-content1: #ffffff;
+  --color-content2: #f1f5f9;
+  --color-content3: #e2e8f0;
+}
+
+/* --- DARK THEMES VARIABLES OVERRIDE --- */
+.dark,
+[data-theme="dark"],
+.sky-dark,
+[data-theme="sky-dark"] {
+  --color-background: #0f172a; /* Soft, premium slate-900 instead of pitch-black */
+  --color-foreground: #f8fafc; /* slate-50 */
+
+  --color-card: #1e293b; /* slate-800 for soft, recognizable elevation */
+  --color-card-foreground: #f8fafc;
+
+  --color-popover: #1e293b;
+  --color-popover-foreground: #f8fafc;
+
+  --color-secondary: #0c4a6e; /* deep sky-900 for dark mode */
+  --color-secondary-foreground: #38bdf8; /* sky-400 */
+
+  --color-muted: #243042; /* Soft intermediate slate */
+  --color-muted-foreground: #cbd5e1; /* slate-300 for 4.5:1 contrast on slate-800 */
+
+  --color-accent: #243042;
+  --color-accent-foreground: #f8fafc;
+
+  --color-content1: #1e293b;
+  --color-content2: #243042;
+  --color-content3: #2d3a4e;
+
+  --color-border: rgba(255, 255, 255, 0.08); /* Luminance Border (blueprint aesthetic) */
+  --color-input: #1b2330;
+
+  --color-ring: rgba(56, 189, 248, 0.35); /* Soft sky blue focus ring glow */
+
+  --color-primary: #38bdf8; /* sky-400 */
+  --color-primary-foreground: #0f172a;
+
+  --color-warning: #f59e0b;
+  --color-warning-text: #fbbf24;
+  --color-success-text: #34d399;
+  --color-destructive-text: #fca5a5;
+  --color-info: #818cf8; /* indigo-400 */
+
+  --color-notification: #fb7185; /* rose-400 */
+  --color-notification-foreground: #0f172a;
+  --color-overlay: rgba(0, 0, 0, 0.75);
+
+  /* ── Status Badges (Dark Mode Adjustments) ── */
+  --color-status-completed: #34d399; /* emerald-400 */
+  --color-status-pending: #fbbf24; /* amber-400 */
+  --color-status-in-progress: #818cf8; /* indigo-400 */
+  --color-status-canceled: #94a3b8; /* slate-400 */
+  --color-status-error: #fb7185; /* rose-400 */
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  table, .tabular-data, [data-testid="balance"], .user-balance, .price {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button, a, input, select, textarea, [role="button"] {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+}
+
+/* --- THEME: EMERALD LIGHT --- */
+.emerald-light, [data-theme="emerald-light"] {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #475569;
+  --color-border: #e2e8f0;
+  --color-primary: #047857; /* emerald-700 */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #d1fae5; /* emerald-100 */
+  --color-secondary-foreground: #047857; /* emerald-700 */
+  --color-ring: #a7f3d0; /* emerald-200 */
+  --color-content1: #ffffff;
+  --color-content2: #f1f5f9;
+  --color-content3: #e2e8f0;
+  --animate-hover-pulse: hover-pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-emerald {
+  0% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(4, 120, 87, 0); }
+}
+
+/* --- THEME: EMERALD DARK --- */
+.emerald-dark, [data-theme="emerald-dark"] {
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
+  --color-card: #1e293b;
+  --color-card-foreground: #f8fafc;
+  --color-muted: #243042;
+  --color-muted-foreground: #cbd5e1;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-primary: #10b981; /* emerald-500 */
+  --color-primary-foreground: #020617;
+  --color-secondary: #064e3b; /* emerald-950 */
+  --color-secondary-foreground: #34d399; /* emerald-400 */
+  --color-ring: rgba(16, 185, 129, 0.35);
+  --color-content1: #1e293b;
+  --color-content2: #243042;
+  --color-content3: #2d3a4e;
+  --animate-hover-pulse: hover-pulse-emerald-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-emerald-dark {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(16, 185, 129, 0); }
+}
+
+/* --- THEME: VIOLET LIGHT --- */
+.violet-light, [data-theme="violet-light"] {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #475569;
+  --color-border: #e2e8f0;
+  --color-primary: #7c3aed; /* violet-600 */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #ede9fe; /* violet-100 */
+  --color-secondary-foreground: #6d28d9; /* violet-700 */
+  --color-ring: #ddd6fe; /* violet-200 */
+  --color-content1: #ffffff;
+  --color-content2: #f1f5f9;
+  --color-content3: #e2e8f0;
+  --animate-hover-pulse: hover-pulse-violet 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-violet {
+  0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(124, 58, 237, 0); }
+}
+
+/* --- THEME: VIOLET DARK --- */
+.violet-dark, [data-theme="violet-dark"] {
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
+  --color-card: #1e293b;
+  --color-card-foreground: #f8fafc;
+  --color-muted: #243042;
+  --color-muted-foreground: #cbd5e1;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-primary: #a78bfa; /* violet-400 */
+  --color-primary-foreground: #020617;
+  --color-secondary: #2e1065; /* violet-950 */
+  --color-secondary-foreground: #c084fc; /* violet-400 */
+  --color-ring: rgba(167, 139, 250, 0.35);
+  --color-content1: #1e293b;
+  --color-content2: #243042;
+  --color-content3: #2d3a4e;
+  --animate-hover-pulse: hover-pulse-violet-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-violet-dark {
+  0% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(167, 139, 250, 0); }
+}
+
+/* --- THEME: WARM IVORY LIGHT --- */
+.warm-light, [data-theme="warm-light"] {
+  --color-background: #FAF9F6;
+  --color-foreground: #27272A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #27272A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #27272A;
+  --color-muted: #F4F4F5;
+  --color-muted-foreground: #52525B; /* zinc-600 for AA contrast >= 4.5:1 */
+  --color-border: #E4E4E7;
+  --color-primary: #B45309; /* amber-700 for WCAG AA >= 4.5:1 on white */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #FEF3C7;
+  --color-secondary-foreground: #92400E;
+  --color-ring: #FDE68A;
+  --color-content1: #FFFFFF;
+  --color-content2: #F4F4F5;
+  --color-content3: #E4E4E7;
+  --animate-hover-pulse: hover-pulse-warm 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-warm {
+  0% { box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(180, 83, 9, 0); }
+}
+
+/* --- THEME: WARM IVORY DARK --- */
+.warm-dark, [data-theme="warm-dark"] {
+  --color-background: #09090B;
+  --color-foreground: #FAF9F6;
+  --color-card: #18181B;
+  --color-card-foreground: #FAF9F6;
+  --color-popover: #18181B;
+  --color-popover-foreground: #FAF9F6;
+  --color-muted: #27272A;
+  --color-muted-foreground: #D4D4D8; /* zinc-300 for AA contrast on 18181B */
+  --color-border: rgba(255, 255, 255, 0.08); /* Luminance Border */
+  --color-primary: #F59E0B;
+  --color-primary-foreground: #09090B;
+  --color-secondary: #78350F;
+  --color-secondary-foreground: #FBBF24;
+  --color-ring: rgba(245, 158, 11, 0.35); /* Soft amber focus ring glow */
+  --color-content1: #18181B;
+  --color-content2: #27272A;
+  --color-content3: #3F3F46;
+  --animate-hover-pulse: hover-pulse-warm-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hover-pulse-warm-dark {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  100% { box-shadow: 0 0 0 1em rgba(245, 158, 11, 0); }
+}
+
+
+/* Custom minimal scrollbar for B2B (Pillar 6) */
+@layer utilities {
+  .shadow-layered {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.04);
+  }
+  .dark .shadow-layered, [data-theme*="dark"] .shadow-layered {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.2), 0 12px 32px rgba(0,0,0,0.2);
+  }
+  
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Fix Chrome Autofill breaking transparent inputs in both themes dynamically */
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+      transition: background-color 5000s ease-in-out 0s;
+      -webkit-text-fill-color: var(--color-foreground) !important;
+}
+}
+
+/* --- Premium Stripe Grid Backdrop --- */
+.premium-grid-backdrop {
+  background-image: 
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.15;
+}
+
+/* --- THEME: TELEGRAM LIGHT --- */
+.telegram-light, [data-theme="telegram-light"] {
+  --color-background: #E7EBF0;
+  --color-foreground: #000000;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #000000;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #000000;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #707579;
+  --color-border: #DCDCDC;
+  --color-primary: #3390EC;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #E1F3D4;
+  --color-secondary-foreground: #000000;
+  --color-ring: #BADEFC;
+  --color-content1: #FFFFFF;
+  --color-content2: #F1F5F9;
+  --color-content3: #E7EBF0;
+  --radius: 0.625rem;
+}
+
+/* --- THEME: TELEGRAM DARK --- */
+.telegram-dark, [data-theme="telegram-dark"] {
+  --color-background: #0E1621;
+  --color-foreground: #F5F6F7;
+  --color-card: #182533;
+  --color-card-foreground: #F5F6F7;
+  --color-popover: #182533;
+  --color-popover-foreground: #F5F6F7;
+  --color-muted: #101921;
+  --color-muted-foreground: #7F8C99;
+  --color-border: rgba(255, 255, 255, 0.08); /* Luminance Border */
+  --color-primary: #5288C1;
+  --color-primary-foreground: #F5F6F7;
+  --color-secondary: #2B5278;
+  --color-secondary-foreground: #F5F6F7;
+  --color-ring: rgba(82, 136, 193, 0.35); /* Soft telegram blue focus ring glow */
+  --color-content1: #182533;
+  --color-content2: #101921;
+  --color-content3: #243344;
+  --radius: 0.625rem;
+}
+
+/* --- TENANT: SMMFLUX (PRISM CYBERPUNK IDENTITY) --- */
+[data-tenant="flux"], .theme-flux {
+  --color-primary: #9333ea; /* purple-600 for light background AA contrast >= 4.5:1 */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #fdf2f8; /* pink-50 */
+  --color-secondary-foreground: #be185d; /* pink-700 */
+  --color-ring: rgba(147, 51, 234, 0.35);
+  --color-accent: #faf5ff;
+  --color-accent-foreground: #7e22ce;
+}
+
+.dark[data-tenant="flux"], .dark.theme-flux, [data-theme*="dark"][data-tenant="flux"], [data-tenant="flux"] .dark {
+  --color-primary: #c084fc; /* purple-400 for dark background contrast */
+  --color-primary-foreground: #090d16;
+  --color-secondary: #3b0764; /* purple-950 */
+  --color-secondary-foreground: #f472b6; /* pink-400 */
+  --color-ring: rgba(192, 132, 252, 0.4);
+  --color-accent: #2e1065;
+  --color-accent-foreground: #e9d5ff;
+}
+
+/* --- Locked Layout Height for Desktop Support Page (Telegram Desktop lock layout style) --- */
+@media (min-width: 1024px) {
+  main:has(.tickets-workspace) {
+    overflow: hidden !important;
+  }
+  main:has(.tickets-workspace) > div {
+    padding: 0 !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+
+
+/* --- Custom Telegram Chat Wallpaper Background --- */
+.telegram-chat-bg {
+  position: relative;
+  background-color: #e3e8ee !important; /* Calm, muted Telegram neutral background */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%2394a3b8' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round' opacity='0.18'%3E%3Cpath d='M15 15 L28 10 L23 23 L20 18 Z M20 18 L23 10' /%3E%3Cpath d='M80 20 C78 18, 74 18, 72 20 C70 22, 70 26, 72 28 L80 36 L88 28 C90 26, 90 22, 88 20 C86 18, 82 18, 80 20 Z' /%3E%3Cpath d='M25 75 H37 C39 75, 41 77, 41 79 V87 C41 89, 39 91, 37 91 H31 L25 95 V91 C23 91, 21 89, 21 87 V79 C21 77, 23 75, 25 75 Z' /%3E%3Cpath d='M95 70 L97 74 L102 75 L98 78 L99 83 L95 81 L91 83 L92 78 L88 75 L93 74 Z' /%3E%3Cpath d='M56 50 H64 V56 H56 Z M58 50 V47 C58 45, 62 45, 62 47 V50' /%3E%3Ccircle cx='60' cy='100' r='8' /%3E%3Cpath d='M57 99 V98 M63 99 V98 M57 102 C58 104, 62 104, 63 102' /%3E%3Ccircle cx='15' cy='50' r='4' /%3E%3Cpath d='M15 44 V46 M15 54 V56 M9 50 H11 M19 50 H21' /%3E%3C/g%3E%3C/svg%3E") !important;
+  background-size: 120px 120px !important;
+}
+.telegram-dark .telegram-chat-bg,
+[data-theme="telegram-dark"] .telegram-chat-bg,
+.dark .telegram-chat-bg,
+[data-theme="dark"] .telegram-chat-bg {
+  background-color: #0b141e !important; /* Premium dark Telegram slate */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23334155' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round' opacity='0.15'%3E%3Cpath d='M15 15 L28 10 L23 23 L20 18 Z M20 18 L23 10' /%3E%3Cpath d='M80 20 C78 18, 74 18, 72 20 C70 22, 70 26, 72 28 L80 36 L88 28 C90 26, 90 22, 88 20 C86 18, 82 18, 80 20 Z' /%3E%3Cpath d='M25 75 H37 C39 75, 41 77, 41 79 V87 C41 89, 39 91, 37 91 H31 L25 95 V91 C23 91, 21 89, 21 87 V79 C21 77, 23 75, 25 75 Z' /%3E%3Cpath d='M95 70 L97 74 L102 75 L98 78 L99 83 L95 81 L91 83 L92 78 L88 75 L93 74 Z' /%3E%3Cpath d='M56 50 H64 V56 H56 Z M58 50 V47 C58 45, 62 45, 62 47 V50' /%3E%3Ccircle cx='60' cy='100' r='8' /%3E%3Cpath d='M57 99 V98 M63 99 V98 M57 102 C58 104, 62 104, 63 102' /%3E%3Ccircle cx='15' cy='50' r='4' /%3E%3Cpath d='M15 44 V46 M15 54 V56 M9 50 H11 M19 50 H21' /%3E%3C/g%3E%3C/svg%3E") !important;
+  background-size: 120px 120px !important;
+}
+
+/* --- Premium Dot Grid Backdrop --- */
+.premium-dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.1) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+.dark .premium-dot-grid,
+[data-theme*="dark"] .premium-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 1.5px);
+}
+
+/* --- Google Shimmer Border Effect --- */
+@keyframes border-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.google-border-shimmer {
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #d946ef, #34d399, #38bdf8);
+  background-size: 300% 300%;
+  animation: border-shimmer 8s ease infinite;
+}
+
+.dark .google-border-shimmer,
+[data-theme*="dark"] .google-border-shimmer {
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #d946ef, #34d399, #38bdf8);
+  background-size: 300% 300%;
+}
+
+.warning-border-shimmer {
+  background: linear-gradient(90deg, #f43f5e, #f59e0b, #ef4444, #f59e0b, #f43f5e);
+  background-size: 300% 300%;
+  animation: border-shimmer 4s linear infinite;
+}
+
+.dark .warning-border-shimmer,
+[data-theme*="dark"] .warning-border-shimmer {
+  background: linear-gradient(90deg, #fca5a5, #fbbf24, #ef4444, #fbbf24, #fca5a5);
+  background-size: 300% 300%;
+}
+
+/* --- Custom Utility: Scrollbar Hide / None --- */
+.scrollbar-hide,
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Premium thin scrollbar styles --- */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+.dark .scrollbar-thin::-webkit-scrollbar-thumb,
+[data-theme*="dark"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover,
+[data-theme*="dark"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── GPU-Accelerated Hero Background Animations ── */
+@keyframes float-blob-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(40px, -25px, 0) scale(1.08); }
+}
+@keyframes float-blob-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-50px, 35px, 0) scale(0.95); }
+}
+@keyframes float-blob-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(25px, 40px, 0) scale(1.04); }
+}
+
+.animate-blob-1 {
+  animation: float-blob-1 25s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-blob-2 {
+  animation: float-blob-2 20s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-blob-3 {
+  animation: float-blob-3 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ── Global Performance & Animation Optimization ── */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  content-visibility: auto;
+}
+
+/* ── Table Density Modes (Admin Panel & Dashboards) ── */
+:root {
+  --table-head-py: 0.875rem;  /* 14px */
+  --table-head-px: 1.25rem;   /* 20px */
+  --table-cell-py: 1rem;      /* 16px */
+  --table-cell-px: 1.25rem;   /* 20px */
+  --table-font: 0.8125rem;    /* 13px */
+  --table-row-min-h: 44px;
+}
+
+[data-density="compact"],
+.compact-density {
+  --table-head-py: 0.3125rem; /* 5px */
+  --table-head-px: 0.5rem;    /* 8px */
+  --table-cell-py: 0.25rem;   /* 4px */
+  --table-cell-px: 0.5rem;    /* 8px */
+  --table-font: 0.75rem;      /* 12px */
+  --table-row-min-h: 28px;
+}
+
+/* High-priority compact table overrides for HTML and HeroUI tables */
+[data-density="compact"] table th,
+.compact-density table th,
+[data-density="compact"] [data-slot="table-head"],
+.compact-density [data-slot="table-head"] {
+  padding-top: var(--table-head-py) !important;
+  padding-bottom: var(--table-head-py) !important;
+  padding-left: var(--table-head-px) !important;
+  padding-right: var(--table-head-px) !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  font-size: 0.6875rem !important;
+  line-height: 1.15 !important;
+}
+
+[data-density="compact"] table td,
+.compact-density table td,
+[data-density="compact"] [data-slot="table-cell"],
+.compact-density [data-slot="table-cell"],
+[data-density="compact"] [data-slot="cell"],
+.compact-density [data-slot="cell"] {
+  padding-top: var(--table-cell-py) !important;
+  padding-bottom: var(--table-cell-py) !important;
+  padding-left: var(--table-cell-px) !important;
+  padding-right: var(--table-cell-px) !important;
+  font-size: var(--table-font) !important;
+  line-height: 1.25 !important;
+}
+
+/* Custom Grid rows in tables (e.g. Orders Table, Transactions) */
+[data-density="compact"] [role="row"],
+.compact-density [role="row"] {
+  padding-top: var(--table-cell-py) !important;
+  padding-bottom: var(--table-cell-py) !important;
+  padding-left: var(--table-cell-px) !important;
+  padding-right: var(--table-cell-px) !important;
+  font-size: var(--table-font) !important;
+}
+
+/* Compact inputs & badges inside dense tables */
+[data-density="compact"] table input,
+.compact-density table input,
+[data-density="compact"] table select,
+.compact-density table select {
+  height: 1.625rem !important;
+  padding-top: 0.125rem !important;
+  padding-bottom: 0.125rem !important;
+  font-size: 0.75rem !important;
+}
+
+
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* ── Custom 7-Column Calendar Grids (Tailwind 4 fallback) ── */
+.grid-cols-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+}
+
+

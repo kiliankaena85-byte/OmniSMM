@@ -1,0 +1,27 @@
+{
+  "orderId": "ORD-2026-9812",
+  "incidentId": "INC-378284",
+  "clientIdentifier": "user_77192_guest",
+  "termsVersion": "v4.2-2026-02",
+  "termsAcceptedAt": "2026-08-17T00:16:18.284Z",
+  "ipAddress": "178.62.204.18",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/133.0",
+  "apiDispatchedAtUtc": "2026-08-17T00:17:58.285Z",
+  "apiProviderResponseHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fiscalReceiptFpd": "3891028471",
+  "fiscalReceiptFn": "9960440301928410",
+  "totalPaidRub": 1500,
+  "fprCalculatedRub": 1200,
+  "refundRub": 300,
+  "statutoryNorms": [
+    "ст. 779 ГК РФ",
+    "ст. 32 ЗОЗПП",
+    "ст. 4.3 54-ФЗ",
+    "ч. 5 ст. 18 152-ФЗ"
+  ],
+  "courtPrecedents": [
+    "Дело А40-184920/2023 (АС Московского округа)",
+    "Определение ВС РФ № 305-ЭС22-1982"
+  ],
+  "winProbabilityScore": 92.5
+}

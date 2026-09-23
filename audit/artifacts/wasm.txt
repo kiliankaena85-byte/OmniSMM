@@ -1,0 +1,10 @@
+﻿D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.mysql.wasm
+D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.postgresql.wasm
+D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.sqlite.wasm
+D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.mysql.wasm
+D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.postgresql.wasm
+D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.sqlite.wasm
+D:\SMM_plan_2\node_modules\next\dist\compiled\@vercel\og\resvg.wasm
+D:\SMM_plan_2\node_modules\next\dist\compiled\@vercel\og\yoga.wasm
+D:\SMM_plan_2\node_modules\next\dist\compiled\source-map08\mappings.wasm
+D:\SMM_plan_2\node_modules\prisma\build\prisma_schema_build_bg.wasm

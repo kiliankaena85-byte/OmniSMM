@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEARH Baseline Schema v1.1",
+  "type": "object",
+  "required": [
+    "commit",
+    "branch",
+    "gitLog",
+    "isCleanTree",
+    "dirtyFiles",
+    "schemaSha256",
+    "packageVersions",
+    "timestamp"
+  ],
+  "properties": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "branch": {
+      "type": "string"
+    },
+    "gitLog": {
+      "type": "string"
+    },
+    "isCleanTree": {
+      "type": "boolean"
+    },
+    "dirtyFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "schemaSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schemaPath": {
+      "type": "string",
+      "default": "prisma/schema.prisma"
+    },
+    "packageVersions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

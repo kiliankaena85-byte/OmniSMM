@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "2.2.0",
+  "lastUpdated": "2026-08-09T13:36:45+03:00",
+  "systemName": "SMMplan Enterprise Platform",
+  "stack": {
+    "framework": "Next.js 16 (App Router)",
+    "uiLibrary": "React 19",
+    "styling": "Tailwind CSS 4 (@theme directive)",
+    "components": "HeroUI v3 (dot-notation API)",
+    "orm": "Prisma 5 (PostgreSQL)",
+    "database": "PostgreSQL 16",
+    "vectorMemory": "Qdrant (Port 6333)",
+    "graphMemory": "Neo4j (Port 7474/7687)",
+    "memoryEngine": "GraphRAG API (Port 8100)"
+  },
+  "contracts": [
+    {
+      "domain": "Monetary Cents Precision",
+      "category": "FINOPS",
+      "canonicalFile": "src/lib/utils.ts",
+      "canonicalFunctionOrRule": "BigIntCentsPrecisionContract & formatCents",
+      "rules": "All monetary amounts, account balances, charges, and refunds MUST be stored and computed as integer cents (BigInt/integer arithmetic). Formatting for display MUST strictly use formatCents(). Floating-point math is strictly forbidden for financial calculations.",
+      "prohibitedPatterns": ["Float or double arithmetic for prices or balances", "Manual string concatenation for ruble formatting outside formatCents()"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Dual-Pricing Catalog Representation",
+      "category": "FINOPS",
+      "canonicalFile": "src/services/marketing.service.ts",
+      "canonicalFunctionOrRule": "DualPricingContract & marketingService.calculatePrice",
+      "rules": "Services support dual pricing: pricePer1kRub (for internal calculations) and pricePerUnitRub (for UI display with '₽ / шт'). Price resolution and discount application MUST go strictly through marketingService.calculatePrice().",
+      "prohibitedPatterns": ["Inline division or multiplication of pricePer1kRub outside marketingService", "Bypassing unit conversion logic"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Ledger Immutability & Balance Sum Invariant",
+      "category": "FINOPS",
+      "canonicalFile": "src/services/financial/wallet.service.ts & wallet-ops.ts",
+      "canonicalFunctionOrRule": "LedgerImmutabilityContract",
+      "rules": "Ledger entries are strictly append-only and immutable. System invariant User.balance == SUM(LedgerEntry.amount) MUST be preserved on all wallet mutations. User balance updates are prohibited without creating a corresponding Ledger entry within the same database transaction.",
+      "prohibitedPatterns": ["Mutating or deleting existing LedgerEntry records", "Updating User.balance without creating a LedgerEntry in the same transaction", "Inline balance increment/decrement outside WalletService or WalletOps"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Unified Payment Gateway",
+      "category": "FINOPS",
+      "canonicalFile": "src/services/financial/unified-payment.service.ts",
+      "canonicalFunctionOrRule": "UnifiedPaymentGatewayContract & UnifiedPaymentService.createPayment",
+      "rules": "UnifiedPaymentService.createPayment() is the single canonical entry point for creating and processing external payment transactions.",
+      "prohibitedPatterns": ["Direct fetch calls to external payment providers like https://api.yookassa.ru/ outside UnifiedPaymentService"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Partial Refund Math",
+      "category": "FINOPS",
+      "canonicalFile": "src/utils/refund.ts",
+      "canonicalFunctionOrRule": "calculatePartialRefund",
+      "rules": "Partial refund calculations for unfulfilled order quantities MUST use calculatePartialRefund().",
+      "prohibitedPatterns": ["Inline refund formula (remains / quantity) * charge outside calculatePartialRefund()"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Active Submit Button Policy",
+      "category": "FRONTEND_UI",
+      "canonicalFile": "src/components/ui/button.tsx / Form Components",
+      "canonicalFunctionOrRule": "ActiveSubmitButtonPolicy",
+      "rules": "Submit buttons MUST remain enabled and visually interactive during pending/async states with active loading spinner indicators to avoid dropping user interactions. On unfulfilled conditions, onSubmit intercept triggers smooth auto-scroll to invalid fields and shake animation.",
+      "prohibitedPatterns": ["Setting disabled={isSubmitting} on primary CTA buttons without active spinner indicator or creating dead-zone click handlers"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Tailwind CSS 4 Theme Tokens Contract",
+      "category": "FRONTEND_UI",
+      "canonicalFile": "src/app/globals.css / Tailwind 4 Engine",
+      "canonicalFunctionOrRule": "Tailwind4ThemeTokensContract",
+      "rules": "All utility classes must reference Tailwind CSS 4 theme variables (@theme directive / CSS custom properties). Standardized colors (bg-background, text-foreground, text-primary), spacing, typography, and dark mode tokens MUST be used instead of hardcoded hex or arbitrary pixel values.",
+      "prohibitedPatterns": ["Legacy Tailwind v3 tailwind.config.js syntax", "Hardcoded hex colors like bg-[#121212]", "Raw inline style objects for theme values"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "HeroUI v3 Dot Notation Contract",
+      "category": "FRONTEND_UI",
+      "canonicalFile": "src/components/ui/* & HeroUI Imports",
+      "canonicalFunctionOrRule": "HeroUIV3DotNotationContract",
+      "rules": "HeroUI v3 compound components MUST strictly use dot-notation exports (e.g. <Modal.Content>, <Modal.Header>, <Dropdown.Trigger>, <Select.Item>, <Table.Header>).",
+      "prohibitedPatterns": ["Legacy top-level compound component imports (e.g. import { ModalContent } from '@heroui/react')"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Base UI Select Pattern Contract",
+      "category": "FRONTEND_UI",
+      "canonicalFile": "src/components/ui/select.tsx",
+      "canonicalFunctionOrRule": "BaseUISelectPatternContract",
+      "rules": "All custom select and dropdown components MUST implement the Base UI accessible select pattern with full ARIA semantics, children render props on SelectValue to map CUIDs to human-readable strings, keyboard navigation, and collision-aware overlay positioning.",
+      "prohibitedPatterns": ["Unaccessible div-based select menus lacking ARIA attributes", "Raw CUID rendering in SelectValue without children render prop"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Form Error Placement Contract",
+      "category": "FRONTEND_UI",
+      "canonicalFile": "src/components/ui/form-error.tsx / Input Wrappers",
+      "canonicalFunctionOrRule": "FormErrorPlacementContract",
+      "rules": "Form field validation errors MUST be rendered directly beneath the corresponding input field using dedicated error micro-copy slots with role='alert'. Global form errors MUST be rendered directly above the primary submit button.",
+      "prohibitedPatterns": ["Detached alert toasts as the sole error indicator", "Errors placed far from action buttons"],
+      "enforcementLevel": "BLOCKER"
+    },
+    {
+      "domain": "Admin Staff RBAC Authorization",
+      "category": "SECURITY",
+      "canonicalFile": "src/lib/server/rbac.ts",
+      "canonicalFunctionOrRule": "requireStaffPermission",
+      "rules": "Admin route and action authorization MUST strictly use requireStaffPermission() with explicit tenantId boundaries.",
+      "prohibitedPatterns": ["Legacy requireAdmin() or requireManager() helpers"],
+      "enforcementLevel": "BLOCKER"
+    }
+  ],
+  "graphragEndpoint": "http://localhost:8100/api/decision"
+}

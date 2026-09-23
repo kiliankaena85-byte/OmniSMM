@@ -1,0 +1,235 @@
+--- D:\SMM_plan_2\gather_debt.ps1 ---
+type: .ps1 file
+size: 2.98 KB
+sha256: EDFC919866E5D6686E8330D0D236BF4402DBDAB081BD2204994405C16DA13D5B
+
+--- D:\SMM_plan_2\kill_all.ps1 ---
+type: .ps1 file
+size: 0.2 KB
+sha256: 80089A3E950B0AEA8931D75C290A62EBBB92E03C381C4AD0A71A4CEF2C766ED8
+
+--- D:\SMM_plan_2\kill_all_stale_nodes.ps1 ---
+type: .ps1 file
+size: 0.36 KB
+sha256: A1EE263F6783316BAD08E2D1CF40FE6B824587072FA85C8E19E51A6708F2681C
+
+--- D:\SMM_plan_2\kill_nodes.ps1 ---
+type: .ps1 file
+size: 0.28 KB
+sha256: B3A77312EC53919FBB64D0305B1136C89370744FE865F2CFF10D34B5A94A8831
+
+--- D:\SMM_plan_2\optimize_and_cleanup.bat ---
+type: .bat file
+size: 2.75 KB
+sha256: 2917332F9BBDD68AB45696DA8BC5A4818BB9C7B4F7069362BD3A0F1578940713
+
+--- D:\SMM_plan_2\optimize_laptop_performance.bat ---
+type: .bat file
+size: 3.28 KB
+sha256: 2436E2D7A01EEBEFE230F2FF0990A9C90D36C46A287ACD85040AED5E0AE35ACC
+
+--- D:\SMM_plan_2\summarize.ps1 ---
+type: .ps1 file
+size: 0.79 KB
+sha256: 5D3946AE82CA7D5AAE842231F1FAE5C3500F356223BF7FE648AF2CDE932E3C63
+
+--- D:\SMM_plan_2\.agent\skills\round-table-planning\scripts\deploy-hybrid.ps1 ---
+type: .ps1 file
+size: 0.03 KB
+sha256: 77A2E1CBE5E2D064DD3559FA70C443F954C5686846194ABC7FDFB959D58A17C5
+
+--- D:\SMM_plan_2\.agents\teamwork_preview_reviewer_testing_m4\kill_stale_node.ps1 ---
+type: .ps1 file
+size: 0.28 KB
+sha256: 734851F27CE9CE157FF54B9B4FF9934AF19432E1D955FB8E9AA864C07BDB6AE2
+
+--- D:\SMM_plan_2\scratch\configure-docker-proxy.ps1 ---
+type: .ps1 file
+size: 1.67 KB
+sha256: A5ACF27025C401BFEAB001FC570D92E2A97FD766D31A2296003B38A2A5AF4883
+
+--- D:\SMM_plan_2\scratch\wait-docker.ps1 ---
+type: .ps1 file
+size: 0.36 KB
+sha256: B5F95F8DA0660F1C3568B93B6864BF8DC2920DD16C4EA0857B4A803570AD163D
+
+--- D:\SMM_plan_2\scripts\deploy-hybrid.ps1 ---
+type: .ps1 file
+size: 2.12 KB
+sha256: 1B9FE918CA5D1B5459FA6E64C89476D945C2F8B98148AE4C9F97D04CD01FC828
+
+--- D:\SMM_plan_2\scripts\deploy-remote.ps1 ---
+type: .ps1 file
+size: 1.69 KB
+sha256: 330380EE8900B6CF1DD6143B68082891AEBA35F842378AD20C5DB1979BC2556E
+
+--- D:\SMM_plan_2\scripts\deploy-staging.ps1 ---
+type: .ps1 file
+size: 2.54 KB
+sha256: AFCCC5AA4D2365036E819B45BACED385E5EA0D595F4B4DCCBA7050018DF4E069
+
+--- D:\SMM_plan_2\scripts\migrate-prod.ps1 ---
+type: .ps1 file
+size: 2.12 KB
+sha256: 98525249DFE5792E07059BFC9AC0639CD1F1DA186D58B7EDB72C99911DF8164F
+
+--- D:\SMM_plan_2\scripts\upload-b64.ps1 ---
+type: .ps1 file
+size: 1.24 KB
+sha256: 14F9D53B1A514205D048E6E9A4F20AA9169172F315338F8A12AA658C01A03D2C
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\.prisma\client\libquery_engine-linux-musl-openssl-3.0.x.so.node ---
+type: .node file
+size: 15750.31 KB
+sha256: B8497554202349836F1F0A418B94FDBDDFB5A36911D0CEF8CF20B5CE88F0D74F
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\.prisma\client\libquery_engine-linux-musl.so.node ---
+type: .node file
+size: 15754.29 KB
+sha256: D1A280CE2D61259C4DF91812688F4EE5140B3F86E25534C949632CF327FFCF2E
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\.prisma\client\query_engine-windows.dll.node ---
+type: .node file
+size: 18810.5 KB
+sha256: 7D58CADA77C5833E57D2AB4AD61EA2948247B2CAA8575066B2FE3BC7E4EA4E5A
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\@img\sharp-win32-x64\lib\sharp-win32-x64.node ---
+type: .node file
+size: 423 KB
+sha256: AFC813593F255968DDAE8F1D66557E0F96484BB374606E4EB2267A7DBC7CB25A
+
+--- D:\SMM_plan_2\node_modules\.prisma\client\libquery_engine-linux-musl-openssl-3.0.x.so.node ---
+type: .node file
+size: 15750.31 KB
+sha256: B8497554202349836F1F0A418B94FDBDDFB5A36911D0CEF8CF20B5CE88F0D74F
+
+--- D:\SMM_plan_2\node_modules\.prisma\client\libquery_engine-linux-musl.so.node ---
+type: .node file
+size: 15754.29 KB
+sha256: D1A280CE2D61259C4DF91812688F4EE5140B3F86E25534C949632CF327FFCF2E
+
+--- D:\SMM_plan_2\node_modules\.prisma\client\query_engine-windows.dll.node ---
+type: .node file
+size: 18810.5 KB
+sha256: 7D58CADA77C5833E57D2AB4AD61EA2948247B2CAA8575066B2FE3BC7E4EA4E5A
+
+--- D:\SMM_plan_2\node_modules\@img\sharp-win32-x64\lib\sharp-win32-x64.node ---
+type: .node file
+size: 423 KB
+sha256: AFC813593F255968DDAE8F1D66557E0F96484BB374606E4EB2267A7DBC7CB25A
+
+--- D:\SMM_plan_2\node_modules\@msgpackr-extract\msgpackr-extract-win32-x64\node.abi115.node ---
+type: .node file
+size: 111 KB
+sha256: EF49E67855C51BF25295572A9AD8EA481C966694573E6C65DDD47AC90CACE2E7
+
+--- D:\SMM_plan_2\node_modules\@msgpackr-extract\msgpackr-extract-win32-x64\node.napi.node ---
+type: .node file
+size: 111 KB
+sha256: E09816F0C305936CE1061C46A35E7D1883A08ACF81F94793D9D07455421761DD
+
+--- D:\SMM_plan_2\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node ---
+type: .node file
+size: 133612 KB
+sha256: 9BBB72EE5BE257B4E062AAA5CCF88B9FF7DC107458C158B2595F5C67CDD288D9
+
+--- D:\SMM_plan_2\node_modules\@oxc-parser\binding-win32-x64-msvc\parser.win32-x64-msvc.node ---
+type: .node file
+size: 1954 KB
+sha256: 8D1A57B78EC3C0DEA783B9F159C711E7241B630BD8734F748761432F9325F682
+
+--- D:\SMM_plan_2\node_modules\@oxc-resolver\binding-win32-x64-msvc\resolver.win32-x64-msvc.node ---
+type: .node file
+size: 2012.5 KB
+sha256: 528FC5022297DDB441E7A22B0EA5533AF7102935808F5CA97AD776AB7ACD6B60
+
+--- D:\SMM_plan_2\node_modules\@prisma\engines\query_engine-windows.dll.node ---
+type: .node file
+size: 18810.5 KB
+sha256: 7D58CADA77C5833E57D2AB4AD61EA2948247B2CAA8575066B2FE3BC7E4EA4E5A
+
+--- D:\SMM_plan_2\node_modules\@rolldown\binding-win32-x64-msvc\rolldown-binding.win32-x64-msvc.node ---
+type: .node file
+size: 23779.5 KB
+sha256: 12BB9CD4721BC071BAAF621FC59906AD1552DFD7824624F26740157860234CE6
+
+--- D:\SMM_plan_2\node_modules\@tailwindcss\oxide-win32-x64-msvc\tailwindcss-oxide.win32-x64-msvc.node ---
+type: .node file
+size: 3155.5 KB
+sha256: D0AA887D95F0B8F2D58EE4CBB1F297D013BC6D11A77CFA50C4FA706C20840055
+
+--- D:\SMM_plan_2\node_modules\lightningcss-win32-x64-msvc\lightningcss.win32-x64-msvc.node ---
+type: .node file
+size: 9275 KB
+sha256: 83E7E838EF1BBF5454C651103574FEC31A1CEC0B453B999D1173365CBC6C7841
+
+--- D:\SMM_plan_2\node_modules\prisma\libquery_engine-linux-musl-openssl-3.0.x.so.node ---
+type: .node file
+size: 15750.31 KB
+sha256: B8497554202349836F1F0A418B94FDBDDFB5A36911D0CEF8CF20B5CE88F0D74F
+
+--- D:\SMM_plan_2\node_modules\prisma\libquery_engine-linux-musl.so.node ---
+type: .node file
+size: 15754.29 KB
+sha256: D1A280CE2D61259C4DF91812688F4EE5140B3F86E25534C949632CF327FFCF2E
+
+--- D:\SMM_plan_2\node_modules\prisma\query_engine-windows.dll.node ---
+type: .node file
+size: 18810.5 KB
+sha256: 7D58CADA77C5833E57D2AB4AD61EA2948247B2CAA8575066B2FE3BC7E4EA4E5A
+
+--- D:\SMM_plan_2\node_modules\prisma\engines\605197351a3c8bdd595af2d2a9bc3025bca48ea2\query_engine-windows.dll.node ---
+type: .node file
+size: 18810.5 KB
+sha256: 7D58CADA77C5833E57D2AB4AD61EA2948247B2CAA8575066B2FE3BC7E4EA4E5A
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.mysql.wasm ---
+type: .wasm file
+size: 2042.78 KB
+sha256: 10C3F1282A79EE74DC15E3746FE717A9E7A91ED642D7F694B32097FD4107D7F3
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.postgresql.wasm ---
+type: .wasm file
+size: 2080.4 KB
+sha256: B8C2CAB13E50491CEC4CA2D16A20CD549F09449736AB2361AD53C0254A08BF91
+
+--- D:\SMM_plan_2\.next\standalone\node_modules\@prisma\client\runtime\query_engine_bg.sqlite.wasm ---
+type: .wasm file
+size: 1939.8 KB
+sha256: 40800054ECC6145EB5228015C8C12E8781203E24702520657F0CCC3B90A05F25
+
+--- D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.mysql.wasm ---
+type: .wasm file
+size: 2042.78 KB
+sha256: 10C3F1282A79EE74DC15E3746FE717A9E7A91ED642D7F694B32097FD4107D7F3
+
+--- D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.postgresql.wasm ---
+type: .wasm file
+size: 2080.4 KB
+sha256: B8C2CAB13E50491CEC4CA2D16A20CD549F09449736AB2361AD53C0254A08BF91
+
+--- D:\SMM_plan_2\node_modules\@prisma\client\runtime\query_engine_bg.sqlite.wasm ---
+type: .wasm file
+size: 1939.8 KB
+sha256: 40800054ECC6145EB5228015C8C12E8781203E24702520657F0CCC3B90A05F25
+
+--- D:\SMM_plan_2\node_modules\next\dist\compiled\@vercel\og\resvg.wasm ---
+type: .wasm file
+size: 1346.05 KB
+sha256: 6332E8FF5EF63CB18592370D4F799C8551D886C90B8563E1323FDABEE2371E24
+
+--- D:\SMM_plan_2\node_modules\next\dist\compiled\@vercel\og\yoga.wasm ---
+type: .wasm file
+size: 70.05 KB
+sha256: 7BA9C9483C8C38A468E9AEF4A95ED72FAD8A43594BE8E5123EB3BDB6479EDF5B
+
+--- D:\SMM_plan_2\node_modules\next\dist\compiled\source-map08\mappings.wasm ---
+type: .wasm file
+size: 47.55 KB
+sha256: BE2DC7DA3885E55013C8DA58D7BA356705D932459DB94ADA37D5DE2FA8733CFE
+
+--- D:\SMM_plan_2\node_modules\prisma\build\prisma_schema_build_bg.wasm ---
+type: .wasm file
+size: 2825.5 KB
+sha256: ADF02F9B486D507024BE2BF59B271A88E39F48C3CA2266C6C46D7E9109296C05
+

@@ -1,0 +1,18 @@
+{
+  "module": "tenant_isolation",
+  "baseline_commit": "14fa34dc503f9f4a9b607fd8da7624efb96785a9",
+  "schema_sha256": "f5805511531cccb9cfc5f2768ebd059c14a19de875fc83bd24f6aa11827374e9",
+  "baseline_clean_tree": true,
+  "closure_status": "CLOSED",
+  "controls": [
+    {
+      "control_id": "SEC-TENANT-01",
+      "category": "security",
+      "status": "VERIFIED_PASS",
+      "evidence_level": "L2_CODE_IMPLEMENTED",
+      "required_evidence_level": "L4_NEGATIVE_TEST_PASSED",
+      "files": ["src/lib/prisma-tenant-scope.ts"],
+      "code_snippets": ["where: { tenantId }"]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-17T08:37:40.535Z",
+  "filesScanned": 50,
+  "totalDefects": 0,
+  "highSeverity": 0,
+  "mediumSeverity": 0,
+  "lowSeverity": 0,
+  "verdict": "CLEAN",
+  "findings": []
+}

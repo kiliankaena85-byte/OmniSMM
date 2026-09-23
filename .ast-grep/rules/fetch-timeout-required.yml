@@ -1,0 +1,6 @@
+id: fetch-timeout-required
+language: typescript
+message: "ИНВАРИАНТ НАДЕЖНОСТИ (Resilience): Любой прямой сетевой вызов fetch(...) обязан содержать signal: AbortSignal.timeout(...)."
+severity: error
+rule:
+  pattern: fetch($URL)

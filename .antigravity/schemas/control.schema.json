@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEARH Control Schema v1.1",
+  "type": "object",
+  "required": [
+    "control_id",
+    "category",
+    "status",
+    "evidence_level"
+  ],
+  "properties": {
+    "control_id": {
+      "type": "string"
+    },
+    "module": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["security", "financial", "race", "business_logic"]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "VERIFIED_PASS",
+        "VERIFIED_WITH_CONDITIONS",
+        "PARTIAL",
+        "UNVERIFIED",
+        "NOT_IMPLEMENTED",
+        "NOT_APPLICABLE",
+        "RISK_ACCEPTED",
+        "NEEDS_REMEDIATION",
+        "NEEDS_TEST",
+        "NEEDS_INFRA_PROOF"
+      ]
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": [
+        "L0_CLAIMED",
+        "L1_DESIGN_PRESENT",
+        "L2_CODE_IMPLEMENTED",
+        "L3_POSITIVE_TEST_PASSED",
+        "L4_NEGATIVE_TEST_PASSED",
+        "L5_RACE_FUZZ_PASSED",
+        "L6_RECONCILIATION_PASSED",
+        "L7_MONITORED",
+        "L8_PRODUCTION_PROVEN"
+      ]
+    },
+    "required_evidence_level": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "code_snippets": {
+      "oneOf": [
+        { "type": "array", "items": { "type": "string" } },
+        { "type": "string" }
+      ]
+    },
+    "positive_tests": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "negative_tests": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "concurrency_tests": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sql_checks": {
+      "type": "array"
+    },
+    "reconciliation_output": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "logs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "monitoring": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validator_errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

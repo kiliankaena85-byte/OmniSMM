@@ -1,0 +1,195 @@
+node_modules
+.next
+.env
+.env.bak
+.env.local
+.env.production
+.env.development
+.env.test
+.env.test.local
+*.tsbuildinfo
+
+# ── Staging env (contains real secrets — treat as compromised) ──
+.env.staging
+.env.staging.local
+.env.stage
+.env.stage.local
+
+# ── Build & deploy artifacts (should never be in Git) ──
+*.tar
+*.tar.gz
+*.patch
+*.zip
+
+# ── Analysis & report outputs ──
+*.log
+eslint_report.json
+eslint_report.html
+tsc-*.txt
+tsc_output.txt
+ts_errors.txt
+test_output.txt
+results.json
+out.html
+pin.html
+*.html
+*.png
+*.txt
+strix_runs/
+
+# ── Harness artifacts & reports ──
+.antigravity/reports/
+.antigravity/evidence/
+.gemini/
+.agent/
+.agents/*
+# Skills are shared team knowledge — tracked by git
+!.agents/skills/
+!.agents/skills/**
+.planning/audits/
+teamwork_projects/
+lovable_ui_spec.md
+test8_*.js
+test9_*.js
+test-smtp.mjs
+knowledge-service/data/indexer_state.json
+
+# ── Data dumps (one-off, not source code) ──
+stream-promotion-services.json
+curl_out.txt
+*.dump.json
+
+# ── SQLite dev database ──
+prisma/dev.db
+prisma/*.db
+
+# ── Playwright test results & artifacts ──
+test-results/
+playwright-report/
+e2e/playwright/.auth/
+
+# ── Coverage ──
+coverage/
+.nyc_output/
+
+# ── OS-specific ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.idea/
+*.swp
+*.swo
+
+# ── Local patch artifacts ──
+dist_patch/
+cloudflared.exe
+scratch/
+__pycache__/
+*.pyc
+*.bak
+catalog-dump*
+all-providers-data.json
+node_modules
+.next
+.env
+.env.bak
+.env.local
+.env.production
+.env.development
+.env.test
+.env.test.local
+*.tsbuildinfo
+
+# ── Staging env (contains real secrets — treat as compromised) ──
+.env.staging
+.env.staging.local
+
+# ── Build & deploy artifacts (should never be in Git) ──
+*.tar
+*.tar.gz
+*.patch
+*.zip
+!omnismm-skills.zip
+
+# ── Analysis & report outputs ──
+*.log
+eslint_report.json
+eslint_report.html
+tsc-*.txt
+tsc_output.txt
+ts_errors.txt
+test_output.txt
+results.json
+out.html
+pin.html
+*.html
+*.png
+*.txt
+
+# ── Harness artifacts & reports ──
+.antigravity/reports/
+.antigravity/evidence/
+.gemini/
+.agent/
+.agents/*
+# Skills are shared team knowledge — tracked by git
+!.agents/skills/
+!.agents/skills/**
+.planning/audits/
+teamwork_projects/
+lovable_ui_spec.md
+test8_*.js
+test9_*.js
+test-smtp.mjs
+knowledge-service/data/indexer_state.json
+
+# ── Data dumps (one-off, not source code) ──
+stream-promotion-services.json
+curl_out.txt
+*.dump.json
+
+# ── SQLite dev database ──
+prisma/dev.db
+prisma/*.db
+
+# ── Playwright test results & artifacts ──
+test-results/
+playwright-report/
+e2e/playwright/.auth/
+
+# ── Coverage ──
+coverage/
+.nyc_output/
+
+# ── OS-specific ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.idea/
+*.swp
+*.swo
+
+# ── Local patch artifacts ──
+dist_patch/
+cloudflared.exe
+scratch/
+__pycache__/
+*.pyc
+*.bak
+catalog-dump*
+all-providers-data.json
+smmtoolbox_enriched.json
+private/uploads/
+visual_audit_assets/
+
+*.exe
+caddy/
+
+# ── Clash/Mihomo runtime files (downloaded automatically on container start) ──
+clash/Country.mmdb
+clash/geoip.dat
+clash/geosite.dat
+clash/cache.db
+clash/ruleset/

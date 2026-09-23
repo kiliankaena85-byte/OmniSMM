@@ -1,0 +1,16 @@
+{
+  "title": "B2C Smart Order Landing (Contextual Expansion)",
+  "componentType": "ClientComponent",
+  "forbiddenPatterns": [
+    "Использование инлайн-цветов (text-black), использовать только semantic tokens (text-gray-900, text-gray-500, text-white).",
+    "Написание бизнес-логики: всё должно быть замокано или делегировано (в prompt указан статический/моковый UI).",
+    "Использование 3-колоночной сетки для всего лендинга (запрещено паттерном Контекстное Расширение).",
+    "Отображение лейблов (Stable, Premium, Bestseller)",
+    "Использование ellipsis (...) для длинных строк, применять line-clamp-2."
+  ],
+  "heroUIComponents": [
+    "AnimatePresence",
+    "motion.div"
+  ],
+  "exactMarkdownPrompt": "# ТЗ для разработки: B2C Smart Order Landing Page\n\nМодуль: Публичная страница SMM-панели.\n\n## 1. Паттерн Интерфейса (Contextual Expansion)\n- **State 1 (Idle)**: Строка поиска центрирована по середине.\n- **State 2 (Analyzed)**: При наличии ссылки снизу выезжает плашка.\n- **State 3 (Selection)**: Под плашкой появляется 2-колоночный макет (Категории слева, Карточки справа).\n\n## 2. Структура (100vh Layout) Desktop (>1400px)\n- **Header**: sticky top-0 bg-white border-b border-gray-200. Максимальная ширина max-w-7xl mx-auto.\n- **Hero Block**: max-w-2xl mx-auto. Огромный Input (`bg-white shadow-xl rounded-2xl focus:ring-2 ring-offset-2 ring-blue-500`). Кнопка 'Анализировать'.\n- **Expandable Container**: Выезжает под Input. `mt-4 border border-zinc-200 rounded-2xl bg-white shadow-lg p-6`. Внутри сетка: `grid grid-cols-[250px_1fr]`.\n- **Footer**: `mt-12 border-t border-gray-200 pt-8`.\n\n## 3. Структура Mobile (<1024px)\n- **Header**: Скрыть правую кнопку 'Войти' и левую часть логотипа.\n- **Hero Block**: Input на 100% ширины.\n- **Expandable Container**: Строгий `grid-cols-1`. Категории горизонтально скроллятся (`overflow-x-auto`). Карточки в одну колонку.\n\n## 4. Визуальный Стиль\n- **Фон страницы**: `bg-gray-50`.\n- **Типографика**: `text-gray-900` (Title), `text-gray-500` (Secondary).\n- **Карточки услуг**: `bg-white border border-gray-200 rounded-xl hover:shadow-xl`.\n- **Кнопки/Акценты**: `bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg`.\n- **Категории (Табы)**: `bg-white p-2 rounded-lg`. Активная: `bg-[#6366F1] text-white`.\n\n## 5. Запрещено\n- Никаких маркетинговых лейблов на карточках. Только Название -> Описание -> Цена -> Кнопка.\n- Отсутствие '...' для длинного текста, использовать `line-clamp-2`.\n"
+}

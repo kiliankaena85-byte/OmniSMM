@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "stale_days": 60,
+  "ephemeral_patterns": [
+    "-tmp",
+    "-test",
+    "-draft",
+    "-exp",
+    "-wip",
+    "-poc",
+    "_tmp",
+    "_test",
+    "_draft",
+    "_exp",
+    "_wip",
+    "_poc"
+  ],
+  "never_archive": [
+    "ephemeral-skill-cleanup",
+    "secret-leak-guard",
+    "context-budget-monitor",
+    "skill-governance-policy"
+  ],
+  "auto_archive_categories": [
+    "DEPRECATED",
+    "EPHEMERAL"
+  ],
+  "require_review_categories": [
+    "STALE",
+    "DUPLICATE",
+    "ORPHAN",
+    "DRAFT",
+    "SUPERSEDED"
+  ],
+  "delete_categories": [
+    "BROKEN"
+  ],
+  "estimate_tokens_per_skill": 250
+}

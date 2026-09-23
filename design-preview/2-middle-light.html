@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SMMplan Lite — Премиальный сервис продвижения</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#6063ee",
+                    "on-surface-variant": "#464554",
+                    "on-secondary-fixed": "#23005c",
+                    "tertiary": "#904900",
+                    "inverse-primary": "#c0c1ff",
+                    "secondary": "#6b38d4",
+                    "outline-variant": "#c7c4d7",
+                    "primary-fixed": "#e1e0ff",
+                    "surface-dim": "#d8dadc",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed-dim": "#d0bcff",
+                    "on-secondary-container": "#fffbff",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-error-container": "#93000a",
+                    "on-secondary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "on-primary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "inverse-surface": "#2d3133",
+                    "on-tertiary-container": "#fffbff",
+                    "tertiary-fixed": "#ffdcc5",
+                    "outline": "#767586",
+                    "secondary-container": "#8455ef",
+                    "on-primary-container": "#fffbff",
+                    "surface-tint": "#494bd6",
+                    "error-container": "#ffdad6",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-fixed": "#07006c",
+                    "secondary-fixed": "#e9ddff",
+                    "on-tertiary-fixed": "#301400",
+                    "on-secondary-fixed-variant": "#5516be",
+                    "error": "#ba1a1a",
+                    "primary": "#4648d4",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "on-background": "#191c1e",
+                    "tertiary-container": "#b55d00",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-container-high": "#e6e8ea",
+                    "surface": "#f7f9fb",
+                    "surface-container": "#eceef0",
+                    "on-tertiary-fixed-variant": "#703700"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-[#f7f9fb]/80 backdrop-blur-xl fixed top-0 w-full z-50">
+<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto w-full z-50">
+<div class="text-xl font-bold tracking-tighter text-[#191c1e] dark:text-white">
+                SMMplan Lite
+            </div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-[#191c1e]/70 font-['Inter'] text-sm font-medium tracking-tight hover:text-[#4648d4] transition-colors" href="#">Services</a>
+<a class="text-[#4648d4] font-semibold border-b-2 border-[#4648d4] pb-1 font-['Inter'] text-sm tracking-tight" href="#">How it works</a>
+<a class="text-[#191c1e]/70 font-['Inter'] text-sm font-medium tracking-tight hover:text-[#4648d4] transition-colors" href="#">Comparison</a>
+<a class="text-[#191c1e]/70 font-['Inter'] text-sm font-medium tracking-tight hover:text-[#4648d4] transition-colors" href="#">Pricing</a>
+</nav>
+<div class="flex gap-4 items-center">
+<button class="px-5 py-2 text-sm font-medium text-on-surface hover:text-primary transition-colors">Login</button>
+<button class="px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:scale-[1.02] hover:shadow-lg transition-all duration-300 active:scale-[0.98]">Get Started</button>
+</div>
+</div>
+</header>
+<main class="pt-20">
+<!-- Section 1: How it Works -->
+<section class="py-24 bg-surface-container-low px-6">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-black text-on-surface tracking-tight mb-4">Как это работает</h2>
+<p class="text-on-surface-variant text-lg">Простая и безопасная накрутка в 3 шага</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Step 1 -->
+<div class="group relative bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300">
+<div class="absolute -top-4 -right-4 text-6xl font-black opacity-10 text-primary italic">01</div>
+<div class="w-14 h-14 bg-primary-fixed rounded-xl flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-3xl">category</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Выберите услугу</h3>
+<p class="text-on-surface-variant leading-relaxed">Укажите платформу и тип продвижения. AI подберёт оптимальный пакет.</p>
+</div>
+<!-- Step 2 -->
+<div class="group relative bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300">
+<div class="absolute -top-4 -right-4 text-6xl font-black opacity-10 text-primary italic">02</div>
+<div class="w-14 h-14 bg-secondary-fixed rounded-xl flex items-center justify-center mb-6 text-secondary">
+<span class="material-symbols-outlined text-3xl">shopping_cart</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Оформите заказ</h3>
+<p class="text-on-surface-variant leading-relaxed">Вставьте ссылку, укажите количество и оплатите любым удобным способом.</p>
+</div>
+<!-- Step 3 -->
+<div class="group relative bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300">
+<div class="absolute -top-4 -right-4 text-6xl font-black opacity-10 text-primary italic">03</div>
+<div class="w-14 h-14 bg-tertiary-fixed rounded-xl flex items-center justify-center mb-6 text-tertiary">
+<span class="material-symbols-outlined text-3xl">trending_up</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Наблюдайте за ростом</h3>
+<p class="text-on-surface-variant leading-relaxed">Запуск за 4 секунды. Отслеживайте прогресс в реальном времени.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Social Proof Stats -->
+<section class="py-20 bg-surface-container-lowest px-6">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+<div class="p-8 rounded-2xl bg-surface-container-low border-t-4 border-primary">
+<div class="text-4xl md:text-5xl font-black text-primary mb-2">2M+</div>
+<div class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Заказов выполнено</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface-container-low border-t-4 border-secondary">
+<div class="text-4xl md:text-5xl font-black text-secondary mb-2">50K+</div>
+<div class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Довольных клиентов</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface-container-low border-t-4 border-emerald-500">
+<div class="text-4xl md:text-5xl font-black text-emerald-500 mb-2">4 сек</div>
+<div class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Среднее время запуска</div>
+</div>
+<div class="p-8 rounded-2xl bg-surface-container-low border-t-4 border-amber-500">
+<div class="text-4xl md:text-5xl font-black text-amber-500 mb-2">99.2%</div>
+<div class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Заказов в срок</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Bento Grid Services -->
+<section class="py-24 bg-surface px-6">
+<div class="max-w-7xl mx-auto">
+<div class="mb-16">
+<h2 class="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">Все платформы — одна панель</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full">
+<!-- Telegram (Large) -->
+<div class="md:col-span-2 md:row-span-2 p-8 rounded-3xl bg-blue-50 relative overflow-hidden group min-h-[320px]">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-4xl text-blue-600">send</span>
+<h3 class="text-2xl font-bold">Telegram</h3>
+</div>
+<ul class="space-y-3 text-on-surface-variant font-medium">
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Подписчики в каналы и группы</li>
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Просмотры постов (авто и разово)</li>
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Реакции и голосования</li>
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Premium-подписчики</li>
+</ul>
+</div>
+<div class="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[180px] text-blue-600">send</span>
+</div>
+</div>
+<!-- Instagram (Large/Wide) -->
+<div class="md:col-span-2 p-8 rounded-3xl bg-gradient-to-br from-purple-50 to-pink-50 relative overflow-hidden group">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-3xl text-pink-600">photo_camera</span>
+<h3 class="text-xl font-bold">Instagram</h3>
+</div>
+<div class="grid grid-cols-2 gap-4 text-sm font-medium text-on-surface-variant">
+<span>Лайки с охватом</span>
+<span>Reels просмотры</span>
+<span>Живые подписчики</span>
+<span>Сохранения</span>
+</div>
+</div>
+</div>
+<!-- TikTok (Small) -->
+<div class="p-6 rounded-3xl bg-slate-900 text-white relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-2xl mb-3 text-pink-500">music_note</span>
+<h3 class="font-bold mb-1">TikTok</h3>
+<p class="text-xs text-white/70">Просмотры, лайки и репосты в рекомендации</p>
+</div>
+</div>
+<!-- YouTube (Small) -->
+<div class="p-6 rounded-3xl bg-red-50 relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-2xl mb-3 text-red-600">play_circle</span>
+<h3 class="font-bold mb-1">YouTube</h3>
+<p class="text-xs text-on-surface-variant">Часы просмотров для монетизации</p>
+</div>
+</div>
+</div>
+<!-- Bottom row smalls -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+<div class="p-6 rounded-3xl bg-blue-100/50">
+<span class="material-symbols-outlined text-2xl mb-2 text-blue-700">forum</span>
+<h4 class="font-bold text-sm uppercase tracking-tighter">VK</h4>
+</div>
+<div class="p-6 rounded-3xl bg-sky-100/50">
+<span class="material-symbols-outlined text-2xl mb-2 text-sky-500">flutter_dash</span>
+<h4 class="font-bold text-sm uppercase tracking-tighter">Twitter</h4>
+</div>
+<div class="p-6 rounded-3xl bg-indigo-100/50">
+<span class="material-symbols-outlined text-2xl mb-2 text-indigo-700">groups</span>
+<h4 class="font-bold text-sm uppercase tracking-tighter">Discord</h4>
+</div>
+<div class="p-6 rounded-3xl bg-emerald-100/50">
+<span class="material-symbols-outlined text-2xl mb-2 text-emerald-700">bubble_chart</span>
+<h4 class="font-bold text-sm uppercase tracking-tighter">And more...</h4>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Comparison -->
+<section class="py-24 bg-surface-container-low px-6">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl font-black tracking-tight text-on-surface mb-4">Почему выбирают нас</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+<!-- Competitors -->
+<div class="p-10 rounded-3xl bg-surface-dim/30 border-2 border-transparent">
+<h3 class="text-2xl font-bold mb-8 text-on-surface-variant flex items-center gap-3">
+                            Обычные сервисы
+                            <span class="text-sm font-medium bg-surface-variant px-3 py-1 rounded-full text-outline uppercase tracking-wider">Рынок</span>
+</h3>
+<ul class="space-y-6">
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-error mt-1">close</span>
+<div>
+<span class="font-bold block">Резкие скачки показателей</span>
+<span class="text-sm text-on-surface-variant">Риск блокировки аккаунта алгоритмами</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-error mt-1">close</span>
+<div>
+<span class="font-bold block">Задержка запуска до 24 часов</span>
+<span class="text-sm text-on-surface-variant">Ожидание ручной модерации заказа</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-error mt-1">close</span>
+<div>
+<span class="font-bold block">Обязательная регистрация</span>
+<span class="text-sm text-on-surface-variant">Потеря времени на подтверждение почты</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-error mt-1">close</span>
+<div>
+<span class="font-bold block">Ограниченные способы оплаты</span>
+<span class="text-sm text-on-surface-variant">Только банковские переводы или Qiwi</span>
+</div>
+</li>
+</ul>
+</div>
+<!-- SMMplan Lite -->
+<div class="p-10 rounded-3xl bg-surface-container-lowest border-2 border-primary shadow-2xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 bg-primary text-white text-xs font-bold uppercase tracking-widest rounded-bl-2xl">Lite Premium</div>
+<h3 class="text-2xl font-bold mb-8 text-primary flex items-center gap-3">
+                            SMMplan Lite
+                        </h3>
+<ul class="space-y-6">
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-emerald-500 mt-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<span class="font-bold block">Плавный и естественный рост</span>
+<span class="text-sm text-on-surface-variant">Уникальные алгоритмы Organic-Drop</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-emerald-500 mt-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<span class="font-bold block">Запуск за 4 секунды</span>
+<span class="text-sm text-on-surface-variant">Полностью автоматизированная API-сеть</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-emerald-500 mt-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<span class="font-bold block">Без регистрации</span>
+<span class="text-sm text-on-surface-variant">Заказ в один клик без лишних данных</span>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-emerald-500 mt-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<span class="font-bold block">Мультивалютная оплата</span>
+<span class="text-sm text-on-surface-variant">Карты, крипто, электронные кошельки, AI-подбор</span>
+</div>
+</li>
+</ul>
+<div class="mt-10">
+<button class="w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary-container transition-all shadow-lg shadow-primary/20">Попробовать SMMplan Lite</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-20 bg-surface-container-lowest px-6">
+<div class="max-w-4xl mx-auto p-12 rounded-[40px] bg-gradient-to-br from-primary to-secondary text-white text-center relative overflow-hidden">
+<div class="relative z-10">
+<h2 class="text-3xl md:text-5xl font-black mb-6">Готовы к росту?</h2>
+<p class="text-white/80 text-lg mb-10 max-w-xl mx-auto">Получите первые охваты уже через несколько минут. Без регистрации и лишних вопросов.</p>
+<div class="flex flex-col md:flex-row gap-4 justify-center">
+<button class="px-8 py-4 bg-white text-primary font-bold rounded-2xl hover:scale-105 transition-transform">Выбрать платформу</button>
+<button class="px-8 py-4 bg-primary-container text-white border border-white/20 font-bold rounded-2xl hover:bg-white/10 transition-all">Узнать больше</button>
+</div>
+</div>
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl -ml-32 -mb-32"></div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#f2f4f6] dark:bg-slate-950 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-8 py-12 w-full border-t border-[#e6e8ea] dark:border-slate-800 max-w-7xl mx-auto">
+<div class="flex flex-col gap-2 mb-8 md:mb-0">
+<div class="text-lg font-black text-[#191c1e] dark:text-white">SMMplan Lite</div>
+<p class="font-['Inter'] text-xs tracking-widest uppercase text-[#191c1e]/50">© 2024 SMMplan Lite. Precision SMM Tools.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-['Inter'] text-xs tracking-widest uppercase text-[#191c1e]/60 hover:text-[#4648d4] transition-colors" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-xs tracking-widest uppercase text-[#191c1e]/60 hover:text-[#4648d4] transition-colors" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-xs tracking-widest uppercase text-[#191c1e]/60 hover:text-[#4648d4] transition-colors" href="#">Support</a>
+<a class="font-['Inter'] text-xs tracking-widest uppercase text-[#191c1e]/60 hover:text-[#4648d4] transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

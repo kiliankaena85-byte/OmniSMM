@@ -1,0 +1,1 @@
+UPDATE "SystemSettings" SET "yookassaShopId" = '1155075', "yookassaSecretKey" = '7b9bc69858bbf11a4a98c5cb73c1df08:7e21bc9589b6a1cca0acfa86eaf64f3a:421d48a5b7a0f084484c84eb17c24a8cedfd077622d174f45fbf8e0db12df53cc33133832b37ffecc7d9c435d571ed4c' WHERE id = 'global';

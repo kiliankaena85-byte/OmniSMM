@@ -1,0 +1,2250 @@
+{
+  "totalNetworks": 13,
+  "totalCategories": 37,
+  "totalServices": 248,
+  "emptyCategories": [],
+  "misclassifiedServices": [
+    {
+      "id": "cmte58v8c000d3hvd60mj0iri",
+      "name": "Telegram Подписчики + Авто Просмотры [Россия 🇷🇺] [30 дней]",
+      "currentCategory": "👥 Подписчики на канал и в группу",
+      "suggestedCategory": "Просмотры / Лайки",
+      "reason": "Название услуги указывает на просмотры/лайки, но лежит в подписчиках"
+    }
+  ],
+  "targetTypeMismatches": [],
+  "pricingAudit": [
+    {
+      "id": "cmte58v96000n3hvdowp67ca3",
+      "name": "Telegram Позитивные реакции [👍🔥🎉❤️] [Мгновенно]",
+      "rate": 15,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 2.7,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9f000r3hvd9dicquan",
+      "name": "Telegram Реакция Сердце [❤️] [Быстрый старт]",
+      "rate": 16.5,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 2.97,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9b000p3hvd6mk2omuf",
+      "name": "Telegram Реакция Огонь [🔥] [Быстрый старт]",
+      "rate": 16.5,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 2.97,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9s000x3hvdlzwuqflp",
+      "name": "Telegram Буст канала для Stories [Гарантия 30 дней ⚡️]",
+      "rate": 174.22,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 23.52,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9x000z3hvdbxiuqxhe",
+      "name": "Telegram Буст канала [Гарантия 90 дней ⚡️] [Премиум]",
+      "rate": 450,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 60.75,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58vac00153hvdzjy1uzgm",
+      "name": "Telegram Рефералы для ботов (только запуск) [Высокая скорость]",
+      "rate": 15,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 2.7,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58va100113hvdj2z5k2p6",
+      "name": "Telegram Запуск бота / Рефералы [Premium Аккаунты 🌟]",
+      "rate": 54.53,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.852,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58va700133hvd0a2mflce",
+      "name": "Telegram Старты бота [ИИ Умный поиск 🇷🇺 Россия]",
+      "rate": 56.78,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 8.176,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v7t00073hvdav7wbx7u",
+      "name": "Telegram Подписчики [Быстрый старт] [Гарантия 30 дней ♻️]",
+      "rate": 38.71,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 5.226,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v8300093hvdrqvcxkqb",
+      "name": "Telegram Премиум подписчики [Без списаний ♻️] [Сервер: 1]",
+      "rate": 243.57,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 32.882,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v87000b3hvdj4xuqcfv",
+      "name": "Telegram Premium RU Подписчики [Россия 🇷🇺] [Поиск + Гарантия 180 дней]",
+      "rate": 331.09,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 44.697,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v8c000d3hvd60mj0iri",
+      "name": "Telegram Подписчики + Авто Просмотры [Россия 🇷🇺] [30 дней]",
+      "rate": 414.38,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 55.941,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v8n000f3hvda4l7j9dw",
+      "name": "Telegram Просмотры на пост [Мгновенный старт] [Высокая скорость]",
+      "rate": 1.5,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 0.27,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v8t000h3hvds6r3j8eb",
+      "name": "Telegram Просмотры на 5 последних постов [Пакет охвата]",
+      "rate": 7.5,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 1.35,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v92000l3hvdmuzh6mna",
+      "name": "Telegram Авто-просмотры на 100 будущих постов [Закрытые/Открытые каналы]",
+      "rate": 53.34,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 8.641,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v8y000j3hvdkrbhdme4",
+      "name": "Telegram Просмотры + Клики по рекламе [Tg Ads] [Россия 🇷🇺]",
+      "rate": 66.68,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 9.602,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hxu00dfss7y8183hkcf",
+      "name": "Просмотры - Живые",
+      "rate": 111.88,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.168,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9o000v3hvdui4gwibo",
+      "name": "Telegram Положительные отзывы и комментарии [Россия 🇷🇺]",
+      "rate": 650,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 87.75,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte58v9k000t3hvdkap0skh9",
+      "name": "Telegram Пользовательские комментарии [Свой текст]",
+      "rate": 750,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 101.25,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2od000jl0hlu4qk4in3",
+      "name": "VK Положительные отзывы [Россия 🇷🇺]",
+      "rate": 750,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 101.25,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2o6000hl0hldwotoe3t",
+      "name": "VK Кастомные комментарии [Свой текст] [Россия 🇷🇺]",
+      "rate": 750,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 101.25,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2he9008fss7ybw1n7guy",
+      "name": "Подписчики - Стандарт",
+      "rate": 161.7,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.259,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmte5d2lr0001l0hlqs9xq9n0",
+      "name": "VK Подписчики в группу [Быстрый старт] [Россия 🇷🇺]",
+      "rate": 161.7,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 21.83,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hdz008dss7yyirwkubu",
+      "name": "Подписчики - Оптимальный",
+      "rate": 165,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.264,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gob0021ss7yf1ftnjda",
+      "name": "Подписчики - Усиленный",
+      "rate": 224.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.359,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2i2q00enss7y5qz6y3ot",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 234.42,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.375,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2go2001zss7ytbunzdx7",
+      "name": "Подписчики - Премиум",
+      "rate": 270.2,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.432,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmte5d2m20003l0hl21uydbqr",
+      "name": "VK Подписчики [Премиум] [Гарантия 30 дней ♻️]",
+      "rate": 270.2,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 36.477,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hn400anss7ywya6dw6c",
+      "name": "Подписчики - Живые",
+      "rate": 430,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.688,
+      "provider": "s_smm"
+    },
+    {
+      "id": "cmtcr2i8o00g5ss7ytq0mq772",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 562.65,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.9,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hg8008xss7yznrrcu6s",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 653.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.045,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmte5d2mb0005l0hl55ohuh62",
+      "name": "VK Подписчики [Живые активные] [Гарантия 90 дней ♻️]",
+      "rate": 653.4,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 88.209,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hdj0089ss7y301f2krm",
+      "name": "Подписчики - Максимальный",
+      "rate": 702.15,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.123,
+      "provider": "smmrise_com"
+    },
+    {
+      "id": "cmtcr2hds008bss7y0bjuas7k",
+      "name": "Подписчики - VIP",
+      "rate": 702.15,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.123,
+      "provider": "smmrise_com"
+    },
+    {
+      "id": "cmtcr2hdc0087ss7y8izz2l1t",
+      "name": "Подписчики - Элит",
+      "rate": 702.15,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.123,
+      "provider": "smmrise_com"
+    },
+    {
+      "id": "cmtcr2hd30085ss7y6axotpz6",
+      "name": "Подписчики - Экстра",
+      "rate": 702.15,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.123,
+      "provider": "smmrise_com"
+    },
+    {
+      "id": "cmte5d2mr0007l0hlaasfzrss",
+      "name": "VK Лайки на пост / фото [👍 ❤️] [Быстрый старт]",
+      "rate": 55,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 8.91,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2mz0009l0hlqq3143sg",
+      "name": "VK Лайки [Премиум] [Россия 🇷🇺] [👍 ❤️ 🔥 👏]",
+      "rate": 120,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 17.28,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2ib200gtss7yfa8xpmvn",
+      "name": "Лайки - Стандарт",
+      "rate": 550.27,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.88,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h8f006zss7ytv8ifk1a",
+      "name": "Лайки - Быстрый старт",
+      "rate": 2376.89,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.803,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmte5d2ne000bl0hls1aa69uu",
+      "name": "VK Просмотры на пост [Мгновенный старт] [Охват]",
+      "rate": 2.19,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 0.394,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2nn000dl0hlalsi0dl1",
+      "name": "VK Просмотры на Клипы (Reels) [Высокая скорость]",
+      "rate": 2.91,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 0.524,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h44005vss7ywihhc65o",
+      "name": "Просмотры - Стандарт",
+      "rate": 219.45,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.351,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h3w005tss7ywbhdjc0i",
+      "name": "Просмотры - Оптимальный",
+      "rate": 219.45,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.351,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hjy009vss7yu78pxh8b",
+      "name": "Просмотры - Усиленный",
+      "rate": 223.3,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.357,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hk5009xss7yx7xhuew0",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 223.3,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.357,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hcn0081ss7y84zvxaz2",
+      "name": "Просмотры - Премиум",
+      "rate": 291.06,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.466,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2hhy009dss7ybfarak35",
+      "name": "Просмотры - Стандарт",
+      "rate": 98.56,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.158,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmte5d2pi000pl0hllpn2s18h",
+      "name": "YouTube Просмотры [Мгновенный старт] [С удержанием]",
+      "rate": 98.56,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 15.967,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2pp000rl0hlse2wyc53",
+      "name": "YouTube Просмотры Shorts [Быстрый вывод в ТОП]",
+      "rate": 197.12,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 31.933,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hi5009fss7yvlsffr94",
+      "name": "Просмотры - Оптимальный",
+      "rate": 197.12,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.315,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hif009hss7yl3ew54lo",
+      "name": "Просмотры - Усиленный",
+      "rate": 394.24,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.631,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2i9o00gfss7yqkk28m6u",
+      "name": "Просмотры - Живые",
+      "rate": 592.68,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.948,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hiu009lss7yuw9p4kjf",
+      "name": "Просмотры - Премиум",
+      "rate": 1182.72,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.892,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gqh002lss7y0ciblitz",
+      "name": "Просмотры - С гарантией 30 дней",
+      "rate": 2069.1,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.311,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h07004vss7yrhxzpmcj",
+      "name": "Просмотры - С гарантией 90 дней",
+      "rate": 4671.15,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.474,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gz6004lss7y6k74180x",
+      "name": "Подписчики - Живые",
+      "rate": 62.7,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.094,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gzz004tss7y55ifd3eg",
+      "name": "Подписчики - Стандарт",
+      "rate": 83.6,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.125,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hm500afss7yaqgweb5e",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 105.53,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.158,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gvs003pss7ynv441g9h",
+      "name": "Подписчики - Оптимальный",
+      "rate": 120.15,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.18,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hnq00atss7yibp1p55q",
+      "name": "Подписчики - Усиленный",
+      "rate": 200.84,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.301,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2gva003lss7yhavdaai4",
+      "name": "Подписчики - Премиум",
+      "rate": 204.4,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.307,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gze004nss7ynn60btbh",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 274.31,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.411,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gqb002jss7ye4z16spf",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 470.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.705,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmte5d2ov000ll0hlp1a83ecw",
+      "name": "YouTube Подписчики [Быстрый старт] [Гарантия 30 дней ♻️]",
+      "rate": 836,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 112.86,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2p4000nl0hl9yv2vq10",
+      "name": "YouTube Подписчики [Премиум] [Гарантия 90 дней ♻️]",
+      "rate": 2044,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 275.94,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2q3000tl0hlmmjuu7yb",
+      "name": "YouTube Лайки на видео [👍] [Быстрый старт]",
+      "rate": 78.85,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 12.774,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2qb000vl0hla93c3apb",
+      "name": "YouTube Лайки [Премиум] [👍 🔥] [Без списаний ♻️]",
+      "rate": 265,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 38.16,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2ia900glss7yjv0psykk",
+      "name": "Лайки - Позитивные",
+      "rate": 712.01,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.139,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2him009jss7yltzolhad",
+      "name": "Лайки - Стандарт",
+      "rate": 788.48,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.262,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2i9h00gdss7y900k8b40",
+      "name": "Лайки - Быстрый старт",
+      "rate": 943.46,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.51,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gk60011ss7yqb0mzr4w",
+      "name": "Лайки - Оптимальный",
+      "rate": 2650,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 4.24,
+      "provider": "partner.soc"
+    },
+    {
+      "id": "cmtcr2gk0000zss7yyf3nxp47",
+      "name": "Лайки - Усиленный",
+      "rate": 3906,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.25,
+      "provider": "partner.soc"
+    },
+    {
+      "id": "cmtcr2gzs004rss7yl9y1h00f",
+      "name": "Подписчики - Элит",
+      "rate": 52.35,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.079,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmte5d2tc0015l0hl2qjrtg3c",
+      "name": "Instagram Подписчики [Быстрый старт] [Гарантия 30 дней ♻️]",
+      "rate": 145,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 19.575,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gzk004pss7y41e98n1k",
+      "name": "Подписчики - VIP",
+      "rate": 235.13,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.353,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmte5d2tl0017l0hluwo5r859",
+      "name": "Instagram Подписчики [Премиум RU 🇷🇺] [Без списаний ♻️]",
+      "rate": 290,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 39.15,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h88006xss7ye3qlzl6h",
+      "name": "Подписчики - Стандарт",
+      "rate": 323.02,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.517,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2gug003dss7yimpmqlxu",
+      "name": "Подписчики - Оптимальный",
+      "rate": 376.2,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.602,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hks00a3ss7yhcde3y4r",
+      "name": "Подписчики - Усиленный",
+      "rate": 377.3,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.604,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hmw00alss7y83qtjtku",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 389.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.623,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hap007jss7y1ceisqw9",
+      "name": "Подписчики - Максимальный",
+      "rate": 396,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.594,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2h31005lss7yaznbcvbg",
+      "name": "Подписчики - Экстра",
+      "rate": 470.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.705,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2i8v00g7ss7yg0iltfip",
+      "name": "Подписчики - Премиум",
+      "rate": 994.14,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.591,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hj2009nss7yokv4hx53",
+      "name": "Подписчики - Живые",
+      "rate": 1181.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.89,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hf7008nss7ybbvbs4jv",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 2694,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 4.31,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2ic100h3ss7yyrs81j00",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 4010.81,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.417,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2tz0019l0hl5812np2l",
+      "name": "Instagram Лайки на публикации / Reels [❤️] [Мгновенно]",
+      "rate": 45,
+      "currency": "USD",
+      "markup": 1.8,
+      "pricePerUnitRub": 7.29,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hjj009rss7ypu7uydsk",
+      "name": "Лайки - Позитивные",
+      "rate": 55,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.088,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hjr009tss7yrkux888q",
+      "name": "Лайки - Стандарт",
+      "rate": 88,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.141,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hwz00d7ss7yod0ojnnj",
+      "name": "Лайки - Быстрый старт",
+      "rate": 93.6,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.15,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2i4v00f7ss7yfss5460y",
+      "name": "Лайки - Оптимальный",
+      "rate": 97.67,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.156,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hg1008vss7yynjwgisu",
+      "name": "Лайки - Живые",
+      "rate": 145.2,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.232,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hxf00dbss7ytzno7g6j",
+      "name": "Лайки - Премиум",
+      "rate": 159.63,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.255,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2h7x006vss7yvy9ac16h",
+      "name": "Лайки - С гарантией 30 дней",
+      "rate": 169.88,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.272,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2hl000a5ss7y2amentp1",
+      "name": "Лайки - С гарантией 90 дней",
+      "rate": 175.56,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.281,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2ib900gvss7yskryzelz",
+      "name": "Лайки - Элит",
+      "rate": 209.51,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.335,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hnb00apss7yvcyc9bss",
+      "name": "Лайки - VIP",
+      "rate": 240,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.384,
+      "provider": "s_smm"
+    },
+    {
+      "id": "cmtcr2hmd00ahss7yyn3t2os2",
+      "name": "Лайки - Максимальный",
+      "rate": 250.02,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.4,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hlv00adss7yzqg1nw38",
+      "name": "Лайки - Экстра",
+      "rate": 1973.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.157,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2i5j00fdss7ydiyy9gcm",
+      "name": "Подписчики - VIP",
+      "rate": 51.11,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.077,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hh20095ss7y52hqo4x6",
+      "name": "Подписчики - Максимальный",
+      "rate": 52.73,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.079,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2h6q006jss7yndny6hfr",
+      "name": "Подписчики - Экстра",
+      "rate": 76.1,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.114,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmte5d2qu000xl0hlts40fh4e",
+      "name": "TikTok Подписчики [Быстрый старт] [Гарантия 30 дней ♻️]",
+      "rate": 158.32,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 21.373,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmte5d2r1000zl0hl0sdiki78",
+      "name": "TikTok Подписчики [Премиум] [Гарантия 90 дней ♻️]",
+      "rate": 254.82,
+      "currency": "USD",
+      "markup": 1.5,
+      "pricePerUnitRub": 34.401,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h6c006fss7yre78wv4u",
+      "name": "Подписчики - Стандарт",
+      "rate": 1583.18,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.533,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2iag00gnss7y118q8h1n",
+      "name": "Подписчики - Оптимальный",
+      "rate": 2119.44,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.391,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gnm001vss7ytqo4j65t",
+      "name": "Подписчики - Усиленный",
+      "rate": 2387,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.819,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2i5300f9ss7ycj7xwu71",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 2400,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.84,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i5b00fbss7y62f29je6",
+      "name": "Подписчики - Премиум",
+      "rate": 2548.21,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 4.077,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h6j006hss7ywlmbwsus",
+      "name": "Подписчики - Живые",
+      "rate": 3158.51,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.054,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gj6000rss7ya2hrmv23",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 3225.06,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.16,
+      "provider": "likedrom"
+    },
+    {
+      "id": "cmtcr2gml001lss7y3u27ax9h",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 4440,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.104,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2h7j006rss7y422kfwem",
+      "name": "Подписчики - Элит",
+      "rate": 4874.93,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.8,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmte5d2s40011l0hlaqq8aidh",
+      "name": "TikTok Просмотры видео [Мгновенный старт] [Рекомендации]",
+      "rate": 6.71,
+      "currency": "USD",
+      "markup": 2,
+      "pricePerUnitRub": 1.208,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2iea00hnss7yqfy7nmrr",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 43.17,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.069,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gn9001rss7y53hrzz3t",
+      "name": "Просмотры - Стандарт",
+      "rate": 67.06,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.107,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2gn2001pss7yzd6ff9ou",
+      "name": "Просмотры - Оптимальный",
+      "rate": 127.27,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.204,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2gnf001tss7yqxqxslba",
+      "name": "Просмотры - Усиленный",
+      "rate": 127.31,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.204,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2gpc002bss7y25cxnnci",
+      "name": "Просмотры - Живые",
+      "rate": 164.59,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.263,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hax007lss7ytmwfd594",
+      "name": "Просмотры - Премиум",
+      "rate": 171.6,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.275,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2gyr004hss7yb582451a",
+      "name": "Просмотры - С гарантией 30 дней",
+      "rate": 180,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.288,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hkc009zss7ypihu8dtj",
+      "name": "Просмотры - С гарантией 90 дней",
+      "rate": 225,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.36,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hxo00ddss7ynbvvg03f",
+      "name": "Просмотры - Элит",
+      "rate": 303.24,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.485,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmte5d2sh0013l0hld4s6evca",
+      "name": "TikTok Лайки на видео [❤️] [Быстрый старт]",
+      "rate": 121.77,
+      "currency": "USD",
+      "markup": 1.6,
+      "pricePerUnitRub": 17.535,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hjb009pss7y54t2w99q",
+      "name": "Лайки - Позитивные",
+      "rate": 1194,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.91,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gjd000tss7yg3qfsfo5",
+      "name": "Лайки - Стандарт",
+      "rate": 1217.7,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.948,
+      "provider": "likedrom"
+    },
+    {
+      "id": "cmtcr2h7q006tss7yym05v37r",
+      "name": "Лайки - Быстрый старт",
+      "rate": 1250,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2gmu001nss7yuu40fhuz",
+      "name": "Лайки - Оптимальный",
+      "rate": 1289.44,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.063,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2i8g00g3ss7yxd1ntnlz",
+      "name": "Подписчики - Стандарт",
+      "rate": 280.17,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.448,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2ho400axss7yclpfqevf",
+      "name": "Подписчики - Оптимальный",
+      "rate": 283.8,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.454,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2h2s005jss7y9bp25b5k",
+      "name": "Подписчики - Усиленный",
+      "rate": 501.6,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.803,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gqu002pss7y8o68tylh",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 893.48,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.43,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h510063ss7ysmazpt7j",
+      "name": "Подписчики - Премиум",
+      "rate": 1841.81,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.947,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2guo003fss7ymheilewf",
+      "name": "Подписчики - Живые",
+      "rate": 2045.59,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.273,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h0v0051ss7ynq6nxpku",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 2045.59,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.273,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h1d0055ss7ygggerq10",
+      "name": "Подписчики - Элит",
+      "rate": 3330.94,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.33,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h120053ss7ynboptxpi",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 3330.94,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.33,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2ifd00hxss7yxhke8myd",
+      "name": "Зрители - Стандарт",
+      "rate": 413.25,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.661,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hpg00b9ss7yfh54cetq",
+      "name": "Зрители - Быстрый старт",
+      "rate": 561,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.898,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hpn00bbss7yuqt8hwdz",
+      "name": "Зрители - Оптимальный",
+      "rate": 1115.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.785,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hpv00bdss7ykoxuo8sc",
+      "name": "Зрители - Усиленный",
+      "rate": 1346.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.154,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hq200bfss7yv9ojmizq",
+      "name": "Зрители - Живые",
+      "rate": 1980,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.168,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hq900bhss7y3nwmsatu",
+      "name": "Зрители - Премиум",
+      "rate": 3920.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.273,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2ia300gjss7yy29lptnx",
+      "name": "Подписчики - Стандарт",
+      "rate": 8.68,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.014,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i6r00fnss7y7aifuoax",
+      "name": "Подписчики - Оптимальный",
+      "rate": 16.12,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.026,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hbk007rss7yfbxdqen1",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 126.05,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.189,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2i7e00ftss7yvenf8dap",
+      "name": "Подписчики - Максимальный",
+      "rate": 364.36,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.547,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i7000fpss7yhqvvl59n",
+      "name": "Подписчики - Элит",
+      "rate": 364.36,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.547,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i7700frss7yfyf7bvr2",
+      "name": "Подписчики - VIP",
+      "rate": 364.36,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.547,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gtj0037ss7yf3fvc7tz",
+      "name": "Подписчики - Экстра",
+      "rate": 371.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.557,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gyz004jss7y77nac5e5",
+      "name": "Подписчики - Усиленный",
+      "rate": 1113.75,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.782,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gtt0039ss7yfkpjicwf",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 1262.25,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.02,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h0e004xss7y4heevvdu",
+      "name": "Подписчики - Премиум",
+      "rate": 1336.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.138,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hai007hss7y9h7as0iq",
+      "name": "Подписчики - Живые",
+      "rate": 2173.74,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.478,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2i6k00flss7yp3b9s0gt",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 4729.09,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.567,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hws00d5ss7y3n2746n5",
+      "name": "Подписчики - Стандарт",
+      "rate": 197.01,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.315,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2h5y006bss7ydc3oxhfh",
+      "name": "Подписчики - Оптимальный",
+      "rate": 219.45,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.351,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hum00clss7y6n7biwib",
+      "name": "Подписчики - Усиленный",
+      "rate": 257.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.412,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2huf00cjss7y8e2avx3l",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 351.96,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.563,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2gv2003jss7yu97t6d0m",
+      "name": "Подписчики - Премиум",
+      "rate": 658.35,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.053,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gw0003rss7y46sw9gfm",
+      "name": "Подписчики - Живые",
+      "rate": 768.08,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.229,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hwb00d1ss7y4sz9r6rp",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 787.38,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.26,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2i0j00e3ss7ynnzgvhgv",
+      "name": "Подписчики - Эконом",
+      "rate": 810,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.296,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hnx00avss7yv383ntr4",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 1642.03,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.627,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2h4b005xss7ypp6aszgq",
+      "name": "Подписчики - Элит",
+      "rate": 1928.03,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.085,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hwj00d3ss7y2l5z384b",
+      "name": "Подписчики - VIP",
+      "rate": 2386.05,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.818,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2glh001bss7yz4m4wj5k",
+      "name": "Подписчики - Максимальный",
+      "rate": 2400,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.84,
+      "provider": "partner.soc"
+    },
+    {
+      "id": "cmtcr2glo001dss7ye7fy0ozq",
+      "name": "Подписчики - Экстра",
+      "rate": 4125,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.6,
+      "provider": "prm4u"
+    },
+    {
+      "id": "cmtcr2hvf00ctss7y41xc8qxg",
+      "name": "Лайки - Позитивные",
+      "rate": 245.1,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.392,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hv800crss7y4e9mhiea",
+      "name": "Лайки - Премиум",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hv000cpss7yq3qjls16",
+      "name": "Лайки - Быстрый старт",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hut00cnss7y8cjp47w2",
+      "name": "Лайки - Живые",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hw100czss7yxlmkaci5",
+      "name": "Лайки - Усиленный",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hvu00cxss7yerdbgbf1",
+      "name": "Лайки - Оптимальный",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hvm00cvss7yq4cliwbt",
+      "name": "Лайки - Стандарт",
+      "rate": 268.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.43,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hoy00b5ss7yr33clul7",
+      "name": "Подписчики - Живые",
+      "rate": 91.87,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.138,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hoc00azss7ymdcwe9ab",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 268.8,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.403,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hc0007vss7ya72rmfno",
+      "name": "Подписчики - Эконом",
+      "rate": 3840.8,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.145,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2hoj00b1ss7y0z7486ro",
+      "name": "Подписчики - Стандарт",
+      "rate": 4593.6,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.35,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hoq00b3ss7yaqpjd1om",
+      "name": "Лайки - Позитивные",
+      "rate": 165,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.264,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hbc007pss7yusllzxns",
+      "name": "Просмотры - Стандарт",
+      "rate": 1416.69,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.267,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2ide00hfss7yh7zc46ix",
+      "name": "Просмотры - Оптимальный",
+      "rate": 1446.11,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.314,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hp500b7ss7yzyezhsxa",
+      "name": "Просмотры - Усиленный",
+      "rate": 1584,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.534,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2idl00hhss7yeb5oc6yh",
+      "name": "Репосты - Стандарт",
+      "rate": 2307.89,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.693,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gx90043ss7y9t04g4js",
+      "name": "Просмотры - Экстра",
+      "rate": 56.82,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.085,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hgl0091ss7ywoxx1l3s",
+      "name": "Просмотры - Стандарт",
+      "rate": 257.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.412,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gkq0015ss7yo48eb6na",
+      "name": "Просмотры - Оптимальный",
+      "rate": 360,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.576,
+      "provider": "partner.soc"
+    },
+    {
+      "id": "cmtcr2hgt0093ss7ybwxyi7vj",
+      "name": "Просмотры - Усиленный",
+      "rate": 455.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.729,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gri002vss7y4qqug8eh",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 752.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.204,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gwv003zss7ykgfvh9gm",
+      "name": "Просмотры - Премиум",
+      "rate": 979.69,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.568,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2i7u00fxss7ycb4tvg3x",
+      "name": "Просмотры - Живые",
+      "rate": 1148.11,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.837,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i7m00fvss7yyexlfu2h",
+      "name": "Просмотры - С гарантией 30 дней",
+      "rate": 1187.7,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.9,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hgf008zss7yiuz3b9jd",
+      "name": "Просмотры - С гарантией 90 дней",
+      "rate": 1673.1,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.677,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2gx30041ss7y8f330ip3",
+      "name": "Просмотры - Элит",
+      "rate": 1912.35,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.06,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gwo003xss7yi8nwnhux",
+      "name": "Просмотры - VIP",
+      "rate": 2578.54,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 4.126,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gxj0045ss7yk943941v",
+      "name": "Просмотры - Максимальный",
+      "rate": 3746.33,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.994,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hsp00c3ss7yg4fi6jmu",
+      "name": "Подписчики - С гарантией 60 дней",
+      "rate": 51.36,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.077,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hsw00c5ss7y4ojib1qn",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 67.16,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.101,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2ids00hjss7y8lsnxjb4",
+      "name": "Подписчики - Живые",
+      "rate": 110.48,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.166,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2ie000hlss7yyal0e44f",
+      "name": "Подписчики - Элит",
+      "rate": 333.92,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.501,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h3o005rss7yvcowforw",
+      "name": "Подписчики - VIP",
+      "rate": 470.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.705,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gos0025ss7yguy8hp0p",
+      "name": "Подписчики - Стандарт",
+      "rate": 1306.8,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.091,
+      "provider": "prosmm-shop"
+    },
+    {
+      "id": "cmtcr2icj00h7ss7ygqyewq3m",
+      "name": "Подписчики - Оптимальный",
+      "rate": 1657.26,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.652,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hqo00blss7y3o9xjdnt",
+      "name": "Подписчики - Усиленный",
+      "rate": 2103.2,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.365,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hx700d9ss7ypy8tb23y",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 2876.21,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 4.602,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hsi00c1ss7yyet0ec9l",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 4283.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.853,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2icq00h9ss7y4znb1elx",
+      "name": "Подписчики - Премиум",
+      "rate": 4419.36,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.071,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2id600hdss7yb4q8ro3p",
+      "name": "Просмотры - VIP",
+      "rate": 71.92,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.108,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2hti00cbss7yn1251ahn",
+      "name": "Просмотры - Максимальный",
+      "rate": 79.13,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.119,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2htp00cdss7yaa6nmah9",
+      "name": "Просмотры - Экстра",
+      "rate": 158.33,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.237,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hra00brss7y20n7lm82",
+      "name": "Просмотры - Живые",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hrx00bxss7ylz4qfimt",
+      "name": "Просмотры - Оптимальный",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hta00c9ss7yl0l0xeal",
+      "name": "Просмотры - Усиленный",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hr300bpss7yipepnw75",
+      "name": "Просмотры - Элит",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hs700bzss7yj3t5d4ju",
+      "name": "Просмотры - Стандарт",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hrh00btss7yitnx6ofd",
+      "name": "Просмотры - Премиум",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hrp00bvss7ym3sghzrt",
+      "name": "Просмотры - С гарантией 90 дней",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2hqv00bnss7ynmqsff19",
+      "name": "Просмотры - С гарантией 30 дней",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2ht300c7ss7yoexxiyb2",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 3623.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 5.797,
+      "provider": "stream_promotion"
+    },
+    {
+      "id": "cmtcr2icz00hbss7ysjek026r",
+      "name": "Реакции - Живые",
+      "rate": 4030.99,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 6.45,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2h1z005bss7yvey4twf5",
+      "name": "Подписчики - Живые",
+      "rate": 68.84,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.103,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2if600hvss7yvllfvvys",
+      "name": "Подписчики - Эконом",
+      "rate": 78,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.117,
+      "provider": "partner.soc"
+    },
+    {
+      "id": "cmtcr2h26005dss7y2ea4l9xo",
+      "name": "Подписчики - Премиум",
+      "rate": 103.26,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.155,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gwe003vss7y4b9xyq7u",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 195.94,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.294,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h2d005fss7yw0b6wfjc",
+      "name": "Подписчики - С гарантией 90 дней",
+      "rate": 206.51,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.31,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h1k0057ss7yczxr7kqd",
+      "name": "Подписчики - Усиленный",
+      "rate": 313.5,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.47,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h1s0059ss7y45oj32h1",
+      "name": "Подписчики - Позитивные",
+      "rate": 344.22,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.516,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2h2l005hss7ye2vd31xo",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 470.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.705,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2hkk00a1ss7yku863dx2",
+      "name": "Подписчики - Стандарт",
+      "rate": 2435.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.897,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hfm008rss7yqgw1vbuy",
+      "name": "Подписчики - Оптимальный",
+      "rate": 4827.9,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.725,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hfe008pss7ywlv9qvj0",
+      "name": "Просмотры - С гарантией",
+      "rate": 257.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 0.412,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hh90097ss7yx7rpeiex",
+      "name": "Просмотры - Стандарт",
+      "rate": 653.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.045,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hhk0099ss7ydr9g47xz",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 851.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.362,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hhr009bss7yshom073t",
+      "name": "Просмотры - Оптимальный",
+      "rate": 1115.4,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.785,
+      "provider": "soc_rocket"
+    },
+    {
+      "id": "cmtcr2hcf007zss7yyy4r78z5",
+      "name": "Подписчики - Оптимальный",
+      "rate": 54.34,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.082,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2hbs007tss7ybxn8fgz8",
+      "name": "Подписчики - Усиленный",
+      "rate": 54.34,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.082,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2hc8007xss7yl8z6ci60",
+      "name": "Подписчики - С гарантией",
+      "rate": 108.69,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.163,
+      "provider": "smmprime"
+    },
+    {
+      "id": "cmtcr2gpk002dss7yp8altlsf",
+      "name": "Подписчики - Премиум",
+      "rate": 129.89,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.195,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gq3002hss7yazarxsl5",
+      "name": "Подписчики - С гарантией 30 дней",
+      "rate": 195.94,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.294,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2grt002xss7yx2dl3njm",
+      "name": "Подписчики - Живые",
+      "rate": 313.5,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.47,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2gvg003nss7yxhrlrxl6",
+      "name": "Подписчики - Быстрый старт",
+      "rate": 470.25,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.705,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2i9a00gbss7y7vgz82hl",
+      "name": "Подписчики - Стандарт",
+      "rate": 4515.02,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 7.224,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gpu002fss7yyapxiv61",
+      "name": "Лайки - Позитивные",
+      "rate": 712.5,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.14,
+      "provider": "smm_panelus"
+    },
+    {
+      "id": "cmtcr2i9v00ghss7yutesfcbw",
+      "name": "Лайки - Стандарт",
+      "rate": 865.71,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 1.385,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2i9200g9ss7y5nsxrbr1",
+      "name": "Лайки - Быстрый старт",
+      "rate": 1370.71,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 2.193,
+      "provider": "Основной Поставщик (API 1)"
+    },
+    {
+      "id": "cmtcr2gfh0003ss7yzbxjklx5",
+      "name": "Просмотры - Быстрый старт",
+      "rate": 172.5,
+      "currency": "RUB",
+      "markup": 1.5,
+      "pricePerUnitRub": 0.259,
+      "provider": "boost_like"
+    },
+    {
+      "id": "cmtcr2ic900h5ss7yalai9jlu",
+      "name": "Репосты - Стандарт",
+      "rate": 2420.42,
+      "currency": "RUB",
+      "markup": 1.6,
+      "pricePerUnitRub": 3.873,
+      "provider": "Основной Поставщик (API 1)"
+    }
+  ]
+}

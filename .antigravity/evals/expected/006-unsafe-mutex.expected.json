@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "errorCode": "E005_RACE_WITHOUT_CONCURRENCY_TEST",
+  "rejectedControls": ["RACE-MUTEX-01"]
+}

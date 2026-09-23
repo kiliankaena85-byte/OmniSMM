@@ -1,0 +1,507 @@
+{
+  "timestamp": "2026-09-13T06:06:51.650Z",
+  "scope": "dashboard",
+  "filesScanned": [
+    "src/components/dashboard/classic/ClassicDashboardHome.tsx",
+    "src/lib/loyalty.ts"
+  ],
+  "durationMs": 45493,
+  "modelsUsed": {
+    "code": "cohere/north-mini-code:free",
+    "security": "nvidia/nemotron-3.5-content-safety:free",
+    "fintech": "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "architecture": "nvidia/nemotron-3-super-120b-a12b:free",
+    "ui_ux": "poolside/laguna-xs-2.1:free",
+    "reranker": "nvidia/llama-nemotron-rerank-vl-1b-v2:free"
+  },
+  "findings": [
+    {
+      "rank": 1,
+      "relevanceScore": 0.0023141263296893675,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "**ExactMath Invariant**: All money MUST be stored and computed in BigInt kopecks (cents) with Banker's Rounding (Half-Even).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "1. **ExactMath Invariant**: All money MUST be stored and computed in BigInt kopecks (cents) with Banker's Rounding (Half-Even)."
+      }
+    },
+    {
+      "rank": 2,
+      "relevanceScore": 0.0015129383618884117,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The component does not perform any money calculations; it's just display. But the data types allow `number` which violates ExactMath invariant.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component does not perform any money calculations; it's just display. But the data types allow `number` which violates ExactMath invariant."
+      }
+    },
+    {
+      "rank": 3,
+      "relevanceScore": 0.0008559006367452268,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The display uses `liveBalance` directly in JSX: `{liveBalance}`. But `liveBalance` is likely a string or number formatted? Actually, `useUserBalance` returns a formatted string? Let's check: the hook is imported from `@/hooks/use-user-balance`. Not provided, but likely returns a formatted string for display. However, the component shows `{liveBalance}` directly in a text node. If `liveBalance` is a BigInt, React will throw an error because BigInt cannot be rendered directly. But the comment says \"ExactMath Invariant: User financial attributes in integer kopecks (cents).\" The display should format it. There's a `formatBalance` imported from `@/lib/utils` used for `totalSpentKopecks` in the loyalty card: `{formatBalance(totalSpentKopecks)}`. But for `liveBalance`, they don't use `formatBalance`. They just output `{liveBalance}`. That could be a bug if `liveBalance` is BigInt. However, `useUserBalance` might return a formatted string. Need to check the hook, but not provided. Could be an issue.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The display uses `liveBalance` directly in JSX: `{liveBalance}`. But `liveBalance` is likely a string or number formatted? Actually, `useUserBalance` returns a formatted string? Let's check: the hook is imported from `@/hooks/use-user-balance`. Not provided, but likely returns a formatted string for display. However, the component shows `{liveBalance}` directly in a text node. If `liveBalance` is a BigInt, React will throw an error because BigInt cannot be rendered directly. But the comment says \"ExactMath Invariant: User financial attributes in integer kopecks (cents).\" The display should format it. There's a `formatBalance` imported from `@/lib/utils` used for `totalSpentKopecks` in the loyalty card: `{formatBalance(totalSpentKopecks)}`. But for `liveBalance`, they don't use `formatBalance`. They just output `{liveBalance}`. That could be a bug if `liveBalance` is BigInt. However, `useUserBalance` might return a formatted string. Need to check the hook, but not provided. Could be an issue."
+      }
+    },
+    {
+      "rank": 4,
+      "relevanceScore": 0.0007702931971871535,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The component uses `user.balanceCents` which is `bigint | number`. Converting with `BigInt(user.balanceCents)` could lose precision if it's a large number? Actually, `BigInt(number)` works for integers up to 2^53-1. Kopecks could exceed that? Possibly, but unlikely for user balances. Still, using `number` for money is a violation of ExactMath invariant. The interface allows `number` for `balanceCents`, `totalSpent`, `referralBalance`. That's a violation: money should be BigInt only. The comment says \"Kopecks serialized across Server/Client boundary\" - serialization might convert to number, but that's dangerous. Should use string or BigInt serialization.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component uses `user.balanceCents` which is `bigint | number`. Converting with `BigInt(user.balanceCents)` could lose precision if it's a large number? Actually, `BigInt(number)` works for integers up to 2^53-1. Kopecks could exceed that? Possibly, but unlikely for user balances. Still, using `number` for money is a violation of ExactMath invariant. The interface allows `number` for `balanceCents`, `totalSpent`, `referralBalance`. That's a violation: money should be BigInt only. The comment says \"Kopecks serialized across Server/Client boundary\" - serialization might convert to number, but that's dangerous. Should use string or BigInt serialization."
+      }
+    },
+    {
+      "rank": 5,
+      "relevanceScore": 0.00043733440351828275,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "**Ledger-First Invariant**: `tx.ledgerEntry.create()` MUST precede `tx.user.update(balance)`.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "2. **Ledger-First Invariant**: `tx.ledgerEntry.create()` MUST precede `tx.user.update(balance)`."
+      }
+    },
+    {
+      "rank": 6,
+      "relevanceScore": 0.00040606395082589986,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "Without the hook code, we cannot be sure. But note: the invariant says \"All money handling uses BigInt kopecks representation\".",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- Without the hook code, we cannot be sure. But note: the invariant says \"All money handling uses BigInt kopecks representation\"."
+      }
+    },
+    {
+      "rank": 7,
+      "relevanceScore": 0.0003785036562443653,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "**IdempotencyKey required on every balance adjustment**.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "5. **IdempotencyKey required on every balance adjustment**."
+      }
+    },
+    {
+      "rank": 8,
+      "relevanceScore": 0.00035281326846124477,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "In the component, `rawBalance` is computed as `user.balance ?? (user.balanceCents !== undefined ? BigInt(user.balanceCents) : BigInt(0))`. This converts to BigInt.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- In the component, `rawBalance` is computed as `user.balance ?? (user.balanceCents !== undefined ? BigInt(user.balanceCents) : BigInt(0))`. This converts to BigInt."
+      }
+    },
+    {
+      "rank": 9,
+      "relevanceScore": 0.00034196205732869996,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The `remainingToNextTierRub` calculation: `Number((remainingKopecks + BigInt(99)) / BigInt(100))`. This does ceiling division to get rubles. Uses BigInt arithmetic, good.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `remainingToNextTierRub` calculation: `Number((remainingKopecks + BigInt(99)) / BigInt(100))`. This does ceiling division to get rubles. Uses BigInt arithmetic, good."
+      }
+    },
+    {
+      "rank": 10,
+      "relevanceScore": 0.00033274128340681067,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "We don't know the type of `liveBalance` (from `useUserBalance`). If it's a bigint, then displaying it directly might not work as expected in React (because bigint is not a string or number).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- We don't know the type of `liveBalance` (from `useUserBalance`). If it's a bigint, then displaying it directly might not work as expected in React (because bigint is not a string or number)."
+      }
+    },
+    {
+      "rank": 11,
+      "relevanceScore": 0.00033015272509780104,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`liveBalance` comes from `useUserBalance(rawBalance)` hook.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- `liveBalance` comes from `useUserBalance(rawBalance)` hook."
+      }
+    },
+    {
+      "rank": 12,
+      "relevanceScore": 0.00033015272509780104,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`balance` is `bigint`, `balanceCents` is `bigint | number`, `totalSpent` is `bigint | number`, `referralBalance` is `bigint | number`.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- `balance` is `bigint`, `balanceCents` is `bigint | number`, `totalSpent` is `bigint | number`, `referralBalance` is `bigint | number`."
+      }
+    },
+    {
+      "rank": 13,
+      "relevanceScore": 0.0003225072119868323,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "**Transaction Escape**: Prohibition of global `db.*` calls inside interactive `tx: PrismaTx` blocks.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "3. **Transaction Escape**: Prohibition of global `db.*` calls inside interactive `tx: PrismaTx` blocks."
+      }
+    },
+    {
+      "rank": 14,
+      "relevanceScore": 0.00031999824407395836,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`src/components/dashboard/classic/ClassicDashboardHome.tsx`",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "1. `src/components/dashboard/classic/ClassicDashboardHome.tsx`"
+      }
+    },
+    {
+      "rank": 15,
+      "relevanceScore": 0.0003175087886569813,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`charge` in order is `bigint | number`. Same issue.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- `charge` in order is `bigint | number`. Same issue."
+      }
+    },
+    {
+      "rank": 16,
+      "relevanceScore": 0.0003175087886569813,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The thresholds are defined as `BigInt(500000)` and `BigInt(2500000)` (kopecks). Good.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The thresholds are defined as `BigInt(500000)` and `BigInt(2500000)` (kopecks). Good."
+      }
+    },
+    {
+      "rank": 17,
+      "relevanceScore": 0.0003125878098696676,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "This is converting `balanceCents` (which can be number or bigint) to bigint. This is safe because we are using BigInt for money.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- This is converting `balanceCents` (which can be number or bigint) to bigint. This is safe because we are using BigInt for money."
+      }
+    },
+    {
+      "rank": 18,
+      "relevanceScore": 0.0003053489321118595,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The component also uses `formatBalance(totalSpentKopecks)` (from '@/lib/utils') for the total spent. We don't have the `formatBalance` function, but we assume it converts bigint kopecks to a ruble string.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component also uses `formatBalance(totalSpentKopecks)` (from '@/lib/utils') for the total spent. We don't have the `formatBalance` function, but we assume it converts bigint kopecks to a ruble string."
+      }
+    },
+    {
+      "rank": 19,
+      "relevanceScore": 0.0003053489321118595,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The `formatBalance` function is used for `totalSpentKopecks` but not for `liveBalance`. That's inconsistent.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `formatBalance` function is used for `totalSpentKopecks` but not for `liveBalance`. That's inconsistent."
+      }
+    },
+    {
+      "rank": 20,
+      "relevanceScore": 0.00028910325640811867,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`src/lib/loyalty.ts`",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "2. `src/lib/loyalty.ts`"
+      }
+    },
+    {
+      "rank": 21,
+      "relevanceScore": 0.0002758679066337912,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "API contract stability and backward compatibility.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "3. API contract stability and backward compatibility."
+      }
+    },
+    {
+      "rank": 22,
+      "relevanceScore": 0.00026947915555885544,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "Strict Multi-Tenant isolation: cache keys MUST include tenantId, hostnames must not be hardcoded.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "1. Strict Multi-Tenant isolation: cache keys MUST include tenantId, hostnames must not be hardcoded."
+      }
+    },
+    {
+      "rank": 23,
+      "relevanceScore": 0.0002653023768982879,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "We don't see any external provider HTTP calls in this component. It's a UI component that displays data and has some event handlers (like copying referral code).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- We don't see any external provider HTTP calls in this component. It's a UI component that displays data and has some event handlers (like copying referral code)."
+      }
+    },
+    {
+      "rank": 24,
+      "relevanceScore": 0.0002653023768982879,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The use of `useUserBalance` hook abstracts the balance fetching, which is good.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The use of `useUserBalance` hook abstracts the balance fetching, which is good."
+      }
+    },
+    {
+      "rank": 25,
+      "relevanceScore": 0.00026323832090326084,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "**Drip-Feed Floor Invariant**: `Math.floor(quantity / runs) >= service.minQty`.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "4. **Drip-Feed Floor Invariant**: `Math.floor(quantity / runs) >= service.minQty`."
+      }
+    },
+    {
+      "rank": 26,
+      "relevanceScore": 0.0002571419797957771,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The component is mixing UI with some business logic (like calculating `totalSpentKopecks` and calling `getLoyaltyInfo`).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component is mixing UI with some business logic (like calculating `totalSpentKopecks` and calling `getLoyaltyInfo`)."
+      }
+    },
+    {
+      "rank": 27,
+      "relevanceScore": 0.00024156629828672453,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The API contract (the props) seems stable. However, note that the `user` prop has optional fields (like `balance`, `balanceCents`, etc.).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The API contract (the props) seems stable. However, note that the `user` prop has optional fields (like `balance`, `balanceCents`, etc.)."
+      }
+    },
+    {
+      "rank": 28,
+      "relevanceScore": 0.00023597174148291185,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`charge` in order is `bigint | number`.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- `charge` in order is `bigint | number`."
+      }
+    },
+    {
+      "rank": 29,
+      "relevanceScore": 0.00023231418862275664,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "`totalSpentKopecks` is computed similarly.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- `totalSpentKopecks` is computed similarly."
+      }
+    },
+    {
+      "rank": 30,
+      "relevanceScore": 0.00022516824185623812,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The component defines interfaces `ClassicDashboardUser` and `ClassicDashboardOrder` with comments about BigInt kopecks.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component defines interfaces `ClassicDashboardUser` and `ClassicDashboardOrder` with comments about BigInt kopecks."
+      }
+    },
+    {
+      "rank": 31,
+      "relevanceScore": 0.0002148592528014818,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "Since we don't see any HTTP calls in this file, we cannot flag it for resilience issues in this specific file.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- Since we don't see any HTTP calls in this file, we cannot flag it for resilience issues in this specific file."
+      }
+    },
+    {
+      "rank": 32,
+      "relevanceScore": 0.0002115288734611408,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The function uses `halfEvenPercent` which implements Banker's Rounding (Half-Even) using BigInt arithmetic. That's good. It scales by 1000, checks remainder, etc. However, the function returns a `number` (percentage). That's fine for display.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The function uses `halfEvenPercent` which implements Banker's Rounding (Half-Even) using BigInt arithmetic. That's good. It scales by 1000, checks remainder, etc. However, the function returns a `number` (percentage). That's fine for display."
+      }
+    },
+    {
+      "rank": 33,
+      "relevanceScore": 0.0002115288734611408,
+      "finding": {
+        "domain": "FINTECH",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "severity": "MEDIUM",
+        "issue": "The `progressPercent` uses `halfEvenPercent` which returns number. Good.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `progressPercent` uses `halfEvenPercent` which returns number. Good."
+      }
+    },
+    {
+      "rank": 34,
+      "relevanceScore": 0.00020825010519232145,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The `PaymentAutoSync` component is conditionally rendered, but we don't have its code. However, the invariant requires that external provider HTTP calls must have timeout and circuit breaker.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `PaymentAutoSync` component is conditionally rendered, but we don't have its code. However, the invariant requires that external provider HTTP calls must have timeout and circuit breaker."
+      }
+    },
+    {
+      "rank": 35,
+      "relevanceScore": 0.0001941131867789626,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The `origin` is likely the base URL of the current tenant (if multi-tenant by subdomain or path). However, we don't see any validation or usage of tenantId in the component.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `origin` is likely the base URL of the current tenant (if multi-tenant by subdomain or path). However, we don't see any validation or usage of tenantId in the component."
+      }
+    },
+    {
+      "rank": 36,
+      "relevanceScore": 0.00019260287692100857,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The interfaces `ClassicDashboardUser` and `ClassicDashboardOrder` are defined in the same file.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The interfaces `ClassicDashboardUser` and `ClassicDashboardOrder` are defined in the same file."
+      }
+    },
+    {
+      "rank": 37,
+      "relevanceScore": 0.00018235460794662427,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The component does not directly access storage or make HTTP calls (it relies on props and hooks).",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The component does not directly access storage or make HTTP calls (it relies on props and hooks)."
+      }
+    },
+    {
+      "rank": 38,
+      "relevanceScore": 0.00018235460794662427,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "Clean separation of concerns between DTOs, domain models, and storage layers.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "4. Clean separation of concerns between DTOs, domain models, and storage layers."
+      }
+    },
+    {
+      "rank": 39,
+      "relevanceScore": 0.00017813112047189374,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "We don't see any explicit tenantId in the component. However, note that the component receives a `user` prop of type `ClassicDashboardUser`.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- We don't see any explicit tenantId in the component. However, note that the component receives a `user` prop of type `ClassicDashboardUser`."
+      }
+    },
+    {
+      "rank": 40,
+      "relevanceScore": 0.00015476661605996511,
+      "finding": {
+        "domain": "ARCHITECTURE",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "severity": "MEDIUM",
+        "issue": "The `user` object does not have a `tenantId` field. Instead, it has `id`, `email`, etc.",
+        "recommendation": "Verify against platform safety contract.",
+        "rawSnippet": "- The `user` object does not have a `tenantId` field. Instead, it has `id`, `email`, etc."
+      }
+    }
+  ],
+  "summary": {
+    "totalFindings": 40,
+    "criticalBlockers": 0,
+    "highSeverity": 0,
+    "mediumSeverity": 40,
+    "lowSeverity": 0,
+    "verdict": "APPROVED_FOR_PROD"
+  }
+}

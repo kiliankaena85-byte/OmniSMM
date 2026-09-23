@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+/* ==========================================================================
+   RESET & ISOLATION BASE
+   ========================================================================== */
+.smmplan-scope,
+.smmflux-scope {
+  box-sizing: border-box;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.smmplan-scope *,
+.smmplan-scope *::before,
+.smmplan-scope *::after,
+.smmflux-scope *,
+.smmflux-scope *::before,
+.smmflux-scope *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   SMMPLAN THEME SCOPE (SaaS Terminal Professional)
+   ========================================================================== */
+.smmplan-scope {
+  --plan-bg: #e9edf2;
+  --plan-card: #ffffff;
+  --plan-ink: #0e131a;
+  --plan-ink-secondary: #414a59;
+  --plan-ink-muted: #8b94a3;
+  --plan-line: #e2e8f0;
+  --plan-line-strong: #d3dce8;
+  --plan-accent: #1f9bf0;
+  --plan-accent-hover: #0b7fd4;
+  --plan-accent-soft: #e7f2fe;
+  
+  --plan-ok: #1f9d6b;
+  --plan-ok-bg: #e6f7f0;
+  --plan-warn: #df8a1c;
+  --plan-warn-bg: #fdf5e8;
+  --plan-danger: #d6453d;
+  --plan-danger-bg: #fdeeeed;
+
+  --plan-font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --plan-font-body: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --plan-font-mono: 'JetBrains Mono', monospace;
+
+  --plan-shadow-card: 0 16px 40px rgba(23, 43, 77, 0.07);
+  --plan-shadow-sm: 0 4px 12px rgba(23, 43, 77, 0.04);
+  
+  background-color: var(--plan-bg);
+  color: var(--plan-ink);
+  font-family: var(--plan-font-body);
+  line-height: 1.5;
+  min-height: 100%;
+}
+
+.smmplan-scope .font-heading {
+  font-family: var(--plan-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.smmplan-scope .font-mono-data {
+  font-family: var(--plan-font-mono);
+  font-feature-settings: 'zero' 1, 'tnum' 1;
+}
+
+/* Plan Ticker */
+@keyframes plan-ticker-anim {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.smmplan-scope .ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: plan-ticker-anim 28s linear infinite;
+  will-change: transform;
+}
+
+.smmplan-scope .ticker-track:hover {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   SMMFLUX THEME SCOPE (Aurora Consumer App)
+   ========================================================================== */
+.smmflux-scope {
+  --flux-bg: #ffffff;
+  --flux-panel: #f6f5fb;
+  --flux-ink: #100d18;
+  --flux-ink-secondary: #423f54;
+  --flux-ink-muted: #79748c;
+  --flux-line: #ece9f5;
+  
+  --flux-accent: #e0218a;
+  --flux-accent-hover: #c41876;
+  --flux-purple: #7c3aed;
+  --flux-teal: #06b6a4;
+  --flux-dark: #14121d;
+
+  --flux-aurora-gradient: radial-gradient(120% 130% at 12% 0%, #3b82f6 0%, #7c3aed 38%, #d6249f 66%, #f59e6b 100%);
+  
+  --flux-font-heading: 'Bricolage Grotesque', sans-serif;
+  --flux-font-body: 'Plus Jakarta Sans', sans-serif;
+
+  --flux-shadow-aurora: 0 20px 46px rgba(124, 58, 237, 0.30);
+  --flux-shadow-card: 0 12px 32px rgba(16, 13, 24, 0.06);
+
+  background-color: var(--flux-bg);
+  color: var(--flux-ink);
+  font-family: var(--flux-font-body);
+  line-height: 1.5;
+  min-height: 100%;
+}
+
+.smmflux-scope .font-heading {
+  font-family: var(--flux-font-heading);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Aurora Blob Float Animation */
+@keyframes flux-blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -14px) scale(1.08); }
+}
+
+.smmflux-scope .aurora-blob-1 {
+  animation: flux-blob-float 8s ease-in-out infinite;
+}
+
+.smmflux-scope .aurora-blob-2 {
+  animation: flux-blob-float 10s ease-in-out infinite reverse;
+}
+
+/* Marker Highlight Badge */
+.smmflux-scope .marker-highlight {
+  display: inline-block;
+  background-color: var(--flux-dark);
+  color: #ffffff;
+  padding: 0.15em 0.5em;
+  border-radius: 8px;
+  transform: rotate(-1.2deg);
+  box-shadow: 0 4px 12px rgba(20, 18, 29, 0.15);
+}
+
+/* ==========================================================================
+   COMMON ACCESSIBILITY & UTILITIES
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .smmplan-scope .ticker-track,
+  .smmflux-scope .aurora-blob-1,
+  .smmflux-scope .aurora-blob-2 {
+    animation: none !important;
+  }
+}
+
+/* Scrollbar refinement */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 148, 163, 0.3);
+  border-radius: 99px;
+}
+.smmflux-scope .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(121, 116, 140, 0.3);
+}

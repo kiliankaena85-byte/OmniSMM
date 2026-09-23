@@ -1,0 +1,18 @@
+{
+  "files": {
+    "src/utils/target-type.ts": {
+      "sha256": "ac8b1780caadad5fc578cf6494f85b08c57500e803b9e68c1ab959593c63e9ef",
+      "status": "AUDITED",
+      "updatedAt": "2026-07-04T12:57:56.549Z",
+      "auditor": "GLM-5.2",
+      "reportFile": "auditor-review-report.md"
+    },
+    "src/actions/order/checkout.ts": {
+      "sha256": "cfda4b88203f6b878fe4db3f867b1ca37e099acfb6e34dffc1ab185e9d766f46",
+      "status": "AUDITED",
+      "updatedAt": "2026-07-04T13:09:59.000Z",
+      "auditor": "GLM-5.2",
+      "reportFile": "auditor-review-report.md"
+    }
+  }
+}

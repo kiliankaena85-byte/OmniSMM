@@ -1,0 +1,26 @@
+{
+  "project_name": "Smmplan Stage 4 Hardening",
+  "version": "v1.0.0-stage4",
+  "tech_stack": {
+    "framework": "Next.js 16.0.10",
+    "ui": "React 19.0.0",
+    "styling": "Tailwind CSS 4.0.0",
+    "components": "HeroUI v3",
+    "orm": "Prisma 5.20.0",
+    "database": "PostgreSQL 15-alpine",
+    "cache_queue": "Redis 7-alpine, BullMQ 5.76.1",
+    "telegram_bot": "Telegraf 4.16.3",
+    "testing": "Vitest 4, Playwright 1.60.0"
+  },
+  "compliance_targets": {
+    "152-FZ": "Applicable (processed: email, name, Telegram IDs)",
+    "54-FZ": "Applicable (checkout payment integration with YooKassa/RoboKassa)",
+    "GDPR": "Applicable if EU users register",
+    "PCI-DSS": "Not directly applicable (handled by payment gateways YooKassa/RoboKassa)"
+  },
+  "rag_context": {
+    "adr_summary": "Auto-pricing CBR integrated, double-check balance ledger verifier configured, legal disclaimer based on Best Effort model implemented.",
+    "known_issues": "Risk of price discrepancy between CB rate and retail margin, handled by Quarantine and safety floor limits.",
+    "cve_status": "No active high/critical CVEs reported in local workspace dependencies."
+  }
+}

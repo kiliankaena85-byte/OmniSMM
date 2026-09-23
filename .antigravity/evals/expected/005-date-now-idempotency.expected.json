@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "errorCode": "E011_UNSTABLE_IDEMPOTENCY_KEY",
+  "rejectedControls": ["SEC-IDEM-01"]
+}

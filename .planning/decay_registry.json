@@ -1,0 +1,67 @@
+{
+  "decays": [
+    {
+      "title": "Старая ставка НДС 20%",
+      "deprecatedNorm": "Ставка НДС 20% (ст. 164 НК РФ в ред. до 2026 года)",
+      "activeReplacement": "Базовая ставка НДС 22% (Федеральный закон № 425-ФЗ от 2026 г.)",
+      "decayFactor": 1,
+      "reason": "Законодательное повышение базовой ставки НДС с 01.01.2026.",
+      "tags": [
+        "tax",
+        "vat",
+        "425-fz"
+      ]
+    },
+    {
+      "title": "Порог освобождения УСН 60 млн ₽",
+      "deprecatedNorm": "Освобождение от уплаты НДС на УСН при доходах до 60 000 000 ₽",
+      "activeReplacement": "Порог снижен до 20 000 000 ₽ (ФЗ № 176-ФЗ / 425-ФЗ)",
+      "decayFactor": 1,
+      "reason": "Налоговая реформа 2026 года: снижение порога освобождения от НДС на упрощенке.",
+      "tags": [
+        "tax",
+        "usn",
+        "176-fz"
+      ]
+    },
+    {
+      "title": "Презюмируемый невозврат аванса в IT-услугах",
+      "deprecatedNorm": "Условие Оферты «Авансовый платеж удерживается в полном объеме как штраф»",
+      "activeReplacement": "Только компенсация Фактически Понесенных Расходов (ст. 32 ЗОЗПП)",
+      "decayFactor": 0.95,
+      "reason": "Устойчивая практика Судебной коллегии по гражданским делам ВС РФ 2024-2026 гг.",
+      "tags": [
+        "zozpp",
+        "refund",
+        "court-practice"
+      ]
+    },
+    {
+      "title": "Deprecated Gemini Models (gemini-2.5-pro, gemini-1.5-pro, gemini-1.5-flash)",
+      "deprecatedNorm": "gemini-2.5-pro, gemini-1.5-pro, gemini-1.5-flash",
+      "activeReplacement": "gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3-flash-preview, gemini-2.5-flash",
+      "decayFactor": 1,
+      "reason": "Google Generative Language API returned 404 for gemini-2.5-pro. Live probe validated gemini-3.6-flash (2.6s), gemini-3.5-flash (4.2s), and gemini-3.5-flash-lite (726ms) as the active production models in August 2026.",
+      "tags": [
+        "gemini",
+        "models",
+        "temporal_decay",
+        "ai_models_2026"
+      ]
+    },
+    {
+      "title": "Устаревший SOAP/XML метод Robokassa OpStateExt",
+      "deprecatedNorm": "Использование GET/POST Service.asmx/OpStateExt с MD5(MerchantLogin:InvoiceID:Password2) и XML парсингом",
+      "activeReplacement": "REST Partner API POST /api/Operation/GetOperations с Basic Auth партнера и JSON телом (roboxPartnerId, startDate, endDate, invoiceId)",
+      "decayFactor": 1,
+      "reason": "Официальный отказ Robokassa от SOAP в пользу REST API. Использование OpStateExt приводит к ошибкам подписи и сбоям.",
+      "tags": [
+        "robokassa",
+        "deprecated",
+        "opstate_ext",
+        "soap",
+        "xml"
+      ]
+    }
+  ]
+}

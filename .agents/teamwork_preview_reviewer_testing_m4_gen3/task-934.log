@@ -1,0 +1,17 @@
+◇ injected env (9) from .env.test // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+Running 9 tests using 1 worker
+
+◇ injected env (0) from .env.test // tip: ◈ secrets for agents [www.dotenvx.com]
+  ok 1 [setup] › e2e\auth.setup.ts:11:6 › authenticate (362ms)
+◇ injected env (0) from .env.test // tip: ⌘ suppress logs { quiet: true }
+  ok 2 [chromium] › e2e\user-flow.spec.ts:348:9 › Milestone 4: Playwright E2E User Flow Tests › Magic Link authentication › should request magic link, create AuthToken in DB, and verify successfully via callback (4.4s)
+  ok 3 [chromium] › e2e\user-flow.spec.ts:480:7 › Milestone 4: Playwright E2E User Flow Tests › should display unit prices (₽ / шт) instead of per 1000 units and exclude bulk package labels (6.9s)
+  ok 4 [chromium] › e2e\user-flow.spec.ts:527:7 › Milestone 4: Playwright E2E User Flow Tests › should enforce link targetType validations (CHANNEL vs POST) and show validation errors (8.3s)
+  ok 5 [chromium] › e2e\user-flow.spec.ts:595:7 › Milestone 4: Playwright E2E User Flow Tests › should enforce link targetType validations (STORY vs CUSTOM) and show validation errors (11.6s)
+  x  6 [chromium] › e2e\user-flow.spec.ts:656:9 › Milestone 4: Playwright E2E User Flow Tests › Checkout flows › should deduct balance and create order when balance is sufficient (20.2s)
+◇ injected env (0) from .env.test // tip: ⌘ suppress logs { quiet: true }
+  ok 7 [chromium] › e2e\user-flow.spec.ts:714:9 › Milestone 4: Playwright E2E User Flow Tests › Checkout flows › should refuse checkout and redirect to payment error page when balance is insufficient (7.5s)
+  ok 8 [chromium] › e2e\user-flow.spec.ts:767:9 › Milestone 4: Playwright E2E User Flow Tests › Checkout flows › should generate PENDING payment in DB and redirect with paymentId when checking out via YooKassa (7.9s)
+  x  9 [chromium] › e2e\user-flow.spec.ts:833:9 › Milestone 4: Playwright E2E User Flow Tests › Checkout flows › should generate PENDING payment in DB and redirect with paymentId when checking out via CryptoBot (0ms)
+[Playwright Teardown] Cleaning up database test records...

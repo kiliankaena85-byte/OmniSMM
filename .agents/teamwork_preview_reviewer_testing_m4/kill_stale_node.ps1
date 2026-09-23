@@ -1,0 +1,1 @@
+Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -like "*playwright*" -or $_.CommandLine -like "*dotenv*" -or $_.CommandLine -like "*tsx*" -or $_.CommandLine -like "*workerProcessEntry*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }

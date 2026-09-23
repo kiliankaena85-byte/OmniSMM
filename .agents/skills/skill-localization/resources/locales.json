@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "supported_languages": ["ru", "en"]
+  },
+  "translations": {
+    "uncommitted_changes": {
+      "ru": "Несохраненные изменения в рабочей области",
+      "en": "Uncommitted changes in the workspace"
+    },
+    "merge_conflict": {
+      "ru": "Конфликт слияния обнаружен",
+      "en": "Merge conflict detected"
+    },
+    "secret_found": {
+      "ru": "Обнаружена утечка конфиденциальных данных (секрета)",
+      "en": "Sensitive data leak (secret) detected"
+    },
+    "build_success": {
+      "ru": "Сборка успешно завершена",
+      "en": "Build completed successfully"
+    },
+    "dry_run_started": {
+      "ru": "Запущена симуляция в безопасном режиме",
+      "en": "Safe mode simulation started"
+    },
+    "context_limit_warning": {
+      "ru": "Внимание: Превышен лимит размера системного контекста",
+      "en": "Warning: System context size limit exceeded"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+version: '3.8'
+
+# =============================================================================
+# OmniSMM 1.0 — Remote Vector Memory Node (Spec: 8GB DDR3 RAM Optimization)
+# =============================================================================
+# Данный файл оптимизирован для запуска на удаленном ПК с ограниченным объемом
+# оперативной памяти (8 ГБ DDR3). Общий лимит всех контейнеров не превышает 1.3 ГБ,
+# исключая OOM-killer и деградацию системного свопа (swap thrashing).
+# =============================================================================
+
+services:
+  # 1. Легковесный векторный движок Qdrant (Rust, низкое потребление RAM)
+  graphrag-qdrant:
+    image: qdrant/qdrant:v1.13.4
+    container_name: remote-qdrant
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6333:6333"
+      - "0.0.0.0:6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__TELEMETRY_DISABLED=true
+      - QDRANT__STORAGE__ON_DISK_PAYLOAD=true # Держит полезную нагрузку на диске, экономя DDR3 RAM
+      - QDRANT__SERVICE__MAX_REQUEST_SIZE_MB=32
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 128M
+
+  # 2. REST API шлюз семантического поиска и RAG
+  graphrag-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: remote-graphrag-api
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8100:8100"
+    environment:
+      - QDRANT_URL=http://graphrag-qdrant:6333
+      - EMBEDDING_PROVIDER=local
+      - LOCAL_MODEL_NAME=all-MiniLM-L6-v2 # Быстрая 80MB модель, потребление RAM ~150MB
+      - API_SECRET_TOKEN=${KNOWLEDGE_API_TOKEN:-smmplan_remote_memory_token_2026}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - graphrag-qdrant
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 192M
+
+  # 3. Демон инкрементальной AST-индексации кодовой базы
+  graphrag-indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile.indexer
+    container_name: remote-graphrag-indexer
+    restart: unless-stopped
+    environment:
+      - QDRANT_URL=http://graphrag-qdrant:6333
+      - WATCH_PATHS=/app/codebase/src,/app/codebase/prisma,/app/docs
+      - INDEX_INTERVAL=300 # Проверка изменений раз в 5 минут для минимизации нагрузки на шину DDR3
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - graphrag-qdrant
+    volumes:
+      - ../src:/app/codebase/src:ro
+      - ../prisma:/app/codebase/prisma:ro
+      - ../docs:/app/docs:ro
+      - ../CURRENT_STATE.md:/app/codebase/CURRENT_STATE.md:ro
+      - ../MEMORY.md:/app/codebase/MEMORY.md:ro
+      - ../AGENTS.md:/app/codebase/AGENTS.md:ro
+      - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 128M
+
+volumes:
+  qdrant_storage:
+    driver: local

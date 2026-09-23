@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "errorCode": "E003_SECURITY_WITHOUT_NEGATIVE_TEST",
+  "rejectedControls": ["SEC-HOOK-01"]
+}

@@ -1,0 +1,2 @@
+## 2026-06-07T12:06:26Z
+You are a Forensic Auditor. Perform an integrity verification on the Gen4 Worker's implementation. Run integrity checks to ensure no cheating occurred and verify the code compiles completely (`npx tsc --noEmit`). Write a PASS/FAIL verdict to `d:\SMM_plan_2\.agents\teamwork_preview_auditor_auth_gen4_1\handoff.md`. If INTEGRITY VIOLATION or CHEATING DETECTED, you must fail the iteration.

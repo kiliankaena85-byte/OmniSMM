@@ -1,0 +1,77 @@
+import React from "react";
+
+interface HeartFunnelLogoProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
+  className?: string;
+}
+
+export function HeartFunnelLogo({ size = 32, className = "", ...props }: HeartFunnelLogoProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
+      <defs>
+        <linearGradient id="heartFunnelGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3B82F6" />
+          <stop offset="35%" stopColor="#9333EA" />
+          <stop offset="70%" stopColor="#EC4899" />
+          <stop offset="100%" stopColor="#F97316" />
+        </linearGradient>
+
+        <linearGradient id="heartFunnelGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#60A5FA" />
+          <stop offset="50%" stopColor="#A855F7" />
+          <stop offset="100%" stopColor="#F43F5E" />
+        </linearGradient>
+
+        <filter id="heartGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#9333EA" floodOpacity="0.35" />
+        </filter>
+      </defs>
+
+      {/* Main Heart Funnel Vortex Outer Ribbon */}
+      <path
+        d="M 50 88 
+           C 25 72, 8 50, 8 32 
+           C 8 16, 20 6, 35 6 
+           C 43 6, 48 10, 50 14 
+           C 52 10, 57 6, 65 6 
+           C 80 6, 92 16, 92 32 
+           C 92 50, 75 72, 50 88 Z"
+        fill="url(#heartFunnelGrad1)"
+        filter="url(#heartGlow)"
+      />
+
+      {/* Swirling Inner Funnel Curves (Vortex Effect) */}
+      <path
+        d="M 50 20
+           C 40 12, 22 14, 18 30
+           C 14 44, 30 62, 50 78
+           C 42 64, 32 50, 34 38
+           C 36 28, 44 24, 50 20 Z"
+        fill="url(#heartFunnelGrad2)"
+        opacity="0.9"
+      />
+
+      {/* Central Funnel Swirl Accent */}
+      <path
+        d="M 50 28
+           C 58 22, 74 24, 78 36
+           C 82 48, 68 64, 50 78
+           C 58 64, 66 50, 64 40
+           C 62 30, 55 26, 50 28 Z"
+        fill="#FFFFFF"
+        opacity="0.35"
+      />
+
+      {/* Funnel Core Point Glow */}
+      <circle cx="50" cy="46" r="5" fill="#FFFFFF" opacity="0.85" />
+    </svg>
+  );
+}

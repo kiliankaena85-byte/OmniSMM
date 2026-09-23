@@ -1,0 +1,146 @@
+---
+name: docker-lean-build-ops
+description: >
+  Бережливая сборка Docker и Next.js без зависания ПК, динамический учет нагрузки хоста при создании
+  контейнеров, автоматическая очистка старых сборок (.next/cache, Docker builder prune, dangling layers)
+  и защита от разрастания виртуальной памяти и дисков WSL2 (ext4.vhdx, sparseVhd, drop_caches).
+---
+
+# Docker Lean Build Ops — Руководство Архитектора и Оператора
+
+## 1. Назначение и Зона Ответственности Скилла
+
+Скилл `docker-lean-build-ops` регламентирует инженерные практики платформы OmniSMM 1.0 для безопасной, ресурсосберегающей сборки и эксплуатации Docker-контейнеров на хост-машинах с ограниченными ресурсами (Low-RAM / High-Load Constraints, Windows 11 / WSL2, Linux).
+
+### Проблемы, которые решает скилл:
+1. **Зависание ПК и фризы интерфейса:** предотвращение 100% утилизации CPU и исчерпания RAM компилятором Next.js/Webpack и сборщиком Docker BuildKit.
+2. **Пиковые OOM-всплески при старте контейнеров:** предотвращение одновременного запуска сервисов (OOM-Storm, Exit Code 137), учет доступных ресурсов хоста и WSL2 перед стартом.
+3. **Разрастание старых сборок и дискового мусора:** ротация кэша компилятора `.next/cache`, удаление неиспользуемых слоев Docker (`dangling images`), очистка Docker Builder Cache.
+4. **Раздувание виртуальной памяти и дисков WSL2:** контроль механизма сжатия `ext4.vhdx` (`sparseVhd=true`), сброс дискового кэша Linux (`drop_caches`), предотвращение исчерпания swap/pagefile.
+
+---
+
+## 2. Ключевые Инварианты Надежности (Hard Invariants)
+
+- 🛑 **INVARIANT 1 (No-Host-Freeze):** Запрещено запускать процессы сборки (`next build`, `docker build`, `esbuild`) с дефолтным приоритетом `Normal` или `High` без резервирования минимум 1 вычислительного ядра для операционной системы.
+- 🛑 **INVARIANT 2 (Pre-Flight Load Check):** Запрещено выполнять `docker compose up` без предварительной проверки свободной оперативной памяти хоста ($M_{\text{free}} \ge 800\text{ MB}$) и текущего лимита WSL2.
+- 🛑 **INVARIANT 3 (Staggered Startup):** Контейнеры поднимаются строго поэтапно: `База данных & Redis` $\to$ `Сетевой прокси & Очереди` $\to$ `Next.js Web`. Запрещен параллельный холодный старт всех сервисов в условиях ограниченной RAM.
+- 🛑 **INVARIANT 4 (Disk Cache Cap):** Директория `.next/cache` не должна превышать объем в 1.5 ГБ. При превышении порога выполняется принудительная очистка старых кэшей.
+- 🛑 **INVARIANT 5 (Data Volume Protection):** Очистка Docker (`prune`) разрешена только для `builder` и `images (dangling=true)`. Категорически запрещено выполнять `docker volume prune` без явного указания исключений для томов с данными (`lite_postgres_data`, `lite_redis_data`).
+
+---
+
+## 3. Четырехфазный Регламент Бережливой Сборки и Деплоя
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────────┐
+│ Фаза 1: Аудит   │ ──> │Фаза 2: Очистка   │ ──> │Фаза 3: Eco-Build│ ──> │Фаза 4: Поэтапный │
+│ хоста и памяти  │     │мусора и кэшей    │     │(Affinity, Prio) │     │старт контейнеров │
+└─────────────────┘     └──────────────────┘     └─────────────────┘     └──────────────────┘
+```
+
+### Фаза 1 — Аудит хоста и ресурсов (Pre-Flight Load Audit)
+Перед запуском любых ресурсоемких операций выполняется анализ:
+1. **Физическая память Windows:** проверка `FreePhysicalMemory` через `Get-CimInstance Win32_OperatingSystem`. Должно быть $\ge 1.0\text{ GB}$.
+2. **Виртуальная память (Commit Charge):** соотношение `CommitTotal` к `CommitLimit`. Если утилизация $> 85\%$, перед сборкой требуется сброс кэшей.
+3. **WSL2 статус:** проверка лимита в `C:\Users\Shadow\.wslconfig`. Если контейнеры уже запущены, замер фактического потребления через `docker stats --no-stream`.
+
+### Фаза 2 — Очистка старых сборок и кэшей (Garbage Collection & Disk Hygiene)
+Автоматизированный запуск утилиты `scripts/docker-clean-bloat.ps1`:
+1. **Ротация `.next/cache`:** удаление файлов кэша старше 48 часов или полная очистка при размере $> 1.5\text{ GB}$.
+2. **Очистка Docker Builder Cache:**
+   ```bash
+   docker builder prune -f --filter "until=48h"
+   ```
+3. **Удаление висячих слоев образов:**
+   ```bash
+   docker image prune -f
+   ```
+4. **Сброс кэшей страниц ядра WSL2 (Page Cache Drop):**
+   ```bash
+   wsl -e sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"
+   ```
+
+### Фаза 3 — Бережливая сборка (Throttled Eco-Build Engine)
+Запуск через `scripts/lean-docker-build.ps1`:
+1. **Приоритет планировщика ОС:**
+   - Для процесса компилятора `node.exe` выставляется `ProcessPriorityClass.BelowNormal`. Это отдает безусловный приоритет окнам, вводу пользователя и системным службам Windows.
+2. **CPU Affinity (Маска процессоров):**
+   - Из общего пула ядер (например, 8 логических ядер) маска процессора исключает последние 1–2 ядра, гарантируя отсутствие микро-фризов системы.
+3. **Контроль кучи V8:**
+   - Передача переменной `$env:NODE_OPTIONS="--max-old-space-size=2560"`, что обеспечивает достаточный запас для Webpack и TypeScript компилятора, не вызывая аварийного падения по OOM.
+
+### Фаза 4 — Поэтапный запуск контейнеров (Staggered Startup)
+Запуск через `scripts/preflight-container-sizing.ts` / `npm run docker:up:lean`:
+1. **Шаг 1 (Инфраструктура):**
+   ```bash
+   docker compose up -d db redis clash
+   ```
+   Ожидание готовности по `healthcheck` (до 30 сек).
+2. **Шаг 2 (Фоновые обработчики):**
+   ```bash
+   docker compose up -d worker bot
+   ```
+   Пауза 5 секунд для стабилизации подключений к Redis и PostgreSQL.
+3. **Шаг 3 (Веб-интерфейс):**
+   ```bash
+   docker compose up -d web
+   ```
+   Проверка HTTP 200 на `http://localhost:3000/api/health`.
+
+---
+
+## 4. Дерево Решений (Decision Tree)
+
+```
+[Старт задачи сборки или деплоя]
+         │
+         ▼
+[Свободно ли на хосте >= 1.2 GB RAM?]
+  ├── НЕТ ──> Запустить scripts/docker-clean-bloat.ps1 -> сбросить drop_caches -> остановить dev-сервер
+  └── ДА ───> Переход к проверке диска
+         │
+         ▼
+[Размер .next/cache > 1.5 GB или есть dangling images?]
+  ├── ДА ───> Выполнить ротацию кэша и docker builder prune
+  └── НЕТ ──> Переход к сборке
+         │
+         ▼
+[Сборка артефактов на хосте]
+  └──> Запуск scripts/lean-docker-build.ps1 (BelowNormal + CPU Affinity Mask)
+         │
+         ▼
+[Запуск контейнеров в Docker]
+  └──> Поэтапный старт (Staggered): db+redis+clash -> worker+bot -> web
+```
+
+---
+
+## 5. Защита Виртуального Диска WSL2 (`ext4.vhdx`)
+
+В Windows 11 WSL2 виртуальный диск разрастается динамически, но по умолчанию не сжимается при удалении файлов. Для защиты от переполнения хостового диска:
+1. **Директива в `.wslconfig`:**
+   В файле `C:\Users\Shadow\.wslconfig` ОБЯЗАТЕЛЬНА директива:
+   ```ini
+   [experimental]
+   autoMemoryReclaim=gradual
+   sparseVhd=true
+   ```
+   Она переводит файл `ext4.vhdx` в режим разреженного файла (Sparse VHD), позволяя Windows немедленно освобождать блоки диска при вызове `fstrim` или `docker builder prune`.
+2. **Ручная компактизация (при необходимости):**
+   ```powershell
+   wsl --manage --compact
+   ```
+
+---
+
+## 6. Инструментарий и Команды
+
+| Скрипт | Назначение |
+| :--- | :--- |
+| `scripts/lean-docker-build.ps1` | Сборка Next.js и артефактов с приоритетом `BelowNormal` и привязкой ядер CPU |
+| `scripts/docker-clean-bloat.ps1` | Глубокая очистка старых кэшей, dangling образов, сброс памяти WSL2 |
+| `scripts/preflight-container-sizing.ts` | Pre-flight аудит свободных ресурсов перед запуском `docker compose` |
+| `npm run build:lean` | Вызов бережливой сборки |
+| `npm run docker:clean` | Запуск полной очистки сборок и кэша |
+| `npm run docker:up:lean` | Поэтапный запуск контейнеров с учетом нагрузки |

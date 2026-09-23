@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEARH Closure Certificate Schema v1.1",
+  "type": "object",
+  "required": [
+    "module",
+    "status",
+    "baseline_commit",
+    "schema_sha256",
+    "closed_controls",
+    "sign_off"
+  ],
+  "properties": {
+    "module": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["CLOSED", "CONDITIONALLY_CLOSED", "NEEDS_REMEDIATION"]
+    },
+    "baseline_commit": {
+      "type": "string"
+    },
+    "schema_sha256": {
+      "type": "string"
+    },
+    "closed_controls": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "accepted_residual_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "monitoring_requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sign_off": {
+      "type": "object",
+      "required": ["auditor", "timestamp", "verdict"],
+      "properties": {
+        "auditor": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "verdict": { "type": "string" }
+      }
+    }
+  }
+}

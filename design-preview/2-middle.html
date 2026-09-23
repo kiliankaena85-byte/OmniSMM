@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#424859",
+                    "error": "#ff6e84",
+                    "primary": "#a3a6ff",
+                    "outline": "#6f7588",
+                    "surface": "#080e1d",
+                    "on-tertiary-fixed": "#3b002b",
+                    "surface-container": "#12192b",
+                    "surface-container-high": "#171f33",
+                    "on-surface-variant": "#a5aabf",
+                    "primary-fixed-dim": "#8387ff",
+                    "tertiary-fixed": "#ff8ed2",
+                    "on-background": "#e0e5fb",
+                    "on-secondary-fixed": "#40009b",
+                    "surface-bright": "#222c43",
+                    "on-error-container": "#ffb2b9",
+                    "error-dim": "#d73357",
+                    "on-error": "#490013",
+                    "on-surface": "#e0e5fb",
+                    "surface-container-highest": "#1d253b",
+                    "tertiary-fixed-dim": "#ef81c4",
+                    "on-secondary-fixed-variant": "#5f28c8",
+                    "tertiary-container": "#ff8ed2",
+                    "surface-container-lowest": "#000000",
+                    "on-primary-fixed": "#000000",
+                    "surface-tint": "#a3a6ff",
+                    "primary-container": "#9396ff",
+                    "secondary-fixed-dim": "#ceb9ff",
+                    "on-tertiary-container": "#63054a",
+                    "on-tertiary": "#701455",
+                    "on-tertiary-fixed-variant": "#6e1354",
+                    "secondary-fixed": "#dac9ff",
+                    "secondary-dim": "#8455ef",
+                    "on-primary-container": "#0a0081",
+                    "inverse-primary": "#494bd7",
+                    "tertiary-dim": "#ef81c4",
+                    "secondary": "#ac8aff",
+                    "on-primary-fixed-variant": "#0e009d",
+                    "surface-container-low": "#0c1324",
+                    "background": "#080e1d",
+                    "on-secondary": "#280067",
+                    "surface-dim": "#080e1d",
+                    "inverse-surface": "#faf8ff",
+                    "secondary-container": "#5516be",
+                    "inverse-on-surface": "#4f5566",
+                    "on-primary": "#0f00a4",
+                    "surface-variant": "#1d253b",
+                    "primary-dim": "#6063ee",
+                    "on-secondary-container": "#d9c8ff",
+                    "error-container": "#a70138",
+                    "primary-fixed": "#9396ff",
+                    "tertiary": "#ffa5d9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #080e1d; color: #e0e5fb; }
+        .glass-panel { background: rgba(29, 37, 59, 0.6); backdrop-filter: blur(24px); }
+        .text-gradient { background: linear-gradient(135deg, #a3a6ff 0%, #ac8aff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bg-gradient-primary { background: linear-gradient(135deg, #a3a6ff 0%, #ac8aff 100%); }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+<!-- Top Navigation Anchor -->
+<nav class="fixed top-0 w-full z-50 bg-[#1d253b]/60 backdrop-blur-3xl shadow-2xl shadow-[#000000]/50 transition-all duration-300">
+<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#e0e5fb]">SMMplan Lite</div>
+<div class="hidden md:flex items-center gap-8 font-['Inter'] font-medium tracking-tight">
+<a class="text-[#a5aabf] hover:text-[#e0e5fb] transition-colors" href="#">How it Works</a>
+<a class="text-[#a3a6ff] border-b-2 border-[#a3a6ff] pb-1" href="#">Social Proof</a>
+<a class="text-[#a5aabf] hover:text-[#e0e5fb] transition-colors" href="#">Services</a>
+<a class="text-[#a5aabf] hover:text-[#e0e5fb] transition-colors" href="#">Pricing</a>
+</div>
+<div class="flex gap-4">
+<button class="hidden md:block px-6 py-2 text-[#a3a6ff] font-medium active:scale-95 transition-transform">Log In</button>
+<button class="bg-gradient-primary px-6 py-2 rounded-lg text-on-primary font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform">Get Started</button>
+</div>
+</div>
+</nav>
+<!-- SECTION 1: HOW IT WORKS -->
+<section class="pt-32 pb-24 px-6 max-w-7xl mx-auto relative overflow-hidden">
+<!-- Background Ambient Glow -->
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="text-center mb-20 relative z-10">
+<h2 class="text-4xl md:text-5xl font-black tracking-tight mb-4 inline-block relative">
+                Как это работает
+                <div class="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-transparent"></div>
+</h2>
+<p class="text-on-surface-variant text-lg md:text-xl font-medium mt-6">Простая и безопасная накрутка в 3 шага</p>
+</div>
+<div class="grid md:grid-cols-3 gap-8 relative z-10">
+<!-- Step 01 -->
+<div class="group bg-surface-container p-10 rounded-xl hover:shadow-[0_0_40px_rgba(163,166,255,0.1)] transition-all duration-500 relative overflow-hidden">
+<span class="text-7xl font-black text-gradient opacity-20 absolute -top-4 -right-4 group-hover:scale-110 transition-transform duration-500">01</span>
+<div class="relative z-10">
+<div class="mb-6 w-12 h-12 flex items-center justify-center bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined text-primary">category</span>
+</div>
+<h3 class="text-2xl font-bold mb-4 text-on-surface">Выберите услугу</h3>
+<p class="text-on-surface-variant leading-relaxed">Укажите платформу и тип продвижения. AI подберёт оптимальный пакет.</p>
+</div>
+<div class="absolute inset-0 border border-outline-variant/10 rounded-xl pointer-events-none group-hover:border-primary/20 transition-colors"></div>
+</div>
+<!-- Step 02 -->
+<div class="group bg-surface-container p-10 rounded-xl hover:shadow-[0_0_40px_rgba(163,166,255,0.1)] transition-all duration-500 relative overflow-hidden">
+<span class="text-7xl font-black text-gradient opacity-20 absolute -top-4 -right-4 group-hover:scale-110 transition-transform duration-500">02</span>
+<div class="relative z-10">
+<div class="mb-6 w-12 h-12 flex items-center justify-center bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+</div>
+<h3 class="text-2xl font-bold mb-4 text-on-surface">Оформите заказ</h3>
+<p class="text-on-surface-variant leading-relaxed">Вставьте ссылку, укажите количество и оплатите любым удобным способом.</p>
+</div>
+<div class="absolute inset-0 border border-outline-variant/10 rounded-xl pointer-events-none group-hover:border-primary/20 transition-colors"></div>
+</div>
+<!-- Step 03 -->
+<div class="group bg-surface-container p-10 rounded-xl hover:shadow-[0_0_40px_rgba(163,166,255,0.1)] transition-all duration-500 relative overflow-hidden">
+<span class="text-7xl font-black text-gradient opacity-20 absolute -top-4 -right-4 group-hover:scale-110 transition-transform duration-500">03</span>
+<div class="relative z-10">
+<div class="mb-6 w-12 h-12 flex items-center justify-center bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+</div>
+<h3 class="text-2xl font-bold mb-4 text-on-surface">Наблюдайте за ростом</h3>
+<p class="text-on-surface-variant leading-relaxed">Запуск за 4 секунды. Отслеживайте прогресс в реальном времени.</p>
+</div>
+<div class="absolute inset-0 border border-outline-variant/10 rounded-xl pointer-events-none group-hover:border-primary/20 transition-colors"></div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: SOCIAL PROOF -->
+<section class="py-24 relative">
+<div class="absolute inset-0 bg-surface-container-low/50 -skew-y-3"></div>
+<div class="max-w-7xl mx-auto px-6 relative z-10">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
+<div class="glass-panel p-8 rounded-xl text-center flex flex-col items-center justify-center border border-outline-variant/5">
+<div class="text-4xl md:text-6xl font-black text-gradient mb-2">2M+</div>
+<div class="text-label-sm uppercase tracking-widest text-on-surface-variant font-bold text-xs">Заказов выполнено</div>
+</div>
+<div class="glass-panel p-8 rounded-xl text-center flex flex-col items-center justify-center border border-outline-variant/5">
+<div class="text-4xl md:text-6xl font-black text-gradient mb-2">50K+</div>
+<div class="text-label-sm uppercase tracking-widest text-on-surface-variant font-bold text-xs">Довольных клиентов</div>
+</div>
+<div class="glass-panel p-8 rounded-xl text-center flex flex-col items-center justify-center border border-outline-variant/5">
+<div class="text-4xl md:text-6xl font-black text-gradient mb-2">4 сек</div>
+<div class="text-label-sm uppercase tracking-widest text-on-surface-variant font-bold text-xs">Среднее время запуска</div>
+</div>
+<div class="glass-panel p-8 rounded-xl text-center flex flex-col items-center justify-center border border-outline-variant/5">
+<div class="text-4xl md:text-6xl font-black text-gradient mb-2">99.2%</div>
+<div class="text-label-sm uppercase tracking-widest text-on-surface-variant font-bold text-xs">Заказов в срок</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: SERVICES GRID (BENTO) -->
+<section class="py-32 px-6 max-w-7xl mx-auto">
+<div class="mb-16">
+<h2 class="text-4xl md:text-5xl font-black tracking-tight mb-4">Все платформы — одна панель</h2>
+<div class="w-24 h-1.5 bg-gradient-primary rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[280px]">
+<!-- Telegram Large Card -->
+<div class="md:col-span-8 bg-surface-container relative rounded-xl overflow-hidden group border-l-4 border-primary">
+<img class="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity" data-alt="vibrant abstract digital waves with neon blue glow and deep violet shadows representing high-speed data streams" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx0i-zWG116yid-32sxTqkvVfJ27_jbA2LTYsYE6cFpsuBJm3z-UIa36XMN6BWJeqe5a7sBJZZB8A8tb2fZGyVux-jbEw46cJHTWiJVYbO59bF4VgG5BlgF8kU47nSVHsItAcdhjen7pzvzpbHI6hKnHkarHRzl2R18mVeoKLcvAieu8E3NoJ632rmJXasBJKjmxQ9qHfLqwA5SR-xVks2xLyXyKr3szy3StQohMLTni1WlhWEHZCg_IkIHzw6cwjGbclDLp-3ijI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+<div class="relative h-full p-10 flex flex-col justify-end">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-[#0088cc] rounded-lg flex items-center justify-center shadow-lg shadow-[#0088cc]/20">
+<span class="material-symbols-outlined text-white text-2xl">send</span>
+</div>
+<span class="text-xl font-black uppercase tracking-widest text-[#0088cc]">Telegram</span>
+</div>
+<h3 class="text-3xl font-bold text-on-surface mb-2">Премиум продвижение в ТГ</h3>
+<p class="text-on-surface-variant text-lg">Подписчики, просмотры, реакции, репосты, бусты</p>
+</div>
+</div>
+<!-- VK Small Card -->
+<div class="md:col-span-4 bg-surface-container rounded-xl p-8 border-l-4 border-[#4c75a3] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-[#4c75a3] rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-2xl">person_add</span>
+</div>
+<span class="font-black uppercase tracking-widest text-[#4c75a3]">VK</span>
+</div>
+<h4 class="text-xl font-bold mb-4">ВКонтакте</h4>
+<ul class="space-y-2 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span> Друзья и паблики</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span> Лайки на посты</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span> Просмотры клипов</li>
+</ul>
+</div>
+<!-- YouTube Small Card -->
+<div class="md:col-span-4 bg-surface-container rounded-xl p-8 border-l-4 border-[#ff0000] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-[#ff0000] rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-2xl">play_circle</span>
+</div>
+<span class="font-black uppercase tracking-widest text-[#ff0000]">YouTube</span>
+</div>
+<h4 class="text-xl font-bold mb-4">Видео контент</h4>
+<ul class="space-y-2 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span> Часы просмотра</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span> Живые лайки</li>
+</ul>
+</div>
+<!-- Instagram Large Card -->
+<div class="md:col-span-8 bg-surface-container relative rounded-xl overflow-hidden group border-l-4 border-secondary">
+<img class="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity" data-alt="swirling liquid gradients of magenta and deep indigo with soft light highlights and elegant fluid motion" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYyFQpGd1Pb6pPJuD8KMZXkfC3QVVYv47EGauLaU3WbgFeC2FSqH0FB8jeCfQOH2IC0sgwyzHv4ag93zdV2bWk6oc1VbcwOhY1ZPCNXfiSXaxqLQUFlxboWGyCQrJawbVw-ZRWxM3DQTUoK2a7VDvrUxZSmTiu5CUcrgilez4KGKwENW4Z_Cm7uNpreFIWtG1Z4t6CRycYkhYDsukDcgUX7Huiw3VMGMomM-wyA4FowVirFfwuSxS3kcH63P4OE1K5MF9mwyI1Z28"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+<div class="relative h-full p-10 flex flex-col justify-end">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-lg flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white text-2xl">camera</span>
+</div>
+<span class="text-xl font-black uppercase tracking-widest text-secondary">Instagram</span>
+</div>
+<h3 class="text-3xl font-bold text-on-surface mb-2">Профессиональный Instagram</h3>
+<p class="text-on-surface-variant text-lg">Подписчики, лайки, просмотры Stories и Reels</p>
+</div>
+</div>
+<!-- TikTok Card -->
+<div class="md:col-span-6 bg-surface-container rounded-xl p-8 border-l-4 border-[#00f2ea] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-black rounded-lg flex items-center justify-center border border-white/20">
+<span class="material-symbols-outlined text-[#00f2ea] text-2xl">music_note</span>
+</div>
+<span class="font-black uppercase tracking-widest text-[#00f2ea]">TikTok</span>
+</div>
+<span class="text-xs bg-error/10 text-error px-2 py-1 rounded font-bold">HOT</span>
+</div>
+<h4 class="text-xl font-bold mb-2">Взрывные охваты</h4>
+<p class="text-on-surface-variant">Просмотры с удержанием, сохранение в избранное и репосты.</p>
+</div>
+<!-- Twitter Card -->
+<div class="md:col-span-6 bg-surface-container rounded-xl p-8 border-l-4 border-[#1DA1F2] hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-[#1DA1F2] rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-2xl">chat</span>
+</div>
+<span class="font-black uppercase tracking-widest text-[#1DA1F2]">X / Twitter</span>
+</div>
+<h4 class="text-xl font-bold mb-2">Глобальное влияние</h4>
+<p class="text-on-surface-variant">Читатели со всего мира, ретвиты и охваты трендов.</p>
+</div>
+</div>
+</section>
+<!-- Footer Component -->
+<footer class="bg-[#080e1d] w-full border-t border-[#424859]/15">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 py-16 w-full max-w-7xl mx-auto">
+<div class="mb-8 md:mb-0">
+<div class="text-xl font-bold text-[#e0e5fb] mb-2 tracking-tighter">SMMplan Lite</div>
+<p class="font-['Inter'] text-sm tracking-wide uppercase text-[#a5aabf] opacity-80 hover:opacity-100 transition-opacity">© 2024 SMMplan Lite. Engineered for Velocity.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-['Inter'] text-sm tracking-wide uppercase text-[#a5aabf] hover:text-[#ac8aff] transition-colors" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-sm tracking-wide uppercase text-[#a5aabf] hover:text-[#ac8aff] transition-colors" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-sm tracking-wide uppercase text-[#a5aabf] hover:text-[#ac8aff] transition-colors" href="#">API Docs</a>
+<a class="font-['Inter'] text-sm tracking-wide uppercase text-[#a5aabf] hover:text-[#ac8aff] transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+</body></html>

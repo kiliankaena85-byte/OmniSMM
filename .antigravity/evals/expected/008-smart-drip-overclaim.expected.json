@@ -1,0 +1,19 @@
+{
+  "valid": false,
+  "errors": [
+    "E009_DIRTY_BASELINE",
+    "E003_SECURITY_WITHOUT_NEGATIVE_TEST",
+    "E005_RACE_WITHOUT_CONCURRENCY_TEST",
+    "E004_FINANCIAL_WITHOUT_RECONCILIATION",
+    "E008_EMPTY_DB_RECONCILIATION",
+    "E010_CRITICAL_RISK_OPEN_BUT_CLOSED"
+  ],
+  "rejectedControls": [
+    "RISK-DRIP-HIGH-01",
+    "RISK-DRIP-HIGH-02",
+    "RISK-DRIP-MED-01"
+  ],
+  "rejectedRisks": [
+    "RISK-DRIP-CRIT-01"
+  ]
+}

@@ -1,0 +1,2206 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String
+  passwordHash      String?
+  role              String    @default("USER") // USER, SUPPORT, MANAGER, OWNER
+  preferredDashboard String   @default("CLASSIC") // "CLASSIC" or "LOVABLE"
+  balance           BigInt    @default(0)
+  quarantineBalance BigInt    @default(0) // Funds pending Owner approval (Escrow)
+  totalSpent        BigInt    @default(0) // Lifetime value in Cents
+  personalDiscount  Float     @default(0.0) // Manual discount override in %, max 100
+  discountEndsAt    DateTime? // If set — discount expires at this datetime
+
+  // Trust budget (for compensation/refunds by support)
+  supportLimitCents      Int      @default(50000) // 500 RUB default trust budget
+  supportSpentTodayCents Int      @default(0) // Track daily spending
+  supportLastResetAt     DateTime @default(now()) // For auto-reset logic
+
+  apiKeyHash      String? @unique
+  referralCode    String? @unique
+  referredById    String?
+  referralBalance Int     @default(0)
+  telegramId      String? // Telegram user ID for omnichannel support routing
+  phoneHash       String? @unique // SHA-256 hash of verified Telegram contact
+  isKycVerified   Boolean @default(false)
+  isEmailVerified Boolean @default(true)
+  isBotOnly       Boolean @default(false)
+  isActive        Boolean @default(true)
+  isDeleted       Boolean @default(false)
+
+  // 152-FZ Compliance (Terms of Service / Privacy Policy agreement tracking)
+  tosAcceptedAt   DateTime?
+  tosAcceptedIp   String?
+
+  // Operator notes (internal, never visible to client)
+  adminNote          String? // Free-form operator note
+  adminNoteUpdatedAt DateTime? // When the note was last updated
+  adminNoteUpdatedBy String? // Email of operator who wrote the note
+
+  // Personal AI API Key (Encrypted AES-256) for staff actions
+  geminiApiKey       String?
+
+  // Two-Factor Authentication (TOTP 2FA)
+  twoFactorEnabled     Boolean  @default(false)
+  twoFactorSecret      String?  // Base32 TOTP secret or encrypted
+  twoFactorBackupCodes String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authTokens      AuthToken[]
+  sessions        Session[]
+  orders          Order[]
+  payments        Payment[]
+  tickets         Ticket[]
+  auditLogs       AuditLog[]
+  ledgerLogs      LedgerEntry[]    @relation("UserLedger")
+  invoices        Invoice[]
+  smartCampaigns  SmartCampaign[]
+  promoCodeUsages PromoCodeUsage[]
+
+  // API & Accounting Fields
+  companyName  String?
+  inn          String?
+  kpp          String?
+  ogrn         String?
+  legalAddress String?
+
+  // Telegram Notification Preferences
+  telegramNotifyOrders  Boolean @default(true)
+  telegramNotifyBalance Boolean @default(true)
+  telegramNotifyTickets Boolean @default(true)
+
+  // Referrals
+  referredBy  User?        @relation("ReferralTree", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals   User[]       @relation("ReferralTree")
+  commissions Commission[] @relation("ReferredCommissions")
+
+  // RBAC
+  staffRoleId String?
+  staffRole   StaffRole? @relation(fields: [staffRoleId], references: [id], onDelete: SetNull)
+
+  apiConfig ApiConfig?
+  userNotes     UserNote[] @relation("UserNotes")
+  authoredNotes UserNote[] @relation("AuthorNotes")
+
+  targetBalanceAdjustments    ManualBalanceAdjustment[] @relation("targetBalanceAdjustments")
+  requestedBalanceAdjustments ManualBalanceAdjustment[] @relation("requestedBalanceAdjustments")
+  approvedBalanceAdjustments  ManualBalanceAdjustment[] @relation("approvedBalanceAdjustments")
+  rejectedBalanceAdjustments  ManualBalanceAdjustment[] @relation("rejectedBalanceAdjustments")
+
+  employeeConsents           EmployeeResponsibilityConsent[]
+  staffFinancialActions      SupportFinancialAction[]        @relation("staffFinancialActions")
+  targetFinancialActions     SupportFinancialAction[]        @relation("targetFinancialActions")
+  staffShifts                StaffShift[]                    @relation("UserStaffShifts")
+  substituteStaffShifts      StaffShift[]                    @relation("ShiftSubstitute")
+  feedbacks                  TicketFeedback[]
+
+  // AI Economic Optimization & Sentinel CX Relations
+  optimizationSnapshotsApplied EconomicOptimizationSnapshot[] @relation("AppliedOptimizationSnapshots")
+  orderRecoveryIncidents       OrderRecoveryIncident[]
+  cxCompensations              CxApologyCompensation[]
+  bonusBalance                 BigInt                        @default(0) // Strictly non-withdrawable CX/promotional credit in Cents
+
+  // Customer Group (Lifecycle & Access Control)
+  customerGroupId            String?
+  customerGroup              CustomerGroup?                  @relation("CustomerGroupUsers", fields: [customerGroupId], references: [id], onDelete: SetNull)
+
+  tenantId       String   @default("smmplan")
+  allowedTenants String[] @default(["smmplan"])
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([customerGroupId])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc), id(sort: Desc)])
+}
+
+model ApiConfig {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isApiEnabled     Boolean @default(true)
+  prioritySupport  Boolean @default(true) // Выделенная и приоритетная поддержка
+  webhookUrl       String? // Webhook URL для синхронизации тикетов
+  webhookSecret    String? // Секретный ключ вебхука API
+  isWebhookActive  Boolean @default(false) // Toggle for webhook status
+  customLimitCents Int? // Кастомный лимит списаний (если null - без лимита!)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ApiConfig")
+}
+
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  type            String    @default("DISCOUNT") // DISCOUNT (%), VOUCHER (fixed amount)
+  discountPercent Float // 10.0 = 10% (used when type=DISCOUNT)
+  amount          Int       @default(0) // Fixed amount in Cents (used when type=VOUCHER)
+  maxUses         Int       @default(1)
+  uses            Int       @default(0)
+  isActive        Boolean   @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  description  String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  budgetCents  Int              @default(0)
+  isSuspicious Boolean          @default(false)
+  usages       PromoCodeUsage[]
+  orders       Order[]
+}
+
+model AuthToken {
+  id              String    @id @default(cuid())
+  token           String
+  tenantId        String    @default("smmplan")
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  used            Boolean   @default(false)
+  usedAt          DateTime?
+  expiresAt       DateTime
+  ipIssued        String?
+  ipUsed          String?
+  userAgentIssued String?
+  userAgentUsed   String?
+  createdAt       DateTime  @default(now())
+
+  @@unique([token, tenantId])
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  userAgent      String?
+  ipAddress      String?
+  impersonatedBy String? // SD-07: Admin ID who initiated Login-As (null = real session)
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Network {
+  id          String       @id @default(cuid())
+  name        String       @unique // "Telegram"
+  slug        String       @unique // "telegram"
+  icon        String? // SVG content or name
+  sort        Int          @default(0)
+  isActive    Boolean      @default(true)
+  tenantId    String       @default("smmplan")
+  categories  Category[]
+  urlPatterns UrlPattern[] // Link detection patterns
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([tenantId])
+}
+
+// URL patterns for link detection (two-level: network + content type)
+model UrlPattern {
+  id          String   @id @default(cuid())
+  networkId   String
+  network     Network  @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  pattern     String // Regex: e.g. "instagram\\.com\\/p\\/[^/]+"
+  contentType String // "profile" | "post" | "reel" | "story" | "video" | "channel" | "channel_post"
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([networkId])
+}
+
+model Category {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique @default(cuid())
+  networkId      String?
+  network        Network?  @relation(fields: [networkId], references: [id], onDelete: Restrict)
+  tenantId       String    @default("smmplan")
+  sort           Int       @default(0)
+  activityType   String?   // FOLLOWERS, LIKES, VIEWS, REPOSTS, COMMENTS, VOTES, BOOSTS, OTHER
+  requireWarning Boolean   @default(false)
+  warningMessage String?
+  analyzerTags   String?   // Comma-separated list of Link Analyzer types (e.g. "private_post,channel")
+  icon           String?   // SVG content or icon key ("lucide:heart", "brand:telegram", "custom:<svg>...")
+  services       Service[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([networkId])
+  @@index([tenantId])
+  @@index([activityType])
+}
+
+model Service {
+  id               String    @id @default(cuid())
+  numericId        Int       @unique @default(autoincrement())
+  name             String
+  description      String? // Public SEO description (shown to clients)
+  icon             String? // SVG content or icon key ("lucide:zap", "brand:telegram", "custom:<svg>...")
+  features         Json? // Structured metadata extracted by AI (geo, speed, warranty)
+  categoryId       String
+  category         Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tenantId         String    @default("smmplan")
+  providerId       String? // Link to Provider who fulfills this service
+  provider         Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  rate             Float // provider rate per 1000
+  providerCurrency String    @default("USD") // Dual-Ledger: tracks original currency of rate
+  costPer1kRub     Float?    // Frozen RUB cost at import/sync time (Immutable Base Cost)
+  currencyCapturedAt DateTime? // Timestamp when costPer1kRub was captured
+  usdRateAtCapture Float?    // Exchange rate USD used at capture time
+  markup           Float     @default(8.0) // ~700% markup (x8 multiplier)
+  anomalyScore     Int       @default(0) // Data Intelligence: 0-100 score for suspicious provider claims
+  minQty           Int       @default(10)
+  maxQty           Int       @default(100000)
+  externalId       String? // mapped ID to provider
+  dataHash         String? // MD5 for diff-sync
+  lastSeenAt       DateTime? // Last time provider confirmed this service exists
+
+  // API v2 feature flags
+  isDripFeedEnabled Boolean @default(true)
+  isRefillEnabled   Boolean @default(false)
+  isCancelEnabled   Boolean @default(false)
+
+  // Custom metadata protection flags (prevent overwrite on provider sync)
+  isCustomName        Boolean @default(false)
+  isCustomDescription Boolean @default(false)
+
+  // Quality Tier (4-level taxonomy): ECONOMY, STANDARD, PREMIUM, VIP, AUTO
+  qualityTier String @default("STANDARD")
+
+  // Quarantine: price spike isolation & Elastic Quarantine
+  // When rate changes > quarantineThreshold% → service goes QUARANTINE status
+  isQuarantined    Boolean   @default(false)
+  pendingRate      Float? // Proposed new rate awaiting admin approval
+  quarantineReason String? // Human-readable reason: "Price spike: +45%"
+  quarantinedAt    DateTime? // When it was flagged
+
+  // Wave 4.1: Elastic Quarantine (Self-Healing)
+  cooldownUntil  DateTime? // If set, service is temporarily unavailable until this time
+  cooldownReason String? // Reason for cooldown (e.g., "API_ERROR", "DELAYED_CANCEL")
+
+  // ETA Estimation (Adaptive Percentile Window — cron-updated every 15 min)
+  etaP50Seconds  Int? // Median execution time in seconds
+  etaP90Seconds  Int? // 90th percentile ("worst case")
+  etaSampleCount Int       @default(0) // Number of completed orders behind the estimate
+  etaSpeedClass  String? // FAST | MEDIUM | SLOW | ULTRA_SLOW
+  etaUpdatedAt   DateTime? // Last ETA recalculation timestamp
+
+  // Link Target & Format Validation (Wave 2)
+  targetType         String  @default("POST") // POST, PROFILE, CHANNEL, COMMENT, POLL, VK_WALL, etc.
+  customDataType     String  @default("NONE") // NONE, TEXTAREA, NUMBER
+  customDataLabel    String? // Optional custom text prompt for the input field
+  isMediaGroupAware  Boolean @default(false) // If false, backend splits "123-125" into separate orders
+  linkValidatorRegex String? // Custom regex for frontend/backend validation
+  linkPlaceholder    String? // Placeholder example URL (e.g. "https://t.me/channel_name")
+  linkHint           String? // User-facing hint
+  requiresBotAdmin   Boolean @default(false) // For private channels requiring bot admin
+
+  requireWarning     Boolean  @default(false)
+  warningMessage     String?
+  clientRequirement  String?  // Legal/Marketing requirement for the service (e.g. "Profile must be public")
+  clientConfirmation String?  // JIT confirmation toggle text (e.g. "My profile is public")
+  isActive           Boolean  @default(true)
+  pricePer1000Cents  Int      @default(0) // Denormalized price for sorting (rate * markup * exchangeRate)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  slug               String?
+  sortOrder          Int       @default(0)
+
+  orders         Order[]
+  routes         ServiceRoute[]
+  smartCampaigns SmartCampaign[]
+  smartConfig    ServiceSmartConfig?
+  priceHistory   ServicePriceHistory[]
+
+  // Lifecycle Management Relations
+  customerAccess ServiceCustomerAccess[]
+  draft          ServiceDraft?
+  linkChecks     ServiceLinkCheck[]
+  editHistory    ServiceEditHistory[]
+  aiRecommendations AiPricingRecommendation[] @relation("ServiceAiRecommendations")
+
+  @@unique([tenantId, slug])
+  @@index([categoryId])
+  @@index([providerId])
+  @@index([providerId, externalId])
+  @@index([tenantId, categoryId, isActive, sortOrder])
+  @@index([tenantId, categoryId, isActive])
+  @@index([tenantId, providerId, isActive])
+  @@index([tenantId, isActive, qualityTier])
+  @@index([isQuarantined])
+  @@index([qualityTier])
+  @@index([externalId])
+  @@index([tenantId])
+  @@index([slug])
+}
+
+model Provider {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  apiUrl          String
+  apiKey          String // Encrypted API key
+  isActive        Boolean  @default(true)
+  metadata        Json? // { httpMethod, requestType, headers, keyField, actionField }
+  providerType    String   @default("SMM_PANEL") // SMM_PANEL, SMS_ACTIVATE
+  syncLock        Boolean  @default(false)
+  balanceCurrency String   @default("USD")
+  ticketUrl       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // SLA Monitoring fields (P0.3)
+  errorCount5m  Int       @default(0) // Errors in last 5 minutes (reset by sync)
+  lastErrorAt   DateTime? // Last error timestamp
+  lastSuccessAt DateTime? // Last successful API response
+  avgResponseMs Int       @default(0) // Rolling average response time in ms
+
+  services        Service[]
+  Order           Order[]
+  ServiceRoute    ServiceRoute[]
+  smartExecutions SmartExecution[]
+  shadowServices  ShadowService[]
+
+  proxyId         String?           @unique
+  proxy           ProviderProxy?    @relation(fields: [proxyId], references: [id], onDelete: SetNull)
+  proxyLogs       ProviderProxyLog[]
+}
+
+model ProviderProxy {
+  id                  String             @id @default(cuid())
+  label               String
+  description         String             @default("")
+  protocol            String             @default("https")
+  host                String
+  port                Int
+  username            String?
+  passwordEncrypted   String?
+  isActive            Boolean            @default(true)
+  isRotating          Boolean            @default(false)
+  geoCountry          String?
+  tags                String             @default("[]")
+  lastTestAt          DateTime?
+  lastTestLatencyMs   Int?
+  lastTestSuccess     Boolean?
+  errorCount          Int                @default(0)
+  lastErrorAt         DateTime?
+  consecutiveFailures Int                @default(0)
+  category            String             @default("PAID_PREMIUM")
+  subscriptionUrl     String?
+  expiresAt           DateTime?
+  trafficUsedBytes    BigInt?
+  trafficTotalBytes   BigInt?
+  lastSyncAt          DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  providers           Provider[]
+  logs                ProviderProxyLog[]
+
+  @@index([isActive])
+  @@index([protocol])
+  @@index([category])
+  @@index([expiresAt])
+}
+
+model ProviderProxyLog {
+  id             String        @id @default(cuid())
+  proxyId        String
+  providerId     String?
+  action         String
+  url            String?
+  method         String?
+  statusCode     Int?
+  latencyMs      Int?
+  error          String?
+  bytesSent      Int           @default(0)
+  bytesReceived  Int           @default(0)
+  createdAt      DateTime      @default(now())
+
+  proxy          ProviderProxy @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  provider       Provider?     @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([proxyId])
+  @@index([providerId])
+  @@index([createdAt])
+}
+
+model ProviderOutbox {
+  id              String    @id @default(cuid())
+  orderId         String
+  providerId      String
+  idempotencyKey  String    @unique
+  status          String    @default("PENDING") // PENDING, SENT, FAILED, RETRY
+  providerOrderId String?
+  payload         Json
+  responseBody    Json?
+  error           String?
+  attempts        Int       @default(0)
+  lastAttemptAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([providerId, status])
+}
+
+model ShadowService {
+  id                String   @id @default(cuid())
+  providerId        String
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  externalId        String
+  name              String
+  type              String?
+  category          String?
+  rate              Float
+  rateRub           Float
+  min               Int
+  max               Int
+  refill            Boolean  @default(false)
+  cancel            Boolean  @default(false)
+  dripfeed          Boolean  @default(false)
+
+  // AI normalisation metrics
+  cleanName         String?
+  platform          String?
+  normalizedCategory String?
+  targetType        String   @default("POST")
+  customDataType    String   @default("NONE")
+  isMediaGroupAware Boolean  @default(false)
+  isPrivate         Boolean  @default(false)
+  warranty          Int      @default(0)
+  geo               String?
+  velocity          Int      @default(0)
+  anomalyScore      Float    @default(0.0)
+  tenantId          String?  @default("all")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([providerId, externalId])
+  @@index([providerId])
+  @@index([tenantId])
+  @@index([providerId, normalizedCategory, rateRub])
+  @@index([platform])
+  @@index([normalizedCategory])
+  @@index([rateRub])
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  numericId         Int         @unique @default(autoincrement())
+  userId            String
+  serviceId         String
+  providerId        String? // Snapshots the provider used AT THE TIME of checkout
+  provider          Provider?   @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  providerServiceId String? // Snapshots the provider's external service ID AT THE TIME of checkout
+  externalId        String? // ID from provider (like VexBoost)
+  dripExternalIds   String[]    @default([]) // History of run IDs for Drip-Feed
+  link              String
+  isLinkOverridden  Boolean     @default(false)
+  quantity          Int
+  status            OrderStatus @default(AWAITING_PAYMENT)
+  remains           Int         @default(0) // Outstanding amount to deliver
+  startCount        Int?        @map("start_count") // Start count snapshot from provider
+  charge            BigInt // price paid by user in Cents
+  providerCost      BigInt // exact cost from provider in Cents
+  error             String? // Error message from provider API
+  actualProviderCost BigInt?
+  realMarginDelta    BigInt?
+  retryCount        Int         @default(0) // Safe API Backoff mechanism
+  isTest            Boolean     @default(false) // Isolation flag for mock environment
+  email             String? // Contact email for guest / notification
+  customData        String? // Additional payload (comments, answer #, keywords)
+  usdToRubRate      Float?  // Historical CBR exchange rate at checkout time to prevent margin drift
+  environmentMode   String  @default("PRODUCTION")
+
+  // Drip-Feed specifics
+  isDripFeed Boolean   @default(false)
+  runs       Int?
+  interval   Int? // Minutes between runs
+  currentRun Int       @default(0)
+  nextRunAt  DateTime?
+
+  // Lifecycle Wait specifics
+  waitingUntil DateTime?
+
+  discountCents BigInt  @default(0)
+  promoCodeId   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  service        Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  paymentId      String?
+  payment        Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  promoCode      PromoCode?      @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  promoCodeUsage PromoCodeUsage?
+  refills        Refill[]
+  tickets        Ticket[]
+  ticketMessages TicketMessage[]
+  smartCampaign  SmartCampaign?
+
+  idempotencyKey String? @unique // Wave 1: Token to prevent double order creation
+
+  abVariant      String? // A/B test variant tag: A, B, C
+  tenantId       String  @default("smmplan")
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([serviceId]) // Fast lookup for orders by service
+  @@index([providerId, externalId])
+  @@index([externalId])
+  @@index([status])
+  @@index([createdAt]) // P2.2: temporal queries & analytics
+  @@index([status, createdAt]) // P2.2: filtered + sorted admin queries
+  @@index([userId, status]) // Fast lookup for user orders by status
+  @@index([userId, status, createdAt(sort: Desc)]) // User order history sorted
+  @@index([tenantId, createdAt(sort: Desc)]) // Brand admin sorted
+  @@index([tenantId, userId, status, createdAt])
+  @@index([paymentId]) // Fast lookup for orders by payment (Order.paymentId foreign key)
+  userNotes UserNote[]
+  orderRecoveryIncidents OrderRecoveryIncident[]
+  cxCompensations        CxApologyCompensation[]
+}
+
+model Refill {
+  id         String  @id @default(cuid())
+  numericId  Int     @unique @default(autoincrement())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status     String  @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, REJECTED, ERROR
+  externalId String? // Refill ID from the provider
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  orderId String? @unique // Legacy pointer, no longer used as the active Prisma relation
+
+  orders         Order[]
+  smartCampaigns SmartCampaign[]
+  tickets        Ticket[]
+
+  amount    BigInt // amount in Cents (BigInt: supports balances up to 90 trillion RUB)
+  currency  String  @default("RUB")
+  status    String  @default("PENDING") // PENDING, SUCCEEDED, CANCELED
+  gatewayId String? @unique // yookassa payment id
+  gateway   String  @default("yookassa") // yookassa, cryptobot, test
+
+  // Legal Consent Logging (PB-004 Chargeback Defense)
+  consentIp        String?
+  consentUserAgent String?
+  consentVersion   String?
+
+  checkoutUrl String? // Persistent checkout URL to allow users to resume payment
+
+  // FZ-54 Fiscal Data
+  receiptId       String?  @unique // ID of the receipt in YooKassa/Atol
+  refundReceiptId String?  @unique // ID of the refund receipt
+  invoice         Invoice?
+
+  abVariant String? // A/B test variant tag: A, B, C
+
+  tenantId String @default("smmplan")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([gatewayId])
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, userId, status, createdAt])
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ── API Accounting ──
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  amount    BigInt // in Cents (RUB)
+  status    String   @default("PENDING") // PENDING, PAID, CANCELED
+  fileUrl   String? // Link to generated PDF invoice
+  actUrl    String? // Link to Closing Document (УПД/Акт)
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum UsnScheme {
+  INCOME
+  INCOME_EXPENSES
+}
+
+model Tenant {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  domain       String   @unique
+  customDomain String?  @unique
+  isActive     Boolean  @default(true)
+  vaultSalt    String   @default("") // TODO: Implement per-tenant HKDF key derivation (P2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  systemSettings SystemSettings?
+  storefrontKeys StorefrontKey[]
+}
+
+model StorefrontKey {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type        String    // PUBLISHABLE | SECRET
+  keyPrefix   String
+  keyHash     String    @unique
+  name        String?
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model SystemSettings {
+  id              String    @id
+  tenant          Tenant    @relation(fields: [id], references: [id], onDelete: Cascade)
+  isTestMode      Boolean   @default(false)
+  environmentMode String    @default("PRODUCTION") // SANDBOX | HYBRID | ACQUIRING_TEST | PRODUCTION
+  taxRate         Float     @default(6.0) // % tax rate
+  usnScheme       UsnScheme @default(INCOME_EXPENSES)
+  opexMonthly     Int       @default(0) // Fixed operational expenses sum in Cents
+  maintenanceMode Boolean   @default(false)
+  siteName        String    @default("Smmplan")
+  siteDescription String    @default("")
+
+  // Telegram Bot Settings
+  telegramBotToken        String? // AES-256-GCM encrypted
+  telegramBotMode         String? @default("polling") // polling | webhook
+  welcomeMessage          String? @default("Добро пожаловать в Smmplan! Ваш персональный кабинет готов к работе.")
+  telegramMenuConfig      Json?   // Custom dynamic reply keyboard & inline buttons
+  telegramTemplates       Json?   // Canned response message templates by scenario
+  telegramRatingReasons   Json?   // Configurable reason tags for 1-2, 3, 4-5 stars CSAT ratings
+  telegramWebhookSecret   String? // HMAC secret for webhook verification (OWASP A08)
+  telegramAllowedIps      String? @default("[]") // JSON array of allowed IPs for webhook
+  telegramRateLimitPerMin Int?    @default(30) // Rate limit per user per minute (OWASP A05)
+  telegramMaxMessageLength Int?   @default(4096) // Max outbound message length
+  telegramProxyId         String? // FK to active proxy
+  telegramMaintenanceMode Boolean @default(false) // Bot maintenance mode
+  telegramLogErrors       Boolean @default(true) // Enable error logging
+  telegramEnableCsat      Boolean @default(true) // CSAT after ticket close
+  telegramEnableSmartBind Boolean @default(true) // Smart bind protocol
+
+  // Payment Gateways (Secrets are AES-256-GCM encrypted in DB)
+  // Production keys
+  yookassaShopId        String?
+  yookassaSecretKey     String?
+  yookassaWebhookSecret String? // Optional custom webhook signature secret
+  // Test keys (used when isTestMode = true)
+  yookassaTestShopId    String?
+  yookassaTestSecretKey String?
+  cryptoBotToken        String?
+
+  // Catalog settings
+  quarantineThreshold   Float     @default(0.20) // 20% price spike triggers quarantine
+  globalMarkup          Float     @default(3.0) // Default markup multiplier for new services
+  safetyFloor           Float     @default(1.0) // Min markup (100% = sell at cost)
+  exchangeRateUSD       Float     @default(90.0) // USD to RUB rate (auto-synced from CBR)
+  exchangeRateUpdatedAt DateTime? // Last CBR sync time
+
+  // Site branding
+  siteLogoUrl    String? // URL to uploaded logo
+  siteFaviconUrl String? // URL to uploaded favicon
+
+  // SMTP Settings (Email Integration)
+  emailProvider             String  @default("SMTP")
+  resendApiKey              String?
+  smtpHost                  String?
+  smtpPort                  Int     @default(465)
+  smtpUser                  String?
+  smtpPassword              String? // AES-256-GCM encrypted
+  supportEmailDomain        String? // e.g. "smmplan.pro" used for inbound webhook
+  inboundEmailWebhookSecret String? // Secret for validating incoming webhook payloads
+
+  // Robokassa (encrypted)
+  robokassaLogin    String?
+  robokassaPassword String?
+  robokassaWebhookPassword String?
+
+  // Google Gemini AI (Encrypted AES-256 pool & Proxy)
+  geminiApiKeys String?
+  geminiProxy   String?
+
+  // Alfa-Bank Business Account (Alfa Developer Hub B2B)
+  alfaBankAccountNumber String?
+  alfaBankApiKey        String?   // AES-256-GCM encrypted
+  alfaBankClientSecret  String?   // AES-256-GCM encrypted
+  alfaBankApiBaseUrl    String?   @default("https://business.alfabank.ru/ext-api/v1")
+  alfaBankIsSandbox     Boolean   @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  // Contact & Social Information
+  contactSupportEmail    String?
+  contactPrivacyEmail    String?
+  contactTelegramBot     String?
+  contactTelegramChannel String?
+  contactWhatsApp        String?
+  contactVk              String?
+
+  // Legal Information
+  legalCompanyName    String?
+  legalCompanyInn     String?
+  legalCompanyOgrnip  String?
+  legalCompanyAddress String?
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  CLOSED
+}
+
+enum TicketSource {
+  WEB
+  TELEGRAM
+  EMAIL
+}
+
+enum MessageSender {
+  USER
+  STAFF
+  INTERNAL
+}
+
+model Ticket {
+  id      String       @id @default(cuid())
+  userId  String
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject String
+  status  TicketStatus @default(OPEN)
+  source  TicketSource @default(WEB)
+
+  // Optional: Link ticket to a specific order for context (live chat)
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  firstRespondedAt DateTime? // SLA: First Response Time (FRT)
+  resolvedAt       DateTime? // SLA: Time to Resolution (TTR)
+  tags             String[]  @default([]) // NLP Tagging
+
+  messages TicketMessage[]
+  userNotes UserNote[]
+  feedback  TicketFeedback?
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  tenantId String @default("smmplan")
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status, createdAt])
+  @@index([source])
+  @@index([orderId])
+  @@index([paymentId])
+  @@index([status])
+  @@index([status, createdAt])
+}
+
+model TicketFeedback {
+  id        String       @id @default(cuid())
+  ticketId  String       @unique
+  ticket    Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int          // 1 to 5
+  reasons   String[]     @default([])
+  comment   String?
+  source    TicketSource @default(TELEGRAM)
+  tenantId  String       @default("smmplan")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([score])
+  @@index([tenantId, score])
+  @@index([tenantId, createdAt])
+}
+
+model TicketMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    Ticket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender    MessageSender
+  text      String
+  mediaUrl  String? // @deprecated - relative path to uploaded file (legacy)
+  mediaType String? // @deprecated - "image", "audio", "video" (legacy)
+
+  replyToId String?
+  replyTo   TicketMessage?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   TicketMessage[] @relation("MessageReplies")
+
+  telegramMsgId String?
+  isDeleted     Boolean @default(false)
+  isEdited      Boolean @default(false)
+  originalText  String?
+
+  attachments MessageAttachment[]
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+  @@index([telegramMsgId])
+  @@index([ticketId, createdAt])
+  @@index([orderId])
+}
+
+model MessageAttachment {
+  id        String        @id @default(cuid())
+  messageId String
+  message   TicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  url      String // relative path to uploaded file (slugified)
+  type     String // "image" | "audio" | "video" | "document"
+  mimeType String // exact MIME type
+  name     String // original file name
+  size     Int? // file size in bytes
+
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model Page {
+  id      String @id @default(cuid())
+  slug    String @unique
+  title   String
+  content String
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Commission {
+  id         String @id @default(cuid())
+  orderId    String
+  referrerId String
+  amount     BigInt // in Cents (BigInt for consistency with financial fields)
+  status     String @default("PENDING") // PENDING, PAID, REJECTED
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  referrer User @relation("ReferredCommissions", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, referrerId])
+  @@index([referrerId])
+}
+
+// ── Anti-Fraud & Bonus Security Models ──
+
+model ProcessedBonusEvent {
+  id          String   @id @default(cuid())
+  eventType   String   // 'FIRST_DEPOSIT', 'REFERRAL_SIGNUP', 'ORDER_COMPLETE', 'PROMO_CODE'
+  eventId     String   // Unique event ID (PaymentID, OrderID, etc.)
+  userId      String
+  amountCents BigInt
+  status      String   @default("PROCESSED") // 'PROCESSED', 'REJECTED', 'PENDING'
+  createdAt   DateTime @default(now())
+
+  @@unique([eventType, eventId])
+  @@index([userId])
+}
+
+model BonusRedemptionLog {
+  id                 String    @id @default(cuid())
+  userId             String
+  bonusType          String    // 'FIRST_DEPOSIT', 'REFERRAL_COMMISSION', 'PROMO_CODE'
+  amountCents        BigInt
+  paymentFingerprint String?   // Hash of card BIN + last4 or crypto address
+  ipAddress          String?
+  userAgent          String?
+  status             String    @default("GRANTED") // 'GRANTED', 'LOCKED', 'REJECTED', 'CONFISCATED'
+  unlockAt           DateTime? // Vesting unlock date (72h)
+  reason             String?
+  tenantId           String?   @default("smmplan")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([paymentFingerprint, bonusType])
+  @@index([userId])
+  @@index([status, unlockAt])
+  @@index([tenantId])
+}
+
+// Security: Rate Limit
+model RateLimit {
+  id        String   @id @default(cuid())
+  ip        String
+  endpoint  String
+  hits      Int      @default(1)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([ip, endpoint])
+  @@index([expiresAt])
+}
+
+// ── Admin Panel: Audit & Finance ──
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?  @default("smmplan")
+  adminId    String // Who performed the action
+  adminEmail String // Denormalized for fast log reading
+  action     String // USER_BALANCE_CHANGE, SERVICE_DISABLE, SETTINGS_UPDATE, etc.
+  target     String // ID of affected entity
+  targetType String // USER, SERVICE, ORDER, SETTINGS, PROVIDER
+  oldValue   String? // JSON string of previous state
+  newValue   String? // JSON string of new state
+  ipAddress  String? // Admin IP for security investigations
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([targetType])
+  @@index([tenantId])
+}
+
+model LedgerEntry {
+  id              String   @id @default(cuid())
+  tenantId        String?  @default("smmplan")
+  userId          String // Client whose balance was affected
+  user            User     @relation("UserLedger", fields: [userId], references: [id], onDelete: Restrict)
+  adminId         String? // Support agent who initiated, null if SYSTEM/auto
+  amount          BigInt // Amount in Cents (positive = credit, negative = debit)
+  reason          String // Mandatory justification text
+  status          String   @default("APPROVED") // APPROVED, QUARANTINE, REJECTED
+  idempotencyKey  String?
+  transactionType String   @default("PAYMENT") // PAYMENT | REFUND | REROUTE | COMPENSATION
+  immutable       Boolean  @default(false)
+  periodId        String?
+  period          LedgerPeriod? @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([idempotencyKey])
+  @@index([userId])
+  @@index([status])
+  @@index([adminId])
+  @@index([adminId, createdAt])
+  @@index([tenantId])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, transactionType, createdAt])
+  @@index([tenantId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+}
+
+model SupportTemplate {
+  id        String   @id @default(cuid())
+  shortcut  String?  @unique // unique keyboard command e.g. "delay", "refund"
+  label     String
+  text      String
+  category  String   @default("GENERAL")
+  isActive  Boolean  @default(true)
+  useCount  Int      @default(0)
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+// Telemetry
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  event     String
+  metadata  Json?
+  sessionId String?
+  createdAt DateTime @default(now())
+
+  @@index([event]) // P2.2: filter by event type
+  @@index([createdAt]) // P2.2: TTL cleanup & temporal queries
+}
+
+// ── Feature Flags ──
+// Predefined list. State: ON (all users) | TEST (test accounts only) | OFF
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g. "drip_feed", "referral_program"
+  label       String // Human-readable: "Drip-Feed"
+  description String   @default("")
+  state       String   @default("OFF") // ON | TEST | OFF
+  updatedBy   String? // Admin email who last changed
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([key])
+}
+
+// ── Flexible RBAC ──
+// Custom roles with granular permissions per sidebar section
+model StaffRole {
+  id             String            @id @default(cuid())
+  tenantId       String            @default("smmplan")
+  allowedTenants String[]          @default(["smmplan"])
+  name           String            @unique // "Senior Support"
+  description String            @default("")
+  isSystem    Boolean           @default(false) // true = cannot delete (Owner, Admin)
+  permissions StaffPermission[]
+  users       User[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([tenantId])
+}
+
+// One permission entry per section per role: section + action (view|edit)
+model StaffPermission {
+  id       String    @id @default(cuid())
+  tenantId String    @default("smmplan")
+  roleId   String
+  role     StaffRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  section  String // e.g. "orders", "finance", "catalog", "settings"
+  canView  Boolean   @default(false)
+  canEdit  Boolean   @default(false)
+
+  @@unique([roleId, section])
+  @@index([roleId])
+  @@index([tenantId])
+}
+
+// ── Security: Login Log ──
+// Per OWASP A07: Authentication Failures monitoring
+model LoginLog {
+  id         String   @id @default(cuid())
+  tenantId   String?  @default("smmplan")
+  email      String // Attempted email
+  userId     String? // Resolved userId if login succeeded
+  ipAddress  String
+  userAgent  String?
+  success    Boolean
+  failReason String? // "INVALID_PASSWORD" | "ACCOUNT_LOCKED" | "NOT_FOUND"
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@index([tenantId])
+}
+
+model ServiceRoute {
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  providerId        String
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  providerServiceId String // The external ID for this provider (e.g., "102")
+
+  isPrimary Boolean @default(false)
+  isActive  Boolean @default(true)
+  priority  Int     @default(0) // 0 = highest priority
+
+  failoverMode String @default("manual") // "manual", "automatic", "weighted"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([serviceId, providerId])
+  @@index([serviceId])
+  @@index([providerId])
+}
+
+model RoutingAuditLog {
+  id             String   @id @default(cuid())
+  serviceId      String
+  adminId        String?
+  action         String // "SWAP", "ADD_ROUTE", "QUARANTINE_REROUTE", "MANUAL_OVERRIDE"
+  fromProviderId String?
+  toProviderId   String?
+  reason         String?
+  createdAt      DateTime @default(now())
+}
+
+// Global System Settings (Key-Value Store)
+model SystemSetting {
+  key         String   @id // e.g. "SUPPORT_EMAIL", "COMPANY_INN"
+  value       String // String value, can be stringified JSON if needed
+  group       String   @default("GENERAL") // e.g. "CONTACTS", "LEGAL", "SEO"
+  description String? // Admin-facing description
+  updatedAt   DateTime @updatedAt
+  updatedBy   String? // Admin email who last updated it
+}
+
+// ── Order Status Enum ──
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PENDING
+  PENDING_CHECK
+  PROVISIONING // WRK-06: displayed in UI (OrderStatusBadge/ProgressBar/Kanban) but never set in business logic. Retained for future "dispatched but not started" state.
+  IN_PROGRESS
+  COMPLETED
+  PARTIAL
+  CANCELED
+  ERROR
+  CANCELING
+}
+
+// ── Enterprise CMS ──
+
+enum ContentType {
+  PAGE
+  ACADEMY_LESSON
+  GLOSSARY_TERM
+  NEWS_POST
+}
+
+model ContentCategory {
+  id       String            @id @default(cuid())
+  name     String
+  slug     String            @unique
+  parentId String?
+  parent   ContentCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children ContentCategory[] @relation("CategoryTree")
+  items    ContentItem[]
+
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+model ContentItem {
+  id         String      @id @default(cuid())
+  type       ContentType @default(PAGE)
+  slug       String      @unique
+  title      String
+  excerpt    String?
+  coverImage String?
+
+  // Dual Storage
+  contentJson String? // Stored as stringified JSON block array
+  contentHtml String? // Rendered HTML
+
+  // Relations
+  categoryId String?
+  category   ContentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Metadata & Stats
+  authorName String?
+  viewCount  Int     @default(0)
+
+  // Publishing Workflow
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  readTimeMinutes Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([slug])
+  @@index([categoryId])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  tenantId  String?  @default("smmplan")
+  event     String // SIGNATURE_FAILED | REPLAY_ATTEMPT | INVALID_FORMAT
+  severity  String // WARNING | CRITICAL
+  ip        String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([event])
+  @@index([createdAt])
+  @@index([tenantId])
+}
+
+enum SmartCampaignStatus {
+  PLANNED
+  RUNNING
+  PAUSED
+  COMPLETED
+  ERROR
+}
+
+enum SmartTaskStatus {
+  PLANNED
+  SENT
+  COMPLETED
+  ERROR
+}
+
+model SmartCampaign {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service             @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  status        SmartCampaignStatus @default(PLANNED)
+  link          String
+  totalQuantity Int
+  totalDays     Int
+  isTestMode    Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  tasks     SmartTask[]
+  snapshots SmartSnapshot[]
+  metrics   SmartChannelMetric[]
+
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  orderId   String?  @unique
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([paymentId])
+}
+
+model SmartTask {
+  id         String          @id @default(cuid())
+  campaignId String
+  campaign   SmartCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  quantity   Int
+  runAt      DateTime
+  status     SmartTaskStatus @default(PLANNED)
+  error      String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  executions SmartExecution[]
+
+  @@index([campaignId])
+  @@index([runAt, status])
+}
+
+model SmartExecution {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            SmartTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  providerId      String?
+  provider        Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  externalOrderId String?
+  qtySent         Int
+  qtyDelivered    Int       @default(0)
+  status          String    @default("PENDING")
+  error           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([taskId])
+}
+
+model ServiceSmartConfig {
+  id                String   @id @default(cuid())
+  serviceId         String   @unique
+  service           Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  isEnabled         Boolean  @default(false)
+  isTestMode        Boolean  @default(false)
+  minChunk          Int      @default(50)
+  maxChunk          Int      @default(200)
+  markup            Float    @default(0.15)
+  providersPriority String[] @default([])
+
+  // Smart Drip 2.5 extensions
+  useInviteBuffer   Boolean @default(false)
+  autoCompensate    Boolean @default(true)
+  checkIntervalMins Int     @default(120)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SmartChannelMetric {
+  id             String        @id @default(cuid())
+  campaignId     String
+  campaign       SmartCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recordedAt     DateTime      @default(now())
+  memberCount    Int
+  delta          Int
+  detectedDrops  Int           @default(0)
+  compensatedQty Int           @default(0)
+
+  @@index([campaignId])
+}
+
+model SmartSnapshot {
+  id         String        @id @default(cuid())
+  campaignId String
+  campaign   SmartCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  channelUrl String
+  members    String[]
+  createdAt  DateTime      @default(now())
+}
+
+model SmartDetectedUser {
+  id         String   @id @default(cuid())
+  campaignId String
+  telegramId String
+  score      Int      @default(0)
+  reasons    String[]
+  createdAt  DateTime @default(now())
+}
+
+model PromoCodeUsage {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId     String?   @unique
+  order       Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  discountCents BigInt // Exact discount given in cents
+  revenueCents  BigInt // Order payment (order.charge) in cents
+  profitCents   BigInt // Margin (order.charge - order.providerCost) in cents
+
+  isSuspicious Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([promoCodeId])
+  @@index([userId])
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Article {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String        @db.Text
+  content     String        @db.Text
+  status      ArticleStatus
+  category    String
+  viewCount   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authorName  String        @default("Михаил")
+  authorRole  String        @default("Системный архитектор прокси-сетей Smmplan")
+  priority    Int           @default(0) // 0-100, used for Drip-Feed publish queue
+
+  @@index([category, status])
+  @@index([status])
+}
+
+model ServicePriceHistory {
+  id        String   @id @default(cuid())
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  rate      Float
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+  @@index([createdAt])
+}
+
+model UserNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserNotes", fields: [userId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation("AuthorNotes", fields: [authorId], references: [id], onDelete: SetNull)
+  content   String
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  ticketId  String?
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([authorId])
+  @@index([orderId])
+  @@index([ticketId])
+}
+
+model BalanceAdjustmentPolicy {
+  id String @id @default(cuid())
+
+  scopeType String // GLOBAL | ROLE | USER
+
+  staffRoleId String?
+  userId      String?
+
+  isActive Boolean @default(true)
+
+  enabled Boolean @default(false)
+
+  canRequestCredit Boolean @default(false)
+  canRequestDebit  Boolean @default(false)
+
+  canApprove Boolean @default(false)
+  canReject  Boolean @default(false)
+
+  canViewAll   Boolean @default(false)
+  canViewStats Boolean @default(false)
+
+  maxCreditPerRequest BigInt @default(0)
+  maxDebitPerRequest  BigInt @default(0)
+
+  maxCreditPerDay BigInt @default(0)
+  maxDebitPerDay  BigInt @default(0)
+  maxTotalPerDay  BigInt @default(0)
+
+  maxApprovalPerRequest BigInt @default(0)
+
+  allowedCreditReasonCodes Json
+  allowedDebitReasonCodes  Json
+  allowedTargetRoles       Json
+
+  requireTicket        Boolean @default(true)
+  requireOrderForDebit Boolean @default(false)
+
+  blockBannedTargets  Boolean @default(true)
+  blockDeletedTargets Boolean @default(true)
+
+  autoExecuteBelow BigInt @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scopeType, staffRoleId])
+  @@index([scopeType, userId])
+}
+
+model ManualBalanceAdjustment {
+  id String @id @default(cuid())
+
+  userId      String
+  requestedBy String
+
+  direction String // CREDIT | DEBIT
+
+  amount BigInt
+
+  reasonCode String
+  reasonNote String
+
+  ticketId  String?
+  orderId   String?
+  paymentId String?
+
+  status String @default("PENDING_APPROVAL")
+  // PENDING_APPROVAL | APPROVED | REJECTED | EXECUTED | EXECUTION_FAILED | CANCELED
+
+  idempotencyKey String @unique
+
+  approvedBy      String?
+  approvedAt      DateTime?
+
+  rejectedBy      String?
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  executionError String?
+
+  ledgerEntryId String?
+
+  policySnapshot Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User  @relation("targetBalanceAdjustments", fields: [userId], references: [id], onDelete: Restrict)
+  requester User  @relation("requestedBalanceAdjustments", fields: [requestedBy], references: [id], onDelete: Restrict)
+  approver  User? @relation("approvedBalanceAdjustments", fields: [approvedBy], references: [id], onDelete: SetNull)
+  rejecter  User? @relation("rejectedBalanceAdjustments", fields: [rejectedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([requestedBy, createdAt])
+  @@index([status, createdAt])
+  @@index([direction, status, createdAt])
+  @@index([ticketId])
+}
+
+// ── Financial Policy & Audit Engine ──
+
+model SupportLimitUsage {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  staffUserId     String
+  dayKey          String   // YYYY-MM-DD in Europe/Moscow (MSK)
+  direction       String   // CREDIT | DEBIT | ALL
+  amountCents     BigInt   @default(0)
+  operationsCount Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([staffUserId, dayKey, direction])
+  @@index([staffUserId, dayKey])
+  @@index([tenantId, dayKey])
+}
+
+model SupportHourlyUsage {
+  id              String   @id @default(cuid())
+  tenantId        String?  @default("smmplan")
+  staffUserId     String
+  hourKey         String   // YYYY-MM-DDTHH in Europe/Moscow (MSK)
+  direction       String   // CREDIT | DEBIT | ALL
+  amountCents     BigInt   @default(0)
+  operationsCount Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([staffUserId, hourKey, direction])
+  @@index([staffUserId, hourKey])
+  @@index([tenantId, hourKey])
+}
+
+model LegalDocumentVersion {
+  id            String   @id @default(cuid())
+  tenantId      String   @default("smmplan")
+  type          String   // SUPPORT_FINANCIAL_RESPONSIBILITY, NDA, PRIVACY, TOS
+  version       String
+  title         String
+  contentHash   String
+  isActive      Boolean  @default(true)
+  effectiveAt   DateTime @default(now())
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  consents      EmployeeResponsibilityConsent[]
+
+  @@unique([type, version])
+  @@index([type, isActive])
+  @@index([tenantId])
+}
+
+model EmployeeResponsibilityConsent {
+  id                  String   @id @default(cuid())
+  userId              String
+  tenantId            String   @default("smmplan")
+  documentVersionId   String?
+  documentVersionText String   @default("1.0")
+  documentHash        String
+  acceptedAt          DateTime @default(now())
+  acceptedIp          String?
+  acceptedUserAgent   String?
+  status              String   @default("ACTIVE") // ACTIVE | SUPERSEDED | REVOKED
+  createdAt           DateTime @default(now())
+
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  documentVersion     LegalDocumentVersion? @relation(fields: [documentVersionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([documentVersionId])
+  @@index([tenantId])
+}
+
+model SupportFinancialAction {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  staffUserId     String
+  targetUserId    String
+  direction       String   // CREDIT | DEBIT
+  source          String   // SUPPORT_COMPENSATION | BALANCE_REQUEST | DIRECT_ADJUSTMENT | TICKET_REFUND | ORDER_REFUND
+  amountCents     BigInt
+  reasonCode      String
+  reasonNote      String
+  ticketId        String?
+  orderId         String?
+  paymentId       String?
+  policyId        String?
+  policySnapshot  Json?
+  idempotencyKey  String   @unique
+  status          String   // INITIATED | EXECUTED | REJECTED | QUARANTINE | FAILED | REVIEW_REQUIRED
+  ledgerEntryId   String?
+  consentId       String?
+  reviewStatus    String   @default("PENDING") // PENDING | REVIEWED | FLAGGED | VIOLATION | APPROVED
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNote      String?
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  staff           User     @relation("staffFinancialActions", fields: [staffUserId], references: [id], onDelete: Restrict)
+  target          User     @relation("targetFinancialActions", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@index([staffUserId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@index([ticketId])
+  @@index([orderId])
+  @@index([reviewStatus])
+  @@index([status])
+  @@index([tenantId, createdAt])
+}
+
+model ApiRequestLog {
+  id          String   @id @default(cuid())
+  apiKeyHash  String   @map("api_key_hash")
+  action      String
+  params      Json?
+  httpStatus  Int      @map("http_status")
+  latencyMs   Int      @map("latency_ms")
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([apiKeyHash, createdAt])
+  @@index([createdAt])
+  @@map("api_request_log")
+}
+
+model StaffShift {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation("UserStaffShifts", fields: [userId], references: [id], onDelete: Cascade)
+  date             DateTime // Day of the shift at 00:00:00 UTC
+  shiftType        String   @default("DAY") // "DAY" (09:00-21:00), "NIGHT" (21:00-09:00), "CUSTOM"
+  status           String   @default("PLANNED") // "PLANNED", "COMPLETED", "SWAPPED", "VACATION", "SICK", "DAY_OFF"
+  
+  // Shift Swap Tracking
+  substituteUserId String?
+  substituteUser   User?    @relation("ShiftSubstitute", fields: [substituteUserId], references: [id], onDelete: SetNull)
+  substituteHours  Float    @default(0) // 0 = полная смена (12ч), > 0 = часы частичной подмены
+  
+  // Payroll calculation
+  rateRubles       Float    @default(2500)
+  bonusRubles      Float    @default(0)
+  penaltyRubles    Float    @default(0)
+  notes            String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, date, shiftType])
+  @@index([date, status])
+  @@index([userId, date])
+}
+
+model PiiAccessLog {
+  id         String   @id @default(cuid())
+  staffId    String
+  staffEmail String
+  action     String   // 'view-client', 'view-payment-detail', 'export-csv', etc.
+  targetId   String   // client ID / order ID / payment ID
+  targetType String   // 'client' | 'order' | 'payment'
+  fields     String[] // ['email', 'phone', 'address', 'inn']
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([staffId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model ProviderServiceBackup {
+  id                String   @id @default(cuid())
+  serviceId         String   @map("service_id")
+  primaryProviderId String   @map("primary_provider_id")
+  backupProviderId  String   @map("backup_provider_id")
+  backupExternalId  String?  @map("backup_external_id")
+  priority          Int      @default(1)
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@unique([serviceId, backupProviderId])
+  @@index([serviceId, priority])
+  @@map("provider_service_backup")
+}
+
+model LedgerPeriod {
+  id        String        @id @default(cuid())
+  month     String        @unique // e.g. "2026-08"
+  startDate DateTime      @map("start_date")
+  endDate   DateTime      @map("end_date")
+  frozen    Boolean       @default(false)
+  frozenAt  DateTime?     @map("frozen_at")
+  frozenBy  String?       @map("frozen_by")
+  entries   LedgerEntry[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ledger_period")
+}
+
+model RevenueRecognition {
+  id             String    @id @default(cuid())
+  orderId        String    @unique @map("order_id")
+  amount         BigInt    // Amount in Kopecks
+  recognizedAt   DateTime  @default(now()) @map("recognized_at")
+  reversed       Boolean   @default(false)
+  reversedAt     DateTime? @map("reversed_at")
+  reversalReason String?   @map("reversal_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("revenue_recognition")
+}
+
+model ReconciliationReport {
+  id              String   @id @default(cuid())
+  date            DateTime
+  bankTotal       BigInt   @map("bank_total")
+  dbTotal         BigInt   @map("db_total")
+  ledgerTotal     BigInt   @map("ledger_total")
+  deltaBankVsDb   BigInt   @map("delta_bank_vs_db")
+  deltaDbVsLedger BigInt   @map("delta_db_vs_ledger")
+  status          String   @default("OK") // OK, MISMATCH
+  details         Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([date])
+  @@map("reconciliation_report")
+}
+
+// ── Telegram Enterprise Models & Bot Constructor ──
+
+enum TelegramBotRole {
+  STORE_FULL        // Магазин SMM (Каталог, заказы, пополнение, профиль)
+  SUPPORT_ONLY      // Только поддержка (Тикеты, диалог с саппортом, CSAT, FAQ)
+  NEWS_BROADCAST    // Новости и рассылки (Канал, акции, промокоды)
+  STAFF_ADMIN       // Пульт для сотрудников (DevOps, статус контейнеров, алерты)
+  CUSTOM_BUILDER    // Свободный конструктор (Кастомные сценарии и флоу)
+}
+
+model TelegramBotInstance {
+  id              String          @id @default(cuid())
+  tenantId        String          @default("smmplan")
+  name            String          // Понятное название ("Бот поддержки SMMplan")
+  username        String?         // Юзернейм бота без @ ("smmplan_support_bot")
+  tokenEncrypted  String          // AES-256-GCM шифрованный токен (VaultService)
+  role            TelegramBotRole @default(CUSTOM_BUILDER)
+  description     String?         // Описание назначения бота
+  isActive        Boolean         @default(true)
+  maintenanceMode Boolean         @default(false)
+  welcomeMessage  String?         // Текст приветствия /start
+  menuConfig      Json?           // Сетка кнопок нижнего меню (TelegramMenuButton[])
+  templates       Json?           // Кастомные шаблоны сообщений
+  flowConfig      Json?           // Сценарии и цепочки шагов конструктора (BotFlowStep[])
+  allowedUserIds  String?         // JSON array Telegram ID для роли STAFF_ADMIN
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([tenantId])
+  @@index([role])
+  @@index([isActive])
+}
+
+model TelegramButton {
+  id           String   @id @default(cuid())
+  tenantId     String   @default("smmplan")
+  label        String
+  emoji        String   @default("")
+  command      String
+  description  String   @default("")
+  row          Int      @default(0)
+  col          Int      @default(0)
+  sortOrder    Int      @default(0)
+  isVisible    Boolean  @default(true)
+  isNew        Boolean  @default(false)
+  requiresAuth Boolean  @default(false)
+  openUrl      String?
+  style        String   @default("default") // default | primary | danger
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([sortOrder])
+}
+
+model TelegramTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String   @default("smmplan")
+  name        String
+  slug        String
+  description String   @default("")
+  body        String
+  parseMode   String   @default("HTML") // HTML | Markdown | MarkdownV2
+  category    String   @default("general") // general | order | payment | support | notification | error
+  variables   String   @default("[]") // JSON array of variable names
+  isActive    Boolean  @default(true)
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([slug, tenantId])
+  @@index([tenantId])
+  @@index([category])
+  @@index([slug])
+}
+
+model TelegramProxy {
+  id                String    @id @default(cuid())
+  tenantId          String    @default("smmplan")
+  label             String
+  protocol          String    @default("socks5") // socks5 | socks5h | http | https
+  host              String
+  port              Int
+  username          String?
+  passwordEncrypted String?   // AES-256-GCM encrypted
+  isActive          Boolean   @default(false)
+  lastTestAt        DateTime?
+  lastTestLatencyMs Int?
+  lastTestSuccess   Boolean?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model TelegramErrorLog {
+  id              String    @id @default(cuid())
+  tenantId        String    @default("smmplan")
+  level           String    @default("ERROR") // ERROR | WARN | FATAL
+  source          String    // webhook | polling | command | callback_query | scene
+  errorCode       String?   // Telegram API error code
+  errorMessage    String
+  stackTrace      String?
+  updateData      String?   // JSON: raw Telegram update for debugging
+  userId          String?   // affected user if any
+  chatId          String?
+  isResolved      Boolean   @default(false)
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  occurrenceCount Int       @default(1)
+  firstSeenAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([level])
+  @@index([source])
+  @@index([isResolved])
+  @@index([lastSeenAt])
+  @@index([errorCode])
+}
+
+model TelegramDailyStat {
+  id               String   @id @default(cuid())
+  tenantId         String   @default("smmplan")
+  date             DateTime @db.Date
+  messagesReceived Int      @default(0)
+  messagesSent     Int      @default(0)
+  commandsHandled  Int      @default(0)
+  callbacksHandled Int      @default(0)
+  newUsers         Int      @default(0)
+  ordersCreated    Int      @default(0)
+  ticketsCreated   Int      @default(0)
+  errorsCount      Int      @default(0)
+  avgLatencyMs     Int?
+  p99LatencyMs     Int?
+  createdAt        DateTime @default(now())
+
+  @@unique([date, tenantId])
+  @@index([tenantId])
+  @@index([date])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SERVICES LIFECYCLE MANAGEMENT & ACCESS CONTROL (Enterprise Wave)
+// ═══════════════════════════════════════════════════════════════════
+
+model CustomerGroup {
+  id              String                  @id @default(cuid())
+  name            String
+  slug            String
+  description     String?
+  tenantId        String                  @default("smmplan")
+  isDefault       Boolean                 @default(false)
+  discountPercent Float                   @default(0.0)
+  users           User[]                  @relation("CustomerGroupUsers")
+  serviceAccess   ServiceCustomerAccess[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model ServiceCustomerAccess {
+  id              String        @id @default(cuid())
+  serviceId       String
+  customerGroupId String
+  isCustomPrice   Boolean       @default(false)
+  customPriceRub  Float?
+  service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  customerGroup   CustomerGroup @relation(fields: [customerGroupId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([serviceId, customerGroupId])
+  @@index([serviceId])
+  @@index([customerGroupId])
+}
+
+model ServiceDraft {
+  id                  String               @id @default(cuid())
+  serviceId           String?              @unique
+  providerId          String?
+  externalId          String?
+  tenantId            String               @default("smmplan")
+  name                String
+  cleanName           String?
+  description         String?
+  categoryId          String?
+  targetType          String               @default("POST")
+  status              String               @default("DRAFT") // DRAFT, TESTING, PUBLISHED, ARCHIVED
+  procurementRate     Float                @default(0.0)
+  procurementCurrency String               @default("USD")
+  markup              Float                @default(3.0)
+  retailPriceRub      Float                @default(0.0)
+  minQty              Int                  @default(10)
+  maxQty              Int                  @default(100000)
+  validationStatus    String               @default("PENDING") // PENDING, PASSED, FAILED
+  linkCheckStatus     String               @default("UNCHECKED") // UNCHECKED, VALID, INVALID, TIMEOUT
+  payload             Json?
+  adminId             String?
+  service             Service?             @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  editHistory         ServiceEditHistory[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([status])
+  @@index([tenantId])
+  @@index([providerId, externalId])
+}
+
+model ServiceLinkCheck {
+  id             String    @id @default(cuid())
+  serviceId      String?
+  targetType     String
+  testUrl        String
+  isSuccess      Boolean   @default(false)
+  statusCode     Int?
+  responseTimeMs Int?
+  errorMessage   String?
+  checkedBy      String?
+  service        Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  checkedAt      DateTime  @default(now())
+
+  @@index([serviceId])
+  @@index([targetType])
+  @@index([checkedAt])
+}
+
+model ServiceEditHistory {
+  id         String        @id @default(cuid())
+  serviceId  String?
+  draftId    String?
+  adminId    String?
+  adminEmail String?
+  changeType String        @default("UPDATE") // CREATE, UPDATE, STATUS_CHANGE, PRICE_CHANGE, PUBLISH, ARCHIVE
+  field      String?
+  oldValue   String?
+  newValue   String?
+  comment    String?
+  ipAddress  String?
+  service    Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  draft      ServiceDraft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+  createdAt  DateTime      @default(now())
+
+  @@index([serviceId])
+  @@index([draftId])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// AI ECONOMIC OPTIMIZATION & SENTINEL CX MODELS (Stages 2, 3, 4, 5)
+// ============================================================================
+
+enum OptimizationSnapshotStatus {
+  GENERATED
+  APPLIED
+  PARTIALLY_APPLIED
+  REJECTED
+  EXPIRED
+  ARCHIVED
+}
+
+enum RecommendationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPLIED
+}
+
+model EconomicOptimizationSnapshot {
+  id                   String                     @id @default(cuid())
+  tenantId             String                     @default("smmplan")
+  analyzedPeriodDays   Int                        @default(30)
+  totalLeakageRub      Float                      @default(0.0)
+  leakingServicesCount Int                        @default(0)
+  executiveSummary     String                     @db.Text
+  toolExecutionTrace   Json?                      // Full audit trace of tool calls and invariant metrics
+  status               OptimizationSnapshotStatus @default(GENERATED)
+  appliedBy            String?                    // User.id of operator who executed bulk apply
+  appliedAt            DateTime?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  recommendations      AiPricingRecommendation[]
+  appliedByUser        User?                      @relation("AppliedOptimizationSnapshots", fields: [appliedBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([appliedBy])
+}
+
+model AiPricingRecommendation {
+  id                      String                       @id @default(cuid())
+  snapshotId              String
+  snapshot                EconomicOptimizationSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  serviceId               String
+  service                 Service                      @relation("ServiceAiRecommendations", fields: [serviceId], references: [id], onDelete: Cascade)
+  currentPriceRub         Float
+  proposedPriceRub        Float
+  currentMarkup           Float
+  proposedMarkup          Float
+  projectedMonthlyGainRub Float                        @default(0.0)
+  confidenceScore         Float                        @default(1.0)
+  status                  RecommendationStatus         @default(PENDING)
+  rejectionReason         String?
+  appliedAt               DateTime?
+  createdAt               DateTime                     @default(now())
+  updatedAt               DateTime                     @updatedAt
+
+  @@index([snapshotId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([confidenceScore])
+  @@index([snapshotId, status])
+}
+
+model SlaTelemetrySnapshot {
+  id                 String   @id @default(cuid())
+  providerId         String
+  serviceId          String?
+  p50Seconds         Int
+  p90Seconds         Int
+  p99Seconds         Int
+  sampleCount        Int
+  isDegraded         Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  @@index([providerId, createdAt(sort: Desc)])
+  @@index([createdAt])
+}
+
+model OrderRecoveryIncident {
+  id                 String   @id @default(cuid())
+  orderId            String
+  userId             String
+  originalProviderId String
+  swappedProviderId  String
+  absorbedDeltaCents BigInt   @default(0)
+  reason             String
+  status             String   @default("EXECUTED")
+  createdAt          DateTime @default(now())
+
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CxApologyCompensation {
+  id          String   @id @default(cuid())
+  userId      String
+  orderId     String
+  amountCents BigInt
+  reason      String
+  status      String   @default("GRANTED")
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([status])
+}
+
+model PreLaunchLead {
+  id          String    @id @default(cuid())
+  email       String
+  tenantId    String    @default("smmplan")
+  ipHash      String?
+  source      String    @default("holding_page")
+  isNotified  Boolean   @default(false)
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([email, tenantId])
+  @@index([tenantId, createdAt])
+}

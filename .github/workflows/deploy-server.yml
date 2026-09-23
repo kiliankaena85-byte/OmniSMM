@@ -1,0 +1,138 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+      restart_all:
+        description: 'Restart all containers (including db/redis)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy Docker Containers
+    runs-on: self-hosted
+    timeout-minutes: 20
+
+    steps:
+      - name: Announce Deployment Start
+        shell: powershell
+        run: |
+          Write-Host "=========================================="
+          Write-Host "🚀 Starting SMMplan Server Deployment"
+          Write-Host "Host: $env:COMPUTERNAME"
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+          Write-Host "=========================================="
+
+      - name: Synchronize Repository
+        shell: powershell
+        run: |
+          Set-Location "C:\Users\Shadow\Documents\SMM"
+          $targetBranch = "${{ github.event.inputs.branch }}"
+          if ([string]::IsNullOrWhiteSpace($targetBranch)) {
+            $targetBranch = "main"
+          }
+          Write-Host "Fetching latest changes for branch: $targetBranch..."
+          git fetch origin $targetBranch
+          git checkout $targetBranch
+          git pull origin $targetBranch
+          Write-Host "Current Commit: $(git rev-parse --short HEAD)"
+
+      - name: Install & Audit Dependencies
+        shell: powershell
+        run: |
+          Set-Location "C:\Users\Shadow\Documents\SMM"
+          Write-Host "Checking dependency integrity..."
+          node scripts/check-bundle-secrets.mjs
+
+      - name: Build Next.js & Service Artifacts on Host
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Set-Location "C:\Users\Shadow\Documents\SMM"
+          Write-Host "Running Host Standalone Build (Next.js 16 Webpack + Bot + Worker)..."
+          npm run build
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Build failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+
+      - name: Deploy Docker Containers
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Set-Location "C:\Users\Shadow\Documents\SMM"
+          $restartAll = "${{ github.event.inputs.restart_all }}"
+          
+          if ($restartAll -eq "true") {
+            Write-Host "Full Docker restart requested..."
+            docker compose up -d --build
+          } else {
+            Write-Host "Deploying web, worker, and bot containers..."
+            docker compose up -d --build web worker bot
+          }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Docker compose failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+
+      - name: Healthcheck & Smoke Verification
+        shell: powershell
+        run: |
+          Write-Host "Waiting for containers to stabilize (15s)..."
+          Start-Sleep -Seconds 15
+          
+          $maxRetries = 6
+          $retry = 0
+          $healthy = $false
+          
+          while ($retry -lt $maxRetries -and -not $healthy) {
+            $retry++
+            Write-Host "Checking http://127.0.0.1:3000/api/health (Attempt $retry of $maxRetries)..."
+            try {
+              $response = Invoke-RestMethod -Uri "http://127.0.0.1:3000/api/health" -TimeoutSec 5 -ErrorAction Stop
+              if ($response.status -eq "healthy") {
+                Write-Host "Local Healthcheck: 🟢 HEALTHY"
+                $healthy = $true
+              } else {
+                Write-Host "Healthcheck status: $($response.status)"
+              }
+            } catch {
+              Write-Host "Healthcheck not ready yet: $($_.Exception.Message)"
+              Start-Sleep -Seconds 5
+            }
+          }
+          
+          if (-not $healthy) {
+            Write-Error "CRITICAL: Healthcheck failed after $maxRetries attempts!"
+            exit 1
+          }
+          
+          Write-Host "Verifying Tailscale Funnel..."
+          try {
+            $tsRes = Invoke-RestMethod -Uri "https://smmplan.tailbb9d28.ts.net/api/health" -TimeoutSec 5 -ErrorAction SilentlyContinue
+            Write-Host "Tailscale Funnel Health: 🟢 $($tsRes.status)"
+          } catch {
+            Write-Host "Tailscale check notice: $($_.Exception.Message)"
+          }
+
+      - name: Deployment Summary
+        shell: powershell
+        run: |
+          Write-Host "=========================================="
+          Write-Host "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
+          Write-Host "Site is live at: https://smmplan.tailbb9d28.ts.net"
+          Write-Host "Local instance:  http://127.0.0.1:3000"
+          Write-Host "=========================================="

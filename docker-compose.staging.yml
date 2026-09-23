@@ -1,0 +1,139 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smmplan_staging_db
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-smmplan_staging}
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: smmplan_staging_redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD:-staging_redis_secret} --save 60 1 --loglevel warning
+    volumes:
+      - staging_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=${REDIS_PASSWORD:-staging_redis_secret} redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smmplan_staging_app:latest
+    container_name: smmplan_staging_app
+    restart: always
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-smmplan_staging}?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-staging_redis_secret}@redis:6379
+      - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY}
+      - ADMIN_ALERT_BOT_TOKEN=${ADMIN_ALERT_BOT_TOKEN}
+      - ADMIN_ALERT_CHAT_ID=${ADMIN_ALERT_CHAT_ID}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - BASE_URL=${BASE_URL}
+      - YOOKASSA_SHOP_ID=${YOOKASSA_SHOP_ID:-${YOO_SHOP_ID}}
+      - YOOKASSA_SECRET_KEY=${YOOKASSA_SECRET_KEY:-${YOO_SECRET_KEY}}
+      - YOOKASSA_WEBHOOK_SECRET=${YOOKASSA_WEBHOOK_SECRET}
+      - CRYPTO_BOT_TOKEN=${CRYPTO_BOT_TOKEN:-${CRYPTOBOT_TOKEN}}
+      - CRON_SECRET=${CRON_SECRET}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: bot-runner
+    image: smmplan_staging_bot:latest
+    container_name: smmplan_staging_bot
+    restart: unless-stopped
+    command: ["node", "bot.js"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-smmplan_staging}?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-staging_redis_secret}@redis:6379
+      - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ADMIN_ALERT_BOT_TOKEN=${ADMIN_ALERT_BOT_TOKEN}
+      - ADMIN_ALERT_CHAT_ID=${ADMIN_ALERT_CHAT_ID}
+      - CRON_SECRET=${CRON_SECRET}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-staging_redis_secret}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const r=require('ioredis');const c=new r({host:'redis',password:process.env.REDIS_PASSWORD});c.exists('bot:heartbeat').then(v=>{c.quit();process.exit(v?0:1)}).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker-runner
+    image: smmplan_staging_worker:latest
+    container_name: smmplan_staging_worker
+    restart: always
+    command: ["node", "worker.js"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-smmplan_staging}?schema=public&connection_limit=5&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-staging_redis_secret}@redis:6379
+      - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+volumes:
+  staging_postgres_data:
+  staging_redis_data:

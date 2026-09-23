@@ -1,0 +1,10 @@
+id: no-use-server-in-page
+language: typescript
+message: "КАТЕГОРИЧЕСКАЯ ОШИБКА (Next.js 16): Директива 'use server' внутри page.tsx запрещена! Выносите Server Actions строго в src/actions/."
+severity: error
+rule:
+  all:
+    - inside:
+        pattern: export default function $PAGE($$$) { $$$ }
+    - has:
+        pattern: '"use server"'

@@ -1,0 +1,94 @@
+{
+  "color": {
+    "blue": {
+      "50":  { "$value": "#eff6ff", "$type": "color" },
+      "100": { "$value": "#dbeafe", "$type": "color" },
+      "200": { "$value": "#bfdbfe", "$type": "color" },
+      "300": { "$value": "#93c5fd", "$type": "color" },
+      "400": { "$value": "#60a5fa", "$type": "color" },
+      "500": { "$value": "#3b82f6", "$type": "color" },
+      "600": { "$value": "#2563eb", "$type": "color" },
+      "700": { "$value": "#1d4ed8", "$type": "color" },
+      "800": { "$value": "#1e40af", "$type": "color" },
+      "900": { "$value": "#1e3a8a", "$type": "color" }
+    },
+    "neutral": {
+      "0":   { "$value": "#ffffff", "$type": "color" },
+      "50":  { "$value": "#f9fafb", "$type": "color" },
+      "100": { "$value": "#f3f4f6", "$type": "color" },
+      "200": { "$value": "#e5e7eb", "$type": "color" },
+      "300": { "$value": "#d1d5db", "$type": "color" },
+      "400": { "$value": "#9ca3af", "$type": "color" },
+      "500": { "$value": "#6b7280", "$type": "color" },
+      "600": { "$value": "#4b5563", "$type": "color" },
+      "700": { "$value": "#374151", "$type": "color" },
+      "800": { "$value": "#1f2937", "$type": "color" },
+      "900": { "$value": "#111827", "$type": "color" },
+      "950": { "$value": "#030712", "$type": "color" }
+    },
+    "green": {
+      "500": { "$value": "#22c55e", "$type": "color" },
+      "600": { "$value": "#16a34a", "$type": "color" }
+    },
+    "red": {
+      "500": { "$value": "#ef4444", "$type": "color" },
+      "600": { "$value": "#dc2626", "$type": "color" }
+    },
+    "yellow": {
+      "500": { "$value": "#eab308", "$type": "color" },
+      "600": { "$value": "#ca8a04", "$type": "color" }
+    }
+  },
+  "space": {
+    "1":  { "$value": "4px",  "$type": "dimension" },
+    "2":  { "$value": "8px",  "$type": "dimension" },
+    "3":  { "$value": "12px", "$type": "dimension" },
+    "4":  { "$value": "16px", "$type": "dimension" },
+    "5":  { "$value": "20px", "$type": "dimension" },
+    "6":  { "$value": "24px", "$type": "dimension" },
+    "8":  { "$value": "32px", "$type": "dimension" },
+    "10": { "$value": "40px", "$type": "dimension" },
+    "12": { "$value": "48px", "$type": "dimension" },
+    "16": { "$value": "64px", "$type": "dimension" }
+  },
+  "radius": {
+    "sm":   { "$value": "4px",  "$type": "dimension" },
+    "md":   { "$value": "8px",  "$type": "dimension" },
+    "lg":   { "$value": "12px", "$type": "dimension" },
+    "xl":   { "$value": "16px", "$type": "dimension" },
+    "full": { "$value": "9999px", "$type": "dimension" }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": { "$value": "Inter, system-ui, sans-serif", "$type": "fontFamily" },
+      "mono": { "$value": "JetBrains Mono, monospace", "$type": "fontFamily" }
+    },
+    "fontSize": {
+      "xs": { "$value": "12px", "$type": "dimension" },
+      "sm": { "$value": "14px", "$type": "dimension" },
+      "base": { "$value": "16px", "$type": "dimension" },
+      "lg": { "$value": "18px", "$type": "dimension" },
+      "xl": { "$value": "20px", "$type": "dimension" },
+      "2xl": { "$value": "24px", "$type": "dimension" },
+      "3xl": { "$value": "30px", "$type": "dimension" },
+      "4xl": { "$value": "36px", "$type": "dimension" }
+    },
+    "fontWeight": {
+      "normal": { "$value": "400", "$type": "fontWeight" },
+      "medium": { "$value": "500", "$type": "fontWeight" },
+      "semibold": { "$value": "600", "$type": "fontWeight" },
+      "bold": { "$value": "700", "$type": "fontWeight" }
+    },
+    "lineHeight": {
+      "tight":  { "$value": "1.25", "$type": "number" },
+      "normal": { "$value": "1.5",  "$type": "number" },
+      "relaxed":{ "$value": "1.75", "$type": "number" }
+    }
+  },
+  "shadow": {
+    "sm":  { "$value": "0 1px 2px rgba(0,0,0,0.05)", "$type": "shadow" },
+    "md":  { "$value": "0 4px 6px rgba(0,0,0,0.07)", "$type": "shadow" },
+    "lg":  { "$value": "0 10px 15px rgba(0,0,0,0.1)", "$type": "shadow" },
+    "xl":  { "$value": "0 20px 25px rgba(0,0,0,0.1)", "$type": "shadow" }
+  }
+}

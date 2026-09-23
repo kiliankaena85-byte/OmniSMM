@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/mcp-servers.json",
+  "version": "2026.1",
+  "servers": {
+    "layout-sentry": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "scripts/ui/layout-mcp-server.ts"],
+      "enabled": true,
+      "tier": "LEVEL_2_VISUAL",
+      "description": "Автономный аудит и исправление вёрстки, DOM-вложенности и переполнений"
+    },
+    "puppeteer-visual": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "enabled": true,
+      "tier": "LEVEL_2_VISUAL",
+      "description": "Headless Chromium агент для мобильных скриншотов и DOM-замеров"
+    },
+    "typescript-lsp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-typescript"],
+      "enabled": true,
+      "tier": "LEVEL_1_TYPES",
+      "description": "Language Server Protocol для строгой проверки типов и защиты от галлюцинаций"
+    },
+    "graphrag-memory": {
+      "type": "http",
+      "url": "http://127.0.0.1:8100/api/mcp",
+      "enabled": true,
+      "tier": "LEVEL_1_TYPES",
+      "description": "Долговременная графовая память архитектурных решений (ADR)"
+    },
+    "git-sentinel": {
+      "type": "stdio",
+      "command": "git",
+      "args": ["status", "--porcelain"],
+      "enabled": true,
+      "tier": "LEVEL_3_DEVOPS",
+      "description": "Контроль состояния рабочего дерева и атомарности коммитов"
+    }
+  }
+}

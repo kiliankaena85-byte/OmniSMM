@@ -1,0 +1,48 @@
+{
+  "color": {
+    "action": {
+      "primary":        { "$value": "{color.blue.500}",  "$type": "color" },
+      "primary-hover":  { "$value": "{color.blue.600}",  "$type": "color" },
+      "secondary":      { "$value": "{color.neutral.100}", "$type": "color" },
+      "secondary-hover":{ "$value": "{color.neutral.200}", "$type": "color" },
+      "destructive":    { "$value": "{color.red.500}",   "$type": "color" },
+      "destructive-hover":{ "$value": "{color.red.600}", "$type": "color" }
+    },
+    "surface": {
+      "primary":   { "$value": "{color.neutral.0}",   "$type": "color" },
+      "secondary": { "$value": "{color.neutral.50}",  "$type": "color" },
+      "elevated":  { "$value": "{color.neutral.0}",   "$type": "color" },
+      "overlay":   { "$value": "rgba(0,0,0,0.5)",     "$type": "color" }
+    },
+    "text": {
+      "primary":   { "$value": "{color.neutral.900}", "$type": "color" },
+      "secondary": { "$value": "{color.neutral.500}", "$type": "color" },
+      "tertiary":  { "$value": "{color.neutral.400}", "$type": "color" },
+      "inverse":   { "$value": "{color.neutral.0}",   "$type": "color" }
+    },
+    "feedback": {
+      "success":   { "$value": "{color.green.500}",  "$type": "color" },
+      "warning":   { "$value": "{color.yellow.500}", "$type": "color" },
+      "error":     { "$value": "{color.red.500}",    "$type": "color" },
+      "info":      { "$value": "{color.blue.500}",   "$type": "color" }
+    },
+    "border": {
+      "default": { "$value": "{color.neutral.200}", "$type": "color" },
+      "strong":  { "$value": "{color.neutral.300}", "$type": "color" }
+    }
+  },
+  "space": {
+    "component": {
+      "sm": { "$value": "{space.2}", "$type": "dimension" },
+      "md": { "$value": "{space.4}", "$type": "dimension" },
+      "lg": { "$value": "{space.6}", "$type": "dimension" },
+      "xl": { "$value": "{space.8}", "$type": "dimension" }
+    },
+    "layout": {
+      "sm": { "$value": "{space.4}",  "$type": "dimension" },
+      "md": { "$value": "{space.8}",  "$type": "dimension" },
+      "lg": { "$value": "{space.12}", "$type": "dimension" },
+      "xl": { "$value": "{space.16}", "$type": "dimension" }
+    }
+  }
+}

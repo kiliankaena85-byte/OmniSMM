@@ -1,0 +1,41 @@
+name: Supply Chain Security & SBOM
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *' # Daily at 06:00 UTC
+
+jobs:
+  supply-chain-audit:
+    name: Supply Chain Audit & Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Validate package-lock.json integrity
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "::error::package-lock.json is missing!"
+            exit 1
+          fi
+
+      - name: Install dependencies safely (ignore-scripts)
+        run: npm ci --ignore-scripts=true
+
+      - name: Audit NPM packages for vulnerabilities
+        run: npm audit --audit-level=high --omit=dev
+        continue-on-error: true
+
+      - name: Run custom dependency anomaly audit
+        run: npx tsx scripts/audit-deps.ts

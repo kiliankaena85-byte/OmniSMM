@@ -1,0 +1,124 @@
+﻿
+> smmplan-lite@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.2.6 (webpack)
+- Environments: .env
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.8min
+  Skipping validation of types
+  Finished TypeScript config validation in 40ms ...
+  Collecting page data using 11 workers ...
+prisma:query SELECT "teamwork_reviewer_flow"."Network"."id", "teamwork_reviewer_flow"."Network"."name", "teamwork_reviewer_flow"."Network"."slug", "teamwork_reviewer_flow"."Network"."icon", "teamwork_reviewer_flow"."Network"."sort", "teamwork_reviewer_flow"."Network"."isActive", "teamwork_reviewer_flow"."Network"."createdAt", "teamwork_reviewer_flow"."Network"."updatedAt" FROM "teamwork_reviewer_flow"."Network" WHERE ("teamwork_reviewer_flow"."Network"."isActive" = $1 AND ("teamwork_reviewer_flow"."Network"."id") IN (SELECT "t1"."networkId" FROM "teamwork_reviewer_flow"."Category" AS "t1" WHERE (("t1"."id") IN (SELECT "t2"."categoryId" FROM "teamwork_reviewer_flow"."Service" AS "t2" WHERE ("t2"."isActive" = $2 AND "t2"."categoryId" IS NOT NULL)) AND "t1"."networkId" IS NOT NULL))) ORDER BY "teamwork_reviewer_flow"."Network"."sort" ASC OFFSET $3
+  Generating static pages using 11 workers (0/15) ...
+  Generating static pages using 11 workers (3/15) 
+prisma:query SELECT "teamwork_reviewer_flow"."Article"."id", "teamwork_reviewer_flow"."Article"."slug", "teamwork_reviewer_flow"."Article"."title", "teamwork_reviewer_flow"."Article"."description", "teamwork_reviewer_flow"."Article"."content", "teamwork_reviewer_flow"."Article"."status"::text, "teamwork_reviewer_flow"."Article"."category", "teamwork_reviewer_flow"."Article"."viewCount", "teamwork_reviewer_flow"."Article"."createdAt", "teamwork_reviewer_flow"."Article"."updatedAt", "teamwork_reviewer_flow"."Article"."authorName", "teamwork_reviewer_flow"."Article"."authorRole", "teamwork_reviewer_flow"."Article"."priority" FROM "teamwork_reviewer_flow"."Article" WHERE "teamwork_reviewer_flow"."Article"."status" = CAST($1::text AS "teamwork_reviewer_flow"."ArticleStatus") ORDER BY "teamwork_reviewer_flow"."Article"."createdAt" DESC OFFSET $2
+prisma:query SELECT "teamwork_reviewer_flow"."Article"."id", "teamwork_reviewer_flow"."Article"."category" FROM "teamwork_reviewer_flow"."Article" WHERE "teamwork_reviewer_flow"."Article"."status" = CAST($1::text AS "teamwork_reviewer_flow"."ArticleStatus") OFFSET $2
+prisma:query SELECT "teamwork_reviewer_flow"."SystemSettings"."id", "teamwork_reviewer_flow"."SystemSettings"."isTestMode", "teamwork_reviewer_flow"."SystemSettings"."taxRate", "teamwork_reviewer_flow"."SystemSettings"."usnScheme"::text, "teamwork_reviewer_flow"."SystemSettings"."opexMonthly", "teamwork_reviewer_flow"."SystemSettings"."maintenanceMode", "teamwork_reviewer_flow"."SystemSettings"."siteName", "teamwork_reviewer_flow"."SystemSettings"."siteDescription", "teamwork_reviewer_flow"."SystemSettings"."welcomeMessage", "teamwork_reviewer_flow"."SystemSettings"."yookassaShopId", "teamwork_reviewer_flow"."SystemSettings"."yookassaSecretKey", "teamwork_reviewer_flow"."SystemSettings"."yookassaTestShopId", "teamwork_reviewer_flow"."SystemSettings"."yookassaTestSecretKey", "teamwork_reviewer_flow"."SystemSettings"."cryptoBotToken", "teamwork_reviewer_flow"."SystemSettings"."quarantineThreshold", "teamwork_reviewer_flow"."SystemSettings"."globalMarkup", "teamwork_reviewer_flow"."SystemSettings"."safetyFloor", "teamwork_reviewer_flow"."SystemSettings"."exchangeRateUSD", "teamwork_reviewer_flow"."SystemSettings"."exchangeRateUpdatedAt", "teamwork_reviewer_flow"."SystemSettings"."siteLogoUrl", "teamwork_reviewer_flow"."SystemSettings"."siteFaviconUrl", "teamwork_reviewer_flow"."SystemSettings"."emailProvider", "teamwork_reviewer_flow"."SystemSettings"."resendApiKey", "teamwork_reviewer_flow"."SystemSettings"."smtpHost", "teamwork_reviewer_flow"."SystemSettings"."smtpPort", "teamwork_reviewer_flow"."SystemSettings"."smtpUser", "teamwork_reviewer_flow"."SystemSettings"."smtpPassword", "teamwork_reviewer_flow"."SystemSettings"."supportEmailDomain", "teamwork_reviewer_flow"."SystemSettings"."inboundEmailWebhookSecret", "teamwork_reviewer_flow"."SystemSettings"."robokassaLogin", "teamwork_reviewer_flow"."SystemSettings"."robokassaPassword", "teamwork_reviewer_flow"."SystemSettings"."updatedAt", "teamwork_reviewer_flow"."SystemSettings"."contactSupportEmail", "teamwork_reviewer_flow"."SystemSettings"."contactPrivacyEmail", "teamwork_reviewer_flow"."SystemSettings"."contactTelegramBot", "teamwork_reviewer_flow"."SystemSettings"."contactTelegramChannel", "teamwork_reviewer_flow"."SystemSettings"."contactWhatsApp", "teamwork_reviewer_flow"."SystemSettings"."contactVk", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyName", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyInn", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyOgrnip", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyAddress" FROM "teamwork_reviewer_flow"."SystemSettings" WHERE ("teamwork_reviewer_flow"."SystemSettings"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "teamwork_reviewer_flow"."Network"."id", "teamwork_reviewer_flow"."Network"."name", "teamwork_reviewer_flow"."Network"."slug", "teamwork_reviewer_flow"."Network"."icon", "teamwork_reviewer_flow"."Network"."sort", "teamwork_reviewer_flow"."Network"."isActive", "teamwork_reviewer_flow"."Network"."createdAt", "teamwork_reviewer_flow"."Network"."updatedAt" FROM "teamwork_reviewer_flow"."Network" WHERE ("teamwork_reviewer_flow"."Network"."isActive" = $1 AND ("teamwork_reviewer_flow"."Network"."id") IN (SELECT "t1"."networkId" FROM "teamwork_reviewer_flow"."Category" AS "t1" WHERE (("t1"."id") IN (SELECT "t2"."categoryId" FROM "teamwork_reviewer_flow"."Service" AS "t2" WHERE ("t2"."isActive" = $2 AND "t2"."categoryId" IS NOT NULL)) AND "t1"."networkId" IS NOT NULL))) ORDER BY "teamwork_reviewer_flow"."Network"."sort" ASC OFFSET $3
+prisma:query SELECT "teamwork_reviewer_flow"."SystemSettings"."id", "teamwork_reviewer_flow"."SystemSettings"."isTestMode", "teamwork_reviewer_flow"."SystemSettings"."taxRate", "teamwork_reviewer_flow"."SystemSettings"."usnScheme"::text, "teamwork_reviewer_flow"."SystemSettings"."opexMonthly", "teamwork_reviewer_flow"."SystemSettings"."maintenanceMode", "teamwork_reviewer_flow"."SystemSettings"."siteName", "teamwork_reviewer_flow"."SystemSettings"."siteDescription", "teamwork_reviewer_flow"."SystemSettings"."welcomeMessage", "teamwork_reviewer_flow"."SystemSettings"."yookassaShopId", "teamwork_reviewer_flow"."SystemSettings"."yookassaSecretKey", "teamwork_reviewer_flow"."SystemSettings"."yookassaTestShopId", "teamwork_reviewer_flow"."SystemSettings"."yookassaTestSecretKey", "teamwork_reviewer_flow"."SystemSettings"."cryptoBotToken", "teamwork_reviewer_flow"."SystemSettings"."quarantineThreshold", "teamwork_reviewer_flow"."SystemSettings"."globalMarkup", "teamwork_reviewer_flow"."SystemSettings"."safetyFloor", "teamwork_reviewer_flow"."SystemSettings"."exchangeRateUSD", "teamwork_reviewer_flow"."SystemSettings"."exchangeRateUpdatedAt", "teamwork_reviewer_flow"."SystemSettings"."siteLogoUrl", "teamwork_reviewer_flow"."SystemSettings"."siteFaviconUrl", "teamwork_reviewer_flow"."SystemSettings"."emailProvider", "teamwork_reviewer_flow"."SystemSettings"."resendApiKey", "teamwork_reviewer_flow"."SystemSettings"."smtpHost", "teamwork_reviewer_flow"."SystemSettings"."smtpPort", "teamwork_reviewer_flow"."SystemSettings"."smtpUser", "teamwork_reviewer_flow"."SystemSettings"."smtpPassword", "teamwork_reviewer_flow"."SystemSettings"."supportEmailDomain", "teamwork_reviewer_flow"."SystemSettings"."inboundEmailWebhookSecret", "teamwork_reviewer_flow"."SystemSettings"."robokassaLogin", "teamwork_reviewer_flow"."SystemSettings"."robokassaPassword", "teamwork_reviewer_flow"."SystemSettings"."updatedAt", "teamwork_reviewer_flow"."SystemSettings"."contactSupportEmail", "teamwork_reviewer_flow"."SystemSettings"."contactPrivacyEmail", "teamwork_reviewer_flow"."SystemSettings"."contactTelegramBot", "teamwork_reviewer_flow"."SystemSettings"."contactTelegramChannel", "teamwork_reviewer_flow"."SystemSettings"."contactWhatsApp", "teamwork_reviewer_flow"."SystemSettings"."contactVk", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyName", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyInn", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyOgrnip", "teamwork_reviewer_flow"."SystemSettings"."legalCompanyAddress" FROM "teamwork_reviewer_flow"."SystemSettings" WHERE ("teamwork_reviewer_flow"."SystemSettings"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+  Generating static pages using 11 workers (7/15) 
+  Generating static pages using 11 workers (11/15) 
+✓ Generating static pages using 11 workers (15/15) in 1596ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)                                    Revalidate  Expire
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /academy
+├ ƒ /academy/[slug]
+├ ƒ /admin
+├ ƒ /admin/analytics
+├ ƒ /admin/catalog
+├ ƒ /admin/catalog/categories
+├ ƒ /admin/catalog/enrichment
+├ ƒ /admin/catalog/quarantine
+├ ƒ /admin/clients
+├ ƒ /admin/clients/[id]
+├ ƒ /admin/cms
+├ ƒ /admin/cms/[id]
+├ ƒ /admin/cms/new
+├ ƒ /admin/dashboard
+├ ƒ /admin/finance
+├ ƒ /admin/finance/payments/[id]/dispute-pack
+├ ƒ /admin/knowledge
+├ ƒ /admin/knowledge/[id]/edit
+├ ƒ /admin/knowledge/create
+├ ƒ /admin/marketing
+├ ƒ /admin/orders
+├ ƒ /admin/pages
+├ ƒ /admin/pages/[slug]
+├ ƒ /admin/providers
+├ ƒ /admin/providers/[id]
+├ ƒ /admin/providers/import
+├ ƒ /admin/providers/new
+├ ƒ /admin/refills
+├ ƒ /admin/services/[id]/routing
+├ ƒ /admin/settings
+├ ƒ /admin/smart
+├ ƒ /admin/system/features
+├ ƒ /admin/tickets
+├ ƒ /admin/tickets/[id]
+├ ƒ /api/admin/export
+├ ƒ /api/analytics
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/verify
+├ ƒ /api/cron/sync-cbr
+├ ƒ /api/cron/sync-orders
+├ ƒ /api/debug
+├ ƒ /api/dev/mock-payment
+├ ƒ /api/dev/mock-provider
+├ ƒ /api/dev/sandbox/yookassa
+├ ƒ /api/dev/test-checkout
+├ ƒ /api/dev/test-magic-link
+├ ƒ /api/draft
+├ ƒ /api/draft/disable
+├ ƒ /api/health
+├ ƒ /api/media/[...path]
+├ ƒ /api/order-status
+├ ƒ /api/support/chat/stream
+├ ƒ /api/support/messages
+├ ƒ /api/support/telegram
+├ ƒ /api/support/upload
+├ ƒ /api/v2
+├ ƒ /api/webhooks/crypto
+├ ƒ /api/webhooks/inbound-email
+├ ƒ /api/webhooks/provider
+├ ƒ /api/webhooks/robokassa
+├ ƒ /api/webhooks/vexboost
+├ ƒ /api/webhooks/yookassa
+├ ƒ /dashboard
+├ ƒ /dashboard/add-funds
+├ ƒ /dashboard/new-order
+├ ƒ /dashboard/orders
+├ ƒ /dashboard/orders/[id]
+├ ƒ /dashboard/referrals
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/settings/api
+├ ƒ /dashboard/smart-drip
+├ ƒ /dashboard/tickets
+├ ƒ /dashboard/tickets/[id]
+├ ƒ /dashboard/transactions
+├ ƒ /knowledge
+├ ƒ /knowledge/[slug]
+├ ƒ /legal/[slug]
+├ ƒ /login
+├ ƒ /p/[slug]
+├ ○ /services                                          1h      1y
+├ ƒ /services/[network]
+├ ● /services/[network]/[category]
+├ ○ /success
+├ ƒ /support
+└ ƒ /support/payment-error
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

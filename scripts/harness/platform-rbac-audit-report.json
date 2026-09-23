@@ -1,0 +1,2383 @@
+{
+  "timestamp": "2026-08-31T03:33:48.585Z",
+  "adminPages": [
+    {
+      "route": "/admin/analytics",
+      "file": "src/app/admin/analytics/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "analytics"
+    },
+    {
+      "route": "/admin/catalog/categories",
+      "file": "src/app/admin/catalog/categories/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "catalog"
+    },
+    {
+      "route": "/admin/catalog/drift",
+      "file": "src/app/admin/catalog/drift/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/catalog/new",
+      "file": "src/app/admin/catalog/new/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/catalog",
+      "file": "src/app/admin/catalog/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "verifySession"
+    },
+    {
+      "route": "/admin/catalog/patterns",
+      "file": "src/app/admin/catalog/patterns/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "catalog"
+    },
+    {
+      "route": "/admin/catalog/quarantine",
+      "file": "src/app/admin/catalog/quarantine/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/catalog/sync",
+      "file": "src/app/admin/catalog/sync/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/catalog/[id]",
+      "file": "src/app/admin/catalog/[id]/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "verifySession"
+    },
+    {
+      "route": "/admin/clients",
+      "file": "src/app/admin/clients/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "clients"
+    },
+    {
+      "route": "/admin/clients/[id]",
+      "file": "src/app/admin/clients/[id]/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "clients"
+    },
+    {
+      "route": "/admin/cms/new",
+      "file": "src/app/admin/cms/new/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/cms",
+      "file": "src/app/admin/cms/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/cms/[id]",
+      "file": "src/app/admin/cms/[id]/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/dashboard",
+      "file": "src/app/admin/dashboard/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "verifySession"
+    },
+    {
+      "route": "/admin/economics/recommendations",
+      "file": "src/app/admin/economics/recommendations/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/finance/balance-requests",
+      "file": "src/app/admin/finance/balance-requests/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "balance_requests"
+    },
+    {
+      "route": "/admin/finance/balance-requests/stats",
+      "file": "src/app/admin/finance/balance-requests/stats/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "balance_stats"
+    },
+    {
+      "route": "/admin/finance",
+      "file": "src/app/admin/finance/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "finance"
+    },
+    {
+      "route": "/admin/finance/payments/[id]/dispute-pack",
+      "file": "src/app/admin/finance/payments/[id]/dispute-pack/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "verifySession"
+    },
+    {
+      "route": "/admin/finance/support-review",
+      "file": "src/app/admin/finance/support-review/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "finance"
+    },
+    {
+      "route": "/admin/finance/treasury",
+      "file": "src/app/admin/finance/treasury/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/forbidden",
+      "file": "src/app/admin/forbidden/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/fraud-monitor",
+      "file": "src/app/admin/fraud-monitor/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/knowledge/create",
+      "file": "src/app/admin/knowledge/create/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/knowledge",
+      "file": "src/app/admin/knowledge/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/knowledge/[id]/edit",
+      "file": "src/app/admin/knowledge/[id]/edit/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "content"
+    },
+    {
+      "route": "/admin/manual",
+      "file": "src/app/admin/manual/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/marketing",
+      "file": "src/app/admin/marketing/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "marketing"
+    },
+    {
+      "route": "/admin/orders",
+      "file": "src/app/admin/orders/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "orders"
+    },
+    {
+      "route": "/admin/orders/[id]",
+      "file": "src/app/admin/orders/[id]/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "verifySession"
+    },
+    {
+      "route": "/admin",
+      "file": "src/app/admin/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/pages",
+      "file": "src/app/admin/pages/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/pages/[slug]",
+      "file": "src/app/admin/pages/[slug]/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/providers/health",
+      "file": "src/app/admin/providers/health/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/providers/import",
+      "file": "src/app/admin/providers/import/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "catalog"
+    },
+    {
+      "route": "/admin/providers/keys",
+      "file": "src/app/admin/providers/keys/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/providers/new",
+      "file": "src/app/admin/providers/new/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "providers"
+    },
+    {
+      "route": "/admin/providers",
+      "file": "src/app/admin/providers/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "providers"
+    },
+    {
+      "route": "/admin/providers/[id]",
+      "file": "src/app/admin/providers/[id]/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "providers"
+    },
+    {
+      "route": "/admin/refills",
+      "file": "src/app/admin/refills/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "orders"
+    },
+    {
+      "route": "/admin/services",
+      "file": "src/app/admin/services/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/services/[id]/routing",
+      "file": "src/app/admin/services/[id]/routing/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/settings/balance-policies",
+      "file": "src/app/admin/settings/balance-policies/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    },
+    {
+      "route": "/admin/settings",
+      "file": "src/app/admin/settings/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/settings/roles",
+      "file": "src/app/admin/settings/roles/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/smart",
+      "file": "src/app/admin/smart/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "catalog"
+    },
+    {
+      "route": "/admin/staff",
+      "file": "src/app/admin/staff/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/system/features",
+      "file": "src/app/admin/system/features/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/tenants",
+      "file": "src/app/admin/tenants/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "settings"
+    },
+    {
+      "route": "/admin/tickets",
+      "file": "src/app/admin/tickets/page.tsx",
+      "hasRbacGuard": true,
+      "guardType": "enforceSectionAccess",
+      "sectionProtected": "tickets"
+    },
+    {
+      "route": "/admin/tickets/[id]",
+      "file": "src/app/admin/tickets/[id]/page.tsx",
+      "hasRbacGuard": false,
+      "guardType": "NONE"
+    }
+  ],
+  "serverActions": [
+    {
+      "file": "src/actions/admin/analytics.action.ts",
+      "actionName": "getFunnelAnalyticsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/analytics.action.ts",
+      "actionName": "getAiFunnelAnalysisAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "createBalanceAdjustmentRequestAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "cancelBalanceAdjustmentRequestAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "approveBalanceAdjustmentAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "rejectBalanceAdjustmentAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "getBalanceAdjustmentsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-adjustments.ts",
+      "actionName": "getBalanceAdjustmentStatsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-policy.ts",
+      "actionName": "getBalancePoliciesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/balance-policy.ts",
+      "actionName": "upsertBalancePolicyAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/bug-reports.ts",
+      "actionName": "submitBugReportAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/admin/catalog/ai-enrich.action.ts",
+      "actionName": "previewServiceAiEnrichAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/ai-enrich.action.ts",
+      "actionName": "batchEnrichExistingServicesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "batchToggleServicesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "batchSetMarkupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "previewBatchMarkupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "updateServiceMarkupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "toggleServiceActiveAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "batchReassignServicesCategoryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/batch.ts",
+      "actionName": "batchResetMarkupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "createCategory",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "updateCategory",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "deleteCategory",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "hideCategoryAndServicesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "mergeCategoriesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "createNetworkAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "updateNetworkAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "deleteNetworkAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/categories.ts",
+      "actionName": "cleanupEmptyCategoriesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/enrichment.ts",
+      "actionName": "updateServiceDescription",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/price-drift.ts",
+      "actionName": "getDriftCandidatesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/price-drift.ts",
+      "actionName": "getServicePriceHistoryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/price-drift.ts",
+      "actionName": "compensateServiceMarginAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "ensureTaxonomyTenantAccess",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "createServiceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "updateServiceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "deleteOrArchiveServiceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "toggleServiceStatusAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "bulkDeleteOrArchiveServicesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/services.ts",
+      "actionName": "resetCustomFlagsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/soft-delete.ts",
+      "actionName": "softDeleteServiceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/sync.ts",
+      "actionName": "getGapAnalysisAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/sync.ts",
+      "actionName": "copyServicesToTenantAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog/sync.ts",
+      "actionName": "alignPricesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/catalog.ts",
+      "actionName": "bulkUpdateMarkupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/cbr-sync.ts",
+      "actionName": "syncCBRExchangeRateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/clients.ts",
+      "actionName": "updateClientDiscountAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/clients.ts",
+      "actionName": "updateClientNoteAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/content.ts",
+      "actionName": "createContent",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/content.ts",
+      "actionName": "updateContent",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/content.ts",
+      "actionName": "publishContent",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/content.ts",
+      "actionName": "unpublishContent",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/economics/recommendations.ts",
+      "actionName": "applyAiRecommendationAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/economics/recommendations.ts",
+      "actionName": "bulkApplyAiRecommendationsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/economics/recommendations.ts",
+      "actionName": "rejectAiRecommendationAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/environment-mode.ts",
+      "actionName": "getEnvironmentModeAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/environment-mode.ts",
+      "actionName": "setEnvironmentModeAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/feature-flags.ts",
+      "actionName": "getFeatureFlags",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/feature-flags.ts",
+      "actionName": "setFeatureFlagState",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/bank-sync.ts",
+      "actionName": "syncAlfaBankBalanceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/ledger.ts",
+      "actionName": "getLedgerAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/payments.ts",
+      "actionName": "getPaymentsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/payments.ts",
+      "actionName": "getPaymentDisputePackAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/reconciliation.ts",
+      "actionName": "getReconciliationSummaryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/reconciliation.ts",
+      "actionName": "getReconciliationAccountsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/reconciliation.ts",
+      "actionName": "getUserLedgerAuditAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/reconciliation.ts",
+      "actionName": "reconcileUserAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/finance/treasury.ts",
+      "actionName": "getTreasuryFinancialHealthAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/health.ts",
+      "actionName": "getSystemHealthReportAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/legal-consent.ts",
+      "actionName": "getEmployeeConsentStatusAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/legal-consent.ts",
+      "actionName": "acceptEmployeeResponsibilityConsentAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/legal-consent.ts",
+      "actionName": "revokeEmployeeConsentAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "getLinkPatternsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "saveLinkPatternAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "deleteLinkPatternAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "testLinkPatternAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "generateAiPatternAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/link-patterns.ts",
+      "actionName": "dryRunHistoryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/marketing.ts",
+      "actionName": "createPromoCode",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/marketing.ts",
+      "actionName": "togglePromoCode",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/marketing.ts",
+      "actionName": "deletePromoCode",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/marketing.ts",
+      "actionName": "processReferralPayout",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/observer.ts",
+      "actionName": "getLatestAiDigestAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/observer.ts",
+      "actionName": "triggerAiObserverManualAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/observer.ts",
+      "actionName": "toggleAiObserverKillswitchAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/observer.ts",
+      "actionName": "sendExecutiveDigestToTelegramAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "cancelOrderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "restartOrderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "setOrderStatusAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "forceCompleteOrderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "bulkCancelOrdersAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "bulkRestartOrdersAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "getFailoverPreview",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "manualRerouteOrder",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/orders.ts",
+      "actionName": "getOrderDetailsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/pii-audit.ts",
+      "actionName": "getPiiAccessLogsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "listProviderProxiesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "getProxyHealthSummaryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "createProviderProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "updateProviderProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "syncSubscriptionAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "harvestFreeProxiesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "deleteProviderProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "testProviderProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "assignProxyToProviderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "batchAssignProxiesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "toggleProxyActiveAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "getProxyLogsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/provider-proxy.ts",
+      "actionName": "cleanupProxyLogsAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/providers/balance.ts",
+      "actionName": "getProviderBalanceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/balance.ts",
+      "actionName": "getAllProviderBalancesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/balance.ts",
+      "actionName": "getGlobalProviderLiquidityAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/balance.ts",
+      "actionName": "syncAndFlushProviderOrdersAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "getProviderDeleteInfoAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "deleteProviderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "createProvider",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "updateProvider",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "checkProviderConnection",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "probeProviderAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "getProviderCatalogPreviewAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "getGlobalProviderLiquidity",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "syncProviderCatalogAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "inferProviderSchema",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "toggleProviderActiveAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "resetProviderErrorsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/crud.ts",
+      "actionName": "createMockProviderPresetAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/import-cherry-pick.ts",
+      "actionName": "fetchPaginatedExternalServices",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/import-cherry-pick.ts",
+      "actionName": "fetchExternalServices",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/import-cherry-pick.ts",
+      "actionName": "importSelectedServices",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/search-services.ts",
+      "actionName": "searchShadowServicesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/search-services.ts",
+      "actionName": "getLinkSpecificationAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "adminSyncProviderCatalog",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "approveQuarantinedService",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "rejectQuarantinedService",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "approveAllQuarantined",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "archiveZombieService",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/providers/sync-action.ts",
+      "actionName": "liftApiBlock",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/refills.ts",
+      "actionName": "toggleRefillModuleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/refills.ts",
+      "actionName": "directRestartRefillAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/refills.ts",
+      "actionName": "directUpdateRefillStatusAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/refills.ts",
+      "actionName": "restartRefillAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/refills.ts",
+      "actionName": "updateRefillStatusAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/roles.ts",
+      "actionName": "listRolesWithPermissionsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/roles.ts",
+      "actionName": "createRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/roles.ts",
+      "actionName": "updateRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/roles.ts",
+      "actionName": "cloneRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/roles.ts",
+      "actionName": "deleteRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "previewHotSwap",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "executeHotSwap",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "addServiceRoute",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "toggleRouteStatus",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "changeRoutePriority",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "deleteServiceRoute",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "getProviderComparisonData",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/routing.actions.ts",
+      "actionName": "ensurePrimaryRouteAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/search.ts",
+      "actionName": "globalOmniSearch",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/security.ts",
+      "actionName": "getSecurityEventsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/security.ts",
+      "actionName": "getSecurityStatsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "createServiceDraftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "updateServiceDraftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "testServiceLinkAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "promoteServiceToTestingAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "publishServiceDraftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "archiveServiceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "createCustomerGroupAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "assignCustomerGroupAccessAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/services-lifecycle.ts",
+      "actionName": "getServiceEditHistoryAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "updateUserRole",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "updateGlobalSettings",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "generateInboundSecretAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "getSettingsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "testSmtpConnectionAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "testGeminiAiConnectionAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "testTelegramBotConnectionAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "testYooKassaConnectionAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/settings.ts",
+      "actionName": "updateStaffGeminiApiKeyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/shifts.ts",
+      "actionName": "getMonthShiftsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/shifts.ts",
+      "actionName": "assignShiftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/shifts.ts",
+      "actionName": "swapShiftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/shifts.ts",
+      "actionName": "applyShiftTemplateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/shifts.ts",
+      "actionName": "getMonthlyPayrollAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "getSmartCampaigns",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "updateCampaignStatus",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "getServiceConfigs",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "updateServiceConfig",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "getSmartGlobalStatus",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "toggleSmartGlobalStatus",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/smart.ts",
+      "actionName": "bulkUpdateServiceConfigs",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/staff.ts",
+      "actionName": "getStaffMembersWithMetrics",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/staff.ts",
+      "actionName": "getStaffPersonalLogsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/staff.ts",
+      "actionName": "updateStaffMemberAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/support-review.ts",
+      "actionName": "getSupportActionsReviewListAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/support-review.ts",
+      "actionName": "reviewSupportFinancialAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/support-review.ts",
+      "actionName": "exportSupportActionsCSVAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/team.ts",
+      "actionName": "updateSupportLimit",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/team.ts",
+      "actionName": "createStaffRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/team.ts",
+      "actionName": "updateStaffRolePermissionsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/team.ts",
+      "actionName": "deleteStaffRoleAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTelegramBotDiagnosticsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "resetTelegramWebhookAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "listTelegramButtonsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "createTelegramButtonAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "updateTelegramButtonAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "deleteTelegramButtonAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "reorderTelegramButtonsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "listTelegramTemplatesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTelegramTemplateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "createTelegramTemplateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "updateTelegramTemplateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "deleteTelegramTemplateAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "listTelegramProxiesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "createTelegramProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "updateTelegramProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "deleteTelegramProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "testTelegramProxyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "setActiveTelegramProxyAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTelegramStatsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "listTelegramErrorsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "resolveTelegramErrorAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "massResolveTelegramErrorsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "deleteTelegramErrorAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "updateTelegramSecurityAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "sendTelegramTestAlertAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "logTelegramError",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTelegramEnterpriseConfigAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "saveTelegramMenuConfigAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "saveTelegramRatingReasonsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "saveTelegramTemplatesAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTicketFeedbackStatsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/telegram-bot.ts",
+      "actionName": "getTicketFeedbackListAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "listTenantsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "createTenantAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "updateTenantAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "toggleTenantStatusAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "toggleTenantMaintenanceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "deleteTenantAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/admin/tenants.ts",
+      "actionName": "switchAdminTenantAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/admin/test-mode.actions.ts",
+      "actionName": "adminToggleTestMode",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/test-mode.actions.ts",
+      "actionName": "adminClearTestData",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "updateBalanceAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "requestCardRefundAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "updateUserApiAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "banUserAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "unbanUserAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "loginAsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "approveQuarantineAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "rejectQuarantineAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "adminChangeUserPasswordAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "adminDeleteUserAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "adminChangeUserEmailAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "adminGenerateMagicLinkAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/admin/users.ts",
+      "actionName": "adminRevokeUserSessionsAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/auth/delete-account.ts",
+      "actionName": "deleteAccountAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/auth/logout.ts",
+      "actionName": "logoutAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/auth/password-login.ts",
+      "actionName": "loginWithPasswordAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/auth/password-register.ts",
+      "actionName": "registerWithPasswordAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/auth/password-settings.ts",
+      "actionName": "setPasswordAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/auth/password-settings.ts",
+      "actionName": "changePasswordAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/auth/refresh-balance.ts",
+      "actionName": "refreshBalanceAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/auth/request-magic-link.ts",
+      "actionName": "requestMagicLink",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/customer/payment-issue.ts",
+      "actionName": "reportPaymentIssueAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/finance/settings.ts",
+      "actionName": "updateSystemSettings",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "getArticles",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "getArticleBySlug",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "getRelatedArticles",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "getGroupedArticlesForTree",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "getRecommendedServicesForArticle",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "createArticle",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "updateArticle",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/knowledge.ts",
+      "actionName": "deleteArticle",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/operator/dashboard/get-operator-dashboard.action.ts",
+      "actionName": "getOperatorDashboardData",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/orders/cancel-order.action.ts",
+      "actionName": "cancelOrderAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/orders/restart-order.action.ts",
+      "actionName": "restartOrderAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/tickets/ai-copilot.action.ts",
+      "actionName": "generateTicketCoPilotDraftAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/operator/tickets/change-status.action.ts",
+      "actionName": "changeTicketStatusAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/tickets/reply-ticket.action.ts",
+      "actionName": "replyTicketAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/transactions/get-transactions-list.action.ts",
+      "actionName": "getTransactionsListAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/users/create-user-note.action.ts",
+      "actionName": "createUserNoteAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/users/get-user-financial-summary.action.ts",
+      "actionName": "getUserFinancialSummaryAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/operator/users/get-users-list.action.ts",
+      "actionName": "getUsersListAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/analyze-url.ts",
+      "actionName": "analyzeUrl",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/cancel.ts",
+      "actionName": "cancelOrderCoolingOffAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getCachedNetworks",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getCachedServicesByCategory",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getCachedServices",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getPublicCatalogAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getServicesByCategoryAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getServiceBySlugAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/catalog.ts",
+      "actionName": "getFreshServiceAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/checkout.ts",
+      "actionName": "calculatePriceAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/checkout.ts",
+      "actionName": "getAvailableGatewaysAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/demo-payment.action.ts",
+      "actionName": "createDemoPaymentAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/legal.ts",
+      "actionName": "getLegalDocumentAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/link-guide.ts",
+      "actionName": "getServiceLinkGuideAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/order/refill.ts",
+      "actionName": "requestClientRefillAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/order/smart.ts",
+      "actionName": "getClientCampaigns",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/order/smart.ts",
+      "actionName": "toggleClientCampaignStatus",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/order/sync-payment.ts",
+      "actionName": "forceSyncMyPaymentsAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/qa-auth.ts",
+      "actionName": "qaDirectLoginAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/support/compensation.ts",
+      "actionName": "logManualCompensation",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/guest.ts",
+      "actionName": "createGuestTicketAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/support/offline-ticket.ts",
+      "actionName": "createOfflineTicketAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/support/template.ts",
+      "actionName": "getTemplates",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/template.ts",
+      "actionName": "incrementTemplateUsage",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/template.ts",
+      "actionName": "upsertTemplate",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/template.ts",
+      "actionName": "deleteTemplate",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "generateSmartReplyAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "prefetchSmartReplyAction",
+      "hasGuard": false,
+      "guardType": "UNKNOWN / INTERNAL"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "createTicket",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "addTicketMessage",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "adminReplyTicket",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "changeTicketStatus",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "editTicketMessage",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "deleteTicketMessage",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "requestTelegramBind",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "adminManualTelegramBind",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "bulkRefillOrdersAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/support/ticket.ts",
+      "actionName": "bulkRefundOrdersAction",
+      "hasGuard": true,
+      "guardType": "requireStaffPermission"
+    },
+    {
+      "file": "src/actions/user/corporate-invoice.action.ts",
+      "actionName": "createApiInvoiceAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/promo.ts",
+      "actionName": "activatePromoCodeAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/referral.action.ts",
+      "actionName": "transferReferralBalanceAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "updateTaxRequisitesAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "updateCompanyRequisitesAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "updateApiWebhookAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "confirm152FzConsentAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "generateApiKeyAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "resetApiKeyAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "revokeApiKeyAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "getTelegramBindDetailsAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "updateTelegramNotificationSettingsAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/settings-extra.ts",
+      "actionName": "unbindTelegramAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    },
+    {
+      "file": "src/actions/user/top-up.action.ts",
+      "actionName": "createTopUpPaymentAction",
+      "hasGuard": true,
+      "guardType": "requireAuth / verifySession"
+    }
+  ],
+  "boundaryAudit": {
+    "clientFilesWithExportedFunctions": [
+      "src/app/admin/clients/components/columns.tsx",
+      "src/app/admin/finance/components/finance-helpers.tsx",
+      "src/app/admin/finance/ledger-columns.tsx",
+      "src/app/admin/finance/payment-columns.tsx",
+      "src/app/admin/marketing/promocode-columns.tsx",
+      "src/app/admin/orders/components/columns.tsx",
+      "src/app/admin/settings/audit-columns.tsx",
+      "src/app/dashboard/referrals/referral-ui.tsx",
+      "src/app/knowledge/[slug]/UrlMatcherWidget.tsx",
+      "src/app/operator/users/users-table.tsx",
+      "src/components/admin/catalog/catalog-filters.tsx",
+      "src/components/admin/catalog-table-v2.tsx",
+      "src/components/admin/services/ServiceForm.tsx",
+      "src/components/ui/Confetti.tsx"
+    ],
+    "riskyImports": [
+      {
+        "serverFile": "src/app/admin/settings/page.tsx",
+        "clientFile": "src/app/admin/clients/components/columns.tsx",
+        "importedSymbols": [
+          "columns"
+        ]
+      },
+      {
+        "serverFile": "src/app/admin/settings/page.tsx",
+        "clientFile": "src/app/admin/orders/components/columns.tsx",
+        "importedSymbols": [
+          "columns"
+        ]
+      },
+      {
+        "serverFile": "src/app/admin/settings/page.tsx",
+        "clientFile": "src/app/admin/settings/audit-columns.tsx",
+        "importedSymbols": [
+          "columns"
+        ]
+      }
+    ]
+  },
+  "councilVerdict": "Swarm council call concluded with offline static verification."
+}

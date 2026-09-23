@@ -1,0 +1,41 @@
+{
+  "governance_version": "1.0.0",
+  "quality_gates": {
+    "required_manifests": [
+      "SKILL.md"
+    ],
+    "mandatory_frontmatter_fields": [
+      "name",
+      "version",
+      "description"
+    ],
+    "description_rules": {
+      "max_lines": 3,
+      "third_person_required": true
+    },
+    "linter_rule": "strict"
+  },
+  "security_levels": {
+    "P0_destructive": {
+      "examples": ["fs.rmdirSync", "execSync('rm -rf')"],
+      "dry_run_mandatory": true,
+      "requires_admin_review": true
+    },
+    "P1_read_write": {
+      "examples": ["fs.writeFileSync", "replace_file_content"],
+      "dry_run_recommended": true,
+      "requires_admin_review": false
+    },
+    "P2_read_only": {
+      "examples": ["fs.readFileSync", "view_file"],
+      "dry_run_mandatory": false,
+      "requires_admin_review": false
+    }
+  },
+  "forbidden_patterns": [
+    "eval(",
+    "process.env.ADMIN_TOKEN",
+    "password_hardcoded",
+    "request_contact"
+  ]
+}

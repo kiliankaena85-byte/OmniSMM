@@ -1,0 +1,8 @@
+{
+  "skill_name": "mock-temp-skill-test",
+  "archived_at": "2026-05-22T08:43:55Z",
+  "archived_by": "ephemeral-skill-cleanup",
+  "reason": "testing archive functionality",
+  "category": "MANUAL",
+  "restore_command": "mv D:\\SMM_plan_2\\.agent\\skills\\_archive\\2026-05-22\\mock-temp-skill-test D:\\SMM_plan_2\\.agent\\skills/mock-temp-skill-test"
+}

@@ -1,0 +1,22 @@
+name: smmplan-arch
+
+services:
+  arch-viewer:
+    container_name: smmplan_arch_viewer
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.arch-viewer
+    ports:
+      - "3009:3009"
+    volumes:
+      # Read-only mounts for maximum safety
+      - ./artifacts/architecture-topology.json:/app/artifacts/architecture-topology.json:ro
+      - ./src:/app/src:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3009
+      - HOST=0.0.0.0
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: 0.5

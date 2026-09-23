@@ -1,0 +1,10 @@
+# .gitleaksignore
+# Ignore dummy secrets used for local development and tests
+
+[allowlist]
+description = "Allowlist for dummy environment variables"
+paths = [
+    '''\.env\.example''',
+    '''\.env\.test''',
+    '''\.env\.staging'''
+]

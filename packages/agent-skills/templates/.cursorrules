@@ -1,0 +1,7 @@
+# OmniSMM Cursor Rules Integration
+# Primary AI Developer Contract & Invariants
+- ALWAYS follow the rules and strict invariants defined in AGENTS.md and .agents/AGENTS.md.
+- BEFORE modifying code, consult the relevant architectural skill in .agents/skills/INDEX.md.
+- Never write untyped code or bypass WalletOps / Ledger invariants for financial operations.
+- Enforce Zero Horizontal Scroll and Viewport 100% Fit across all UI tables.
+- Comply with OWASP Top 10:2025 and 54-FZ fiscal rules.

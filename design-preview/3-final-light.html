@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Luminous Precision - SMMplan Lite</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#d8dadc",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "on-secondary-container": "#fffbff",
+                        "surface-variant": "#e0e3e5",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary-container": "#fffbff",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-tint": "#494bd6",
+                        "tertiary-fixed": "#ffdcc5",
+                        "outline": "#767586",
+                        "secondary-container": "#8455ef",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-fixed": "#23005c",
+                        "tertiary": "#904900",
+                        "primary-container": "#6063ee",
+                        "on-surface-variant": "#464554",
+                        "inverse-primary": "#c0c1ff",
+                        "primary-fixed": "#e1e0ff",
+                        "secondary": "#6b38d4",
+                        "outline-variant": "#c7c4d7",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-background": "#191c1e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "surface-container-high": "#e6e8ea",
+                        "surface": "#f7f9fb",
+                        "tertiary-container": "#b55d00",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-container": "#eceef0",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#07006c",
+                        "secondary-fixed": "#e9ddff",
+                        "surface-bright": "#f7f9fb",
+                        "primary": "#4648d4",
+                        "on-tertiary-fixed": "#301400",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-nav { background: rgba(247, 249, 251, 0.8); backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-4 max-w-full mx-auto glass-nav shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)]">
+<div class="text-2xl font-black tracking-tighter text-[#4648d4] dark:text-[#6063ee]">Luminous</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-[#4648d4] font-bold border-b-2 border-[#4648d4] pb-1 transition-all duration-300" href="#">Marketplace</a>
+<a class="text-slate-600 hover:text-[#4648d4] transition-all duration-300" href="#">Services</a>
+<a class="text-slate-600 hover:text-[#4648d4] transition-all duration-300" href="#">Case Studies</a>
+<a class="text-slate-600 hover:text-[#4648d4] transition-all duration-300" href="#">Pricing</a>
+</div>
+<div class="flex gap-4">
+<button class="px-5 py-2 text-sm font-semibold text-[#4648d4] transition-transform active:scale-95">Login</button>
+<button class="px-6 py-2 bg-[#4648d4] text-white rounded-xl font-bold text-sm hover:scale-[1.02] transition-all duration-300 shadow-lg shadow-primary/20 active:scale-95">Get Started</button>
+</div>
+</nav>
+<main class="pt-24">
+<!-- Section 1: Testimonials -->
+<section class="py-24 px-8 max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-black tracking-tight text-on-surface mb-4">Что говорят наши клиенты</h2>
+<div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300 group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-xl">АМ</div>
+<div>
+<h4 class="font-bold text-on-surface">Алексей М.</h4>
+<p class="text-xs text-on-surface-variant font-medium tracking-wider uppercase">Владелец Telegram-канала</p>
+</div>
+</div>
+<div class="flex gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed">"Пользуюсь уже полгода. Подписчики приходят плавно, отписок практически нет. Лучший сервис из всех, что пробовал."</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300 group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-14 h-14 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary font-bold text-xl">МК</div>
+<div>
+<h4 class="font-bold text-on-surface">Марина К.</h4>
+<p class="text-xs text-on-surface-variant font-medium tracking-wider uppercase">SMM-менеджер</p>
+</div>
+</div>
+<div class="flex gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed">"Отправляю клиентам ссылку и через 4 секунды заказ уже в работе. Экономит кучу времени."</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_10px_40px_-10px_rgba(70,72,212,0.08)] hover:scale-[1.02] transition-all duration-300 group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary font-bold text-xl">ДС</div>
+<div>
+<h4 class="font-bold text-on-surface">Дмитрий С.</h4>
+<p class="text-xs text-on-surface-variant font-medium tracking-wider uppercase">Блогер</p>
+</div>
+</div>
+<div class="flex gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed">"AI-подбор пакетов — огненная фича. Раньше сам не мог разобраться, теперь всё автоматически."</p>
+</div>
+</div>
+</section>
+<!-- Section 2: FAQ -->
+<section class="py-24 bg-surface-container-low px-8">
+<div class="max-w-4xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-black tracking-tight text-on-surface mb-4">Часто задаваемые вопросы</h2>
+<p class="text-on-surface-variant">Все, что вы хотели знать о нашем сервисе</p>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<button class="w-full px-8 py-6 flex justify-between items-center text-left">
+<span class="font-bold text-lg text-on-surface">Как оформить заказ?</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<button class="w-full px-8 py-6 flex justify-between items-center text-left">
+<span class="font-bold text-lg text-on-surface">Нужна ли регистрация?</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<button class="w-full px-8 py-6 flex justify-between items-center text-left">
+<span class="font-bold text-lg text-on-surface">Какие способы оплаты доступны?</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<button class="w-full px-8 py-6 flex justify-between items-center text-left">
+<span class="font-bold text-lg text-on-surface">Какая скорость накрутки?</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<button class="w-full px-8 py-6 flex justify-between items-center text-left">
+<span class="font-bold text-lg text-on-surface">Есть ли гарантия от отписок?</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Final CTA -->
+<section class="py-24 px-8">
+<div class="max-w-6xl mx-auto rounded-[2rem] bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl shadow-primary/30">
+<!-- Decorative element -->
+<div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-2xl -ml-32 -mb-32"></div>
+<div class="relative z-10">
+<h2 class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tighter">Готовы начать?</h2>
+<p class="text-xl md:text-2xl text-white/90 mb-12 font-medium">Первый заказ со скидкой 10% по промокоду <span class="bg-white/20 px-3 py-1 rounded-lg border border-white/30">START10</span></p>
+<button class="px-10 py-5 bg-white text-[#6366f1] rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3 mx-auto">
+                        Оформить заказ
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-16 px-8 md:px-12 lg:px-24 grid grid-cols-1 md:grid-cols-4 gap-12 bg-slate-900 text-slate-400 font-['Inter'] text-sm leading-relaxed border-t border-slate-800">
+<div class="col-span-1 md:col-span-1">
+<span class="text-2xl font-bold text-white mb-6 block">SMMplan Lite</span>
+<p class="mb-6 max-w-xs">Премиальный сервис для продвижения ваших социальных сетей с гарантией качества и скоростью света.</p>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:text-white transition-colors cursor-pointer">
+<span class="material-symbols-outlined">send</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:text-white transition-colors cursor-pointer">
+<span class="material-symbols-outlined">alternate_email</span>
+</div>
+</div>
+</div>
+<div>
+<h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Услуги</h4>
+<ul class="space-y-3">
+<li><a class="hover:text-white transition-colors" href="#">Telegram</a></li>
+<li><a class="hover:text-white transition-colors" href="#">VK</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Instagram</a></li>
+<li><a class="hover:text-white transition-colors" href="#">TikTok</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Помощь</h4>
+<ul class="space-y-3">
+<li><a class="hover:text-white transition-colors" href="#">FAQ</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Контакты</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Правила</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Возврат</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Контакты и Юр. инфо</h4>
+<ul class="space-y-3 mb-6">
+<li><a class="hover:text-white transition-colors" href="#">Оферта</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Политика конфиденциальности</a></li>
+<li class="flex items-center gap-2 mt-4 text-white">
+<span class="material-symbols-outlined text-sm">mail</span>
+                    support@smmplan.lite
+                </li>
+</ul>
+<div class="flex gap-2 opacity-50 grayscale hover:grayscale-0 transition-all">
+<div class="bg-white px-2 py-1 rounded text-[10px] font-black text-slate-900 uppercase">Visa</div>
+<div class="bg-white px-2 py-1 rounded text-[10px] font-black text-slate-900 uppercase">Mastercard</div>
+<div class="bg-white px-2 py-1 rounded text-[10px] font-black text-slate-900 uppercase">Mir</div>
+</div>
+</div>
+<div class="col-span-1 md:col-span-4 pt-12 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
+<p>© SMMplan, 2026. Luminous Precision. Digital Excellence in SMM.</p>
+<div class="flex gap-6">
+<a class="hover:text-white transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-white transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-white transition-colors" href="#">Cookies</a>
+</div>
+</div>
+</footer>
+</body></html>

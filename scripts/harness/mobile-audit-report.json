@@ -1,0 +1,91 @@
+{
+  "auditorModel": "Senior Mobile Usability & Systems Architect Auditor",
+  "mobileScore": 62,
+  "executiveSummary": "The mobile order flow has a critical dead-end: when a user navigates Catalog → Category → Service without entering a URL, the wizard fails to auto-advance to Step 4 because the useMobileWizard auto-advance effect is gated on url.trim().length >= 5. The user is stuck at Step 1/2 and must manually navigate back through intermediate steps. Additional accessibility gaps include missing focus rings on category buttons, missing role='alert' on error messages, and unmarked decorative icons. Touch targets are generally compliant at 44-48px. No duplicate link inputs exist on mobile view. React 19 hydration mismatch risk is low due to ssr:false on wizard components.",
+  "findings": [
+    {
+      "findingId": "MOB-001",
+      "standardRef": "Google Material Design 3 Guidelines for Steppers & Mobile Form Flows (No dead-ends, fluid bidirectional state transitions); ISO 9241-11 Ergonomics (effectiveness)",
+      "severity": "CRITICAL",
+      "component": "useMobileWizard.ts / MobileStep2Category.tsx / MobileStep3Service.tsx",
+      "description": "When a user navigates Catalog → Category → Service without entering a URL beforehand, the wizard does NOT smoothly proceed to Step 4. The auto-advance useEffect in useMobileWizard only fires when url.trim().length >= 5, meaning categoryId and selectedService changes alone cannot trigger step advancement. The user is stuck at Step 1 with a Step 2 summary button, requiring 3+ manual clicks (summary→Step 2→Далее→Step 3→select service→Step 4) instead of a single fluid transition.",
+      "reproductionOrScenario": "1. Open the mobile wizard. 2. Do not enter a URL. 3. Tap 'Выбрать тариф из каталога вручную' and select a category. 4. Observe that the wizard shows a Step 2 summary button but does NOT advance to Step 3 or Step 4 automatically. The user must tap the summary, go back to Step 2, tap 'Далее', then select a service to reach checkout.",
+      "recommendation": "Add a secondary useEffect in useMobileWizard that watches categoryId and selectedService changes (independent of URL length) and auto-advances: if selectedService → step 4, else if categoryId → step 3. Mirror the logic already present in proceedFromStep1() and the URL-based effect."
+    },
+    {
+      "findingId": "MOB-002",
+      "standardRef": "WCAG 2.2 Success Criterion 2.4.7 (Focus Visible); Apple HIG Touch Ergonomics",
+      "severity": "HIGH",
+      "component": "MobileStep2Category.tsx (category buttons)",
+      "description": "The category selection buttons in MobileStep2Category lack explicit focus ring styling (no focus:ring-2 or similar utility classes). They only have active:scale-[0.99] for press feedback. Keyboard users tapping these buttons via Tab/Enter will not receive a visible focus indicator, failing WCAG 2.4.7 Focus Visible.",
+      "reproductionOrScenario": "1. Tab through the mobile wizard using a keyboard or screen reader. 2. Focus lands on a category button. 3. No visible focus ring or outline appears, making it unclear which element is focused.",
+      "recommendation": "Add focus-visible ring classes to the category buttons: 'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'. Ensure all interactive elements have a visible focus indicator."
+    },
+    {
+      "findingId": "MOB-003",
+      "standardRef": "WCAG 2.2 Success Criterion 4.1.3 (Status Messages); WCAG SC 1.3.1 (Info and Relationships)",
+      "severity": "MEDIUM",
+      "component": "MobileStep1Link.tsx / MobileStep4Checkout.tsx (error messages)",
+      "description": "Validation error messages (<p> elements with text-danger and animate-pulse) lack role='alert' or aria-live='assertive'. When these errors appear dynamically after form interaction, screen readers may not announce them immediately, violating WCAG 4.1.3 Status Messages.",
+      "reproductionOrScenario": "1. Submit an empty or invalid URL in Step 1. 2. The error message appears with animate-pulse. 3. A screen reader user may not be notified of the error unless they manually explore the DOM.",
+      "recommendation": "Add role='alert' and aria-live='assertive' to error message paragraphs: <p role='alert' aria-live='assert' className='...'>{validationErrors.link}</p>"
+    },
+    {
+      "findingId": "MOB-004",
+      "standardRef": "WCAG 2.2 Success Criterion 1.1.1 (Non-text Content); React 19 Hydration Invariants",
+      "severity": "MEDIUM",
+      "component": "MobileStep1Link.tsx / MobileStep2Category.tsx / MobileStep3Service.tsx / MobileStep4Checkout.tsx (decorative icons)",
+      "description": "Multiple decorative icons (ChevronDown, Link2, AlertCircle, ❓, 📂, +, Sliders, Zap, Pencil) are rendered inside buttons or inline text without aria-hidden='true'. Screen readers will announce these icons as text (e.g., 'chevron down', 'link', 'alert circle', 'question mark', 'folder'), creating noise and confusion.",
+      "reproductionOrScenario": "1. Enable a screen reader (VoiceOver/TalkBack). 2. Navigate through the wizard. 3. Each icon is announced as text, cluttering the experience with non-essential information.",
+      "recommendation": "Add aria-hidden='true' to all purely decorative icons: <ChevronDown className='...' aria-hidden='true' />. For emoji characters (❓, 📂), replace with proper icon components or wrap in <span aria-hidden='true'>."
+    },
+    {
+      "findingId": "MOB-005",
+      "standardRef": "Apple Human Interface Guidelines (iOS Touch Ergonomics); WCAG SC 1.4.4 (Resize Text)",
+      "severity": "LOW",
+      "component": "MobileStep4Checkout.tsx (step4 URL input when isLinkReady=false)",
+      "description": "The step 4 URL input uses text-sm (14px) font size instead of text-base (16px). On iOS Safari, input fields with font-size < 16px trigger automatic zoom on focus, which is disruptive to the user experience and violates Apple HIG recommendations.",
+      "reproductionOrScenario": "1. On an iOS device, tap the URL input in Step 4 when no link is pre-filled. 2. iOS Safari automatically zooms into the input field due to 14px font size.",
+      "recommendation": "Change the font size of the step 4 URL input from text-sm to text-base to prevent iOS auto-zoom."
+    },
+    {
+      "findingId": "MOB-006",
+      "standardRef": "React 19 Hydration & State Machine Invariants",
+      "severity": "LOW",
+      "component": "useMobileWizard.ts / MobileWizard.tsx",
+      "description": "The useEffect with empty dependency array [] sets mounted=true and activeStepRaw on mount, causing an initial render with mounted=false (showing a Loader2 spinner) followed by a re-render with actual content. While MobileWizard is ssr:false (eliminating server-client hydration mismatch), this creates a client-side flash of loading state that could be perceived as a performance issue.",
+      "reproductionOrScenario": "1. Navigate to the mobile wizard. 2. Briefly see a spinning Loader2 icon before the wizard content appears. 3. This flash is more noticeable on slower devices.",
+      "recommendation": "Initialize mounted=true and derive the initial activeStep from engine state synchronously (using useMemo or a useState initializer function) instead of relying on a useEffect to set mounted after render."
+    },
+    {
+      "findingId": "MOB-007",
+      "standardRef": "WCAG 2.2 SC 2.5.8 (Target Size); Google Material Design 3",
+      "severity": "PASS",
+      "component": "MobileWizard.tsx / all step components",
+      "description": "No duplicate link input fields exist on mobile view (< md). The URL input appears only in the active step. When Step 4 is active and a link is pre-filled, it displays as read-only text with a 'Сменить' button that navigates back to Step 1. Step 1 shows a summary button (not an input) when not active. The two inputs (id='standard-url-input' and id='step4-url-input') never render simultaneously.",
+      "reproductionOrScenario": "1. Navigate through all 4 steps on a mobile viewport. 2. Verify that only one URL input is visible at any time. 3. Confirm no duplicate input fields exist.",
+      "recommendation": "No action needed. The single-step rendering pattern correctly prevents duplicate inputs."
+    },
+    {
+      "findingId": "MOB-008",
+      "standardRef": "WCAG 2.2 SC 2.5.8 (Target Size - Minimum 24x24px, preferably 44x44px); Apple HIG (44x44pt minimum)",
+      "severity": "PASS",
+      "component": "All button and input elements across step components",
+      "description": "Touch targets are generally compliant. Primary buttons use h-11 min-h-[44px] (44px) or h-12 min-h-[48px] (48px). Category buttons use min-h-[48px]. Inputs use h-11 (44px). The 'Где взять ссылку?' and catalog buttons explicitly set min-h-[44px]. The checkout CTA button uses min-h-[48px]. Note: MobileStickyCTA and LegalCheckbox components were not provided for audit.",
+      "reproductionOrScenario": "1. Measure all interactive elements on mobile viewport. 2. Verify minimum 44x44px touch targets. 3. All measured elements meet the threshold.",
+      "recommendation": "Audit the unprovided MobileStickyCTA and LegalCheckbox components for touch target compliance before release."
+    }
+  ],
+  "strengths": [
+    "No duplicate link inputs on mobile view — single-step rendering pattern correctly prevents simultaneous input fields",
+    "Touch targets are generally compliant at 44-48px across all provided components",
+    "Proper htmlFor/label associations on all input fields (standard-url-input, step4-url-input, quantity-input, email-input, promo-input)",
+    "Enter key handler on URL input triggers proceedFromStep1() for keyboard efficiency",
+    "inputMode='numeric' on quantity input optimizes mobile keyboard experience",
+    "ssr:false on all wizard components eliminates React 19 server-client hydration mismatch risk",
+    "Bidirectional navigation is implemented: each step has 'Назад' buttons and summary buttons for jumping between steps",
+    "Font-size text-base (16px) used on most inputs prevents iOS auto-zoom",
+    "Framer Motion animate/exit transitions provide smooth step transitions consistent with Material Design motion principles",
+    "Active state scaling (active:scale-[0.99]) provides tactile feedback on touch"
+  ]
+}

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SMMplan Mobile — Интерактивный Вайрфрейм (Auto-Folding UX)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Плавные переходы для раскрытия и схлопывания */
+    .collapse-transition {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased font-sans min-h-screen flex flex-col items-center p-2 sm:p-4">
+
+  <!-- Описание статуса для дизайнера / тестировщика -->
+  <div class="w-full max-w-[390px] mb-2 flex items-center justify-between px-1 text-[11px] text-slate-500 font-mono">
+    <span>📱 Mobile Viewport: 390×844 (iPhone 14/15)</span>
+    <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">Auto-Folding UX</span>
+  </div>
+
+  <!-- МОБИЛЬНЫЙ ФРЕЙМ УСТРОЙСТВА -->
+  <div class="w-full max-w-[390px] bg-slate-50 border-4 border-slate-800 rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative min-h-[780px]">
+    
+    <!-- Dynamic Island / Speaker Notch -->
+    <div class="w-full pt-3 pb-2 flex justify-center bg-white border-b border-slate-100 shrink-0">
+      <div class="w-24 h-4 bg-slate-900 rounded-full flex items-center justify-end px-2">
+        <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+      </div>
+    </div>
+
+    <!-- Мобильная шапка SMMplan -->
+    <header class="bg-white px-3.5 py-2.5 border-b border-slate-200 flex items-center justify-between shrink-0">
+      <!-- Логотип SMMplan -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-xs">S</div>
+        <span class="font-extrabold text-sm tracking-tight text-slate-900">SMMplan</span>
+      </div>
+
+      <!-- Баланс и кнопка пополнения -->
+      <div class="flex items-center gap-1.5">
+        <div class="bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg text-right">
+          <div class="text-[9px] text-slate-400 font-bold uppercase leading-none">Баланс</div>
+          <div class="text-xs font-black text-slate-900 font-mono leading-tight">14 850 ₽</div>
+        </div>
+        <button class="h-8 px-2.5 bg-slate-900 text-white rounded-lg text-xs font-bold flex items-center justify-center shrink-0">
+          +
+        </button>
+      </div>
+    </header>
+
+    <!-- ОСНОВНОЙ СКРОЛЛЯЩИЙСЯ КОНТЕНТ -->
+    <main class="flex-1 p-3 space-y-3 overflow-y-auto pb-20">
+
+      <!-- Карточка лояльности (компактная плашка) -->
+      <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+        <div class="flex items-center gap-2">
+          <span class="text-sm">🥉</span>
+          <div>
+            <div class="text-xs font-bold text-slate-900">Bronze статус (+1% кэшбэк)</div>
+            <div class="text-[10px] text-slate-400">До Silver: 2 450 ₽</div>
+          </div>
+        </div>
+        <div class="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+          r/k7a9x
+        </div>
+      </div>
+
+      <!-- ИНТЕРАКТИВНЫЙ ВИДЖЕТ ЗАКАЗА С АВТО-СХЛОПЫВАНИЕМ (FOOLPROOF UX) -->
+      <div id="m-order-widget" class="bg-white border border-slate-200 rounded-2xl p-3 shadow-xs space-y-2.5">
+        
+        <!-- Заголовок виджета -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-black uppercase tracking-tight text-slate-900">Экспресс-заказ</span>
+            <span id="m-detected-badge" class="hidden text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+              ✓ Telegram
+            </span>
+          </div>
+
+          <!-- Кнопка сброса -->
+          <button id="m-reset-btn" onclick="mResetOrder()" class="hidden text-[10px] font-bold text-slate-400 hover:text-slate-800 flex items-center gap-0.5">
+            ✕ Сбросить
+          </button>
+        </div>
+
+        <!-- ШАГ 1: Поле ввода ссылки (Touch Target >= 44px) -->
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-1.5">
+            <input 
+              id="m-link-input"
+              type="text" 
+              placeholder="Вставьте ссылку (t.me, vk, yt)..." 
+              class="flex-1 h-11 bg-slate-50 border border-slate-300 focus:border-slate-900 rounded-xl px-3 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none"
+            />
+            <button 
+              onclick="mHandleLinkSubmit()" 
+              class="h-11 px-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold shrink-0 shadow-xs active:scale-95 transition flex items-center gap-1"
+            >
+              <span>Далее</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+
+          <!-- Быстрые примеры для проверки в 1 тап -->
+          <div id="m-quick-presets" class="flex items-center gap-1.5 text-[10px] text-slate-400 overflow-x-auto py-0.5">
+            <span class="shrink-0 font-medium">Тест:</span>
+            <button onclick="mSetSampleLink('https://t.me/durov', 'Telegram Канал')" class="shrink-0 text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-full font-medium">Telegram</button>
+            <button onclick="mSetSampleLink('https://vk.com/post_12', 'ВКонтакте Пост')" class="shrink-0 text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-full font-medium">VK</button>
+            <button onclick="mSetSampleLink('https://youtube.com/watch?v=1', 'YouTube Видео')" class="shrink-0 text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-full font-medium">YouTube</button>
+          </div>
+        </div>
+
+        <!-- ШАГ 2: СЕТКА КАТЕГОРИЙ (Раскрывается после ввода ссылки) -->
+        <div id="m-categories-step" class="hidden pt-2 border-t border-dashed border-slate-200 space-y-2">
+          <div class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+            <span>1. Выберите категорию:</span>
+            <span class="text-[10px] text-slate-400 font-normal">Тапните для выбора</span>
+          </div>
+
+          <!-- 8 категорий 2x4 (высота 44px+) -->
+          <div class="grid grid-cols-2 gap-1.5">
+            <button onclick="mSelectCategory('subscribers')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>👥 Подписчики</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.18 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('views')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>👁️ Просмотры</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.03 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('reactions')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>🔥 Реакции</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.05 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('comments')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>💬 Комменты</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">1.20 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('stars')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>⭐️ TG Stars</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.45 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('boosts')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>🚀 Бусты</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">14.50 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('votes')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>🗳️ Опросы</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.09 ₽</span>
+            </button>
+            <button onclick="mSelectCategory('reposts')" class="h-11 bg-slate-50 hover:bg-slate-100 border border-slate-200 active:border-slate-900 rounded-xl px-2.5 flex items-center justify-between text-xs font-bold text-slate-800 transition">
+              <span>🔄 Репосты</span>
+              <span class="text-[9px] bg-white border border-slate-200 px-1 py-0.5 rounded font-mono text-slate-500">0.06 ₽</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- СВЕРНУТАЯ ПЛАШКА КАТЕГОРИИ (Появляется вместо сетки) -->
+        <div id="m-category-collapsed-bar" class="hidden pt-2 border-t border-dashed border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white text-[9px] flex items-center justify-center font-bold">✓</span>
+            <span class="text-[11px] text-slate-500">Категория:</span>
+            <span id="m-collapsed-cat-name" class="text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+              👥 Подписчики
+            </span>
+          </div>
+          <button onclick="mReopenCategories()" class="text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2 py-1 rounded-lg transition">
+            Сменить (8)
+          </button>
+        </div>
+
+        <!-- ШАГ 3: ТАРИФЫ И ЧЕКАУТ (Раскрываются после выбора категории) -->
+        <div id="m-services-step" class="hidden pt-2 border-t border-dashed border-slate-200 space-y-2.5">
+          <div class="text-[11px] font-bold text-slate-800 flex items-center justify-between">
+            <span id="m-services-title">2. Выберите тариф:</span>
+            <span class="text-[10px] text-slate-400">Без списаний</span>
+          </div>
+
+          <!-- Список тарифов (вертикальные компактные плашки) -->
+          <div id="m-services-list" class="space-y-1.5">
+            <!-- Динамически рендерится скриптом -->
+          </div>
+
+          <!-- Дополнительные тарифы категории (компактный аккордеон) -->
+          <div id="m-more-services-wrapper" class="pt-0.5">
+            <button id="m-toggle-more-btn" onclick="mToggleMoreServices()" class="text-[11px] font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition">
+              <span id="m-more-btn-text">▾ Показать ещё 2 тарифа</span>
+            </button>
+            <div id="m-more-services-list" class="hidden mt-1.5 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              <!-- Динамически рендерится скриптом -->
+            </div>
+          </div>
+
+          <!-- Степпер объема (крупные тач-кнопки 44x44px) -->
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div class="text-xs font-bold text-slate-700">Объем:</div>
+            <div class="flex items-center">
+              <button onclick="mChangeQty(-250)" class="w-10 h-10 bg-white border border-slate-300 rounded-l-lg font-black text-slate-700 text-sm active:bg-slate-100">-</button>
+              <div id="m-qty-val" class="h-10 px-3 bg-white border-y border-slate-300 flex items-center justify-center font-mono font-bold text-xs text-slate-900 min-w-[70px]">
+                1 000
+              </div>
+              <button onclick="mChangeQty(250)" class="w-10 h-10 bg-white border border-slate-300 rounded-r-lg font-black text-slate-700 text-sm active:bg-slate-100">+</button>
+            </div>
+            <div class="text-right">
+              <div class="text-[9px] text-slate-400 uppercase font-bold">Итого:</div>
+              <div id="m-total-val" class="text-xs font-black text-slate-900 font-mono">180.00 ₽</div>
+            </div>
+          </div>
+
+          <!-- Кнопка оплаты (высота 44px, full width) -->
+          <button onclick="mSimulateOrder()" class="w-full h-11 bg-slate-900 text-white rounded-xl font-bold text-xs shadow-md active:scale-98 transition flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Оплатить с баланса</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- АКТИВНЫЕ ЗАКАЗЫ (ОСТАЮТСЯ В ВИДИМОЙ ОБЛАСТИ БЛАГОДАРЯ СХЛОПЫВАНИЮ) -->
+      <div class="bg-white p-3 rounded-2xl border border-slate-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+            <span>Активные заказы (2)</span>
+          </span>
+          <span class="text-[10px] text-slate-400 font-medium">Обновление 10с</span>
+        </div>
+
+        <!-- Заказ 1 -->
+        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+          <div class="flex justify-between items-start text-xs">
+            <span class="font-bold text-slate-800">#48192 Telegram Подписчики</span>
+            <span class="font-mono text-emerald-700 font-black text-[11px]">75%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div class="h-full bg-slate-900 rounded-full" style="width: 75%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>Выполнено: 750 из 1 000 шт</span>
+            <span class="text-slate-600 font-mono">135.00 ₽</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- МОБИЛЬНЫЙ НИЖНИЙ ТАББАР (STICKY BOTTOM NAVIGATION) -->
+    <nav class="absolute bottom-0 left-0 right-0 h-14 bg-white border-t border-slate-200 flex items-center justify-around px-2 z-10">
+      <button class="flex flex-col items-center gap-0.5 text-slate-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="text-[9px] font-bold">Кабинет</span>
+      </button>
+      <button class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="text-[9px] font-medium">Заказы</span>
+      </button>
+      <button class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <span class="text-[9px] font-medium">Каталог</span>
+      </button>
+      <button class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <span class="text-[9px] font-medium">Поддержка</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- МОБИЛЬНЫЙ СКРИПТ (AUTO-FOLDING PROGRESSIVE DISCLOSURE) -->
+  <script>
+    const mCatalog = {
+      subscribers: {
+        label: 'Подписчики',
+        items: [
+          { id: 1, title: 'Подписчики RU (Гарантия)', rate: 0.18, min: 50 },
+          { id: 2, title: 'Премиум с рекламы', rate: 0.42, min: 100 },
+          { id: 3, title: 'Быстрые эконом', rate: 0.09, min: 100 }
+        ],
+        extraItems: [
+          { id: 4, title: 'Подписчики СНГ (Таргет)', rate: 0.22, min: 100 },
+          { id: 5, title: 'Женская аудитория RU', rate: 0.35, min: 50 }
+        ]
+      },
+      views: {
+        label: 'Просмотры',
+        items: [
+          { id: 11, title: 'Быстрые просмотры', rate: 0.03, min: 100 },
+          { id: 12, title: 'Авто-просмотры (5 постов)', rate: 0.15, min: 100 },
+          { id: 13, title: 'Охват + рекомендации', rate: 0.08, min: 200 }
+        ],
+        extraItems: [
+          { id: 14, title: 'Плавный Drip-Feed', rate: 0.05, min: 500 },
+          { id: 15, title: 'Просмотры Stories', rate: 0.12, min: 100 }
+        ]
+      },
+      reactions: {
+        label: 'Реакции',
+        items: [
+          { id: 21, title: 'Живые реакции (микс)', rate: 0.05, min: 50 },
+          { id: 22, title: 'Позитивные (🔥❤️)', rate: 0.06, min: 50 },
+          { id: 23, title: 'Умный авто-пак', rate: 0.12, min: 100 }
+        ],
+        extraItems: [
+          { id: 24, title: 'Кастомные эмодзи TG', rate: 0.09, min: 50 },
+          { id: 25, title: 'Негативные (👎💩)', rate: 0.07, min: 50 }
+        ]
+      },
+      comments: {
+        label: 'Комменты',
+        items: [
+          { id: 31, title: 'Осмысленные RU', rate: 1.20, min: 10 },
+          { id: 32, title: 'Позитивные отзывы', rate: 1.45, min: 10 },
+          { id: 33, title: 'Свой список текста', rate: 1.80, min: 10 }
+        ],
+        extraItems: [
+          { id: 34, title: 'Ветки дискуссий', rate: 2.10, min: 5 },
+          { id: 35, title: 'Эмодзи-реплики', rate: 0.65, min: 20 }
+        ]
+      },
+      stars: {
+        label: 'TG Stars',
+        items: [
+          { id: 41, title: 'TG Stars (Официальные)', rate: 0.45, min: 10 },
+          { id: 42, title: 'Пакет 100 Stars', rate: 0.42, min: 100 },
+          { id: 43, title: 'Stars от Premium', rate: 0.58, min: 25 }
+        ],
+        extraItems: [
+          { id: 44, title: 'Авто-Stars на посты', rate: 0.49, min: 50 },
+          { id: 45, title: 'Stars в Mini Apps', rate: 0.52, min: 50 }
+        ]
+      },
+      boosts: {
+        label: 'Бусты',
+        items: [
+          { id: 51, title: 'Буст канала (1 Уровень)', rate: 14.50, min: 4 },
+          { id: 52, title: 'Бусты с гарантией 30д', rate: 18.00, min: 4 },
+          { id: 53, title: 'Экспресс-буст (5 мин)', rate: 22.00, min: 4 }
+        ],
+        extraItems: [
+          { id: 54, title: 'Бусты на 90 дней', rate: 45.00, min: 4 },
+          { id: 55, title: 'Бусты в группы', rate: 19.50, min: 4 }
+        ]
+      },
+      votes: {
+        label: 'Опросы',
+        items: [
+          { id: 61, title: 'Голоса в опросе', rate: 0.09, min: 50 },
+          { id: 62, title: 'Голоса с переходом', rate: 0.16, min: 50 },
+          { id: 63, title: 'Викторины (Верный)', rate: 0.14, min: 25 }
+        ],
+        extraItems: [
+          { id: 64, title: 'С обходом капчи', rate: 0.28, min: 50 },
+          { id: 65, title: 'В закрытых каналах', rate: 0.35, min: 30 }
+        ]
+      },
+      reposts: {
+        label: 'Репосты',
+        items: [
+          { id: 71, title: 'Репосты в каналы', rate: 0.06, min: 50 },
+          { id: 72, title: 'Репосты в лс', rate: 0.08, min: 50 },
+          { id: 73, title: 'Шеринг историй', rate: 0.19, min: 20 }
+        ],
+        extraItems: [
+          { id: 74, title: 'В группы тематик', rate: 0.25, min: 20 },
+          { id: 75, title: 'Репост + Реакция', rate: 0.14, min: 50 }
+        ]
+      }
+    };
+
+    let mCategory = null;
+    let mRate = 0.18;
+    let mQty = 1000;
+    let mServiceId = 1;
+    let mServiceTitle = '';
+
+    function mSetSampleLink(url, badge) {
+      document.getElementById('m-link-input').value = url;
+      mHandleLinkSubmit(badge);
+    }
+
+    function mHandleLinkSubmit(badgeText) {
+      const val = document.getElementById('m-link-input').value.trim();
+      if (!val) {
+        alert('Пожалуйста, введите или выберите тестовую ссылку');
+        return;
+      }
+      const badge = document.getElementById('m-detected-badge');
+      badge.textContent = badgeText || (val.includes('vk.com') ? '✓ VK' : val.includes('youtube') ? '✓ YouTube' : '✓ Telegram');
+      badge.classList.remove('hidden');
+      document.getElementById('m-reset-btn').classList.remove('hidden');
+
+      // Скрываем свернутую плашку и услуги если были
+      document.getElementById('m-category-collapsed-bar').classList.add('hidden');
+      document.getElementById('m-services-step').classList.add('hidden');
+
+      // Раскрываем категории
+      document.getElementById('m-categories-step').classList.remove('hidden');
+      document.getElementById('m-quick-presets').classList.add('hidden');
+    }
+
+    function mToggleMoreServices() {
+      const list = document.getElementById('m-more-services-list');
+      const text = document.getElementById('m-more-btn-text');
+      const isHidden = list.classList.contains('hidden');
+      if (isHidden) {
+        list.classList.remove('hidden');
+        text.textContent = '▴ Скрыть доп. тарифы';
+      } else {
+        list.classList.add('hidden');
+        const count = (mCatalog[mCategory] && mCatalog[mCategory].extraItems) ? mCatalog[mCategory].extraItems.length : 2;
+        text.textContent = `▾ Показать ещё ${count} тарифа`;
+      }
+    }
+
+    function mSelectCategory(key) {
+      mCategory = key;
+      const data = mCatalog[key];
+      if (!data) return;
+
+      // 1. Скрываем сетку категорий для экономии места!
+      document.getElementById('m-categories-step').classList.add('hidden');
+
+      // 2. Показываем свернутую полоску
+      const icons = { 
+        subscribers: '👥', 
+        views: '👁️', 
+        reactions: '🔥', 
+        comments: '💬',
+        stars: '⭐️',
+        boosts: '🚀',
+        votes: '🗳️',
+        reposts: '🔄'
+      };
+      document.getElementById('m-collapsed-cat-name').textContent = `${icons[key] || '✨'} ${data.label}`;
+      document.getElementById('m-category-collapsed-bar').classList.remove('hidden');
+
+      // 3. Рендерим 3 основных тарифа
+      const list = document.getElementById('m-services-list');
+      list.innerHTML = data.items.map(item => `
+        <div id="m-srv-${item.id}" onclick="mSelectService(${item.id})" class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between cursor-pointer transition">
+          <div>
+            <div class="text-xs font-bold text-slate-800">${item.title}</div>
+            <div class="text-[10px] text-slate-400">Мин: ${item.min} шт</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-mono font-black text-slate-900">${item.rate.toFixed(2)} ₽</div>
+            <div class="text-[9px] text-slate-400">за шт</div>
+          </div>
+        </div>
+      `).join('');
+
+      // 4. Дополнительные тарифы в аккордеоне
+      const moreWrapper = document.getElementById('m-more-services-wrapper');
+      const moreList = document.getElementById('m-more-services-list');
+      const moreText = document.getElementById('m-more-btn-text');
+
+      if (data.extraItems && data.extraItems.length > 0) {
+        moreWrapper.classList.remove('hidden');
+        moreList.classList.add('hidden');
+        moreText.textContent = `▾ Показать ещё ${data.extraItems.length} тарифа`;
+        moreList.innerHTML = data.extraItems.map(item => `
+          <div id="m-srv-${item.id}" onclick="mSelectService(${item.id})" class="p-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white flex items-center justify-between cursor-pointer transition">
+            <div>
+              <div class="text-xs font-bold text-slate-800">${item.title}</div>
+              <div class="text-[9px] text-slate-400">Мин: ${item.min} шт</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-mono font-black text-slate-900">${item.rate.toFixed(2)} ₽</div>
+              <div class="text-[9px] text-slate-400">за шт</div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        moreWrapper.classList.add('hidden');
+      }
+
+      document.getElementById('m-services-step').classList.remove('hidden');
+      mSelectService(data.items[0].id);
+    }
+
+    function mReopenCategories() {
+      document.getElementById('m-category-collapsed-bar').classList.add('hidden');
+      document.getElementById('m-services-step').classList.add('hidden');
+      document.getElementById('m-categories-step').classList.remove('hidden');
+    }
+
+    function mSelectService(id) {
+      if (!mCategory) return;
+      const cat = mCatalog[mCategory];
+      let item = cat.items.find(i => i.id === id);
+      if (!item && cat.extraItems) {
+        item = cat.extraItems.find(i => i.id === id);
+      }
+      if (!item) return;
+
+      mServiceId = item.id;
+      mRate = item.rate;
+      mServiceTitle = item.title;
+
+      const allItems = [...(cat.items || []), ...(cat.extraItems || [])];
+      allItems.forEach(i => {
+        const el = document.getElementById('m-srv-' + i.id);
+        if (el) {
+          if (i.id === id) {
+            el.className = 'p-2.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white flex items-center justify-between cursor-pointer transition shadow-xs';
+            const title = el.querySelector('.text-slate-800, .text-white');
+            if (title) title.className = 'text-xs font-bold text-white';
+            const desc = el.querySelector('.text-slate-400');
+            if (desc) desc.className = 'text-[10px] text-slate-400';
+            const price = el.querySelector('.text-slate-900, .text-emerald-400');
+            if (price) price.className = 'text-xs font-mono font-black text-emerald-400';
+          } else {
+            const isExtra = (cat.extraItems || []).some(ex => ex.id === i.id);
+            el.className = isExtra 
+              ? 'p-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white flex items-center justify-between cursor-pointer transition'
+              : 'p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between cursor-pointer transition';
+            const title = el.querySelector('.text-slate-800, .text-white');
+            if (title) title.className = 'text-xs font-bold text-slate-800';
+            const desc = el.querySelector('.text-slate-400');
+            if (desc) desc.className = 'text-[10px] text-slate-400';
+            const price = el.querySelector('.text-slate-900, .text-emerald-400');
+            if (price) price.className = 'text-xs font-mono font-black text-slate-900';
+          }
+        }
+      });
+
+      mUpdateTotal();
+    }
+
+    function mChangeQty(delta) {
+      mQty = Math.max(100, mQty + delta);
+      document.getElementById('m-qty-val').textContent = mQty.toLocaleString('ru-RU');
+      mUpdateTotal();
+    }
+
+    function mUpdateTotal() {
+      const sum = (mQty * mRate).toFixed(2);
+      document.getElementById('m-total-val').textContent = sum + ' ₽';
+    }
+
+    function mResetOrder() {
+      document.getElementById('m-link-input').value = '';
+      document.getElementById('m-detected-badge').classList.add('hidden');
+      document.getElementById('m-reset-btn').classList.add('hidden');
+      document.getElementById('m-categories-step').classList.add('hidden');
+      document.getElementById('m-category-collapsed-bar').classList.add('hidden');
+      document.getElementById('m-services-step').classList.add('hidden');
+      document.getElementById('m-quick-presets').classList.remove('hidden');
+      mCategory = null;
+    }
+
+    function mSimulateOrder() {
+      const sum = (mQty * mRate).toFixed(2);
+      alert('✓ Заказ оформлен!\n\n' + mServiceTitle + '\nОбъем: ' + mQty.toLocaleString('ru-RU') + ' шт\nСписано: ' + sum + ' ₽');
+    }
+  </script>
+</body>
+</html>

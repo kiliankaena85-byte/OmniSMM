@@ -1,0 +1,16 @@
+﻿D:\SMM_plan_2\gather_debt.ps1
+D:\SMM_plan_2\kill_all.ps1
+D:\SMM_plan_2\kill_all_stale_nodes.ps1
+D:\SMM_plan_2\kill_nodes.ps1
+D:\SMM_plan_2\optimize_and_cleanup.bat
+D:\SMM_plan_2\optimize_laptop_performance.bat
+D:\SMM_plan_2\summarize.ps1
+D:\SMM_plan_2\.agent\skills\round-table-planning\scripts\deploy-hybrid.ps1
+D:\SMM_plan_2\.agents\teamwork_preview_reviewer_testing_m4\kill_stale_node.ps1
+D:\SMM_plan_2\scratch\configure-docker-proxy.ps1
+D:\SMM_plan_2\scratch\wait-docker.ps1
+D:\SMM_plan_2\scripts\deploy-hybrid.ps1
+D:\SMM_plan_2\scripts\deploy-remote.ps1
+D:\SMM_plan_2\scripts\deploy-staging.ps1
+D:\SMM_plan_2\scripts\migrate-prod.ps1
+D:\SMM_plan_2\scripts\upload-b64.ps1

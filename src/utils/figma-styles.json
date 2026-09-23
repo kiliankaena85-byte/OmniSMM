@@ -1,0 +1,51 @@
+{
+  "theme": "telegram-community",
+  "colors": {
+    "primary": "#2481cc",
+    "primaryHover": "#2072b8",
+    "primaryForeground": "#ffffff",
+    "background": "#b6d0f0",
+    "backgroundCard": "#17212b",
+    "backgroundCardHover": "#202b36",
+    "text": "#ffffff",
+    "textMuted": "#7f8c9a",
+    "textSelected": "#ffffff",
+    "border": "#24303f",
+    "chatBubbleSent": "#2b5278",
+    "chatBubbleReceived": "#182533",
+    "chatBubbleSentText": "#ffffff",
+    "chatBubbleReceivedText": "#f5f5f5",
+    "destructive": "#ec3b3b",
+    "destructiveHover": "#d32f2f",
+    "miniAppHeaderBackground": {
+      "light": "#707579",
+      "dark": "#707579"
+    },
+    "miniAppHeaderTextColor": "#ffffff",
+    "miniAppInputBackground": {
+      "light": "#ffffff",
+      "dark": "#ffffff"
+    },
+    "miniAppCardBackground": {
+      "light": "#4378ff",
+      "dark": "#4378ff"
+    }
+  },
+  "layout": {
+    "borderRadiusBubble": "12px",
+    "borderRadiusCard": "16px",
+    "borderRadiusButton": "5px",
+    "paddingBubble": "12px 16px",
+    "paddingCard": "16px",
+    "marginChatGap": "8px",
+    "miniAppButtonRadius": "20px",
+    "miniAppButtonPadding": "10px 16px"
+  },
+  "typography": {
+    "fontFamily": "Roboto",
+    "fontSizeChat": "14px",
+    "fontSizeTitle": "16px",
+    "fontWeightNormal": "400",
+    "fontWeightBold": "600"
+  }
+}

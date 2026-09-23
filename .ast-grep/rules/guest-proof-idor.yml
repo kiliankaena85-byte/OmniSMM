@@ -1,0 +1,6 @@
+id: guest-proof-idor
+language: typescript
+message: "УЯЗВИМОСТЬ IDOR (Zero-Trust): Небезопасная проверка владения сущностью! Проверяйте if (item.userId && (!sessionUser || item.userId !== sessionUser.id))."
+severity: error
+rule:
+  pattern: if ($SESSION && $ITEM.userId !== $SESSION.id)

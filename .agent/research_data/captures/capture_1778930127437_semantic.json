@@ -1,0 +1,183 @@
+{
+  "role": "body",
+  "children": [
+    {
+      "role": "div"
+    },
+    {
+      "role": "div",
+      "children": [
+        {
+          "role": "div",
+          "children": [
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "div",
+                      "children": [
+                        {
+                          "role": "svg",
+                          "children": [
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "h1",
+                      "name": "Что-то пошло не так"
+                    },
+                    {
+                      "role": "p",
+                      "name": "Возникла непредвиденная ошибка. Попробуйте обновить страницу или вернитесь на главную."
+                    }
+                  ]
+                },
+                {
+                  "role": "div",
+                  "children": [
+                    {
+                      "role": "button",
+                      "name": "Попробовать снова",
+                      "children": [
+                        {
+                          "role": "svg",
+                          "children": [
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            },
+                            {
+                              "role": "path"
+                            }
+                          ]
+                        },
+                        {
+                          "role": "text",
+                          "name": "Попробовать снова"
+                        }
+                      ]
+                    },
+                    {
+                      "role": "a",
+                      "name": "На главную"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "role": "div",
+          "children": [
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "button",
+                  "children": [
+                    {
+                      "role": "svg",
+                      "children": [
+                        {
+                          "role": "circle"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        },
+                        {
+                          "role": "path"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "role": "button",
+                  "children": [
+                    {
+                      "role": "svg",
+                      "children": [
+                        {
+                          "role": "path"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "role": "div"
+            },
+            {
+              "role": "div",
+              "children": [
+                {
+                  "role": "button",
+                  "name": "Switch to sky accent"
+                },
+                {
+                  "role": "button",
+                  "name": "Switch to emerald accent"
+                },
+                {
+                  "role": "button",
+                  "name": "Switch to violet accent"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "section",
+      "name": "Notifications alt+T"
+    },
+    {
+      "role": "next-route-announcer"
+    }
+  ]
+}
