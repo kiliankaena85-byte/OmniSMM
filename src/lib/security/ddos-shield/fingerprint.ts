@@ -1,10 +1,10 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 
 /**
  * Computes a deterministic SHA-256 fingerprint hash of client HTTP request headers.
  * Groups rotating proxy clients sharing identical browser signatures into a single bucket.
  */
-export function computeHeaderFingerprint(headers: Headers): string {
+export function computeHeaderFingerprint(headers: Headers, clientIp?: string): string {
   const ua = headers.get('user-agent') || '';
   const acceptLang = headers.get('accept-language') || '';
   const secChUa = headers.get('sec-ch-ua') || '';
@@ -14,6 +14,7 @@ export function computeHeaderFingerprint(headers: Headers): string {
   const secFetchMode = headers.get('sec-fetch-mode') || '';
 
   const rawFingerprint = [
+    clientIp ? clientIp.trim() : '',
     ua.trim(),
     acceptLang.split(',')[0]?.trim() || '',
     secChUa.trim(),
@@ -76,11 +77,12 @@ export function checkClientHintsAnomaly(headers: Headers): ClientHintsAnomalyRes
   }
 
   if (secChUaMobile) {
-    const isMobileHint = secChUaMobile.includes('?1');
-    const isMobileUa = ua.includes('mobile') || ua.includes('android') || ua.includes('iphone');
+    // Tablets (iPad or Android tablet where UA has "android" but NOT "mobile") legitimately send sec-ch-ua-mobile: ?0
+    const isTablet = ua.includes('ipad') || (ua.includes('android') && !ua.includes('mobile'));
+    const isMobileUa = (ua.includes('mobile') || ua.includes('iphone')) && !isTablet;
     
     // Contradiction: UA claims to be mobile, but hint explicitly specifies desktop ?0
-    if (isMobileUa && secChUaMobile.includes('?0') && !ua.includes('ipad')) {
+    if (isMobileUa && secChUaMobile.includes('?0')) {
       return {
         isAnomalous: true,
         reason: `Mobile hint mismatch: User-Agent claims mobile, but sec-ch-ua-mobile is ?0`,

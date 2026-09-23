@@ -403,83 +403,6 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 0.5. Echelon DDoS Shield & Anomaly Inspection (SPEC-2026-09-11)
-  const isExcludedFromShield = 
-    pathname.startsWith('/api/webhooks/') ||
-    pathname.startsWith('/api/storefront/') ||
-    pathname.startsWith('/_next/') ||
-    pathname === '/favicon.ico' ||
-    pathname === '/robots.txt' ||
-    pathname === '/sitemap.xml' ||
-    pathname === '/api/v1/internal-sync' || // honeypot itself
-    pathname === '/api/security/challenge';
-
-  if (!isExcludedFromShield && process.env.DDOS_SHIELD_ENABLED !== 'false') {
-    const hasSession = Boolean(readSessionTokenFromCookies(request.cookies));
-
-    // Authorized users with valid session bypass DDoS challenge
-    if (!hasSession) {
-      const { computeHeaderFingerprint, checkClientHintsAnomaly, isWhitelistedGoodBot } = await import('@/lib/security/ddos-shield/fingerprint');
-      const isBotWhitelisted = isWhitelistedGoodBot(request.headers);
-
-      if (!isBotWhitelisted) {
-        const fingerprint = computeHeaderFingerprint(request.headers);
-        const { isBlacklistedDdosTarget } = await import('@/lib/security/ddos-shield/honeypot-service');
-        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
-
-        // 1. Blacklist check (Honeypot trap hit)
-        const isBlocked = await isBlacklistedDdosTarget(clientIp, fingerprint);
-        if (isBlocked) {
-          return new NextResponse('Access Blocked by Anti-DDoS Perimeter', { status: 403, headers: { 'Retry-After': '86400' } });
-        }
-
-        // 2. Gatekeeper token check
-        const gatekeeperCookie = request.cookies.get('__Host-gatekeeper')?.value || request.cookies.get('gatekeeper')?.value;
-        let hasValidGatekeeper = false;
-        if (gatekeeperCookie) {
-          try {
-            const { verifyGatekeeperToken } = await import('@/lib/security/ddos-shield/pow-engine');
-            const { getShieldSecret } = await import('@/lib/security/ddos-shield/shield-secret');
-            const shieldSecret = getShieldSecret();
-            const payload = verifyGatekeeperToken(gatekeeperCookie, shieldSecret);
-            if (payload) {
-              hasValidGatekeeper = true;
-            }
-          } catch {
-            hasValidGatekeeper = false;
-          }
-        }
-
-        if (!hasValidGatekeeper) {
-          const anomaly = checkClientHintsAnomaly(request.headers);
-          const { checkFingerprintPoolLimit } = await import('@/lib/security/ddos-shield/token-bucket-pool');
-          const poolStatus = await checkFingerprintPoolLimit(fingerprint, 'smmplan', 120, 60);
-
-          if (anomaly.isAnomalous || !poolStatus.isAllowed) {
-            const acceptHeader = request.headers.get('accept') || '';
-            const isHtmlRequest = acceptHeader.includes('text/html') && request.method === 'GET';
-
-            if (isHtmlRequest) {
-              const { renderPowChallengeHtml } = await import('@/lib/security/ddos-shield/challenge-page');
-              return new NextResponse(renderPowChallengeHtml(), {
-                status: 429,
-                headers: {
-                  'Content-Type': 'text/html; charset=utf-8',
-                  'Retry-After': '5',
-                },
-              });
-            }
-
-            return NextResponse.json(
-              { error: 'Too Many Requests - Security verification required' },
-              { status: 429, headers: { 'Retry-After': '60' } }
-            );
-          }
-        }
-      }
-    }
-  }
-
   let host = (fwdHost && !isInternalHost(fwdHost))
     ? fwdHost
     : (hostHeader?.split(',')[0]?.trim() || '');
@@ -595,6 +518,116 @@ export async function proxy(request: NextRequest) {
     }
     return res;
   };
+
+  // Webhook Rate Limiter Guard (IP + tenant-scoped for /api/webhooks/*)
+  if (pathname.startsWith('/api/webhooks')) {
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+    const webhookPoolKey = `webhook:${clientIp}:${pathname}`;
+    const { checkFingerprintPoolLimit } = await import('@/lib/security/ddos-shield/token-bucket-pool');
+
+    const rateLimit = await checkFingerprintPoolLimit(webhookPoolKey, finalTenantId, 60, 60);
+    if (!rateLimit.isAllowed) {
+      return NextResponse.json(
+        { error: 'Webhook rate limit exceeded. Please retry later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': '60',
+            'X-RateLimit-Limit': '60',
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      );
+    }
+  }
+
+  // 0.5. Echelon DDoS Shield & Anomaly Inspection (SPEC-2026-09-11 / AUDIT-2026-09-23)
+  const isExcludedFromShield = 
+    pathname.startsWith('/api/webhooks/') ||
+    pathname.startsWith('/api/storefront/') ||
+    pathname.startsWith('/_next/') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/api/v1/internal-sync' || // honeypot itself
+    pathname === '/api/security/challenge' ||
+    pathname === '/api/maintenance-status' ||
+    pathname === '/api/health';
+
+  if (!isExcludedFromShield && process.env.DDOS_SHIELD_ENABLED !== 'false') {
+    const hasSession = Boolean(readSessionTokenFromCookies(request.cookies));
+
+    // Authorized users with valid session bypass DDoS challenge
+    if (!hasSession) {
+      const { computeHeaderFingerprint, checkClientHintsAnomaly, isWhitelistedGoodBot } = await import('@/lib/security/ddos-shield/fingerprint');
+      const isBotWhitelisted = isWhitelistedGoodBot(request.headers);
+
+      if (!isBotWhitelisted) {
+        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+        const fingerprint = computeHeaderFingerprint(request.headers, clientIp);
+        const { isBlacklistedDdosTarget } = await import('@/lib/security/ddos-shield/honeypot-service');
+
+        // 1. Blacklist check (Honeypot trap hit)
+        const isBlocked = await isBlacklistedDdosTarget(clientIp, fingerprint);
+        if (isBlocked) {
+          return new NextResponse('Access Blocked by Anti-DDoS Perimeter', { status: 403, headers: { 'Retry-After': '86400' } });
+        }
+
+        // 2. Gatekeeper token check
+        const gatekeeperCookie = request.cookies.get('__Host-gatekeeper')?.value || request.cookies.get('gatekeeper')?.value;
+        let hasValidGatekeeper = false;
+        if (gatekeeperCookie) {
+          try {
+            const { verifyGatekeeperToken } = await import('@/lib/security/ddos-shield/pow-engine');
+            const { getShieldSecret } = await import('@/lib/security/ddos-shield/shield-secret');
+            const shieldSecret = getShieldSecret();
+            const payload = verifyGatekeeperToken(gatekeeperCookie, shieldSecret);
+            if (payload) {
+              hasValidGatekeeper = true;
+            }
+          } catch {
+            hasValidGatekeeper = false;
+          }
+        }
+
+        if (!hasValidGatekeeper) {
+          const isRscOrAction = request.headers.has('rsc') || request.headers.has('next-action') || request.headers.has('next-router-prefetch');
+          const isDocument = request.method === 'GET' && (request.headers.get('sec-fetch-dest') === 'document' || (request.headers.get('accept') || '').includes('text/html'));
+
+          // Only apply browser PoW challenge / pool limits to document navigations.
+          // RSC, Server Actions, and prefetch must NOT return 429 JSON/HTML as it triggers Next.js MPA hard reload.
+          if (isDocument) {
+            const anomaly = checkClientHintsAnomaly(request.headers);
+            const { checkFingerprintPoolLimit } = await import('@/lib/security/ddos-shield/token-bucket-pool');
+            const poolKey = `${clientIp}:${fingerprint}`;
+            const poolStatus = await checkFingerprintPoolLimit(poolKey, finalTenantId, 120, 60);
+
+            if (anomaly.isAnomalous || !poolStatus.isAllowed) {
+              const { renderPowChallengeHtml } = await import('@/lib/security/ddos-shield/challenge-page');
+              return new NextResponse(renderPowChallengeHtml(), {
+                status: 429,
+                headers: {
+                  'Content-Type': 'text/html; charset=utf-8',
+                  'Retry-After': '5',
+                },
+              });
+            }
+          } else if (isRscOrAction) {
+            // For RSC and Server Actions, apply a high burst per-IP rate limit (300 req/min) to prevent flooding without breaking SPA navigation
+            const { checkFingerprintPoolLimit } = await import('@/lib/security/ddos-shield/token-bucket-pool');
+            const actionPoolKey = `rsc:${clientIp}:${fingerprint}`;
+            const actionPool = await checkFingerprintPoolLimit(actionPoolKey, finalTenantId, 300, 60);
+            if (!actionPool.isAllowed) {
+              return NextResponse.json(
+                { error: 'Rate limit exceeded. Please wait a moment.' },
+                { status: 429, headers: { 'Retry-After': '10' } }
+              );
+            }
+          }
+        }
+      }
+    }
+  }
 
   // Strict validation against current active server contour (TRUSTED_CONTOUR_MAP)
   const allowedForContour = TRUSTED_CONTOUR_MAP[activeContour];

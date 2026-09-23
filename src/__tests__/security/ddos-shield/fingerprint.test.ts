@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { 
   computeHeaderFingerprint, 
   checkClientHintsAnomaly,
@@ -51,5 +51,39 @@ describe('DDoS Shield Fingerprint & Anomaly Detection (SPEC-2026-09-11)', () => 
     expect(isWhitelistedGoodBot(yandexHeaders)).toBe(true);
     expect(isWhitelistedGoodBot(googleHeaders)).toBe(true);
     expect(isWhitelistedGoodBot(attackerHeaders)).toBe(false);
+  });
+
+  it('permits Android tablet UA without mobile keyword sending sec-ch-ua-mobile: ?0', () => {
+    const tabletHeaders = new Headers({
+      'user-agent': 'Mozilla/5.0 (Linux; Android 13; SM-X700) AppleWebKit/537.36 Chrome/128 Safari/537.36',
+      'sec-ch-ua-platform': '"Android"',
+      'sec-ch-ua-mobile': '?0',
+    });
+
+    const anomaly = checkClientHintsAnomaly(tabletHeaders);
+    expect(anomaly.isAnomalous).toBe(false);
+  });
+
+  it('flags Android phone UA with mobile keyword sending sec-ch-ua-mobile: ?0 as anomalous', () => {
+    const phoneHeaders = new Headers({
+      'user-agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7 Mobile) AppleWebKit/537.36 Chrome/128 Safari/537.36',
+      'sec-ch-ua-platform': '"Android"',
+      'sec-ch-ua-mobile': '?0',
+    });
+
+    const anomaly = checkClientHintsAnomaly(phoneHeaders);
+    expect(anomaly.isAnomalous).toBe(true);
+    expect(anomaly.reason).toMatch(/mobile hint mismatch/i);
+  });
+
+  it('differentiates fingerprints when clientIp is supplied', () => {
+    const headers = new Headers({
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'accept-language': 'ru-RU',
+    });
+
+    const fp1 = computeHeaderFingerprint(headers, '1.2.3.4');
+    const fp2 = computeHeaderFingerprint(headers, '5.6.7.8');
+    expect(fp1).not.toBe(fp2);
   });
 });
