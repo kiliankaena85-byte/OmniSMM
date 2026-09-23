@@ -301,6 +301,18 @@ export async function deleteTenantAction(id: string) {
   }
 
   try {
+    const tenantToDelete = await db.tenant.findUnique({ where: { id } });
+    if (!tenantToDelete) {
+      return { success: false, error: 'Тенант не найден' };
+    }
+
+    const domainsToRemove = [tenantToDelete.domain, tenantToDelete.customDomain, tenantToDelete.slug].filter(Boolean) as string[];
+    if (domainsToRemove.length > 0) {
+      await DomainRegistryService.removeDomains(domainsToRemove);
+    }
+    const { unregisterValidTenant } = await import('@/lib/tenant-resolver-edge');
+    unregisterValidTenant(tenantToDelete.slug);
+
     await db.tenant.delete({ where: { id } });
 
     const user = await runWithTenantBypass('Admin delete tenant staff lookup', async () => {

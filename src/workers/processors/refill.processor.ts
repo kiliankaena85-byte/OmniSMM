@@ -4,14 +4,32 @@ import { RefillJobPayload } from '@/lib/queue-manager';
 import { providerService } from '../../services/providers/provider.service';
 import { logger } from '../../lib/logger';
 import { classifyRefillError } from '@/services/refill/refill-error-classifier';
-import { runWithTenant } from '@/lib/tenant-context';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
+import { registerValidTenant } from '@/lib/tenant-resolver-edge';
 
 const log = logger.child({ component: 'RefillProcessor' });
 
 export default async function refillProcessor(job: Job<RefillJobPayload>) {
-  const tenantId = job.data.tenantId || 'smmplan';
+  let tenantId = job.data?.tenantId;
 
-  return await runWithTenant(tenantId, async () => {
+  // Fail-safe guard: if tenantId is absent or empty, query the refill's order using runWithTenantBypass
+  if (!tenantId && job.data?.refillId) {
+    const refillRecord = await runWithTenantBypass('BullMQ refillProcessor resolve tenantId', async () => {
+      return await db.refill.findUnique({
+        where: { id: job.data.refillId },
+        select: { order: { select: { tenantId: true } } }
+      });
+    });
+    tenantId = refillRecord?.order?.tenantId;
+  }
+
+  const resolvedTenantId = tenantId || 'smmplan';
+  registerValidTenant(resolvedTenantId);
+  if (job.data && !job.data.tenantId && tenantId) {
+    job.data.tenantId = tenantId;
+  }
+
+  return await runWithTenant(resolvedTenantId, async () => {
     let refillId: string;
     try {
       const { RefillJobSchema } = await import('../../schemas/jobs.schema');

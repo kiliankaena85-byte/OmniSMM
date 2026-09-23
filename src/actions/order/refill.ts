@@ -160,7 +160,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
     try {
       const { refillQueue } = await import('@/lib/queue-manager');
       if (refillQueue) {
-        await refillQueue.add('process-refill', { refillId: refill.id });
+        await refillQueue.add('process-refill', { refillId: refill.id, tenantId: order.tenantId });
       }
     } catch {
       // Queue worker fallback

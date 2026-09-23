@@ -158,7 +158,7 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
 
     const reqHeaders = await headers();
     const host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
-    const cleanHost = host.split(':')[0].toLowerCase().trim();
+    const cleanHost = DomainRegistryService.cleanHost(host);
     const pathname = reqHeaders.get('x-pathname') || '';
     const isAdminOrOperatorPath = pathname.startsWith('/admin') || pathname.startsWith('/operator');
 
@@ -190,7 +190,13 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
     const allowCrossTenantStaff = isStaffRole && isAdminOrOperatorPath;
 
     // Check if the current host is a verified domain belonging to the user's tenant
-    const hostTenantId = DomainRegistryService.getCachedTenantId(cleanHost);
+    let hostTenantId = DomainRegistryService.getCachedTenantId(cleanHost);
+    if (!hostTenantId && cleanHost && !isInternalOrPrivateIp(cleanHost)) {
+      const dynamicEntry = await DomainRegistryService.resolveDomain(cleanHost);
+      if (dynamicEntry && dynamicEntry.isActive) {
+        hostTenantId = dynamicEntry.tenantId;
+      }
+    }
     const isHostTenantMatch = Boolean(hostTenantId && hostTenantId === userTenantId);
 
     if (!allowCrossTenantStaff && userTenantId !== currentTenantId && !isHostTenantMatch) {
@@ -207,9 +213,9 @@ export async function verifySession(requiredTenantId?: string): Promise<{ userId
     // F-7.3 Strict Contour Isolation:
     // Regular users and operators cannot cross-use tokens between test and prod environments.
     // Verified custom domains / dynamic tenants do not trigger false contour mismatch.
-    const isCustomDomain = DomainRegistryService.isKnownInMemory(cleanHost);
+    const isCustomDomain = Boolean(hostTenantId) || DomainRegistryService.isKnownInMemory(cleanHost);
     const tokenContour = (payload.contour as ContourId) || (userTenantId === 'flux' ? 'flux' : 'test');
-    const isLocalDev = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1') || cleanHost === '0.0.0.0' || cleanHost === 'web' || cleanHost.includes('host.docker.internal');
+    const isLocalDev = cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1') || cleanHost === '0.0.0.0' || cleanHost === '::1' || cleanHost === 'web' || cleanHost.includes('host.docker.internal');
     const isStrictMismatch = !isLocalDev && !isCustomDomain && user.role !== 'OWNER' && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
     if (isStrictMismatch) {
       console.warn(`[verifySession] Contour mismatch: token was issued for "${tokenContour}", request is on "${currentContour}"`);

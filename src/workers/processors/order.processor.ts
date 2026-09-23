@@ -4,6 +4,7 @@ import { OrderPreflightGuard } from './order/order-preflight-guard';
 import { OrderRouteEvaluator } from './order/order-route-evaluator';
 import { OrderDispatchExecutor } from './order/order-dispatch-executor';
 import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
+import { registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
 
 export { DatabaseOrderError } from './order/types';
@@ -24,6 +25,10 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
 
   // Fallback to 'smmplan' for backward compatibility
   const resolvedTenantId = tenantId || 'smmplan';
+  registerValidTenant(resolvedTenantId);
+  if (job.data && !job.data.tenantId && tenantId) {
+    job.data.tenantId = tenantId;
+  }
   
   return await runWithTenant(resolvedTenantId, async () => {
     const { order, redisKey } = await OrderPreflightGuard.validateAndFetchOrder(job);
