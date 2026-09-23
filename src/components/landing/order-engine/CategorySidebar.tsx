@@ -67,10 +67,6 @@ export function CategorySidebar({ engine }: { engine: OrderEngine }) {
             e.preventDefault();
             engine.setSelectedService(null);
             setCategoryId(cat.id);
-            if (typeof window !== 'undefined' && cat.slug) {
-              const netSlug = engine.activeNetwork?.slug || 'services';
-              window.history.replaceState(null, '', `/services/${netSlug}/${cat.slug}`);
-            }
           }}
           className={`text-left px-5 py-3 lg:py-4 rounded-full lg:rounded-[1.5rem] text-[15px] font-bold transition-all duration-200 whitespace-nowrap lg:whitespace-normal shrink-0 lg:shrink group flex items-center justify-between active:scale-95 ${
             categoryId === cat.id 
