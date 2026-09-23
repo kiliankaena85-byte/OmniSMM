@@ -65,7 +65,7 @@
     "test:db:chaos": "dotenv -e .env.test -- vitest run src/__tests__/integration/db-chaos-integrity.test.ts",
     "db:chaos:run": "tsx scripts/db-testing/db-chaos-runner.ts",
     "db:bloat": "tsx scripts/db-testing/db-bloat-diagnostics.ts",
-    "db:bench:pgbench": "tsx scripts/db-testing/run-pgbench.ts",
+    "db:bench:pgbench": "tsx scripts/db-testing/pgbench-runner.ts",
     "db:profile:queries": "tsx scripts/db-testing/pg-stat-statements-profiler.ts",
     "db:test:all": "npm run test:db:stress && npm run test:db:chaos && npm run db:bloat && npm run db:profile:queries",
     "test:e2e": "dotenv -v NODE_OPTIONS=\"--conditions=react-server\" -e .env.test -- playwright test",
