@@ -45,6 +45,27 @@ vi.mock('resend', () => {
   };
 });
 
+// Mock Next.js Cache invalidation methods to prevent 'static generation store missing' errors natively
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+  unstable_cache: (fn: any) => fn
+}));
+
+// Mock next/headers to avoid 'headers called outside request scope' errors in server actions
+vi.mock('next/headers', () => ({
+  headers: vi.fn().mockResolvedValue({
+    get: vi.fn().mockImplementation((key: string) => {
+      if (key === 'user-agent') return 'vitest';
+      if (key === 'x-forwarded-for') return '127.0.0.1';
+      return null;
+    }),
+  }),
+  cookies: vi.fn().mockResolvedValue({
+    get: vi.fn().mockReturnValue(null),
+  }),
+}));
+
 // Mock featureFlagService globally to avoid database/redis checks during testing and enable features by default
 vi.mock('@/services/system/feature-flag.service', () => {
   return {
@@ -277,28 +298,38 @@ vi.mock('@/lib/admin-audit', async (importOriginal) => {
 });
 
 beforeAll(async () => {
-  // OMNI-AUDIT: Block accidental truncation of the development database
-  const dbUrl = process.env.DATABASE_URL || '';
-  if (!dbUrl.includes('test') && !dbUrl.includes('smmplan_test')) {
-    throw new Error(
-      `[FATAL] Accidental DB wipe protection triggered! ` +
-      `DATABASE_URL points to a non-test database: "${dbUrl}". ` +
-      `Vitest was about to truncate your entire development database. ` +
-      `Please run tests using "npm run test" or ensure "dotenv -e .env.test" is active.`
-    );
-  }
-
-  // Terminate other active connections disabled to prevent killing current Prisma Client pool connection sessions
+  const rawPath = expect.getState().testPath || '';
+  const testPath = rawPath.replace(/\\/g, '/').toLowerCase();
+  const isPureUnitTest = (testPath.includes('/unit/') || testPath.includes('src/__tests__/unit')) && ![
+    'marketing.test.ts',
+    'smart-feedback-loop.test.ts',
+    'wallet.race.test.ts',
+    'smart-drip.test.ts',
+    'audit-log.test.ts',
+    'pricing-invariants.test.ts'
+  ].some(t => testPath.includes(t));
 
   // Provide test encryption key so EncryptionService doesn't fail
-  process.env.APP_ENCRYPTION_KEY = '0000000000000000000000000000000000000000000000000000000000000000';
+  process.env.APP_ENCRYPTION_KEY = process.env.APP_ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
   
   // Use the default Docker port for Redis
-  process.env.REDIS_URL = 'redis://127.0.0.1:6379';
+  process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
-  // Patch block_ledger_mutation trigger function to use IS NOT DISTINCT FROM for nullable fields
-  try {
-    await db.$executeRawUnsafe(`
+  if (!isPureUnitTest) {
+    // OMNI-AUDIT: Block accidental truncation of the development database
+    const dbUrl = process.env.DATABASE_URL || '';
+    if (!dbUrl.includes('test') && !dbUrl.includes('smmplan_test')) {
+      throw new Error(
+        `[FATAL] Accidental DB wipe protection triggered! ` +
+        `DATABASE_URL points to a non-test database: "${dbUrl}". ` +
+        `Vitest was about to truncate your entire development database. ` +
+        `Please run tests using "npm run test" or ensure "dotenv -e .env.test" is active.`
+      );
+    }
+
+    // Patch block_ledger_mutation trigger function to use IS NOT DISTINCT FROM for nullable fields
+    try {
+      await db.$executeRawUnsafe(`
       CREATE OR REPLACE FUNCTION block_ledger_mutation()
       RETURNS TRIGGER AS $$
       BEGIN
@@ -324,30 +355,10 @@ beforeAll(async () => {
   } catch (err) {
     console.error('[setup.ts] Failed to patch block_ledger_mutation function:', err);
   }
+}
   
   // Mock external fetch to avoid real network requests to YooKassa/CryptoBot
   vi.stubGlobal('fetch', vi.fn());
-
-  // Mock Next.js Cache invalidation methods to prevent 'static generation store missing' errors natively
-  vi.mock('next/cache', () => ({
-    revalidatePath: vi.fn(),
-    revalidateTag: vi.fn(),
-    unstable_cache: (fn: any) => fn
-  }));
-
-  // Mock next/headers to avoid 'headers called outside request scope' errors in server actions
-  vi.mock('next/headers', () => ({
-    headers: vi.fn().mockResolvedValue({
-      get: vi.fn().mockImplementation((key: string) => {
-        if (key === 'user-agent') return 'vitest';
-        if (key === 'x-forwarded-for') return '127.0.0.1';
-        return null;
-      }),
-    }),
-    cookies: vi.fn().mockResolvedValue({
-      get: vi.fn().mockReturnValue(null),
-    }),
-  }));
 });
 
 async function sleep(ms: number) {
@@ -537,12 +548,13 @@ beforeEach(async () => {
         'harness',
         'ast-transaction-escape'
       ];
-      if (skipPatterns.some(pattern => testPath.toLowerCase().includes(pattern.toLowerCase()))) {
+      const normalizedPath = testPath.replace(/\\/g, '/').toLowerCase();
+      if (skipPatterns.some(pattern => normalizedPath.includes(pattern.toLowerCase()))) {
         shouldReset = false;
       }
       
       // Skip unit/ except for marketing, smart-feedback-loop, wallet.race, smart-drip, audit-log, pricing-invariants
-      if (testPath.toLowerCase().includes('unit/')) {
+      if (normalizedPath.includes('unit/')) {
         const allowedUnitTests = [
           'marketing.test.ts',
           'smart-feedback-loop.test.ts',
@@ -551,7 +563,7 @@ beforeEach(async () => {
           'audit-log.test.ts',
           'pricing-invariants.test.ts'
         ];
-        if (!allowedUnitTests.some(testName => testPath.toLowerCase().includes(testName))) {
+        if (!allowedUnitTests.some(testName => normalizedPath.includes(testName))) {
           shouldReset = false;
         }
       }

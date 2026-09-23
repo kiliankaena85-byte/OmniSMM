@@ -12,10 +12,8 @@ export default defineConfig({
     restoreMocks: true,
     unstubGlobals: true,
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true
-      }
+    forks: {
+      singleFork: true
     },
     maxWorkers: 1,
     minWorkers: 1,
