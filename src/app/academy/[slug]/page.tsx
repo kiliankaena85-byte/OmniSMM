@@ -127,7 +127,7 @@ export default async function AcademyArticlePage({ params }: AcademyArticlePageP
               '@type': 'WebPage',
               '@id': `https://${host}/academy/${article.slug}`,
             },
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
 

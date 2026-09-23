@@ -37,7 +37,7 @@ export function FluxReviews() {
       {/* TODO: Connect to live reviews API once moderation queue is integrated */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsJsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center mb-12">

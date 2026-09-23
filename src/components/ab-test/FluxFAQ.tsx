@@ -75,7 +75,7 @@ export function FluxFAQ({ companyName = "SMMflux" }: { companyName?: string }) {
     <section id="faq" aria-labelledby="faq-heading" className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-24">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="text-center mb-12">
         <h2 id="faq-heading" className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4 text-balance">

@@ -125,7 +125,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
               target: `${baseUrl}/?q={search_term_string}`,
               "query-input": "required name=search_term_string",
             },
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
       
