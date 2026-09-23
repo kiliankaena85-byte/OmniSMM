@@ -143,7 +143,7 @@ export async function copyServicesToTenantAction(input: z.infer<typeof copySchem
           if (!src.slug) continue;
           try {
             const exists = await tx.service.findUnique({
-              where: { tenantId_slug: { tenantId: parsed.targetTenantId, slug: src.slug } },
+              where: { tenantId_slug: { tenantId: targetTenantId, slug: src.slug } },
             });
             if (exists) {
               skipped.push(src.name);
@@ -151,7 +151,7 @@ export async function copyServicesToTenantAction(input: z.infer<typeof copySchem
             }
             await tx.service.create({
               data: {
-                tenantId: parsed.targetTenantId,
+                tenantId: targetTenantId,
                 slug: src.slug,
                 name: src.name,
                 description: src.description ?? undefined,
@@ -160,12 +160,12 @@ export async function copyServicesToTenantAction(input: z.infer<typeof copySchem
                 externalId: src.externalId ?? undefined,
                 rate: src.rate,
                 providerCurrency: src.providerCurrency,
-                markup: Math.round(src.markup * parsed.markupMultiplier * 100) / 100,
+                markup: Math.round(src.markup * markupMultiplier * 100) / 100,
                 minQty: src.minQty,
                 maxQty: src.maxQty,
                 targetType: src.targetType ?? 'POST',
                 isActive: src.isActive,
-                pricePer1000Cents: Math.round(src.pricePer1000Cents * parsed.markupMultiplier),
+                pricePer1000Cents: Math.round(src.pricePer1000Cents * markupMultiplier),
               },
             });
             copied++;
