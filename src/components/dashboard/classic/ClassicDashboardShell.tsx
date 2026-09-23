@@ -11,10 +11,12 @@ export function ClassicDashboardShell({
   user,
   children,
 }: {
-  user: { email: string; balanceCents: number; unreadTicketsCount?: number };
+  user: { email: string; balanceCents: number; unreadTicketsCount?: number; tenantId?: string };
   children: React.ReactNode;
 }) {
   const balanceRub = formatBalance(user.balanceCents);
+  const tenantId = user.tenantId || 'smmplan';
+  const siteName = tenantId === 'flux' ? 'SMMflux' : tenantId ? tenantId.charAt(0).toUpperCase() + tenantId.slice(1) : 'SMMplan';
 
   return (
     <div className="min-h-screen bg-background text-foreground flex relative selection:bg-primary/20 selection:text-primary">
@@ -26,7 +28,7 @@ export function ClassicDashboardShell({
 
       {/* ── Sidebar (desktop, client — for active highlight) ── */}
       <div className="relative z-20 shrink-0">
-        <SidebarNav email={user.email} balanceRub={balanceRub} initialUnreadCount={user.unreadTicketsCount} />
+        <SidebarNav email={user.email} balanceRub={balanceRub} initialUnreadCount={user.unreadTicketsCount} tenantId={tenantId} siteName={siteName} />
       </div>
 
       {/* ── Mobile top bar ── */}
@@ -37,8 +39,8 @@ export function ClassicDashboardShell({
           title="Перейти на главную страницу (Витрина)"
           aria-label="На главную"
         >
-          <TenantLogo tenantId="smmplan" className="w-7 h-7 shrink-0" iconClassName="w-3.5 h-3.5" />
-          <span className="truncate tracking-tight font-bold text-sm sm:text-base min-w-0">SMMplan</span>
+          <TenantLogo tenantId={tenantId} className="w-7 h-7 shrink-0" iconClassName="w-3.5 h-3.5" />
+          <span className="truncate tracking-tight font-bold text-sm sm:text-base min-w-0">{siteName}</span>
           <span className="hidden sm:inline-block text-[10px] font-semibold text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/60">
             На главную
           </span>

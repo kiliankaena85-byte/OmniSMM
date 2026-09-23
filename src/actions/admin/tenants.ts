@@ -11,6 +11,7 @@ import { cookies } from 'next/headers';
 import { normalizeTenantId, registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { sendAdminAlert } from '@/lib/notifications';
 import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
+import { TenantThemeService, TenantThemeConfig, ThemePresetName } from '@/services/tenant/tenant-theme.service';
 
 const CreateTenantSchema = z.object({
   name: z.string().min(2, 'Название бренда должно быть не менее 2 символов').max(60),
@@ -23,7 +24,7 @@ const CreateTenantSchema = z.object({
     .max(100)
     .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/i, 'Укажите корректный домен (например, smmflux.ru)'),
   customDomain: z.string().max(100).optional().nullable(),
-  themeVariant: z.enum(['classic', 'vibrant', 'minimal']).default('classic'),
+  themeVariant: z.string().default('sky'),
 });
 
 const UpdateTenantSchema = z.object({
@@ -68,7 +69,7 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
       return { success: false, error: parsed.error.issues[0]?.message || 'Невалидные данные' };
     }
 
-    const { name, slug, domain, customDomain } = parsed.data;
+    const { name, slug, domain, customDomain, themeVariant } = parsed.data;
     const cleanDomain = domain.toLowerCase().trim();
     const cleanSlug = slug.toLowerCase().trim();
 
@@ -114,6 +115,23 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
         domain: cleanDomain,
         customDomain: customDomain?.toLowerCase().trim() || null,
         isActive: true,
+      });
+
+      const presetMap: Record<string, ThemePresetName> = {
+        classic: 'sky',
+        vibrant: 'violet',
+        minimal: 'slate',
+        sky: 'sky',
+        violet: 'violet',
+        emerald: 'emerald',
+        amber: 'amber',
+        rose: 'rose',
+        indigo: 'indigo',
+        slate: 'slate',
+      };
+      const presetToUse = presetMap[themeVariant] || 'sky';
+      await TenantThemeService.saveTheme(cleanSlug, { preset: presetToUse }, staffUser.email).catch((err) => {
+        console.warn(`[TenantsAction] Failed to initialize theme for ${cleanSlug}:`, err);
       });
 
       await auditAdminAwaitable({
@@ -423,4 +441,67 @@ export async function switchAdminTenantAction(tenantId: string) {
   } catch {}
 
   return { success: true, tenantId: normalized };
+}
+
+const UpdateTenantThemeSchema = z.object({
+  tenantId: z.string().min(1),
+  preset: z.enum(['sky', 'violet', 'emerald', 'amber', 'rose', 'indigo', 'slate', 'custom']),
+  primaryColor: z.string().optional(),
+  primaryForeground: z.string().optional(),
+  secondaryColor: z.string().optional(),
+  secondaryForeground: z.string().optional(),
+  ringColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  accentForeground: z.string().optional(),
+  borderRadius: z.string().optional(),
+  darkPrimaryColor: z.string().optional(),
+  darkPrimaryForeground: z.string().optional(),
+  darkSecondaryColor: z.string().optional(),
+  darkSecondaryForeground: z.string().optional(),
+  darkRingColor: z.string().optional(),
+});
+
+export async function getTenantThemeAction(tenantId: string) {
+  return requireStaffPermission('settings', 'view', async () => {
+    try {
+      const theme = await TenantThemeService.getTheme(tenantId);
+      return { success: true, data: theme };
+    } catch (error) {
+      console.error('[getTenantThemeAction] Error:', error);
+      return { success: false, error: 'Ошибка получения темы оформления' };
+    }
+  });
+}
+
+export async function updateTenantThemeAction(formData: z.infer<typeof UpdateTenantThemeSchema>) {
+  return requireStaffPermission('settings', 'edit', async (staffUser) => {
+    const parsed = UpdateTenantThemeSchema.safeParse(formData);
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message || 'Невалидные данные темы' };
+    }
+
+    const { tenantId, ...themeConfig } = parsed.data;
+
+    try {
+      const saved = await TenantThemeService.saveTheme(tenantId, themeConfig, staffUser.email);
+
+      await auditAdminAwaitable({
+        adminId: staffUser.id,
+        adminEmail: staffUser.email,
+        action: 'TENANT_THEME_UPDATE',
+        target: tenantId,
+        targetType: 'TenantTheme',
+        newValue: themeConfig,
+      });
+
+      revalidatePath('/', 'layout');
+      revalidatePath('/dashboard', 'layout');
+      revalidatePath('/admin/tenants');
+
+      return { success: true, data: saved };
+    } catch (error) {
+      console.error('[updateTenantThemeAction] Error:', error);
+      return { success: false, error: 'Ошибка сохранения темы оформления' };
+    }
+  });
 }

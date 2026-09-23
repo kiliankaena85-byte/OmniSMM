@@ -6,7 +6,12 @@ import { NetworkAwareProvider } from '@/components/providers/NetworkAwareProvide
 import { FloatingQADock } from '@/components/dev/FloatingQADock';
 import { CookieConsent } from '@/components/common/CookieConsent';
 import { getTenantHost, normalizeTenantId } from '@/lib/seo-helpers';
-
+import { SettingsProvider, getTenantFallbackBranding } from '@/lib/settings';
+import { verifySession } from '@/lib/session';
+import { db } from '@/lib/db';
+import { MaintenanceScreen } from '@/components/ui/MaintenanceScreen';
+import { MaintenanceGuardian } from '@/components/providers/MaintenanceGuardian';
+import { TenantThemeInjector } from '@/components/theme/TenantThemeInjector';
 import { headers } from 'next/headers';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,6 +50,60 @@ export async function generateMetadata(): Promise<Metadata> {
         title: 'SMMflux — Быстрое продвижение для бизнеса',
         description: 'Быстрая накрутка и продвижение в социальных сетях для бизнеса.',
         images: ['/images/og-flux.png'],
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+      metadataBase,
+    };
+  }
+
+  if (tenantId !== 'smmplan') {
+    const settings = await SettingsProvider.get(tenantId).catch(() => null);
+    const branding = getTenantFallbackBranding(tenantId);
+    const siteName = settings?.siteName || branding.name;
+    const description = settings?.siteDescription || `Продвижение и накрутка в социальных сетях от ${siteName}. Быстрый старт и надежные исполнители.`;
+    const logo = settings?.siteLogoUrl || '/images/og-smmplan.png';
+    const favicon = settings?.siteFaviconUrl || '/favicon.ico';
+
+    return {
+      title: {
+        default: `${siteName} — продвижение в социальных сетях`,
+        template: `%s | ${siteName}`,
+      },
+      description,
+      keywords: ['smm', 'продвижение', siteName.toLowerCase(), 'подписчики', 'лайки', 'просмотры', 'telegram', 'vk'],
+      icons: {
+        icon: favicon,
+      },
+      openGraph: {
+        type: 'website',
+        locale: 'ru_RU',
+        siteName,
+        title: `${siteName} — продвижение в социальных сетях`,
+        description,
+        images: [
+          {
+            url: logo,
+            width: 1200,
+            height: 630,
+            alt: `${siteName} — Платформа продвижения`,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${siteName} — продвижение в социальных сетях`,
+        description,
+        images: [logo],
       },
       robots: {
         index: true,
@@ -106,12 +165,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import { SettingsProvider } from '@/lib/settings';
-import { verifySession } from '@/lib/session';
-import { db } from '@/lib/db';
-import { MaintenanceScreen } from '@/components/ui/MaintenanceScreen';
-import { MaintenanceGuardian } from '@/components/providers/MaintenanceGuardian';
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
   const pathname = reqHeaders.get('x-pathname') || '';
@@ -163,9 +216,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (showMaintenance) {
     return (
-      <html lang="ru" className={`theme-${tenantId}`} suppressHydrationWarning>
+      <html lang="ru" data-tenant={tenantId} className={`theme-${tenantId}`} suppressHydrationWarning>
         <head>
           <title>{siteName} — Сервисное обслуживание</title>
+          <TenantThemeInjector tenantId={tenantId} nonce={nonce} />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -183,8 +237,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="ru" className={`theme-${tenantId}`} suppressHydrationWarning>
+    <html lang="ru" data-tenant={tenantId} className={`theme-${tenantId}`} suppressHydrationWarning>
       <head>
+        <TenantThemeInjector tenantId={tenantId} nonce={nonce} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />

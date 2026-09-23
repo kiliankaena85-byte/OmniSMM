@@ -8,7 +8,7 @@ import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
  */
 export async function getTenantDashboardViews(tenantId: string): Promise<ITenantDashboardStrategy<BaseUserProps, unknown>> {
   const normalizedId = normalizeTenantId(tenantId) || 'smmplan';
-  const loader = getTenantLoader(normalizedId);
+  const loader = getTenantLoader(normalizedId) || getTenantLoader('smmplan');
   if (!loader) {
     console.warn(`[TenantFactory] Unregistered tenant requested: "${tenantId}". Loading neutral maintenance fallback.`);
     const fallbackModule = await import('./fallback/neutral-maintenance-strategy');

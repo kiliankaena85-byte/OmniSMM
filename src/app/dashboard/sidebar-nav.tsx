@@ -30,13 +30,18 @@ export function SidebarNav({
   email,
   balanceRub,
   initialUnreadCount = 0,
+  tenantId = 'smmplan',
+  siteName,
 }: {
   email: string;
   balanceRub: string;
   initialUnreadCount?: number;
+  tenantId?: string;
+  siteName?: string;
 }) {
   const pathname = usePathname();
   const unreadCount = useUnreadSupport(initialUnreadCount);
+  const resolvedSiteName = siteName || (tenantId === 'flux' ? 'SMMflux' : tenantId ? tenantId.charAt(0).toUpperCase() + tenantId.slice(1) : 'SMMplan');
 
   const isActive = (href: string) =>
     href === '/dashboard'
@@ -48,8 +53,8 @@ export function SidebarNav({
       {/* Logo Header */}
       <div className="p-4 border-b border-border/70 flex items-center justify-between gap-2">
         <Link href="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Перейти на главную страницу">
-          <TenantLogo tenantId="smmplan" className="w-8 h-8 group-hover:scale-105 transition-transform shrink-0" iconClassName="text-sm" />
-          <span className="font-black text-foreground text-lg tracking-tight leading-none shrink-0">SMMplan</span>
+          <TenantLogo tenantId={tenantId} className="w-8 h-8 group-hover:scale-105 transition-transform shrink-0" iconClassName="text-sm" />
+          <span className="font-black text-foreground text-lg tracking-tight leading-none shrink-0">{resolvedSiteName}</span>
         </Link>
         <Link
           href="/"
