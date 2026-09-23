@@ -43,9 +43,11 @@ describe('Auditor Findings Remediation Test Suite (C-01 to C-03, H-01 to H-05)',
     it('excludes role from JWT payload for staff members (P2-10 Zero-Trust)', async () => {
       const originalNodeEnv = process.env.NODE_ENV;
       const originalAppEnv = process.env.APP_ENV;
+      const originalAllowDevLogin = process.env.ALLOW_DEV_LOGIN;
       try {
         (process.env as any).NODE_ENV = 'development';
         process.env.APP_ENV = 'test';
+        process.env.ALLOW_DEV_LOGIN = 'true';
 
         const req = new Request('http://localhost:3005/api/auth/dev-login?role=OWNER', {
           headers: { host: 'localhost:3005' },
@@ -68,6 +70,11 @@ describe('Auditor Findings Remediation Test Suite (C-01 to C-03, H-01 to H-05)',
       } finally {
         (process.env as any).NODE_ENV = originalNodeEnv;
         process.env.APP_ENV = originalAppEnv;
+        if (originalAllowDevLogin !== undefined) {
+          process.env.ALLOW_DEV_LOGIN = originalAllowDevLogin;
+        } else {
+          delete process.env.ALLOW_DEV_LOGIN;
+        }
       }
     });
   });

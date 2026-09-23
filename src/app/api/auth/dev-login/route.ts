@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { SignJWT } from 'jose';
 import { getEncodedKey, SESSION_COOKIE_NAME } from '@/lib/session-edge';
 import { resolveContourFromHost } from '@/lib/tenant-resolver-edge';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   let host = '';
@@ -16,17 +17,35 @@ export async function GET(request: Request) {
   } catch {
     host = '';
   }
-  const isDev = process.env.NODE_ENV === 'development';
-  const isTest = process.env.APP_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
-  const isAllowedHost = host.includes('localhost') || host.includes('127.0.0.1') || host.includes('3005');
 
-  // Strict Fail-Closed: Never allow dev-login in production or outside isolated local/stage environments
-  if (!isDev && !isTest) {
+  const clientIp =
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    request.headers.get('x-real-ip') ||
+    '127.0.0.1';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  const isNotProduction = process.env.NODE_ENV !== 'production';
+  const isExplicitlyAllowed = process.env.ALLOW_DEV_LOGIN === 'true';
+
+  // Extract hostname ignoring port to prevent port-substring bypasses like evil.com:3005
+  const rawHostname = host.split(':')[0].trim().toLowerCase();
+  const isLocalHost = rawHostname === 'localhost' || rawHostname === '127.0.0.1';
+
+  // Strict Fail-Closed Gate:
+  // 1. Must never run in production
+  // 2. Must be explicitly enabled via ALLOW_DEV_LOGIN === 'true'
+  // 3. Must strictly originate from local loopback (localhost / 127.0.0.1)
+  if (!isNotProduction || !isExplicitlyAllowed || !isLocalHost) {
+    logger.warn('[AUTH-01 Security Gate] Dev login attempt rejected', {
+      ip: clientIp,
+      userAgent,
+      host,
+      rawHostname,
+      isNotProduction,
+      isExplicitlyAllowed,
+      isLocalHost,
+    });
     return new NextResponse('Not Found', { status: 404 });
-  }
-
-  if (!isAllowedHost && !isDev) {
-    return new NextResponse('Forbidden', { status: 403 });
   }
 
   const url = new URL(request.url);
@@ -69,7 +88,6 @@ export async function GET(request: Request) {
     }
   }
 
-  const userAgent = request.headers.get('user-agent') || 'stage-browser';
   const contour = resolveContourFromHost(host);
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
