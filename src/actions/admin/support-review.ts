@@ -16,7 +16,7 @@ export async function getSupportActionsReviewListAction(options?: {
   staffUserId?: string;
   targetUserId?: string;
 }) {
-  return requireStaffPermission('finance', 'view', async () => {
+  return requireStaffPermission('finance', 'view', async (staffUser) => {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(10, options?.limit || 20));
     const skip = (page - 1) * limit;
@@ -31,6 +31,9 @@ export async function getSupportActionsReviewListAction(options?: {
     if (options?.targetUserId) {
       where.targetUserId = options.targetUserId;
     }
+
+    const activeTenantId = staffUser?.tenantId || 'smmplan';
+    where.tenantId = activeTenantId;
 
     const [total, items] = await Promise.all([
       db.supportFinancialAction.count({ where }),
@@ -86,11 +89,15 @@ export async function reviewSupportFinancialAction(formData: FormData) {
 
     const action = await db.supportFinancialAction.findUnique({
       where: { id: actionId },
-      select: { id: true, staffUserId: true, targetUserId: true, reviewStatus: true }
+      select: { id: true, staffUserId: true, targetUserId: true, reviewStatus: true, tenantId: true }
     });
 
     if (!action) {
       return { success: false as const, error: 'Операция не найдена' };
+    }
+
+    if (admin.role !== 'OWNER' && action.tenantId && action.tenantId !== (admin.tenantId || 'smmplan')) {
+      return { success: false as const, error: 'Доступ запрещен: действие принадлежит другому сайту' };
     }
 
     const updated = await db.supportFinancialAction.update({
@@ -132,8 +139,10 @@ export async function reviewSupportFinancialAction(formData: FormData) {
 }
 
 export async function exportSupportActionsCSVAction() {
-  return requireStaffPermission('finance', 'view', async () => {
+  return requireStaffPermission('finance', 'view', async (staffUser) => {
+    const activeTenantId = staffUser?.tenantId || 'smmplan';
     const items = await db.supportFinancialAction.findMany({
+      where: { tenantId: activeTenantId },
       take: 1000,
       orderBy: { createdAt: 'desc' },
       include: {

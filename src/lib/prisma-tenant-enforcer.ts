@@ -21,6 +21,7 @@ export const TENANT_SCOPED_MODELS = [
   'ticketFeedback',
   'promoCode',
   'ledgerEntry',
+  'supportFinancialAction',
 ] as const;
 
 export type TenantScopedModel = (typeof TENANT_SCOPED_MODELS)[number];

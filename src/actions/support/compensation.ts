@@ -108,6 +108,7 @@ export async function logManualCompensation(formData: FormData) {
         // Create SupportFinancialAction record
         const financialAction = await tx.supportFinancialAction.create({
           data: {
+            tenantId: ticket.tenantId || user.tenantId || 'smmplan',
             staffUserId: user.id,
             targetUserId: ticket.userId,
             direction: 'CREDIT',

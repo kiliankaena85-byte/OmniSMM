@@ -51,6 +51,17 @@ export async function updateBalanceAction(formData: FormData) {
       return { success: false as const, error: 'Только OWNER может изменять баланс других сотрудников' };
     }
 
+    // Cross-tenant guard (TEN-02): Operator and target user must belong to same tenant (unless operator is OWNER)
+    const adminTenant = admin.tenantId || 'smmplan';
+    const targetTenant = targetUser.tenantId || 'smmplan';
+    if (admin.role !== 'OWNER' && adminTenant !== targetTenant) {
+      console.warn(`[SECURITY] Cross-tenant balance adjustment blocked: admin ${admin.id} (${adminTenant}) on target ${targetUser.id} (${targetTenant})`);
+      return {
+        success: false as const,
+        error: `Доступ запрещен: целевой пользователь принадлежит сайту '${targetTenant}', а ваша учетная запись привязана к '${adminTenant}'`
+      };
+    }
+
     // Overdraft Protection: prevent debiting more than available balance
     if (amount < 0 && targetUser.balance < BigInt(Math.abs(amount))) {
       return { 
@@ -179,6 +190,7 @@ export async function updateBalanceAction(formData: FormData) {
 
         await db.supportFinancialAction.create({
           data: {
+            tenantId: targetUser.tenantId || admin.tenantId || 'smmplan',
             staffUserId: admin.id,
             targetUserId: userId,
             direction: amount >= 0 ? 'CREDIT' : 'DEBIT',

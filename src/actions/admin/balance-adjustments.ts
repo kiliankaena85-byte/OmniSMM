@@ -127,11 +127,21 @@ export async function createBalanceAdjustmentRequestAction(formData: FormData) {
     // Check target user
     const targetUser = await db.user.findUnique({
       where: { id: data.userId },
-      select: { id: true, email: true, role: true, balance: true, isDeleted: true, isActive: true }
+      select: { id: true, email: true, role: true, balance: true, isDeleted: true, isActive: true, tenantId: true }
     });
 
     if (!targetUser) {
       return { success: false, error: "Целевой пользователь не найден" };
+    }
+
+    // Cross-tenant guard (TEN-02): Operator and target user must belong to the same tenant (unless operator is OWNER)
+    const operatorTenantId = staffUser.tenantId || 'smmplan';
+    const targetUserTenantId = targetUser.tenantId || 'smmplan';
+    if (staffUser.role !== 'OWNER' && operatorTenantId !== targetUserTenantId) {
+      return {
+        success: false,
+        error: `Доступ запрещен: целевой пользователь принадлежит сайту '${targetUserTenantId}', а ваша смена привязана к '${operatorTenantId}'`
+      };
     }
 
     if (policy.blockDeletedTargets && targetUser.isDeleted) {
