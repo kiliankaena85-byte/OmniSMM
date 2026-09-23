@@ -119,13 +119,13 @@ async function main() {
     let deleteBlocked = false;
 
     try {
-      await db.$executeRawUnsafe(`UPDATE "LedgerEntry" SET amount = 999999 WHERE id = '${validEntry.id}'`);
+      await db.$executeRawUnsafe('UPDATE "LedgerEntry" SET amount = 999999 WHERE id = $1', validEntry.id);
     } catch (e: any) {
       if (String(e).includes('trg_ledger_immutable') || String(e).includes('P0001')) updateBlocked = true;
     }
 
     try {
-      await db.$executeRawUnsafe(`DELETE FROM "LedgerEntry" WHERE id = '${validEntry.id}'`);
+      await db.$executeRawUnsafe('DELETE FROM "LedgerEntry" WHERE id = $1', validEntry.id);
     } catch (e: any) {
       if (String(e).includes('trg_ledger_immutable') || String(e).includes('P0001')) deleteBlocked = true;
     }
@@ -212,7 +212,7 @@ async function main() {
     const start4 = Date.now();
     let checkConstraintFired = false;
     try {
-      await db.$executeRawUnsafe(`UPDATE "User" SET balance = -999 WHERE id = '${u1.id}'`);
+      await db.$executeRawUnsafe('UPDATE "User" SET balance = -999 WHERE id = $1', u1.id);
     } catch (e: any) {
       if (String(e).includes('chk_user_balance_non_negative') || String(e).includes('23514')) {
         checkConstraintFired = true;

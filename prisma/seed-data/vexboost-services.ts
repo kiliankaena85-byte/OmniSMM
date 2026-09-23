@@ -38,31 +38,28 @@ async function main() {
     where: { name: { contains: "Test" } }
   });
 
-  const catIdStr = category ? `'${category.id}'` : `(SELECT id FROM "Category" LIMIT 1)`;
+  let categoryId = category ? category.id : null;
+  if (!categoryId) {
+    const firstCat = await prisma.category.findFirst({ select: { id: true } });
+    categoryId = firstCat ? firstCat.id : null;
+  }
 
   for (const item of rawServices) {
-    const idStr = `'${item.id}'`;
-    // Escape string using string replace to double quotes
-    const nameStr = "'" + item.service.replace(/'/g, "''") + "'";
+    const id = String(item.id);
+    const name = String(item.service);
     const rateInt = Math.round(parseFloat(item.rate));
     const markupInt = Math.round(parseFloat(item.resell));
     const minQty = Math.round(parseFloat(item.min_qty));
     const maxQty = Math.round(parseFloat(item.max_qty));
-    const extIdStr = `'${item.id}'`;
-
-    // To follow instruction logic for mathematically parsing numbers and using raw unsafe,
-    // we map pseudo-columns from the prompt into real Prisma columns.
-    
-    // Sort randomly as requested by user pseudo instructions for sorting inside insert order
+    const extId = String(item.id);
     const randomNumericId = Math.floor(Math.random() * 1000000) + 10000;
 
-    const query = `
-      INSERT INTO "Service" ("id", "numericId", "name", "categoryId", "rate", "markup", "minQty", "maxQty", "externalId", "updatedAt") 
-      VALUES (${idStr}, ${randomNumericId}, ${nameStr}, ${catIdStr}, ${rateInt}, ${markupInt}, ${minQty}, ${maxQty}, ${extIdStr}, NOW()) 
-      ON CONFLICT ("id") DO NOTHING;
-    `;
-    
-    await prisma.$executeRawUnsafe(query);
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO "Service" ("id", "numericId", "name", "categoryId", "rate", "markup", "minQty", "maxQty", "externalId", "updatedAt") 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) 
+       ON CONFLICT ("id") DO NOTHING;`,
+      id, randomNumericId, name, categoryId, rateInt, markupInt, minQty, maxQty, extId
+    );
   }
 
   console.log("VexBoost raw insert completed successfully.");

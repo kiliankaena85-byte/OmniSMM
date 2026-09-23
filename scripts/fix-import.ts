@@ -30,7 +30,8 @@ async function main() {
   const maxId = await db.service.aggregate({ _max: { numericId: true } });
   const nextVal = (maxId._max.numericId || 0) + 1;
   await db.$executeRawUnsafe(
-    `SELECT setval(pg_get_serial_sequence('"Service"', 'numericId'), ${nextVal}, false)`
+    `SELECT setval(pg_get_serial_sequence('"Service"', 'numericId'), $1, false)`,
+    nextVal
   );
   console.log(`  Sequence reset to ${nextVal}`);
 
@@ -106,8 +107,10 @@ async function main() {
       errors++;
       // Reset sequence on each error
       const max2 = await db.service.aggregate({ _max: { numericId: true } });
+      const nextVal2 = (max2._max.numericId || 0) + 1;
       await db.$executeRawUnsafe(
-        `SELECT setval(pg_get_serial_sequence('"Service"', 'numericId'), ${(max2._max.numericId || 0) + 1}, false)`
+        `SELECT setval(pg_get_serial_sequence('"Service"', 'numericId'), $1, false)`,
+        nextVal2
       );
     }
   }
