@@ -71,22 +71,23 @@ export async function LegalPageContent({ slug }: LegalPageContentProps) {
     rendered = rendered.replace(/<p><strong>Адрес:<\/strong>[\s\S]*?<\/p>/g, '');
   }
 
+  const { escapeHtml, sanitizeArticleHtml } = await import('@/lib/sanitize');
+
   const replacements: Record<string, string> = {
-    '{{COMPANY_NAME}}': companyName,
-    '{{COMPANY_INN}}': inn || '—',
-    '{{COMPANY_OGRNIP}}': ogrnip || '—',
-    '{{COMPANY_ADDRESS}}': address,
-    '{{SUPPORT_EMAIL}}': supportEmail,
-    '{{PRIVACY_EMAIL}}': privacyEmail,
-    '{{SITE_NAME}}': siteName,
-    '{{TELEGRAM_BOT}}': telegramBot,
+    '{{COMPANY_NAME}}': escapeHtml(companyName),
+    '{{COMPANY_INN}}': escapeHtml(inn || '—'),
+    '{{COMPANY_OGRNIP}}': escapeHtml(ogrnip || '—'),
+    '{{COMPANY_ADDRESS}}': escapeHtml(address),
+    '{{SUPPORT_EMAIL}}': escapeHtml(supportEmail),
+    '{{PRIVACY_EMAIL}}': escapeHtml(privacyEmail),
+    '{{SITE_NAME}}': escapeHtml(siteName),
+    '{{TELEGRAM_BOT}}': escapeHtml(telegramBot),
   };
 
   for (const [tag, value] of Object.entries(replacements)) {
     rendered = rendered.replaceAll(tag, value);
   }
 
-  const { sanitizeArticleHtml } = await import('@/lib/sanitize');
   rendered = sanitizeArticleHtml(rendered);
 
   if (isFlux) {
