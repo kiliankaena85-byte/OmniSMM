@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: PaymentGatewayProcessor operations are strictly scoped by runWithTenant wrapper
 import { Job } from 'bullmq';
 import { db } from '../../lib/db';
 import { PaymentGatewayJobPayload } from '../../lib/queue-manager';

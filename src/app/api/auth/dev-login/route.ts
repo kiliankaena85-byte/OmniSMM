@@ -119,7 +119,8 @@ export async function GET(request: Request) {
 
   const hostHeader = host || 'localhost:3005';
   const cleanHost = hostHeader.includes('0.0.0.0') ? hostHeader.replace('0.0.0.0', 'localhost') : hostHeader;
-  const redirectTarget = new URL(redirectTo, `http://${cleanHost}`);
+  const safeRedirect = (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) ? redirectTo : '/admin/tickets';
+  const redirectTarget = new URL(safeRedirect, `http://${cleanHost}`);
 
   const response = NextResponse.redirect(redirectTarget, 307);
 

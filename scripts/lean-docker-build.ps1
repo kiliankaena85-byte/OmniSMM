@@ -67,7 +67,9 @@ Write-Host "OK: Host build artifacts compiled successfully!" -ForegroundColor Gr
 # 3.5. Database Schema Sync (Zero-Drift Invariant)
 Write-Host "[3.5/4] Synchronizing Prisma database schema..." -ForegroundColor Yellow
 try {
-    $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5435/smmplan_lite?schema=public"
+    if (-not $env:DATABASE_URL) {
+        $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5433/smmplan_lite?schema=public"
+    }
     & npx prisma db push --skip-generate
     Write-Host "      OK: Database schema verified and in sync." -ForegroundColor Green
 } catch {

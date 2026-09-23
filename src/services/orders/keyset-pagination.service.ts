@@ -11,6 +11,16 @@
 
 import { db } from '@/lib/db';
 import { Prisma, OrderStatus } from '@prisma/client';
+import { z } from 'zod';
+
+export const KeysetCursorSchema = z.object({
+  cursor: z.string().optional().nullable(),
+  direction: z.enum(['forward', 'backward']).default('forward'),
+  limit: z.number().int().min(1).max(100).default(15),
+  status: z.string().optional(),
+  network: z.string().optional(),
+  search: z.string().max(256).optional(),
+});
 
 export interface ReferenceOrder {
   id: string;
@@ -86,7 +96,7 @@ export interface KeysetOrdersResult<T> {
   nextCursor: string | null;
   prevCursor: string | null;
   hasMore: boolean;
-  totalCount: number;
+  totalCount?: number;
 }
 
 /**

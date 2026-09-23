@@ -365,7 +365,10 @@ async function handleAdd(user: User, formData: FormData) {
       throw new Error((result.error === 'Insufficient funds' || result.error?.startsWith('Insufficient funds')) ? 'INSUFFICIENT_FUNDS' : result.error);
     }
 
-    const createdOrder = await db.order.findUnique({ where: { id: result.orderId }, select: { numericId: true }});
+    const createdOrder = await db.order.findFirst({
+      where: { id: result.orderId, tenantId: user.tenantId ?? 'smmplan' },
+      select: { numericId: true }
+    });
     return NextResponse.json({ order: createdOrder?.numericId });
   } catch (err: unknown) {
     if (err instanceof Error && err.message === 'INSUFFICIENT_FUNDS') {
@@ -517,8 +520,8 @@ async function handleAddMulti(user: User, formData: FormData) {
         throw new Error((result.error === 'Insufficient funds' || result.error?.startsWith('Insufficient funds')) ? 'INSUFFICIENT_FUNDS' : result.error);
       }
 
-      const createdOrder = await db.order.findUnique({
-        where: { id: result.orderId },
+      const createdOrder = await db.order.findFirst({
+        where: { id: result.orderId, tenantId: user.tenantId ?? 'smmplan' },
         select: { numericId: true }
       });
 
@@ -604,7 +607,10 @@ async function handleStatus(user: User, formData: FormData) {
 }
 
 async function handleBalance(user: User) {
-  const freshUser = await db.user.findUnique({ where: { id: user.id }, select: { balance: true } });
+  const freshUser = await db.user.findFirst({
+    where: { id: user.id, tenantId: user.tenantId ?? 'smmplan' },
+    select: { balance: true }
+  });
   return NextResponse.json({
     balance: (Number(freshUser?.balance || 0) / 100).toFixed(4),
     currency: 'RUB'

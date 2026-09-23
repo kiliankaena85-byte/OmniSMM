@@ -148,6 +148,7 @@ async function handleDeadLetter(
       if (queueName === 'ordersQueue') {
         const payload = job.data as { orderId?: string; refillId?: string };
         if (payload?.orderId) {
+          // tenant-isolation-ignore: Global DLQ worker checks order status across tenants before failing
           const currentOrder = await db.order.findUnique({
             where: { id: payload.orderId },
             select: { status: true, numericId: true }

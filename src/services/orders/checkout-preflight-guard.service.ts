@@ -135,7 +135,7 @@ export class CheckoutPreflightGuard {
       throw new Error("Необходимо подтвердить выполнение условий для старта услуги");
     }
 
-    if (service.cooldownUntil && service.cooldownUntil > new Date()) {
+    if (service.cooldownUntil && new Date(service.cooldownUntil) > new Date()) {
       throw new Error(`Временно приостановлено для контроля качества. Ожидание: 1-12 часов. Выберите аналог.`);
     }
 

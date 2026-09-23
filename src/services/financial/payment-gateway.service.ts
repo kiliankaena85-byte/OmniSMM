@@ -260,7 +260,7 @@ class YooKassaGateway extends BasePaymentGateway {
       }, { service: 'PAYMENTS_RU' });
     } catch (netErr: unknown) {
       console.error('[YooKassaGateway] Connection failed:', netErr);
-      throw new Error('Ошибка соединения со шлюзом ЮKassa. Сервер оплаты временно недоступен — попробуйте СБП или CryptoBot.');
+      throw new Error('Ошибка соединения со шлюзом ЮKassa. Сервер оплаты временно недоступен — попробуйте СБП или CryptoBot.', { cause: netErr });
     }
 
     if (!resp.ok) {
@@ -413,7 +413,7 @@ class YooKassaGateway extends BasePaymentGateway {
       }, { service: 'PAYMENTS_RU' });
     } catch (netErr: unknown) {
       console.error('[YooKassaGateway] Refund connection failed:', netErr);
-      throw new Error('Ошибка соединения с сервером ЮKassa при возврате средств.');
+      throw new Error('Ошибка соединения с сервером ЮKassa при возврате средств.', { cause: netErr });
     }
 
     if (!resp.ok) {
@@ -502,7 +502,7 @@ class CryptoBotGateway extends BasePaymentGateway {
           remoteGatewayId: `crypto_test_mock_${Date.now()}`
         };
       }
-      throw new Error('Ошибка соединения со шлюзом CryptoBot');
+      throw new Error('Ошибка соединения со шлюзом CryptoBot', { cause: netErr });
     }
 
     if (!resp.ok) {

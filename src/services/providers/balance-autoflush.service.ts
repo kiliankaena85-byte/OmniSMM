@@ -102,14 +102,15 @@ export class BalanceAutoFlushService {
       // Redis fallback: proceed safely
     }
 
-    // 2. Distributed Mutex Lock (Provider-Level)
+    // 2. Distributed Mutex Lock (Provider-Level) — Fail-Closed Invariant
     const lockKey = `lock:provider:flush:${providerId}`;
     let lockAcquired = false;
     try {
       const acquired = await redis.set(lockKey, '1', 'EX', this.PROVIDER_LOCK_TTL_SECONDS, 'NX');
       lockAcquired = acquired === 'OK';
     } catch {
-      lockAcquired = true; // Fallback in case of redis transient glitch
+      // Fail-closed: Never proceed if lock acquisition cannot be guaranteed to prevent double-spending
+      lockAcquired = false;
     }
 
     if (!lockAcquired) {

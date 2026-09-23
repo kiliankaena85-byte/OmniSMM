@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });
     const userId = payload.userId as string;
-    const user = await db.user.findUnique({ where: { id: userId } });
+    const tokenTenantId = (payload.tenantId as string) || 'smmplan';
+    const user = await db.user.findFirst({
+      where: { id: userId, tenantId: tokenTenantId }
+    });
     if (!user) return new NextResponse('Unauthorized', { status: 401 });
 
     // 2. Parse form data

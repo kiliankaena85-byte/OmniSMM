@@ -15,6 +15,7 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
   // Fail-safe guard: if tenantId is absent or empty, query the order using runWithTenantBypass to get its true tenantId
   if (!tenantId && job.data?.orderId) {
     const orderRecord = await runWithTenantBypass('BullMQ orderProcessor resolve tenantId', async () => {
+      // tenant-isolation-ignore: Fallback tenantId recovery for background job with missing tenant context
       return await db.order.findUnique({
         where: { id: job.data.orderId },
         select: { tenantId: true }

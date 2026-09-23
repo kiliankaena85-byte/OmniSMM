@@ -1,3 +1,4 @@
+// tenant-isolation-ignore: Background worker executed within order.processor runWithTenant wrapper
 import { UnrecoverableError } from 'bullmq';
 import { db } from '../../../lib/db';
 import { logger } from '../../../lib/logger';

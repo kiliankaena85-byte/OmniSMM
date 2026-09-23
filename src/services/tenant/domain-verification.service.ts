@@ -81,7 +81,6 @@ export class DomainVerificationService {
     const txtChallengeHost = `_omnismm-challenge.${cleanDomain}`;
 
     let cnameResolved: string[] = [];
-    let txtResolved: string[][] = [];
     let cnameError: string | null = null;
     let txtError: string | null = null;
 
@@ -100,7 +99,7 @@ export class DomainVerificationService {
 
     // 2. Probe TXT Ownership Challenge Record
     try {
-      txtResolved = await dns.resolveTxt(txtChallengeHost);
+      const txtResolved = await dns.resolveTxt(txtChallengeHost);
       const flattenedTxt = txtResolved.map((chunks) => chunks.join(''));
       const expectedTxtNeedle = `omnismm-verify=${expectedToken}`;
 

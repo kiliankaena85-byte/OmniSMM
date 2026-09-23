@@ -310,7 +310,7 @@ export class DomainRegistryService {
       domain: cleanDomain,
       customDomain: cleanCustomDomain,
       isActive,
-      isVerified: true,
+      isVerified,
     };
 
     registerValidTenant(cleanSlug);
