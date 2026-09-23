@@ -38,11 +38,13 @@ export async function GET(
     const ticketMatch = relativePath.match(/^tickets\/([^/]+)\//);
     if (ticketMatch) {
       const ticketId = ticketMatch[1];
-      const ticket = await db.ticket.findUnique({ where: { id: ticketId } });
+      const ticket = await db.ticket.findUnique({ where: { id: ticketId }, select: { userId: true, tenantId: true } });
       if (!ticket) return new NextResponse('Not Found', { status: 404 });
 
-      const isStaff = ['ADMIN', 'SUPPORT', 'OWNER'].includes(user.role);
-      if (ticket.userId !== userId && !isStaff) {
+      const isGlobalStaff = ['ADMIN', 'OWNER'].includes(user.role);
+      const isTenantSupport = user.role === 'SUPPORT' && ticket.tenantId === (user.tenantId || 'smmplan');
+      // Owner of the ticket, global staff, or SUPPORT of the SAME tenant only (no cross-tenant media reads)
+      if (ticket.userId !== userId && !isGlobalStaff && !isTenantSupport) {
         return new NextResponse('Forbidden', { status: 403 });
       }
     }

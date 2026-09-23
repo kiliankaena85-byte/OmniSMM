@@ -158,7 +158,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.1",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/coverage-v8": "^4.1.11",
     "decimal.js": "^10.6.0",
     "docx": "^9.7.1",
     "dotenv-cli": "^11.0.0",
@@ -175,7 +175,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "postcss": "^8.5.10",

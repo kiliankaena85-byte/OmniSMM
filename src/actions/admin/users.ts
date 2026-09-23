@@ -1,11 +1,11 @@
 'use server';
 
+import { logger } from '@/lib/logger';
 import { db } from '@/lib/db';
 import { adminUserService } from '@/services/admin/user.service';
 import { escrowService } from '@/services/admin/escrow.service';
 import { WalletOps } from '@/services/financial/wallet-ops';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { auditAdmin, auditAdminAwaitable } from '@/lib/admin-audit';
+import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { SignJWT } from 'jose';
@@ -563,7 +563,9 @@ export async function loginAsAction(formData: FormData) {
     try {
       const reqHeaders = await headers();
       host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
-    } catch {}
+    } catch (err) {
+      logger.warn('[impersonation] request headers unavailable, host fallback is empty', { err });
+    }
 
     const contour = resolveContourFromHost(host);
     const tenantId = targetUser.tenantId || 'smmplan';

@@ -192,8 +192,10 @@ export default function AddFundsForm() {
             legalAddress: apiLegalAddress.trim() || undefined,
           });
 
-          if (res.success && res.invoice) {
+          if (res.success) {
             setApiInvoiceCreated(res.invoice);
+          } else {
+            setError(res.error);
           }
         } catch (e: unknown) {
           setError(e instanceof Error ? e.message : 'Ошибка создания API счета');

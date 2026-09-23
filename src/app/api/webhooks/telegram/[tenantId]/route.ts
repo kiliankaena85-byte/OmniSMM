@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleTelegramWebhookRequest } from '@/lib/telegram/webhook-handler';
+import { handleTelegramWebhookRequest } from '@/app/api/webhooks/telegram/_lib/webhook-handler';
 
 export const dynamic = 'force-dynamic';
 

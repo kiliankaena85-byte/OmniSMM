@@ -76,6 +76,7 @@ export async function GET(req: NextRequest) {
       (fetchOptions as Record<string, unknown>).dispatcher = dispatcher;
     }
 
+    // audit-ignore: timeout is enforced via fetchOptions.signal = AbortSignal.timeout(8000) above
     const res = await fetch(targetUrl, fetchOptions);
     const pingMs = Date.now() - startTime;
     const data = await res.json();

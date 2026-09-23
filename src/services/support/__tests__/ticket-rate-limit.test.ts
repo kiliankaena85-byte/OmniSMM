@@ -57,7 +57,7 @@ describe('Ticket Actions Rate Limiting', () => {
       formData.append('subject', 'Test subject');
       formData.append('message', 'Test message');
 
-      await expect(createTicket(formData)).rejects.toThrow('Вы создаете слишком много обращений. Пожалуйста, подождите некоторое время.');
+      await expect(createTicket(formData)).resolves.toEqual({ success: false, error: 'Вы создаете слишком много обращений. Пожалуйста, подождите некоторое время.' });
       expect(ticketService.getOrCreateTicket).not.toHaveBeenCalled();
     });
 
@@ -80,7 +80,7 @@ describe('Ticket Actions Rate Limiting', () => {
 
       expect(RateLimitService.checkCustomKey).toHaveBeenCalledWith('create_ticket_user:u1', 5, 3600);
       expect(RateLimitService.check).toHaveBeenCalledWith('create_ticket_ip', 10, 3600);
-      expect(ticketService.getOrCreateTicket).toHaveBeenCalledWith('u1', 'Test subject');
+      expect(ticketService.getOrCreateTicket).toHaveBeenCalledWith('u1', 'Test subject', 'WEB', undefined);
       expect(ticketService.addMessage).toHaveBeenCalledWith('t1', 'USER', 'Test message');
     });
   });
@@ -95,7 +95,7 @@ describe('Ticket Actions Rate Limiting', () => {
       formData.append('ticketId', 't1');
       formData.append('message', 'Test reply');
 
-      await expect(addTicketMessage(formData)).rejects.toThrow('Слишком много сообщений. Пожалуйста, подождите перед следующим ответом.');
+      await expect(addTicketMessage(formData)).resolves.toEqual({ success: false, error: 'Слишком много сообщений. Пожалуйста, подождите перед следующим ответом.' });
       expect(ticketService.addMessage).not.toHaveBeenCalled();
     });
 
@@ -111,7 +111,7 @@ describe('Ticket Actions Rate Limiting', () => {
 
       await addTicketMessage(formData);
 
-      expect(RateLimitService.checkCustomKey).toHaveBeenCalledWith('add_message_user:u1', 60, 60);
+      expect(RateLimitService.checkCustomKey).toHaveBeenCalledWith('add_message_user:smmplan:u1', 60, 60);
       expect(RateLimitService.check).toHaveBeenCalledWith('add_message_ip', 100, 60);
       expect(ticketService.addMessage).toHaveBeenCalledWith('t1', 'USER', 'Test reply', undefined, undefined, undefined, undefined, undefined, undefined);
     });

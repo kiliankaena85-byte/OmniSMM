@@ -1,5 +1,6 @@
 'use server';
 
+import { logger } from '@/lib/logger';
 import { db } from '@/lib/db';
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
@@ -160,7 +161,10 @@ export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam
       const { cookies } = await import('next/headers');
       const c = await cookies();
       cookieTenant = c.get('x_admin_tenant')?.value || null;
-    } catch {}
+    } catch (err) {
+      // Outside request scope (worker/test) — fall back to the staff member's own tenant.
+      logger.debug('[staff] x_admin_tenant cookie unavailable, using user tenant', { err });
+    }
 
     const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
     const resolvedTenant = resolveAdminTenantContext(admin, tenantParam, cookieTenant);

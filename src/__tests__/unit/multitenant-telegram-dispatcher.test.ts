@@ -119,7 +119,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
 
   describe('Multi-Tenant Webhook Request Security & Routing', () => {
     it('rejects unauthorized request missing secret token with 401', async () => {
-      const { handleTelegramWebhookRequest } = await import('@/lib/telegram/webhook-handler');
+      const { handleTelegramWebhookRequest } = await import('@/app/api/webhooks/telegram/_lib/webhook-handler');
 
       vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
         id: 'secure-brand',
@@ -140,7 +140,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
     });
 
     it('rejects unauthorized request with secret token mismatch with 401', async () => {
-      const { handleTelegramWebhookRequest } = await import('@/lib/telegram/webhook-handler');
+      const { handleTelegramWebhookRequest } = await import('@/app/api/webhooks/telegram/_lib/webhook-handler');
 
       vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
         id: 'secure-brand',
@@ -161,7 +161,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
     });
 
     it('returns 503 if tenant is in maintenance mode', async () => {
-      const { handleTelegramWebhookRequest } = await import('@/lib/telegram/webhook-handler');
+      const { handleTelegramWebhookRequest } = await import('@/app/api/webhooks/telegram/_lib/webhook-handler');
 
       vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
         id: 'maint-brand',
@@ -184,7 +184,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
     });
 
     it('rejects request with 403 if client IP is not in configured allowlist', async () => {
-      const { handleTelegramWebhookRequest } = await import('@/lib/telegram/webhook-handler');
+      const { handleTelegramWebhookRequest } = await import('@/app/api/webhooks/telegram/_lib/webhook-handler');
 
       vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
         id: 'ip-guarded-brand',
@@ -209,7 +209,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
     });
 
     it('accepts and dispatches valid webhook request with 200 OK', async () => {
-      const { handleTelegramWebhookRequest } = await import('@/lib/telegram/webhook-handler');
+      const { handleTelegramWebhookRequest } = await import('@/app/api/webhooks/telegram/_lib/webhook-handler');
 
       vi.spyOn(db.systemSettings, 'findUnique').mockResolvedValue({
         id: 'good-brand',

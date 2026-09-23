@@ -1,6 +1,6 @@
 /**
  * (c) 2024-2026 SMMplan / OmniSMM 1.0. All rights reserved.
- * Centralized Multi-Tenant Telegram Webhook Handler.
+ * Centralized Multi-Tenant Telegram Webhook Handler (Application layer).
  * Shared between dynamic route (/api/webhooks/telegram/[tenantId]) and legacy fallback (/api/webhooks/telegram).
  */
 
@@ -10,7 +10,7 @@ import { db } from '@/lib/db';
 import { multiBotManager } from '@/bot/manager/multi-bot-manager';
 import { resolveTelegramWebhookSecret } from '@/lib/telegram/token-resolver';
 import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
-import { logTelegramError } from '@/actions/admin/telegram-bot';
+import { TelegramErrorLogService } from '@/services/telegram/telegram-error-log.service';
 
 export async function handleTelegramWebhookRequest(
   req: NextRequest,
@@ -106,12 +106,13 @@ export async function handleTelegramWebhookRequest(
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error(`[Telegram Webhook] Error processing update for tenant "${cleanTenant}":`, error);
 
-    await logTelegramError({
+    // Service never throws; tenant is passed explicitly (webhooks have no x-tenant-id header).
+    await TelegramErrorLogService.log(cleanTenant, {
       level: 'ERROR',
       source: 'webhook',
       errorMessage: errorMsg,
       stackTrace: error instanceof Error ? error.stack?.slice(0, 1000) : undefined,
-    }).catch(() => {});
+    });
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

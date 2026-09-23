@@ -2,6 +2,7 @@
  * (c) 2024-2026 SMMplan. All rights reserved.
  * Order checkout transaction execution and idempotency engine.
  */
+import { assertDripFeedFloor } from '@/services/orders/drip-feed-floor';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
@@ -91,15 +92,9 @@ export class CheckoutTransactionService {
     // 2. Calculate price
     const totalQuantity = quantity;
     if (effectiveRuns && effectiveRuns > 0) {
-      const runQty = Math.floor(totalQuantity / effectiveRuns);
-      if (runQty < service.minQty) {
-        throw new Error(`Для Drip-feed количество на один запуск (${runQty}) не может быть меньше минимального (${service.minQty})`);
-      }
+      assertDripFeedFloor(totalQuantity, effectiveRuns, service.minQty, 'runs');
     } else if (isSmartDrip && smartDripDays && smartDripDays > 0) {
-      const runQty = Math.floor(totalQuantity / smartDripDays);
-      if (runQty < service.minQty) {
-        throw new Error(`Для Умного Drip-feed количество на 1 день (${runQty}) не может быть меньше минимального (${service.minQty})`);
-      }
+      assertDripFeedFloor(totalQuantity, smartDripDays, service.minQty, 'smart');
     }
 
     const pricing = await marketingService.calculatePrice(user.id, service.id, totalQuantity, normalizedPromo, { service });

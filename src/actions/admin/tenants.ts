@@ -1,5 +1,6 @@
 'use server';
 
+import { logger } from '@/lib/logger';
 import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import { requireStaffPermission } from '@/lib/server/rbac';
@@ -457,7 +458,10 @@ export async function switchAdminTenantAction(tenantId: string) {
     invalidateTag(`services-${normalized}`, 'default');
     invalidateTag('clients', 'default');
     invalidateTag(`clients-${normalized}`, 'default');
-  } catch {}
+  } catch (err) {
+    // Cache invalidation is best-effort, but a failure means stale catalog/clients for this tenant.
+    logger.warn('[tenants] revalidateTag failed after tenant switch', { err, tenantId: normalized });
+  }
 
   return { success: true, tenantId: normalized };
 }

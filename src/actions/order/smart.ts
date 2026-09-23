@@ -3,15 +3,16 @@
 import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getClientIp } from '@/utils/ip';
 
 export async function getClientCampaigns(page: number = 1, limit: number = 20) {
   const session = await verifySession();
   if (!session || !session.userId) {
-    throw new Error('Необходима авторизация');
+    return { success: false as const, error: 'Необходима авторизация' };
   }
 
+  // Clamp pagination to prevent negative skip / unbounded take from a crafted RPC call
+  page = Number.isInteger(page) && page > 0 ? page : 1;
+  limit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 100) : 20;
   const skip = (page - 1) * limit;
 
   const [campaigns, total] = await Promise.all([
@@ -58,37 +59,42 @@ export async function getClientCampaigns(page: number = 1, limit: number = 20) {
     };
   });
 
-  return { success: true, data: { campaigns: formatted, total, pages: Math.ceil(total / limit) } };
+  return { success: true as const, data: { campaigns: formatted, total, pages: Math.ceil(total / limit) } };
 }
 
 export async function toggleClientCampaignStatus(campaignId: string, status: 'RUNNING' | 'PAUSED') {
   const session = await verifySession();
   if (!session || !session.userId) {
-    throw new Error('Необходима авторизация');
+    return { success: false as const, error: 'Необходима авторизация' };
+  }
+
+  // Runtime guard: Server Actions are public RPC, TS types are not enforced on the wire
+  if (typeof campaignId !== 'string' || !campaignId || (status !== 'RUNNING' && status !== 'PAUSED')) {
+    return { success: false as const, error: 'Некорректные параметры запроса' };
   }
 
   const campaign = await db.smartCampaign.findUnique({
     where: { id: campaignId }
   });
 
-  if (!campaign) {
-    throw new Error('Кампания не найдена');
-  }
-
-  // IDOR Security Guard
-  if (campaign.userId !== session.userId) {
-    throw new Error('Доступ запрещен');
+  // IDOR Security Guard (same response for "not found" and "foreign" to avoid ID enumeration)
+  if (!campaign || campaign.userId !== session.userId) {
+    return { success: false as const, error: 'Кампания не найдена' };
   }
 
   if (campaign.status === 'COMPLETED' || campaign.status === 'ERROR') {
-    throw new Error('Нельзя изменить статус завершенной или деактивированной кампании');
+    return { success: false as const, error: 'Нельзя изменить статус завершенной или деактивированной кампании' };
   }
 
-  const updated = await db.smartCampaign.update({
-    where: { id: campaignId },
+  // Atomic owner-scoped update (TOCTOU: status may have changed between read and write)
+  const updated = await db.smartCampaign.updateMany({
+    where: { id: campaignId, userId: session.userId, status: { notIn: ['COMPLETED', 'ERROR'] } },
     data: { status }
   });
+  if (updated.count === 0) {
+    return { success: false as const, error: 'Статус кампании изменился, обновите страницу' };
+  }
 
   revalidatePath('/dashboard/smart-drip');
-  return { success: true, data: updated };
+  return { success: true as const, data: { id: campaignId, status } };
 }

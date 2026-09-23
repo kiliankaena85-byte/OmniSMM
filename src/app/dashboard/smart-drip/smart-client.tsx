@@ -70,7 +70,7 @@ export function SmartDripDashboardClient({ initialCampaigns }: SmartDripDashboar
               : 'Кампания приостановлена'
           );
         } else {
-          toast.error('Не удалось изменить статус кампании');
+          toast.error(res.error || 'Не удалось изменить статус кампании');
         }
       } catch (err: unknown) {
         toast.error((err instanceof Error ? err.message : String(err)) || 'Ошибка выполнения действия');

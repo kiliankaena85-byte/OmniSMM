@@ -8,7 +8,8 @@ import { getClientIp } from '@/utils/ip';
 import { z } from 'zod';
 import { resolveErrorSchema, massResolveErrorsSchema } from '@/schemas/telegram';
 import type { TelegramErrorLog, TelegramActionResponse } from '@/types/telegram';
-import { getTenantId, generateCuid2 } from './helpers';
+import { getTenantId } from './helpers';
+import { TelegramErrorLogService, type TelegramErrorLogParams } from '@/services/telegram/telegram-error-log.service';
 
 export async function listTelegramErrorsAction(params?: {
   level?: string;
@@ -118,46 +119,16 @@ export async function deleteTelegramErrorAction(errorId: string): Promise<Telegr
   });
 }
 
-export async function logTelegramError(params: {
-  level: 'ERROR' | 'WARN' | 'FATAL';
-  source: 'webhook' | 'polling' | 'command' | 'callback_query' | 'scene';
-  errorCode?: string;
-  errorMessage: string;
-  stackTrace?: string;
-  updateData?: string;
-  userId?: string;
-  chatId?: string;
-}): Promise<void> {
-  try {
-    const tenantId = await getTenantId();
-    const oneHourAgo = new Date(Date.now() - 3600000);
-    const existing = await db.telegramErrorLog.findFirst({
-      where: {
-        tenantId,
-        errorCode: params.errorCode || null,
-        source: params.source,
-        isResolved: false,
-        lastSeenAt: { gte: oneHourAgo },
-      },
-      orderBy: { lastSeenAt: 'desc' },
-    });
-
-    if (existing) {
-      await db.telegramErrorLog.update({
-        where: { id: existing.id },
-        data: {
-          occurrenceCount: { increment: 1 },
-          lastSeenAt: new Date(),
-          ...(params.level === 'FATAL' && { level: 'FATAL' }),
-        },
-      });
-    } else {
-      const id = generateCuid2();
-      await db.telegramErrorLog.create({
-        data: { id, tenantId, ...params },
-      });
-    }
-  } catch (err) {
-    console.error('[TelegramErrorLog] Failed to log error:', err);
-  }
+/**
+ * Admin-only Server Action for manual error logging.
+ * [SECURITY] Previously this was an unauthenticated public RPC endpoint ('use server' export)
+ * allowing anyone to write into telegramErrorLog of any tenant. Internal callers
+ * (webhook, bot) must use TelegramErrorLogService directly.
+ */
+export async function logTelegramError(params: TelegramErrorLogParams): Promise<TelegramActionResponse> {
+  return requireStaffPermission('settings', 'edit', async (_admin, _role, activeTenantId) => {
+    const tenantId = activeTenantId ?? (await getTenantId());
+    await TelegramErrorLogService.log(tenantId, params);
+    return { success: true };
+  });
 }

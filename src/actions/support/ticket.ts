@@ -93,20 +93,20 @@ const adminReplySchema = z.object({
   orderId: z.string().optional()
 }).refine(data => data.message || data.mediaUrl, "Either message or mediaUrl must be provided");
 
-export async function createTicket(formData: FormData) {
-  if (!formData || typeof formData.entries !== 'function') throw new Error("Некорректные данные формы");
+export async function createTicket(formData: FormData): Promise<{ success: false; error: string } | void> {
+  if (!formData || typeof formData.entries !== 'function') return { success: false, error: "Некорректные данные формы" };
   const session = await verifySession();
-  if (!session) throw new Error('Unauthorized');
+  if (!session) return { success: false, error: 'Необходима авторизация' };
 
   // Rate Limit: Prevent ticket spam (max 5 tickets per 1 hour)
   const isAllowedUser = await RateLimitService.checkCustomKey(`create_ticket_user:${session.userId}`, 5, 3600);
   const isAllowedIp = await RateLimitService.check('create_ticket_ip', 10, 3600);
   if (!isAllowedUser || !isAllowedIp) {
-    throw new Error('Вы создаете слишком много обращений. Пожалуйста, подождите некоторое время.');
+    return { success: false, error: 'Вы создаете слишком много обращений. Пожалуйста, подождите некоторое время.' };
   }
 
   const parsed = createTicketSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error('Данные тикета заполнены неверно');
+  if (!parsed.success) return { success: false, error: 'Данные тикета заполнены неверно' };
   const { subject, message } = parsed.data;
 
   const ticket = await ticketService.getOrCreateTicket(session.userId, subject, 'WEB', session.tenantId);
@@ -116,29 +116,33 @@ export async function createTicket(formData: FormData) {
   redirect(`/dashboard/tickets/${ticket.id}`);
 }
 
-export async function addTicketMessage(formData: FormData) {
-  if (!formData || typeof formData.entries !== 'function') throw new Error("Некорректные данные формы");
+export async function addTicketMessage(formData: FormData): Promise<{ success: boolean; error?: string }> {
+  if (!formData || typeof formData.entries !== 'function') return { success: false, error: "Некорректные данные формы" };
   const session = await verifySession();
-  if (!session) throw new Error('Unauthorized');
+  if (!session) return { success: false, error: 'Необходима авторизация' };
 
   // Rate Limit: Prevent message flooding (max 60 messages per 1 minute)
   const isAllowedUser = await RateLimitService.checkCustomKey(`add_message_user:${session.tenantId || 'smmplan'}:${session.userId}`, 60, 60);
   const isAllowedIp = await RateLimitService.check('add_message_ip', 100, 60);
   if (!isAllowedUser || !isAllowedIp) {
-    throw new Error('Слишком много сообщений. Пожалуйста, подождите перед следующим ответом.');
+    return { success: false, error: 'Слишком много сообщений. Пожалуйста, подождите перед следующим ответом.' };
   }
 
   const parsed = ticketMessageSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) throw new Error('Сообщение не может быть пустым');
+  if (!parsed.success) return { success: false, error: 'Сообщение не может быть пустым' };
   const { ticketId, message, mediaUrl, mediaType, replyToId, orderId } = parsed.data;
 
   const isStaff = session.role ? ['OWNER', 'ADMIN', 'SUPPORT'].includes(session.role) : false;
-  const ticket = isStaff
+  const isGlobalStaff = session.role ? ['OWNER', 'ADMIN'].includes(session.role) : false;
+  // [TENANT ISOLATION] Only OWNER/ADMIN are cross-tenant; SUPPORT is scoped to its own tenant.
+  const ticket = isGlobalStaff
     ? await db.ticket.findUnique({ where: { id: ticketId } })
+    : isStaff
+    ? await db.ticket.findFirst({ where: { id: ticketId, tenantId: session.tenantId || 'smmplan' } })
     : await db.ticket.findFirst({
         where: { id: ticketId, userId: session.userId, tenantId: session.tenantId }
       });
-  if (!ticket) throw new Error('Ticket not found or access denied');
+  if (!ticket) return { success: false, error: 'Тикет не найден или доступ запрещён' };
 
   let verifiedOrderId: string | undefined = undefined;
   if (orderId) {
@@ -188,6 +192,7 @@ export async function addTicketMessage(formData: FormData) {
   }
   revalidatePath(`/dashboard/tickets/${ticketId}`);
   revalidatePath(`/admin/tickets/${ticketId}`);
+  return { success: true };
 }
 
 export async function adminReplyTicket(formData: FormData) {

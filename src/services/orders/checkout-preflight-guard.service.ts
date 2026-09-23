@@ -2,6 +2,7 @@
  * (c) 2024-2026 SMMplan. All rights reserved.
  * Preflight security and parameter validation guard for checkout pipeline.
  */
+import { assertDripFeedFloor } from '@/services/orders/drip-feed-floor';
 import { headers } from 'next/headers';
 import { db } from '@/lib/db';
 import { featureFlagService } from "@/services/system/feature-flag.service";
@@ -149,6 +150,13 @@ export class CheckoutPreflightGuard {
 
     if (quantity < service.minQty || quantity > service.maxQty) {
       throw new Error(`Количество должно быть от ${service.minQty} до ${service.maxQty}`);
+    }
+
+    // Drip-Feed Floor Invariant (must match CheckoutTransactionService exactly)
+    if (effectiveRuns && effectiveRuns > 0) {
+      assertDripFeedFloor(quantity, effectiveRuns, service.minQty, 'runs');
+    } else if (isSmartDrip && smartDripDays && smartDripDays > 0) {
+      assertDripFeedFloor(quantity, smartDripDays, service.minQty, 'smart');
     }
 
     if (customData && customData.length > 2000) {
