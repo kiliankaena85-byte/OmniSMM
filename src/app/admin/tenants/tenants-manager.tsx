@@ -22,6 +22,7 @@ import {
   toggleTenantStatusAction, 
   deleteTenantAction 
 } from '@/actions/admin/tenants';
+import { DomainVerificationModal } from './domain-verification-modal';
 import Link from 'next/link';
 
 interface TenantItem {
@@ -49,6 +50,7 @@ interface TenantsManagerProps {
 export function TenantsManager({ initialTenants }: TenantsManagerProps) {
   const [tenants, setTenants] = useState<TenantItem[]>(initialTenants);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [verificationTarget, setVerificationTarget] = useState<{ id: string; name: string; domain: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
@@ -257,15 +259,37 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                   </div>
 
                   {tenant.customDomain && (
-                    <div className="flex items-center justify-between px-3 py-1 text-[11px] text-muted-foreground">
-                      <span>Алиас:</span>
-                      <span className="font-mono text-foreground font-semibold">{tenant.customDomain}</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/30 border border-border/50 gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="font-mono text-[11px] text-foreground font-semibold truncate" title={tenant.customDomain}>
+                          {tenant.customDomain}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setVerificationTarget({ id: tenant.id, name: tenant.name, domain: tenant.customDomain! })}
+                        className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 hover:bg-primary/20 text-primary transition-colors cursor-pointer shrink-0"
+                      >
+                        DNS статус
+                      </button>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1.5 px-3 pt-1 text-[11px] text-muted-foreground">
-                    <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
-                    <span>DNS Маршрутизация: <strong className="text-foreground">OK</strong></span>
+                  <div className="flex items-center justify-between px-3 pt-1 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
+                      <span>DNS Маршрутизация: <strong className="text-foreground">OK</strong></span>
+                    </span>
+                    {tenant.customDomain && (
+                      <button
+                        type="button"
+                        onClick={() => setVerificationTarget({ id: tenant.id, name: tenant.name, domain: tenant.customDomain! })}
+                        className="text-[10px] text-primary hover:underline font-semibold cursor-pointer"
+                      >
+                        Настроить DNS
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -449,6 +473,17 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ── DOMAIN VERIFICATION MODAL ── */}
+      {verificationTarget && (
+        <DomainVerificationModal
+          isOpen={!!verificationTarget}
+          onClose={() => setVerificationTarget(null)}
+          tenantId={verificationTarget.id}
+          tenantName={verificationTarget.name}
+          customDomain={verificationTarget.domain}
+        />
       )}
     </div>
   );

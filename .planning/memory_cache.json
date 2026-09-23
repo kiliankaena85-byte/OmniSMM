@@ -422,6 +422,18 @@
         "security",
         "omnismm"
       ]
+    },
+    {
+      "title": "Dynamic Custom Domain Verification & DNS Probe (OmniSMM 1.0)",
+      "context": "Runtime verification of custom domains for multi-tenant white-label storefronts without PostgreSQL migrations",
+      "decision": "Zero-migration metadata storage in SystemSetting, dual-channel CNAME + TXT DNS probe via node:dns/promises, dynamic L1/L2 activation in DomainRegistryService, and Anti-Takeover guard for system domains",
+      "rationale": "Prevents domain hijacking, requires 0 container restarts, and maintains strict CSP/SSL integrity",
+      "tags": [
+        "multitenant",
+        "domain-verification",
+        "dns-probe",
+        "anti-takeover"
+      ]
     }
   ]
 }

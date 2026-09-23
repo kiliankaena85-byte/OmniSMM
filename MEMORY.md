@@ -74,6 +74,25 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
  
+ - **ADR-2026-34: Dynamic Custom Domain Automated Verification & Anti-Takeover DNS Probe (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Zero-Migration архитектура хранения метаданных:** Метаданные доменов хранятся в существующей таблице `SystemSetting` (`key = "tenant_domain_meta_<slug>"`) в формате JSON (статус, криптографический токен, даты проверок, ошибки). 0 миграций схемы PostgreSQL.
+    2. **Anti-Takeover Guard:** Блокировка попыток привязать системные домены (`smmplan.pro`, `smmflux.ru`) под видом кастомного домена.
+    3. **Двухканальный DNS Probe (`DomainVerificationService`):**
+       - **CNAME Probe**: резолв CNAME-записи целевого домена на адрес платформы (`smmplan.pro`).
+       - **TXT Challenge**: резолв TXT-записи хоста `_omnismm-challenge.<domain>` со значением `omnismm-verify=<token>`.
+       - Обработка сбоев DNS (ENOTFOUND, ETIMEOUT, ENODATA) в безопасном Fail-Closed режиме.
+    4. **Динамическая активация маршрутизации:** При успешной верификации домен регистрируется в L1 Memory и L2 Redis `DomainRegistryService` с флагом `isVerified: true`.
+    5. **UI & Server Actions:** Модальное окно `<DomainVerificationModal>` с инструкциями в 1 клик, статусами и ручным запуском верификации. Server Actions: `getDomainVerificationAction`, `verifyCustomDomainAction`, `regenerateDomainVerificationTokenAction` с обязательным админским аудитом.
+  - *Верификация:* 10/10 тестов в `dynamic-domain-verification.test.ts`, 0 ошибок `tsc --noEmit`, 0 блокеров `lint:tenant`, 0 утечек секретов.
+
+ - **ADR-2026-33: Multi-Tenant Telegram Bot Dispatcher & Webhook Router (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Гибридный токен-резолвер (`token-resolver.ts`):** Разрешение токенов Telegram по иерархии: активная запись `TelegramBotInstance` (AES-256-GCM Vault) -> `SystemSetting` -> переменная окружения `TELEGRAM_BOT_TOKEN` для `'smmplan'`.
+    2. **Диспетчер ботов (`MultiBotManager`):** Пул `activeBots`, динамическая инициализация Telegraf при обращении, метод `sendTenantMessage()` для брендированных исходящих оповещений от бота конкретного тенанта (исключает Brand Bleeding).
+    3. **Централизованный Webhook Handler:** Защита HMAC `crypto.timingSafeEqual` по заголовку `x-telegram-bot-api-secret-token`, режим техобслуживания (503), allowlist IP-адресов Telegram (403). Роуты `/api/webhooks/telegram/[tenantId]` и `/api/webhooks/telegram?tenant=...`.
+  - *Верификация:* 11/11 тестов в `multitenant-telegram-dispatcher.test.ts`, 72/72 общих тестов PASS.
+
  - **ADR-2026-32: Systematic 46 Vulnerability & Reliability Sweep (OmniSMM 1.0 RAC-2026):**
   - *Решение:*
     1. **Критические зависимости (DEP-01, SEC-01):** Обновлены `next` (^16.3.6), `nodemailer` (^10.0.10), `@tiptap/core` (^3.31.3). Сняты заглушки в CI. 0 критических уязвимостей в `npm audit --omit=dev`.

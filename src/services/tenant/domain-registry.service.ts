@@ -296,11 +296,13 @@ export class DomainRegistryService {
     domain: string;
     customDomain?: string | null;
     isActive?: boolean;
+    isVerified?: boolean;
   }): Promise<void> {
     const cleanDomain = tenant.domain.toLowerCase().trim();
     const cleanSlug = tenant.slug.toLowerCase().trim();
     const cleanCustomDomain = tenant.customDomain?.toLowerCase().trim() || null;
     const isActive = tenant.isActive ?? true;
+    const isVerified = tenant.isVerified ?? true;
 
     const entry: DomainRegistryEntry = {
       tenantId: cleanSlug,

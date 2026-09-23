@@ -1,3 +1,26 @@
+- [x] 🌐 [OMNISMM-DYNAMIC-CUSTOM-DOMAIN-VERIFICATION-DNS-PROBE-2026] Автоматизированная верификация кастомных доменов тенантов (DNS CNAME/TXT Probe) и защита от захвата доменов (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация и контракты:**
+    - Утверждена спецификация `docs/specs/SPEC-2026-09-23-DYNAMIC-DOMAIN-VERIFICATION-DNS-PROBE.md`.
+    - 0 миграций PostgreSQL schema (метаданные верификации хранятся в `SystemSetting` с ключом `tenant_domain_meta_<slug>`).
+  * 🛡️ **Защита от захвата системных доменов (Anti-Takeover Guard):**
+    - В `DomainVerificationService.generateDomainMeta` заблокированы любые попытки заявить права на системные домены платформы (`smmplan.pro`, `smmflux.ru` и их поддомены).
+  * 🔎 **Асинхронный DNS Probe (`src/services/tenant/domain-verification.service.ts`):**
+    - Реализована проверка двух независимых методов подтверждения владения доменом:
+      1. **CNAME Probe**: проверка указания канонической записи CNAME на целевой хост платформы (`smmplan.pro`).
+      2. **TXT Challenge**: проверка DNS TXT записи `_omnismm-challenge.<domain>` со значением `omnismm-verify=<token>`.
+    - Обработка сетевых DNS-ошибок (ENOTFOUND, ETIMEOUT, ENODATA) в отказоустойчивом режиме (Fail-Closed).
+  * ⚡ **Динамическая активация в `DomainRegistryService`:**
+    - При успешном подтверждении владения статус домена переводится в `VERIFIED`, и домен мгновенно регистрируется в L1 Memory и L2 Redis реестре маршрутизатора с флагом `isVerified: true`.
+  * 🎛️ **Административный интерфейс и Server Actions:**
+    - Создано модальное окно `<DomainVerificationModal>` (`src/app/admin/tenants/domain-verification-modal.tsx`) с копированием DNS-инструкций в 1 клик, статусами проверки и кнопкой "Проверить DNS сейчас".
+    - Интегрированы Server Actions: `getDomainVerificationAction`, `verifyCustomDomainAction`, `regenerateDomainVerificationTokenAction` с обязательным аудитом `auditAdminAwaitable`.
+    - В `<TenantsManager>` в карточки брендов с кастомными доменами добавлена плашка статуса DNS и вызов модалки настройки.
+  * 🧪 **Итоговая верификация (10/10 специализированных тестов PASS, 72/72 общих):**
+    - `src/__tests__/unit/dynamic-domain-verification.test.ts` (10/10 PASS).
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `npm run lint:tenant` — 0 BLOCKERs.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+
 - [x] 🛡️ [OMNISMM-VULNERABILITY-AND-RELIABILITY-SWEEP-46-2026] Сквозной аудит, воспроизведение и устранение 46 дефектов безопасности и надёжности (100% COMPLETE & VERIFIED):
   * 📋 **Волна 1 (Критично):**
     - **DEP-01**: `next` обновлён до `^16.3.6`, `nodemailer` до `^10.0.10`, `@tiptap/core` до `^3.31.3`. Снята заглушка `|| true` в CI (`ci.yml:58`). `npm audit --omit=dev` подтверждает 0 уязвимостей.

@@ -8,10 +8,11 @@ import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { z } from 'zod';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
-import { normalizeTenantId, registerValidTenant } from '@/lib/tenant-resolver-edge';
+import { normalizeTenantId, registerValidTenant, sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
 import { sendAdminAlert } from '@/lib/notifications';
 import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
 import { TenantThemeService, TenantThemeConfig, ThemePresetName } from '@/services/tenant/tenant-theme.service';
+import { DomainVerificationService } from '@/services/tenant/domain-verification.service';
 
 const CreateTenantSchema = z.object({
   name: z.string().min(2, 'Название бренда должно быть не менее 2 символов').max(60),
@@ -117,6 +118,15 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
         isActive: true,
       });
 
+      if (customDomain) {
+        try {
+          const meta = DomainVerificationService.generateDomainMeta(cleanSlug, customDomain);
+          await DomainVerificationService.saveDomainMeta(cleanSlug, meta);
+        } catch (err) {
+          console.warn(`[TenantsAction] Failed to initialize domain verification for ${cleanSlug}:`, err);
+        }
+      }
+
       const presetMap: Record<string, ThemePresetName> = {
         classic: 'sky',
         vibrant: 'violet',
@@ -206,6 +216,15 @@ export async function updateTenantAction(formData: z.infer<typeof UpdateTenantSc
         customDomain: updated.customDomain,
         isActive: updated.isActive,
       });
+
+      if (updated.customDomain && updated.customDomain !== oldTenant.customDomain) {
+        try {
+          const meta = DomainVerificationService.generateDomainMeta(updated.slug, updated.customDomain);
+          await DomainVerificationService.saveDomainMeta(updated.slug, meta);
+        } catch (err) {
+          console.warn(`[TenantsAction] Failed to update domain verification for ${updated.slug}:`, err);
+        }
+      }
 
       await auditAdminAwaitable({
         adminId: staffUser.id,
@@ -502,6 +521,67 @@ export async function updateTenantThemeAction(formData: z.infer<typeof UpdateTen
     } catch (error) {
       console.error('[updateTenantThemeAction] Error:', error);
       return { success: false, error: 'Ошибка сохранения темы оформления' };
+    }
+  });
+}
+
+export async function getDomainVerificationAction(tenantId: string) {
+  return requireStaffPermission('settings', 'view', async () => {
+    try {
+      const cleanSlug = sanitizeTenantSlug(tenantId);
+      const meta = await DomainVerificationService.getDomainMeta(cleanSlug);
+      return { success: true, data: meta };
+    } catch (error) {
+      console.error('[getDomainVerificationAction] Error:', error);
+      return { success: false, error: 'Ошибка получения статуса верификации домена' };
+    }
+  });
+}
+
+export async function verifyCustomDomainAction(tenantId: string) {
+  return requireStaffPermission('settings', 'edit', async (staffUser) => {
+    try {
+      const cleanSlug = sanitizeTenantSlug(tenantId);
+      const result = await DomainVerificationService.verifyDomain(cleanSlug);
+
+      await auditAdminAwaitable({
+        adminId: staffUser.id,
+        adminEmail: staffUser.email,
+        action: 'TENANT_DOMAIN_VERIFY',
+        target: cleanSlug,
+        targetType: 'TenantDomain',
+        newValue: { status: result.status, customDomain: result.meta?.customDomain, error: result.error },
+      });
+
+      revalidatePath('/admin/tenants');
+      return { success: result.success, status: result.status, error: result.error, data: result.meta };
+    } catch (error) {
+      console.error('[verifyCustomDomainAction] Error:', error);
+      return { success: false, error: 'Ошибка при проверке DNS-записей домена' };
+    }
+  });
+}
+
+export async function regenerateDomainVerificationTokenAction(tenantId: string) {
+  return requireStaffPermission('settings', 'edit', async (staffUser) => {
+    try {
+      const cleanSlug = sanitizeTenantSlug(tenantId);
+      const meta = await DomainVerificationService.regenerateToken(cleanSlug);
+
+      await auditAdminAwaitable({
+        adminId: staffUser.id,
+        adminEmail: staffUser.email,
+        action: 'TENANT_DOMAIN_TOKEN_ROTATE',
+        target: cleanSlug,
+        targetType: 'TenantDomain',
+        newValue: { token: meta.verificationToken },
+      });
+
+      revalidatePath('/admin/tenants');
+      return { success: true, data: meta };
+    } catch (error) {
+      console.error('[regenerateDomainVerificationTokenAction] Error:', error);
+      return { success: false, error: 'Ошибка обновления токена верификации' };
     }
   });
 }
