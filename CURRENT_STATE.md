@@ -1,3 +1,29 @@
+- [x] 🚀 [OMNISMM-DOCKER-PRODUCTION-DEPLOYMENT-BGS-2026] Успешное развертывание платформы в Docker-контейнерах по протоколу Blue-Green Stage (100% COMPLETE & VERIFIED IN PROD):
+  * 📦 **Сборка Standalone-артефактов и Docker-образов:**
+    - Запущен эко-билд `scripts/lean-docker-build.ps1` с `BelowNormal` приоритетом и лимитом V8 heap.
+    - Скомпилирован Next.js 16.3.6 Standalone бандл (`.next/standalone`, `.next/static`), сбандлены `dist/bot.js` и `dist/worker.js`.
+    - Собраны 3 свежих продакшен Docker-образа: `smm_plan_2-web:latest` (ID: `f3e30a58d13f`), `smm_plan_2-worker:latest` (ID: `a9f22f966a3d`), `smm_plan_2-bot:latest` (ID: `6d8a4013e80b`).
+  * 🌐 **Изолированный Stage-аудит (Порт 3005):**
+    - Поднят контейнер `smmplan_stage` на порту 3005.
+    - Пройден автоматизированный визуальный аудит в Playwright Chromium: 6 из 6 экранов (100% PASS):
+      1. Гостевой лендинг SMMplan (1440x900) — PASS (0px overflow).
+      2. Дашборд пользователя SMMplan (1440x900) — PASS (0px overflow).
+      3. Мобильный визард заказов (390x844) — PASS (0px overflow).
+      4. Витрина SMMflux Radiant Aurora (1440x900) — PASS (0px overflow).
+      5. Экран пополнения средств 54-ФЗ (1440x900) — PASS (0px overflow).
+      6. Админ-хаб финансов и сверки (1440x900) — PASS (0px overflow).
+    - 0 ошибок гидратации, 0 ошибок консоли. Отчет зафиксирован в `.planning/STAGE_VISUAL_AUDIT_REPORT.md`.
+  * 🚀 **Zero-Downtime Cutover на боевой порт 3000:**
+    - Получено прямое одобрение пользователя («Выкатывай в прод»).
+    - Бесшовное переключение боевых сервисов: `docker compose up -d web worker bot`.
+    - Удален временный инстанс `smmplan_stage`.
+  * 🩺 **Финальный аудит боевых сервисов (100% Green):**
+    - `smmplan_web` — Up (healthy), HTTP 200 на `/` и `/api/health`.
+    - `smmplan_lite_worker` — Up (healthy), очереди BullMQ активны.
+    - `smmplan_lite_db` — Up (healthy) на порту 5435.
+    - `smmplan_lite_redis` — Up (healthy) на порту 6379.
+    - `smmplan_clash` — Up.
+
 - [x] 🛡️ [OMNISMM-AUDIT-DEFECT-REMEDIATION-AND-DB-MIGRATION-2026] Полное устранение дефектов аудита, официальная миграция банковского усиления БД и абсолютная изоляция тенантов (100% COMPLETE, COMMITTED & PUSHED TO MAIN):
   * 🏛️ **Официальная Prisma-миграция банковского усиления БД:**
     - Создана миграция `prisma/migrations/20260923180000_banking_grade_db_hardening/migration.sql`, автоматически применяемая при `docker-entrypoint.sh` / `prisma migrate deploy`.

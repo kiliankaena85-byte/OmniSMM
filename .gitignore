@@ -193,3 +193,8 @@ clash/geoip.dat
 clash/geosite.dat
 clash/cache.db
 clash/ruleset/
+
+# ── Local database backups (never commit to git) ──
+backups/
+*.sql
+*.sql.gz
