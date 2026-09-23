@@ -434,6 +434,20 @@
         "dns-probe",
         "anti-takeover"
       ]
+    },
+    {
+      "title": "Multi-Tenant Fiscal & Payment Gateway Partitioning (Zero-Commingling Guard & 54-ФЗ)",
+      "context": "Payment gateway credentials and 54-ФЗ fiscal receipts isolation across multi-tenant white-label storefronts under Russian tax law ст. 54.1 НК РФ",
+      "decision": "Restricted process.env credentials fallback strictly to smmplan, eliminated binary brand ternaries, implemented parameterized /api/webhooks/<gateway>/[tenantId] routes, and verified per-tenant 20M RUB VAT threshold calculation",
+      "rationale": "Prevents tax commingling, brand bleeding, and illegal revenue routing to incorrect merchant accounts while allowing N-tenants to configure their own acquiring credentials dynamically",
+      "tags": [
+        "multitenant",
+        "payments",
+        "fiscal-54fz",
+        "yookassa",
+        "robokassa",
+        "zero-commingling"
+      ]
     }
   ]
 }

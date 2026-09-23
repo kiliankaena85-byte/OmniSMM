@@ -74,6 +74,15 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
  
+ - **ADR-2026-35: Multi-Tenant Fiscal & Payment Gateway Partitioning (Zero-Commingling Guard & 54-ФЗ) (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Zero-Commingling Credential Isolation (ст. 54.1 НК РФ):** В `SettingsProvider.getPaymentSecrets(tenantId)` фоллбэк на системные переменные окружения `process.env.YOOKASSA_*`, `process.env.ROBOKASSA_*`, `process.env.CRYPTO_BOT_TOKEN` строго ограничен головным тенантом `'smmplan'`. Для всех сторонних white-label витрин при отсутствии собственных ключей в `SystemSettings` возвращается `null`, исключая смешение выручки и налоговые риски.
+    2. **Fail-Closed Payment Creation:** Попытка создать платеж через `PaymentGatewayFactory` для тенанта без настроенного мерчант-аккаунта вызывает контролируемое исключение с понятным сообщением без вызова сторонних API.
+    3. **Ликвидация бинарных тернариев:** Заменены оставшиеся проверки `tenantId === 'flux' ? 'SMMflux' : 'SMMplan'` в `payment-gateway.service.ts`, `settings.service.ts` и `settings-diagnostics.action.ts` на динамический резолвер `getTenantFallbackBranding(tenantId).name`.
+    4. **Параметризованные маршруты платежных вебхуков:** Выделены общие модули `yookassa-webhook.handler.ts` и `robokassa-webhook.handler.ts`. Созданы роуты `/api/webhooks/yookassa/[tenantId]` и `/api/webhooks/robokassa/[tenantId]` с GET-зондами и проверкой HMAC/SHA-256 подписей по ключам целевого тенанта.
+    5. **Изолированный порог НДС 20 млн ₽ (54-ФЗ / 176-ФЗ / 425-ФЗ):** Функция `checkVatThreshold(tenantId)` рассчитывает годовой оборот строго изолированно по `where: { tenantId }`.
+  - *Верификация:* 9/9 тестов в `multitenant-payment-partitioning.test.ts`, 76/76 общих тестов PASS, 0 ошибок `tsc --noEmit`, 0 блокеров `lint:tenant`, 0 утечек секретов.
+
  - **ADR-2026-34: Dynamic Custom Domain Automated Verification & Anti-Takeover DNS Probe (OmniSMM 1.0 RAC-2026):**
   - *Решение:*
     1. **Zero-Migration архитектура хранения метаданных:** Метаданные доменов хранятся в существующей таблице `SystemSetting` (`key = "tenant_domain_meta_<slug>"`) в формате JSON (статус, криптографический токен, даты проверок, ошибки). 0 миграций схемы PostgreSQL.

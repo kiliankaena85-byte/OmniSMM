@@ -1,3 +1,25 @@
+- [x] 💳 [OMNISMM-MULTITENANT-FISCAL-PAYMENT-PARTITIONING-2026] Мульти-тенантное секционирование платёжных шлюзов и фискализации 54-ФЗ (Zero-Commingling Guard) (100% COMPLETE & VERIFIED):
+  * 📋 **Спецификация и контракты:**
+    - Утверждена спецификация `docs/specs/SPEC-2026-09-23-MULTITENANT-FISCAL-PAYMENT-PARTITIONING.md`.
+    - 0 миграций PostgreSQL schema (переиспользование структуры `SystemSettings` с ключом `id = <tenantId>`).
+  * 🛡️ **Защита от смешения выручки (Zero-Commingling ст. 54.1 НК РФ):**
+    - В `SettingsProvider.getPaymentSecrets(tenantId)` фоллбэк на переменные окружения `process.env.YOOKASSA_*`, `process.env.ROBOKASSA_*`, `process.env.CRYPTO_BOT_TOKEN` строго ограничен головным тенантом `'smmplan'`.
+    - Для сторонних white-label витрин при отсутствии настроенных ключей в `SystemSettings` возвращается `null`, предотвращая несанкционированное зачисление выручки на чужой мерчант-аккаунт.
+    - `PaymentGatewayFactory.createPayment` для ненастроенных магазинов завершается контролируемым отказом (Fail-Closed).
+  * 🏛️ **Устранение остаточных бинарных тернариев брендов:**
+    - В `payment-gateway.service.ts`, `settings.service.ts`, `settings-diagnostics.action.ts` бинарные тернарии заменены на динамический `getTenantFallbackBranding(tenantId).name`.
+  * 🌐 **Параметризованные маршруты платежных вебхуков:**
+    - Разработаны изолированные обработчики `yookassa-webhook.handler.ts` и `robokassa-webhook.handler.ts`.
+    - Добавлены эндпоинты `POST /api/webhooks/yookassa/[tenantId]` и `POST /api/webhooks/robokassa/[tenantId]` с GET-зондами состояния и валидацией подписей целевого тенанта.
+    - Сохранена 100% обратная совместимость корневых роутов `/api/webhooks/yookassa` и `/api/webhooks/robokassa`.
+  * 🧾 **Фискальный порог УСН 20 млн ₽ (54-ФЗ / 176-ФЗ / 425-ФЗ):**
+    - Функция `checkVatThreshold(tenantId)` изолированно рассчитывает годовой оборот юридического лица конкретного бренда для автоматического переключения ставок НДС 22% (ФЗ № 425-ФЗ).
+  * 🧪 **Итоговая верификация (9/9 специализированных тестов PASS, 76/76 общих):**
+    - `src/__tests__/unit/multitenant-payment-partitioning.test.ts` (9/9 PASS).
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `npm run lint:tenant` — 0 BLOCKERs.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+
 - [x] 🌐 [OMNISMM-DYNAMIC-CUSTOM-DOMAIN-VERIFICATION-DNS-PROBE-2026] Автоматизированная верификация кастомных доменов тенантов (DNS CNAME/TXT Probe) и защита от захвата доменов (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация и контракты:**
     - Утверждена спецификация `docs/specs/SPEC-2026-09-23-DYNAMIC-DOMAIN-VERIFICATION-DNS-PROBE.md`.

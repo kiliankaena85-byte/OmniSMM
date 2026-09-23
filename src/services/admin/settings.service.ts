@@ -1,6 +1,6 @@
 import { Prisma, UsnScheme } from '@prisma/client';
 import { db } from '@/lib/db';
-import { SettingsProvider } from '@/lib/settings';
+import { SettingsProvider, getTenantFallbackBranding } from '@/lib/settings';
 import { redis } from '@/lib/redis';
 
 class SettingsService {
@@ -93,7 +93,7 @@ class SettingsService {
     const activeTenantId = tenantId || await SettingsProvider.getTenantId();
     let settings = await db.systemSettings.findUnique({ where: { id: activeTenantId } });
     if (!settings) {
-      const defaultName = (activeTenantId === 'flux') ? 'SMMflux' : 'SMMplan';
+      const defaultName = getTenantFallbackBranding(activeTenantId).name;
       settings = await db.systemSettings.create({
         data: { id: activeTenantId, taxRate: 6.0, opexMonthly: 0, maintenanceMode: false, siteName: defaultName, siteDescription: '' }
       });

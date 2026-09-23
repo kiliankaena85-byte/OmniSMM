@@ -333,18 +333,27 @@ export class SettingsProvider {
       secretKeyRaw = settings.yookassaSecretKey;
     }
 
-    // Environment variables fallback
-    const envShopId = useTestKeys
-      ? (process.env.YOOKASSA_TEST_SHOP_ID ?? process.env.YOOKASSA_SHOP_ID ?? null)
-      : (process.env.YOOKASSA_SHOP_ID ?? null);
-    const envSecretKey = useTestKeys
-      ? (process.env.YOOKASSA_TEST_SECRET_KEY ?? process.env.YOOKASSA_SECRET_KEY ?? null)
-      : (process.env.YOOKASSA_SECRET_KEY ?? null);
-    const envCryptoToken = process.env.CRYPTO_BOT_TOKEN ?? process.env.CRYPTOBOT_TOKEN ?? null;
-    const envWebhookSecret = process.env.YOOKASSA_WEBHOOK_SECRET ?? null;
+    // Environment variables fallback strictly for 'smmplan'
+    // For non-smmplan tenants (White-Label / Dynamic Tenants), falling back to parent env keys
+    // is strictly forbidden under Russian fiscal law (ст. 54.1 НК РФ) to prevent illegal tax commingling.
+    const isPlatformPrimary = !activeTenantId || activeTenantId === 'smmplan';
 
-    if (!shopId) shopId = envShopId;
-    if (!secretKeyRaw) secretKeyRaw = envSecretKey;
+    let envCryptoToken: string | null = null;
+    let envWebhookSecret: string | null = null;
+
+    if (isPlatformPrimary) {
+      const envShopId = useTestKeys
+        ? (process.env.YOOKASSA_TEST_SHOP_ID ?? process.env.YOOKASSA_SHOP_ID ?? null)
+        : (process.env.YOOKASSA_SHOP_ID ?? null);
+      const envSecretKey = useTestKeys
+        ? (process.env.YOOKASSA_TEST_SECRET_KEY ?? process.env.YOOKASSA_SECRET_KEY ?? null)
+        : (process.env.YOOKASSA_SECRET_KEY ?? null);
+      envCryptoToken = process.env.CRYPTO_BOT_TOKEN ?? process.env.CRYPTOBOT_TOKEN ?? null;
+      envWebhookSecret = process.env.YOOKASSA_WEBHOOK_SECRET ?? null;
+
+      if (!shopId) shopId = envShopId;
+      if (!secretKeyRaw) secretKeyRaw = envSecretKey;
+    }
 
     const decryptSafe = (val: string | null | undefined): string | null => {
       if (!val || val.trim() === '') return null;
@@ -360,7 +369,7 @@ export class SettingsProvider {
     };
 
     return {
-      yookassaShopId: shopId,
+      yookassaShopId: shopId || null,
       yookassaSecretKey: decryptSafe(secretKeyRaw),
       yookassaWebhookSecret: decryptSafe(settings.yookassaWebhookSecret) ?? envWebhookSecret,
       cryptoBotToken: decryptSafe(settings.cryptoBotToken) ?? envCryptoToken,

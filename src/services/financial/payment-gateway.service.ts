@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { getBaseUrlAsync } from '@/utils/get-base-url';
-import { SettingsProvider } from '@/lib/settings';
+import { SettingsProvider, getTenantFallbackBranding } from '@/lib/settings';
 import { WalletOps } from './wallet-ops';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MutexManager } from '@/lib/redis-lock';
@@ -468,7 +468,8 @@ class CryptoBotGateway extends BasePaymentGateway {
     }
 
     const legalSettings = await SettingsProvider.getContactAndLegalSettings(tenantId);
-    const brandName = legalSettings.COMPANY_NAME || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan');
+    const fallbackBrandName = getTenantFallbackBranding(tenantId).name;
+    const brandName = legalSettings.COMPANY_NAME || fallbackBrandName;
     const cleanDesc = params.description.startsWith('Test ') 
       ? params.description.substring(5) 
       : params.description;

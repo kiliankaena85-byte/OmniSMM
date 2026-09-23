@@ -2,7 +2,7 @@
 
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { settingsService } from '@/services/admin/settings.service';
-import { SettingsProvider } from '@/lib/settings';
+import { SettingsProvider, getTenantFallbackBranding } from '@/lib/settings';
 import { VaultService } from '@/lib/vault';
 import { db } from '@/lib/db';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
@@ -236,7 +236,7 @@ export async function disconnectTelegramBotAction(tenantId?: string) {
       },
       create: {
         id: activeTenantId,
-        siteName: activeTenantId === 'flux' ? 'SMMflux' : 'SMMplan',
+        siteName: getTenantFallbackBranding(activeTenantId).name,
         contactTelegramBot: null,
         telegramBotToken: null,
       },
