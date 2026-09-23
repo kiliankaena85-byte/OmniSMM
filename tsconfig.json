@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "nodemailer": [
+        "./node_modules/@types/nodemailer"
       ]
     }
   },

@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ component: 'EmergencyEmailService' });
@@ -12,9 +12,9 @@ export interface EmergencyEmailPayload {
 }
 
 export class EmergencyEmailService {
-  private static transporter: nodemailer.Transporter | null = null;
+  private static transporter: Transporter | null = null;
 
-  private static getTransporter(): nodemailer.Transporter | null {
+  private static getTransporter(): Transporter | null {
     if (this.transporter) return this.transporter;
 
     const host = process.env.SMTP_HOST || 'smtp.yandex.ru';
