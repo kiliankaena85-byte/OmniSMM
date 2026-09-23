@@ -409,6 +409,19 @@
         "architecture",
         "multi-tenant"
       ]
+    },
+    {
+      "title": "Phase 4: Multi-Tenant Telegram Bot Dispatcher and Webhook Router",
+      "context": "Support branded Telegram bots for arbitrary white-label storefronts without brand bleeding, hardcoded tokens, or schema migrations.",
+      "decision": "Implemented on-demand Telegraf resolution and webhook dispatching via MultiBotManager, timing-safe HMAC verification in shared webhook handler, and dynamic route /api/webhooks/telegram/[tenantId].",
+      "rationale": "Zero DDL migrations using existing TelegramBotInstance table; timing-safe secret check eliminates timing attacks; outbound payment notifications dynamically routed per user.tenantId to prevent brand bleeding.",
+      "tags": [
+        "multitenancy",
+        "telegram",
+        "bot",
+        "security",
+        "omnismm"
+      ]
     }
   ]
 }
