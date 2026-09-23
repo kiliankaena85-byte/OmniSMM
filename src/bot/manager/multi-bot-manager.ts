@@ -10,6 +10,7 @@ import type { TelegramBotInstance, TelegramBotRole } from '@prisma/client';
 import { attachRoleHandlers } from '../constructors/role-handlers';
 import { getTelegramProxyAgent } from '@/lib/telegram-agent';
 import { VaultService } from '@/lib/vault';
+import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
 import type { TelegramMenuButton } from '@/types/telegram';
 import type { BotFlowStep } from '@/types/telegram-builder';
@@ -217,6 +218,133 @@ export class MultiBotManager {
    */
   public getActiveCount(): number {
     return this.activeBots.size;
+  }
+
+  /**
+   * Resolves or dynamically loads the active Telegraf bot instance for a given tenant.
+   */
+  public async getBotForTenant(tenantId: string): Promise<Telegraf<BotContext> | null> {
+    const cleanTenant = sanitizeTenantSlug(tenantId);
+
+    // 1. Look in currently running active bots
+    for (const record of this.activeBots.values()) {
+      if (record.tenantId === cleanTenant) {
+        return record.bot;
+      }
+    }
+
+    // 2. Query TelegramBotInstance from DB
+    try {
+      const botInstance = await db.telegramBotInstance.findFirst({
+        where: {
+          tenantId: cleanTenant,
+          isActive: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (botInstance) {
+        const startRes = await this.startBot(botInstance);
+        if (startRes.success && this.activeBots.has(botInstance.id)) {
+          return this.activeBots.get(botInstance.id)!.bot;
+        }
+      }
+    } catch (err) {
+      console.warn(`[MultiBotManager] DB lookup failed for tenant bot "${cleanTenant}":`, err);
+    }
+
+    // 3. Fallback for default tenant ('smmplan') to default singleton bot
+    if (cleanTenant === 'smmplan') {
+      try {
+        const { bot: defaultBot } = await import('@/bot');
+        return defaultBot;
+      } catch (err) {
+        console.warn('[MultiBotManager] Failed to load default singleton bot:', err);
+      }
+    }
+
+    // 4. Try dynamic fallback using resolveTelegramToken
+    try {
+      const { resolveTelegramToken, isValidTelegramToken } = await import('@/lib/telegram/token-resolver');
+      const token = await resolveTelegramToken(cleanTenant);
+      if (token && isValidTelegramToken(token)) {
+        const agent = getTelegramProxyAgent();
+        const fallbackBot = new Telegraf<BotContext>(token, { telegram: { agent } });
+
+        attachRoleHandlers(fallbackBot, 'STORE_FULL' as TelegramBotRole, {
+          botId: `dynamic_${cleanTenant}`,
+          tenantId: cleanTenant,
+          botName: `${cleanTenant} Bot`,
+        });
+
+        this.activeBots.set(`dynamic_${cleanTenant}`, {
+          bot: fallbackBot,
+          instanceId: `dynamic_${cleanTenant}`,
+          username: null,
+          role: 'STORE_FULL' as TelegramBotRole,
+          tenantId: cleanTenant,
+          startedAt: new Date(),
+        });
+
+        return fallbackBot;
+      }
+    } catch (err) {
+      console.warn(`[MultiBotManager] Dynamic token fallback failed for tenant "${cleanTenant}":`, err);
+    }
+
+    return null;
+  }
+
+  /**
+   * Dispatches an incoming Telegram webhook update to the specific tenant's bot.
+   */
+  public async handleWebhookUpdate(
+    tenantId: string,
+    update: unknown
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const bot = await this.getBotForTenant(tenantId);
+      if (!bot) {
+        return {
+          success: false,
+          error: `Telegram-бот для тенанта "${tenantId}" не настроен или деактивирован.`,
+        };
+      }
+
+      await bot.handleUpdate(update as any);
+      return { success: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[MultiBotManager] Error handling webhook update for tenant "${tenantId}":`, err);
+      return { success: false, error: msg };
+    }
+  }
+
+  /**
+   * Dispatches an outbound Telegram message via the specific tenant's bot.
+   */
+  public async sendTenantMessage(
+    tenantId: string,
+    chatId: string | number,
+    text: string,
+    extra?: Record<string, any>
+  ): Promise<boolean> {
+    try {
+      const bot = await this.getBotForTenant(tenantId);
+      if (!bot) {
+        console.warn(`[MultiBotManager] Cannot send message: no bot configured for tenant "${tenantId}"`);
+        return false;
+      }
+
+      await bot.telegram.sendMessage(chatId, text, {
+        parse_mode: 'HTML',
+        ...extra,
+      });
+      return true;
+    } catch (err) {
+      console.error(`[MultiBotManager] Failed to send message for tenant "${tenantId}":`, err);
+      return false;
+    }
   }
 }
 

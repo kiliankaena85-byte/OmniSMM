@@ -3,14 +3,32 @@ import { db } from '../../lib/db';
 import { PaymentGatewayJobPayload } from '../../lib/queue-manager';
 import { PaymentGatewayFactory } from '../../services/financial/payment-gateway.service';
 import { logger } from '../../lib/logger';
-import { runWithTenant } from '../../lib/tenant-context';
+import { runWithTenant, runWithTenantBypass } from '../../lib/tenant-context';
+import { registerValidTenant } from '../../lib/tenant-resolver-edge';
 
 const log = logger.child({ component: 'PaymentGatewayProcessor' });
 
 export default async function paymentGatewayProcessor(job: Job<PaymentGatewayJobPayload>) {
-  const tenantId = job.data.tenantId || 'smmplan';
+  let tenantId = job.data?.tenantId;
 
-  return await runWithTenant(tenantId, async () => {
+  // Fail-safe guard: if tenantId is absent or empty, query the payment using runWithTenantBypass
+  if (!tenantId && job.data?.paymentId) {
+    const paymentRecord = await runWithTenantBypass('BullMQ paymentGatewayProcessor resolve tenantId', async () => {
+      return await db.payment.findUnique({
+        where: { id: job.data.paymentId },
+        select: { tenantId: true }
+      });
+    });
+    tenantId = paymentRecord?.tenantId;
+  }
+
+  const resolvedTenantId = tenantId || 'smmplan';
+  registerValidTenant(resolvedTenantId);
+  if (job.data && !job.data.tenantId && tenantId) {
+    job.data.tenantId = tenantId;
+  }
+
+  return await runWithTenant(resolvedTenantId, async () => {
     let validatedData: PaymentGatewayJobPayload;
     try {
       const { PaymentGatewayJobSchema } = await import('../../schemas/jobs.schema');
@@ -43,6 +61,7 @@ export default async function paymentGatewayProcessor(job: Job<PaymentGatewayJob
       const gatewayResult = await gatewaySvc.createPayment({
         paymentId,
         userId,
+        tenantId: resolvedTenantId,
         amountRub,
         email,
         successUrl,

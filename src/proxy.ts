@@ -136,7 +136,10 @@ export function cleanHostString(h: string | null | undefined): string {
     const closing = clean.indexOf(']');
     clean = clean.slice(1, closing);
   } else {
-    clean = clean.split(':')[0];
+    const colons = (clean.match(/:/g) || []).length;
+    if (colons === 1) {
+      clean = clean.split(':')[0];
+    }
   }
   return clean.trim();
 }
@@ -504,7 +507,7 @@ export async function proxy(request: NextRequest) {
   };
 
   const LOVABLE_HOSTS = new Set(['lovable.pro', 'www.lovable.pro', 'flux.lovable.pro']);
-  const cleanHost = host.split(':')[0].toLowerCase();
+  const cleanHost = cleanHostString(host);
   if (LOVABLE_HOSTS.has(cleanHost)) {
     const targetUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://smmflux.ru');
     return NextResponse.redirect(targetUrl, 302);
@@ -563,7 +566,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('x-tenant-id', finalTenantId);
 
   // SEC: Authoritative site-mode signal based on proven-valid incoming host
-  const originalIncomingHost = host.split(':')[0].toLowerCase();
+  const originalIncomingHost = cleanHostString(host);
   const isHoldingDomain = originalIncomingHost === 'smmplan.pro' || originalIncomingHost === 'www.smmplan.pro';
   requestHeaders.set('x-site-mode', isHoldingDomain ? 'holding' : 'live');
 

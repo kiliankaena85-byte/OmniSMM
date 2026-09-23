@@ -27,15 +27,16 @@ async function safeUpdateOrderStatus(
 }
 
 export default async function syncProcessor(job: Job<SyncJobPayload>) {
-  if (job.name === 'dripfeed-tick') {
-    log.info('Starting Smart Dripfeed Tick processing...');
-    const { runSmartDripfeedTick } = await import('./dripfeed.processor');
-    await runSmartDripfeedTick();
-    log.info('Finished Smart Dripfeed Tick processing.');
-    return;
-  }
+  return await runWithTenantBypass('Global status sync cron across all tenants', async () => {
+    if (job.name === 'dripfeed-tick') {
+      log.info('Starting Smart Dripfeed Tick processing...');
+      const { runSmartDripfeedTick } = await import('./dripfeed.processor');
+      await runSmartDripfeedTick();
+      log.info('Finished Smart Dripfeed Tick processing.');
+      return;
+    }
 
-  log.info('Beginning massive status sync...');
+    log.info('Beginning massive status sync...');
 
   // 1. Get all active providers
   const activeProviders = await db.provider.findMany({
@@ -380,4 +381,5 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
     const errMsg = err instanceof Error ? err.message : String(err);
     log.error('[SyncProcessor] Delayed order monitor failed', { error: errMsg });
   }
+  });
 }

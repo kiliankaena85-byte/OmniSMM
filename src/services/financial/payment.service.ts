@@ -333,29 +333,30 @@ export class PaymentService {
       try {
         const userWithTg = await db.user.findUnique({
           where: { id: userId },
-          select: { telegramId: true, balance: true }
+          select: { telegramId: true, balance: true, tenantId: true }
         });
         if (userWithTg?.telegramId) {
-          const { bot } = await import('@/bot');
+          const tenantId = userWithTg.tenantId || 'smmplan';
+          const { multiBotManager } = await import('@/bot/manager/multi-bot-manager');
           const amountRub = (Number(paidAmountBigInt) / 100).toLocaleString('ru-RU');
           const newBal = (Number(userWithTg.balance) / 100).toFixed(2);
           if (isOrderFlow || activatedOrders.length > 0) {
-            await bot.telegram.sendMessage(
+            await multiBotManager.sendTenantMessage(
+              tenantId,
               userWithTg.telegramId,
               `🎉 <b>ОПЛАТА ЗАКАЗА ПОДТВЕРЖДЕНА!</b>\n────────────────────\n` +
               `Сумма: <b>${amountRub} ₽</b>\n` +
               `Заказ передан в обработку и скоро будет запущен!\n\n` +
-              `<i>Отслеживать статус можно в разделе «📦 Мои заказы».</i>`,
-              { parse_mode: 'HTML' }
+              `<i>Отслеживать статус можно в разделе «📦 Мои заказы».</i>`
             );
           } else {
-            await bot.telegram.sendMessage(
+            await multiBotManager.sendTenantMessage(
+              tenantId,
               userWithTg.telegramId,
               `🎉 <b>БАЛАНС УСПЕШНО ПОПОЛНЕН!</b>\n────────────────────\n` +
               `Сумма: <b>+${amountRub} ₽</b>\n` +
               `Текущий баланс: <b>${newBal} ₽</b> ✅\n\n` +
-              `<i>Вы можете приступить к оформлению заказов прямо сейчас.</i>`,
-              { parse_mode: 'HTML' }
+              `<i>Вы можете приступить к оформлению заказов прямо сейчас.</i>`
             );
           }
         }

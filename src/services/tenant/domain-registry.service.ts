@@ -41,7 +41,10 @@ export class DomainRegistryService {
       const closing = clean.indexOf(']');
       clean = clean.slice(1, closing);
     } else {
-      clean = clean.split(':')[0];
+      const colons = (clean.match(/:/g) || []).length;
+      if (colons === 1) {
+        clean = clean.split(':')[0];
+      }
     }
     return clean.trim();
   }
@@ -54,22 +57,14 @@ export class DomainRegistryService {
     let stripped = cleanHost;
     if (stripped.startsWith('www.')) stripped = stripped.slice(4);
 
-    if (
-      stripped === 'smmplan.pro' ||
-      stripped.endsWith('.smmplan.pro') ||
-      stripped === 'smmplan.ru' ||
-      stripped.endsWith('.smmplan.ru')
-    ) {
-      return {
-        tenantId: 'smmplan',
-        slug: 'smmplan',
-        domain: 'smmplan.pro',
-      };
-    }
-
+    // 1. Flux Core Domains (checked first to prevent being hijacked by *.smmplan.pro / *.smmplan.ru)
     if (
       stripped === 'smmflux.ru' ||
+      stripped === 'test.smmflux.ru' ||
       stripped.endsWith('.smmflux.ru') ||
+      stripped === 'flux.smmplan.pro' ||
+      stripped === 'test-flux.smmplan.pro' ||
+      stripped === 'flux.smmplan.ru' ||
       FLUX_DOMAINS.has(cleanHost) ||
       FLUX_DOMAINS.has(stripped)
     ) {
@@ -77,6 +72,24 @@ export class DomainRegistryService {
         tenantId: 'flux',
         slug: 'flux',
         domain: 'smmflux.ru',
+      };
+    }
+
+    // 2. SMMplan Core Domains (Explicit platform hostnames — dynamic subdomains fall through to L2/L3)
+    const CORE_SMMPLAN_DOMAINS = new Set([
+      'smmplan.pro',
+      'smmplan.ru',
+      'test.smmplan.pro',
+      'test.smmplan.ru',
+      'api.smmplan.pro',
+      'admin.smmplan.pro',
+    ]);
+
+    if (CORE_SMMPLAN_DOMAINS.has(stripped)) {
+      return {
+        tenantId: 'smmplan',
+        slug: 'smmplan',
+        domain: 'smmplan.pro',
       };
     }
 

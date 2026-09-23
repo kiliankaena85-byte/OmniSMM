@@ -1,7 +1,7 @@
 // tenant-isolation-ignore: Unit test for dynamic domain registry and proxy resolution
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
-import { proxy, isKnownOrAllowedHost } from '@/proxy';
+import { proxy, isKnownOrAllowedHost, cleanHostString, isPureLocalhost, isInternalHost } from '@/proxy';
 import { NextRequest } from 'next/server';
 import { isValidTenant, VALID_TENANTS } from '@/lib/tenant-resolver-edge';
 
@@ -266,12 +266,36 @@ describe('Dynamic L1/L2 Domain Resolver & Proxy Integration Suite', () => {
   });
 
   describe('3. Edge Cases & Resilience Suite', () => {
-    it('properly cleans bracketed IPv6 hosts with ports and trailing dots', () => {
+    it('properly cleans bracketed and unbracketed IPv6 hosts without breaking loopback detection', () => {
       expect(DomainRegistryService.cleanHost('[::1]:3000')).toBe('::1');
+      expect(DomainRegistryService.cleanHost('::1')).toBe('::1');
+      expect(DomainRegistryService.cleanHost('2001:db8::1')).toBe('2001:db8::1');
+      expect(cleanHostString('::1')).toBe('::1');
+      expect(isPureLocalhost('::1')).toBe(true);
+      expect(isInternalHost('::1')).toBe(true);
       expect(DomainRegistryService.cleanHost('[2001:db8::1]:8080')).toBe('2001:db8::1');
       expect(DomainRegistryService.cleanHost('smmplan.pro:443')).toBe('smmplan.pro');
       expect(DomainRegistryService.cleanHost('custom.agency.')).toBe('custom.agency');
       expect(DomainRegistryService.cleanHost('www.custom.agency:80')).toBe('www.custom.agency');
+    });
+
+    it('strictly prioritizes flux subdomains over generic smmplan wildcard', () => {
+      const fluxSub = DomainRegistryService.isCoreDomain('flux.smmplan.pro');
+      expect(fluxSub?.tenantId).toBe('flux');
+
+      const testFluxSub = DomainRegistryService.isCoreDomain('test-flux.smmplan.pro');
+      expect(testFluxSub?.tenantId).toBe('flux');
+
+      const fluxRuSub = DomainRegistryService.isCoreDomain('flux.smmplan.ru');
+      expect(fluxRuSub?.tenantId).toBe('flux');
+
+      expect(DomainRegistryService.getCachedTenantId('flux.smmplan.pro')).toBe('flux');
+      expect(DomainRegistryService.getCachedTenantId('test-flux.smmplan.pro')).toBe('flux');
+    });
+
+    it('does not hijack dynamic investor subdomains under smmplan.pro', () => {
+      expect(DomainRegistryService.isCoreDomain('investor-brand.smmplan.pro')).toBeNull();
+      expect(DomainRegistryService.isCoreDomain('partner.smmplan.ru')).toBeNull();
     });
 
     it('recognizes core brand domains in isKnownInMemory and getCachedTenantId without prior DB/L1 calls', () => {

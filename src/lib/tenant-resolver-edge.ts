@@ -114,6 +114,18 @@ export function resolveTenantFromHostEdge(host: string): string {
 }
 
 /**
+ * Normalizes and sanitizes tenant slug preserving valid dynamic tenant identifiers.
+ */
+export function sanitizeTenantSlug(tenantId?: string | null): string {
+  if (!tenantId || typeof tenantId !== 'string') return 'smmplan';
+  const clean = tenantId.trim().toLowerCase();
+  if (clean === 'lovable' || clean === 'smmflux' || clean === 'fluxsmm') {
+    return 'flux';
+  }
+  return clean || 'smmplan';
+}
+
+/**
  * Pure tenant ID normalizer and sanitizer.
  * Maps legacy 'lovable' to canonical 'flux'.
  * Rejects unknown or malicious strings and falls back to 'smmplan'.

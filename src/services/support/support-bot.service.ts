@@ -134,23 +134,17 @@ class SupportBotService {
   }
 
   /**
-   * Resolve Telegram Bot Token strictly from Admin Settings (PostgreSQL SystemSettings).
-   * Authoritative Source of Truth: Database SystemSettings for tenantId.
+   * Resolve Telegram Bot Token strictly via unified token resolver.
+   * Authoritative Source of Truth: Database TelegramBotInstance -> SystemSettings -> env fallback.
    */
   private async getBotToken(tenantId: string = 'smmplan'): Promise<string> {
     const normTenant = tenantId || 'smmplan';
     try {
-      const { BotSettingsService } = await import('@/bot/services/bot-settings.service');
-      const token = await BotSettingsService.getBotToken(normTenant);
+      const { resolveTelegramToken } = await import('@/lib/telegram/token-resolver');
+      const token = await resolveTelegramToken(normTenant);
       if (token) return token;
     } catch (dbErr) {
-      logger.warn('[SupportBot] Failed to get bot token from BotSettingsService', { tenantId: normTenant, error: dbErr });
-    }
-
-    // Secondary fallback to process.env.TELEGRAM_BOT_TOKEN ONLY if genuine valid token
-    const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
-    if (envToken && /^\d{8,11}:[A-Za-z0-9_-]{35}$/.test(envToken) && !envToken.includes('YOUR_') && envToken !== 'dummy_token') {
-      return envToken;
+      logger.warn('[SupportBot] Failed to resolve token via resolveTelegramToken', { tenantId: normTenant, error: dbErr });
     }
 
     return '';
@@ -235,17 +229,18 @@ class SupportBotService {
       let messageId: number | null = null;
 
       if (mediaUrl) {
-        // For file uploads still use bot.telegram (needs multipart form-data)
+        // For file uploads use tenant bot via multiBotManager (needs multipart form-data)
         try {
           const absolutePath = path.join(process.cwd(), 'private', 'uploads', mediaUrl);
           const source = fs.existsSync(absolutePath) ? { source: absolutePath } : mediaUrl;
-          const { bot } = await import('@/bot');
-          (bot.telegram as any).token = token;
+          const { multiBotManager } = await import('@/bot/manager/multi-bot-manager');
+          const tenantBot = await multiBotManager.getBotForTenant(normTenant);
+          if (!tenantBot) throw new Error(`No bot instance available for tenant "${normTenant}"`);
           const extra: Record<string, unknown> = { ...baseParams, caption };
           let msg;
-          if (mediaType === 'image') msg = await bot.telegram.sendPhoto(telegramId, source, extra);
-          else if (mediaType === 'audio') msg = await bot.telegram.sendAudio(telegramId, source, extra);
-          else msg = await bot.telegram.sendDocument(telegramId, source, extra);
+          if (mediaType === 'image') msg = await tenantBot.telegram.sendPhoto(telegramId, source, extra);
+          else if (mediaType === 'audio') msg = await tenantBot.telegram.sendAudio(telegramId, source, extra);
+          else msg = await tenantBot.telegram.sendDocument(telegramId, source, extra);
           messageId = msg?.message_id ?? null;
         } catch (mediaErr: unknown) {
           const errMsg = mediaErr instanceof Error ? mediaErr.message : String(mediaErr);

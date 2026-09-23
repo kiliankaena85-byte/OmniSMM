@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import orderProcessor from '@/workers/processors/order.processor';
 import refillProcessor from '@/workers/processors/refill.processor';
+import paymentGatewayProcessor from '@/workers/processors/payment-gateway.processor';
+import { PaymentGatewayFactory } from '@/services/financial/payment-gateway.service';
 import { db } from '@/lib/db';
 import { Job } from 'bullmq';
 import { OrderPreflightGuard } from '@/workers/processors/order/order-preflight-guard';
@@ -18,7 +20,17 @@ vi.mock('@/lib/db', () => ({
     refill: {
       findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    payment: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
     }
+  }
+}));
+
+vi.mock('@/services/financial/payment-gateway.service', () => ({
+  PaymentGatewayFactory: {
+    getGateway: vi.fn(),
   }
 }));
 
@@ -185,6 +197,58 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
 
     expect(wasBypassActive).toBe(true);
     expect(capturedTenantId).toBe('flux');
+  });
+
+  it('paymentGatewayProcessor recovers true tenantId via runWithTenantBypass and passes tenantId to gatewaySvc', async () => {
+    let capturedTenantId: string | undefined;
+    let wasBypassActive: boolean | undefined;
+    let capturedGatewayParams: any;
+
+    (vi.mocked(db.payment.findUnique) as any).mockImplementation(async (args: any) => {
+      if (args?.select?.tenantId) {
+        wasBypassActive = tenantStorage.getStore()?.isBypass;
+        return { tenantId: 'flux' };
+      }
+      capturedTenantId = tenantStorage.getStore()?.tenantId;
+      return {
+        id: 'payment-flux-1',
+        status: 'PENDING',
+        checkoutUrl: null,
+      };
+    });
+
+    const mockGateway = {
+      createPayment: vi.fn().mockImplementation(async (params) => {
+        capturedGatewayParams = params;
+        return { remoteGatewayId: 'remote-1', paymentUrl: 'https://pay.example.com' };
+      }),
+    };
+    vi.mocked(PaymentGatewayFactory.getGateway).mockReturnValue(mockGateway as any);
+
+    const jobData: any = {
+      paymentId: 'payment-flux-1',
+      userId: 'user-flux-1',
+      amountRub: 500,
+      email: 'test@flux.ru',
+      successUrl: 'https://smmflux.ru/success',
+      description: 'Order payment',
+      isTestMode: false,
+      gateway: 'yookassa',
+    };
+
+    const job = {
+      id: 'pay-job-1',
+      data: jobData,
+      opts: { attempts: 3 },
+      attemptsMade: 0,
+    } as unknown as Job;
+
+    await paymentGatewayProcessor(job as any);
+
+    expect(wasBypassActive).toBe(true);
+    expect(capturedTenantId).toBe('flux');
+    expect(jobData.tenantId).toBe('flux');
+    expect(capturedGatewayParams?.tenantId).toBe('flux');
   });
 });
 
