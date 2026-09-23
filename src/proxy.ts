@@ -362,11 +362,16 @@ export async function proxy(request: NextRequest) {
         const gatekeeperCookie = request.cookies.get('__Host-gatekeeper')?.value || request.cookies.get('gatekeeper')?.value;
         let hasValidGatekeeper = false;
         if (gatekeeperCookie) {
-          const { verifyGatekeeperToken } = await import('@/lib/security/ddos-shield/pow-engine');
-          const shieldSecret = process.env.JWT_SIGNING_KEY || process.env.JWT_SECRET || 'omnismm-ddos-shield-fallback-secret-2026';
-          const payload = verifyGatekeeperToken(gatekeeperCookie, shieldSecret);
-          if (payload) {
-            hasValidGatekeeper = true;
+          try {
+            const { verifyGatekeeperToken } = await import('@/lib/security/ddos-shield/pow-engine');
+            const { getShieldSecret } = await import('@/lib/security/ddos-shield/shield-secret');
+            const shieldSecret = getShieldSecret();
+            const payload = verifyGatekeeperToken(gatekeeperCookie, shieldSecret);
+            if (payload) {
+              hasValidGatekeeper = true;
+            }
+          } catch {
+            hasValidGatekeeper = false;
           }
         }
 
