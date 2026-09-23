@@ -28,6 +28,7 @@ import {
   DEFAULT_TELEGRAM_RATING_REASONS,
   DEFAULT_TELEGRAM_MESSAGE_TEMPLATES
 } from '@/types/telegram';
+import { sanitizeTelegramPreviewHtml } from '@/lib/sanitize';
 
 export type PreviewSimulatorState = 'WELCOME_MENU' | 'SUPPORT_CHAT' | 'CSAT_POLL' | 'REASONS_PICKER' | 'FEEDBACK_SUCCESS';
 
@@ -210,7 +211,7 @@ export function TelegramLivePreview({
                 <div className="max-w-[85%] bg-[#182533] p-3 rounded-2xl rounded-tl-sm text-[#f5f5f5] text-[11px] leading-relaxed shadow-sm border border-[#232e3c]/40 space-y-2">
                   <div 
                     dangerouslySetInnerHTML={{ 
-                      __html: formattedWelcome.replace(/\n/g, '<br/>') 
+                      __html: sanitizeTelegramPreviewHtml(formattedWelcome.replace(/\n/g, '<br/>')) 
                     }} 
                   />
                   <div className="text-[9px] text-[#708499] text-right font-mono">12:00</div>
@@ -244,7 +245,7 @@ export function TelegramLivePreview({
                 <div className="max-w-[88%] bg-[#182533] p-3 rounded-2xl rounded-tl-sm text-[#f5f5f5] text-[11px] leading-relaxed shadow-sm border border-[#232e3c]/40 space-y-3">
                   <div 
                     dangerouslySetInnerHTML={{ 
-                      __html: formattedClosed.replace(/\n/g, '<br/>') 
+                      __html: sanitizeTelegramPreviewHtml(formattedClosed.replace(/\n/g, '<br/>')) 
                     }} 
                   />
 
@@ -312,7 +313,7 @@ export function TelegramLivePreview({
                   </div>
                   <div 
                     dangerouslySetInnerHTML={{ 
-                      __html: formattedThanks.replace(/\n/g, '<br/>') 
+                      __html: sanitizeTelegramPreviewHtml(formattedThanks.replace(/\n/g, '<br/>')) 
                     }} 
                   />
                   <div className="text-[9px] text-[#708499] text-right font-mono">12:10</div>

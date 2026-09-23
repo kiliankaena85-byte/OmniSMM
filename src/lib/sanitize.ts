@@ -49,3 +49,19 @@ export function sanitizeArticleHtml(dirty: string | null | undefined): string {
     disallowedTagsMode: 'discard',
   }).trim();
 }
+
+/**
+ * Sanitizes Telegram HTML formatted templates for live preview in admin UI.
+ * Allows safe formatting tags while discarding malicious scripts, events, and arbitrary tags.
+ */
+export function sanitizeTelegramPreviewHtml(dirty: string | null | undefined): string {
+  if (!dirty) return '';
+  return sanitizeHtml(dirty, {
+    allowedTags: ['b', 'strong', 'i', 'em', 'u', 's', 'strike', 'code', 'pre', 'a', 'br'],
+    allowedAttributes: {
+      a: ['href', 'title']
+    },
+    allowedSchemes: ['http', 'https', 'tg'],
+    disallowedTagsMode: 'discard'
+  }).trim();
+}
