@@ -80,7 +80,6 @@ const KNOWN_ROOT_DOMAINS = [
   'smmplan.pro',
   'smmflux.ru',
   'smmplan.ru',
-  'lovable.pro',
 ];
 
 // Dynamic Tunnel & Testing Suffixes
@@ -208,6 +207,45 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
   return false;
 }
 
+/**
+ * Strict CORS origin validator (CORS-01 / OWASP ASVS 4.0.3).
+ * In production: strictly whitelist smmplan.pro, smmflux.ru, and their subdomains.
+ * Blocks localhost, private IPs, and arbitrary domains from cross-origin credential sharing.
+ */
+export function isAllowedCorsOrigin(origin: string | null | undefined): boolean {
+  if (!origin) return false;
+  try {
+    const originHost = new URL(origin).host.toLowerCase().split(':')[0];
+    const isProd = process.env.NODE_ENV === 'production';
+
+    // In production, strictly reject localhost and internal loopback from CORS whitelist
+    if (isProd && (originHost === 'localhost' || originHost === '127.0.0.1' || originHost === '0.0.0.0' || originHost.endsWith('.local'))) {
+      return false;
+    }
+
+    // Check root domains (*.smmplan.pro, *.smmflux.ru, *.smmplan.ru)
+    for (const root of KNOWN_ROOT_DOMAINS) {
+      if (originHost === root || originHost.endsWith('.' + root)) {
+        return true;
+      }
+    }
+
+    // In non-production, allow internal/test hosts
+    if (!isProd && isInternalHost(originHost)) {
+      return true;
+    }
+
+    if (ALLOWED_CONTOUR_DOMAINS.has(originHost)) {
+      if (isProd && isInternalHost(originHost)) return false;
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function getActiveServerContour(): ContourId {
   if (process.env.CONTOUR === 'test' || process.env.CONTOUR === 'prod' || process.env.CONTOUR === 'flux') {
     return process.env.CONTOUR;
@@ -277,19 +315,9 @@ export async function proxy(request: NextRequest) {
   const rawFwdClean = (fwdHost || '').split(':')[0].toLowerCase().trim();
   const isSecurityTxt = pathname === '/.well-known/security.txt' || pathname === '/security.txt';
 
-  // CORS Whitelist for API routes
+  // CORS Whitelist for API routes (CORS-01)
   const origin = request.headers.get('origin');
-  let isAllowedOrigin = false;
-  if (origin) {
-    try {
-      const originHost = new URL(origin).host.toLowerCase();
-      if (isKnownOrAllowedHost(originHost)) {
-        isAllowedOrigin = true;
-      }
-    } catch {
-      isAllowedOrigin = false;
-    }
-  }
+  const isAllowedOrigin = isAllowedCorsOrigin(origin);
 
   const isStorefrontApi = pathname.startsWith('/api/storefront/');
 
@@ -297,9 +325,12 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith('/api') && request.method === 'OPTIONS') {
     const preflightHeaders = new Headers();
     if (isStorefrontApi) {
-      preflightHeaders.set('Access-Control-Allow-Origin', origin || '*');
-      if (origin) {
+      if (isAllowedOrigin && origin) {
+        preflightHeaders.set('Access-Control-Allow-Origin', origin);
         preflightHeaders.set('Access-Control-Allow-Credentials', 'true');
+      } else {
+        preflightHeaders.set('Access-Control-Allow-Origin', '*');
+        // Do not set credentials on public wildcard
       }
       preflightHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       preflightHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
@@ -684,9 +715,12 @@ export async function proxy(request: NextRequest) {
 
   // Inject CORS headers for API routes when requested with an allowed origin
   if (isStorefrontApi) {
-    response.headers.set('Access-Control-Allow-Origin', origin || '*');
-    if (origin) {
+    if (isAllowedOrigin && origin) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
+    } else {
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      // Do not set credentials on public wildcard
     }
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, idempotency-key, x-storefront-key');
