@@ -66,10 +66,43 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 **Что случилось:** При аудите базы данных по стандарту `bank-grade-db-guard` было выявлено расхождение баланса и суммы утвержденных проводок `LedgerEntry` у 1878 аккаунтов (из 4762). Причина: исторические сиды тестов и ручные миграции пользователей создавали `User.balance` напрямую через `db.user.create()` без формирования записей в журнале леджера.
 **Правило:** Ни одна операция создания пользователя или начисления баланса не имеет права обходить `WalletOps` или `LedgerEntry`. Все расхождения устраняются строго через компенсирующие проводки (Append-Only) без прямого изменения балансов руками. В проект внедрен скрипт `scripts/db-testing/reconcile-legacy-ledger-drift.ts`, восстановивший равенство $\text{Balance} = \sum \text{Ledger}$ для 100% аккаунтов.
 
+### 🔴 УРОК 11 — Непараметризованный SQL в скриптах и дрейф схемы (2026-09-23)
+**Что случилось:** В служебных скриптах сидинга и тестирования хаоса использовалась интерполяция строк `${...}` внутри `$executeRawUnsafe()`, создавая риск SQL Injection при передаче неожиданных символов. Кроме того, в CI использовался `prisma db push`, что маскировало ошибки последовательного применения старых миграций из каталога `prisma/migrations`.
+**Правило:** Категорически запрещено использовать строковую интерполяцию в `$executeRawUnsafe()`. Все параметры обязаны передаваться через нумерованные плейсхолдеры `$1, $2, ...`. Каталог `prisma/schema.prisma` является каноническим единым источником правды для всех окружений.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)
  
+ - **ADR-2026-32: Systematic 46 Vulnerability & Reliability Sweep (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Критические зависимости (DEP-01, SEC-01):** Обновлены `next` (^16.3.6), `nodemailer` (^10.0.10), `@tiptap/core` (^3.31.3). Сняты заглушки в CI. 0 критических уязвимостей в `npm audit --omit=dev`.
+    2. **XSS & Санитизация (XSS-01..03):** Внедрена функция `escapeHtml()` для реквизитов компаний в договорах, `\u003c` в JSON-LD и `sanitizeTelegramPreviewHtml()` в превью шаблонов Telegram.
+    3. **Авторизация & PII (AUTH-01..02, PII-01..02):** Строгий `ALLOW_DEV_LOGIN`, 10 req/min rate limit для CSP-репортов, маскирование email в логах и отключение печати magic link в stdout.
+    4. **Изоляция и Финансы (TEN-01..03, BAL-01..03):** Включение `SupportFinancialAction` в `TENANT_SCOPED_MODELS`, ExactMath BigInt, класс `ImmutableLedgerError` с маппингом триггера `P0001`.
+    5. **Инфраструктура & CI (H-01..02, R6-07..11):** Защита `rel="noopener noreferrer"`, параметризация всех `$executeRawUnsafe` (`$1..$9`), чистка `vitest.config.ts` от устаревших опций раннера, проверка двухуровневого `/api/health` зонда.
+  - *Верификация:* 35/35 специализированных тестов PASS, 0 утечек секретов (`check-bundle-secrets.mjs`), 0 ошибок компиляции (`tsc --noEmit`).
+
+ - **ADR-2026-31: Dynamic L1/L2/L3 Domain Resolver & BullMQ Tenant Context Hotfix (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Ликвидация потери контекста тенанта в очередях BullMQ:**
+       - Все места вызова `ordersQueue.add` (`order.service.ts`, `checkout-payment.service.ts`, `payment.service.ts`, `payment-gateway.service.ts`, `admin/orders.ts`, `order-provider-sync.service.ts`, `balance-autoflush.service.ts`, `cleanup.processor.ts`, `sync.processor.ts`) явно передают `tenantId` в полезную нагрузку задачи.
+       - В `order.processor.ts` внедрен двухконтурный механизм защиты: если `job.data.tenantId` отсутствует, запускается аварийный `db.order.findUnique` через `runWithTenantBypass` для безопасного извлечения `tenantId` из БД, после чего процессинг оборачивается в `runWithTenant(resolvedTenantId)`.
+    2. **3-уровневая архитектура динамического резолвера доменов (`DomainRegistryService`):**
+       - L1 In-Memory Map (TTL 60s, быстрый синхронный доступ для `isKnownOrAllowedHost` и CORS), негативный кэш (TTL 10s для предотвращения DoS-атак на БД через запросы несуществующих доменов).
+       - L2 Redis Hash (`domain:registry`) для распределенного кэширования между репликами.
+       - L3 PostgreSQL Fallback (`db.tenant.findFirst`) для динамического обнаружения новых активных витрин (`domain`, `customDomain`, `slug`).
+    3. **Интеграция в Next.js Edge / Node.js Proxy (`src/proxy.ts`):**
+       - Заменены статические массивы хостов на динамическую валидацию через `DomainRegistryService`.
+       - Устранена блокировка 403 активного контура (`!isVerifiedDynamicDomain`).
+    4. **Синхронизация сессий (`src/lib/session.ts`):**
+       - Регистрация тенантов через `registerValidTenant` для предотвращения ложного сброса в `'smmplan'`.
+       - Проверка соответствия хоста и тенанта пользователя `DomainRegistryService.getCachedTenantId(cleanHost) === userTenantId` и снятие жестких контурных проверок для проверенных кастомных доменов (`!isCustomDomain`).
+    5. **Верификационный контур (100% PASS):**
+       - 6 тестовых сьютов (34 теста пройдены без ошибок).
+       - `tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек, `npm run lint:tenant` — 0 блокеров.
+  - *Причина:* Обеспечение масштабируемости платформы OmniSMM 1.0 на N-тенантов без необходимости пересборки и перезапуска приложения при добавлении кастомных клиентских доменов, а также исключение зависания заказов в BullMQ из-за потери контекста тенанта.
+
  - **ADR-2026-30: Institutional Database Testing, Chaos Engineering, and Performance Architecture Profiling (OmniSMM 1.0 RAC-2026 / ISO 25010):**
   - *Решение:*
     1. **5-уровневая институциональная пирамида тестирования БД (L1-L5):**

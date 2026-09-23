@@ -1,3 +1,66 @@
+- [x] 🛡️ [OMNISMM-VULNERABILITY-AND-RELIABILITY-SWEEP-46-2026] Сквозной аудит, воспроизведение и устранение 46 дефектов безопасности и надёжности (100% COMPLETE & VERIFIED):
+  * 📋 **Волна 1 (Критично):**
+    - **DEP-01**: `next` обновлён до `^16.3.6`, `nodemailer` до `^10.0.10`, `@tiptap/core` до `^3.31.3`. Снята заглушка `|| true` в CI (`ci.yml:58`). `npm audit --omit=dev` подтверждает 0 уязвимостей.
+    - **SEC-01**: Подтверждено исключение `.env*` из Git-индекса. Скрипт `check-bundle-secrets.mjs` верифицирует 0 утечек секретов.
+  * 🛡️ **Волна 2 (Высокий приоритет):**
+    - **XSS-01**: Добавлено экранирование `escapeHtml()` реквизитов компании в `legal.ts` и `LegalPageContent.tsx`.
+    - **XSS-02**: Экранирование `\u003c` в JSON-LD разметке (`page.tsx`, `FluxFAQ.tsx`, `FluxReviews.tsx`).
+    - **SEC-02**: Захардкоженные API-ключи удалены из скриптов (`import-vexboost-live.ts`, `verify-stage-orders-view.ts`, etc.) с заменой на Fail-Closed.
+    - **CI-01..CI-03**: Нормализованы пути под Windows в `test/setup.ts`, очищены правила ESLint 10, сняты заглушки в CI, подключена джоба `e2e-smoke`.
+  * 🔒 **Волна 3 (Средний приоритет — Авторизация, PII, Мульти-тенантность):**
+    - **AUTH-01**: Строгий гейт `ALLOW_DEV_LOGIN === 'true'` с проверкой loopback-хостов и блокировкой в production.
+    - **SEC-03 & SEC-04**: Fail-closed без дефолтных секретов для DDoS-щита и бэкапов S3.
+    - **PII-01 & PII-02**: Отключен вывод Magic Link в stdout (`smtp.ts`), внедрено маскирование email в логах.
+    - **TEN-01..TEN-03**: `SupportFinancialAction` включен в `TENANT_SCOPED_MODELS`, добавлены гарды на родительский тенант.
+  * ⚖️ **Волна 4 (Сеть, Задачи и Баланс):**
+    - **CFG-01 & CORS-01**: Изоляция локальных IP в `next.config.mjs`, валидация Origin `isAllowedCorsOrigin()` в `src/proxy.ts`.
+    - **OPS-01 & OPS-02**: Экспоненциальный бэкофф демона туннеля (`tunnel-daemon.mjs`), Fencing-токены в `src/lib/redis-lock.ts`.
+    - **BAL-01..BAL-03**: Чистый `BigInt` (ExactMath) в компенсациях и синхронизации платежей, аудит внутри `$transaction`, класс `ImmutableLedgerError`.
+    - **AUTH-02**: Rate-limiting (10 req/min) и дедупликация в `/api/telemetry/csp-report`.
+  * 🩺 **Волна 5 (Гигиена и Отчёт):**
+    - **XSS-03**: Экранирование шаблонов Telegram в `telegram-live-preview.tsx`.
+    - **H-01**: Атрибут `rel="noopener noreferrer"` добавлен ко всем 22 ссылкам с `target="_blank"`.
+    - **H-02**: Параметризация `$executeRawUnsafe` (`$1..$9`) во всех служебных скриптах.
+    - **R6-07..R6-11**: Документирован дрейф `prisma migrate diff`, подтверждены зонды `/api/health` и регламент BGS-2026, модернизирован `vitest.config.ts`.
+  * 🧪 **Итоговая верификация:** 35/35 специализированных тестов PASS, 0 уязвимостей в `npm audit`, 0 утечек секретов, 0 ошибок `tsc --noEmit`. Отчёт сформирован в `audit/report-2026-09-23-vuln-sweep.md`.
+
+- [x] ⚡ [OMNISMM-DYNAMIC-DOMAIN-RESOLVER-AND-BULLMQ-TENANT-HOTFIX-2026] Внедрение динамического 3-уровневого резолвера доменов (L1/L2/L3) и ликвидация потери контекста тенанта в BullMQ (100% COMPLETE & VERIFIED):
+  * 📋 **Фаза 1: Устранение потери контекста тенанта в BullMQ `ordersQueue` (Hotfix):**
+    - Аудит и обновление всех 9 точек постановки задач в очередь `ordersQueue` с явной передачей `tenantId`:
+      - `src/services/core/order.service.ts` (`tenantId: newOrder.tenantId`)
+      - `src/services/orders/checkout-payment.service.ts` (`tenantId` для primary и split-заказов)
+      - `src/services/financial/payment.service.ts` (оба цикла активации заказов: `tenantId: activated.tenantId`)
+      - `src/services/financial/payment-gateway.service.ts` (транзакционный выбор и передача `tenantId: item.tenantId || params.tenantId || 'smmplan'`)
+      - `src/actions/admin/orders.ts` (`manualRerouteOrder` возвращает `tenantId` и передает в очередь)
+      - `src/services/admin/order/order-provider-sync.service.ts` (`restartOrder` передает `order.tenantId`)
+      - `src/services/providers/balance-autoflush.service.ts` (выборка кандидатов с `tenantId` и передача `order.tenantId`)
+      - `src/workers/processors/cleanup.processor.ts` (orphan sweep с `tenantId: orphan.tenantId`)
+      - `src/workers/processors/sync.processor.ts` (orphan orders с `tenantId: orphan.tenantId`)
+    - В `src/workers/processors/order.processor.ts` внедрен защитный механизм: при отсутствии `tenantId` в данных задачи выполняется запрос через `runWithTenantBypass('BullMQ orderProcessor resolve tenantId', ...)` для безопасного восстановления истинного `tenantId` из БД, исключая зависание заказов и блокировку Prisma Tenant Enforcer.
+  * 🌐 **Фаза 2: Динамический 3-уровневый резолвер доменов в `src/proxy.ts` и синхронизация сессий:**
+    - Разработан сервис `DomainRegistryService` (`src/services/tenant/domain-registry.service.ts`) с 3-уровневой архитектурой:
+      - Встроенное мгновенное распознавание core-доменов (`smmplan.pro`, `smmflux.ru` и поддомены).
+      - **L1 In-Memory Cache**: синхронный и асинхронный быстрый доступ (TTL 60s), негативный кэш (TTL 10s для защиты БД от DDoS/hammering несуществующими доменами).
+      - **L2 Redis Cache**: хэш-таблица `domain:registry` (`HGET` / `HSET` / `HDEL`).
+      - **L3 PostgreSQL Fallback**: выборка `db.tenant.findFirst` по `domain`, `customDomain`, `slug` при `isActive: true`.
+    - В `src/proxy.ts` ликвидированы жесткие барьеры хостов:
+      - `isKnownOrAllowedHost` и `isAllowedCorsOrigin` используют `DomainRegistryService.isKnownInMemory`.
+      - Ранняя валидация хостов разрешает проверенные динамические домены без 403 ошибки.
+      - Извлечение `fromDynamic` в иерархии определения тенанта.
+      - Обход блокировки контура 403 для проверенных динамических доменов (`!isVerifiedDynamicDomain`).
+    - В `src/actions/admin/tenants.ts` добавлена регистрация и удаление доменов в реестре при создании, изменении и переключении активности тенантов.
+    - В `src/lib/session.ts` добавлены защиты от ложного сброса сессий (`!isCustomDomain`, проверка соответствия хоста и тенанта пользователя).
+  * 🧪 **Верификация и тесты (100% PASS):**
+    - `src/__tests__/unit/bullmq-tenant-context.test.ts` (4/4 PASS).
+    - `src/__tests__/unit/dynamic-domain-registry.test.ts` (9/9 PASS).
+    - `src/__tests__/unit/dynamic-domain-session.test.ts` (3/3 PASS).
+    - `src/workers/processors/__tests__/cleanup.processor.test.ts` (3/3 PASS).
+    - `src/__tests__/architecture/tenant-isolation-ast.test.ts` (10/10 PASS).
+    - `src/services/__tests__/multitenant-security.test.ts` (5/5 PASS).
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - `npm run lint:tenant` — 0 BLOCKERs.
+
 - [x] 🌐 [OMNISMM-DYNAMIC-N-TENANTS-SCALING-2026] Переход OmniSMM 1.0 на динамическую масштабируемую N-Tenants архитектуру (100% COMPLETE & VERIFIED):
   * 📋 **Фаза 1: Уровень конфигураций и типов (`src/config/tenants.ts`, `src/lib/tenant-resolver-edge.ts`):**
     - Расширен тип `TenantId = string`, сохранены `CORE_TENANTS = ['smmplan', 'flux'] as const` и `type CoreTenantId`.
