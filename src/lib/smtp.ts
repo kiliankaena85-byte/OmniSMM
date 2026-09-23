@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import dns from 'dns';
 import net from 'net';
 import tls from 'tls';
@@ -120,7 +120,7 @@ export async function getEmailContext(tenantId?: string | null) {
 
 type TransporterResult =
   | { provider: 'RESEND'; resend: Resend; fromEmail: string; smtpUser: string | null }
-  | { provider: 'SMTP'; transporter: nodemailer.Transporter; fromEmail: string; smtpUser: string | null };
+  | { provider: 'SMTP'; transporter: Transporter; fromEmail: string; smtpUser: string | null };
 
 async function getTransporter(tenantId?: string): Promise<TransporterResult | null> {
   const normTenant = normalizeTenantId(tenantId);

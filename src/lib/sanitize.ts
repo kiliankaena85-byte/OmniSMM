@@ -1,5 +1,19 @@
 import sanitizeHtml from 'sanitize-html';
 
+/**
+ * Safely escapes HTML special characters from plain-text strings
+ * before interpolating them into HTML templates.
+ */
+export function escapeHtml(str: string | null | undefined): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const ALLOWED_TAGS = ['b', 'i', 'u', 'em', 'strong', 'br', 'p', 'ul', 'ol', 'li'];
 
 export function sanitizeServiceDescription(dirty: string | null | undefined): string {

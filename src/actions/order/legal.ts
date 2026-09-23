@@ -46,17 +46,18 @@ export async function getLegalDocumentAction(slug: string) {
       finalHtml = finalHtml.replace(/<p><strong>Адрес:<\/strong>[\s\S]*?<\/p>/g, '');
     }
 
-    finalHtml = finalHtml
-      .replace(/{{COMPANY_NAME}}/g, companyName)
-      .replace(/{{COMPANY_INN}}/g, inn || '—')
-      .replace(/{{COMPANY_OGRNIP}}/g, ogrnip || '—')
-      .replace(/{{COMPANY_ADDRESS}}/g, address)
-      .replace(/{{SUPPORT_EMAIL}}/g, email)
-      .replace(/{{PRIVACY_EMAIL}}/g, privacyEmail)
-      .replace(/{{SITE_NAME}}/g, siteName)
-      .replace(/{{TELEGRAM_BOT}}/g, telegramBot);
+    const { escapeHtml, sanitizeArticleHtml } = await import('@/lib/sanitize');
 
-    const { sanitizeArticleHtml } = await import('@/lib/sanitize');
+    finalHtml = finalHtml
+      .replace(/{{COMPANY_NAME}}/g, escapeHtml(companyName))
+      .replace(/{{COMPANY_INN}}/g, escapeHtml(inn || '—'))
+      .replace(/{{COMPANY_OGRNIP}}/g, escapeHtml(ogrnip || '—'))
+      .replace(/{{COMPANY_ADDRESS}}/g, escapeHtml(address))
+      .replace(/{{SUPPORT_EMAIL}}/g, escapeHtml(email))
+      .replace(/{{PRIVACY_EMAIL}}/g, escapeHtml(privacyEmail))
+      .replace(/{{SITE_NAME}}/g, escapeHtml(siteName))
+      .replace(/{{TELEGRAM_BOT}}/g, escapeHtml(telegramBot));
+
     return { success: true, data: { title: post.title, html: sanitizeArticleHtml(finalHtml) } };
   } catch (e) {
     const err = e as Error;

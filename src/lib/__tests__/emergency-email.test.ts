@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EmergencyEmailService } from '../emergency-email';
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 vi.mock('nodemailer', () => ({
   default: {
@@ -21,7 +21,7 @@ describe('EmergencyEmailService', () => {
     sendMailMock.mockResolvedValue({ messageId: 'msg-test-123' });
     vi.mocked(nodemailer.createTransport).mockReturnValue({
       sendMail: sendMailMock,
-    } as unknown as nodemailer.Transporter);
+    } as unknown as Transporter);
   });
 
   it('should format and send emergency email for CRITICAL incidents', async () => {
