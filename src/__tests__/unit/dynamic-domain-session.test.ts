@@ -192,4 +192,52 @@ describe('Dynamic Domain Session Invariants Suite', () => {
     expect(session?.userId).toBe('user-vip-1');
     expect(mockDeleteCookie).not.toHaveBeenCalled();
   });
+
+  it('preserves session on custom domain even when L1 in-memory cache is cold by resolving dynamically', async () => {
+    // L1 cache is cold (not registered in memory)
+    DomainRegistryService.invalidateCache();
+
+    // Mock DB tenant lookup returning the active tenant
+    (mockDb as any).tenant = {
+      findFirst: vi.fn().mockResolvedValue({
+        id: 'cold-vip',
+        slug: 'cold-vip',
+        domain: 'cold-vip.agency',
+        isActive: true,
+      }),
+    };
+
+    mockHeaders.set('host', 'cold-vip.agency');
+    mockHeaders.set('x-tenant-id', 'cold-vip');
+    mockHeaders.set('x-pathname', '/dashboard');
+
+    vi.mocked(decryptSessionToken).mockResolvedValue({
+      sessionId: 'sess-cold-1',
+      userId: 'user-cold-1',
+      tenantId: 'cold-vip',
+      contour: 'prod',
+    } as any);
+
+    vi.mocked(mockDb.session.findUnique).mockResolvedValue({
+      id: 'sess-cold-1',
+      userId: 'user-cold-1',
+      expiresAt: new Date(Date.now() + 3600 * 1000),
+      user: {
+        id: 'user-cold-1',
+        email: 'founder@cold-vip.agency',
+        role: 'USER',
+        tenantId: 'cold-vip',
+        isActive: true,
+        isDeleted: false,
+      }
+    } as any);
+
+    const session = await verifySession();
+
+    expect(session).not.toBeNull();
+    expect(session?.userId).toBe('user-cold-1');
+    // Session cookies MUST NOT be cleared even when L1 was completely cold
+    expect(mockDeleteCookie).not.toHaveBeenCalled();
+  });
 });
+
