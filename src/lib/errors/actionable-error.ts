@@ -126,6 +126,25 @@ export function parseActionableError(rawError: string | Error | unknown, context
     };
   }
 
+  if (
+    lower.includes('immutability violation') ||
+    lower.includes('ledgerentry immutability') ||
+    lower.includes('immutable') ||
+    lower.includes('immutable_ledger_violation') ||
+    (lower.includes('p0001') && lower.includes('ledger'))
+  ) {
+    return {
+      code: 'ERR_FINANCIAL_LEDGER_IMMUTABLE',
+      category: 'FINANCE_GATEWAY',
+      title: 'Операция отклонена политикой неизменяемости',
+      message: 'Финансовый реестр является строго неизменяемым (Ledger-First Invariant). Изменение или удаление проводок запрещено.',
+      action: {
+        type: 'RETRY',
+        label: 'Понятно'
+      }
+    };
+  }
+
   // =========================================================================
   // 3. ORDER WIZARD & FORM VALIDATION ERRORS
   // =========================================================================

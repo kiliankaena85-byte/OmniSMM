@@ -33,6 +33,14 @@ export class WalletInvalidAmountError extends Error {
   }
 }
 
+export class ImmutableLedgerError extends Error {
+  readonly code = 'IMMUTABLE_LEDGER_VIOLATION';
+  constructor(message = 'Financial Ledger is immutable. Modifying or deleting ledger records is strictly forbidden.') {
+    super(message);
+    this.name = 'ImmutableLedgerError';
+  }
+}
+
 export interface WalletOpsOptions {
   idempotencyKey?: string;
   adminId?: string;

@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { paginatedQuery, type PaginatedResult } from '@/lib/pagination';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdmin, auditAdminAwaitable } from '@/lib/admin-audit';
 import { WalletOps } from '../financial/wallet-ops';
 
 // ── Types ──
@@ -245,16 +245,16 @@ class AdminUserService {
 
     await db.$transaction(async (tx) => {
       await WalletOps.credit(tx, userId, amountCents, reason, { adminId: admin.id });
-    });
-
-    auditAdmin({
-      adminId: admin.id,
-      adminEmail: admin.email,
-      action: 'USER_BALANCE_CHANGE',
-      target: userId,
-      targetType: 'USER',
-      oldValue: { balance: oldBalance },
-      newValue: { balance: Number(oldBalance) + amountCents, delta: amountCents, reason },
+      await auditAdminAwaitable({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'USER_BALANCE_CHANGE',
+        target: userId,
+        targetType: 'USER',
+        oldValue: { balance: oldBalance },
+        newValue: { balance: oldBalance + BigInt(amountCents), delta: BigInt(amountCents), reason },
+        tx,
+      });
     });
   }
 

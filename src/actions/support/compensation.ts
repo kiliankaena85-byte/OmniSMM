@@ -10,6 +10,7 @@ import { getClientIp } from '@/utils/ip';
 import { headers } from 'next/headers';
 import { SupportBalancePolicyService } from '@/services/financial/support-balance-policy.service';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
+import { ExactMath } from '@/lib/financial/exact-math';
 
 const compensationSchema = z.object({
   ticketId: z.string().min(1),
@@ -35,7 +36,7 @@ export async function logManualCompensation(formData: FormData) {
     }
 
     const { ticketId, costRub, note, topUpBalance, clientOperationToken } = parsed.data;
-    const costCents = BigInt(Math.round(costRub * 100));
+    const costCents = ExactMath.rublesToKopecks(costRub);
 
     const ticket = await db.ticket.findUnique({
       where: { id: ticketId },
@@ -80,7 +81,7 @@ export async function logManualCompensation(formData: FormData) {
 
         // Perform financial wallet modification via WalletOps
         if (topUpBalance) {
-          const ledgerResult = await WalletOps.credit(tx, ticket.userId, Number(costCents),
+          const ledgerResult = await WalletOps.credit(tx, ticket.userId, costCents,
             `Компенсация в тикете #${ticket.id}: ${note}`,
             { adminId: user.id, idempotencyKey }
           );
@@ -89,13 +90,13 @@ export async function logManualCompensation(formData: FormData) {
           const creditKey = `compensation-credit-${idempotencyKey}`;
           const chargeKey = `compensation-charge-${idempotencyKey}`;
 
-          const ledgerResult = await WalletOps.credit(tx, ticket.userId, Number(costCents),
+          const ledgerResult = await WalletOps.credit(tx, ticket.userId, costCents,
             `Компенсация (Докрут) в тикете #${ticket.id}: ${note}`,
             { adminId: user.id, idempotencyKey: creditKey }
           );
           ledgerEntryId = ledgerResult.success && ledgerResult.entry ? ledgerResult.entry.id : undefined;
 
-          await WalletOps.charge(tx, ticket.userId, Number(costCents),
+          await WalletOps.charge(tx, ticket.userId, costCents,
             `Списание за ручной докрут в тикете #${ticket.id}: ${note}`,
             { idempotencyKey: chargeKey }
           );

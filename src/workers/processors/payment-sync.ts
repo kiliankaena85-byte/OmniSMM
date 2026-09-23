@@ -149,7 +149,8 @@ export default async function paymentSyncProcessor(job: Job<SyncJobPayload>) {
         log.info(`Payment ${payment.id} remote status is: ${remoteStatus}`);
 
         if (remoteStatus === 'succeeded') {
-          const realAmountCents = Math.round(parseFloat(data.amount.value) * 100);
+          const { ExactMath } = await import('@/lib/financial/exact-math');
+          const realAmountCents = ExactMath.rublesToKopecks(data.amount.value);
           log.info(`Payment ${payment.id} succeeded remotely with amount: ${realAmountCents} cents. Confirming locally...`);
           
           const success = await paymentService.confirmPayment(
