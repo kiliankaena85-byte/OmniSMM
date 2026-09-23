@@ -6,17 +6,22 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'node',
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.temp/**', '**/.git/**', '**/e2e/**', '**/.agents/**', '**/.planning/**'],
-    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)', '**/test_round_table.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.temp/**',
+      '**/.git/**',
+      '**/e2e/**',
+      '**/.agents/**',
+      '**/.planning/**',
+      'scripts/**',
+    ],
+    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'],
     clearMocks: true,
     restoreMocks: true,
     unstubGlobals: true,
-    pool: 'forks',
-    forks: {
-      singleFork: true
-    },
     maxWorkers: 1,
-    minWorkers: 1,
+    fileParallelism: false,
     retry: 3,
     testTimeout: 120000,
     hookTimeout: 120000,
@@ -38,9 +43,8 @@ export default defineConfig({
       },
       include: ['src/services/core/**', 'src/services/financial/**', 'src/actions/order/**']
     },
-    fileParallelism: false,
     sequence: {
       concurrent: false
     }
-  } as any
+  }
 });
