@@ -26,29 +26,93 @@ const REDIS_KEY = 'domain:registry';
 
 // L1 In-Memory Cache
 const l1Cache = new Map<string, CacheItem>();
+// In-flight promise coalescing to eliminate thundering herd attacks
+const inFlightResolutions = new Map<string, Promise<DomainRegistryEntry | null>>();
 
 export class DomainRegistryService {
   /**
-   * Fast synchronous check of L1 in-memory cache.
+   * Normalizes incoming host strings by stripping port, trailing dot, and IPv6 brackets.
+   */
+  static cleanHost(rawHost: string | null | undefined): string {
+    if (!rawHost || typeof rawHost !== 'string') return '';
+    let clean = rawHost.split(',')[0].trim().toLowerCase();
+    if (clean.endsWith('.')) clean = clean.slice(0, -1);
+    if (clean.startsWith('[') && clean.includes(']')) {
+      const closing = clean.indexOf(']');
+      clean = clean.slice(1, closing);
+    } else {
+      clean = clean.split(':')[0];
+    }
+    return clean.trim();
+  }
+
+  /**
+   * Identifies built-in core brand domains (smmplan, flux) without network I/O.
+   */
+  static isCoreDomain(cleanHost: string): { tenantId: 'smmplan' | 'flux'; slug: string; domain: string } | null {
+    if (!cleanHost) return null;
+    let stripped = cleanHost;
+    if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+
+    if (
+      stripped === 'smmplan.pro' ||
+      stripped.endsWith('.smmplan.pro') ||
+      stripped === 'smmplan.ru' ||
+      stripped.endsWith('.smmplan.ru')
+    ) {
+      return {
+        tenantId: 'smmplan',
+        slug: 'smmplan',
+        domain: 'smmplan.pro',
+      };
+    }
+
+    if (
+      stripped === 'smmflux.ru' ||
+      stripped.endsWith('.smmflux.ru') ||
+      FLUX_DOMAINS.has(cleanHost) ||
+      FLUX_DOMAINS.has(stripped)
+    ) {
+      return {
+        tenantId: 'flux',
+        slug: 'flux',
+        domain: 'smmflux.ru',
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Fast synchronous check of L1 in-memory cache and built-in core domains.
    */
   static isKnownInMemory(host: string): boolean {
     if (!host) return false;
-    let clean = host.split(':')[0].toLowerCase().trim();
-    if (clean.startsWith('www.')) clean = clean.slice(4);
+    const clean = this.cleanHost(host);
+    if (this.isCoreDomain(clean)) return true;
+
+    let stripped = clean;
+    if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+
     const now = Date.now();
-    const cached = l1Cache.get(clean) || l1Cache.get(`www.${clean}`);
+    const cached = l1Cache.get(stripped) || l1Cache.get(`www.${stripped}`);
     return Boolean(cached && cached.expiresAt > now && cached.entry && cached.entry.isActive);
   }
 
   /**
-   * Retrieves tenantId from L1 in-memory cache if host is active.
+   * Retrieves tenantId from built-in core domains or L1 in-memory cache if host is active.
    */
   static getCachedTenantId(host: string): string | null {
     if (!host) return null;
-    let clean = host.split(':')[0].toLowerCase().trim();
-    if (clean.startsWith('www.')) clean = clean.slice(4);
+    const clean = this.cleanHost(host);
+    const core = this.isCoreDomain(clean);
+    if (core) return core.tenantId;
+
+    let stripped = clean;
+    if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+
     const now = Date.now();
-    const cached = l1Cache.get(clean) || l1Cache.get(`www.${clean}`);
+    const cached = l1Cache.get(stripped) || l1Cache.get(`www.${stripped}`);
     if (cached && cached.expiresAt > now && cached.entry && cached.entry.isActive) {
       return cached.entry.tenantId;
     }
@@ -59,41 +123,34 @@ export class DomainRegistryService {
    * Resolves a domain via tiered cache:
    * 1. Built-in Core Domains (smmplan, flux)
    * 2. L1 In-memory Cache (60s TTL)
-   * 3. L2 Redis Cache (HGET domain:registry <host>)
-   * 4. L3 PostgreSQL Fallback (Tenant lookup)
+   * 3. In-flight Promise Coalescing (Thundering Herd Protection)
+   * 4. L2 Redis Cache (HGET domain:registry <host>)
+   * 5. L3 PostgreSQL Fallback (Tenant lookup)
    */
   static async resolveDomain(rawHost: string): Promise<DomainRegistryEntry | null> {
-    if (!rawHost || typeof rawHost !== 'string') return null;
-    let cleanHost = rawHost.split(':')[0].toLowerCase().trim();
-    if (cleanHost.startsWith('[') && cleanHost.includes(']')) {
-      cleanHost = cleanHost.slice(1, cleanHost.indexOf(']'));
-    }
+    const cleanHost = this.cleanHost(rawHost);
+    if (!cleanHost) return null;
 
     // 1. Built-in Core Brand Domains
-    if (cleanHost === 'smmplan.pro' || cleanHost.endsWith('.smmplan.pro') || cleanHost === 'smmplan.ru' || cleanHost.endsWith('.smmplan.ru')) {
+    const core = this.isCoreDomain(cleanHost);
+    if (core) {
       return {
-        tenantId: 'smmplan',
-        slug: 'smmplan',
-        domain: 'smmplan.pro',
+        tenantId: core.tenantId,
+        slug: core.slug,
+        domain: core.domain,
         isActive: true,
         isVerified: true,
       };
     }
 
-    if (cleanHost === 'smmflux.ru' || cleanHost.endsWith('.smmflux.ru') || FLUX_DOMAINS.has(cleanHost)) {
-      return {
-        tenantId: 'flux',
-        slug: 'flux',
-        domain: 'smmflux.ru',
-        isActive: true,
-        isVerified: true,
-      };
-    }
+    let stripped = cleanHost;
+    if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+    const altHost = stripped === cleanHost ? `www.${cleanHost}` : stripped;
 
     const now = Date.now();
 
     // 2. L1 In-Memory Cache
-    const cached = l1Cache.get(cleanHost) || (cleanHost.startsWith('www.') ? l1Cache.get(cleanHost.slice(4)) : null);
+    const cached = l1Cache.get(cleanHost) || l1Cache.get(altHost);
     if (cached && cached.expiresAt > now) {
       if (cached.entry && cached.entry.isActive) {
         registerValidTenant(cached.entry.tenantId);
@@ -101,87 +158,112 @@ export class DomainRegistryService {
       return cached.entry;
     }
 
-    // 3. L2 Redis Cache
-    try {
-      const { redis } = await import('@/lib/redis');
-      let raw = await redis.hget(REDIS_KEY, cleanHost);
-      if (!raw && cleanHost.startsWith('www.')) {
-        raw = await redis.hget(REDIS_KEY, cleanHost.slice(4));
+    // 3. In-flight coalescing check
+    const inFlight = inFlightResolutions.get(stripped);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const resolutionPromise = (async (): Promise<DomainRegistryEntry | null> => {
+      const setL1 = (entry: DomainRegistryEntry | null, ttlMs: number) => {
+        const item: CacheItem = { entry, expiresAt: Date.now() + ttlMs };
+        l1Cache.set(cleanHost, item);
+        l1Cache.set(altHost, item);
+      };
+
+      // 4. L2 Redis Cache
+      try {
+        const { redis } = await import('@/lib/redis');
+        let raw = await redis.hget(REDIS_KEY, cleanHost);
+        if (!raw && cleanHost !== altHost) {
+          raw = await redis.hget(REDIS_KEY, altHost);
+        }
+        if (raw) {
+          const entry = JSON.parse(raw) as DomainRegistryEntry;
+          if (entry) {
+            if (entry.isActive) {
+              registerValidTenant(entry.tenantId);
+              setL1(entry, L1_TTL_MS);
+              return entry;
+            } else {
+              setL1(null, L1_NEGATIVE_TTL_MS);
+              return null;
+            }
+          }
+        }
+      } catch (err) {
+        // Graceful fallback to PostgreSQL if Redis is temporarily unreachable
+        console.warn('[DomainRegistryService] Redis lookup failed, falling back to PostgreSQL:', err);
       }
-      if (raw) {
-        const entry = JSON.parse(raw) as DomainRegistryEntry;
-        if (entry && entry.isActive) {
+
+      // 5. L3 PostgreSQL Fallback
+      try {
+        const { db } = await import('@/lib/db');
+        const searchDomains = [cleanHost];
+        if (!searchDomains.includes(altHost)) {
+          searchDomains.push(altHost);
+        }
+
+        const tenant = await db.tenant.findFirst({
+          where: {
+            OR: [
+              { domain: { in: searchDomains } },
+              { customDomain: { in: searchDomains } },
+              { slug: cleanHost },
+              { slug: stripped },
+            ],
+            isActive: true,
+          },
+          select: {
+            id: true,
+            slug: true,
+            domain: true,
+            customDomain: true,
+            isActive: true,
+          },
+        });
+
+        if (tenant) {
+          const entry: DomainRegistryEntry = {
+            tenantId: tenant.slug,
+            slug: tenant.slug,
+            domain: tenant.domain,
+            customDomain: tenant.customDomain,
+            isActive: tenant.isActive,
+            isVerified: true,
+          };
+
           registerValidTenant(entry.tenantId);
-          l1Cache.set(cleanHost, { entry, expiresAt: now + L1_TTL_MS });
+          setL1(entry, L1_TTL_MS);
+
+          // Hydrate L2 Redis asynchronously
+          try {
+            const { redis } = await import('@/lib/redis');
+            const json = JSON.stringify(entry);
+            await redis.hset(REDIS_KEY, cleanHost, json);
+            if (entry.domain) await redis.hset(REDIS_KEY, entry.domain, json);
+            if (entry.customDomain) await redis.hset(REDIS_KEY, entry.customDomain, json);
+          } catch {
+            // Non-fatal
+          }
+
           return entry;
         }
+      } catch (err) {
+        console.error('[DomainRegistryService] PostgreSQL fallback failed:', err);
       }
-    } catch (err) {
-      // Graceful fallback to PostgreSQL if Redis is temporarily unreachable
-      console.warn('[DomainRegistryService] Redis lookup failed, falling back to PostgreSQL:', err);
-    }
 
-    // 4. L3 PostgreSQL Fallback
+      // Negative cache to mitigate DDoS / database hammering on invalid hosts
+      setL1(null, L1_NEGATIVE_TTL_MS);
+      return null;
+    })();
+
+    inFlightResolutions.set(stripped, resolutionPromise);
     try {
-      const { db } = await import('@/lib/db');
-      const searchDomains = [cleanHost];
-      if (cleanHost.startsWith('www.')) {
-        searchDomains.push(cleanHost.slice(4));
-      } else {
-        searchDomains.push(`www.${cleanHost}`);
-      }
-
-      const tenant = await db.tenant.findFirst({
-        where: {
-          OR: [
-            { domain: { in: searchDomains } },
-            { customDomain: { in: searchDomains } },
-            { slug: cleanHost },
-          ],
-          isActive: true,
-        },
-        select: {
-          id: true,
-          slug: true,
-          domain: true,
-          customDomain: true,
-          isActive: true,
-        },
-      });
-
-      if (tenant) {
-        const entry: DomainRegistryEntry = {
-          tenantId: tenant.slug,
-          slug: tenant.slug,
-          domain: tenant.domain,
-          customDomain: tenant.customDomain,
-          isActive: tenant.isActive,
-          isVerified: true,
-        };
-
-        registerValidTenant(entry.tenantId);
-        l1Cache.set(cleanHost, { entry, expiresAt: now + L1_TTL_MS });
-
-        // Hydrate L2 Redis asynchronously
-        try {
-          const { redis } = await import('@/lib/redis');
-          const json = JSON.stringify(entry);
-          await redis.hset(REDIS_KEY, cleanHost, json);
-          if (entry.domain) await redis.hset(REDIS_KEY, entry.domain, json);
-          if (entry.customDomain) await redis.hset(REDIS_KEY, entry.customDomain, json);
-        } catch {
-          // Non-fatal
-        }
-
-        return entry;
-      }
-    } catch (err) {
-      console.error('[DomainRegistryService] PostgreSQL fallback failed:', err);
+      return await resolutionPromise;
+    } finally {
+      inFlightResolutions.delete(stripped);
     }
-
-    // Negative cache to mitigate DDoS / database hammering on invalid hosts
-    l1Cache.set(cleanHost, { entry: null, expiresAt: now + L1_NEGATIVE_TTL_MS });
-    return null;
   }
 
   /**
@@ -294,19 +376,20 @@ export class DomainRegistryService {
   }
 
   /**
-   * Clears in-memory L1 cache.
+   * Clears in-memory L1 cache and in-flight resolutions.
    */
   static invalidateCache(host?: string): void {
     if (host) {
-      const clean = host.split(':')[0].toLowerCase().trim();
-      l1Cache.delete(clean);
-      if (clean.startsWith('www.')) {
-        l1Cache.delete(clean.slice(4));
-      } else {
-        l1Cache.delete(`www.${clean}`);
-      }
+      const clean = this.cleanHost(host);
+      let stripped = clean;
+      if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+      l1Cache.delete(stripped);
+      l1Cache.delete(`www.${stripped}`);
+      inFlightResolutions.delete(stripped);
     } else {
       l1Cache.clear();
+      inFlightResolutions.clear();
     }
   }
 }
+
