@@ -3,7 +3,7 @@ import { Job } from 'bullmq';
 import { db } from '../../lib/db';
 import { PaymentGatewayJobPayload } from '../../lib/queue-manager';
 import { PaymentGatewayFactory } from '../../services/financial/payment-gateway.service';
-import { logger } from '../../lib/logger';
+import { logger, withTelemetryContext, generateTraceId } from '../../lib/logger';
 import { runWithTenant, runWithTenantBypass } from '../../lib/tenant-context';
 import { registerValidTenant } from '../../lib/tenant-resolver-edge';
 
@@ -23,13 +23,16 @@ export default async function paymentGatewayProcessor(job: Job<PaymentGatewayJob
     tenantId = paymentRecord?.tenantId;
   }
 
-  const resolvedTenantId = tenantId || 'smmplan';
+  const resolvedTenantId = (tenantId as string | undefined) || 'smmplan';
   registerValidTenant(resolvedTenantId);
   if (job.data && !job.data.tenantId && tenantId) {
-    job.data.tenantId = tenantId;
+    job.data.tenantId = resolvedTenantId;
   }
 
-  return await runWithTenant(resolvedTenantId, async () => {
+  const rawTraceId = job.data?.metadata?.traceId;
+  const traceId = typeof rawTraceId === 'string' ? rawTraceId : generateTraceId();
+
+  return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: 'PaymentGatewayProcessor' }, async () => {
     let validatedData: PaymentGatewayJobPayload;
     try {
       const { PaymentGatewayJobSchema } = await import('../../schemas/jobs.schema');

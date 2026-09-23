@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   getCachedNetworksWithRedis,
   getCachedCategoryServicesWithRedis,
+  getCachedPublicCatalogWithRedis,
+  getCachedProcessedServicesWithRedis,
+  getCachedGuestBundleWithRedis,
   invalidateCatalogCache,
   CATALOG_CACHE_KEYS,
 } from '@/services/catalog/catalog-cache.service';
@@ -39,6 +42,12 @@ describe('Multi-Tenant Redis Catalog Cache Service (TDD)', () => {
 
     const srvKey = CATALOG_CACHE_KEYS.services('cat-123', 'smmplan');
     expect(srvKey).toBe('catalog:v1:smmplan:services:cat-123');
+
+    const pubCatKey = CATALOG_CACHE_KEYS.publicCatalog('smmplan');
+    expect(pubCatKey).toBe('catalog:v1:smmplan:public-catalog');
+
+    const bundleKey = CATALOG_CACHE_KEYS.storefrontGuestBundle('smmplan');
+    expect(bundleKey).toBe('catalog:v1:smmplan:guest-bundle');
   });
 
   it('should call fetcher on cache miss, store in Redis, and return cached result on second call', async () => {
@@ -53,6 +62,27 @@ describe('Multi-Tenant Redis Catalog Cache Service (TDD)', () => {
     const result2 = await getCachedNetworksWithRedis('smmplan', fetcher);
     expect(result2).toEqual(mockNetworksSmmplan);
     expect(fetcher).toHaveBeenCalledTimes(1); // Fetcher should NOT be called again
+  });
+
+  it('should cache and return processed public services and guest bundle', async () => {
+    const serviceFetcher = vi.fn().mockResolvedValue(mockServices);
+    const res1 = await getCachedProcessedServicesWithRedis('cat-1', 'smmplan', serviceFetcher);
+    expect(res1).toEqual(mockServices);
+    expect(serviceFetcher).toHaveBeenCalledTimes(1);
+
+    const res2 = await getCachedProcessedServicesWithRedis('cat-1', 'smmplan', serviceFetcher);
+    expect(res2).toEqual(mockServices);
+    expect(serviceFetcher).toHaveBeenCalledTimes(1);
+
+    const bundleData = { catalog: [], settings: {} as any, baseUrl: 'https://smmplan.pro', defaultServices: [] };
+    const bundleFetcher = vi.fn().mockResolvedValue(bundleData);
+    const b1 = await getCachedGuestBundleWithRedis('smmplan', bundleFetcher);
+    expect(b1).toEqual(bundleData);
+    expect(bundleFetcher).toHaveBeenCalledTimes(1);
+
+    const b2 = await getCachedGuestBundleWithRedis('smmplan', bundleFetcher);
+    expect(b2).toEqual(bundleData);
+    expect(bundleFetcher).toHaveBeenCalledTimes(1);
   });
 
   it('should enforce strict tenant isolation in Redis cache', async () => {

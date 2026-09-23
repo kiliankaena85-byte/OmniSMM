@@ -263,6 +263,7 @@ vi.mock('@/lib/admin-audit', async (importOriginal) => {
       // In testing, we turn fire-and-forget into a tracked promise that we can await before each TRUNCATE.
       const promise = db.adminAuditLog.create({
         data: {
+          tenantId: params.tenantId || 'smmplan',
           adminId: params.adminId,
           adminEmail: params.adminEmail,
           action: params.action,
@@ -281,8 +282,10 @@ vi.mock('@/lib/admin-audit', async (importOriginal) => {
       g.__pendingAuditPromises.push(promise);
     },
     auditAdminAwaitable: async (params: any) => {
-      return db.adminAuditLog.create({
+      const client = params.tx || db;
+      return client.adminAuditLog.create({
         data: {
+          tenantId: params.tenantId || 'smmplan',
           adminId: params.adminId,
           adminEmail: params.adminEmail,
           action: params.action,
@@ -300,7 +303,7 @@ vi.mock('@/lib/admin-audit', async (importOriginal) => {
 beforeAll(async () => {
   const rawPath = expect.getState().testPath || '';
   const testPath = rawPath.replace(/\\/g, '/').toLowerCase();
-  const isPureUnitTest = (testPath.includes('/unit/') || testPath.includes('src/__tests__/unit')) && ![
+  const isPureUnitTest = (testPath.includes('/unit/') || testPath.includes('src/__tests__/unit') || testPath.includes('/architecture/') || testPath.includes('src/__tests__/architecture') || testPath.includes('admin-audit.test.ts')) && ![
     'marketing.test.ts',
     'smart-feedback-loop.test.ts',
     'wallet.race.test.ts',
@@ -431,6 +434,7 @@ beforeEach(async () => {
     const testPath = expect.getState().testPath;
     if (testPath) {
       const skipPatterns = [
+        'admin-audit',
         'utils',
         'parser',
         'format-eta',

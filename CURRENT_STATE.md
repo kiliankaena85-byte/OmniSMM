@@ -1,3 +1,49 @@
+- [x] 🏦 [OMNISMM-BANK-GRADE-LOGGING-AND-ALERTS-TRIAD-2026] Внедрение банковского стандарта логирования, распределенного трейсинга и отказоустойчивого алертинга (100% COMPLETE & VERIFIED):
+  * 📐 **Официальная спецификация SDD-TDD (`docs/specs/SPEC-2026-09-23-BANK-GRADE-LOGGING-AND-ALERTS.md`):**
+    - Зафиксированы 4 архитектурных столпа: Forensics & Distributed Tracing, Zero-Drop Structured Logs, Actionable Alerting & Anti-Storm, Human-Centric Dual-Faced Errors.
+    - Разработана матрица 7 векторов инцидентов (DB drops, Payment webhook drops, Provider outage, Edge/Proxy 502, Queue DLQ, ACID race conditions, Auth attacks).
+  * 🪣 **Модуль 1: Token Bucket Fallback в дебаунсере (`src/lib/alerts/p0-alert-debouncer.ts`):**
+    - Локальный in-memory Token Bucket с окном тишины (Silence Window = 5 минут на инцидент). При недоступности или сбое Redis дебаунсер не падает и предотвращает Alert Storm при CrashLoop процессов. Аккумулирует счетчик `occurrences` во время тишины.
+  * 🌉 **Модуль 2: BullMQ Telemetry Bridge (`src/lib/logger.ts`, `src/lib/queue-manager.ts`, `src/lib/telemetry/bullmq-bridge.ts`):**
+    - Внедрена сквозная генерация и передача `traceId` (`trc_<base36>_<random>`) и `tenantId` в `job.data.metadata.traceId`.
+    - Автоматическое восстановление контекста `AsyncLocalStorage` (`logContextStorage` и `runWithTenant`) через `withTelemetryContext` в процессорах воркеров (`order.processor.ts`, `refill.processor.ts`, `payment-gateway.processor.ts`).
+    - Все логи воркеров автоматически содержат `traceId`, `tenantId`, `correlationId`, `component`.
+  * 🎭 **Модуль 3: Dual-Faced Error Sanitizer & Self-Contained REF (`src/lib/telemetry/error-interpreter.ts`):**
+    - Генерация компактных безопасных кодов обращений `REF-XXXX-YYYY` (`REF-DB01-XXXX`, `REF-PAYM-XXXX`, `REF-AUTH-XXXX`, `REF-PROV-XXXX`).
+    - Двуликая модель ошибок: клиент видит вежливое сообщение и код `REF-XXXX-YYYY` без SQL, секретов или путей файловой системы; серверные логи содержат полный стектрейс с маскированием PII (`redactSensitiveTokens`).
+  * 🧪 **Верификация (100% PASS):**
+    - `npx vitest run src/__tests__/unit/bank-grade-logging.test.ts` (14 из 14 тестов PASS).
+    - `npx vitest run src/__tests__/unit/bullmq-tenant-context.test.ts` (7 из 7 тестов PASS).
+    - `npx tsc --noEmit` — 0 ошибок компиляции TypeScript.
+
+- [x] 🛠️ [OMNISMM-DEFECT-REMEDIATION-TRIAD-AND-ISOLATION-2026] Исправление и ревизия 4 дефектов аудита (100% DEEP VERIFIED & HARDENED):
+  * 🔒 **Изоляция аудит-логов тенантов (`src/lib/admin-audit.ts`, `src/app/admin/dashboard/page.tsx`):**
+    - `auditAdmin` и `auditAdminAwaitable` принимают `tenantId?: string`, динамически резолвят контекст (`tenantStorage` AsyncLocalStorage -> cookies `x_admin_tenant`/`x_tenant` -> headers `x-tenant-id`) и сохраняют `tenantId` в `db.adminAuditLog.create`.
+    - В `src/app/admin/dashboard/page.tsx` добавлено извлечение `cookieTenant` из `cookies()` и передача в `resolveAdminTenantContext(user, tenant, cookieTenant)`, а выборка `db.adminAuditLog.findMany` строго фильтруется по `tenantId: tenantFilter`, предотвращая межбрендовую утечку между SMMplan и SMMflux.
+  * 💳 **Безопасность платежных вебхуков в Maintenance Mode (`src/proxy.ts`):**
+    - В `isAllowedMaintenancePath` добавлены маршруты `pathname === '/api/webhooks' || pathname.startsWith('/api/webhooks/')`, исключающие 503 Service Unavailable для входящих колбэков ЮKassa, Robokassa и CryptoBot при включенном регламенте. Подтверждено тестами `proxy-maintenance-webhooks.test.ts`.
+  * 🩺 **Устранение Split-Brain в Health Watchdog (`scripts/health-watchdog.ps1`):**
+    - Добавлены контейнеры `smmplan_lite_worker` и `smmplan_bot` в список проверки `$containers`. Устранен устаревший запуск VBS-скрипта на хосте, добавлено обнаружение и автоматическое гашение конфликтующих процессов `node.exe` на хосте для защиты от 409 Conflict. Проверка переведена на веб-эндпоинт `http://127.0.0.1:3000/api/health`.
+  * 🚨 **Структурированный Root Global Error (`src/app/global-error.tsx`):**
+    - Устранено игнорирование ошибки (`eslint-disable`), внедрено логирование `console.error('[GlobalErrorRoot]', error)`, безопасный вывод `error.digest`, кнопка возврата "На главную" и импорт `globals.css` для корректного рендеринга Tailwind токенов при сбое корневого лейаута. Подтверждено тестами `global-error.test.tsx`.
+
+- [x] ⚡ [OMNISMM-DOCKER-PERFORMANCE-OPTIMIZATION-AND-STRESS-BENCHMARK-2026] Оптимизация пропускной способности платформы, тюнинг пулов PostgreSQL/памяти Docker и валидация стресс-тестированием (100% COMPLETE & VERIFIED):
+  * 🚀 **Оптимизация пулов БД и ресурсов Docker (`docker-compose.yml`):**
+    - `smmplan_web`: память увеличена с 384MB до 768MB, V8 heap `NODE_OPTIONS=--max-old-space-size=512`, пул PostgreSQL увеличен с 5 до 15 (`connection_limit=15&pool_timeout=15`).
+    - `smmplan_lite_worker`: память увеличена с 128MB до 256MB, V8 heap до 192MB, пул PostgreSQL увеличен до 10.
+    - `smmplan_lite_db`: память увеличена с 128MB до 256MB, добавлены флаги `-c max_connections=100 -c shared_buffers=64MB`.
+  * ⚡ **Многоуровневое микро-кэширование витрины и каталога в Redis (`catalog-cache.service.ts`, `catalog.ts`, `page.tsx`):**
+    - Внедрено кэширование готового дерева публичного каталога `getCachedPublicCatalogWithRedis` (TTL 1800s).
+    - Внедрено кэширование обработанных услуг категории `getCachedProcessedServicesWithRedis`, исключающее тяжелые regex-проверки и санитизацию HTML на каждый HTTP-запрос.
+    - Реализован быстрый путь для гостей витрины `getStorefrontGuestBundle(tenantId)`: для неавторизованных посетителей исключены вызовы `verifySession()` и избыточные запросы к `db.user`, весь бандл возвращается из Redis за < 1ms.
+    - Атомарный сброс кэша по шаблону `catalog:v1:${tenantId}:*` при любых изменениях в админке.
+  * 📊 **Результаты контрольного стресс-тестирования Autocannon v8.0.0 (`scripts/stress-test-live-suite.ts`):**
+    - Главная витрина (SSR `/`): прирост пропускной способности до **40 RPS** (+33%), P95 при 25 VUs снизился до **647 ms** (-25% latency). 0 ошибок на всех ступенях (до 200 VUs).
+    - Личный кабинет (`/dashboard`): стабильные **31 RPS**, 0 ошибок.
+    - Потолок сетевого стека API (`/api/health`): **255 RPS** (P95: 219 ms), 0 ошибок вплоть до 400 одновременных соединений.
+    - Емкость аудитории: **1 200+ одновременных онлайн-посетителей** (сессии аналитики), до **200 активных кликающих клиентов** и до **40 человек в пиковом клик-шторме в секунду**.
+    - RAM контейнера `smmplan_web`: стабильно 213–344 МБ (запас свыше 55% от лимита 768 МБ, 0 утечек памяти).
+
 - [x] 🚀 [OMNISMM-DOCKER-PRODUCTION-DEPLOYMENT-BGS-2026] Успешное развертывание платформы в Docker-контейнерах по протоколу Blue-Green Stage (100% COMPLETE & VERIFIED IN PROD):
   * 📦 **Сборка Standalone-артефактов и Docker-образов:**
     - Запущен эко-билд `scripts/lean-docker-build.ps1` с `BelowNormal` приоритетом и лимитом V8 heap.

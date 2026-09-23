@@ -448,6 +448,19 @@
         "robokassa",
         "zero-commingling"
       ]
+    },
+    {
+      "title": "SSR Storefront Micro-caching and Docker Pool Tuning",
+      "context": "High concurrency stress testing revealed 30 RPS bottleneck on SSR / due to unauthenticated visitor SSR re-rendering and conservative memory/pool limits in Docker",
+      "decision": "Increased web container memory to 768MB, V8 heap to 512MB, PG connection limit to 15. Implemented Redis micro-caching for processed services, public catalog and storefront guest bundle (getStorefrontGuestBundle).",
+      "rationale": "Boosted SSR throughput by 33% (up to 40 RPS), reduced P95 latency by 25% (down to 647ms), increased online capacity to 1,200+ simultaneous visitors, zero memory leaks or failures.",
+      "tags": [
+        "performance",
+        "docker",
+        "caching",
+        "redis",
+        "nextjs16"
+      ]
     }
   ]
 }

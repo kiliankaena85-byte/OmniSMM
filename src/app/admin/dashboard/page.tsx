@@ -5,6 +5,7 @@ import { adminTicketService } from '@/services/admin/ticket.service';
 import { adminCatalogService } from '@/services/admin/catalog.service';
 import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
 import { unstable_cache } from 'next/cache';
 import nextDynamic from 'next/dynamic';
 
@@ -86,8 +87,10 @@ export default async function AdminDashboardPage({
 
   const resolvedSearchParams = await searchParams;
   const period = resolvedSearchParams.period || 'all';
+  const cookieStore = await cookies();
+  const cookieTenant = cookieStore.get('x_admin_tenant')?.value;
   const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
-  const resolvedTenant = resolveAdminTenantContext(user, resolvedSearchParams.tenant);
+  const resolvedTenant = resolveAdminTenantContext(user, resolvedSearchParams.tenant, cookieTenant);
   const tenantFilter = resolvedTenant !== 'all' ? resolvedTenant : undefined;
 
   // Calculate start and end date boundaries in local timezone
@@ -150,7 +153,10 @@ export default async function AdminDashboardPage({
     adminTicketService.getTicketStats(filterStart, filterEnd, tenantFilter),
     adminCatalogService.getCatalogStats(tenantFilter, filterStart, filterEnd),
     db.adminAuditLog.findMany({
-      where: filterStart && filterEnd ? { createdAt: { gte: filterStart, lte: filterEnd } } : {},
+      where: {
+        ...(filterStart && filterEnd ? { createdAt: { gte: filterStart, lte: filterEnd } } : {}),
+        ...(tenantFilter ? { tenantId: tenantFilter } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: 5,
     }),

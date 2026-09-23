@@ -2,7 +2,7 @@ import { Job, UnrecoverableError } from 'bullmq';
 import { db } from '../../lib/db';
 import { RefillJobPayload } from '@/lib/queue-manager';
 import { providerService } from '../../services/providers/provider.service';
-import { logger } from '../../lib/logger';
+import { logger, withTelemetryContext, generateTraceId } from '../../lib/logger';
 import { classifyRefillError } from '@/services/refill/refill-error-classifier';
 import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 import { registerValidTenant } from '@/lib/tenant-resolver-edge';
@@ -29,7 +29,9 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
     job.data.tenantId = tenantId;
   }
 
-  return await runWithTenant(resolvedTenantId, async () => {
+  const traceId = job.data?.metadata?.traceId || generateTraceId();
+
+  return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: 'RefillProcessor' }, async () => {
     let refillId: string;
     try {
       const { RefillJobSchema } = await import('../../schemas/jobs.schema');

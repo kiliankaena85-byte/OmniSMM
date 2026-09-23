@@ -1,10 +1,10 @@
 # Self-Improving Loop Scorecard (SIL-2026)
 
-**Run Timestamp:** `2026-09-14T09:31:01.838Z`  
+**Run Timestamp:** `2026-09-23T15:58:20.908Z`  
 **Overall Status:** `PASS`  
 **Auto-Heal Active:** `NO`  
-**Fixes Applied:** `0`  
-**Skill Lessons Recorded:** `0`  
+**Fixes Applied:** `17`  
+**Skill Lessons Recorded:** `1`  
 
 ---
 
@@ -12,10 +12,10 @@
 
 | Фаза контура | Статус | Время | Детали выполнения |
 | :--- | :--- | :--- | :--- |
-| **Phase 1: Static Quality & Secrets** | 🟢 PASS | 6424ms | TypeScript strict (0 errors), bundle secrets clean, API domains compliant. |
-| **Phase 2: Layout Auto-Heal** | 🟢 PASS | 23ms | 0 fixes applied (0 detected across 141 files). |
-| **Phase 3: Critical TDD Regressions** | 🟢 PASS | 7266ms | Passed 3 test suites cleanly. |
-| **Phase 5: Skill Evolution** | 🟢 PASS | 0ms | 0 new lessons recorded into .agents/skills/ repository. |
+| **Phase 1: Static Quality & Secrets** | 🟢 PASS | 10071ms | TypeScript strict (0 errors), bundle secrets clean, API domains compliant. |
+| **Phase 2: Layout Auto-Heal** | 🟢 PASS | 59ms | 17 fixes applied (17 detected across 206 files). |
+| **Phase 3: Critical TDD Regressions** | 🟢 PASS | 45513ms | Passed 3 test suites cleanly. |
+| **Phase 5: Skill Evolution** | 🟢 PASS | 2ms | 1 new lessons recorded into .agents/skills/ repository. |
 
 ---
 

@@ -2,6 +2,38 @@ import { Queue, QueueOptions } from 'bullmq';
 import { Redis } from 'ioredis';
 import { redactSensitiveTokens } from '@/lib/logger/sensitive-data-filter';
 import { validateRedisUrl } from '@/lib/redis';
+import { getTraceId, generateTraceId } from '@/lib/logger';
+import { tenantStorage } from '@/lib/tenant-context';
+
+export interface JobMetadata {
+  traceId?: string;
+  tenantId?: string;
+  enqueuedAt?: string;
+  [key: string]: unknown;
+}
+
+export function enrichJobPayload<T extends object>(data: T): T & { tenantId?: string; metadata?: JobMetadata } {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return data as any;
+  const currentTraceId = getTraceId() || generateTraceId();
+  const currentTenantId = (data as any).tenantId || tenantStorage.getStore()?.tenantId;
+
+  const existingMetadata = ((data as any).metadata && typeof (data as any).metadata === 'object')
+    ? (data as any).metadata
+    : {};
+
+  const metadata: JobMetadata = {
+    ...existingMetadata,
+    traceId: existingMetadata.traceId || currentTraceId,
+    ...(currentTenantId ? { tenantId: existingMetadata.tenantId || currentTenantId } : {}),
+    enqueuedAt: existingMetadata.enqueuedAt || new Date().toISOString(),
+  };
+
+  return {
+    ...data,
+    ...(currentTenantId && !(data as any).tenantId ? { tenantId: currentTenantId } : {}),
+    metadata,
+  };
+}
 
 // Singleton Redis connection pattern
 let redisConnection: Redis | null = null;
@@ -60,7 +92,17 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
   // Dummy object to prevent Redis connection during Vercel/Next build step and unit tests
   if (isBuildOrTest) {
     const targetObj: any = {
-      add: async (jobName?: string, data?: any, opts?: any) => ({ id: opts?.jobId || 'mock-id', name: jobName, data }),
+      add: async (jobName?: string, data?: any, opts?: any) => {
+        const enriched = enrichJobPayload(data);
+        return { id: opts?.jobId || 'mock-id', name: jobName, data: enriched };
+      },
+      addBulk: async (jobs?: any[]) => {
+        return (jobs || []).map((j, idx) => ({
+          id: j?.opts?.jobId || `mock-id-${idx}`,
+          name: j?.name,
+          data: enrichJobPayload(j?.data),
+        }));
+      },
       close: async () => {},
       disconnect: async () => {},
       getJobs: async () => [],
@@ -81,8 +123,7 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
     }) as unknown as Queue<PayloadType, unknown, string>;
   }
 
-
-    return new Queue<PayloadType, unknown, string>(name, {
+  const queue = new Queue<PayloadType, unknown, string>(name, {
     connection: getRedisConnection(),
     prefix: getQueuePrefix(),
     defaultJobOptions: {
@@ -93,27 +134,47 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
       ...defaultOptions,
     }
   });
+
+  const originalAdd = queue.add.bind(queue);
+  queue.add = (async (jobName: any, data: any, opts?: any) => {
+    const enriched = enrichJobPayload(data);
+    return await (originalAdd as any)(jobName, enriched, opts);
+  }) as any;
+
+  if (typeof (queue as any).addBulk === 'function') {
+    const originalAddBulk = (queue as any).addBulk.bind(queue);
+    (queue as any).addBulk = (async (jobs: any[]) => {
+      const enrichedJobs = Array.isArray(jobs)
+        ? jobs.map((j) => ({ ...j, data: enrichJobPayload(j.data) }))
+        : jobs;
+      return await originalAddBulk(enrichedJobs);
+    });
+  }
+
+  return queue;
 };
 
 export type CatalogMutationPayload = 
-  | { type: 'SYNC_PRICES'; usdToRub: number }
-  | { type: 'RECONCILE_PRICES'; batchSize?: number }
-  | { type: 'SYNC_PROVIDER_CATALOG'; providerId: string; admin: unknown }
-  | { type: 'SYNC_ALL_CATALOGS'; admin: unknown }
-  | { type: 'BULK_MARKUP'; filter: { categoryId?: string; platform?: string }; markupPercent: number; admin: unknown }
-  | { type: 'SYNC_CBR_RATE'; timestamp: number };
+  | { type: 'SYNC_PRICES'; usdToRub: number; metadata?: JobMetadata }
+  | { type: 'RECONCILE_PRICES'; batchSize?: number; metadata?: JobMetadata }
+  | { type: 'SYNC_PROVIDER_CATALOG'; providerId: string; admin: unknown; metadata?: JobMetadata }
+  | { type: 'SYNC_ALL_CATALOGS'; admin: unknown; metadata?: JobMetadata }
+  | { type: 'BULK_MARKUP'; filter: { categoryId?: string; platform?: string }; markupPercent: number; admin: unknown; metadata?: JobMetadata }
+  | { type: 'SYNC_CBR_RATE'; timestamp: number; metadata?: JobMetadata };
 
 export interface OrderJobPayload {
   orderId: string;
   isDripFeedChild?: boolean; // True if this is specifically dispatched from our Drip-Feed cron
   dripParentOrderId?: string;
   tenantId?: string;
+  metadata?: JobMetadata;
 }
 
 // DripFeed queue has been removed as it is now passed natively to providers.
 
 export interface SyncJobPayload {
   timestamp: number; // For keeping track
+  metadata?: JobMetadata;
 }
 
 // P2.1: Dead Letter Queue — jobs that exhausted all retries
@@ -123,26 +184,31 @@ export interface DLQJobPayload {
   payload: unknown;          // Original job data
   error: string;             // Error message from last attempt
   failedAt: string;          // ISO timestamp
+  metadata?: JobMetadata;
 }
 
 // P2.3: Cleanup cron payload
 export interface CleanupJobPayload {
   timestamp: number;
+  metadata?: JobMetadata;
 }
 
 export interface TelegramJobPayload {
   message: string;
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  metadata?: JobMetadata;
 }
 
 // ETA recalculation cron payload
 export interface ETAJobPayload {
   timestamp: number;
+  metadata?: JobMetadata;
 }
 
 export interface RefillJobPayload {
   refillId: string;
   tenantId?: string;
+  metadata?: JobMetadata;
 }
 
 

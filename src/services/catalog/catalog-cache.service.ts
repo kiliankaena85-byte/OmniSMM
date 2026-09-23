@@ -20,6 +20,10 @@ export const CATALOG_CACHE_KEYS = {
   networks: (tenantId: string) => `catalog:v1:${normalizeTenantId(tenantId)}:networks`,
   services: (categoryId: string, tenantId: string) =>
     `catalog:v1:${normalizeTenantId(tenantId)}:services:${categoryId}`,
+  publicCatalog: (tenantId: string) => `catalog:v1:${normalizeTenantId(tenantId)}:public-catalog`,
+  publicServices: (categoryId: string, tenantId: string) =>
+    `catalog:v1:${normalizeTenantId(tenantId)}:public-services:${categoryId}`,
+  storefrontGuestBundle: (tenantId: string) => `catalog:v1:${normalizeTenantId(tenantId)}:guest-bundle`,
   tenantPattern: (tenantId: string) => `catalog:v1:${normalizeTenantId(tenantId)}:*`,
 };
 
@@ -115,6 +119,91 @@ export async function getCachedCategoryServicesWithRedis<T>(
   // 3. Populate Redis asynchronously
   if (data !== undefined && data !== null) {
     void safeRedisSet(cacheKey, JSON.stringify(data), CATALOG_CACHE_TTL_SECONDS);
+  }
+
+  return data;
+}
+
+/**
+ * Retrieves fully-transformed public catalog with Redis caching and fallback.
+ */
+export async function getCachedPublicCatalogWithRedis<T>(
+  rawTenantId: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  const tenantId = normalizeTenantId(rawTenantId);
+  const cacheKey = CATALOG_CACHE_KEYS.publicCatalog(tenantId);
+
+  const cached = await safeRedisGet(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached) as T;
+    } catch {
+      // Corrupted JSON, discard
+    }
+  }
+
+  const data = await fetcher();
+
+  if (data !== undefined && data !== null) {
+    void safeRedisSet(cacheKey, JSON.stringify(data), CATALOG_CACHE_TTL_SECONDS);
+  }
+
+  return data;
+}
+
+/**
+ * Retrieves fully-transformed public services for a category with Redis caching and fallback.
+ */
+export async function getCachedProcessedServicesWithRedis<T>(
+  categoryId: string,
+  rawTenantId: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  const tenantId = normalizeTenantId(rawTenantId);
+  const cacheKey = CATALOG_CACHE_KEYS.publicServices(categoryId, tenantId);
+
+  const cached = await safeRedisGet(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached) as T;
+    } catch {
+      // Corrupted JSON, discard
+    }
+  }
+
+  const data = await fetcher();
+
+  if (data !== undefined && data !== null) {
+    void safeRedisSet(cacheKey, JSON.stringify(data), CATALOG_CACHE_TTL_SECONDS);
+  }
+
+  return data;
+}
+
+/**
+ * Retrieves storefront guest bundle with Redis caching and fallback.
+ */
+export async function getCachedGuestBundleWithRedis<T>(
+  rawTenantId: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  const tenantId = normalizeTenantId(rawTenantId);
+  const cacheKey = CATALOG_CACHE_KEYS.storefrontGuestBundle(tenantId);
+
+  const cached = await safeRedisGet(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached) as T;
+    } catch {
+      // Corrupted JSON, discard
+    }
+  }
+
+  const data = await fetcher();
+
+  if (data !== undefined && data !== null) {
+    void safeRedisSet(cacheKey, JSON.stringify(data), 600); // 10 minutes TTL
   }
 
   return data;

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OmniSMM Architecture Topology (Uncle Bob Pattern)",
-  "generatedAt": "2026-09-19T18:12:40.663Z",
+  "generatedAt": "2026-09-23T17:31:31.870Z",
   "layers": [
     {
       "level": 0,
@@ -170,38 +170,38 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 864,
+      "linesCount": 874,
       "isClientComponent": false,
       "exportsCount": 6,
       "functionsCount": 25,
-      "maxCyclomaticComplexity": 59,
-      "maxCrapScore": 3540,
-      "crapLoad": 15004,
+      "maxCyclomaticComplexity": 63,
+      "maxCrapScore": 4032,
+      "crapLoad": 15988,
       "crappyMethodsCount": 13,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "createBalanceAdjustmentRequestAction",
           "startLine": 49,
-          "endLine": 266,
-          "cyclomaticComplexity": 59,
+          "endLine": 276,
+          "cyclomaticComplexity": 63,
           "coverageRatio": null,
-          "crapScore": 3540,
+          "crapScore": 4032,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
           "startLine": 50,
-          "endLine": 265,
-          "cyclomaticComplexity": 59,
+          "endLine": 275,
+          "cyclomaticComplexity": 63,
           "coverageRatio": null,
-          "crapScore": 3540,
+          "crapScore": 4032,
           "isCrappy": true
         },
         {
           "name": "approveBalanceAdjustmentAction",
-          "startLine": 325,
-          "endLine": 563,
+          "startLine": 335,
+          "endLine": 573,
           "cyclomaticComplexity": 49,
           "coverageRatio": null,
           "crapScore": 2450,
@@ -521,23 +521,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 25,
+      "linesCount": 33,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 3,
-      "maxCrapScore": 12,
+      "maxCyclomaticComplexity": 4,
+      "maxCrapScore": 20,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "revalidateCatalogCache",
-          "startLine": 11,
-          "endLine": 24,
-          "cyclomaticComplexity": 3,
+          "startLine": 12,
+          "endLine": 32,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 12,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -629,13 +629,13 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 233,
+      "linesCount": 241,
       "isClientComponent": false,
       "exportsCount": 3,
       "functionsCount": 10,
       "maxCyclomaticComplexity": 18,
       "maxCrapScore": 342,
-      "crapLoad": 980,
+      "crapLoad": 1376,
       "crappyMethodsCount": 7,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
@@ -660,10 +660,10 @@
         {
           "name": "copyServicesToTenantAction",
           "startLine": 119,
-          "endLine": 179,
-          "cyclomaticComplexity": 12,
+          "endLine": 183,
+          "cyclomaticComplexity": 17,
           "coverageRatio": null,
-          "crapScore": 156,
+          "crapScore": 306,
           "isCrappy": true
         }
       ]
@@ -1754,7 +1754,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 560,
+      "linesCount": 561,
       "isClientComponent": false,
       "exportsCount": 8,
       "functionsCount": 27,
@@ -1766,8 +1766,8 @@
       "topRiskFunctions": [
         {
           "name": "getQuarantineServiceApiDiffAction",
-          "startLine": 305,
-          "endLine": 402,
+          "startLine": 306,
+          "endLine": 403,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -1775,8 +1775,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 310,
-          "endLine": 401,
+          "startLine": 311,
+          "endLine": 402,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -1784,8 +1784,8 @@
         },
         {
           "name": "applyQuarantineResolutionAction",
-          "startLine": 410,
-          "endLine": 559,
+          "startLine": 411,
+          "endLine": 560,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -1799,38 +1799,38 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 167,
+      "linesCount": 168,
       "isClientComponent": false,
       "exportsCount": 5,
       "functionsCount": 10,
-      "maxCyclomaticComplexity": 9,
-      "maxCrapScore": 90,
-      "crapLoad": 120,
+      "maxCyclomaticComplexity": 11,
+      "maxCrapScore": 132,
+      "crapLoad": 204,
       "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "directRestartRefillAction",
           "startLine": 49,
-          "endLine": 103,
-          "cyclomaticComplexity": 9,
+          "endLine": 104,
+          "cyclomaticComplexity": 11,
           "coverageRatio": null,
-          "crapScore": 90,
+          "crapScore": 132,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
           "startLine": 50,
-          "endLine": 102,
-          "cyclomaticComplexity": 9,
+          "endLine": 103,
+          "cyclomaticComplexity": 11,
           "coverageRatio": null,
-          "crapScore": 90,
+          "crapScore": 132,
           "isCrappy": true
         },
         {
           "name": "directUpdateRefillStatusAction",
-          "startLine": 108,
-          "endLine": 144,
+          "startLine": 109,
+          "endLine": 145,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
@@ -2209,8 +2209,8 @@
       "functionsCount": 12,
       "maxCyclomaticComplexity": 17,
       "maxCrapScore": 306,
-      "crapLoad": 1484,
-      "crappyMethodsCount": 12,
+      "crapLoad": 1460,
+      "crappyMethodsCount": 10,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
@@ -2599,41 +2599,41 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 174,
+      "linesCount": 183,
       "isClientComponent": false,
       "exportsCount": 3,
       "functionsCount": 11,
-      "maxCyclomaticComplexity": 12,
-      "maxCrapScore": 156,
-      "crapLoad": 304,
-      "crappyMethodsCount": 4,
+      "maxCyclomaticComplexity": 14,
+      "maxCrapScore": 210,
+      "crapLoad": 588,
+      "crappyMethodsCount": 6,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "getSupportActionsReviewListAction",
           "startLine": 12,
-          "endLine": 64,
-          "cyclomaticComplexity": 12,
+          "endLine": 67,
+          "cyclomaticComplexity": 14,
           "coverageRatio": null,
-          "crapScore": 156,
+          "crapScore": 210,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
           "startLine": 19,
-          "endLine": 63,
-          "cyclomaticComplexity": 12,
+          "endLine": 66,
+          "cyclomaticComplexity": 14,
           "coverageRatio": null,
-          "crapScore": 156,
+          "crapScore": 210,
           "isCrappy": true
         },
         {
           "name": "reviewSupportFinancialAction",
-          "startLine": 74,
-          "endLine": 132,
-          "cyclomaticComplexity": 7,
+          "startLine": 77,
+          "endLine": 139,
+          "cyclomaticComplexity": 11,
           "coverageRatio": null,
-          "crapScore": 56,
+          "crapScore": 132,
           "isCrappy": true
         }
       ]
@@ -3139,41 +3139,41 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 379,
+      "linesCount": 588,
       "isClientComponent": false,
-      "exportsCount": 7,
-      "functionsCount": 16,
-      "maxCyclomaticComplexity": 12,
-      "maxCrapScore": 156,
-      "crapLoad": 628,
+      "exportsCount": 12,
+      "functionsCount": 27,
+      "maxCyclomaticComplexity": 19,
+      "maxCrapScore": 380,
+      "crapLoad": 1658,
       "crappyMethodsCount": 8,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "switchAdminTenantAction",
-          "startLine": 299,
-          "endLine": 378,
-          "cyclomaticComplexity": 12,
-          "coverageRatio": null,
-          "crapScore": 156,
-          "isCrappy": true
-        },
-        {
           "name": "createTenantAction",
-          "startLine": 63,
-          "endLine": 137,
-          "cyclomaticComplexity": 11,
+          "startLine": 66,
+          "endLine": 173,
+          "cyclomaticComplexity": 19,
           "coverageRatio": null,
-          "crapScore": 132,
+          "crapScore": 380,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 64,
-          "endLine": 136,
-          "cyclomaticComplexity": 11,
+          "startLine": 67,
+          "endLine": 172,
+          "cyclomaticComplexity": 19,
           "coverageRatio": null,
-          "crapScore": 132,
+          "crapScore": 380,
+          "isCrappy": true
+        },
+        {
+          "name": "updateTenantAction",
+          "startLine": 175,
+          "endLine": 246,
+          "cyclomaticComplexity": 19,
+          "coverageRatio": null,
+          "crapScore": 380,
           "isCrappy": true
         }
       ]
@@ -3265,38 +3265,38 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 967,
+      "linesCount": 979,
       "isClientComponent": false,
       "exportsCount": 13,
       "functionsCount": 35,
-      "maxCyclomaticComplexity": 52,
-      "maxCrapScore": 2756,
-      "crapLoad": 7332,
+      "maxCyclomaticComplexity": 58,
+      "maxCrapScore": 3422,
+      "crapLoad": 8664,
       "crappyMethodsCount": 16,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "updateBalanceAction",
           "startLine": 22,
-          "endLine": 235,
-          "cyclomaticComplexity": 52,
+          "endLine": 247,
+          "cyclomaticComplexity": 58,
           "coverageRatio": null,
-          "crapScore": 2756,
+          "crapScore": 3422,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
           "startLine": 23,
-          "endLine": 234,
-          "cyclomaticComplexity": 52,
+          "endLine": 246,
+          "cyclomaticComplexity": 58,
           "coverageRatio": null,
-          "crapScore": 2756,
+          "crapScore": 3422,
           "isCrappy": true
         },
         {
           "name": "requestCardRefundAction",
-          "startLine": 242,
-          "endLine": 376,
+          "startLine": 254,
+          "endLine": 388,
           "cyclomaticComplexity": 20,
           "coverageRatio": null,
           "crapScore": 420,
@@ -3553,7 +3553,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 27,
+      "linesCount": 33,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -3565,8 +3565,8 @@
       "topRiskFunctions": [
         {
           "name": "refreshBalanceAction",
-          "startLine": 7,
-          "endLine": 26,
+          "startLine": 10,
+          "endLine": 32,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -4165,41 +4165,41 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 730,
+      "linesCount": 754,
       "isClientComponent": false,
       "exportsCount": 7,
-      "functionsCount": 17,
-      "maxCyclomaticComplexity": 77,
-      "maxCrapScore": 6006,
-      "crapLoad": 15818,
-      "crappyMethodsCount": 7,
+      "functionsCount": 21,
+      "maxCyclomaticComplexity": 78,
+      "maxCrapScore": 6162,
+      "crapLoad": 22192,
+      "crappyMethodsCount": 9,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "getServicesByCategoryAction",
-          "startLine": 363,
-          "endLine": 549,
-          "cyclomaticComplexity": 77,
+          "startLine": 380,
+          "endLine": 573,
+          "cyclomaticComplexity": 78,
           "coverageRatio": null,
-          "crapScore": 6006,
+          "crapScore": 6162,
+          "isCrappy": true
+        },
+        {
+          "name": "computeServices",
+          "startLine": 384,
+          "endLine": 562,
+          "cyclomaticComplexity": 76,
+          "coverageRatio": null,
+          "crapScore": 5852,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 429,
-          "endLine": 544,
+          "startLine": 446,
+          "endLine": 561,
           "cyclomaticComplexity": 75,
           "coverageRatio": null,
           "crapScore": 5700,
-          "isCrappy": true
-        },
-        {
-          "name": "getFreshServiceAction",
-          "startLine": 602,
-          "endLine": 728,
-          "cyclomaticComplexity": 56,
-          "coverageRatio": null,
-          "crapScore": 3192,
           "isCrappy": true
         }
       ]
@@ -4282,7 +4282,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 66,
+      "linesCount": 67,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 2,
@@ -4295,7 +4295,7 @@
         {
           "name": "getLegalDocumentAction",
           "startLine": 7,
-          "endLine": 65,
+          "endLine": 66,
           "cyclomaticComplexity": 28,
           "coverageRatio": null,
           "crapScore": 812,
@@ -4489,41 +4489,41 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 166,
+      "linesCount": 168,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 4,
-      "maxCyclomaticComplexity": 25,
-      "maxCrapScore": 650,
-      "crapLoad": 1420,
+      "maxCyclomaticComplexity": 27,
+      "maxCrapScore": 756,
+      "crapLoad": 1694,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "logManualCompensation",
-          "startLine": 22,
-          "endLine": 165,
-          "cyclomaticComplexity": 25,
-          "coverageRatio": null,
-          "crapScore": 650,
-          "isCrappy": true
-        },
-        {
-          "name": "<anonymous>",
           "startLine": 23,
-          "endLine": 164,
-          "cyclomaticComplexity": 25,
+          "endLine": 167,
+          "cyclomaticComplexity": 27,
           "coverageRatio": null,
-          "crapScore": 650,
+          "crapScore": 756,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 59,
-          "endLine": 141,
-          "cyclomaticComplexity": 14,
+          "startLine": 24,
+          "endLine": 166,
+          "cyclomaticComplexity": 27,
           "coverageRatio": null,
-          "crapScore": 210,
+          "crapScore": 756,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 60,
+          "endLine": 143,
+          "cyclomaticComplexity": 16,
+          "coverageRatio": null,
+          "crapScore": 272,
           "isCrappy": true
         }
       ]
@@ -4875,29 +4875,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 169,
+      "linesCount": 173,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 2,
-      "maxCyclomaticComplexity": 33,
-      "maxCrapScore": 1122,
-      "crapLoad": 1092,
+      "maxCyclomaticComplexity": 31,
+      "maxCrapScore": 992,
+      "crapLoad": 962,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "createTopUpPaymentAction",
-          "startLine": 17,
-          "endLine": 168,
-          "cyclomaticComplexity": 33,
+          "startLine": 19,
+          "endLine": 172,
+          "cyclomaticComplexity": 31,
           "coverageRatio": null,
-          "crapScore": 1122,
+          "crapScore": 992,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 152,
-          "endLine": 152,
+          "startLine": 156,
+          "endLine": 156,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -5019,33 +5019,24 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 106,
+      "linesCount": 10,
       "isClientComponent": false,
-      "exportsCount": 2,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 6,
-      "maxCrapScore": 42,
-      "crapLoad": 24,
-      "crappyMethodsCount": 2,
+      "exportsCount": 1,
+      "functionsCount": 1,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "generateMetadata",
-          "startLine": 18,
-          "endLine": 44,
-          "cyclomaticComplexity": 6,
+          "name": "LegacyLovablePage",
+          "startLine": 7,
+          "endLine": 9,
+          "cyclomaticComplexity": 1,
           "coverageRatio": null,
-          "crapScore": 42,
-          "isCrappy": true
-        },
-        {
-          "name": "LovablePage",
-          "startLine": 46,
-          "endLine": 105,
-          "cyclomaticComplexity": 6,
-          "coverageRatio": null,
-          "crapScore": 42,
-          "isCrappy": true
+          "crapScore": 2,
+          "isCrappy": false
         }
       ]
     },
@@ -8114,41 +8105,41 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 561,
+      "linesCount": 569,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 7,
-      "maxCyclomaticComplexity": 56,
-      "maxCrapScore": 3192,
-      "crapLoad": 3314,
+      "functionsCount": 8,
+      "maxCyclomaticComplexity": 58,
+      "maxCrapScore": 3422,
+      "crapLoad": 3544,
       "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "AdminDashboardPage",
-          "startLine": 70,
-          "endLine": 517,
-          "cyclomaticComplexity": 56,
+          "startLine": 73,
+          "endLine": 525,
+          "cyclomaticComplexity": 58,
           "coverageRatio": null,
-          "crapScore": 3192,
+          "crapScore": 3422,
           "isCrappy": true
         },
         {
           "name": "SystemHealthBanner",
-          "startLine": 519,
-          "endLine": 560,
+          "startLine": 527,
+          "endLine": 568,
           "cyclomaticComplexity": 13,
           "coverageRatio": null,
           "crapScore": 182,
           "isCrappy": true
         },
         {
-          "name": "<anonymous>",
-          "startLine": 172,
-          "endLine": 172,
-          "cyclomaticComplexity": 2,
+          "name": "getCachedHealthData",
+          "startLine": 12,
+          "endLine": 30,
+          "cyclomaticComplexity": 5,
           "coverageRatio": null,
-          "crapScore": 6,
+          "crapScore": 30,
           "isCrappy": false
         }
       ]
@@ -15722,7 +15713,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 359,
+      "linesCount": 360,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 19,
@@ -15734,8 +15725,8 @@
       "topRiskFunctions": [
         {
           "name": "TelegramLivePreview",
-          "startLine": 42,
-          "endLine": 358,
+          "startLine": 43,
+          "endLine": 359,
           "cyclomaticComplexity": 36,
           "coverageRatio": null,
           "crapScore": 1332,
@@ -15743,8 +15734,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 329,
-          "endLine": 344,
+          "startLine": 330,
+          "endLine": 345,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -15752,8 +15743,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 330,
-          "endLine": 330,
+          "startLine": 331,
+          "endLine": 331,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -16437,6 +16428,51 @@
       ]
     },
     {
+      "id": "src/app/admin/tenants/domain-verification-modal.tsx",
+      "label": "domain-verification-modal.tsx",
+      "level": 3,
+      "layer": "Presentation",
+      "boundedContext": "MULTI_TENANT_CORE",
+      "linesCount": 318,
+      "isClientComponent": true,
+      "exportsCount": 1,
+      "functionsCount": 9,
+      "maxCyclomaticComplexity": 47,
+      "maxCrapScore": 2256,
+      "crapLoad": 2262,
+      "crappyMethodsCount": 4,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "DomainVerificationModal",
+          "startLine": 32,
+          "endLine": 317,
+          "cyclomaticComplexity": 47,
+          "coverageRatio": null,
+          "crapScore": 2256,
+          "isCrappy": true
+        },
+        {
+          "name": "loadData",
+          "startLine": 46,
+          "endLine": 65,
+          "cyclomaticComplexity": 6,
+          "coverageRatio": null,
+          "crapScore": 42,
+          "isCrappy": true
+        },
+        {
+          "name": "handleVerify",
+          "startLine": 81,
+          "endLine": 97,
+          "cyclomaticComplexity": 6,
+          "coverageRatio": null,
+          "crapScore": 42,
+          "isCrappy": true
+        }
+      ]
+    },
+    {
       "id": "src/app/admin/tenants/error.tsx",
       "label": "error.tsx",
       "level": 3,
@@ -16541,38 +16577,38 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 423,
+      "linesCount": 491,
       "isClientComponent": true,
       "exportsCount": 1,
-      "functionsCount": 22,
-      "maxCyclomaticComplexity": 32,
-      "maxCrapScore": 1056,
-      "crapLoad": 1204,
+      "functionsCount": 27,
+      "maxCyclomaticComplexity": 35,
+      "maxCrapScore": 1260,
+      "crapLoad": 1436,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "TenantsManager",
-          "startLine": 49,
-          "endLine": 422,
-          "cyclomaticComplexity": 32,
+          "startLine": 50,
+          "endLine": 490,
+          "cyclomaticComplexity": 35,
           "coverageRatio": null,
-          "crapScore": 1056,
+          "crapScore": 1260,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 195,
-          "endLine": 308,
-          "cyclomaticComplexity": 13,
+          "startLine": 199,
+          "endLine": 334,
+          "cyclomaticComplexity": 14,
           "coverageRatio": null,
-          "crapScore": 182,
+          "crapScore": 210,
           "isCrappy": true
         },
         {
           "name": "handleCreate",
-          "startLine": 68,
-          "endLine": 97,
+          "startLine": 71,
+          "endLine": 101,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -17233,23 +17269,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 129,
+      "linesCount": 148,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 28,
-      "maxCrapScore": 812,
-      "crapLoad": 782,
+      "maxCyclomaticComplexity": 34,
+      "maxCrapScore": 1190,
+      "crapLoad": 1160,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "GET",
-          "startLine": 8,
-          "endLine": 129,
-          "cyclomaticComplexity": 28,
+          "startLine": 9,
+          "endLine": 148,
+          "cyclomaticComplexity": 34,
           "coverageRatio": null,
-          "crapScore": 812,
+          "crapScore": 1190,
           "isCrappy": true
         }
       ]
@@ -17836,10 +17872,10 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 76,
+      "linesCount": 77,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 4,
+      "functionsCount": 3,
       "maxCyclomaticComplexity": 5,
       "maxCrapScore": 30,
       "crapLoad": 0,
@@ -17848,26 +17884,26 @@
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 39,
-          "endLine": 75,
+          "startLine": 40,
+          "endLine": 76,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
           "isCrappy": false
         },
         {
-          "name": "getShieldSecret",
-          "startLine": 13,
-          "endLine": 15,
-          "cyclomaticComplexity": 3,
+          "name": "GET",
+          "startLine": 14,
+          "endLine": 29,
+          "cyclomaticComplexity": 2,
           "coverageRatio": null,
-          "crapScore": 12,
+          "crapScore": 6,
           "isCrappy": false
         },
         {
-          "name": "GET",
-          "startLine": 17,
-          "endLine": 28,
+          "name": "<anonymous>",
+          "startLine": 56,
+          "endLine": 56,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18178,23 +18214,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 100,
+      "linesCount": 103,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 29,
-      "maxCrapScore": 870,
-      "crapLoad": 840,
+      "maxCyclomaticComplexity": 30,
+      "maxCrapScore": 930,
+      "crapLoad": 900,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "POST",
           "startLine": 14,
-          "endLine": 98,
-          "cyclomaticComplexity": 29,
+          "endLine": 101,
+          "cyclomaticComplexity": 30,
           "coverageRatio": null,
-          "crapScore": 870,
+          "crapScore": 930,
           "isCrappy": true
         }
       ]
@@ -18205,23 +18241,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 42,
+      "linesCount": 80,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 16,
-      "maxCrapScore": 272,
-      "crapLoad": 242,
+      "maxCyclomaticComplexity": 25,
+      "maxCrapScore": 650,
+      "crapLoad": 620,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 5,
-          "endLine": 41,
-          "cyclomaticComplexity": 16,
+          "startLine": 8,
+          "endLine": 79,
+          "cyclomaticComplexity": 25,
           "coverageRatio": null,
-          "crapScore": 272,
+          "crapScore": 650,
           "isCrappy": true
         }
       ]
@@ -18277,13 +18313,13 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 706,
+      "linesCount": 712,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 27,
       "maxCyclomaticComplexity": 54,
       "maxCrapScore": 2970,
-      "crapLoad": 7278,
+      "crapLoad": 7408,
       "crappyMethodsCount": 11,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
@@ -18298,11 +18334,11 @@
         },
         {
           "name": "handleAddMulti",
-          "startLine": 418,
-          "endLine": 540,
-          "cyclomaticComplexity": 34,
+          "startLine": 421,
+          "endLine": 543,
+          "cyclomaticComplexity": 35,
           "coverageRatio": null,
-          "crapScore": 1190,
+          "crapScore": 1260,
           "isCrappy": true
         },
         {
@@ -18493,38 +18529,56 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 210,
+      "linesCount": 8,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 3,
-      "maxCyclomaticComplexity": 47,
-      "maxCrapScore": 2256,
-      "crapLoad": 2328,
-      "crappyMethodsCount": 2,
+      "functionsCount": 1,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 12,
-          "endLine": 209,
-          "cyclomaticComplexity": 47,
+          "startLine": 5,
+          "endLine": 7,
+          "cyclomaticComplexity": 1,
           "coverageRatio": null,
-          "crapScore": 2256,
-          "isCrappy": true
+          "crapScore": 2,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/app/api/webhooks/robokassa/[tenantId]/route.ts",
+      "label": "route.ts",
+      "level": 2,
+      "layer": "Application",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 24,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "POST",
+          "startLine": 5,
+          "endLine": 11,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
         },
         {
-          "name": "<anonymous>",
-          "startLine": 149,
-          "endLine": 198,
-          "cyclomaticComplexity": 11,
-          "coverageRatio": null,
-          "crapScore": 132,
-          "isCrappy": true
-        },
-        {
-          "name": "<anonymous>",
-          "startLine": 29,
-          "endLine": 29,
+          "name": "GET",
+          "startLine": 13,
+          "endLine": 23,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18538,29 +18592,56 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 89,
+      "linesCount": 18,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 3,
-      "maxCyclomaticComplexity": 27,
-      "maxCrapScore": 756,
-      "crapLoad": 726,
-      "crappyMethodsCount": 1,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 2,
+      "maxCrapScore": 6,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 8,
-          "endLine": 83,
-          "cyclomaticComplexity": 27,
+          "startLine": 6,
+          "endLine": 10,
+          "cyclomaticComplexity": 2,
           "coverageRatio": null,
-          "crapScore": 756,
-          "isCrappy": true
+          "crapScore": 6,
+          "isCrappy": false
         },
         {
-          "name": "<anonymous>",
-          "startLine": 79,
-          "endLine": 79,
+          "name": "GET",
+          "startLine": 12,
+          "endLine": 16,
+          "cyclomaticComplexity": 2,
+          "coverageRatio": null,
+          "crapScore": 6,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/app/api/webhooks/telegram/[tenantId]/route.ts",
+      "label": "route.ts",
+      "level": 2,
+      "layer": "Application",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 25,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "POST",
+          "startLine": 6,
+          "endLine": 12,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18568,8 +18649,8 @@
         },
         {
           "name": "GET",
-          "startLine": 85,
-          "endLine": 87,
+          "startLine": 14,
+          "endLine": 24,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18628,41 +18709,59 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 345,
+      "linesCount": 8,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 11,
-      "maxCyclomaticComplexity": 81,
-      "maxCrapScore": 6642,
-      "crapLoad": 6854,
-      "crappyMethodsCount": 2,
+      "functionsCount": 1,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 67,
-          "endLine": 344,
-          "cyclomaticComplexity": 81,
+          "startLine": 5,
+          "endLine": 7,
+          "cyclomaticComplexity": 1,
           "coverageRatio": null,
-          "crapScore": 6642,
-          "isCrappy": true
+          "crapScore": 2,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/app/api/webhooks/yookassa/[tenantId]/route.ts",
+      "label": "route.ts",
+      "level": 2,
+      "layer": "Application",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 24,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 2,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "POST",
+          "startLine": 5,
+          "endLine": 11,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
         },
         {
-          "name": "<anonymous>",
-          "startLine": 276,
-          "endLine": 330,
-          "cyclomaticComplexity": 16,
+          "name": "GET",
+          "startLine": 13,
+          "endLine": 23,
+          "cyclomaticComplexity": 1,
           "coverageRatio": null,
-          "crapScore": 272,
-          "isCrappy": true
-        },
-        {
-          "name": "rubToKopecks",
-          "startLine": 47,
-          "endLine": 65,
-          "cyclomaticComplexity": 4,
-          "coverageRatio": null,
-          "crapScore": 20,
+          "crapScore": 2,
           "isCrappy": false
         }
       ]
@@ -19324,8 +19423,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 59,
-          "endLine": 83,
+          "startLine": 62,
+          "endLine": 86,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -19348,7 +19447,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 51,
+      "linesCount": 52,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -19361,7 +19460,7 @@
         {
           "name": "DashboardLayout",
           "startLine": 10,
-          "endLine": 50,
+          "endLine": 51,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -19510,29 +19609,29 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 251,
+      "linesCount": 280,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 3,
-      "maxCyclomaticComplexity": 19,
-      "maxCrapScore": 380,
-      "crapLoad": 350,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 25,
+      "maxCrapScore": 650,
+      "crapLoad": 620,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "OrdersPage",
-          "startLine": 33,
-          "endLine": 250,
-          "cyclomaticComplexity": 19,
+          "startLine": 37,
+          "endLine": 279,
+          "cyclomaticComplexity": 25,
           "coverageRatio": null,
-          "crapScore": 380,
+          "crapScore": 650,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 172,
-          "endLine": 177,
+          "startLine": 199,
+          "endLine": 204,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -19540,11 +19639,11 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 165,
-          "endLine": 168,
-          "cyclomaticComplexity": 1,
+          "startLine": 167,
+          "endLine": 172,
+          "cyclomaticComplexity": 3,
           "coverageRatio": null,
-          "crapScore": 2,
+          "crapScore": 12,
           "isCrappy": false
         }
       ]
@@ -19807,29 +19906,29 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 195,
+      "linesCount": 200,
       "isClientComponent": true,
       "exportsCount": 2,
       "functionsCount": 9,
-      "maxCyclomaticComplexity": 10,
-      "maxCrapScore": 110,
-      "crapLoad": 190,
+      "maxCyclomaticComplexity": 13,
+      "maxCrapScore": 182,
+      "crapLoad": 262,
       "crappyMethodsCount": 4,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "SidebarNav",
           "startLine": 29,
-          "endLine": 139,
-          "cyclomaticComplexity": 10,
+          "endLine": 144,
+          "cyclomaticComplexity": 13,
           "coverageRatio": null,
-          "crapScore": 110,
+          "crapScore": 182,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 73,
-          "endLine": 106,
+          "startLine": 78,
+          "endLine": 111,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -19837,8 +19936,8 @@
         },
         {
           "name": "MobileBottomNav",
-          "startLine": 141,
-          "endLine": 194,
+          "startLine": 146,
+          "endLine": 199,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -19924,7 +20023,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 21,
+      "linesCount": 27,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -19936,8 +20035,8 @@
       "topRiskFunctions": [
         {
           "name": "ClientTicketsPage",
-          "startLine": 7,
-          "endLine": 20,
+          "startLine": 9,
+          "endLine": 26,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -19951,29 +20050,29 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 341,
+      "linesCount": 349,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 5,
-      "maxCyclomaticComplexity": 34,
-      "maxCrapScore": 1190,
-      "crapLoad": 1172,
+      "maxCyclomaticComplexity": 36,
+      "maxCrapScore": 1332,
+      "crapLoad": 1314,
       "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "ClientTicketChatPage",
-          "startLine": 13,
-          "endLine": 340,
-          "cyclomaticComplexity": 34,
+          "startLine": 16,
+          "endLine": 348,
+          "cyclomaticComplexity": 36,
           "coverageRatio": null,
-          "crapScore": 1190,
+          "crapScore": 1332,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 162,
-          "endLine": 195,
+          "startLine": 170,
+          "endLine": 203,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -19981,8 +20080,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 215,
-          "endLine": 222,
+          "startLine": 223,
+          "endLine": 230,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -20068,29 +20167,38 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 22,
+      "linesCount": 58,
       "isClientComponent": true,
       "exportsCount": 1,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 1,
-      "maxCrapScore": 2,
+      "functionsCount": 3,
+      "maxCyclomaticComplexity": 4,
+      "maxCrapScore": 20,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "GlobalError",
-          "startLine": 3,
-          "endLine": 21,
-          "cyclomaticComplexity": 1,
+          "startLine": 6,
+          "endLine": 57,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 2,
+          "crapScore": 20,
           "isCrappy": false
         },
         {
           "name": "<anonymous>",
-          "startLine": 16,
-          "endLine": 16,
+          "startLine": 13,
+          "endLine": 17,
+          "cyclomaticComplexity": 2,
+          "coverageRatio": null,
+          "crapScore": 6,
+          "isCrappy": false
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 40,
+          "endLine": 40,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -20284,38 +20392,38 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 265,
+      "linesCount": 320,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 3,
-      "maxCyclomaticComplexity": 38,
-      "maxCrapScore": 1482,
-      "crapLoad": 1506,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 37,
+      "maxCrapScore": 1406,
+      "crapLoad": 1630,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "RootLayout",
-          "startLine": 115,
-          "endLine": 264,
-          "cyclomaticComplexity": 38,
+          "startLine": 168,
+          "endLine": 319,
+          "cyclomaticComplexity": 37,
           "coverageRatio": null,
-          "crapScore": 1482,
+          "crapScore": 1406,
           "isCrappy": true
         },
         {
           "name": "generateMetadata",
-          "startLine": 12,
-          "endLine": 107,
-          "cyclomaticComplexity": 8,
+          "startLine": 17,
+          "endLine": 166,
+          "cyclomaticComplexity": 16,
           "coverageRatio": null,
-          "crapScore": 72,
+          "crapScore": 272,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 192,
-          "endLine": 236,
+          "startLine": 247,
+          "endLine": 291,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -21454,41 +21562,41 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 219,
+      "linesCount": 285,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 15,
-      "maxCyclomaticComplexity": 43,
-      "maxCrapScore": 1892,
-      "crapLoad": 1862,
-      "crappyMethodsCount": 1,
+      "functionsCount": 20,
+      "maxCyclomaticComplexity": 46,
+      "maxCrapScore": 2162,
+      "crapLoad": 2312,
+      "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "Home",
-          "startLine": 41,
-          "endLine": 218,
-          "cyclomaticComplexity": 43,
+          "startLine": 87,
+          "endLine": 284,
+          "cyclomaticComplexity": 46,
           "coverageRatio": null,
-          "crapScore": 1892,
+          "crapScore": 2162,
+          "isCrappy": true
+        },
+        {
+          "name": "fetchGuestBundle",
+          "startLine": 35,
+          "endLine": 63,
+          "cyclomaticComplexity": 14,
+          "coverageRatio": null,
+          "crapScore": 210,
           "isCrappy": true
         },
         {
           "name": "generateMetadata",
-          "startLine": 25,
-          "endLine": 39,
+          "startLine": 71,
+          "endLine": 85,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
-          "isCrappy": false
-        },
-        {
-          "name": "<anonymous>",
-          "startLine": 10,
-          "endLine": 10,
-          "cyclomaticComplexity": 1,
-          "coverageRatio": null,
-          "crapScore": 2,
           "isCrappy": false
         }
       ]
@@ -22147,29 +22255,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 1038,
+      "linesCount": 1040,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 130,
-      "maxCyclomaticComplexity": 124,
-      "maxCrapScore": 15500,
-      "crapLoad": 18448,
+      "maxCyclomaticComplexity": 121,
+      "maxCrapScore": 14762,
+      "crapLoad": 17710,
       "crappyMethodsCount": 21,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "setupStorePipeline",
-          "startLine": 354,
-          "endLine": 1037,
-          "cyclomaticComplexity": 124,
+          "startLine": 355,
+          "endLine": 1039,
+          "cyclomaticComplexity": 121,
           "coverageRatio": null,
-          "crapScore": 15500,
+          "crapScore": 14762,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 982,
-          "endLine": 1036,
+          "startLine": 984,
+          "endLine": 1038,
           "cyclomaticComplexity": 29,
           "coverageRatio": null,
           "crapScore": 870,
@@ -22177,8 +22285,8 @@
         },
         {
           "name": "setupSupportOnlyPipeline",
-          "startLine": 130,
-          "endLine": 206,
+          "startLine": 131,
+          "endLine": 207,
           "cyclomaticComplexity": 20,
           "coverageRatio": null,
           "crapScore": 420,
@@ -22192,7 +22300,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 1663,
+      "linesCount": 1667,
       "isClientComponent": false,
       "exportsCount": 8,
       "functionsCount": 134,
@@ -22204,8 +22312,8 @@
       "topRiskFunctions": [
         {
           "name": "<anonymous>",
-          "startLine": 117,
-          "endLine": 177,
+          "startLine": 118,
+          "endLine": 178,
           "cyclomaticComplexity": 44,
           "coverageRatio": null,
           "crapScore": 1980,
@@ -22213,8 +22321,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 192,
-          "endLine": 406,
+          "startLine": 193,
+          "endLine": 407,
           "cyclomaticComplexity": 44,
           "coverageRatio": null,
           "crapScore": 1980,
@@ -22222,8 +22330,8 @@
         },
         {
           "name": "launchBot",
-          "startLine": 1491,
-          "endLine": 1641,
+          "startLine": 1495,
+          "endLine": 1645,
           "cyclomaticComplexity": 33,
           "coverageRatio": null,
           "crapScore": 1122,
@@ -22237,42 +22345,42 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 224,
+      "linesCount": 352,
       "isClientComponent": false,
       "exportsCount": 0,
-      "functionsCount": 10,
+      "functionsCount": 13,
       "maxCyclomaticComplexity": 14,
       "maxCrapScore": 210,
-      "crapLoad": 206,
-      "crappyMethodsCount": 2,
+      "crapLoad": 332,
+      "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "startBot",
-          "startLine": 72,
-          "endLine": 146,
+          "startLine": 73,
+          "endLine": 147,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
           "isCrappy": true
         },
         {
+          "name": "getBotForTenant",
+          "startLine": 226,
+          "endLine": 296,
+          "cyclomaticComplexity": 12,
+          "coverageRatio": null,
+          "crapScore": 156,
+          "isCrappy": true
+        },
+        {
           "name": "verifyToken",
-          "startLine": 42,
-          "endLine": 67,
+          "startLine": 43,
+          "endLine": 68,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
           "isCrappy": true
-        },
-        {
-          "name": "initPool",
-          "startLine": 182,
-          "endLine": 206,
-          "cyclomaticComplexity": 5,
-          "coverageRatio": null,
-          "crapScore": 30,
-          "isCrappy": false
         }
       ]
     },
@@ -22282,29 +22390,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 247,
+      "linesCount": 248,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 12,
-      "maxCyclomaticComplexity": 22,
-      "maxCrapScore": 506,
-      "crapLoad": 636,
+      "maxCyclomaticComplexity": 20,
+      "maxCrapScore": 420,
+      "crapLoad": 550,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "<anonymous>",
-          "startLine": 125,
-          "endLine": 227,
-          "cyclomaticComplexity": 22,
+          "startLine": 126,
+          "endLine": 228,
+          "cyclomaticComplexity": 20,
           "coverageRatio": null,
-          "crapScore": 506,
+          "crapScore": 420,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 47,
-          "endLine": 87,
+          "startLine": 48,
+          "endLine": 88,
           "cyclomaticComplexity": 10,
           "coverageRatio": null,
           "crapScore": 110,
@@ -22312,8 +22420,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 97,
-          "endLine": 110,
+          "startLine": 98,
+          "endLine": 111,
           "cyclomaticComplexity": 10,
           "coverageRatio": null,
           "crapScore": 110,
@@ -22421,19 +22529,19 @@
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 8,
-      "maxCyclomaticComplexity": 13,
-      "maxCrapScore": 182,
-      "crapLoad": 152,
+      "maxCyclomaticComplexity": 12,
+      "maxCrapScore": 156,
+      "crapLoad": 126,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "<anonymous>",
-          "startLine": 53,
+          "startLine": 54,
           "endLine": 107,
-          "cyclomaticComplexity": 13,
+          "cyclomaticComplexity": 12,
           "coverageRatio": null,
-          "crapScore": 182,
+          "crapScore": 156,
           "isCrappy": true
         },
         {
@@ -22447,8 +22555,8 @@
         },
         {
           "name": "resolveUser",
-          "startLine": 17,
-          "endLine": 44,
+          "startLine": 18,
+          "endLine": 45,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -27133,29 +27241,29 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 249,
+      "linesCount": 252,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 22,
-      "maxCyclomaticComplexity": 38,
-      "maxCrapScore": 1482,
-      "crapLoad": 1490,
+      "maxCyclomaticComplexity": 40,
+      "maxCrapScore": 1640,
+      "crapLoad": 1648,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "TenantSwitcher",
-          "startLine": 18,
-          "endLine": 245,
-          "cyclomaticComplexity": 38,
+          "startLine": 19,
+          "endLine": 248,
+          "cyclomaticComplexity": 40,
           "coverageRatio": null,
-          "crapScore": 1482,
+          "crapScore": 1640,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 52,
-          "endLine": 68,
+          "startLine": 55,
+          "endLine": 71,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -27163,8 +27271,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 44,
-          "endLine": 49,
+          "startLine": 47,
+          "endLine": 52,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -27655,12 +27763,12 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 80,
+      "linesCount": 82,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 1,
-      "maxCrapScore": 2,
+      "maxCyclomaticComplexity": 4,
+      "maxCrapScore": 20,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
@@ -27668,10 +27776,10 @@
         {
           "name": "ClassicDashboardShell",
           "startLine": 10,
-          "endLine": 79,
-          "cyclomaticComplexity": 1,
+          "endLine": 81,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 2,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -29549,38 +29657,38 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 530,
+      "linesCount": 526,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 31,
-      "maxCyclomaticComplexity": 68,
-      "maxCrapScore": 4692,
-      "crapLoad": 5220,
+      "maxCyclomaticComplexity": 67,
+      "maxCrapScore": 4556,
+      "crapLoad": 5042,
       "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "FloatingQADock",
-          "startLine": 28,
-          "endLine": 529,
-          "cyclomaticComplexity": 68,
+          "startLine": 29,
+          "endLine": 525,
+          "cyclomaticComplexity": 67,
           "coverageRatio": null,
-          "crapScore": 4692,
+          "crapScore": 4556,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 42,
-          "endLine": 87,
-          "cyclomaticComplexity": 21,
+          "startLine": 43,
+          "endLine": 83,
+          "cyclomaticComplexity": 20,
           "coverageRatio": null,
-          "crapScore": 462,
+          "crapScore": 420,
           "isCrappy": true
         },
         {
           "name": "executeLogin",
-          "startLine": 99,
-          "endLine": 134,
+          "startLine": 95,
+          "endLine": 130,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -34997,7 +35105,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 198,
+      "linesCount": 199,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -35010,7 +35118,7 @@
         {
           "name": "LegalPageContent",
           "startLine": 15,
-          "endLine": 197,
+          "endLine": 198,
           "cyclomaticComplexity": 31,
           "coverageRatio": null,
           "crapScore": 992,
@@ -35744,38 +35852,38 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 286,
+      "linesCount": 324,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 21,
-      "maxCyclomaticComplexity": 43,
-      "maxCrapScore": 1892,
-      "crapLoad": 2022,
+      "maxCyclomaticComplexity": 54,
+      "maxCrapScore": 2970,
+      "crapLoad": 3370,
       "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "OrderFilters",
-          "startLine": 24,
-          "endLine": 285,
-          "cyclomaticComplexity": 43,
+          "startLine": 26,
+          "endLine": 323,
+          "cyclomaticComplexity": 54,
           "coverageRatio": null,
-          "crapScore": 1892,
+          "crapScore": 2970,
           "isCrappy": true
         },
         {
           "name": "handleApplyFilters",
-          "startLine": 38,
-          "endLine": 67,
-          "cyclomaticComplexity": 10,
+          "startLine": 42,
+          "endLine": 93,
+          "cyclomaticComplexity": 19,
           "coverageRatio": null,
-          "crapScore": 110,
+          "crapScore": 380,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 247,
-          "endLine": 270,
+          "startLine": 279,
+          "endLine": 302,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -38805,6 +38913,33 @@
       ]
     },
     {
+      "id": "src/components/theme/TenantThemeInjector.tsx",
+      "label": "TenantThemeInjector.tsx",
+      "level": 3,
+      "layer": "Presentation",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 37,
+      "isClientComponent": false,
+      "exportsCount": 1,
+      "functionsCount": 1,
+      "maxCyclomaticComplexity": 4,
+      "maxCrapScore": 20,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "TenantThemeInjector",
+          "startLine": 14,
+          "endLine": 36,
+          "cyclomaticComplexity": 4,
+          "coverageRatio": null,
+          "crapScore": 20,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
       "id": "src/components/ThemeSwitcher.tsx",
       "label": "ThemeSwitcher.tsx",
       "level": 3,
@@ -40338,23 +40473,23 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 140,
+      "linesCount": 207,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 2,
-      "maxCrapScore": 6,
+      "maxCyclomaticComplexity": 5,
+      "maxCrapScore": 30,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "TenantLogo",
-          "startLine": 10,
-          "endLine": 136,
-          "cyclomaticComplexity": 2,
+          "startLine": 11,
+          "endLine": 203,
+          "cyclomaticComplexity": 5,
           "coverageRatio": null,
-          "crapScore": 6,
+          "crapScore": 30,
           "isCrappy": false
         }
       ]
@@ -40536,32 +40671,41 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 12,
+      "linesCount": 129,
       "isClientComponent": false,
-      "exportsCount": 1,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 2,
-      "maxCrapScore": 6,
-      "crapLoad": 0,
-      "crappyMethodsCount": 0,
+      "exportsCount": 8,
+      "functionsCount": 10,
+      "maxCyclomaticComplexity": 12,
+      "maxCrapScore": 156,
+      "crapLoad": 126,
+      "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "isValidTenant",
-          "startLine": 8,
-          "endLine": 11,
-          "cyclomaticComplexity": 2,
+          "name": "resolveCanonicalHost",
+          "startLine": 88,
+          "endLine": 117,
+          "cyclomaticComplexity": 12,
           "coverageRatio": null,
-          "crapScore": 6,
+          "crapScore": 156,
+          "isCrappy": true
+        },
+        {
+          "name": "normalizeTenantId",
+          "startLine": 55,
+          "endLine": 65,
+          "cyclomaticComplexity": 5,
+          "coverageRatio": null,
+          "crapScore": 30,
           "isCrappy": false
         },
         {
-          "name": "<anonymous>",
-          "startLine": 10,
-          "endLine": 10,
-          "cyclomaticComplexity": 1,
+          "name": "isValidTenant",
+          "startLine": 44,
+          "endLine": 48,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 2,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -40926,7 +41070,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 119,
+      "linesCount": 120,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 16,
@@ -40939,7 +41083,7 @@
         {
           "name": "useOrderManagement",
           "startLine": 9,
-          "endLine": 118,
+          "endLine": 119,
           "cyclomaticComplexity": 12,
           "coverageRatio": null,
           "crapScore": 156,
@@ -41673,20 +41817,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 137,
+      "linesCount": 193,
       "isClientComponent": false,
       "exportsCount": 3,
-      "functionsCount": 7,
-      "maxCyclomaticComplexity": 14,
-      "maxCrapScore": 210,
-      "crapLoad": 282,
-      "crappyMethodsCount": 2,
+      "functionsCount": 9,
+      "maxCyclomaticComplexity": 21,
+      "maxCrapScore": 462,
+      "crapLoad": 714,
+      "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
+          "name": "resolveAuditTenant",
+          "startLine": 13,
+          "endLine": 49,
+          "cyclomaticComplexity": 21,
+          "coverageRatio": null,
+          "crapScore": 462,
+          "isCrappy": true
+        },
+        {
           "name": "safeSerialize",
-          "startLine": 8,
-          "endLine": 72,
+          "startLine": 56,
+          "endLine": 120,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -41694,21 +41847,12 @@
         },
         {
           "name": "recurse",
-          "startLine": 13,
-          "endLine": 63,
+          "startLine": 61,
+          "endLine": 111,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
           "isCrappy": true
-        },
-        {
-          "name": "auditAdminAwaitable",
-          "startLine": 111,
-          "endLine": 135,
-          "cyclomaticComplexity": 3,
-          "coverageRatio": null,
-          "crapScore": 12,
-          "isCrappy": false
         }
       ]
     },
@@ -41718,42 +41862,42 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 126,
+      "linesCount": 263,
       "isClientComponent": false,
       "exportsCount": 0,
-      "functionsCount": 4,
-      "maxCyclomaticComplexity": 7,
-      "maxCrapScore": 56,
-      "crapLoad": 38,
-      "crappyMethodsCount": 2,
+      "functionsCount": 9,
+      "maxCyclomaticComplexity": 12,
+      "maxCrapScore": 156,
+      "crapLoad": 398,
+      "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "checkThresholdTrigger",
-          "startLine": 50,
-          "endLine": 85,
-          "cyclomaticComplexity": 7,
+          "name": "shouldSendAlert",
+          "startLine": 67,
+          "endLine": 131,
+          "cyclomaticComplexity": 12,
           "coverageRatio": null,
-          "crapScore": 56,
+          "crapScore": 156,
           "isCrappy": true
         },
         {
-          "name": "shouldSendAlert",
-          "startLine": 19,
-          "endLine": 43,
-          "cyclomaticComplexity": 6,
+          "name": "checkThresholdTrigger",
+          "startLine": 138,
+          "endLine": 176,
+          "cyclomaticComplexity": 11,
           "coverageRatio": null,
-          "crapScore": 42,
+          "crapScore": 132,
           "isCrappy": true
         },
         {
           "name": "checkDeduplicatedAlert",
-          "startLine": 104,
-          "endLine": 124,
-          "cyclomaticComplexity": 5,
+          "startLine": 197,
+          "endLine": 231,
+          "cyclomaticComplexity": 11,
           "coverageRatio": null,
-          "crapScore": 30,
-          "isCrappy": false
+          "crapScore": 132,
+          "isCrappy": true
         }
       ]
     },
@@ -42006,29 +42150,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 67,
+      "linesCount": 75,
       "isClientComponent": false,
       "exportsCount": 2,
       "functionsCount": 2,
-      "maxCyclomaticComplexity": 9,
-      "maxCrapScore": 90,
-      "crapLoad": 60,
+      "maxCyclomaticComplexity": 12,
+      "maxCrapScore": 156,
+      "crapLoad": 126,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "requireSession",
           "startLine": 28,
-          "endLine": 53,
-          "cyclomaticComplexity": 9,
+          "endLine": 61,
+          "cyclomaticComplexity": 12,
           "coverageRatio": null,
-          "crapScore": 90,
+          "crapScore": 156,
           "isCrappy": true
         },
         {
           "name": "requireStaffSession",
-          "startLine": 58,
-          "endLine": 66,
+          "startLine": 66,
+          "endLine": 74,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -42491,23 +42635,23 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 321,
+      "linesCount": 340,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 77,
-      "maxCrapScore": 6006,
-      "crapLoad": 5976,
+      "maxCyclomaticComplexity": 83,
+      "maxCrapScore": 6972,
+      "crapLoad": 6942,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "parseActionableError",
           "startLine": 35,
-          "endLine": 320,
-          "cyclomaticComplexity": 77,
+          "endLine": 339,
+          "cyclomaticComplexity": 83,
           "coverageRatio": null,
-          "crapScore": 6006,
+          "crapScore": 6972,
           "isCrappy": true
         }
       ]
@@ -43058,29 +43202,38 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 68,
+      "linesCount": 113,
       "isClientComponent": false,
-      "exportsCount": 2,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 4,
-      "maxCrapScore": 20,
+      "exportsCount": 3,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 5,
+      "maxCrapScore": 30,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "redactSensitiveTokens",
-          "startLine": 46,
-          "endLine": 55,
-          "cyclomaticComplexity": 4,
+          "name": "maskEmail",
+          "startLine": 12,
+          "endLine": 19,
+          "cyclomaticComplexity": 5,
           "coverageRatio": null,
-          "crapScore": 20,
+          "crapScore": 30,
+          "isCrappy": false
+        },
+        {
+          "name": "redactSensitiveTokens",
+          "startLine": 88,
+          "endLine": 101,
+          "cyclomaticComplexity": 5,
+          "coverageRatio": null,
+          "crapScore": 30,
           "isCrappy": false
         },
         {
           "name": "sanitizeLogObject",
-          "startLine": 57,
-          "endLine": 66,
+          "startLine": 103,
+          "endLine": 112,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -43094,41 +43247,41 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 107,
+      "linesCount": 160,
       "isClientComponent": false,
-      "exportsCount": 0,
-      "functionsCount": 7,
-      "maxCyclomaticComplexity": 11,
-      "maxCrapScore": 132,
-      "crapLoad": 306,
-      "crappyMethodsCount": 3,
+      "exportsCount": 5,
+      "functionsCount": 12,
+      "maxCyclomaticComplexity": 15,
+      "maxCrapScore": 240,
+      "crapLoad": 732,
+      "crappyMethodsCount": 4,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "createLoggerFromBase",
-          "startLine": 77,
-          "endLine": 104,
-          "cyclomaticComplexity": 11,
+          "startLine": 128,
+          "endLine": 157,
+          "cyclomaticComplexity": 15,
           "coverageRatio": null,
-          "crapScore": 132,
+          "crapScore": 240,
           "isCrappy": true
         },
         {
           "name": "log",
-          "startLine": 78,
-          "endLine": 95,
-          "cyclomaticComplexity": 11,
+          "startLine": 129,
+          "endLine": 148,
+          "cyclomaticComplexity": 15,
           "coverageRatio": null,
-          "crapScore": 132,
+          "crapScore": 240,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 78,
-          "endLine": 95,
-          "cyclomaticComplexity": 11,
+          "startLine": 129,
+          "endLine": 148,
+          "cyclomaticComplexity": 15,
           "coverageRatio": null,
-          "crapScore": 132,
+          "crapScore": 240,
           "isCrappy": true
         }
       ]
@@ -43830,7 +43983,7 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 239,
+      "linesCount": 240,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 13,
@@ -43842,8 +43995,8 @@
       "topRiskFunctions": [
         {
           "name": "createTenantEnforcerExtension",
-          "startLine": 76,
-          "endLine": 238,
+          "startLine": 77,
+          "endLine": 239,
           "cyclomaticComplexity": 48,
           "coverageRatio": null,
           "crapScore": 2352,
@@ -43851,8 +44004,8 @@
         },
         {
           "name": "applyTenantWhereClause",
-          "startLine": 28,
-          "endLine": 74,
+          "startLine": 29,
+          "endLine": 75,
           "cyclomaticComplexity": 16,
           "coverageRatio": null,
           "crapScore": 272,
@@ -43860,8 +44013,8 @@
         },
         {
           "name": "findUnique",
-          "startLine": 105,
-          "endLine": 136,
+          "startLine": 106,
+          "endLine": 137,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -44037,20 +44190,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 510,
+      "linesCount": 592,
       "isClientComponent": false,
-      "exportsCount": 14,
-      "functionsCount": 29,
-      "maxCyclomaticComplexity": 11,
-      "maxCrapScore": 132,
-      "crapLoad": 144,
-      "crappyMethodsCount": 2,
+      "exportsCount": 16,
+      "functionsCount": 33,
+      "maxCyclomaticComplexity": 14,
+      "maxCrapScore": 210,
+      "crapLoad": 324,
+      "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
+          "name": "enrichJobPayload",
+          "startLine": 15,
+          "endLine": 36,
+          "cyclomaticComplexity": 14,
+          "coverageRatio": null,
+          "crapScore": 210,
+          "isCrappy": true
+        },
+        {
           "name": "getRedisConnection",
-          "startLine": 16,
-          "endLine": 48,
+          "startLine": 48,
+          "endLine": 80,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -44058,21 +44220,12 @@
         },
         {
           "name": "createQueue",
-          "startLine": 57,
-          "endLine": 95,
+          "startLine": 89,
+          "endLine": 138,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
           "isCrappy": true
-        },
-        {
-          "name": "getQueuePrefix",
-          "startLine": 9,
-          "endLine": 14,
-          "cyclomaticComplexity": 4,
-          "coverageRatio": null,
-          "crapScore": 20,
-          "isCrappy": false
         }
       ]
     },
@@ -44099,10 +44252,10 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 101,
+      "linesCount": 152,
       "isClientComponent": false,
       "exportsCount": 0,
-      "functionsCount": 6,
+      "functionsCount": 9,
       "maxCyclomaticComplexity": 4,
       "maxCrapScore": 20,
       "crapLoad": 0,
@@ -44333,10 +44486,10 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 38,
+      "linesCount": 68,
       "isClientComponent": false,
-      "exportsCount": 2,
-      "functionsCount": 2,
+      "exportsCount": 4,
+      "functionsCount": 4,
       "maxCyclomaticComplexity": 2,
       "maxCrapScore": 6,
       "crapLoad": 0,
@@ -44344,9 +44497,18 @@
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
+          "name": "escapeHtml",
+          "startLine": 7,
+          "endLine": 15,
+          "cyclomaticComplexity": 2,
+          "coverageRatio": null,
+          "crapScore": 6,
+          "isCrappy": false
+        },
+        {
           "name": "sanitizeServiceDescription",
-          "startLine": 5,
-          "endLine": 12,
+          "startLine": 19,
+          "endLine": 26,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -44354,8 +44516,8 @@
         },
         {
           "name": "sanitizeArticleHtml",
-          "startLine": 14,
-          "endLine": 37,
+          "startLine": 28,
+          "endLine": 51,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -44545,6 +44707,42 @@
           "name": "createPowChallenge",
           "startLine": 21,
           "endLine": 38,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/lib/security/ddos-shield/shield-secret.ts",
+      "label": "shield-secret.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 41,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 7,
+      "maxCrapScore": 56,
+      "crapLoad": 26,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "getShieldSecret",
+          "startLine": 13,
+          "endLine": 35,
+          "cyclomaticComplexity": 7,
+          "coverageRatio": null,
+          "crapScore": 56,
+          "isCrappy": true
+        },
+        {
+          "name": "_resetDevShieldSecretForTest",
+          "startLine": 38,
+          "endLine": 40,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -44855,44 +45053,16 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 73,
+      "linesCount": 17,
       "isClientComponent": false,
-      "exportsCount": 5,
-      "functionsCount": 5,
-      "maxCyclomaticComplexity": 28,
-      "maxCrapScore": 812,
-      "crapLoad": 782,
-      "crappyMethodsCount": 1,
+      "exportsCount": 1,
+      "functionsCount": 0,
+      "maxCyclomaticComplexity": 1,
+      "maxCrapScore": 1,
+      "crapLoad": 0,
+      "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
-      "topRiskFunctions": [
-        {
-          "name": "resolveCanonicalHost",
-          "startLine": 16,
-          "endLine": 52,
-          "cyclomaticComplexity": 28,
-          "coverageRatio": null,
-          "crapScore": 812,
-          "isCrappy": true
-        },
-        {
-          "name": "normalizeTenantId",
-          "startLine": 1,
-          "endLine": 6,
-          "cyclomaticComplexity": 5,
-          "coverageRatio": null,
-          "crapScore": 30,
-          "isCrappy": false
-        },
-        {
-          "name": "getTenantSiteName",
-          "startLine": 58,
-          "endLine": 64,
-          "cyclomaticComplexity": 3,
-          "coverageRatio": null,
-          "crapScore": 12,
-          "isCrappy": false
-        }
-      ]
+      "topRiskFunctions": []
     },
     {
       "id": "src/lib/server/rbac.ts",
@@ -44900,29 +45070,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 350,
+      "linesCount": 368,
       "isClientComponent": false,
       "exportsCount": 5,
       "functionsCount": 28,
-      "maxCyclomaticComplexity": 35,
-      "maxCrapScore": 1260,
-      "crapLoad": 2166,
+      "maxCyclomaticComplexity": 37,
+      "maxCrapScore": 1406,
+      "crapLoad": 2342,
       "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "requireStaffPermission",
           "startLine": 65,
-          "endLine": 176,
-          "cyclomaticComplexity": 35,
+          "endLine": 185,
+          "cyclomaticComplexity": 37,
           "coverageRatio": null,
-          "crapScore": 1260,
+          "crapScore": 1406,
           "isCrappy": true
         },
         {
           "name": "enforceAnySectionAccess",
-          "startLine": 305,
-          "endLine": 349,
+          "startLine": 323,
+          "endLine": 367,
           "cyclomaticComplexity": 23,
           "coverageRatio": null,
           "crapScore": 552,
@@ -44930,8 +45100,8 @@
         },
         {
           "name": "enforceSectionAccess",
-          "startLine": 257,
-          "endLine": 295,
+          "startLine": 275,
+          "endLine": 313,
           "cyclomaticComplexity": 20,
           "coverageRatio": null,
           "crapScore": 420,
@@ -44990,29 +45160,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 341,
+      "linesCount": 378,
       "isClientComponent": false,
       "exportsCount": 5,
       "functionsCount": 9,
-      "maxCyclomaticComplexity": 52,
-      "maxCrapScore": 2756,
-      "crapLoad": 2938,
+      "maxCyclomaticComplexity": 70,
+      "maxCrapScore": 4970,
+      "crapLoad": 5152,
       "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "verifySession",
-          "startLine": 106,
-          "endLine": 302,
-          "cyclomaticComplexity": 52,
+          "startLine": 107,
+          "endLine": 339,
+          "cyclomaticComplexity": 70,
           "coverageRatio": null,
-          "crapScore": 2756,
+          "crapScore": 4970,
           "isCrappy": true
         },
         {
           "name": "createSession",
-          "startLine": 27,
-          "endLine": 104,
+          "startLine": 28,
+          "endLine": 105,
           "cyclomaticComplexity": 13,
           "coverageRatio": null,
           "crapScore": 182,
@@ -45020,8 +45190,8 @@
         },
         {
           "name": "handleDevAutoLogin",
-          "startLine": 315,
-          "endLine": 337,
+          "startLine": 352,
+          "endLine": 374,
           "cyclomaticComplexity": 9,
           "coverageRatio": null,
           "crapScore": 90,
@@ -45035,41 +45205,41 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 660,
+      "linesCount": 711,
       "isClientComponent": false,
-      "exportsCount": 0,
-      "functionsCount": 38,
-      "maxCyclomaticComplexity": 39,
-      "maxCrapScore": 1560,
-      "crapLoad": 2834,
-      "crappyMethodsCount": 10,
+      "exportsCount": 1,
+      "functionsCount": 39,
+      "maxCyclomaticComplexity": 42,
+      "maxCrapScore": 1806,
+      "crapLoad": 2694,
+      "crappyMethodsCount": 9,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "getPaymentSecrets",
-          "startLine": 267,
-          "endLine": 329,
-          "cyclomaticComplexity": 39,
+          "startLine": 309,
+          "endLine": 380,
+          "cyclomaticComplexity": 42,
           "coverageRatio": null,
-          "crapScore": 1560,
-          "isCrappy": true
-        },
-        {
-          "name": "get",
-          "startLine": 167,
-          "endLine": 262,
-          "cyclomaticComplexity": 21,
-          "coverageRatio": null,
-          "crapScore": 462,
+          "crapScore": 1806,
           "isCrappy": true
         },
         {
           "name": "getContactAndLegalSettings",
-          "startLine": 385,
-          "endLine": 410,
-          "cyclomaticComplexity": 19,
+          "startLine": 436,
+          "endLine": 461,
+          "cyclomaticComplexity": 17,
           "coverageRatio": null,
-          "crapScore": 380,
+          "crapScore": 306,
+          "isCrappy": true
+        },
+        {
+          "name": "getEmailSettings",
+          "startLine": 385,
+          "endLine": 413,
+          "cyclomaticComplexity": 16,
+          "coverageRatio": null,
+          "crapScore": 272,
           "isCrappy": true
         }
       ]
@@ -45080,23 +45250,23 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 465,
+      "linesCount": 470,
       "isClientComponent": false,
       "exportsCount": 11,
       "functionsCount": 23,
-      "maxCyclomaticComplexity": 13,
-      "maxCrapScore": 182,
-      "crapLoad": 288,
+      "maxCyclomaticComplexity": 16,
+      "maxCrapScore": 272,
+      "crapLoad": 378,
       "crappyMethodsCount": 6,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "sendMagicLink",
           "startLine": 200,
-          "endLine": 248,
-          "cyclomaticComplexity": 13,
+          "endLine": 253,
+          "cyclomaticComplexity": 16,
           "coverageRatio": null,
-          "crapScore": 182,
+          "crapScore": 272,
           "isCrappy": true
         },
         {
@@ -45242,23 +45412,32 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 112,
+      "linesCount": 184,
       "isClientComponent": false,
-      "exportsCount": 5,
-      "functionsCount": 5,
-      "maxCyclomaticComplexity": 12,
-      "maxCrapScore": 156,
-      "crapLoad": 126,
-      "crappyMethodsCount": 1,
+      "exportsCount": 6,
+      "functionsCount": 6,
+      "maxCyclomaticComplexity": 17,
+      "maxCrapScore": 306,
+      "crapLoad": 428,
+      "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "resolveTelegramToken",
-          "startLine": 74,
-          "endLine": 111,
-          "cyclomaticComplexity": 12,
+          "startLine": 75,
+          "endLine": 140,
+          "cyclomaticComplexity": 17,
           "coverageRatio": null,
-          "crapScore": 156,
+          "crapScore": 306,
+          "isCrappy": true
+        },
+        {
+          "name": "resolveTelegramWebhookSecret",
+          "startLine": 148,
+          "endLine": 183,
+          "cyclomaticComplexity": 13,
+          "coverageRatio": null,
+          "crapScore": 182,
           "isCrappy": true
         },
         {
@@ -45269,14 +45448,41 @@
           "coverageRatio": null,
           "crapScore": 30,
           "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/lib/telegram/webhook-handler.ts",
+      "label": "webhook-handler.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 119,
+      "isClientComponent": false,
+      "exportsCount": 1,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 29,
+      "maxCrapScore": 870,
+      "crapLoad": 840,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "handleTelegramWebhookRequest",
+          "startLine": 15,
+          "endLine": 118,
+          "cyclomaticComplexity": 29,
+          "coverageRatio": null,
+          "crapScore": 870,
+          "isCrappy": true
         },
         {
-          "name": "isValidTelegramToken",
-          "startLine": 43,
-          "endLine": 48,
-          "cyclomaticComplexity": 3,
+          "name": "<anonymous>",
+          "startLine": 114,
+          "endLine": 114,
+          "cyclomaticComplexity": 1,
           "coverageRatio": null,
-          "crapScore": 12,
+          "crapScore": 2,
           "isCrappy": false
         }
       ]
@@ -45327,47 +45533,92 @@
       ]
     },
     {
+      "id": "src/lib/telemetry/bullmq-bridge.ts",
+      "label": "bullmq-bridge.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 52,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 11,
+      "maxCrapScore": 132,
+      "crapLoad": 102,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "extractJobTraceContext",
+          "startLine": 19,
+          "endLine": 25,
+          "cyclomaticComplexity": 11,
+          "coverageRatio": null,
+          "crapScore": 132,
+          "isCrappy": true
+        },
+        {
+          "name": "wrapWorkerProcessor",
+          "startLine": 31,
+          "endLine": 51,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 35,
+          "endLine": 50,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
       "id": "src/lib/telemetry/error-interpreter.ts",
       "label": "error-interpreter.ts",
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 224,
+      "linesCount": 434,
       "isClientComponent": false,
-      "exportsCount": 0,
-      "functionsCount": 3,
+      "exportsCount": 1,
+      "functionsCount": 6,
       "maxCyclomaticComplexity": 34,
       "maxCrapScore": 1190,
-      "crapLoad": 1312,
-      "crappyMethodsCount": 2,
+      "crapLoad": 1882,
+      "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "interpret",
-          "startLine": 34,
-          "endLine": 161,
+          "startLine": 229,
+          "endLine": 356,
           "cyclomaticComplexity": 34,
           "coverageRatio": null,
           "crapScore": 1190,
           "isCrappy": true
         },
         {
+          "name": "sanitize",
+          "startLine": 87,
+          "endLine": 211,
+          "cyclomaticComplexity": 24,
+          "coverageRatio": null,
+          "crapScore": 600,
+          "isCrappy": true
+        },
+        {
           "name": "formatTelegramMessage",
-          "startLine": 166,
-          "endLine": 222,
+          "startLine": 361,
+          "endLine": 417,
           "cyclomaticComplexity": 13,
           "coverageRatio": null,
           "crapScore": 182,
           "isCrappy": true
-        },
-        {
-          "name": "escapeHtml",
-          "startLine": 23,
-          "endLine": 29,
-          "cyclomaticComplexity": 2,
-          "coverageRatio": null,
-          "crapScore": 6,
-          "isCrappy": false
         }
       ]
     },
@@ -45422,20 +45673,20 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 98,
+      "linesCount": 151,
       "isClientComponent": false,
-      "exportsCount": 5,
-      "functionsCount": 5,
+      "exportsCount": 9,
+      "functionsCount": 9,
       "maxCyclomaticComplexity": 18,
       "maxCrapScore": 342,
-      "crapLoad": 338,
-      "crappyMethodsCount": 2,
+      "crapLoad": 530,
+      "crappyMethodsCount": 4,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "resolveContourFromHost",
-          "startLine": 41,
-          "endLine": 61,
+          "startLine": 72,
+          "endLine": 92,
           "cyclomaticComplexity": 18,
           "coverageRatio": null,
           "crapScore": 342,
@@ -45443,21 +45694,21 @@
         },
         {
           "name": "resolveTenantFromHostEdge",
-          "startLine": 66,
-          "endLine": 73,
+          "startLine": 97,
+          "endLine": 114,
+          "cyclomaticComplexity": 14,
+          "coverageRatio": null,
+          "crapScore": 210,
+          "isCrappy": true
+        },
+        {
+          "name": "sanitizeTenantSlug",
+          "startLine": 119,
+          "endLine": 126,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
           "isCrappy": true
-        },
-        {
-          "name": "normalizeTenantId",
-          "startLine": 80,
-          "endLine": 88,
-          "cyclomaticComplexity": 5,
-          "coverageRatio": null,
-          "crapScore": 30,
-          "isCrappy": false
         }
       ]
     },
@@ -45512,10 +45763,10 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 83,
+      "linesCount": 82,
       "isClientComponent": false,
       "exportsCount": 5,
-      "functionsCount": 5,
+      "functionsCount": 6,
       "maxCyclomaticComplexity": 8,
       "maxCrapScore": 72,
       "crapLoad": 54,
@@ -45524,8 +45775,8 @@
       "topRiskFunctions": [
         {
           "name": "requireTenantId",
-          "startLine": 22,
-          "endLine": 28,
+          "startLine": 24,
+          "endLine": 30,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -45533,8 +45784,8 @@
         },
         {
           "name": "assertSameTenant",
-          "startLine": 38,
-          "endLine": 43,
+          "startLine": 40,
+          "endLine": 45,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -45542,11 +45793,11 @@
         },
         {
           "name": "normalizeTenantId",
-          "startLine": 71,
-          "endLine": 81,
-          "cyclomaticComplexity": 5,
+          "startLine": 73,
+          "endLine": 80,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 30,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -45754,41 +46005,41 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 736,
+      "linesCount": 823,
       "isClientComponent": false,
-      "exportsCount": 5,
-      "functionsCount": 13,
-      "maxCyclomaticComplexity": 195,
-      "maxCrapScore": 38220,
-      "crapLoad": 38658,
-      "crappyMethodsCount": 5,
+      "exportsCount": 7,
+      "functionsCount": 15,
+      "maxCyclomaticComplexity": 220,
+      "maxCrapScore": 48620,
+      "crapLoad": 49266,
+      "crappyMethodsCount": 7,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "proxy",
-          "startLine": 262,
-          "endLine": 723,
-          "cyclomaticComplexity": 195,
+          "startLine": 317,
+          "endLine": 810,
+          "cyclomaticComplexity": 220,
           "coverageRatio": null,
-          "crapScore": 38220,
+          "crapScore": 48620,
+          "isCrappy": true
+        },
+        {
+          "name": "isAllowedCorsOrigin",
+          "startLine": 227,
+          "endLine": 264,
+          "cyclomaticComplexity": 17,
+          "coverageRatio": null,
+          "crapScore": 306,
           "isCrappy": true
         },
         {
           "name": "isKnownOrAllowedHost",
-          "startLine": 161,
-          "endLine": 209,
-          "cyclomaticComplexity": 15,
+          "startLine": 171,
+          "endLine": 220,
+          "cyclomaticComplexity": 14,
           "coverageRatio": null,
-          "crapScore": 240,
-          "isCrappy": true
-        },
-        {
-          "name": "isInternalHost",
-          "startLine": 139,
-          "endLine": 156,
-          "cyclomaticComplexity": 13,
-          "coverageRatio": null,
-          "crapScore": 182,
+          "crapScore": 210,
           "isCrappy": true
         }
       ]
@@ -45844,7 +46095,7 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 66,
+      "linesCount": 80,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 0,
@@ -46746,29 +46997,29 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 422,
+      "linesCount": 435,
       "isClientComponent": false,
       "exportsCount": 0,
-      "functionsCount": 12,
-      "maxCyclomaticComplexity": 95,
-      "maxCrapScore": 9120,
-      "crapLoad": 9090,
+      "functionsCount": 13,
+      "maxCyclomaticComplexity": 97,
+      "maxCrapScore": 9506,
+      "crapLoad": 9476,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "importServices",
           "startLine": 75,
-          "endLine": 420,
-          "cyclomaticComplexity": 95,
+          "endLine": 433,
+          "cyclomaticComplexity": 97,
           "coverageRatio": null,
-          "crapScore": 9120,
+          "crapScore": 9506,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 405,
-          "endLine": 408,
+          "startLine": 418,
+          "endLine": 421,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -46776,8 +47027,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 92,
-          "endLine": 92,
+          "startLine": 94,
+          "endLine": 94,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -46836,7 +47087,7 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 643,
+      "linesCount": 647,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 18,
@@ -46858,7 +47109,7 @@
         {
           "name": "syncProviderCatalog",
           "startLine": 239,
-          "endLine": 483,
+          "endLine": 485,
           "cyclomaticComplexity": 34,
           "coverageRatio": null,
           "crapScore": 1190,
@@ -47694,25 +47945,25 @@
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 8,
-      "maxCyclomaticComplexity": 5,
-      "maxCrapScore": 30,
+      "maxCyclomaticComplexity": 4,
+      "maxCrapScore": 20,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
-          "name": "getSystemSettings",
-          "startLine": 92,
-          "endLine": 105,
-          "cyclomaticComplexity": 5,
-          "coverageRatio": null,
-          "crapScore": 30,
-          "isCrappy": false
-        },
-        {
           "name": "updateUserRole",
           "startLine": 55,
           "endLine": 68,
+          "cyclomaticComplexity": 4,
+          "coverageRatio": null,
+          "crapScore": 20,
+          "isCrappy": false
+        },
+        {
+          "name": "getSystemSettings",
+          "startLine": 92,
+          "endLine": 105,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -48844,6 +49095,51 @@
       ]
     },
     {
+      "id": "src/services/catalog/catalog-cache.service.ts",
+      "label": "catalog-cache.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "CATALOG_INGESTION",
+      "linesCount": 255,
+      "isClientComponent": false,
+      "exportsCount": 6,
+      "functionsCount": 16,
+      "maxCyclomaticComplexity": 9,
+      "maxCrapScore": 90,
+      "crapLoad": 60,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "invalidateCatalogCache",
+          "startLine": 215,
+          "endLine": 254,
+          "cyclomaticComplexity": 9,
+          "coverageRatio": null,
+          "crapScore": 90,
+          "isCrappy": true
+        },
+        {
+          "name": "getCachedNetworksWithRedis",
+          "startLine": 67,
+          "endLine": 93,
+          "cyclomaticComplexity": 5,
+          "coverageRatio": null,
+          "crapScore": 30,
+          "isCrappy": false
+        },
+        {
+          "name": "getCachedCategoryServicesWithRedis",
+          "startLine": 98,
+          "endLine": 125,
+          "cyclomaticComplexity": 5,
+          "coverageRatio": null,
+          "crapScore": 30,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
       "id": "src/services/catalog/link-guide.service.ts",
       "label": "link-guide.service.ts",
       "level": 1,
@@ -49497,13 +49793,13 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 818,
+      "linesCount": 819,
       "isClientComponent": false,
       "exportsCount": 4,
       "functionsCount": 20,
       "maxCyclomaticComplexity": 30,
       "maxCrapScore": 930,
-      "crapLoad": 3942,
+      "crapLoad": 3954,
       "crappyMethodsCount": 10,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
@@ -49517,18 +49813,18 @@
           "isCrappy": true
         },
         {
-          "name": "createPayment",
-          "startLine": 447,
-          "endLine": 534,
-          "cyclomaticComplexity": 29,
-          "coverageRatio": null,
-          "crapScore": 870,
-          "isCrappy": true
-        },
-        {
           "name": "executeRefund",
           "startLine": 336,
           "endLine": 443,
+          "cyclomaticComplexity": 28,
+          "coverageRatio": null,
+          "crapScore": 812,
+          "isCrappy": true
+        },
+        {
+          "name": "createPayment",
+          "startLine": 447,
+          "endLine": 535,
           "cyclomaticComplexity": 28,
           "coverageRatio": null,
           "crapScore": 812,
@@ -49542,23 +49838,23 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 580,
+      "linesCount": 581,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 12,
-      "maxCyclomaticComplexity": 82,
-      "maxCrapScore": 6806,
-      "crapLoad": 10360,
+      "maxCyclomaticComplexity": 83,
+      "maxCrapScore": 6972,
+      "crapLoad": 10526,
       "crappyMethodsCount": 6,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "confirmPayment",
           "startLine": 26,
-          "endLine": 374,
-          "cyclomaticComplexity": 82,
+          "endLine": 375,
+          "cyclomaticComplexity": 83,
           "coverageRatio": null,
-          "crapScore": 6806,
+          "crapScore": 6972,
           "isCrappy": true
         },
         {
@@ -49572,8 +49868,8 @@
         },
         {
           "name": "confirmPaymentById",
-          "startLine": 433,
-          "endLine": 575,
+          "startLine": 434,
+          "endLine": 576,
           "cyclomaticComplexity": 27,
           "coverageRatio": null,
           "crapScore": 756,
@@ -49631,6 +49927,51 @@
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/services/financial/robokassa-webhook.handler.ts",
+      "label": "robokassa-webhook.handler.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "FINTECH_LEDGER",
+      "linesCount": 212,
+      "isClientComponent": false,
+      "exportsCount": 1,
+      "functionsCount": 3,
+      "maxCyclomaticComplexity": 48,
+      "maxCrapScore": 2352,
+      "crapLoad": 2424,
+      "crappyMethodsCount": 2,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "handleRobokassaWebhookRequest",
+          "startLine": 18,
+          "endLine": 211,
+          "cyclomaticComplexity": 48,
+          "coverageRatio": null,
+          "crapScore": 2352,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 155,
+          "endLine": 200,
+          "cyclomaticComplexity": 11,
+          "coverageRatio": null,
+          "crapScore": 132,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 38,
+          "endLine": 38,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
           "isCrappy": false
         }
       ]
@@ -49713,7 +50054,7 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 503,
+      "linesCount": 511,
       "isClientComponent": false,
       "exportsCount": 2,
       "functionsCount": 8,
@@ -49725,8 +50066,8 @@
       "topRiskFunctions": [
         {
           "name": "charge",
-          "startLine": 55,
-          "endLine": 161,
+          "startLine": 63,
+          "endLine": 169,
           "cyclomaticComplexity": 27,
           "coverageRatio": null,
           "crapScore": 756,
@@ -49734,8 +50075,8 @@
         },
         {
           "name": "credit",
-          "startLine": 166,
-          "endLine": 246,
+          "startLine": 174,
+          "endLine": 254,
           "cyclomaticComplexity": 24,
           "coverageRatio": null,
           "crapScore": 600,
@@ -49743,8 +50084,8 @@
         },
         {
           "name": "adminAdjust",
-          "startLine": 252,
-          "endLine": 319,
+          "startLine": 260,
+          "endLine": 327,
           "cyclomaticComplexity": 15,
           "coverageRatio": null,
           "crapScore": 240,
@@ -49829,6 +50170,51 @@
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/services/financial/yookassa-webhook.handler.ts",
+      "label": "yookassa-webhook.handler.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "FINTECH_LEDGER",
+      "linesCount": 316,
+      "isClientComponent": false,
+      "exportsCount": 1,
+      "functionsCount": 6,
+      "maxCyclomaticComplexity": 75,
+      "maxCrapScore": 5700,
+      "crapLoad": 5696,
+      "crappyMethodsCount": 2,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "handleYooKassaWebhookRequest",
+          "startLine": 75,
+          "endLine": 315,
+          "cyclomaticComplexity": 75,
+          "coverageRatio": null,
+          "crapScore": 5700,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 279,
+          "endLine": 301,
+          "cyclomaticComplexity": 7,
+          "coverageRatio": null,
+          "crapScore": 56,
+          "isCrappy": true
+        },
+        {
+          "name": "rubToKopecks",
+          "startLine": 55,
+          "endLine": 73,
+          "cyclomaticComplexity": 4,
+          "coverageRatio": null,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -50473,6 +50859,42 @@
       ]
     },
     {
+      "id": "src/services/orders/keyset-pagination.service.ts",
+      "label": "keyset-pagination.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "ORDERS_CHECKOUT",
+      "linesCount": 258,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 16,
+      "maxCrapScore": 272,
+      "crapLoad": 242,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "fetchCustomerOrdersKeyset",
+          "startLine": 105,
+          "endLine": 257,
+          "cyclomaticComplexity": 16,
+          "coverageRatio": null,
+          "crapScore": 272,
+          "isCrappy": true
+        },
+        {
+          "name": "buildKeysetFilter",
+          "startLine": 43,
+          "endLine": 81,
+          "cyclomaticComplexity": 3,
+          "coverageRatio": null,
+          "crapScore": 12,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
       "id": "src/services/orders/order-triage-alert.service.ts",
       "label": "order-triage-alert.service.ts",
       "level": 1,
@@ -51054,7 +51476,7 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 321,
+      "linesCount": 323,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 8,
@@ -51067,7 +51489,7 @@
         {
           "name": "checkAndFlushProvider",
           "startLine": 83,
-          "endLine": 296,
+          "endLine": 298,
           "cyclomaticComplexity": 36,
           "coverageRatio": null,
           "crapScore": 1332,
@@ -51075,8 +51497,8 @@
         },
         {
           "name": "sweepAllProviders",
-          "startLine": 301,
-          "endLine": 319,
+          "startLine": 303,
+          "endLine": 321,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -52187,14 +52609,14 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 414,
+      "linesCount": 409,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 13,
       "maxCyclomaticComplexity": 34,
       "maxCrapScore": 1190,
-      "crapLoad": 2022,
-      "crappyMethodsCount": 6,
+      "crapLoad": 1996,
+      "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
@@ -52208,20 +52630,20 @@
         },
         {
           "name": "sendSupportReply",
-          "startLine": 209,
-          "endLine": 280,
-          "cyclomaticComplexity": 26,
+          "startLine": 203,
+          "endLine": 275,
+          "cyclomaticComplexity": 27,
           "coverageRatio": null,
-          "crapScore": 702,
+          "crapScore": 756,
           "isCrappy": true
         },
         {
-          "name": "getBotToken",
-          "startLine": 140,
-          "endLine": 157,
-          "cyclomaticComplexity": 10,
+          "name": "formatTelegramError",
+          "startLine": 188,
+          "endLine": 197,
+          "cyclomaticComplexity": 8,
           "coverageRatio": null,
-          "crapScore": 110,
+          "crapScore": 72,
           "isCrappy": true
         }
       ]
@@ -52623,6 +53045,141 @@
       ]
     },
     {
+      "id": "src/services/tenant/domain-registry.service.ts",
+      "label": "domain-registry.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "MULTI_TENANT_CORE",
+      "linesCount": 411,
+      "isClientComponent": false,
+      "exportsCount": 0,
+      "functionsCount": 11,
+      "maxCyclomaticComplexity": 23,
+      "maxCrapScore": 552,
+      "crapLoad": 1166,
+      "crappyMethodsCount": 8,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "resolveDomain",
+          "startLine": 143,
+          "endLine": 280,
+          "cyclomaticComplexity": 23,
+          "coverageRatio": null,
+          "crapScore": 552,
+          "isCrappy": true
+        },
+        {
+          "name": "registerDomain",
+          "startLine": 293,
+          "endLine": 360,
+          "cyclomaticComplexity": 15,
+          "coverageRatio": null,
+          "crapScore": 240,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 180,
+          "endLine": 272,
+          "cyclomaticComplexity": 13,
+          "coverageRatio": null,
+          "crapScore": 182,
+          "isCrappy": true
+        }
+      ]
+    },
+    {
+      "id": "src/services/tenant/domain-verification.service.ts",
+      "label": "domain-verification.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "MULTI_TENANT_CORE",
+      "linesCount": 289,
+      "isClientComponent": false,
+      "exportsCount": 0,
+      "functionsCount": 9,
+      "maxCyclomaticComplexity": 16,
+      "maxCrapScore": 272,
+      "crapLoad": 368,
+      "crappyMethodsCount": 2,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "checkDns",
+          "startLine": 74,
+          "endLine": 134,
+          "cyclomaticComplexity": 16,
+          "coverageRatio": null,
+          "crapScore": 272,
+          "isCrappy": true
+        },
+        {
+          "name": "verifyDomain",
+          "startLine": 181,
+          "endLine": 259,
+          "cyclomaticComplexity": 12,
+          "coverageRatio": null,
+          "crapScore": 156,
+          "isCrappy": true
+        },
+        {
+          "name": "generateDomainMeta",
+          "startLine": 50,
+          "endLine": 69,
+          "cyclomaticComplexity": 4,
+          "coverageRatio": null,
+          "crapScore": 20,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
+      "id": "src/services/tenant/tenant-theme.service.ts",
+      "label": "tenant-theme.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "MULTI_TENANT_CORE",
+      "linesCount": 389,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 8,
+      "maxCyclomaticComplexity": 17,
+      "maxCrapScore": 306,
+      "crapLoad": 682,
+      "crappyMethodsCount": 4,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "generateCss",
+          "startLine": 347,
+          "endLine": 387,
+          "cyclomaticComplexity": 17,
+          "coverageRatio": null,
+          "crapScore": 306,
+          "isCrappy": true
+        },
+        {
+          "name": "mergeWithPreset",
+          "startLine": 283,
+          "endLine": 303,
+          "cyclomaticComplexity": 16,
+          "coverageRatio": null,
+          "crapScore": 272,
+          "isCrappy": true
+        },
+        {
+          "name": "getTheme",
+          "startLine": 208,
+          "endLine": 278,
+          "cyclomaticComplexity": 13,
+          "coverageRatio": null,
+          "crapScore": 182,
+          "isCrappy": true
+        }
+      ]
+    },
+    {
       "id": "src/services/user/account-deletion.service.ts",
       "label": "account-deletion.service.ts",
       "level": 1,
@@ -52776,8 +53333,8 @@
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 4,
-      "maxCrapScore": 20,
+      "maxCyclomaticComplexity": 5,
+      "maxCrapScore": 30,
       "crapLoad": 0,
       "crappyMethodsCount": 0,
       "coverageStatus": "UNMEASURED",
@@ -52786,9 +53343,9 @@
           "name": "getTenantDashboardViews",
           "startLine": 9,
           "endLine": 26,
-          "cyclomaticComplexity": 4,
+          "cyclomaticComplexity": 5,
           "coverageRatio": null,
-          "crapScore": 20,
+          "crapScore": 30,
           "isCrappy": false
         }
       ]
@@ -52852,10 +53409,10 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "MULTI_TENANT_CORE",
-      "linesCount": 21,
+      "linesCount": 22,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 5,
+      "functionsCount": 4,
       "maxCyclomaticComplexity": 2,
       "maxCrapScore": 6,
       "crapLoad": 0,
@@ -52864,8 +53421,8 @@
       "topRiskFunctions": [
         {
           "name": "registerTenant",
-          "startLine": 6,
-          "endLine": 11,
+          "startLine": 7,
+          "endLine": 12,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -52873,17 +53430,17 @@
         },
         {
           "name": "getTenantLoader",
-          "startLine": 13,
-          "endLine": 15,
-          "cyclomaticComplexity": 1,
+          "startLine": 14,
+          "endLine": 17,
+          "cyclomaticComplexity": 2,
           "coverageRatio": null,
-          "crapScore": 2,
+          "crapScore": 6,
           "isCrappy": false
         },
         {
           "name": "<anonymous>",
-          "startLine": 18,
-          "endLine": 18,
+          "startLine": 20,
+          "endLine": 20,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -54669,7 +55226,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 312,
+      "linesCount": 313,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 36,
@@ -54682,7 +55239,7 @@
         {
           "name": "handleDeadLetter",
           "startLine": 114,
-          "endLine": 207,
+          "endLine": 208,
           "cyclomaticComplexity": 23,
           "coverageRatio": null,
           "crapScore": 552,
@@ -54741,7 +55298,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 111,
+      "linesCount": 112,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 3,
@@ -54753,8 +55310,8 @@
       "topRiskFunctions": [
         {
           "name": "syncStuckOrders",
-          "startLine": 17,
-          "endLine": 109,
+          "startLine": 18,
+          "endLine": 110,
           "cyclomaticComplexity": 18,
           "coverageRatio": null,
           "crapScore": 342,
@@ -54762,8 +55319,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 51,
-          "endLine": 101,
+          "startLine": 52,
+          "endLine": 102,
           "cyclomaticComplexity": 12,
           "coverageRatio": null,
           "crapScore": 156,
@@ -54771,8 +55328,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 60,
-          "endLine": 97,
+          "startLine": 61,
+          "endLine": 98,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
@@ -54786,7 +55343,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 155,
+      "linesCount": 156,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 4,
@@ -54798,8 +55355,8 @@
       "topRiskFunctions": [
         {
           "name": "reconcileStalePayments",
-          "startLine": 22,
-          "endLine": 154,
+          "startLine": 23,
+          "endLine": 155,
           "cyclomaticComplexity": 23,
           "coverageRatio": null,
           "crapScore": 552,
@@ -54807,8 +55364,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 74,
-          "endLine": 74,
+          "startLine": 75,
+          "endLine": 75,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -54816,8 +55373,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 110,
-          "endLine": 110,
+          "startLine": 111,
+          "endLine": 111,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -54831,29 +55388,38 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 49,
+      "linesCount": 65,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 6,
-      "maxCrapScore": 42,
-      "crapLoad": 12,
+      "functionsCount": 3,
+      "maxCyclomaticComplexity": 8,
+      "maxCrapScore": 72,
+      "crapLoad": 42,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "aiEconomicOptimizerProcessor",
-          "startLine": 9,
-          "endLine": 48,
-          "cyclomaticComplexity": 6,
+          "startLine": 11,
+          "endLine": 64,
+          "cyclomaticComplexity": 8,
           "coverageRatio": null,
-          "crapScore": 42,
+          "crapScore": 72,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 22,
-          "endLine": 29,
+          "startLine": 20,
+          "endLine": 20,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 38,
+          "endLine": 45,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -54867,7 +55433,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 35,
+      "linesCount": 36,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -54879,8 +55445,8 @@
       "topRiskFunctions": [
         {
           "name": "aiObserverProcessor",
-          "startLine": 7,
-          "endLine": 34,
+          "startLine": 8,
+          "endLine": 35,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
@@ -54894,7 +55460,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 44,
+      "linesCount": 45,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -54906,8 +55472,8 @@
       "topRiskFunctions": [
         {
           "name": "articlePublishProcessor",
-          "startLine": 7,
-          "endLine": 43,
+          "startLine": 8,
+          "endLine": 44,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -54921,7 +55487,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 290,
+      "linesCount": 291,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 2,
@@ -54933,8 +55499,8 @@
       "topRiskFunctions": [
         {
           "name": "catalogProcessor",
-          "startLine": 25,
-          "endLine": 288,
+          "startLine": 26,
+          "endLine": 289,
           "cyclomaticComplexity": 37,
           "coverageRatio": null,
           "crapScore": 1406,
@@ -54942,8 +55508,8 @@
         },
         {
           "name": "safeTriggerCacheRevalidation",
-          "startLine": 11,
-          "endLine": 18,
+          "startLine": 12,
+          "endLine": 19,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -54957,7 +55523,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 910,
+      "linesCount": 911,
       "isClientComponent": false,
       "exportsCount": 5,
       "functionsCount": 13,
@@ -54969,8 +55535,8 @@
       "topRiskFunctions": [
         {
           "name": "runInProgressTTLSweep",
-          "startLine": 521,
-          "endLine": 786,
+          "startLine": 522,
+          "endLine": 787,
           "cyclomaticComplexity": 70,
           "coverageRatio": null,
           "crapScore": 4970,
@@ -54978,8 +55544,8 @@
         },
         {
           "name": "runPendingCheckTTLSweep",
-          "startLine": 793,
-          "endLine": 908,
+          "startLine": 794,
+          "endLine": 909,
           "cyclomaticComplexity": 41,
           "coverageRatio": null,
           "crapScore": 1722,
@@ -54987,8 +55553,8 @@
         },
         {
           "name": "runCleanup",
-          "startLine": 38,
-          "endLine": 320,
+          "startLine": 39,
+          "endLine": 321,
           "cyclomaticComplexity": 32,
           "coverageRatio": null,
           "crapScore": 1056,
@@ -55002,7 +55568,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 77,
+      "linesCount": 78,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 1,
@@ -55014,8 +55580,8 @@
       "topRiskFunctions": [
         {
           "name": "sweepAndRecover",
-          "startLine": 20,
-          "endLine": 75,
+          "startLine": 21,
+          "endLine": 76,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -55029,7 +55595,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 345,
+      "linesCount": 346,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 15,
@@ -55041,8 +55607,8 @@
       "topRiskFunctions": [
         {
           "name": "runSmartDripfeedTick",
-          "startLine": 117,
-          "endLine": 344,
+          "startLine": 118,
+          "endLine": 345,
           "cyclomaticComplexity": 26,
           "coverageRatio": null,
           "crapScore": 702,
@@ -55050,8 +55616,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 118,
-          "endLine": 341,
+          "startLine": 119,
+          "endLine": 342,
           "cyclomaticComplexity": 25,
           "coverageRatio": null,
           "crapScore": 650,
@@ -55059,8 +55625,8 @@
         },
         {
           "name": "checkAndCompleteCampaign",
-          "startLine": 12,
-          "endLine": 110,
+          "startLine": 13,
+          "endLine": 111,
           "cyclomaticComplexity": 19,
           "coverageRatio": null,
           "crapScore": 380,
@@ -55074,7 +55640,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 20,
+      "linesCount": 21,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -55086,8 +55652,8 @@
       "topRiskFunctions": [
         {
           "name": "runETARecalculation",
-          "startLine": 11,
-          "endLine": 19,
+          "startLine": 12,
+          "endLine": 20,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -55101,7 +55667,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 126,
+      "linesCount": 127,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -55113,8 +55679,8 @@
       "topRiskFunctions": [
         {
           "name": "processGeoAvailabilityCheck",
-          "startLine": 26,
-          "endLine": 123,
+          "startLine": 27,
+          "endLine": 124,
           "cyclomaticComplexity": 22,
           "coverageRatio": null,
           "crapScore": 506,
@@ -55128,7 +55694,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 46,
+      "linesCount": 47,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 3,
@@ -55140,8 +55706,8 @@
       "topRiskFunctions": [
         {
           "name": "handle",
-          "startLine": 7,
-          "endLine": 44,
+          "startLine": 8,
+          "endLine": 45,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -55149,8 +55715,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 19,
-          "endLine": 19,
+          "startLine": 20,
+          "endLine": 20,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55158,8 +55724,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 42,
-          "endLine": 42,
+          "startLine": 43,
+          "endLine": 43,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55173,7 +55739,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 171,
+      "linesCount": 172,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 2,
@@ -55185,8 +55751,8 @@
       "topRiskFunctions": [
         {
           "name": "executeDispatchLoop",
-          "startLine": 14,
-          "endLine": 169,
+          "startLine": 15,
+          "endLine": 170,
           "cyclomaticComplexity": 57,
           "coverageRatio": null,
           "crapScore": 3306,
@@ -55194,8 +55760,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 153,
-          "endLine": 153,
+          "startLine": 154,
+          "endLine": 154,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55209,7 +55775,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 96,
+      "linesCount": 97,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 1,
@@ -55221,8 +55787,8 @@
       "topRiskFunctions": [
         {
           "name": "validateAndFetchOrder",
-          "startLine": 10,
-          "endLine": 94,
+          "startLine": 11,
+          "endLine": 95,
           "cyclomaticComplexity": 12,
           "coverageRatio": null,
           "crapScore": 156,
@@ -55236,7 +55802,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 149,
+      "linesCount": 150,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 2,
@@ -55248,8 +55814,8 @@
       "topRiskFunctions": [
         {
           "name": "verifyRouteCapabilitiesAndMargin",
-          "startLine": 75,
-          "endLine": 147,
+          "startLine": 76,
+          "endLine": 148,
           "cyclomaticComplexity": 32,
           "coverageRatio": null,
           "crapScore": 1056,
@@ -55257,8 +55823,8 @@
         },
         {
           "name": "resolveRoutes",
-          "startLine": 10,
-          "endLine": 73,
+          "startLine": 11,
+          "endLine": 74,
           "cyclomaticComplexity": 18,
           "coverageRatio": null,
           "crapScore": 342,
@@ -55299,20 +55865,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 23,
+      "linesCount": 52,
       "isClientComponent": false,
       "exportsCount": 2,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 5,
-      "maxCrapScore": 30,
-      "crapLoad": 0,
-      "crappyMethodsCount": 0,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 17,
+      "maxCrapScore": 306,
+      "crapLoad": 276,
+      "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "orderProcessor",
-          "startLine": 9,
-          "endLine": 22,
+          "startLine": 13,
+          "endLine": 51,
+          "cyclomaticComplexity": 17,
+          "coverageRatio": null,
+          "crapScore": 306,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 37,
+          "endLine": 50,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
@@ -55320,8 +55895,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 14,
-          "endLine": 14,
+          "startLine": 18,
+          "endLine": 24,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55335,20 +55910,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 77,
+      "linesCount": 105,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 15,
-      "maxCrapScore": 240,
-      "crapLoad": 210,
-      "crappyMethodsCount": 1,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 27,
+      "maxCrapScore": 756,
+      "crapLoad": 936,
+      "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "paymentGatewayProcessor",
-          "startLine": 9,
-          "endLine": 76,
+          "startLine": 12,
+          "endLine": 104,
+          "cyclomaticComplexity": 27,
+          "coverageRatio": null,
+          "crapScore": 756,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 35,
+          "endLine": 103,
           "cyclomaticComplexity": 15,
           "coverageRatio": null,
           "crapScore": 240,
@@ -55356,8 +55940,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 72,
-          "endLine": 72,
+          "startLine": 99,
+          "endLine": 99,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -55371,20 +55955,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 186,
+      "linesCount": 191,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 3,
+      "functionsCount": 4,
       "maxCyclomaticComplexity": 29,
       "maxCrapScore": 870,
-      "crapLoad": 852,
-      "crappyMethodsCount": 2,
+      "crapLoad": 1692,
+      "crappyMethodsCount": 3,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "paymentSyncProcessor",
-          "startLine": 12,
-          "endLine": 185,
+          "startLine": 14,
+          "endLine": 190,
+          "cyclomaticComplexity": 29,
+          "coverageRatio": null,
+          "crapScore": 870,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 17,
+          "endLine": 187,
           "cyclomaticComplexity": 29,
           "coverageRatio": null,
           "crapScore": 870,
@@ -55392,21 +55985,12 @@
         },
         {
           "name": "getTenantAuth",
-          "startLine": 86,
-          "endLine": 109,
+          "startLine": 89,
+          "endLine": 112,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
           "isCrappy": true
-        },
-        {
-          "name": "<anonymous>",
-          "startLine": 33,
-          "endLine": 51,
-          "cyclomaticComplexity": 3,
-          "coverageRatio": null,
-          "crapScore": 12,
-          "isCrappy": false
         }
       ]
     },
@@ -55416,7 +56000,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 118,
+      "linesCount": 119,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 4,
@@ -55428,8 +56012,8 @@
       "topRiskFunctions": [
         {
           "name": "scanSubscriberQuality",
-          "startLine": 14,
-          "endLine": 117,
+          "startLine": 15,
+          "endLine": 118,
           "cyclomaticComplexity": 17,
           "coverageRatio": null,
           "crapScore": 306,
@@ -55437,8 +56021,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 86,
-          "endLine": 107,
+          "startLine": 87,
+          "endLine": 108,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -55446,8 +56030,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 66,
-          "endLine": 66,
+          "startLine": 67,
+          "endLine": 67,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55461,20 +56045,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CATALOG_INGESTION",
-      "linesCount": 139,
+      "linesCount": 164,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 3,
-      "maxCyclomaticComplexity": 20,
-      "maxCrapScore": 420,
-      "crapLoad": 390,
-      "crappyMethodsCount": 1,
+      "functionsCount": 5,
+      "maxCyclomaticComplexity": 33,
+      "maxCrapScore": 1122,
+      "crapLoad": 1482,
+      "crappyMethodsCount": 2,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "refillProcessor",
-          "startLine": 10,
-          "endLine": 137,
+          "startLine": 12,
+          "endLine": 162,
+          "cyclomaticComplexity": 33,
+          "coverageRatio": null,
+          "crapScore": 1122,
+          "isCrappy": true
+        },
+        {
+          "name": "<anonymous>",
+          "startLine": 34,
+          "endLine": 161,
           "cyclomaticComplexity": 20,
           "coverageRatio": null,
           "crapScore": 420,
@@ -55482,17 +56075,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 99,
-          "endLine": 99,
-          "cyclomaticComplexity": 1,
-          "coverageRatio": null,
-          "crapScore": 2,
-          "isCrappy": false
-        },
-        {
-          "name": "<anonymous>",
-          "startLine": 134,
-          "endLine": 134,
+          "startLine": 17,
+          "endLine": 22,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55506,7 +56090,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 33,
+      "linesCount": 34,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 1,
@@ -55518,8 +56102,8 @@
       "topRiskFunctions": [
         {
           "name": "runSmartFeedbackLoopTick",
-          "startLine": 21,
-          "endLine": 31,
+          "startLine": 22,
+          "endLine": 32,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -55533,20 +56117,20 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 382,
+      "linesCount": 386,
       "isClientComponent": false,
       "exportsCount": 1,
-      "functionsCount": 14,
+      "functionsCount": 15,
       "maxCyclomaticComplexity": 91,
       "maxCrapScore": 8372,
-      "crapLoad": 14188,
-      "crappyMethodsCount": 4,
+      "crapLoad": 22530,
+      "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "syncProcessor",
-          "startLine": 27,
-          "endLine": 381,
+          "startLine": 29,
+          "endLine": 385,
           "cyclomaticComplexity": 91,
           "coverageRatio": null,
           "crapScore": 8372,
@@ -55554,20 +56138,20 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 48,
-          "endLine": 299,
-          "cyclomaticComplexity": 76,
+          "startLine": 30,
+          "endLine": 384,
+          "cyclomaticComplexity": 91,
           "coverageRatio": null,
-          "crapScore": 5852,
+          "crapScore": 8372,
           "isCrappy": true
         },
         {
           "name": "<anonymous>",
-          "startLine": 77,
-          "endLine": 87,
-          "cyclomaticComplexity": 6,
+          "startLine": 51,
+          "endLine": 302,
+          "cyclomaticComplexity": 76,
           "coverageRatio": null,
-          "crapScore": 42,
+          "crapScore": 5852,
           "isCrappy": true
         }
       ]
@@ -55961,6 +56545,13 @@
     {
       "source": "src/actions/admin/catalog/price-drift.ts",
       "target": "src/lib/settings.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/admin/catalog/revalidate.ts",
+      "target": "src/services/catalog/catalog-cache.service.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -56920,6 +57511,13 @@
     {
       "source": "src/actions/admin/providers/sync-action.ts",
       "target": "src/services/providers/service-mutation-detector.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/admin/providers/sync-action.ts",
+      "target": "src/actions/admin/catalog/revalidate.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -58067,6 +58665,27 @@
     },
     {
       "source": "src/actions/admin/tenants.ts",
+      "target": "src/services/tenant/domain-registry.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/admin/tenants.ts",
+      "target": "src/services/tenant/tenant-theme.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/admin/tenants.ts",
+      "target": "src/services/tenant/domain-verification.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/admin/tenants.ts",
       "target": "src/lib/redis.ts",
       "kind": "dependency",
       "isTypeOnly": false,
@@ -58453,6 +59072,13 @@
     {
       "source": "src/actions/auth/refresh-balance.ts",
       "target": "src/lib/utils.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/auth/refresh-balance.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -58983,6 +59609,13 @@
       "isViolating": false
     },
     {
+      "source": "src/actions/order/catalog.ts",
+      "target": "src/services/catalog/catalog-cache.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/actions/order/checkout.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -59237,6 +59870,13 @@
     {
       "source": "src/actions/support/compensation.ts",
       "target": "src/lib/admin-audit.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/actions/support/compensation.ts",
+      "target": "src/lib/financial/exact-math.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -59543,6 +60183,13 @@
       "isViolating": false
     },
     {
+      "source": "src/actions/user/top-up.action.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/(auth)/login/login-form.tsx",
       "target": "src/actions/auth/request-magic-link.ts",
       "kind": "dependency",
@@ -59622,76 +60269,6 @@
     {
       "source": "src/app/(auth)/login/page.tsx",
       "target": "src/components/auth/PlanLoginHero.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/actions/order/catalog.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/lib/settings.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/ab-test/FluxOrderClient.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/landing/Header.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/ab-test/FluxTrustBar.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/ab-test/FluxWhyUs.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/ab-test/FluxReviews.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/ab-test/FluxFAQ.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/components/landing/MegaFooter.tsx",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/ab-lovable/page.tsx",
-      "target": "src/lib/seo-helpers.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -66368,6 +66945,13 @@
       "isViolating": false
     },
     {
+      "source": "src/app/admin/settings/telegram/telegram-live-preview.tsx",
+      "target": "src/lib/sanitize.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/admin/settings/telegram/telegram-menu-tab.tsx",
       "target": "src/components/ui/card.tsx",
       "kind": "dependency",
@@ -66942,6 +67526,20 @@
       "isViolating": false
     },
     {
+      "source": "src/app/admin/tenants/domain-verification-modal.tsx",
+      "target": "src/actions/admin/tenants.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/admin/tenants/domain-verification-modal.tsx",
+      "target": "src/services/tenant/domain-verification.service.ts",
+      "kind": "association",
+      "isTypeOnly": true,
+      "isViolating": false
+    },
+    {
       "source": "src/app/admin/tenants/error.tsx",
       "target": "src/components/admin/section-error.tsx",
       "kind": "dependency",
@@ -67000,6 +67598,13 @@
     {
       "source": "src/app/admin/tenants/tenants-manager.tsx",
       "target": "src/actions/admin/tenants.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/admin/tenants/tenants-manager.tsx",
+      "target": "src/app/admin/tenants/domain-verification-modal.tsx",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -67530,6 +68135,13 @@
       "isViolating": false
     },
     {
+      "source": "src/app/api/auth/dev-login/route.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/api/auth/logout/route.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -67866,6 +68478,13 @@
       "isViolating": false
     },
     {
+      "source": "src/app/api/security/challenge/route.ts",
+      "target": "src/lib/security/ddos-shield/shield-secret.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/api/storefront/v1/catalog/route.ts",
       "target": "src/lib/storefront/storefront-auth.ts",
       "kind": "dependency",
@@ -68092,6 +68711,20 @@
     {
       "source": "src/app/api/telemetry/csp-report/route.ts",
       "target": "src/services/security/security-alert.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/api/telemetry/csp-report/route.ts",
+      "target": "src/lib/security/rate-limiter.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/api/telemetry/csp-report/route.ts",
+      "target": "src/lib/redis.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -68357,56 +68990,28 @@
     },
     {
       "source": "src/app/api/webhooks/robokassa/route.ts",
-      "target": "src/services/financial/payment.service.ts",
+      "target": "src/services/financial/robokassa-webhook.handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
     },
     {
-      "source": "src/app/api/webhooks/robokassa/route.ts",
-      "target": "src/lib/db.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/robokassa/route.ts",
-      "target": "src/lib/redis-lock.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/robokassa/route.ts",
-      "target": "src/services/security/security-alert.service.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/robokassa/route.ts",
-      "target": "src/lib/logger.ts",
+      "source": "src/app/api/webhooks/robokassa/[tenantId]/route.ts",
+      "target": "src/services/financial/robokassa-webhook.handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
     },
     {
       "source": "src/app/api/webhooks/telegram/route.ts",
-      "target": "src/bot/index.ts",
+      "target": "src/lib/telegram/webhook-handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
     },
     {
-      "source": "src/app/api/webhooks/telegram/route.ts",
-      "target": "src/lib/db.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/telegram/route.ts",
-      "target": "src/actions/admin/telegram-bot.ts",
+      "source": "src/app/api/webhooks/telegram/[tenantId]/route.ts",
+      "target": "src/lib/telegram/webhook-handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -68462,35 +69067,14 @@
     },
     {
       "source": "src/app/api/webhooks/yookassa/route.ts",
-      "target": "src/services/financial/payment.service.ts",
+      "target": "src/services/financial/yookassa-webhook.handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
     },
     {
-      "source": "src/app/api/webhooks/yookassa/route.ts",
-      "target": "src/lib/db.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/yookassa/route.ts",
-      "target": "src/lib/redis-lock.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/yookassa/route.ts",
-      "target": "src/services/security/security-alert.service.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": false
-    },
-    {
-      "source": "src/app/api/webhooks/yookassa/route.ts",
-      "target": "src/lib/logger.ts",
+      "source": "src/app/api/webhooks/yookassa/[tenantId]/route.ts",
+      "target": "src/services/financial/yookassa-webhook.handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -68806,6 +69390,13 @@
     {
       "source": "src/app/dashboard/orders/page.tsx",
       "target": "src/components/ui/service-id-badge.tsx",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/dashboard/orders/page.tsx",
+      "target": "src/services/orders/keyset-pagination.service.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -69175,6 +69766,13 @@
       "isViolating": false
     },
     {
+      "source": "src/app/dashboard/tickets/page.tsx",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/dashboard/tickets/[id]/page.tsx",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -69217,8 +69815,22 @@
       "isViolating": false
     },
     {
+      "source": "src/app/dashboard/tickets/[id]/page.tsx",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/error.tsx",
       "target": "src/components/ui/index.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/global-error.tsx",
+      "target": "src/app/globals.css",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -69471,6 +70083,13 @@
     {
       "source": "src/app/layout.tsx",
       "target": "src/components/providers/MaintenanceGuardian.tsx",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/layout.tsx",
+      "target": "src/components/theme/TenantThemeInjector.tsx",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -70127,6 +70746,13 @@
       "isViolating": false
     },
     {
+      "source": "src/app/page.tsx",
+      "target": "src/services/catalog/catalog-cache.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/payment-redirect/page.tsx",
       "target": "src/components/ui/index.ts",
       "kind": "dependency",
@@ -70715,6 +71341,13 @@
       "isViolating": false
     },
     {
+      "source": "src/bot/constructors/role-handlers.ts",
+      "target": "src/config/tenants.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/bot/index.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -70792,6 +71425,13 @@
       "isViolating": false
     },
     {
+      "source": "src/bot/index.ts",
+      "target": "src/config/tenants.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/bot/manager/multi-bot-manager.ts",
       "target": "src/bot/types/bot-context.ts",
       "kind": "association",
@@ -70815,6 +71455,13 @@
     {
       "source": "src/bot/manager/multi-bot-manager.ts",
       "target": "src/lib/vault.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/bot/manager/multi-bot-manager.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -70857,6 +71504,13 @@
     {
       "source": "src/bot/scenes/deposit.wizard.ts",
       "target": "src/services/financial/unified-payment.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/bot/scenes/deposit.wizard.ts",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -70990,6 +71644,13 @@
     {
       "source": "src/bot/scenes/referral.wizard.ts",
       "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/bot/scenes/referral.wizard.ts",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -73552,6 +74213,13 @@
     {
       "source": "src/components/dev/FloatingQADock.tsx",
       "target": "src/components/dev/BugReportModal.tsx",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/components/dev/FloatingQADock.tsx",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -77841,6 +78509,20 @@
       "isViolating": false
     },
     {
+      "source": "src/components/theme/TenantThemeInjector.tsx",
+      "target": "src/services/tenant/tenant-theme.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/components/theme/TenantThemeInjector.tsx",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/components/ui/badge.tsx",
       "target": "src/lib/utils.ts",
       "kind": "dependency",
@@ -78087,6 +78769,13 @@
     },
     {
       "source": "src/config/tenant-config.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/config/tenants.ts",
       "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
       "isTypeOnly": false,
@@ -78485,6 +79174,20 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/admin-audit.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/admin-audit.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/alerts/p0-alert-debouncer.ts",
       "target": "src/lib/redis.ts",
       "kind": "dependency",
@@ -78779,6 +79482,13 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/logger.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/metrics.ts",
       "target": "src/lib/logger.ts",
       "kind": "dependency",
@@ -79031,6 +79741,20 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/queue-manager.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/queue-manager.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/redis-lock.ts",
       "target": "src/lib/redis.ts",
       "kind": "dependency",
@@ -79213,6 +79937,13 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/session.ts",
+      "target": "src/services/tenant/domain-registry.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/settings.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -79229,6 +79960,13 @@
     {
       "source": "src/lib/settings.ts",
       "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/settings.ts",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -79304,6 +80042,85 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/telegram/webhook-handler.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telegram/webhook-handler.ts",
+      "target": "src/bot/manager/multi-bot-manager.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": true,
+      "violationReason": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/bot/manager/multi-bot-manager.ts)."
+    },
+    {
+      "source": "src/lib/telegram/webhook-handler.ts",
+      "target": "src/lib/telegram/token-resolver.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telegram/webhook-handler.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telegram/webhook-handler.ts",
+      "target": "src/actions/admin/telegram-bot.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": true,
+      "violationReason": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/actions/admin/telegram-bot.ts)."
+    },
+    {
+      "source": "src/lib/telemetry/bullmq-bridge.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telemetry/bullmq-bridge.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telemetry/bullmq-bridge.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telemetry/error-interpreter.ts",
+      "target": "src/lib/logger/sensitive-data-filter.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telemetry/error-interpreter.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telemetry/error-interpreter.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/tenant-resolver.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -79313,6 +80130,13 @@
     {
       "source": "src/lib/tenant-resolver.ts",
       "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/tenant-scope.ts",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -79369,6 +80193,13 @@
     {
       "source": "src/proxy.ts",
       "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/proxy.ts",
+      "target": "src/services/tenant/domain-registry.service.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -80760,6 +81591,27 @@
       "isViolating": false
     },
     {
+      "source": "src/services/catalog/catalog-cache.service.ts",
+      "target": "src/lib/redis.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/catalog/catalog-cache.service.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/catalog/catalog-cache.service.ts",
+      "target": "src/lib/tenant-scope.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/services/core/order.service.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -81159,6 +82011,48 @@
       "isViolating": false
     },
     {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/services/financial/payment.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/lib/redis-lock.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/services/security/security-alert.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/robokassa-webhook.handler.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/services/financial/support-balance-policy.service.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -81266,6 +82160,48 @@
     {
       "source": "src/services/financial/yookassa-status-checker.ts",
       "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/services/financial/payment.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/lib/redis-lock.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/services/security/security-alert.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/financial/yookassa-webhook.handler.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -81742,6 +82678,13 @@
     {
       "source": "src/services/orders/gateways-availability.service.ts",
       "target": "src/lib/settings.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/orders/keyset-pagination.service.ts",
+      "target": "src/lib/db.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -82692,6 +83635,55 @@
       "isViolating": false
     },
     {
+      "source": "src/services/tenant/domain-registry.service.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/domain-verification.service.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/domain-verification.service.ts",
+      "target": "src/services/tenant/domain-registry.service.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/domain-verification.service.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/tenant-theme.service.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/tenant-theme.service.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/services/tenant/tenant-theme.service.ts",
+      "target": "src/lib/redis.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/services/user/account-deletion.service.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -82799,6 +83791,13 @@
     {
       "source": "src/tenants/registry.ts",
       "target": "src/tenants/types.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/tenants/registry.ts",
+      "target": "src/config/tenants.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -83177,6 +84176,13 @@
     {
       "source": "src/workers/payment-reconciliation.ts",
       "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/ai-economic-optimizer.processor.ts",
+      "target": "src/lib/db.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -83630,6 +84636,34 @@
       "isViolating": false
     },
     {
+      "source": "src/workers/processors/order.processor.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/order.processor.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/order.processor.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/order.processor.ts",
+      "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/workers/processors/payment-gateway.processor.ts",
       "target": "src/lib/db.ts",
       "kind": "dependency",
@@ -83653,6 +84687,20 @@
     {
       "source": "src/workers/processors/payment-gateway.processor.ts",
       "target": "src/lib/logger.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/payment-gateway.processor.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/payment-gateway.processor.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -83695,6 +84743,13 @@
     {
       "source": "src/workers/processors/payment-sync.ts",
       "target": "src/lib/security/ssrf-guard.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/payment-sync.ts",
+      "target": "src/lib/tenant-context.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -83749,6 +84804,20 @@
       "isViolating": false
     },
     {
+      "source": "src/workers/processors/refill.processor.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/refill.processor.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/workers/processors/smart-feedback-loop.processor.ts",
       "target": "src/lib/logger.ts",
       "kind": "dependency",
@@ -83796,23 +84865,49 @@
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
+    },
+    {
+      "source": "src/workers/processors/sync.processor.ts",
+      "target": "src/lib/tenant-context.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
     }
   ],
-  "violations": [],
+  "violations": [
+    {
+      "id": "clean-architecture-dependency-violation",
+      "severity": "BLOCKER",
+      "sourceFile": "src/lib/telegram/webhook-handler.ts",
+      "targetModule": "src/bot/manager/multi-bot-manager.ts",
+      "line": 10,
+      "message": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/bot/manager/multi-bot-manager.ts).",
+      "snippet": "import { multiBotManager } from '@/bot/manager/multi-bot-manager';"
+    },
+    {
+      "id": "clean-architecture-dependency-violation",
+      "severity": "BLOCKER",
+      "sourceFile": "src/lib/telegram/webhook-handler.ts",
+      "targetModule": "src/actions/admin/telegram-bot.ts",
+      "line": 13,
+      "message": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/actions/admin/telegram-bot.ts).",
+      "snippet": "import { logTelegramError } from '@/actions/admin/telegram-bot';"
+    }
+  ],
   "cycles": [],
   "metrics": {
-    "totalFiles": 1443,
-    "totalEdges": 4028,
-    "violationsCount": 0,
+    "totalFiles": 1458,
+    "totalEdges": 4098,
+    "violationsCount": 2,
     "cyclesCount": 0,
-    "blockersCount": 0,
-    "totalFunctions": 9857,
+    "blockersCount": 2,
+    "totalFunctions": 10000,
     "highestCrapModule": {
       "id": "src/proxy.ts",
-      "maxCrap": 38220,
-      "maxCC": 195
+      "maxCrap": 48620,
+      "maxCC": 220
     },
-    "totalCrappyFunctions": 2305,
-    "totalCrapLoad": 1348442
+    "totalCrappyFunctions": 2344,
+    "totalCrapLoad": 1393682
   }
 }

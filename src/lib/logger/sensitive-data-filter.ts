@@ -21,11 +21,11 @@ export function maskEmail(email: string): string {
 export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
   // 1. Credentials, API keys, and auth tokens in JSON / key-value
   {
-    pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret)"?\s*[:=]\s*)"([^"]+)"/gi,
+    pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret\s+key|secretKey|webhookSecret|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret|key)"?\s*[:=]\s*)"([^"]+)"/gi,
     replacement: '$1"[REDACTED]"',
   },
   {
-    pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret)"?\s*[:=]\s*)'([^']+)'/gi,
+    pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret\s+key|secretKey|webhookSecret|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret|key)"?\s*[:=]\s*)'([^']+)'/gi,
     replacement: '$1"[REDACTED]"',
   },
 
@@ -43,7 +43,7 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
 
   // 4. API keys and Bearer tokens in headers / query strings
   {
-    pattern: /(key=)([a-f0-9]{20,})/gi,
+    pattern: /(key=)("?[a-zA-Z0-9_.-]{16,}"?)/gi,
     replacement: '$1"[REDACTED]"',
   },
   {
@@ -61,11 +61,11 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
     replacement: '$1"[REDACTED]"',
   },
   {
-    pattern: /(postgres(?:ql)?:\/\/[^:]+:)([^@]+)(@)/gi,
+    pattern: /(postgres(?:ql)?:\/\/[^:]*:)([^@]+)(@)/gi,
     replacement: '$1*****$3',
   },
   {
-    pattern: /(redis(?:s)?:\/\/[^:]+:)([^@]+)(@)/gi,
+    pattern: /(redis(?:s)?:\/\/[^:]*:)([^@]+)(@)/gi,
     replacement: '$1*****$3',
   },
 
@@ -82,6 +82,12 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
   {
     pattern: /\b([a-zA-Z0-9_.+-])[a-zA-Z0-9_.+-]*(@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)\b/gi,
     replacement: '$1***$2',
+  },
+
+  // 8. JSON Web Tokens (JWT) in stack traces or logs
+  {
+    pattern: /\beyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\b/g,
+    replacement: '[REDACTED_JWT]',
   },
 ];
 

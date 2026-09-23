@@ -1,4 +1,4 @@
-import { getPublicCatalogAction, getServicesByCategoryAction } from "@/actions/order/catalog";
+import { getPublicCatalogAction, getServicesByCategoryAction, type PublicNetwork, type PublicService } from "@/actions/order/catalog";
 import { getBaseUrlAsync } from "@/utils/get-base-url";
 import { SmartLinkLanding } from "@/components/landing/SmartLinkLanding";
 import dynamicImport from "next/dynamic";
@@ -13,14 +13,60 @@ const FluxFAQ = dynamicImport(() => import("@/components/ab-test/FluxFAQ").then(
 const MegaFooter = dynamicImport(() => import("@/components/landing/MegaFooter").then(m => m.MegaFooter));
 
 import { ROUTES } from "@/lib/routes";
-import { SettingsProvider } from "@/lib/settings";
+import { SettingsProvider, type ContactAndLegalSettings } from "@/lib/settings";
 import { TENANTS } from "@/config/tenants";
-import { verifySession } from "@/lib/session";
+import { verifySession, readSessionTokenFromCookies } from "@/lib/session";
 import { db } from "@/lib/db";
 import { headers, cookies } from "next/headers";
 import { normalizeTenantId } from "@/lib/tenant-resolver-edge";
+import { getCachedGuestBundleWithRedis } from "@/services/catalog/catalog-cache.service";
 
 export const dynamic = "force-dynamic";
+
+interface StorefrontGuestBundle {
+  catalog: PublicNetwork[];
+  settings: ContactAndLegalSettings;
+  baseUrl: string;
+  defaultCategoryId?: string;
+  defaultNetworkId?: string;
+  defaultServices: PublicService[];
+}
+
+async function fetchGuestBundle(tenantId: string): Promise<StorefrontGuestBundle> {
+  const [catalogResult, settings, baseUrl] = await Promise.all([
+    getPublicCatalogAction(tenantId),
+    SettingsProvider.getContactAndLegalSettings(tenantId),
+    getBaseUrlAsync(),
+  ]);
+
+  const catalog = catalogResult.success && catalogResult.data ? catalogResult.data : [];
+  let defaultCategoryId: string | undefined = undefined;
+  let defaultNetworkId: string | undefined = undefined;
+
+  if (catalog.length > 0) {
+    const defaultNet = catalog.find(n => n.slug === 'telegram') || catalog[0];
+    const defaultCat = defaultNet?.categories.find(c => c.name.toLowerCase().includes('подписчики')) || defaultNet?.categories[0];
+    defaultCategoryId = defaultCat?.id;
+    defaultNetworkId = defaultNet?.id;
+  }
+
+  const defaultServices = defaultCategoryId ? await getServicesByCategoryAction(defaultCategoryId, tenantId) : [];
+
+  return {
+    catalog,
+    settings,
+    baseUrl,
+    defaultCategoryId,
+    defaultNetworkId,
+    defaultServices,
+  };
+}
+
+async function getStorefrontGuestBundle(tenantId: string): Promise<StorefrontGuestBundle> {
+  return SettingsProvider.isTestEnvironment()
+    ? fetchGuestBundle(tenantId)
+    : getCachedGuestBundleWithRedis(tenantId, () => fetchGuestBundle(tenantId));
+}
 
 export async function generateMetadata() {
   const settings = await SettingsProvider.getContactAndLegalSettings();
@@ -73,42 +119,62 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
   const isHoldingParam = params.mode === "holding";
   const isHoldingMode = isHoldingParam || (isProdHost && params.contour !== "test");
 
-  let userBalanceCents = 0;
-  const [catalogResult, settings, session, baseUrl] = await Promise.all([
-    getPublicCatalogAction(tenantId),
-    SettingsProvider.getContactAndLegalSettings(),
-    verifySession(),
-    getBaseUrlAsync()
-  ]);
+  const sessionToken = readSessionTokenFromCookies(reqCookies);
+  const isGuest = !sessionToken;
 
-  const catalog = catalogResult.success && catalogResult.data ? catalogResult.data : [];
-  
-  // SSR Pre-fetch default category services to eliminate client waterfall latency
-  let targetCategoryId = initialCategoryId;
-  let targetNetworkId = initialNetworkId;
-  if (!targetCategoryId && catalog.length > 0) {
-    const defaultNet = catalog.find(n => n.slug === 'telegram') || catalog[0];
-    const defaultCat = defaultNet?.categories.find(c => c.name.toLowerCase().includes('подписчики')) || defaultNet?.categories[0];
-    targetCategoryId = defaultCat?.id;
-    targetNetworkId = defaultNet?.id;
+  let catalog: PublicNetwork[] = [];
+  let settings: ContactAndLegalSettings;
+  let baseUrl: string = "";
+  let targetCategoryId: string | undefined = initialCategoryId;
+  let targetNetworkId: string | undefined = initialNetworkId;
+  let initialServices: PublicService[] = [];
+  let userEmail: string | undefined = undefined;
+  let userBalanceCents = 0;
+
+  if (isGuest && !initialServiceId) {
+    // Fast path: high-performance micro-cached guest bundle (0 DB queries, 0 JWT operations)
+    const bundle = await getStorefrontGuestBundle(tenantId);
+    catalog = bundle.catalog;
+    settings = bundle.settings;
+    baseUrl = bundle.baseUrl;
+    targetCategoryId = bundle.defaultCategoryId;
+    targetNetworkId = bundle.defaultNetworkId;
+    initialServices = bundle.defaultServices;
+  } else {
+    // Authenticated or customized query path
+    const [catalogResult, fetchedSettings, session, fetchedBaseUrl] = await Promise.all([
+      getPublicCatalogAction(tenantId),
+      SettingsProvider.getContactAndLegalSettings(tenantId),
+      isGuest ? Promise.resolve(null) : verifySession(),
+      getBaseUrlAsync()
+    ]);
+
+    catalog = catalogResult.success && catalogResult.data ? catalogResult.data : [];
+    settings = fetchedSettings;
+    baseUrl = fetchedBaseUrl;
+
+    if (!targetCategoryId && catalog.length > 0) {
+      const defaultNet = catalog.find(n => n.slug === 'telegram') || catalog[0];
+      const defaultCat = defaultNet?.categories.find(c => c.name.toLowerCase().includes('подписчики')) || defaultNet?.categories[0];
+      targetCategoryId = defaultCat?.id;
+      targetNetworkId = defaultNet?.id;
+    }
+    initialServices = targetCategoryId ? await getServicesByCategoryAction(targetCategoryId, tenantId) : [];
+
+    if (session?.userId) {
+      const user = await db.user.findUnique({
+        where: { id: session.userId },
+        select: { email: true, balance: true }
+      });
+      if (user) {
+        userEmail = user.email;
+        userBalanceCents = Number(user.balance);
+      }
+    }
   }
-  const initialServices = targetCategoryId ? await getServicesByCategoryAction(targetCategoryId, tenantId) : [];
 
   const tenantConfig = TENANTS.find(t => t.id === tenantId);
   const siteName = tenantConfig?.name || settings.SITE_NAME || "SMMplan";
-
-  // Resolve user session, email and balance
-  let userEmail: string | undefined = undefined;
-  if (session?.userId) {
-    const user = await db.user.findUnique({
-      where: { id: session.userId },
-      select: { email: true, balance: true }
-    });
-    if (user) {
-      userEmail = user.email;
-      userBalanceCents = Number(user.balance);
-    }
-  }
 
   return (
     <>

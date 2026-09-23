@@ -83,7 +83,9 @@ function getDockerStats(): { webMem: string; webCpu: string; allStats: string } 
 }
 
 async function getOrCreateSessionToken(): Promise<string> {
-  let user = await db.user.findFirst({ where: { role: 'USER', tenantId: 'smmplan' } });
+  let user = await db.user.findFirst({
+    where: { role: 'USER', tenantId: 'smmplan', isActive: true, isDeleted: false },
+  });
   if (!user) {
     user = await db.user.create({
       data: {
@@ -91,6 +93,8 @@ async function getOrCreateSessionToken(): Promise<string> {
         role: 'USER',
         tenantId: 'smmplan',
         balance: 500000n,
+        isActive: true,
+        isDeleted: false,
       },
     });
   }
@@ -242,8 +246,9 @@ async function main() {
 
   const authConcurrencies = [10, 25, 50, 75, 100, 150];
   const authHeaders = {
-    Cookie: `session_token=${sessionToken}; x_tenant=smmplan`,
+    Cookie: `session_token=${sessionToken}; __Host-session_token=${sessionToken}; x_tenant=smmplan`,
     Accept: 'text/html,application/xhtml+xml',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   };
 
   for (const c of authConcurrencies) {

@@ -6,6 +6,7 @@ import { OrderDispatchExecutor } from './order/order-dispatch-executor';
 import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 import { registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
+import { withTelemetryContext, generateTraceId } from '@/lib/logger';
 
 export { DatabaseOrderError } from './order/types';
 
@@ -31,7 +32,9 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
     job.data.tenantId = tenantId;
   }
   
-  return await runWithTenant(resolvedTenantId, async () => {
+  const traceId = job.data?.metadata?.traceId || generateTraceId();
+
+  return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: 'OrderProcessor' }, async () => {
     const { order, redisKey } = await OrderPreflightGuard.validateAndFetchOrder(job);
     if (!order) return;
 

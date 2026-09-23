@@ -1,4 +1,52 @@
 import { db } from '@/lib/db';
+import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
+import { tenantStorage } from '@/lib/tenant-context';
+
+/**
+ * Resolves the tenant context for audit logging.
+ * Priority:
+ * 1. Explicitly provided tenantId
+ * 2. Active AsyncLocalStorage tenant context (tenantStorage / runWithTenant)
+ * 3. Next.js headers / cookies (x_admin_tenant, x_tenant, x-tenant-id)
+ * 4. Fallback: 'smmplan'
+ */
+async function resolveAuditTenant(explicitTenant?: string | null): Promise<string> {
+  if (explicitTenant && explicitTenant.trim() !== '') {
+    return (normalizeTenantId(explicitTenant) as string) || 'smmplan';
+  }
+
+  // 2. Check Node.js AsyncLocalStorage store (BullMQ runWithTenant, background processors)
+  try {
+    const storeTenant = tenantStorage.getStore()?.tenantId;
+    if (storeTenant && storeTenant.trim() !== '') {
+      return (normalizeTenantId(storeTenant) as string) || 'smmplan';
+    }
+  } catch {}
+
+  // 3. Check Next.js request context (cookies & headers)
+  try {
+    const { cookies, headers } = await import('next/headers');
+    try {
+      const cookieStore = await cookies();
+      const cookieTenant = cookieStore.get('x_admin_tenant')?.value || cookieStore.get('x_tenant')?.value;
+      if (cookieTenant && cookieTenant.trim() !== '') {
+        return (normalizeTenantId(cookieTenant) as string) || 'smmplan';
+      }
+    } catch {}
+
+    try {
+      const headerStore = await headers();
+      const headerTenant = headerStore.get('x-tenant-id');
+      if (headerTenant && headerTenant.trim() !== '') {
+        return (normalizeTenantId(headerTenant) as string) || 'smmplan';
+      }
+    } catch {}
+  } catch {
+    // Outside Next.js request context (worker, queue, test, script)
+  }
+
+  return 'smmplan';
+}
 
 /**
  * Safely serializes values to JSON strings.
@@ -85,20 +133,25 @@ export function auditAdmin(params: {
   oldValue?: unknown;
   newValue?: unknown;
   ipAddress?: string;
+  tenantId?: string;
 }) {
   // Fire-and-forget: does not block the main operation
-  void db.adminAuditLog.create({
-    data: {
-      adminId: params.adminId,
-      adminEmail: params.adminEmail,
-      action: params.action,
-      target: params.target,
-      targetType: params.targetType,
-      oldValue: safeSerialize(params.oldValue),
-      newValue: safeSerialize(params.newValue),
-      ipAddress: params.ipAddress ?? null,
-    },
-  }).catch((err) => {
+  void (async () => {
+    const tenantId = await resolveAuditTenant(params.tenantId);
+    await db.adminAuditLog.create({
+      data: {
+        tenantId,
+        adminId: params.adminId,
+        adminEmail: params.adminEmail,
+        action: params.action,
+        target: params.target,
+        targetType: params.targetType,
+        oldValue: safeSerialize(params.oldValue),
+        newValue: safeSerialize(params.newValue),
+        ipAddress: params.ipAddress ?? null,
+      },
+    });
+  })().catch((err) => {
     // Silently log — audit failure must never crash the primary action
     console.error('[AdminAudit] Failed to write log:', err);
   });
@@ -117,11 +170,14 @@ export async function auditAdminAwaitable(params: {
   oldValue?: unknown;
   newValue?: unknown;
   ipAddress?: string;
+  tenantId?: string;
   tx?: any;
 }) {
+  const tenantId = await resolveAuditTenant(params.tenantId);
   const client = params.tx || db;
   return client.adminAuditLog.create({
     data: {
+      tenantId,
       adminId: params.adminId,
       adminEmail: params.adminEmail,
       action: params.action,

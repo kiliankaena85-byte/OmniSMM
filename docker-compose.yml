@@ -5,13 +5,15 @@ services:
     image: postgres:15-alpine
     container_name: smmplan_lite_db
     restart: always
-    mem_limit: 128m
+    mem_limit: 256m
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-smmplan_lite}
     command: >
       postgres
+      -c max_connections=100
+      -c shared_buffers=64MB
       -c log_statement=ddl
       -c log_connections=on
       -c log_disconnections=on
@@ -128,13 +130,13 @@ services:
       target: worker-runner
     container_name: smmplan_lite_worker
     restart: always
-    mem_limit: 128m
+    mem_limit: 256m
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - NODE_OPTIONS=--max-old-space-size=96
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
+      - NODE_OPTIONS=--max-old-space-size=192
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=10&pool_timeout=15
       - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
       - CLASH_PROXY_URL=http://clash:7890
     healthcheck:
@@ -163,16 +165,15 @@ services:
       target: runner
     container_name: smmplan_web
     restart: always
-    mem_limit: 384m
+    mem_limit: 768m
     # Load all secrets from .env (local dev keys, API tokens, etc.)
     # DATABASE_URL and REDIS_URL are overridden below to use Docker service names
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - NODE_OPTIONS=--max-old-space-size=256
-      # Override to use Docker internal service DNS (not localhost)
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=30
+      - NODE_OPTIONS=--max-old-space-size=512
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=15&pool_timeout=15
       - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
       - CLASH_PROXY_URL=http://clash:7890
       - RUN_MIGRATIONS=true

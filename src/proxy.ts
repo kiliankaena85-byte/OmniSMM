@@ -647,6 +647,8 @@ export async function proxy(request: NextRequest) {
       pathname === '/api/health' ||
       pathname === '/api/maintenance-status' ||
       pathname === '/api/prelaunch/subscribe' ||
+      pathname === '/api/webhooks' ||
+      pathname.startsWith('/api/webhooks/') ||
       pathname.startsWith('/_next/') ||
       pathname.startsWith('/images/') ||
       pathname === '/favicon.ico';

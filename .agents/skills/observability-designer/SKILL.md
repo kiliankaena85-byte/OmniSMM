@@ -270,3 +270,24 @@ Creates comprehensive dashboard specifications:
 - **Alert Tuning:** Ongoing alert threshold and routing optimization
 - **Dashboard Evolution:** User feedback-driven dashboard improvements
 - **Tool Evaluation:** Regular assessment of observability tool effectiveness
+
+---
+
+## Known Anti-Patterns & Lessons Learned
+
+### [LESSON-2026-09-23] dual-faced-error-sanitization
+- **Trigger Condition:** Утечка системных стектрейсов, SQL-запросов и PII данных клиентам в продакшене
+- **Enforced Solution Pattern:** Двухуровневая модель ошибок с разделением на безопасный пользовательский DTO с коротким supportCode (REF-XXXX) и закрытый защищенный журнал для разработчиков
+- **Verified Date:** 2026-09-23
+
+
+### [LESSON-2026-09-23] smart-alert-storm-suppression
+- **Trigger Condition:** Лавинообразный сбой сервиса генерирует сотни сообщений в секунду, вызывая бан Telegram 429
+- **Enforced Solution Pattern:** Sliding-Window дедупликация на Redis с in-memory fallback и агрегированными дайджестами с автозакрытием инцидента
+- **Verified Date:** 2026-09-23
+
+
+### [LESSON-2026-09-23] bank-grade-zero-drop-logging
+- **Trigger Condition:** Пиковые нагрузки или падение БД вызывают потерю логов или блокировку Node.js Event Loop
+- **Enforced Solution Pattern:** 3-уровневый асинхронный буфер (L1 Ring Buffer, L2 NVMe Emergency Append File, L3 Partitioned DB) с приоритетным сбросом
+- **Verified Date:** 2026-09-23

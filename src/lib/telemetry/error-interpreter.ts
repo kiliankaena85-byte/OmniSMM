@@ -6,14 +6,220 @@
  * 100% deterministic, local, sub-millisecond execution (no external LLM latency).
  */
 
+import { redactSensitiveTokens } from '@/lib/logger/sensitive-data-filter';
+import { logger, getTraceId } from '@/lib/logger';
+import { tenantStorage } from '@/lib/tenant-context';
+
 export interface InterpretedIncident {
-  category: 'DATABASE' | 'PAYMENT' | 'PROVIDER' | 'NETWORK' | 'AUTH' | 'CONFIG' | 'DEV_NOISE' | 'GENERAL';
+  category: 'DATABASE' | 'PAYMENT' | 'PROVIDER' | 'NETWORK' | 'AUTH' | 'CONFIG' | 'FINANCE' | 'DEV_NOISE' | 'GENERAL';
   title: string;
   whatHappened: string;
   impactOnUsers: string;
   actionPlan: string;
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
   technicalDetails?: string;
+}
+
+export interface UserFacingError {
+  refCode: string; // Format: /^REF-[A-Z0-9]{4}-[A-Z0-9]{4}$/
+  title: string;
+  message: string;
+  category: string;
+  action?: {
+    type: 'RETRY' | 'SWITCH_GATEWAY' | 'SUPPORT_CHAT' | 'CHOOSE_ANALOG' | 'FIX_LINK';
+    label: string;
+    targetGateway?: string;
+    redirectUrl?: string;
+  };
+}
+
+export interface ForensicReport {
+  refCode: string;
+  title?: string;
+  traceId?: string;
+  tenantId?: string;
+  category: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  publicError: UserFacingError;
+  sanitizedStack?: string;
+  rawMessage: string;
+  sanitizedRawMessage: string;
+  timestamp: string;
+}
+
+export interface DualFacedResult {
+  public: UserFacingError;
+  forensic: ForensicReport;
+}
+
+/**
+ * Generates a compact, unambiguous reference code safe for end-user display.
+ * Format: REF-XXXX-YYYY (e.g., REF-DB01-8A2F, REF-PAYM-7B3K)
+ */
+export function generateRefCode(category: string = 'GENERAL'): string {
+  const categoryPrefixMap: Record<string, string> = {
+    DATABASE: 'DB01',
+    PAYMENT: 'PAYM',
+    PROVIDER: 'PROV',
+    NETWORK: 'NETW',
+    AUTH: 'AUTH',
+    CONFIG: 'CONF',
+    VALIDATION: 'VALD',
+    DEV_NOISE: 'NOIS',
+    FINANCE: 'FINC',
+    GENERAL: 'SYST',
+  };
+
+  const prefix = categoryPrefixMap[category.toUpperCase()] || 'SYST';
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `REF-${prefix}-${suffix}`;
+}
+
+export class DualFacedErrorSanitizer {
+  /**
+   * Transforms raw errors into dual-faced representations:
+   * 1. Public safe user face (no internal paths, no SQL, no passwords, includes REF-XXXX-YYYY code)
+   * 2. Internal forensic report (masked PII stack, full correlation context, auto-logged)
+   */
+  public static sanitize(
+    rawError: unknown,
+    context?: {
+      traceId?: string;
+      tenantId?: string;
+      component?: string;
+      defaultSeverity?: 'INFO' | 'WARNING' | 'CRITICAL';
+    }
+  ): DualFacedResult {
+    let rawMessage = '';
+    let rawStack: string | undefined = undefined;
+
+    if (rawError instanceof Error) {
+      const causeStr = rawError.cause instanceof Error
+        ? rawError.cause.message
+        : (typeof rawError.cause === 'string' ? rawError.cause : '');
+      rawMessage = causeStr ? `${rawError.message} (Cause: ${causeStr})` : (rawError.message || String(rawError));
+      rawStack = rawError.stack;
+    } else if (typeof rawError === 'string') {
+      rawMessage = rawError;
+    } else if (rawError && typeof rawError === 'object') {
+      try {
+        rawMessage = JSON.stringify(rawError);
+      } catch {
+        rawMessage = String(rawError);
+      }
+    } else {
+      rawMessage = 'Unknown system error';
+    }
+
+    const incident = ErrorInterpreter.interpret(rawMessage, context?.defaultSeverity || 'INFO');
+    const refCode = generateRefCode(incident.category);
+    const traceId = context?.traceId || getTraceId();
+    const tenantId = context?.tenantId || tenantStorage.getStore()?.tenantId || 'smmplan';
+
+    // Mask PII and secrets in internal traces
+    const sanitizedRawMessage = redactSensitiveTokens(rawMessage);
+    const sanitizedStack = rawStack ? redactSensitiveTokens(rawStack) : undefined;
+
+    // Build user-facing presentation according to category
+    let userTitle = 'Не удалось выполнить операцию';
+    let userMessage = `Произошла системная ошибка при обработке запроса. Если ошибка повторяется, сообщите поддержке код: ${refCode}`;
+    let userAction: UserFacingError['action'] = {
+      type: 'RETRY',
+      label: 'Повторить попытку',
+    };
+
+    switch (incident.category) {
+      case 'DATABASE':
+        userTitle = 'Временная задержка связи с базой данных';
+        userMessage = `Сервер временно не смог выполнить запрос к базе данных. Пожалуйста, повторите попытку через минуту. Код ошибки для поддержки: ${refCode}`;
+        userAction = { type: 'RETRY', label: 'Повторить попытку' };
+        break;
+
+      case 'PAYMENT':
+        userTitle = 'Ошибка платежного шлюза';
+        userMessage = `Платежный шлюз временно недоступен или отклонил транзакцию. Пожалуйста, выберите другой способ оплаты или обратитесь в поддержку с кодом: ${refCode}`;
+        userAction = { type: 'SWITCH_GATEWAY', label: 'Выбрать другой способ' };
+        break;
+
+      case 'PROVIDER':
+        userTitle = 'Тариф временно недоступен';
+        userMessage = `Услуга временно приостановлена поставщиком для калибровки. Пожалуйста, выберите аналогичный тариф из каталога. Код: ${refCode}`;
+        userAction = { type: 'CHOOSE_ANALOG', label: 'Выбрать другой тариф' };
+        break;
+
+      case 'NETWORK':
+        userTitle = 'Ошибка сетевого соединения';
+        userMessage = `Соединение с сервером прервано. Пожалуйста, проверьте подключение к интернету и повторите попытку. Код: ${refCode}`;
+        userAction = { type: 'RETRY', label: 'Повторить попытку' };
+        break;
+
+      case 'AUTH':
+        userTitle = 'Требуется авторизация';
+        userMessage = `Срок действия сессии истек или запрос отклонен системой безопасности. Пожалуйста, войдите в систему заново. Код: ${refCode}`;
+        userAction = { type: 'RETRY', label: 'Войти снова' };
+        break;
+
+      case 'FINANCE':
+        userTitle = 'Операция отклонена политикой безопасности баланса';
+        userMessage = `Операция отклонена системой финансовой защиты или проверкой неизменяемости баланса. Пожалуйста, обратитесь в поддержку с кодом: ${refCode}`;
+        userAction = { type: 'SUPPORT_CHAT', label: 'Написать в поддержку' };
+        break;
+
+      case 'CONFIG':
+        userTitle = 'Сервис временно настраивается';
+        userMessage = `Некоторые функции временно обновляются администратором. Пожалуйста, повторите попытку через несколько минут. Код: ${refCode}`;
+        userAction = { type: 'RETRY', label: 'Повторить попытку' };
+        break;
+
+      default:
+        userTitle = 'Не удалось завершить операцию';
+        userMessage = `Произошла непредвиденная системная ошибка. Пожалуйста, повторите попытку позже или обратитесь в поддержку с кодом: ${refCode}`;
+        userAction = { type: 'SUPPORT_CHAT', label: 'Написать в поддержку' };
+        break;
+    }
+
+    const publicError: UserFacingError = {
+      refCode,
+      title: userTitle,
+      message: userMessage,
+      category: incident.category,
+      action: userAction,
+    };
+
+    const forensicReport: ForensicReport = {
+      refCode,
+      title: incident.title,
+      traceId,
+      tenantId,
+      category: incident.category,
+      severity: incident.severity,
+      publicError,
+      sanitizedStack,
+      rawMessage: sanitizedRawMessage,
+      sanitizedRawMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Auto-record forensic log without exposing raw secrets to user
+    logger.error(`[ForensicIncident] ${incident.title} (${refCode})`, {
+      refCode,
+      traceId,
+      tenantId,
+      component: context?.component || 'DualFacedErrorSanitizer',
+      category: incident.category,
+      sanitizedRawMessage,
+      sanitizedStack,
+    });
+
+    return {
+      public: publicError,
+      forensic: forensicReport,
+    };
+  }
 }
 
 export class ErrorInterpreter {
@@ -54,7 +260,29 @@ export class ErrorInterpreter {
       };
     }
 
-    // 2. YooKassa & Payment Gateway Configuration
+    // 2. Concurrency & ACID Integrity (Finance / Ledger)
+    if (
+      text.includes('LedgerEntry') ||
+      text.includes('immutability') ||
+      text.toLowerCase().includes('balance negative') ||
+      text.toLowerCase().includes('negative balance') ||
+      text.includes('ExactMath') ||
+      text.includes('CONCURRENCY_CONFLICT') ||
+      text.toLowerCase().includes('deadlock detected') ||
+      text.includes('NegativeBalanceError')
+    ) {
+      return {
+        category: 'FINANCE',
+        title: 'Нарушение финансовой целостности / Concurrency Conflict',
+        whatHappened: 'Операция изменения баланса или проводки по леджеру заблокирована защитой целостности (ACID / ExactMath).',
+        impactOnUsers: 'Финансовая операция отклонена для предотвращения потери или порчи средств.',
+        actionPlan: 'Проверьте журнал admin_audit_log, параметры транзакции и баланс пользователя.',
+        severity: 'CRITICAL',
+        technicalDetails: text,
+      };
+    }
+
+    // 3. YooKassa & Payment Gateway Configuration
     if (text.includes('MISCONFIGURED_WEBHOOK_SECRET') && text.toLowerCase().includes('yookassa')) {
       return {
         category: 'CONFIG',
@@ -81,7 +309,7 @@ export class ErrorInterpreter {
       }
     }
 
-    // 3. SMM Providers (VexBoost, JustAnotherPanel, etc.)
+    // 4. SMM Providers (VexBoost, JustAnotherPanel, etc.)
     if (
       text.includes('Insufficient balance') ||
       text.includes('Not enough funds') ||
@@ -111,7 +339,7 @@ export class ErrorInterpreter {
       };
     }
 
-    // 4. Tailscale Funnel / Edge Network Proxy
+    // 5. Tailscale Funnel / Edge Network Proxy
     if (
       text.includes('502 Bad Gateway') ||
       text.includes('Tailscale') ||
@@ -129,7 +357,50 @@ export class ErrorInterpreter {
       };
     }
 
-    // 5. Development RAG / Memory Noise (Suppressed / Low Impact)
+    // 6. Auth & Security Invariants
+    if (
+      text.includes('Session token expired') ||
+      text.includes('Invalid session') ||
+      text.toLowerCase().includes('unauthorized') ||
+      text.toLowerCase().includes('forbidden') ||
+      text.includes('CSRF') ||
+      text.includes('SSRF') ||
+      text.toLowerCase().includes('access denied') ||
+      text.toLowerCase().includes('jwt expired') ||
+      text.toLowerCase().includes('jwt malformed') ||
+      text.includes('bruteforce')
+    ) {
+      return {
+        category: 'AUTH',
+        title: 'Сбой авторизации или отклонение запроса безопасности',
+        whatHappened: 'Запрос отклонен системой контроля доступа (истекла сессия, неверный токен или сработал защитный барьер).',
+        impactOnUsers: 'Действие заблокировано. Пользователю необходимо войти в систему заново.',
+        actionPlan: 'Проверьте журнал авторизации и статус сессии пользователя.',
+        severity: text.includes('SSRF') || text.includes('bruteforce') ? 'CRITICAL' : 'WARNING',
+        technicalDetails: text,
+      };
+    }
+
+    // 7. BullMQ & Queue Exhaustion
+    if (
+      text.includes('exhausted all') ||
+      text.includes('UnrecoverableError') ||
+      text.toLowerCase().includes('dead-letter') ||
+      text.toLowerCase().includes('dead letter') ||
+      text.includes('Job stalled')
+    ) {
+      return {
+        category: 'GENERAL',
+        title: 'Сбой фоновой обработки в очереди BullMQ',
+        whatHappened: 'Фоновая задача исчерпала все попытки выполнения и направлена в очередь недоставленных сообщений (DLQ).',
+        impactOnUsers: 'Заказ или операция поставлена в безопасную очередь для повторной обработки.',
+        actionPlan: 'Откройте Dead Letter Queue в панели управления и проверьте причину сбоя.',
+        severity: 'WARNING',
+        technicalDetails: text,
+      };
+    }
+
+    // 8. Development RAG / Memory Noise (Suppressed / Low Impact)
     if (text.includes('heracleum_rag_memory') || text.includes('rag-embeddings') || text.includes('8100/api/search')) {
       return {
         category: 'DEV_NOISE',
@@ -219,5 +490,20 @@ export class ErrorInterpreter {
     lines.push('', `<i>Фиксация: ${moscowTime}</i>`);
 
     return lines.join('\n');
+  }
+
+  /**
+   * Facade for dual-faced sanitization: public user presentation vs private forensic report.
+   */
+  static sanitizeDualFaced(
+    rawError: unknown,
+    context?: {
+      traceId?: string;
+      tenantId?: string;
+      component?: string;
+      defaultSeverity?: 'INFO' | 'WARNING' | 'CRITICAL';
+    }
+  ): DualFacedResult {
+    return DualFacedErrorSanitizer.sanitize(rawError, context);
   }
 }
