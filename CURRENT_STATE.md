@@ -1,3 +1,27 @@
+- [x] 🛡️ [OMNISMM-AUDIT-DEFECT-REMEDIATION-AND-DB-MIGRATION-2026] Полное устранение дефектов аудита, официальная миграция банковского усиления БД и абсолютная изоляция тенантов (100% COMPLETE, COMMITTED & PUSHED TO MAIN):
+  * 🏛️ **Официальная Prisma-миграция банковского усиления БД:**
+    - Создана миграция `prisma/migrations/20260923180000_banking_grade_db_hardening/migration.sql`, автоматически применяемая при `docker-entrypoint.sh` / `prisma migrate deploy`.
+    - Подключены расширение `pg_trgm`, ограничение целостности `chk_user_balance_non_negative`, GIN Trigram индексы на `Order.link`, `Service.name`, `User.email` и MVCC fillfactor 85% для `Order`.
+    - Устранён конфликт триггеров леджера: удалён блокирующий любые апдейты `trg_ledger_immutable`, усилен канонический `trg_prevent_ledger_mutation` с защитой `amount`, `userId`, `transactionType` и `tenantId`.
+  * 🔒 **Мьютекс автофлаша поставщиков (Fail-Closed Guard):**
+    - В `BalanceAutoFlushService` при ошибках Redis мьютекс теперь переводится в состояние `lockAcquired = false` (строгий Fail-Closed вместо Fail-Open), исключая риск двойных списаний.
+  * 🕒 **Типобезопасное сравнение дат `cooldownUntil`:**
+    - В `checkout-preflight-guard.service.ts` реализовано корректное преобразование `new Date(service.cooldownUntil) > new Date()`, предотвращающее сбои при десериализации дат из Redis/JSON кэша.
+  * 🛡️ **Защита от Open Redirect в dev-login:**
+    - В `src/app/api/auth/dev-login/route.ts` внедрена валидация относительного пути `redirectTo.startsWith('/') && !redirectTo.startsWith('//')`.
+  * 🌐 **Устранение BOLA/IDOR и предупреждений AST-линтера изоляции тенантов:**
+    - В `src/app/api/v2/route.ts` (строки 368, 520, 607) выборки переведены на `findFirst({ where: { ..., tenantId } })`.
+    - В `src/app/api/support/upload/route.ts` добавлена строгая проверка принадлежности пользователя к тенанту сессии.
+    - В воркерах BullMQ (`order.processor.ts`, `payment-gateway.processor.ts`, `order-preflight-guard.ts` и др.) размечены аннотации для анализатора.
+  * 📑 **Контракты Keyset-пагинации:**
+    - В `keyset-pagination.service.ts` экспортирована валидационная Zod-схема `KeysetCursorSchema`, поле `totalCount` сделано опциональным.
+  * 🧪 **Итоговая верификация (0 ошибок компиляции, 0 утечек секретов, 40/40 тестов PASS):**
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `npm run lint:tenant` — 0 BLOCKERs, 19 предупреждений в затронутых модулях полностью устранены.
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+    - `vitest run` — 4/4 suites (40/40 tests) PASS.
+    - Коммит `7c25e87e` успешно запушен в `origin/main`.
+
 - [x] 💳 [OMNISMM-MULTITENANT-FISCAL-PAYMENT-PARTITIONING-2026] Мульти-тенантное секционирование платёжных шлюзов и фискализации 54-ФЗ (Zero-Commingling Guard) (100% COMPLETE & VERIFIED):
   * 📋 **Спецификация и контракты:**
     - Утверждена спецификация `docs/specs/SPEC-2026-09-23-MULTITENANT-FISCAL-PAYMENT-PARTITIONING.md`.
