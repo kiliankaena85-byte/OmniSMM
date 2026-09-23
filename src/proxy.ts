@@ -119,6 +119,7 @@ const ALLOWED_CONTOUR_DOMAINS = new Set([
 export const INTERNAL_HOSTS = new Set([
   'localhost',
   '127.0.0.1',
+  '::1',
   '0.0.0.0',
   'host.docker.internal',
   'web',
@@ -126,23 +127,29 @@ export const INTERNAL_HOSTS = new Set([
   'tunnel',
   'smmplan_tunnel'
 ]);
+
+export function cleanHostString(h: string | null | undefined): string {
+  if (!h) return '';
+  let clean = h.split(',')[0].trim().toLowerCase();
+  if (clean.endsWith('.')) clean = clean.slice(0, -1);
+  if (clean.startsWith('[') && clean.includes(']')) {
+    const closing = clean.indexOf(']');
+    clean = clean.slice(1, closing);
+  } else {
+    clean = clean.split(':')[0];
+  }
+  return clean.trim();
+}
+
 export function isPureLocalhost(h: string | null | undefined): boolean {
   if (!h) return false;
-  let clean = h.split(',')[0].trim().toLowerCase();
-  if (clean.startsWith('[') && clean.includes(']')) {
-    clean = clean.slice(1, clean.indexOf(']'));
-  }
-  clean = clean.split(':')[0];
-  return clean === 'localhost' || clean === '127.0.0.1' || clean === '0.0.0.0' || clean.endsWith('.local');
+  const clean = cleanHostString(h);
+  return clean === 'localhost' || clean === '127.0.0.1' || clean === '::1' || clean === '0.0.0.0' || clean.endsWith('.local');
 }
 
 export function isInternalHost(h: string | null | undefined): boolean {
   if (!h) return false;
-  let clean = h.split(',')[0].trim().toLowerCase();
-  if (clean.startsWith('[') && clean.includes(']')) {
-    clean = clean.slice(1, clean.indexOf(']'));
-  }
-  clean = clean.split(':')[0];
+  const clean = cleanHostString(h);
 
   if (INTERNAL_HOSTS.has(clean)) return true;
   if (clean.endsWith('.ts.net') || clean.includes('tailscale')) return true;
@@ -160,11 +167,7 @@ export function isInternalHost(h: string | null | undefined): boolean {
  */
 export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
   if (!h) return false;
-  let clean = h.split(',')[0].trim().toLowerCase();
-  if (clean.startsWith('[') && clean.includes(']')) {
-    clean = clean.slice(1, clean.indexOf(']'));
-  }
-  clean = clean.split(':')[0];
+  const clean = cleanHostString(h);
   
   if (isInternalHost(clean)) return true;
 
@@ -197,9 +200,9 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
   if (envList) {
     const customHosts = envList.split(',').map(s => {
       try {
-        return s.includes('://') ? new URL(s.trim()).host.split(':')[0].toLowerCase() : s.trim().split(':')[0].toLowerCase();
+        return s.includes('://') ? cleanHostString(new URL(s.trim()).host) : cleanHostString(s.trim());
       } catch {
-        return s.trim().split(':')[0].toLowerCase();
+        return cleanHostString(s.trim());
       }
     });
     if (customHosts.includes(clean)) return true;
@@ -322,13 +325,35 @@ export async function proxy(request: NextRequest) {
   const fwdProtoRaw = request.headers.get('x-forwarded-proto');
   const fwdProto = fwdProtoRaw?.split(',')[0]?.trim() || null;
 
-  const rawHostClean = (hostHeader || '').split(',')[0].split(':')[0].toLowerCase().trim();
-  const rawFwdClean = (fwdHost || '').split(':')[0].toLowerCase().trim();
+  const rawHostClean = cleanHostString(hostHeader);
+  const rawFwdClean = cleanHostString(fwdHost);
   const isSecurityTxt = pathname === '/.well-known/security.txt' || pathname === '/security.txt';
+
+  // Check dynamic domain registry for incoming external host (prioritize external X-Forwarded-Host if behind reverse proxy/docker, else Host)
+  const candidateDynamicHost = (rawFwdClean && !isInternalHost(rawFwdClean)) ? rawFwdClean : rawHostClean;
+  let dynamicDomainEntry: import('@/services/tenant/domain-registry.service').DomainRegistryEntry | null = null;
+  if (candidateDynamicHost && !isInternalHost(candidateDynamicHost)) {
+    dynamicDomainEntry = await DomainRegistryService.resolveDomain(candidateDynamicHost);
+  } else if (rawHostClean && !isInternalHost(rawHostClean)) {
+    dynamicDomainEntry = await DomainRegistryService.resolveDomain(rawHostClean);
+  }
 
   // CORS Whitelist for API routes (CORS-01)
   const origin = request.headers.get('origin');
-  const isAllowedOrigin = isAllowedCorsOrigin(origin);
+  let isAllowedOrigin = isAllowedCorsOrigin(origin);
+  if (!isAllowedOrigin && origin) {
+    try {
+      const originHost = cleanHostString(new URL(origin).host);
+      if (originHost && !isInternalHost(originHost)) {
+        const originEntry = await DomainRegistryService.resolveDomain(originHost);
+        if (originEntry && originEntry.isActive) {
+          isAllowedOrigin = true;
+        }
+      }
+    } catch {
+      // Invalid origin URL
+    }
+  }
 
   const isStorefrontApi = pathname.startsWith('/api/storefront/');
 
@@ -360,19 +385,16 @@ export async function proxy(request: NextRequest) {
     return new NextResponse(null, { status: 204 });
   }
 
-  // Check dynamic domain registry for incoming host
-  let dynamicDomainEntry: import('@/services/tenant/domain-registry.service').DomainRegistryEntry | null = null;
-  if (rawHostClean && !isInternalHost(rawHostClean)) {
-    dynamicDomainEntry = await DomainRegistryService.resolveDomain(rawHostClean);
-  }
-
   // EARLY REJECTION — before any host is used for redirects/cookies
   if (!isStorefrontApi && !isSecurityTxt) {
     const isHostAllowed = isKnownOrAllowedHost(rawHostClean) || Boolean(dynamicDomainEntry && dynamicDomainEntry.isActive);
     if (rawHostClean && !isHostAllowed) {
-      return NextResponse.json({ error: 'Forbidden: Invalid Host header' }, { status: 403 });
+      const allowed = await DomainRegistryService.isDynamicDomainAllowed(rawHostClean);
+      if (!allowed) {
+        return NextResponse.json({ error: 'Forbidden: Invalid Host header' }, { status: 403 });
+      }
     }
-    const isFwdAllowed = !rawFwdClean || isKnownOrAllowedHost(rawFwdClean) || (await DomainRegistryService.isDynamicDomainAllowed(rawFwdClean));
+    const isFwdAllowed = !rawFwdClean || isKnownOrAllowedHost(rawFwdClean) || Boolean(dynamicDomainEntry && dynamicDomainEntry.isActive && (rawFwdClean === dynamicDomainEntry.domain || rawFwdClean === dynamicDomainEntry.customDomain || rawFwdClean === dynamicDomainEntry.slug || rawFwdClean === `www.${dynamicDomainEntry.domain}`)) || (await DomainRegistryService.isDynamicDomainAllowed(rawFwdClean));
     if (rawFwdClean && !isFwdAllowed) {
       return NextResponse.json({ error: 'Forbidden: Invalid X-Forwarded-Host header' }, { status: 403 });
     }
