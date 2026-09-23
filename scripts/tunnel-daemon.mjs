@@ -27,6 +27,16 @@ let currentTunnelUrl = null;
 let heartbeatInterval = null;
 let activeSsh = null;
 let consecutiveFailures = 0;
+let retryAttempts = 0;
+const INITIAL_RETRY_DELAY_MS = 3000;
+const MAX_RETRY_DELAY_MS = 60000;
+
+export function getBackoffDelay(attempts = retryAttempts) {
+  const exp = Math.min(attempts, 6);
+  const base = Math.min(INITIAL_RETRY_DELAY_MS * Math.pow(1.5, exp), MAX_RETRY_DELAY_MS);
+  const jitter = Math.floor(Math.random() * 1000);
+  return Math.round(base + jitter);
+}
 
 const TARGET_HOST = process.env.TUNNEL_TARGET || '127.0.0.1:3000';
 const TUNNEL_URL_FILE = resolve(process.cwd(), 'TUNNEL_URL.txt');
@@ -145,6 +155,7 @@ function startTunnel() {
           });
           if (res.ok) {
             consecutiveFailures = 0;
+            retryAttempts = 0; // Reset backoff on verified healthy tunnel connection
             console.log(`[Heartbeat] 💓 Ping OK: ${new Date().toLocaleTimeString()} (200 OK)`);
           } else if (res.status === 503) {
             console.log(`[Heartbeat] 🚨 Provider returned 503 (tunnel revoked). Force restarting SSH...`);
@@ -177,14 +188,20 @@ function startTunnel() {
     }
   });
 
-  ssh.on('close', (code) => {
-    console.log(`[Tunnel] SSH connection closed (code ${code}). Reconnecting in 3s...`);
-    if (heartbeatInterval) clearInterval(heartbeatInterval);
-    setTimeout(startTunnel, 3000);
+  ssh.on('close', (code, signal) => {
+    retryAttempts++;
+    const delay = getBackoffDelay();
+    console.log(`[Tunnel] SSH connection closed (code: ${code}, signal: ${signal || 'none'}). Reconnecting in ${delay}ms (attempt #${retryAttempts})...`);
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+    activeSsh = null;
+    setTimeout(startTunnel, delay);
   });
 
   ssh.on('error', (err) => {
-    console.error(`[Tunnel] Error:`, err);
+    console.error(`[Tunnel] Process error (${err.code || 'UNKNOWN'}):`, err.message);
   });
 }
 
@@ -201,8 +218,11 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-console.log('═══════════════════════════════════════════════════════');
-console.log('  🚀 SMMplan Persistent Tunnel & Proxy Watchdog Daemon');
-console.log('═══════════════════════════════════════════════════════\n');
+import { fileURLToPath } from 'url';
 
-startTunnel();
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('  🚀 SMMplan Persistent Tunnel & Proxy Watchdog Daemon');
+  console.log('═══════════════════════════════════════════════════════\n');
+  startTunnel();
+}
