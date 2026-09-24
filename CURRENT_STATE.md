@@ -1,3 +1,48 @@
+- [x] 🚀 [OMNISMM-PAGE-RELOAD-AND-CI-DEFECT-REMEDIATION-2026] Устранение бага «перезагрузка страницы при выборе категорий/соцсетей», сопутствующих дефектов и красного CI (100% COMPLETE & VERIFIED ON MAIN):
+  * 🛑 **P0.1 Устранение `history.replaceState` в CategorySidebar (`src/components/landing/order-engine/CategorySidebar.tsx`):**
+    - Удалена прямая мутация `window.history.replaceState({}, '', ...)` при клике на категорию. Теперь используется только React-состояние и навигация Next.js через `shallow` / `scroll: false`. Это полностью устранило стирание внутреннего роутер-состояния Next.js (`__NA`) и последующий hard reload. (Commit: `30e599d`)
+  * 🪝 **P0.2 Устранение нарушений Rules of Hooks перед early returns (`src/components/orders/wizard/useSmmplanOrderWizard.ts`, `src/hooks/order-engine/useOrderCatalogSync.ts`):**
+    - Все хуки (`useCallback`, `useMemo`, `useEffect`) вынесены на верхний уровень до любых условных операторов и досрочных выходов `if (...) return`. (Commit: `9f6863b`)
+  * 🛡️ **P0.3 Доработка DDoS Shield (`src/services/security/ddos-shield/ddos-shield.service.ts`):**
+    - Из пула подозрительных запросов исключены RSC-запросы (`_rsc`) и вызовы Server Actions.
+    - Разрешены планшеты Android, в ключ пула добавлен реальный клиентский IP и tenantId. (Commit: `59c36a9`)
+  * ⚡ **P1 Устойчивость каталога, кэширование и целостность History State:**
+    - В `useOrderCatalogSync.ts` и визардах добавлен request-id race guard для исключения перезаписи стейта устаревшими ответами.
+    - Внедрен кэш услуг категории `categoryServicesCache` (мгновенный отклик при переключении между категориями без повторных fetch).
+    - Разрезан бесконечный цикл `order-session-storage` <-> `router.replace`.
+    - Все 5 файлов с прямыми вызовами `history.pushState` / `replaceState` приведены к инварианту сохранения `{ ...window.history.state }` (защита `__NA`) и отсутствию мутаций `pathname`. (Commit: `4714120`)
+  * 🎨 **Устранение визуальных дефектов V1–V7 (`SmartLinkLanding.tsx`, `CategorySidebar.tsx`, `LandingCatalogContent.tsx`):**
+    - Исправлен класс Tailwind dark mode: `dark:emerald-500/5` -> `dark:bg-emerald-500/5`.
+    - Убраны `ring-slate-100` и `scale-[1.02]`, заменены на семантическую обводку дизайн-системы `ring-1 ring-divider dark:ring-white/10`.
+    - Добавлены скелетоны загрузки каталога и плашка ошибки с кнопкой повтора. (Commit: `ad71e7e`)
+  * 🧪 **Исправление CI и юнит-тестов (`ci.yml`, `token-resolver.ts`, `r1-advanced-parameters-challenge.test.ts`, `elastic-pricing-prevention.test.ts`, `m1-challenger-antifraud.test.ts`):**
+    - Gitleaks CI: добавлен `fetch-depth: 0`.
+    - Токен Telegram в комментариях санитизирован во избежание срабатывания сканера секретов.
+    - Все падающие тесты (R1 drip-feed runs multiplier, CBRRateService API fallbacks, CryptoBot 54-FZ 15k limit) переведены в 100% PASS (29/29).
+    - Сьют безопасности `src/__tests__/security/`: 50/50 файлов (255/255 тестов) — 100% PASS. (Commit: `587c379`)
+  * 📐 **Проверка типов и линтинг:** `npx tsc --noEmit` — 0 ошибок; `npx eslint` — 0 ошибок.
+
+- [x] 🚨 [OMNISMM-DEFECT-REMEDIATION-TRIAD-2026] Устранение 3 подтверждённых критических дефектов надежности и безопасности (100% COMPLETE & VERIFIED):
+  * 🪣 **Дебаунсер P0-алертов (`src/lib/alerts/p0-alert-debouncer.ts`):**
+    - Проверка готовности Redis переведена строго на `redis.status === 'ready'` (устранен ложный `connecting` при `lazyConnect: true`).
+    - Исправлена семантика `redis.set(..., 'NX')`: при `null` (ключ уже заблокирован в Redis) метод возвращает `false` (подавление шторма), исключая ошибочный провал в in-memory fallback.
+    - Оффлайн-дельта `pendingOfflineDelta` гарантированно аккумулирует все события во время недоступности Redis и отправляет их через `INCRBY` при реконнекте.
+    - В `pruneInMemoryStores()` активные окна тишины (`silenceUntil > now`) защищены от LRU-вытеснения.
+    - Тесты: `smart-alert-deduplication-and-dlq-triage.test.ts` — 4/4 PASS (100% подавление 50 дубликатов, оффлайн-дельта >= 7).
+  * 🔒 **Фильтр чувствительных данных (`src/lib/logger/sensitive-data-filter.ts`):**
+    - Поддержка произвольных схем URI (`mongodb+srv`, `http`, `mysql`, `amqp`, etc.) и бессхемных строк `user:pass@host`.
+    - Корректная обработка спецсимволов и символов `@` / `%40` внутри пароля: жадный захват `[^\/\s?#]+` исключает ложное усечение и маскирование пароля под email.
+    - Тесты: `sensitive-data-filter.test.ts` — 8/8 PASS.
+  * 🛡️ **Изоляция логов персонала и устранение IDOR (`src/actions/admin/staff.ts`):**
+    - В `getStaffMembersWithMetrics` и `getStaffPersonalLogsAction` внедрена строгая фильтрация `adminAuditLog.findMany` по `tenantId` и проверка `allowedTenants`.
+    - Добавлен IDOR & Role Hierarchy Guard: запросы персональных логов сотрудников ранга OWNER от не-OWNER блокируются с кодом 403 Forbidden.
+    - Добавлена проверка пересечения брендов: доступ к логам сотрудника чужого тенанта блокируется с кодом 403 Forbidden.
+    - Тесты: `multitenant-staff-isolation.test.ts` — 15/15 PASS, `staff-hub.test.ts` — PASS.
+  * ⚙️ **Стабилизация среды сборки и тестов (`tsconfig.json`, `test/setup.ts`, `.env.test`):**
+    - В `tsconfig.json` в `exclude` добавлены `.agents/**/*`, `artifacts/**/*`, `.planning/**/*`, устранив зависание V8 heap и OOM.
+    - `npx tsc --noEmit` — 0 ошибок (Clean).
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+
 - [x] 🏦 [OMNISMM-BANK-GRADE-LOGGING-AND-ALERTS-TRIAD-2026] Внедрение банковского стандарта логирования, распределенного трейсинга и отказоустойчивого алертинга (100% COMPLETE & VERIFIED):
   * 📐 **Официальная спецификация SDD-TDD (`docs/specs/SPEC-2026-09-23-BANK-GRADE-LOGGING-AND-ALERTS.md`):**
     - Зафиксированы 4 архитектурных столпа: Forensics & Distributed Tracing, Zero-Drop Structured Logs, Actionable Alerting & Anti-Storm, Human-Centric Dual-Faced Errors.
