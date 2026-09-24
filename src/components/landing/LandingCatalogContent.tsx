@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { Box } from "lucide-react";
+import { Box, AlertCircle, RefreshCw } from "lucide-react";
 import { PublicNetwork } from "@/actions/order/catalog";
 import { OrderEngine } from "@/hooks/useOrderEngine";
 
@@ -41,7 +41,7 @@ export function LandingCatalogContent({
   setShowCatalogModal,
   userBalanceCents,
 }: LandingCatalogContentProps) {
-  const { url, selectedService, setSelectedService, quantity, setQuantity, pricing, email, setEmail, networkId, services, isLoading } = engine;
+  const { url, selectedService, setSelectedService, quantity, setQuantity, pricing, email, setEmail, networkId, services, isLoading, servicesError, retryServices } = engine;
   const {
     isSubmitting, handleCheckout, emailHasError, quantityHasError, termsHasError, setShowLinkModal, checkoutError
   } = orchestrator;
@@ -131,7 +131,31 @@ export function LandingCatalogContent({
                   </h3>
                 </div>
 
-                {services.length === 0 && isLoading ? (
+                {servicesError ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-4 border-2 border-dashed border-danger/30 bg-danger/5 rounded-2xl min-h-[320px] p-8">
+                    <div className="w-16 h-16 rounded-2xl bg-danger/10 flex items-center justify-center text-danger">
+                      <AlertCircle className="w-8 h-8 text-danger" />
+                    </div>
+                    <div className="text-center space-y-1.5 max-w-sm">
+                      <p className="text-base font-bold text-foreground">
+                        Ошибка загрузки тарифов
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
+                        Не удалось получить список услуг. Возможно, возникла временная проблема со связью с базой данных или Redis.
+                      </p>
+                    </div>
+                    {retryServices && (
+                      <button
+                        type="button"
+                        onClick={() => retryServices()}
+                        className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all cursor-pointer active:scale-95 shadow-sm"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Повторить попытку</span>
+                      </button>
+                    )}
+                  </div>
+                ) : services.length === 0 && isLoading ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-8 pt-4">
                     {Array.from({ length: 8 }).map((_, i) => (
                       <div key={i} className="w-full flex flex-col p-5 md:p-6 min-h-[400px] bg-content2 border border-border/50 shadow-sm animate-pulse rounded-[2rem]" />

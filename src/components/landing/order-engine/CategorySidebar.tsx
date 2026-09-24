@@ -41,11 +41,7 @@ function getCategoryDemandScore(name: string): number {
 
 export function CategorySidebar({ engine }: { engine: OrderEngine }) {
   const { availableCategories, categoryId, setCategoryId } = engine;
-  
-  if (availableCategories.length === 0) {
-    return null;
-  }
- 
+
   const sortedCategories = useMemo(() => {
     return [...availableCategories].sort((a, b) => {
       const scoreA = getCategoryDemandScore(a.name);
@@ -57,6 +53,10 @@ export function CategorySidebar({ engine }: { engine: OrderEngine }) {
       return a.name.localeCompare(b.name);
     });
   }, [availableCategories]);
+
+  if (availableCategories.length === 0) {
+    return null;
+  }
 
   return (
     <div data-testid="category-sidebar" className="hidden md:flex lg:flex-col flex-row flex-wrap lg:flex-nowrap lg:border-r border-border/50 p-4 lg:p-6 gap-3 bg-content2/50 shrink-0 lg:w-[280px] xl:w-[320px] items-center lg:items-stretch lg:sticky lg:top-24">
