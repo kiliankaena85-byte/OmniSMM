@@ -4,19 +4,21 @@ import path from 'path';
 
 /**
  * Audit Reproduction Suite for Background Queues & Workers (BullMQ & Redis Architecture) (R2)
- * Validates findings documented in .agents/teamwork_preview_explorer_audit_r2/handoff.md
+ * Validates findings documented in:
+ * - .agents/teamwork_preview_explorer_audit_r2/handoff.md
+ * - .agents/teamwork_preview_orchestrator_audit_1/PROJECT.md
  */
 describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', () => {
 
-  describe('P0-1: TOCTOU Race Condition in Order Dispatch (Duplicate Provider Orders)', () => {
-    it('Source Invariant: OrderPreflightGuard checks Redis key with GET instead of atomic SET NX lock', () => {
+  describe('R2-P0-01: TOCTOU Race Condition in Order Dispatch (Duplicate Provider Orders)', () => {
+    it('Source Invariant: OrderPreflightGuard checks Redis key and acquires atomic SET NX lock', () => {
       const guardPath = path.resolve(process.cwd(), 'src/workers/processors/order/order-preflight-guard.ts');
       const content = fs.readFileSync(guardPath, 'utf-8');
 
       // The preflight guard checks key presence with connection.get
       expect(content.includes('await connection.get(redisKey)')).toBe(true);
-      // It does NOT use atomic acquire with NX option
-      expect(content.includes("'NX'") || content.includes('"NX"')).toBe(false);
+      // It acquires atomic lock with NX option
+      expect(content.includes("'NX'") || content.includes('"NX"')).toBe(true);
     });
 
     it('Source Invariant: Lock key is written in OrderDispatchExecutor AFTER external route resolution', () => {
@@ -24,7 +26,7 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
       const content = fs.readFileSync(executorPath, 'utf-8');
 
       // OrderDispatchExecutor sets the key order:dispatched:
-      const setKeyIndex = content.indexOf("connection.set(`order:dispatched:${order.id}`");
+      const setKeyIndex = content.indexOf("connection.set(redisKey, '1', 'EX', 3600)");
       expect(setKeyIndex).toBeGreaterThan(0);
     });
 
@@ -73,7 +75,7 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
     });
   });
 
-  describe('P0-2: BullMQ Built-in Backoff Shadows Custom Jittered Strategy', () => {
+  describe('R2-P0-02: BullMQ Built-in Backoff Shadows Custom Jittered Strategy', () => {
     it('Source Invariant: defaultJobOptions uses type exponential which BullMQ intercepts before custom backoffStrategy', () => {
       const queueManagerPath = path.resolve(process.cwd(), 'src/lib/queue-manager.ts');
       const queueContent = fs.readFileSync(queueManagerPath, 'utf-8');
@@ -85,9 +87,13 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
       expect(queueContent.includes("type: 'exponential'")).toBe(true);
       expect(queueContent.includes('delay: 5000')).toBe(true);
 
-      // workers/index.ts defines a custom backoffStrategy with jitter
+      // workers/index.ts defines a custom backoffStrategy calling jitteredBackoff
       expect(workersContent.includes('backoffStrategy:')).toBe(true);
-      expect(workersContent.includes('Math.random()')).toBe(true);
+      expect(workersContent.includes('jitteredBackoff(attemptsMade, delay)')).toBe(true);
+
+      // queue-manager defines jitteredBackoff with Math.random()
+      expect(queueContent.includes('export const jitteredBackoff')).toBe(true);
+      expect(queueContent.includes('Math.random()')).toBe(true);
     });
 
     it('Mathematical Invariant: BullMQ built-in exponential backoff without jitter causes deterministic retry storms', () => {
@@ -118,7 +124,7 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
     });
   });
 
-  describe('P1-1: Dead Code Invariant: withJobTimeout is never invoked by any worker', () => {
+  describe('R2-P1-01: Dead Code Invariant: withJobTimeout is never invoked by any worker', () => {
     it('Source Invariant: withJobTimeout is exported in queue-manager but NEVER imported in workers/index.ts', () => {
       const queueManagerPath = path.resolve(process.cwd(), 'src/lib/queue-manager.ts');
       const queueContent = fs.readFileSync(queueManagerPath, 'utf-8');
@@ -127,7 +133,7 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
       const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
 
       // Exported in queue-manager
-      expect(queueContent.includes('export function withJobTimeout')).toBe(true);
+      expect(queueContent.includes('export async function withJobTimeout')).toBe(true);
       expect(queueContent.includes('export const QUEUE_TIMEOUTS')).toBe(true);
 
       // But completely absent from workers/index.ts!
@@ -135,7 +141,7 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
     });
   });
 
-  describe('P1-2: Lock Duration vs Batch Duration Mismatch (False Stalled Job Failures)', () => {
+  describe('R2-P1-02: Lock Duration vs Batch Duration Mismatch (False Stalled Job Failures)', () => {
     it('Source Invariant: Global lockDuration is 60s with maxStalledCount: 1 without per-worker overrides', () => {
       const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
       const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
@@ -150,47 +156,13 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
     });
   });
 
-  describe('P1-3: DLQ Blind Spots & Missing Consumer', () => {
-    it('Source Invariant: aiObserverWorker, aiEconomicOptimizerWorker, geoAvailabilityWorker have NO failed event listener', () => {
-      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
-      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
-
-      expect(workersContent.includes("aiObserverWorker.on('failed'")).toBe(false);
-      expect(workersContent.includes("aiEconomicOptimizerWorker.on('failed'")).toBe(false);
-      expect(workersContent.includes("geoAvailabilityWorker.on('failed'")).toBe(false);
-    });
-
-    it('Source Invariant: telegramWorker and cleanupWorker fail to route dead jobs to dlqQueue', () => {
-      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
-      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
-
-      // telegramWorker has an on('failed') listener
-      const telegramFailedIndex = workersContent.indexOf("telegramWorker.on('failed'");
-      expect(telegramFailedIndex).toBeGreaterThan(0);
-
-      // But it only logs to logger.error, never routes to dlqQueue.add
-      const telegramSnippet = workersContent.slice(telegramFailedIndex, telegramFailedIndex + 250);
-      expect(telegramSnippet.includes('logger.error')).toBe(true);
-      expect(telegramSnippet.includes('dlqQueue.add')).toBe(false);
-    });
-
-    it('Source Invariant: dead-letter-queue has NO BullMQ Worker to process or alert on DLQ jobs', () => {
-      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
-      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
-
-      // Zero workers instantiated for 'dead-letter-queue'
-      expect(workersContent.includes("new Worker('dead-letter-queue'")).toBe(false);
-      expect(workersContent.includes("new Worker(QUEUE_NAMES.DLQ")).toBe(false);
-    });
-  });
-
-  describe('P1-4: Orphan Order Recovery Deadlock via Duplicate jobId Collision', () => {
-    it('Source Invariant: sync.processor.ts re-enqueues orphan orders with fixed jobId dispatch-${orphan.id}', () => {
+  describe('R2-P1-03: Orphan Order Recovery Deadlock via Duplicate jobId Collision', () => {
+    it('Source Invariant: sync.processor.ts re-enqueues orphan orders with unique timestamped jobId', () => {
       const syncProcessorPath = path.resolve(process.cwd(), 'src/workers/processors/sync.processor.ts');
       const syncContent = fs.readFileSync(syncProcessorPath, 'utf-8');
 
-      // Orphan recovery uses fixed jobId
-      expect(syncContent.includes('jobId: `dispatch-${orphan.id}`')).toBe(true);
+      // Orphan recovery uses unique timestamped jobId to avoid BullMQ deduplication deadlock
+      expect(syncContent.includes('dispatch-${orphan.id}-')).toBe(true);
     });
 
     it('Behavioral Simulation: BullMQ rejects re-adding job if previous job with same jobId exists in failed/completed set', () => {
@@ -211,6 +183,40 @@ describe('Audit R2: BullMQ & Redis Architecture Reliability & Race Invariants', 
 
       expect(result.scheduled).toBe(false);
       // Because scheduled is false, the order in DB remains in PENDING status indefinitely!
+    });
+  });
+
+  describe('R2-P1-06: DLQ Blind Spots & Missing Consumer', () => {
+    it('Source Invariant: aiObserverWorker, aiEconomicOptimizerWorker, geoAvailabilityWorker have NO failed event listener', () => {
+      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
+      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
+
+      expect(workersContent.includes("aiObserverWorker.on('failed'")).toBe(false);
+      expect(workersContent.includes("aiEconomicOptimizerWorker.on('failed'")).toBe(false);
+      expect(workersContent.includes("geoAvailabilityWorker.on('failed'")).toBe(false);
+    });
+
+    it('Source Invariant: telegramWorker and cleanupWorker fail to route dead jobs to dlqQueue', () => {
+      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
+      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
+
+      // telegramWorker has an on('failed') listener
+      const telegramLine = workersContent.split('\n').find(l => l.includes("telegramWorker.on('failed'")) || '';
+      expect(telegramLine).toBeTruthy();
+
+      // But it only logs to log.error, never routes to handleDeadLetter or dlqQueue.add
+      expect(telegramLine.includes("log.error('Telegram notification failed'")).toBe(true);
+      expect(telegramLine.includes('handleDeadLetter')).toBe(false);
+      expect(telegramLine.includes('dlqQueue.add')).toBe(false);
+    });
+
+    it('Source Invariant: dead-letter-queue has NO BullMQ Worker to process or alert on DLQ jobs', () => {
+      const workersIndexPath = path.resolve(process.cwd(), 'src/workers/index.ts');
+      const workersContent = fs.readFileSync(workersIndexPath, 'utf-8');
+
+      // Zero workers instantiated for 'dead-letter-queue'
+      expect(workersContent.includes("new Worker('dead-letter-queue'")).toBe(false);
+      expect(workersContent.includes("new Worker(QUEUE_NAMES.DLQ")).toBe(false);
     });
   });
 });

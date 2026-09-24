@@ -208,12 +208,29 @@ export class SystemTelemetryService {
     let syncWaiting = 0;
     let queuesStatus: QueuesTelemetry['status'] = 'HEALTHY';
 
+    const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
+      let timer: NodeJS.Timeout;
+      const timeoutPromise = new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(fallback), timeoutMs);
+      });
+      return Promise.race([
+        promise.then((res) => {
+          clearTimeout(timer);
+          return res;
+        }).catch(() => {
+          clearTimeout(timer);
+          return fallback;
+        }),
+        timeoutPromise
+      ]);
+    };
+
     try {
       const [ow, oa, of, sw] = await Promise.all([
-        ordersQueue.getWaitingCount().catch(() => 0),
-        ordersQueue.getActiveCount().catch(() => 0),
-        ordersQueue.getFailedCount().catch(() => 0),
-        syncQueue.getWaitingCount().catch(() => 0),
+        withTimeout(ordersQueue.getWaitingCount(), 1000, 0),
+        withTimeout(ordersQueue.getActiveCount(), 1000, 0),
+        withTimeout(ordersQueue.getFailedCount(), 1000, 0),
+        withTimeout(syncQueue.getWaitingCount(), 1000, 0),
       ]);
       ordersWaiting = ow;
       ordersActive = oa;
@@ -302,3 +319,5 @@ export class SystemTelemetryService {
     return { alertsSent, snapshot };
   }
 }
+
+export const getSystemTelemetry = () => SystemTelemetryService.collectSnapshot();

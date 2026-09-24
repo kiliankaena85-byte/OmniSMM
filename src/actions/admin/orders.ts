@@ -243,7 +243,7 @@ export async function setOrderStatusAction(
       if (refundCents > 0) {
         await WalletOps.refund(tx, order.userId, refundCents,
           `Ручная смена статуса заказа #${order.numericId}: ${oldStatus}→${newStatus}`,
-          { adminId: admin.id, idempotencyKey: `refund_${order.id}_${newStatus}_${Date.now()}`, tenantId: order.tenantId }
+          { adminId: admin.id, idempotencyKey: `refund_${order.id}_${newStatus}`, tenantId: order.tenantId }
         );
       }
 
@@ -437,7 +437,7 @@ export async function bulkCancelOrdersAction(
             if (refundCents > 0) {
               await WalletOps.refund(tx, safeOrder.userId, refundCents,
                 `Массовая отмена заказа #${safeOrder.numericId}${reason ? ` (${reason})` : ''}`,
-                { adminId: admin.id, idempotencyKey: `refund_${safeOrder.id}_CANCELED_${Date.now()}`, tenantId: safeOrder.tenantId }
+                { adminId: admin.id, idempotencyKey: `refund_${safeOrder.id}_CANCELED`, tenantId: safeOrder.tenantId }
               );
             }
             totalRefunded += refundCents;

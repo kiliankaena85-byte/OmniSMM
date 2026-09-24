@@ -91,6 +91,14 @@ export class OrderPreflightGuard {
       throw new UnrecoverableError(`Duplicate dispatch prevented: already sent to provider.`);
     }
 
+    // Atomic SET NX lock to prevent TOCTOU concurrent double dispatch
+    const dispatchLockKey = `order:dispatch_lock:${order.id}`;
+    const acquiredLock = await connection.set(dispatchLockKey, '1', 'EX', 120, 'NX');
+    if (!acquiredLock) {
+      log.warn(`[OrderProcessor] Concurrent dispatch lock active for order ${order.id}. Skipping duplicate.`);
+      return { order: null, redisKey: '' };
+    }
+
     return { order, redisKey };
   }
 }

@@ -129,19 +129,39 @@ export async function GET(request: Request) {
         if (status && status !== 'ALL') where.status = status;
         if (periodStart) where.createdAt = { gte: periodStart };
 
-        const orders = await db.order.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          take: 10000,
+        const BATCH_SIZE = 500;
+        const MAX_TOTAL_ORDERS = 10000;
+        type ExportOrder = Prisma.OrderGetPayload<{
           include: {
-            user: { select: { email: true } },
-            service: { select: { name: true } },
-          },
-        });
+            user: { select: { email: true } };
+            service: { select: { name: true } };
+          };
+        }>;
+        const allOrders: ExportOrder[] = [];
+        let orderCursor: string | undefined = undefined;
+
+        while (allOrders.length < MAX_TOTAL_ORDERS) {
+          const batchLimit = Math.min(BATCH_SIZE, MAX_TOTAL_ORDERS - allOrders.length);
+          const batch: ExportOrder[] = await db.order.findMany({
+            where,
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            take: batchLimit,
+            ...(orderCursor ? { skip: 1, cursor: { id: orderCursor } } : {}),
+            include: {
+              user: { select: { email: true } },
+              service: { select: { name: true } },
+            },
+          });
+
+          if (batch.length === 0) break;
+          allOrders.push(...batch);
+          orderCursor = batch[batch.length - 1].id;
+          if (batch.length < batchLimit) break;
+        }
 
         csv = toCsv(
           ['ID', 'Email', 'Услуга', 'Ссылка', 'Кол-во', 'Остаток', 'Стоимость ₽', 'Себестоимость ₽', 'Статус', 'Дата'],
-          orders.map(o => [
+          allOrders.map(o => [
             String(o.numericId),
             o.user.email,
             o.service.name,
@@ -216,16 +236,33 @@ export async function GET(request: Request) {
           primaryOrderBy = { [sortBy as string]: sortOrder };
         }
 
-        const users = await db.user.findMany({
-          where,
-          orderBy: [primaryOrderBy, { id: 'desc' }],
-          take: 10000,
-          include: { _count: { select: { orders: true } } },
-        });
+        const BATCH_SIZE = 500;
+        const MAX_TOTAL_USERS = 10000;
+        type ExportUser = Prisma.UserGetPayload<{
+          include: { _count: { select: { orders: true } } };
+        }>;
+        const allUsers: ExportUser[] = [];
+        let userCursor: string | undefined = undefined;
+
+        while (allUsers.length < MAX_TOTAL_USERS) {
+          const batchLimit = Math.min(BATCH_SIZE, MAX_TOTAL_USERS - allUsers.length);
+          const batch: ExportUser[] = await db.user.findMany({
+            where,
+            orderBy: [primaryOrderBy, { id: 'desc' }],
+            take: batchLimit,
+            ...(userCursor ? { skip: 1, cursor: { id: userCursor } } : {}),
+            include: { _count: { select: { orders: true } } },
+          });
+
+          if (batch.length === 0) break;
+          allUsers.push(...batch);
+          userCursor = batch[batch.length - 1].id;
+          if (batch.length < batchLimit) break;
+        }
 
         csv = toCsv(
           ['Email', 'Роль', 'Баланс ₽', 'LTV ₽', 'Заказов', 'Telegram ID', 'Регистрация'],
-          users.map(u => [
+          allUsers.map(u => [
             u.email,
             u.role,
             (Number(u.balance) / 100).toFixed(2),
@@ -273,18 +310,37 @@ export async function GET(request: Request) {
           } : {}),
         };
 
-        const entries = await db.ledgerEntry.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          take: 10000,
+        const BATCH_SIZE = 500;
+        const MAX_TOTAL_ENTRIES = 10000;
+        type ExportLedgerEntry = Prisma.LedgerEntryGetPayload<{
           include: {
-            user: { select: { email: true, tenantId: true } },
-          },
-        });
+            user: { select: { email: true, tenantId: true } };
+          };
+        }>;
+        const allEntries: ExportLedgerEntry[] = [];
+        let ledgerCursor: string | undefined = undefined;
+
+        while (allEntries.length < MAX_TOTAL_ENTRIES) {
+          const batchLimit = Math.min(BATCH_SIZE, MAX_TOTAL_ENTRIES - allEntries.length);
+          const batch: ExportLedgerEntry[] = await db.ledgerEntry.findMany({
+            where,
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            take: batchLimit,
+            ...(ledgerCursor ? { skip: 1, cursor: { id: ledgerCursor } } : {}),
+            include: {
+              user: { select: { email: true, tenantId: true } },
+            },
+          });
+
+          if (batch.length === 0) break;
+          allEntries.push(...batch);
+          ledgerCursor = batch[batch.length - 1].id;
+          if (batch.length < batchLimit) break;
+        }
 
         csv = toCsv(
           ['ID Проводки', 'Email клиента', 'Бренд', 'Сумма ₽', 'Тип транзакции', 'Причина / Назначение', 'Оператор', 'Статус', 'Idempotency Key', 'Дата'],
-          entries.map(e => [
+          allEntries.map(e => [
             e.id,
             e.user.email,
             e.user.tenantId === 'smmplan' ? 'SMMplan' : 'SMMflux',
@@ -317,14 +373,33 @@ export async function GET(request: Request) {
           } : {}),
         };
 
-        const payments = await db.payment.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          take: 10000,
+        const BATCH_SIZE = 500;
+        const MAX_TOTAL_PAYMENTS = 10000;
+        type ExportPayment = Prisma.PaymentGetPayload<{
           include: {
-            user: { select: { email: true } },
-          },
-        });
+            user: { select: { email: true } };
+          };
+        }>;
+        const allPayments: ExportPayment[] = [];
+        let paymentCursor: string | undefined = undefined;
+
+        while (allPayments.length < MAX_TOTAL_PAYMENTS) {
+          const batchLimit = Math.min(BATCH_SIZE, MAX_TOTAL_PAYMENTS - allPayments.length);
+          const batch: ExportPayment[] = await db.payment.findMany({
+            where,
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            take: batchLimit,
+            ...(paymentCursor ? { skip: 1, cursor: { id: paymentCursor } } : {}),
+            include: {
+              user: { select: { email: true } },
+            },
+          });
+
+          if (batch.length === 0) break;
+          allPayments.push(...batch);
+          paymentCursor = batch[batch.length - 1].id;
+          if (batch.length < batchLimit) break;
+        }
 
         const gatewayLabels: Record<string, string> = {
           yookassa: 'ЮKassa',
@@ -340,7 +415,7 @@ export async function GET(request: Request) {
 
         csv = toCsv(
           ['ID Платежа', 'ID в Шлюзе', 'Email клиента', 'Бренд', 'Сумма ₽', 'Валюта', 'Шлюз', 'Статус', 'IP клиента', 'User-Agent', 'Дата создания'],
-          payments.map(p => [
+          allPayments.map(p => [
             p.id,
             p.gatewayId || '',
             p.user?.email || 'Unknown',

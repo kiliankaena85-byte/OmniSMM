@@ -102,7 +102,11 @@ describe('Cleanup Processor', () => {
 
     await runOrphanSweep();
 
-    expect(ordersQueue.add).toHaveBeenCalledWith('order-dispatch', { orderId: 'o1', tenantId: 'smmplan' }, { jobId: 'dispatch-o1' });
+    expect(ordersQueue.add).toHaveBeenCalledWith(
+      'order-dispatch',
+      { orderId: 'o1', tenantId: 'smmplan' },
+      { jobId: expect.stringMatching(/^dispatch-o1-/) }
+    );
   });
 
   it('IN_PROGRESS TTL partial refund', async () => {

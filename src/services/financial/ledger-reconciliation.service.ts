@@ -341,7 +341,7 @@ export class LedgerReconciliationService {
         }
 
         // Creating a compensating ledger entry aligns ledgerSum with user.balance
-        const idempotencyKey = `reconcile-fix-${userId}-${Date.now()}`;
+        const idempotencyKey = `reconcile-fix-${userId}-${diff.toString()}`;
 
         await tx.ledgerEntry.create({
           data: {

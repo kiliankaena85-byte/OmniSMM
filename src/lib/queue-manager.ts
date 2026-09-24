@@ -86,8 +86,13 @@ export const jitteredBackoff = (attemptsMade: number, delay: number): number => 
   return Math.round(jitter);
 };
 
+export const REPEATABLE_JOB_CLEANUP_OPTS = {
+  removeOnComplete: { count: 100, age: 3600 },
+  removeOnFail: { count: 100, age: 86400 }
+};
+
 export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<QueueOptions['defaultJobOptions']>) => {
-  const isBuildOrTest = process.env.NEXT_PHASE === 'phase-production-build' || !!process.env.CI || process.env.NODE_ENV === 'test';
+  const isBuildOrTest = (process.env.NEXT_PHASE === 'phase-production-build' || !!process.env.CI || process.env.NODE_ENV === 'test') && !process.env.TEST_WITH_REAL_REDIS;
   
   // Dummy object to prevent Redis connection during Vercel/Next build step and unit tests
   if (isBuildOrTest) {
@@ -108,6 +113,11 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
       getJobs: async () => [],
       getJob: async () => null,
       count: async () => 0,
+      getWaitingCount: () => Promise.resolve(0),
+      getActiveCount: () => Promise.resolve(0),
+      getFailedCount: () => Promise.resolve(0),
+      getCompletedCount: () => Promise.resolve(0),
+      getDelayedCount: () => Promise.resolve(0),
       defaultJobOptions: {
         attempts: 3,
         backoff: { type: 'exponential', delay: 5000 },
@@ -336,7 +346,8 @@ export async function ensureSyncCron() {
       repeat: {
         pattern: '*/5 * * * *' // Every 5 minutes
       },
-      jobId: 'status-sync-singleton' // Avoids duplicate crons
+      jobId: 'status-sync-singleton', // Avoids duplicate crons
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -352,7 +363,8 @@ export async function ensureCleanupCron() {
       repeat: {
         pattern: '0 3 * * *' // 3:00 AM daily
       },
-      jobId: 'cleanup-singleton'
+      jobId: 'cleanup-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -368,7 +380,8 @@ export async function ensureETACron() {
       repeat: {
         pattern: '*/15 * * * *' // Every 15 minutes
       },
-      jobId: 'eta-recalc-singleton'
+      jobId: 'eta-recalc-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -384,7 +397,8 @@ export async function ensureCatalogSyncCron() {
       repeat: {
         pattern: '0 4 * * *' // 4:00 AM daily
       },
-      jobId: 'catalog-sync-singleton'
+      jobId: 'catalog-sync-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -402,7 +416,8 @@ export async function ensureCBRSyncCron() {
       repeat: {
         pattern: '0 */6 * * *' // Every 6 hours: 00:00, 06:00, 12:00, 18:00
       },
-      jobId: 'cbr-rate-sync-singleton'
+      jobId: 'cbr-rate-sync-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -420,7 +435,8 @@ export async function ensureOrphanSweepCron() {
       repeat: {
         pattern: '*/10 * * * *' // Every 10 minutes
       },
-      jobId: 'sweep-orphans-singleton'
+      jobId: 'sweep-orphans-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -437,7 +453,8 @@ export async function ensurePendingCheckCron() {
       repeat: {
         pattern: '0 * * * *' // Hourly
       },
-      jobId: 'resolve-pending-check-singleton'
+      jobId: 'resolve-pending-check-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -453,7 +470,8 @@ export async function ensureProxySubscriptionSyncCron() {
       repeat: {
         pattern: '0 */2 * * *' // Every 2 hours
       },
-      jobId: 'sync-proxy-subscriptions-singleton'
+      jobId: 'sync-proxy-subscriptions-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -466,7 +484,8 @@ export async function ensurePaymentSyncCron() {
       repeat: {
         pattern: '*/15 * * * *' // Every 15 minutes
       },
-      jobId: 'payment-sync-singleton'
+      jobId: 'payment-sync-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -482,7 +501,8 @@ export async function ensureDripfeedCron() {
       repeat: {
         pattern: '* * * * *' // Every 1 minute
       },
-      jobId: 'dripfeed-singleton'
+      jobId: 'dripfeed-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -498,7 +518,8 @@ export async function ensureArticlePublishCron() {
       repeat: {
         pattern: '0 9,15 * * *' // 09:00 and 15:00
       },
-      jobId: 'article-publish-singleton'
+      jobId: 'article-publish-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -524,6 +545,7 @@ export async function ensureAiObserverCron() {
         pattern: '0 5 * * *', // 05:00 UTC = 08:00 MSK
       },
       jobId: 'ai-observer-daily-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -556,6 +578,7 @@ export async function ensureAiEconomicOptimizerCron(): Promise<void> {
         pattern: '30 1 * * *', // 01:30 UTC = 04:30 MSK
       },
       jobId: 'ai-economic-optimizer-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }
@@ -585,6 +608,7 @@ export async function ensureGeoAvailabilityCron(): Promise<void> {
         pattern: '*/5 * * * *', // Every 5 minutes
       },
       jobId: 'geo-availability-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
     }
   );
 }

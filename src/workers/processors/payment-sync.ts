@@ -111,78 +111,82 @@ export default async function paymentSyncProcessor(job: Job<SyncJobPayload>) {
       return entry;
     }
 
-    for (const payment of pendingPayments) {
-      if (!payment.gatewayId) {
-        log.warn(`Pending payment ${payment.id} has no remote gatewayId. Skipping.`);
-        continue;
-      }
-
-      const { authHeader, isTest } = await getTenantAuth(payment.tenantId || 'smmplan');
-      if (isTest) {
-        log.info(`Payment ${payment.id} is in test mode for tenant ${payment.tenantId || 'smmplan'}. Skipping live check.`);
-        continue;
-      }
-      if (!authHeader) {
-        log.warn(`Payment ${payment.id} tenant ${payment.tenantId || 'smmplan'} missing YooKassa keys. Skipping.`);
-        continue;
-      }
-
-      try {
-        log.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId}, Tenant: ${payment.tenantId})...`);
-
-        const response = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': authHeader
-          },
-          signal: AbortSignal.timeout(15000)
-        });
-
-        if (!response.ok) {
-          log.error(`Failed to fetch YooKassa payment ${payment.gatewayId}. Status code: ${response.status}`);
-          continue;
+    const CHUNK_SIZE = 5;
+    for (let i = 0; i < pendingPayments.length; i += CHUNK_SIZE) {
+      const chunk = pendingPayments.slice(i, i + CHUNK_SIZE);
+      await Promise.allSettled(chunk.map(async (payment) => {
+        if (!payment.gatewayId) {
+          log.warn(`Pending payment ${payment.id} has no remote gatewayId. Skipping.`);
+          return;
         }
 
-        const data = await response.json();
-        const remoteStatus = data.status; // succeeded, canceled, pending, waiting_for_capture
+        const { authHeader, isTest } = await getTenantAuth(payment.tenantId || 'smmplan');
+        if (isTest) {
+          log.info(`Payment ${payment.id} is in test mode for tenant ${payment.tenantId || 'smmplan'}. Skipping live check.`);
+          return;
+        }
+        if (!authHeader) {
+          log.warn(`Payment ${payment.id} tenant ${payment.tenantId || 'smmplan'} missing YooKassa keys. Skipping.`);
+          return;
+        }
 
-        log.info(`Payment ${payment.id} remote status is: ${remoteStatus}`);
+        try {
+          log.info(`Checking remote status for payment ${payment.id} (YooKassa ID: ${payment.gatewayId}, Tenant: ${payment.tenantId})...`);
 
-        if (remoteStatus === 'succeeded') {
-          const { ExactMath } = await import('@/lib/financial/exact-math');
-          const realAmountCents = ExactMath.rublesToKopecks(data.amount.value);
-          log.info(`Payment ${payment.id} succeeded remotely with amount: ${realAmountCents} cents. Confirming locally...`);
-          
-          const success = await paymentService.confirmPayment(
-            payment.gatewayId,
-            realAmountCents,
-            payment.userId,
-            false,
-            'yookassa',
-            payment.id
-          );
+          const response = await safeFetch(`https://api.yookassa.ru/v3/payments/${payment.gatewayId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': authHeader
+            },
+            signal: AbortSignal.timeout(15000)
+          });
 
-          if (success) {
-            log.info(`Successfully synced and confirmed payment ${payment.id}.`);
-          } else {
-            log.error(`Failed to confirm payment ${payment.id} locally during synchronization.`);
+          if (!response.ok) {
+            log.error(`Failed to fetch YooKassa payment ${payment.gatewayId}. Status code: ${response.status}`);
+            return;
           }
-        } else if (remoteStatus === 'canceled') {
-          log.info(`Payment ${payment.id} has been canceled remotely. Updating local database...`);
-          await db.payment.update({
-            where: { id: payment.id },
-            data: { status: 'CANCELED' }
-          });
-          // WRK-01: cascade cancellation to basket orders awaiting this payment
-          await db.order.updateMany({
-            where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' },
-            data: { status: 'CANCELED', error: 'Платёж отменён на стороне шлюза (auto-sync)' }
-          });
-          log.info(`Successfully marked payment ${payment.id} and linked orders as CANCELED.`);
+
+          const data = await response.json();
+          const remoteStatus = data.status; // succeeded, canceled, pending, waiting_for_capture
+
+          log.info(`Payment ${payment.id} remote status is: ${remoteStatus}`);
+
+          if (remoteStatus === 'succeeded') {
+            const { ExactMath } = await import('@/lib/financial/exact-math');
+            const realAmountCents = Number(ExactMath.rublesToKopecks(data.amount.value));
+            log.info(`Payment ${payment.id} succeeded remotely with amount: ${realAmountCents} cents. Confirming locally...`);
+            
+            const success = await paymentService.confirmPayment(
+              payment.gatewayId,
+              realAmountCents,
+              payment.userId,
+              false,
+              'yookassa',
+              payment.id
+            );
+
+            if (success) {
+              log.info(`Successfully synced and confirmed payment ${payment.id}.`);
+            } else {
+              log.error(`Failed to confirm payment ${payment.id} locally during synchronization.`);
+            }
+          } else if (remoteStatus === 'canceled') {
+            log.info(`Payment ${payment.id} has been canceled remotely. Updating local database...`);
+            await db.payment.update({
+              where: { id: payment.id },
+              data: { status: 'CANCELED' }
+            });
+            // WRK-01: cascade cancellation to basket orders awaiting this payment
+            await db.order.updateMany({
+              where: { paymentId: payment.id, status: 'AWAITING_PAYMENT' },
+              data: { status: 'CANCELED', error: 'Платёж отменён на стороне шлюза (auto-sync)' }
+            });
+            log.info(`Successfully marked payment ${payment.id} and linked orders as CANCELED.`);
+          }
+        } catch (err: unknown) {
+          log.error(`Exception while syncing payment ${payment.id}: ${(err instanceof Error ? err.message : String(err))}`, { cause: err });
         }
-      } catch (err: unknown) {
-        log.error(`Exception while syncing payment ${payment.id}: ${(err instanceof Error ? err.message : String(err))}`, { cause: err });
-      }
+      }));
     }
   });
 

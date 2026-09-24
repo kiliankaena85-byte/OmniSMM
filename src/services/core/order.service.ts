@@ -122,9 +122,9 @@ class OrderService {
 
         const serviceTenantId = service.tenantId;
         if (serviceTenantId !== userTenantId) {
-          // REMEDIATION HARDENING: Await SecurityEvent via root db to guarantee audit trail persistence
+          // [R1-P0-01] Persist SecurityEvent via tx to eliminate connection pool leak
           try {
-            await db.securityEvent.create({
+            await tx.securityEvent.create({
               data: {
                 event: 'CROSS_TENANT_ORDER_ATTEMPT',
                 severity: 'CRITICAL',
@@ -260,7 +260,7 @@ class OrderService {
    */
   async cancelPendingOrderClient(orderId: string, userId: string, tenantId?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      return await runSerializableTransaction(async (tx) => {
+      const result = await runSerializableTransaction(async (tx) => {
         const order = await tx.order.findUnique({
           where: { id: orderId }
         });
@@ -326,19 +326,39 @@ class OrderService {
           }
         }
 
-        // Email Notification for Canceled
-        import('../../lib/smtp').then(({ sendOrderCanceledMail }) => {
-          db.user.findUnique({ where: { id: userId }, select: { email: true } }).then(u => {
-            if (u?.email) {
-              db.service.findUnique({ where: { id: order.serviceId }, select: { name: true } }).then(s => {
-                if (s?.name) sendOrderCanceledMail(u.email, order.numericId.toString(), s.name, order.tenantId).catch(console.error);
-              });
-            }
-          });
-        });
+        // [R1-P0-02] Prepare email payload inside transaction, send AFTER commit
+        const [targetUser, targetService] = await Promise.all([
+          tx.user.findUnique({ where: { id: userId }, select: { email: true } }),
+          tx.service.findUnique({ where: { id: order.serviceId }, select: { name: true } })
+        ]);
 
-        return { success: true };
+        return {
+          success: true,
+          emailPayload: targetUser?.email && targetService?.name ? {
+            email: targetUser.email,
+            numericId: order.numericId.toString(),
+            serviceName: targetService.name,
+            tenantId: order.tenantId
+          } : null
+        };
       });
+
+      if (!result.success) {
+        return { success: false, error: result.error };
+      }
+
+      if (result.emailPayload) {
+        import('../../lib/smtp').then(({ sendOrderCanceledMail }) => {
+          sendOrderCanceledMail(
+            result.emailPayload!.email,
+            result.emailPayload!.numericId,
+            result.emailPayload!.serviceName,
+            result.emailPayload!.tenantId
+          ).catch(console.error);
+        }).catch(console.error);
+      }
+
+      return { success: true };
     } catch (e: unknown) {
       console.error('[OrderService] cancelPendingOrderClient failed:', (e instanceof Error ? e.message : String(e)));
       return { success: false, error: 'Внутренняя ошибка при отмене заказа' };

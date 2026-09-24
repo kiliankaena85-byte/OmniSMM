@@ -1,3 +1,33 @@
+- [x] ⚡ [OMNISMM-PERFORMANCE-RELIABILITY-PACKAGES-1-5] Полный аудит и устранение узких мест производительности, очередей и транзакций (100% COMPLETE & VERIFIED):
+  * 🗄️ **Пакет №1: Стабильность слоя БД & Транзакционная чистота (Prisma Pool & Transaction Escape):**
+    - `src/lib/db.ts`: Настроено бюджетирование пула соединений (`connection_limit = 5` для фоновых воркеров, `10` для Next.js веб-сервера через `DATABASE_POOL_SIZE`, таймауты `pool_timeout=10`, `connect_timeout=5`). Изолирован `rawPrisma`, экспортированы `getBasePrismaClient`, `createPrismaClient`, `getDatasourceUrl` (DEF-001, DEF-010).
+    - `src/services/core/order.service.ts`: Устранён Transaction Escape R1-P0-01 (`tx.securityEvent.create` вместо глобального `db`), устранён R1-P0-02 (SMTP-уведомление отмены переведено на Deferred Post-Commit Hook с отправкой строго после фиксации транзакции).
+    - `src/workers/processors/sync.processor.ts`: `sendOrderCompletedMail` вынесен за пределы `db.$transaction` в Deferred Post-Commit Hook (DEF-002).
+    - `src/services/telemetry/system-telemetry.service.ts`: Внедрен `withTimeout(..., 1000, 0)` на опрос очередей BullMQ для защиты от вечного зависания при `maxRetriesPerRequest: null` (DEF-003); экспортирован алиас `getSystemTelemetry`.
+  * 🏎️ **Пакет №2: Устранение N+1 и деградации латентности воркеров:**
+    - `src/workers/processors/sync.processor.ts`: 12-минутный последовательный fallback заменен на чанки `Promise.allSettled` с `CHUNK_SIZE = 5` (DEF-005).
+    - `src/workers/processors/cleanup.processor.ts`: Внедрен жесткий лимит `take: 100` в `runOrphanSweep` (DEF-007).
+    - `src/workers/processors/payment-sync.ts`: Опрос платежей YooKassa переведен на параллельные чанки `CHUNK_SIZE = 5` с сохранением числового контракта `Number(ExactMath.rublesToKopecks(...))` (DEF-006).
+  * 🛡️ **Пакет №3: Tenant-Guard, Fast-Path & Иммутабельность:**
+    - `src/lib/prisma-tenant-enforcer.ts`: `applyTenantWhereClause` возвращает защищенный клон `{ ...where, tenantId }`, исключая мутации in-place и сохраняя скрытые классы V8 (DEF-011).
+    - `src/lib/tenant-context.ts`: Внедрен fast-path в `resolveActiveTenantId` для воркеров и bypass-контекста, исключающий холостые вызовы `require('next/headers')` (DEF-012).
+  * 📬 **Пакет №4: Надежность очередей BullMQ & Гигиена Redis:**
+    - `src/lib/queue-manager.ts`: Константа `REPEATABLE_JOB_CLEANUP_OPTS` (`removeOnComplete: 100`, `removeOnFail: 86400`) подключена во все 13 повторяющихся cron-задач (DEF-014). В мок `targetObj` добавлены счетчики `getWaitingCount`, `getActiveCount`, `getFailedCount`, `getCompletedCount`, `getDelayedCount`.
+    - `src/workers/processors/order/order-preflight-guard.ts`: Внедрен атомарный distributed lock `connection.set(dispatchLockKey, '1', 'EX', 120, 'NX')` (R2-P0-01).
+    - `src/workers/processors/cleanup.processor.ts` & `src/workers/processors/sync.processor.ts`: Заменен фиксированный `jobId` на уникальный `dispatch-${orphan.id}-${Date.now()}` для ликвидации дедлока дедупликации BullMQ (DEF-015 / R2-P1-03).
+  * 💰 **Пакет №5: Финансовая безопасность, ACID-целостность, Keyset-пагинация & Устранение ReDoS:**
+    - `src/services/orders/retry-checkout.service.ts`: Устранено двойное списание баланса (R4-P0-01) через ранний возврат и перевод статусов в `PENDING`/`SUCCEEDED` до шлюзов.
+    - Устранены все 8 вхождений `Date.now()` в `idempotencyKey` во всем проекте (R4-P0-02), ключи сделаны строго детерминированными (`refund_${order.id}_${status}`, `card-refund-${userId}-${paymentId}`, hash-based direct-adjust).
+    - `src/app/api/admin/export/route.ts`: Небатчированные `take: 10000` заменены на keyset-пагинацию чанками по 500 записей через курсоры для заказов, пользователей, проводок леджера и платежей (DEF-008).
+    - `src/app/api/webhooks/inbound-email/route.ts`: Устранено полиномиальное регулярное выражение ReDoS (R3-P1-01), внедрены линейные non-backtracking паттерны (< 5ms).
+  * 🧪 **Контроль сборки, секретов и тестов:**
+    - `npx vitest run src/__tests__/audit/`: 100% PASS (8 файлов, 49 тестов).
+    - `src/__tests__/audit/package4-bullmq-redis.test.ts`: 5/5 PASS.
+    - `src/__tests__/audit/package5-financial-acid.test.ts`: 6/6 PASS.
+    - `src/workers/processors/__tests__/cleanup.processor.test.ts`: 3/3 PASS.
+    - `node scripts/check-bundle-secrets.mjs`: 0 утечек секретов (PASS).
+    - `npx tsc --noEmit`: 0 ошибок типизации (PASS).
+
 - [x] 🛡️ [OMNISMM-AUDIT-REMEDIATION-2026-09-24] Устранение дефектов и блокеров архитектуры/безопасности из внешнего отчёта (100% COMPLETE & VERIFIED ON MAIN):
   * 📦 **E1: Восстановление целостности реестра npm (`package-lock.json`):**
     - Заменены все 57 вхождений зеркала `registry.npmmirror.com` на официальный `registry.npmjs.org`.

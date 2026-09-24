@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ordersQueue, syncQueue } from '@/lib/queue-manager';
-import { getSystemTelemetry } from '@/services/telemetry/system-telemetry.service';
+import { SystemTelemetryService } from '@/services/telemetry/system-telemetry.service';
 
 describe('Audit P0: Redis Degradation & Telemetry Fail-Fast Guard (DEF-003)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('R3.1: getSystemTelemetry completes within 2500ms even if BullMQ queues hang indefinitely', async () => {
+  it('R3.1: collectSnapshot completes within 2500ms even if BullMQ queues hang indefinitely', async () => {
     // Simulate BullMQ connection hanging due to maxRetriesPerRequest: null when Redis is unreachable
     vi.spyOn(ordersQueue, 'getWaitingCount').mockImplementation(
       () => new Promise(() => {/* never resolves */})
@@ -23,7 +23,7 @@ describe('Audit P0: Redis Degradation & Telemetry Fail-Fast Guard (DEF-003)', ()
     );
 
     const startTime = Date.now();
-    const result = await getSystemTelemetry();
+    const result = await SystemTelemetryService.collectSnapshot();
     const duration = Date.now() - startTime;
 
     expect(duration).toBeLessThan(3500); // Must not hang indefinitely

@@ -406,7 +406,7 @@ class YooKassaGateway extends BasePaymentGateway {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': authHeader,
-          'Idempotence-Key': (params.idempotencyKey || `refund_${Date.now()}`).slice(0, 64),
+          'Idempotence-Key': (params.idempotencyKey || `refund_${params.paymentGatewayId}_${params.amountRub.toFixed(2)}`).slice(0, 64),
         },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(15000),

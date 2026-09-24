@@ -111,7 +111,7 @@ export class RetryCheckoutService {
 
       if (gateway === 'balance') {
         await WalletOps.charge(tx, sessionUserId, totalChargeCents, `Повторная оплата заказа с баланса`, {
-          idempotencyKey: `retry-balance-${order.id}-${Date.now()}`,
+          idempotencyKey: `retry-balance-${order.id}-${existingPayment?.id || 'init'}`,
           tenantId: order.tenantId || 'smmplan'
         });
       }
@@ -120,7 +120,13 @@ export class RetryCheckoutService {
       if (existingPayment) {
         await tx.payment.update({
           where: { id: existingPayment.id },
-          data: { gateway, amount: paymentAmount, consentIp, consentUserAgent }
+          data: {
+            gateway,
+            amount: paymentAmount,
+            status: gateway === 'balance' ? 'SUCCEEDED' : existingPayment.status,
+            consentIp,
+            consentUserAgent
+          }
         });
       } else {
         const p = await tx.payment.create({
@@ -136,18 +142,49 @@ export class RetryCheckoutService {
           }
         });
         paymentId = p.id;
-        for (const o of ordersToProcess) {
-          await tx.order.update({ where: { id: o.id }, data: { paymentId: p.id } });
-        }
+      }
+
+      for (const o of ordersToProcess) {
+        await tx.order.update({
+          where: { id: o.id },
+          data: {
+            paymentId: paymentId!,
+            ...(gateway === 'balance' ? { status: 'PENDING' } : {})
+          }
+        });
       }
 
       return { paymentId: paymentId!, totalPaymentAmount: paymentAmount, linkedOrderIds: ordersToProcess.map(o => o.id) };
     });
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    if (gateway === 'balance') {
+      const { ordersQueue } = await import('@/lib/queue-manager');
+      for (const linkedId of result.linkedOrderIds) {
+        await ordersQueue.add(
+          'order-dispatch',
+          { orderId: linkedId, tenantId: order.tenantId || 'smmplan' },
+          { jobId: `dispatch-${linkedId}-${Date.now()}`, delay: 3 * 60 * 1000 }
+        );
+      }
+
+      try {
+        revalidatePath('/dashboard', 'layout');
+      } catch {
+        /* ignore non-HTTP */
+      }
+
+      return {
+        orderId: order.id,
+        paymentId: result.paymentId,
+        paymentUrl: `${baseUrl}/success?orderId=${order.id}`
+      };
+    }
+
     const isMockPayment = typeof SettingsProvider.isMockPaymentEnabled === 'function' ? await SettingsProvider.isMockPaymentEnabled(order.tenantId || 'smmplan') : false;
     const { PaymentGatewayFactory } = await import('@/services/financial/payment-gateway.service');
     const gatewaySvc = PaymentGatewayFactory.getGateway(gateway || 'yookassa', { isMockPayment });
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const gatewayResult = await gatewaySvc.createPayment({
       paymentId: result.paymentId,
       orderId: order.id,

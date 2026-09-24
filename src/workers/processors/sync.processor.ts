@@ -124,14 +124,18 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             log.error(`Failed to update SLA error metrics for ${providerDef.id}`, { cause: slaErr });
           }
 
-          // Fallback: poll sequentially so 1 broken ID does not break remaining 49 orders
-          for (const extId of allExtIds) {
-            try {
-              const single = await provider.getOrderStatus(extId);
-              if (single && typeof single === 'object') {
-                statuses[extId] = single;
-              }
-            } catch { /* skip individual failure */ }
+          // [DEF-005] Controlled concurrency chunking: 5 requests per batch to avoid worker timeouts
+          const CHUNK_SIZE = 5;
+          for (let i = 0; i < allExtIds.length; i += CHUNK_SIZE) {
+            const chunk = allExtIds.slice(i, i + CHUNK_SIZE);
+            await Promise.allSettled(chunk.map(async (extId) => {
+              try {
+                const single = await provider.getOrderStatus(extId);
+                if (single && typeof single === 'object') {
+                  statuses[extId] = single;
+                }
+              } catch { /* skip individual failure */ }
+            }));
           }
         }
 
@@ -229,6 +233,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
         const startCountNum = statusObj.start_count !== undefined ? parseInt(String(statusObj.start_count), 10) : undefined;
 
         if (targetStatus === 'COMPLETED') {
+          let shouldSendCompletedMail = false;
           await db.$transaction(async (tx) => {
             const updated = await safeUpdateOrderStatus(tx, order.id, {
               status: 'COMPLETED',
@@ -237,9 +242,13 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             });
 
             if (updated && order.email) {
-              await sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name, order.tenantId).catch(err => log.error('Failed to send order completed email', { error: err }));
+              shouldSendCompletedMail = true;
             }
           });
+
+          if (shouldSendCompletedMail && order.email) {
+            sendOrderCompletedMail(order.email, String(order.numericId || order.id), order.service.name, order.tenantId).catch(err => log.error('Failed to send order completed email', { error: err }));
+          }
         } else if (targetStatus === 'CANCELED') {
           const rawRemains = (remainsNum !== undefined && !isNaN(remainsNum) && remainsNum > 0) ? remainsNum : order.quantity;
           const safeCancelRemains = Math.min(order.quantity, Math.max(0, rawRemains));
@@ -327,7 +336,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
       const { ordersQueue } = await import('@/lib/queue-manager');
       for (const orphan of orphanOrders) {
         try {
-          await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId: `dispatch-${orphan.id}` });
+          await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId: `dispatch-${orphan.id}-${Date.now()}` });
           log.info(`[SyncProcessor] Re-enqueued orphan order #${orphan.numericId} (ID: ${orphan.id})`);
         } catch (enqueueErr) {
           log.error(`[SyncProcessor] Failed to re-enqueue orphan order #${orphan.numericId}`, { error: enqueueErr });

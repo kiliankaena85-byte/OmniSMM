@@ -260,13 +260,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Comprehensive email reply stripping (removes quoted history for English and Russian clients)
-    textBody = textBody.split(/\r?\nOn .+ wrote:/i)[0]            // English generic
+    textBody = textBody.split(/\r?\nOn [^\r\n]+ wrote:/i)[0]            // English generic
                        .split(/\r?\n> /)[0]                      // Standard quote
                        .split('--- \r\n')[0]                     // Standard dashes
                        .split(/\r?\n--- Исходное сообщение ---/i)[0] // Mail.ru / Yandex
                        .split(/\r?\n-------- Пересылаемое сообщение --------/i)[0] // Mail.ru forwarding
-                       .split(/\r?\n\d{2}\.\d{2}\.\d{4}.+от.+:/i)[0] // Yandex date format (e.g. 20.05.2026, 12:54 от...)
-                       .split(/\r?\n\d{4}-\d{2}-\d{2}.+<.+>:/i)[0] // Alternate Yandex date format
+                       .split(/\r?\n\d{2}\.\d{2}\.\d{4}[^\r\n:]+от[^\r\n:]+:/i)[0] // Yandex date format (e.g. 20.05.2026, 12:54 от...)
+                       .split(/\r?\n\d{4}-\d{2}-\d{2}[^\r\n:]+<[^\r\n>]+>:/i)[0] // Alternate Yandex date format
                        .trim();
 
     if (!textBody && htmlBody) {

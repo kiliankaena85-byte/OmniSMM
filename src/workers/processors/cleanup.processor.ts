@@ -370,7 +370,8 @@ export async function runOrphanSweep(): Promise<void> {
       status: 'PENDING',
       createdAt: { lt: threshold }
     },
-    select: { id: true, numericId: true, userId: true, charge: true, createdAt: true, status: true, externalId: true, tenantId: true }
+    select: { id: true, numericId: true, userId: true, charge: true, createdAt: true, status: true, externalId: true, tenantId: true },
+    take: 100
   });
 
   if (orphans.length > 0) {
@@ -379,12 +380,12 @@ export async function runOrphanSweep(): Promise<void> {
     const criticalAlerts: string[] = [];
 
     for (const orphan of orphans) {
-      const jobId = `dispatch-${orphan.id}`;
+      const initialJobId = `dispatch-${orphan.id}`;
       let jobState: string | null = null;
       let jobExists = false;
 
       try {
-        const job = await ordersQueue.getJob(jobId);
+        const job = await ordersQueue.getJob(initialJobId);
         if (job) {
           jobExists = true;
           jobState = await job.getState();
@@ -461,12 +462,13 @@ export async function runOrphanSweep(): Promise<void> {
         continue;
       }
 
-      // If job does not exist -> Re-enqueue
+      // If job does not exist -> Re-enqueue with unique attempt jobId
       try {
-        await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId });
+        const dispatchJobId = `dispatch-${orphan.id}-${Date.now()}`;
+        await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId: dispatchJobId });
         sweptCount++;
         const minutesPending = Math.round((Date.now() - orphan.createdAt.getTime()) / 60000);
-        log.warn(`[WARNING] recovered orphan orderId=${orphan.id} jobId=${jobId}`);
+        log.warn(`[WARNING] recovered orphan orderId=${orphan.id} jobId=${dispatchJobId}`);
         sweptDetails.push(`• Восстановлен: ID \`${orphan.id}\` (#${orphan.numericId}), висел ${minutesPending} мин`);
       } catch (addErr: unknown) {
         const msg = `[CRITICAL][ACTION REQUIRED] Redis unavailable during sweep-orphans add. Order ${orphan.id} remains PENDING. Error: ${(addErr instanceof Error ? addErr.message : String(addErr))}`;

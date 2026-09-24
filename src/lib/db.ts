@@ -3,9 +3,10 @@ import { createTenantEnforcerExtension } from './prisma-tenant-enforcer';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  rawPrisma: PrismaClient | undefined;
 };
 
-function getDatasourceUrl(): string | undefined {
+export function getDatasourceUrl(): string | undefined {
   if (process.env.CONTOUR === 'test' && process.env.DATABASE_URL_TEST) {
     return process.env.DATABASE_URL_TEST;
   }
@@ -16,10 +17,45 @@ function getDatasourceUrl(): string | undefined {
   if (url && url.startsWith('prisma://')) {
     url = process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || process.env.DIRECT_URL || url.replace(/^prisma:\/\//, 'postgresql://');
   }
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      if (!parsed.searchParams.has('connection_limit')) {
+        const poolLimit = process.env.APP_ROLE === 'worker' ? '5' : (process.env.DATABASE_POOL_SIZE || '10');
+        parsed.searchParams.set('connection_limit', poolLimit);
+      }
+      if (!parsed.searchParams.has('pool_timeout')) {
+        parsed.searchParams.set('pool_timeout', '10');
+      }
+      if (!parsed.searchParams.has('connect_timeout')) {
+        parsed.searchParams.set('connect_timeout', '5');
+      }
+      return parsed.toString();
+    } catch {
+      return url;
+    }
+  }
   return url;
 }
 
-function createPrismaClient(): PrismaClient {
+export function getBasePrismaClient(): PrismaClient {
+  const datasourceUrl = getDatasourceUrl();
+  const rawPrisma =
+    globalForPrisma.rawPrisma ??
+    new PrismaClient({
+      ...(datasourceUrl ? { datasources: { db: { url: datasourceUrl } } } : {}),
+      log: process.env.DEBUG_PRISMA === 'true'
+        ? ['query', 'error', 'warn']
+        : ['error', 'warn'],
+    });
+
+  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_RUNTIME !== 'edge') {
+    globalForPrisma.rawPrisma = rawPrisma;
+  }
+  return rawPrisma;
+}
+
+export function createPrismaClient(): PrismaClient {
   if (typeof window !== 'undefined' || process.env.NEXT_RUNTIME === 'edge') {
     // Return mock proxy for Browser/Edge Runtime to prevent native binary evaluation crashes
     return new Proxy({} as PrismaClient, {
@@ -29,15 +65,7 @@ function createPrismaClient(): PrismaClient {
     });
   }
 
-  const datasourceUrl = getDatasourceUrl();
-  const rawPrisma =
-    globalForPrisma.prisma ??
-    new PrismaClient({
-      ...(datasourceUrl ? { datasources: { db: { url: datasourceUrl } } } : {}),
-      log: process.env.DEBUG_PRISMA === 'true'
-        ? ['query', 'error', 'warn']
-        : ['error', 'warn'],
-    });
+  const rawPrisma = getBasePrismaClient();
 
   const guarded = (rawPrisma as unknown as {
     $extends: (extension: unknown) => PrismaClient;
