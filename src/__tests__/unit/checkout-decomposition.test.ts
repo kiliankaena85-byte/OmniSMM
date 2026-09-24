@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { db } from '@/lib/db';
 import { GatewaysAvailabilityService } from '@/services/orders/gateways-availability.service';
 import { CheckoutTransactionService } from '@/services/orders/checkout-transaction.service';
 import { CheckoutPaymentService } from '@/services/orders/checkout-payment.service';
@@ -47,6 +48,52 @@ describe('Checkout Modular Decomposition (Wave 4 CDD-TDD)', () => {
           smartDripDays: 0
         })
       ).rejects.toThrow('Необходимо указать количество дней (1-30) для Умного Dripfeed');
+    });
+
+    it('should reject standard drip-feed when Math.floor(quantity / runs) < minQty', async () => {
+      vi.spyOn(db.service, 'findUnique').mockResolvedValue({
+        id: 'srv-drip-1',
+        isActive: true,
+        tenantId: 'smmplan',
+        externalId: 'ext-123',
+        isDripFeedEnabled: true,
+        minQty: 100,
+        maxQty: 10000,
+      } as any);
+
+      await expect(
+        CheckoutPreflightGuard.validate({
+          serviceId: 'srv-drip-1',
+          link: 'https://t.me/channel',
+          quantity: 450,
+          email: 'test@example.com',
+          runs: 5,
+          interval: 60,
+        })
+      ).rejects.toThrow(/не может быть меньше минимального/i);
+    });
+
+    it('should reject smart drip when Math.floor(quantity / smartDripDays) < minQty', async () => {
+      vi.spyOn(db.service, 'findUnique').mockResolvedValue({
+        id: 'srv-smart-1',
+        isActive: true,
+        tenantId: 'smmplan',
+        externalId: 'ext-123',
+        isDripFeedEnabled: true,
+        minQty: 50,
+        maxQty: 10000,
+      } as any);
+
+      await expect(
+        CheckoutPreflightGuard.validate({
+          serviceId: 'srv-smart-1',
+          link: 'https://t.me/channel',
+          quantity: 120,
+          email: 'test@example.com',
+          isSmartDrip: true,
+          smartDripDays: 3,
+        })
+      ).rejects.toThrow(/не может быть меньше минимального/i);
     });
   });
 });

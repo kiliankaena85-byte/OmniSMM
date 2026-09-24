@@ -37,6 +37,9 @@ export class PaymentService {
     const activatedOrders: { id: string; isDripFeed: boolean; userId: string; amount: number; userEmail?: string | null; serviceName?: string | null; numericId?: number; tenantId?: string }[] = [];
     let paidAmountBigInt = BigInt(amount);
     let isOrderFlow = false;
+    // Beneficiary resolved from the DB payment record (NOT the caller-supplied userId).
+    // Stays null on idempotent replays / no-op transitions -> post-commit side-effects are skipped.
+    let creditedUserId: string | null = null;
 
     try {
       // 1. Double-check against real gateway API in production
@@ -307,6 +310,7 @@ export class PaymentService {
 
         paidAmountBigInt = creditAmount;
         isOrderFlow = isOrderPayment || basketOrders.length > 0;
+        creditedUserId = targetUserId;
       });
 
       // Invalidate user dashboard cache so they see the new order & spending immediately
@@ -329,10 +333,17 @@ export class PaymentService {
         }
       }
 
+      // Idempotent replay (already SUCCEEDED / concurrent transition): no credit happened,
+      // so do not re-send notifications or re-run loyalty checks.
+      if (!creditedUserId) {
+        return true;
+      }
+      const beneficiaryUserId: string = creditedUserId;
+
       // Notify user directly in Telegram if user has linked Telegram ID
       try {
         const userWithTg = await db.user.findUnique({
-          where: { id: userId },
+          where: { id: beneficiaryUserId },
           select: { telegramId: true, balance: true, tenantId: true }
         });
         if (userWithTg?.telegramId) {
@@ -365,7 +376,7 @@ export class PaymentService {
       }
 
       // Check and issue promotional loyalty rewards based on new total spent
-      PromoAutomationService.checkAndIssueLoyalty(userId).catch(console.error);
+      PromoAutomationService.checkAndIssueLoyalty(beneficiaryUserId).catch(console.error);
 
       return true;
     } catch (e: unknown) {

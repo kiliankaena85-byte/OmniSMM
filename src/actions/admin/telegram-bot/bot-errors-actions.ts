@@ -118,5 +118,19 @@ export async function deleteTelegramErrorAction(errorId: string): Promise<Telegr
   });
 }
 
-export { logTelegramError } from '@/lib/telegram/telegram-error-logger.service';
+import { TelegramErrorLogService, type TelegramErrorLogParams } from '@/services/telegram/telegram-error-log.service';
+
+/**
+ * Admin-only Server Action for manual error logging.
+ * [SECURITY] Previously this was an unauthenticated public RPC endpoint ('use server' export)
+ * allowing anyone to write into telegramErrorLog of any tenant. Internal callers
+ * (webhook, bot) must use TelegramErrorLogService directly.
+ */
+export async function logTelegramError(params: TelegramErrorLogParams): Promise<TelegramActionResponse> {
+  return requireStaffPermission('settings', 'edit', async (_admin, _role, activeTenantId) => {
+    const tenantId = activeTenantId ?? (await getTenantId());
+    await TelegramErrorLogService.log(tenantId, params);
+    return { success: true };
+  });
+}
 

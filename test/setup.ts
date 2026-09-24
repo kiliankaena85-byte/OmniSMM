@@ -571,6 +571,7 @@ beforeEach(async () => {
         'telegram-boost-link-recognition',
         'checkout.test.ts',
         'checkout-decomposition',
+        'drip-feed-floor',
         'ai-harnesses',
         'stage1-economic',
         'harness',

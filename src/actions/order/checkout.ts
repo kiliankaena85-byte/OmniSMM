@@ -13,6 +13,7 @@ import { createSafeAction } from '@/lib/safe-action';
 import { CheckoutPipelineService } from '@/services/orders/checkout-pipeline.service';
 import { RetryCheckoutService } from '@/services/orders/retry-checkout.service';
 import { GatewaysAvailabilityService } from '@/services/orders/gateways-availability.service';
+import { getDripFeedFloorViolation } from '@/services/orders/drip-feed-floor';
 
 /**
  * @public Calculates price for display on the order form (no auth required).
@@ -40,6 +41,13 @@ export async function calculatePriceAction(
     const service = await db.service.findUnique({ where: { id: serviceId } });
     if (!service || !service.isActive) {
       return { success: false, error: "Услуга не найдена или неактивна" };
+    }
+
+    // Drip-Feed Floor Invariant: never quote a price for an order the checkout transaction would reject.
+    // Smart Drip days are not known at price-preview time, so only classic runs are checked here.
+    if (!isSmartDrip && runs && runs > 0) {
+      const dripViolation = getDripFeedFloorViolation(quantity, runs, service.minQty, 'runs');
+      if (dripViolation) return { success: false, error: dripViolation };
     }
 
     const cleanPromo = promoCodeStr ? promoCodeStr.trim().toUpperCase() : undefined;

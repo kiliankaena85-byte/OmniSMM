@@ -1,3 +1,28 @@
+- [x] 🌟 [OMNISMM-BRANCH-INTEGRATION-AND-HYGIENE-2026] Комплексная интеграция ценных наработок веток, устранение дефектов ядра, декомпозиция чекаута и санитарная очистка репозитория (100% COMPLETE & VERIFIED ON MAIN):
+  * 🧹 **Фаза 1: Санитарная очистка репозитория от мусорных и опасных веток:**
+    - Удалена токсичная ветка `origin/bug-search-84259` (содержавшая 78 146 закоммиченных файлов `node_modules`).
+    - Удалены устаревшие ветки-дубликаты `origin/code-error-search-b6bfb` и `origin/fix/vulnerability-sweep-46-issues`.
+    - Текстовые отчёты об аудите сохранены в `docs/reports/` (`AUDIT_ERROR_HUNT_2026-09-23.md`, `AUDIT_PAGE_RELOAD_2026-09-23.md`, `BUGFIND_REPORT_2026-09-23.md`).
+    - Удалены ветки `origin/arena/01a0ce7e-omnismm` и `origin/arena/01a0d088-omnismm`.
+    - Резервная копия `origin/backup/release-2026-09-23` сохранена в неприкосновенности.
+  * 🛡️ **Фаза 2: Точечная интеграция ядра и инвариантов безопасности (Tier 1):**
+    - `src/services/orders/drip-feed-floor.ts`: Создан единый источник правды для инварианта Drip-Feed Floor ($\lfloor Q/N \rfloor \ge \text{minQty}$) с юнит-тестами `src/services/orders/__tests__/drip-feed-floor.test.ts` (4/4 PASS).
+    - `src/services/orders/checkout-preflight-guard.service.ts` & `src/services/orders/checkout-transaction.service.ts`: Подключен `assertDripFeedFloor` для обычных запусков и Smart Drip.
+    - `src/actions/order/checkout.ts`: В `calculatePriceAction` подключен `getDripFeedFloorViolation` для пресечения расчёта цен для невалидных заказов.
+    - `src/services/financial/payment.service.ts`: Внедрен трекинг `creditedUserId` для предотвращения повторной отправки Telegram-уведомлений и повторного начисления лояльности при идемпотентных вебхуках.
+    - `src/actions/user/corporate-invoice.action.ts`: Внедрен явный `tenantId: user.tenantId || session.tenantId || "smmplan"`, типизированный возврат и обработка ошибок без необработанных исключений.
+    - `src/services/telegram/telegram-error-log.service.ts`: Создан сервис журналирования телеграм-ошибок, а публичный экспорт `logTelegramError` в `bot-errors-actions.ts` защищён `requireStaffPermission('settings', 'edit')`.
+    - `src/actions/order/smart.ts`: Устранены `throw new Error`, добавлены границы пагинации и атомарный `updateMany` с IDOR-защитой.
+    - `src/actions/support/ticket.ts`: Изолирован скоуп тикетов для роли `SUPPORT` строго внутри своего тенанта, устранены `throw new Error` в `createTicket` и `addTicketMessage`.
+  * 🎨 **Фаза 3: Декомпозиция UI мобильного визарда чекаута (Tier 2 / Clean Arch):**
+    - Созданы субкомпоненты `MobileStep1EmailBanner.tsx`, `MobileStep1UrlHint.tsx`, `MobileStep1UrlInput.tsx`.
+    - Основной компонент `MobileStep1Link.tsx` сокращён с 294 строк до 118 строк ($\le 200$ строк, стандарт Clean Architecture).
+    - Создан и успешно пройден тест контракта `src/__tests__/unit/checkout-decomposition.test.ts` (6/6 PASS).
+  * 🧪 **Фаза 4: Сквозная верификация и контроль:**
+    - `npx tsc --noEmit`: 0 ошибок компиляции (PASS).
+    - `node scripts/check-bundle-secrets.mjs`: 0 утечек секретов (PASS).
+    - Удалена отработанная удаленная ветка `origin/arena/01a0cf02-omnismm` и локальная `fix/audit-defects-remediation-2026`.
+
 - [x] ⚡ [OMNISMM-PERFORMANCE-RELIABILITY-PACKAGES-1-5] Полный аудит и устранение узких мест производительности, очередей и транзакций (100% COMPLETE & VERIFIED):
   * 🗄️ **Пакет №1: Стабильность слоя БД & Транзакционная чистота (Prisma Pool & Transaction Escape):**
     - `src/lib/db.ts`: Настроено бюджетирование пула соединений (`connection_limit = 5` для фоновых воркеров, `10` для Next.js веб-сервера через `DATABASE_POOL_SIZE`, таймауты `pool_timeout=10`, `connect_timeout=5`). Изолирован `rawPrisma`, экспортированы `getBasePrismaClient`, `createPrismaClient`, `getDatasourceUrl` (DEF-001, DEF-010).
