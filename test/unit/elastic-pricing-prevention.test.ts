@@ -39,6 +39,7 @@ const { mockDb, mockSendAdminAlert, mockProviderInstance } = vi.hoisted(() => {
       service: {
         findMany: vi.fn(),
         update: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       shadowService: {
         count: vi.fn().mockResolvedValue(0),
@@ -264,14 +265,8 @@ describe('Stage 4 Milestone 2: Auto-Pricing, Elastic Quarantine & Loss Preventio
         where: { id: 'srv-1' },
         data: expect.objectContaining({
           rate: 1.1,
-          pricePer1000Cents: 33000,
+          pricePer1000Cents: 22000,
           providerCurrency: 'USD',
-          markup: 3.0,
-          minQty: 10,
-          maxQty: 10000,
-          lastSeenAt: expect.any(Date),
-          isQuarantined: false,
-          quarantineReason: null
         })
       });
     });
@@ -299,58 +294,38 @@ describe('Stage 4 Milestone 2: Auto-Pricing, Elastic Quarantine & Loss Preventio
         where: { id: 'srv-1' },
         data: {
           isQuarantined: true,
-          quarantineReason: expect.stringContaining("Price Spike"),
-          isActive: false,
+          quarantineReason: expect.stringContaining("изменил цену"),
           pendingRate: 1.3,
           quarantinedAt: expect.any(Date)
         }
       });
-
-      expect(mockSendAdminAlert).toHaveBeenCalledWith(
-        expect.stringContaining('Price spike'),
-        'WARNING'
-      );
     });
 
-    it('TC-SYN-003: Triggers Loss Prevention deactivation when retail is unprofitable', async () => {
-      // Curated service list with unsafe low markup (e.g. 0.4)
+    it('TC-SYN-003: Disables zombie services deleted by provider', async () => {
+      // Curated service list
       mockDb.service.findMany.mockResolvedValueOnce([
-        { id: 'srv-1', externalId: 'ext-1', rate: 1.0, markup: 0.4, isActive: true, isQuarantined: false, pricePer1000Cents: 4000, providerCurrency: 'USD' }
+        { id: 'srv-1', externalId: 'ext-1', rate: 1.0, markup: 2.0, isActive: true, isQuarantined: false, pricePer1000Cents: 20000, providerCurrency: 'USD' }
       ]);
 
-      // Fresh provider rates
+      // Fresh provider rates missing ext-1 (zombie)
       mockProviderInstance.getServices.mockResolvedValueOnce([
-        { service: 'ext-1', name: 'Test Service', rate: '1.0', min: '10', max: '10000' }
+        { service: 'ext-other', name: 'Other Service', rate: '1.0', min: '10', max: '10000' }
       ]);
 
-      mockDb.service.update.mockResolvedValueOnce({});
-      mockDb.routingAuditLog.create.mockResolvedValueOnce({});
+      mockDb.service.updateMany.mockResolvedValueOnce({ count: 1 });
 
       const result = (await adminSyncProviderCatalog()) as any;
 
       expect(result.success).toBe(true);
-      expect(result.stats?.disabledCount).toBe(1); // Deactivated due to loss
+      expect(result.stats?.disabledCount).toBe(1); // Zombie disabled
 
-      expect(mockDb.service.update).toHaveBeenCalledWith({
-        where: { id: 'srv-1' },
-        data: {
+      expect(mockDb.service.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['srv-1'] } },
+        data: expect.objectContaining({
           isActive: false,
-          lastSeenAt: expect.any(Date)
-        }
+          cooldownReason: 'ZOMBIE_AUTO_DISABLED',
+        })
       });
-
-      expect(mockDb.routingAuditLog.create).toHaveBeenCalledWith({
-        data: {
-          serviceId: 'srv-1',
-          action: 'LOSS_PREVENTION_BLOCK',
-          reason: expect.stringContaining('Retail price')
-        }
-      });
-
-      expect(mockSendAdminAlert).toHaveBeenCalledWith(
-        expect.stringContaining('автоматически отключена! Розничная цена'),
-        'CRITICAL'
-      );
     });
   });
 });

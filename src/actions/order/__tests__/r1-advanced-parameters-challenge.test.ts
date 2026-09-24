@@ -54,6 +54,10 @@ vi.mock('@/lib/db', () => {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
     },
+    promoCodeUsage: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'pcu-1' }),
+    },
     serviceSmartConfig: {
       findUnique: vi.fn(),
     },
@@ -69,6 +73,7 @@ vi.mock('@/lib/db', () => {
 vi.mock('@/services/core/rate-limit.service', () => ({
   RateLimitService: {
     check: vi.fn().mockResolvedValue(true),
+    checkCustomKey: vi.fn().mockResolvedValue(true),
   },
 }));
 
@@ -76,6 +81,7 @@ vi.mock('@/lib/settings', () => ({
   SettingsManager: {
     isTestMode: vi.fn().mockResolvedValue(false),
     getPaymentSecrets: vi.fn().mockResolvedValue({}),
+    getExchangeRateUSD: vi.fn().mockResolvedValue(90.0),
   },
   SettingsProvider: {
     getCached: vi.fn().mockResolvedValue({

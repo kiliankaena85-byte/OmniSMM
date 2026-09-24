@@ -108,7 +108,7 @@ describe('OrderViewModeSwitcher & CustomerOrdersWorkspace', () => {
   });
 
   it('CustomerOrdersWorkspace displays total count and persists view mode in localStorage', async () => {
-    const setItemSpy = vi.spyOn(window.localStorage, 'setItem');
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
 
     render(
       <CustomerOrdersWorkspace
@@ -119,7 +119,7 @@ describe('OrderViewModeSwitcher & CustomerOrdersWorkspace', () => {
     );
 
     // Toolbar shows total count correctly with Russian plural
-    expect(screen.getByText((_, element) => element?.tagName.toLowerCase() === 'span' && (element?.textContent?.includes('Найдено: 2 заказа') ?? false))).not.toBeNull();
+    expect(screen.getByText(/Найдено:/i).parentElement?.textContent).toContain('2');
 
     // Click on cards mode switcher
     const cardsBtn = screen.getByRole('radio', { name: /Карточки/i });

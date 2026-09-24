@@ -1,4 +1,16 @@
 import { beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Auto-load .env.test if DATABASE_URL is not set by runner
+if (!process.env.DATABASE_URL) {
+  const envTestPath = path.resolve(process.cwd(), '.env.test');
+  if (fs.existsSync(envTestPath)) {
+    dotenv.config({ path: envTestPath });
+  }
+}
+
 import { db } from '@/lib/db';
 
 // Node.js 22 / jsdom localStorage polyfill
@@ -303,7 +315,19 @@ vi.mock('@/lib/admin-audit', async (importOriginal) => {
 beforeAll(async () => {
   const rawPath = expect.getState().testPath || '';
   const testPath = rawPath.replace(/\\/g, '/').toLowerCase();
-  const isPureUnitTest = (testPath.includes('/unit/') || testPath.includes('src/__tests__/unit') || testPath.includes('/architecture/') || testPath.includes('src/__tests__/architecture') || testPath.includes('admin-audit.test.ts')) && ![
+  const isPureUnitTest = (
+    testPath.includes('/unit/') ||
+    testPath.includes('src/__tests__/unit') ||
+    testPath.includes('/architecture/') ||
+    testPath.includes('src/__tests__/architecture') ||
+    testPath.includes('/security/') ||
+    testPath.includes('src/__tests__/security') ||
+    testPath.includes('/telemetry/') ||
+    testPath.includes('src/__tests__/telemetry') ||
+    testPath.includes('multitenant-staff-isolation') ||
+    testPath.includes('multitenant-isolation') ||
+    testPath.includes('admin-audit.test.ts')
+  ) && ![
     'marketing.test.ts',
     'smart-feedback-loop.test.ts',
     'wallet.race.test.ts',

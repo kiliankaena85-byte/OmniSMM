@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 import { scanDraftReply } from "@/services/admin/output-policy-engine";
@@ -9,7 +9,7 @@ describe("Swarm Audit Remediation Regression Suite (2026)", () => {
   const rootDir = process.cwd();
 
   it("REMEDY-01: Robokassa webhook has MutexManager lock and static crypto import", () => {
-    const filePath = path.join(rootDir, "src/app/api/webhooks/robokassa/route.ts");
+    const filePath = path.join(rootDir, "src/services/financial/robokassa-webhook.handler.ts");
     const content = fs.readFileSync(filePath, "utf-8");
     expect(content).toContain("MutexManager.withLock");
     expect(content).toContain("createHash");

@@ -120,6 +120,8 @@ describe('Order Form Promo Code Integration Tests (Desktop & Mobile)', () => {
     isAnalyzingUrl: false,
     isCalculating: false,
     error: null,
+    servicesError: null,
+    retryServices: vi.fn(),
     validationErrors: {},
     compatibilityWarning: null,
     urlMutatedTrigger: false,

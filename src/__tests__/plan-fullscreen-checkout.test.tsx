@@ -116,6 +116,8 @@ describe('PlanFullscreenCheckout Component Tests', () => {
     isAnalyzingUrl: false,
     isCalculating: false,
     error: null,
+    servicesError: null,
+    retryServices: vi.fn(),
     validationErrors: {},
     compatibilityWarning: null,
     urlMutatedTrigger: false,

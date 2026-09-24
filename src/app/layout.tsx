@@ -216,7 +216,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (showMaintenance) {
     return (
-      <html lang="ru" data-tenant={tenantId} className={`theme-${tenantId}`} suppressHydrationWarning>
+      <html lang="ru" className={`theme-${tenantId}`} suppressHydrationWarning>
         <head>
           <title>{siteName} — Сервисное обслуживание</title>
           <TenantThemeInjector tenantId={tenantId} nonce={nonce} />
@@ -237,7 +237,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="ru" data-tenant={tenantId} className={`theme-${tenantId}`} suppressHydrationWarning>
+    <html lang="ru" className={`theme-${tenantId}`} suppressHydrationWarning>
       <head>
         <TenantThemeInjector tenantId={tenantId} nonce={nonce} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

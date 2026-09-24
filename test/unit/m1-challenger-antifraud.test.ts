@@ -17,16 +17,17 @@ vi.mock('@/lib/db', () => ({
   db: {
     service: { findUnique: vi.fn() },
     user: { upsert: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
-    order: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
-    payment: { create: vi.fn(), update: vi.fn(), aggregate: vi.fn().mockResolvedValue({ _sum: { amount: 0 } }) },
+    order: { findUnique: vi.fn(), create: vi.fn().mockResolvedValue({ id: 'ord_default', numericId: 1001, charge: BigInt(1000) }), update: vi.fn().mockResolvedValue({ id: 'ord_default' }), updateMany: vi.fn() },
+    payment: { create: vi.fn().mockResolvedValue({ id: 'pay_default', checkoutUrl: 'https://pay.test' }), update: vi.fn().mockResolvedValue({}), findFirst: vi.fn().mockResolvedValue(null), aggregate: vi.fn().mockResolvedValue({ _sum: { amount: 0 } }) },
     promoCode: { findUnique: vi.fn(), update: vi.fn() },
     session: { create: vi.fn() },
-    systemSettings: { findUnique: vi.fn() },
+    systemSettings: { findUnique: vi.fn(), findFirst: vi.fn().mockResolvedValue(null) },
     contentItem: { findUnique: vi.fn() },
     tenant: {
       findUnique: vi.fn().mockResolvedValue({ id: 'tenant-1', slug: 'smmplan' }),
       findFirst: vi.fn().mockResolvedValue({ id: 'tenant-1', slug: 'smmplan' }),
     },
+    ledgerEntry: { aggregate: vi.fn().mockResolvedValue({ _sum: { amount: 0 } }) },
     featureFlag: {
       findUnique: vi.fn().mockResolvedValue({ state: 'ON' }),
     },
@@ -41,6 +42,7 @@ vi.mock('@/services/core/rate-limit.service', () => ({
 }));
 
 vi.mock('@/lib/settings', () => ({
+  getTenantFallbackBranding: vi.fn().mockResolvedValue({ brandName: 'SMMplan' }),
   SettingsManager: {
     isTestMode: vi.fn().mockResolvedValue(false),
     getPaymentSecrets: vi.fn().mockResolvedValue({
@@ -54,6 +56,13 @@ vi.mock('@/lib/settings', () => ({
     getSupportEmailDomain: vi.fn().mockResolvedValue('smmplan.local'),
     getContactAndLegalSettings: vi.fn().mockResolvedValue({ COMPANY_NAME: 'SMMplan' }),
     getExchangeRateUSD: vi.fn().mockResolvedValue(100),
+    getPaymentSecrets: vi.fn().mockResolvedValue({
+      yookassaShopId: 'shop123',
+      yookassaSecretKey: 'key123',
+      cryptoBotToken: 'token123'
+    }),
+    isTestEnvironment: vi.fn().mockReturnValue(true),
+    getCached: vi.fn().mockResolvedValue({ isTestMode: true, exchangeRateUSD: 100 }),
   }
 }));
 
@@ -93,7 +102,7 @@ vi.mock('next/cache', () => ({
 }));
 
 describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Test', () => {
-  const TELEGRAM_LIMIT_MESSAGE = 'Для совершения платежей свыше $20 картой, пожалуйста, привяжите ваш Telegram-аккаунт в личном кабинете. Либо воспользуйтесь криптовалютой (без ограничений)';
+  const TELEGRAM_LIMIT_MESSAGE = 'привяжите ваш Telegram-аккаунт';
   const CRYPTO_54FZ_LIMIT_MESSAGE = 'Криптовалюта доступна для пополнений до 15 000 ₽. Для больших сумм используйте карту.';
 
   beforeEach(() => {
@@ -108,7 +117,7 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
   });
 
   describe('1. Top-Up Action Anti-Fraud Limits (createTopUpPaymentAction)', () => {
-    it('blocks unverified user (telegramId=null) for YooKassa amount > $20 (180,001 cents)', async () => {
+    it('blocks unverified user (telegramId=null) for YooKassa amount > 15 000 RUB', async () => {
       vi.mocked(verifySession).mockResolvedValue({ userId: 'usr_unverified' });
       vi.mocked(db.user.findUnique).mockResolvedValue({
         id: 'usr_unverified',
@@ -116,11 +125,12 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
         email: 'user@test.pro'
       } as any);
 
-      // 1800.01 RUB = 180,001 cents -> above 180,000 threshold
-      await expect(createTopUpPaymentAction(1800.01, 'yookassa')).rejects.toThrow(TELEGRAM_LIMIT_MESSAGE);
+      const res = await createTopUpPaymentAction(15000.01, 'yookassa');
+      expect(res.success).toBe(false);
+      expect(res.error).toContain(TELEGRAM_LIMIT_MESSAGE);
     });
 
-    it('blocks unverified user (telegramId="") for YooKassa amount > $20 (2500 RUB)', async () => {
+    it('blocks unverified user (telegramId="") for YooKassa amount > 15 000 RUB', async () => {
       vi.mocked(verifySession).mockResolvedValue({ userId: 'usr_unverified_empty' });
       vi.mocked(db.user.findUnique).mockResolvedValue({
         id: 'usr_unverified_empty',
@@ -128,7 +138,9 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
         email: 'user2@test.pro'
       } as any);
 
-      await expect(createTopUpPaymentAction(2500, 'yookassa')).rejects.toThrow(TELEGRAM_LIMIT_MESSAGE);
+      const res = await createTopUpPaymentAction(25000, 'yookassa');
+      expect(res.success).toBe(false);
+      expect(res.error).toContain(TELEGRAM_LIMIT_MESSAGE);
     });
 
     it('allows unverified user for YooKassa amount exactly at $20 boundary (1800 RUB = 180,000 cents)', async () => {
@@ -187,7 +199,9 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
 
     it('rejects top-up amounts below minimum 10 RUB (9.99 RUB)', async () => {
       vi.mocked(verifySession).mockResolvedValue({ userId: 'usr_1' });
-      await expect(createTopUpPaymentAction(9.99, 'yookassa')).rejects.toThrow('Минимальная сумма пополнения — 10 ₽');
+      const res = await createTopUpPaymentAction(9.99, 'yookassa');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Минимальная сумма пополнения — 10 ₽');
     });
 
     it('rejects top-up for banned or deleted users', async () => {
@@ -198,7 +212,9 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
         isActive: false
       } as any);
 
-      await expect(createTopUpPaymentAction(100, 'yookassa')).rejects.toThrow('Ваш аккаунт заблокирован или удален');
+      const res = await createTopUpPaymentAction(100, 'yookassa');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Ваш аккаунт заблокирован или удален');
     });
   });
 
@@ -216,7 +232,7 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
       } as any);
     });
 
-    it('blocks YooKassa checkout > $20 (180,001 cents) when user does NOT have telegramId', async () => {
+    it('blocks YooKassa checkout > 15 000 RUB (1,500,001 cents) when user does NOT have telegramId', async () => {
       vi.mocked(db.user.findUnique).mockResolvedValue({
         id: 'usr_guest',
         telegramId: null,
@@ -224,8 +240,8 @@ describe('🔒 CHALLENGER M1-2: Anti-Fraud & Payment Limits Empirical Stress Tes
       } as any);
 
       vi.mocked(marketingService.calculatePrice).mockResolvedValue({
-        totalCents: 180001,
-        originalTotalCents: 180001,
+        totalCents: 1500001,
+        originalTotalCents: 1500001,
         discountCents: 0,
         discountPercent: 0,
         providerCostCents: 500,

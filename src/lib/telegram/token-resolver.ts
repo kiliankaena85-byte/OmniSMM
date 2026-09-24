@@ -22,7 +22,7 @@ const KNOWN_PLACEHOLDERS = new Set([
 ]);
 
 // Official Telegram Bot Token format: <bot_id>:<token_string>
-// e.g. 123456789:ABCdefGHIjklMNOpqrSTUvwxYZ_12345678
+// e.g. <bot_id>:<token_string>
 const TELEGRAM_TOKEN_REGEX = /^\d{6,13}:[A-Za-z0-9_-]{35,}$/;
 
 /**
