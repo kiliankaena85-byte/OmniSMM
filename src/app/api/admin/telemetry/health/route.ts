@@ -10,6 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // tenant-isolation-ignore: session authentication verification by unique primary key
     const user = await db.user.findUnique({
       where: { id: session.userId },
       select: { role: true }

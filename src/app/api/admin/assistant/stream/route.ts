@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // tenant-isolation-ignore: session authentication verification by unique primary key
     const user = await db.user.findUnique({
       where: { id: session.userId },
       select: { id: true, role: true },

@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     if (!ticketId) return NextResponse.json({ error: 'ticketId required' }, { status: 400 });
 
     // Verify access: user owns ticket OR is staff
+    // tenant-isolation-ignore: User session lookup by PK to determine caller's tenantId context
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (orderId) {
+      // tenant-isolation-ignore: Public order status lookup protected by HMAC guest token verifyGuestOrderToken or session.userId
       let order = await db.order.findUnique({
         where: session ? { id: orderId, userId: session.userId } : { id: orderId },
         include: {
@@ -129,6 +130,7 @@ export async function GET(req: NextRequest) {
             'order'
           );
 
+          // tenant-isolation-ignore: Re-fetch refreshed order state by verified orderId
           const updatedOrder = await db.order.findUnique({
             where: session ? { id: orderId, userId: session.userId } : { id: orderId },
             include: {
@@ -150,6 +152,7 @@ export async function GET(req: NextRequest) {
       });
 
     } else if (paymentId) {
+      // tenant-isolation-ignore: Public payment lookup protected by HMAC guest token or session.userId
       let payment = await db.payment.findUnique({
         where: session ? { id: paymentId, userId: session.userId } : { id: paymentId },
       });
@@ -219,6 +222,7 @@ export async function GET(req: NextRequest) {
             'order'
           );
 
+          // tenant-isolation-ignore: Re-fetch refreshed payment state by verified paymentId
           const updatedPayment = await db.payment.findUnique({
             where: session ? { id: paymentId, userId: session.userId } : { id: paymentId },
           });

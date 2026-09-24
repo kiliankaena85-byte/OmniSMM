@@ -7,14 +7,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { db } from '@/lib/db';
-import { multiBotManager } from '@/bot/manager/multi-bot-manager';
 import { resolveTelegramWebhookSecret } from '@/lib/telegram/token-resolver';
 import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
-import { logTelegramError } from '@/actions/admin/telegram-bot';
+import { logTelegramError } from '@/lib/telegram/telegram-error-logger.service';
+
+export interface TelegramWebhookDispatcher {
+  handleWebhookUpdate(tenantId: string, update: unknown): Promise<{ success: boolean; error?: string }>;
+}
+
+let registeredDispatcher: TelegramWebhookDispatcher | null = null;
+
+export function registerTelegramWebhookDispatcher(dispatcher: TelegramWebhookDispatcher): void {
+  registeredDispatcher = dispatcher;
+}
+
+export function getRegisteredTelegramWebhookDispatcher(): TelegramWebhookDispatcher | null {
+  return registeredDispatcher;
+}
 
 export async function handleTelegramWebhookRequest(
   req: NextRequest,
-  targetTenantId?: string
+  targetTenantId?: string,
+  customDispatcher?: TelegramWebhookDispatcher
 ): Promise<NextResponse> {
   const cleanTenant = sanitizeTenantSlug(targetTenantId);
 
@@ -86,9 +100,18 @@ export async function handleTelegramWebhookRequest(
       }
     }
 
-    // 5. Parse and dispatch update via MultiBotManager
+    // 5. Parse and dispatch update via TelegramWebhookDispatcher
     const body = await req.json();
-    const dispatchResult = await multiBotManager.handleWebhookUpdate(cleanTenant, body);
+    const dispatcher = customDispatcher || registeredDispatcher;
+
+    if (!dispatcher) {
+      console.error(
+        `[Telegram Webhook] FATAL: No TelegramWebhookDispatcher registered for tenant "${cleanTenant}". Rejecting update.`
+      );
+      return NextResponse.json({ error: 'Webhook dispatcher unavailable' }, { status: 503 });
+    }
+
+    const dispatchResult = await dispatcher.handleWebhookUpdate(cleanTenant, body);
 
     if (!dispatchResult.success) {
       console.error(
@@ -111,6 +134,7 @@ export async function handleTelegramWebhookRequest(
       source: 'webhook',
       errorMessage: errorMsg,
       stackTrace: error instanceof Error ? error.stack?.slice(0, 1000) : undefined,
+      tenantId: cleanTenant,
     }).catch(() => {});
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

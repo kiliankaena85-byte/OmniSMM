@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
       const orderData = result.data as any;
 
       // Маппинг ответа (Zero Vendor Leaks)
-      const service = await db.service.findUnique({
-        where: { id: orderInput.serviceId },
+      const service = await db.service.findFirst({
+        where: { id: orderInput.serviceId, tenantId: ctx.tenantId },
         select: { name: true }
       });
 

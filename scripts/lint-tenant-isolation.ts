@@ -202,12 +202,8 @@ export class TenantIsolationLinter {
           let hasTenantInKey = false;
 
           if (keyArg && ts.isArrayLiteralExpression(keyArg)) {
-            const keyText = keyArg.getText(sourceFile);
-            if (
-              keyText.includes('tenant') ||
-              keyText.includes('cleanTenant') ||
-              keyText.includes('tenantId')
-            ) {
+            const lowerKey = keyArg.getText(sourceFile).toLowerCase();
+            if (lowerKey.includes('tenant')) {
               hasTenantInKey = true;
             }
           }

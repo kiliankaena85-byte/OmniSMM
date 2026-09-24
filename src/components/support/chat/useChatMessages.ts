@@ -96,7 +96,8 @@ export function useChatMessages({
     setLoadingOlder(true);
     try {
       const res = await fetch(
-        `/api/support/messages?ticketId=${ticketId}&cursor=${nextCursor}`
+        `/api/support/messages?ticketId=${ticketId}&cursor=${nextCursor}`,
+        { signal: AbortSignal.timeout(10000) }
       );
       if (!res.ok) throw new Error();
       const data = await res.json();

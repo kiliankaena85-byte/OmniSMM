@@ -63,6 +63,7 @@ export const ManualChatTab: React.FC<ManualChatTabProps> = ({ activeTenantId = '
           activeTenantId: tenant,
           conversationHistory: messages.slice(-4).map((m) => ({ role: m.role, content: m.content })),
         }),
+        signal: AbortSignal.timeout(60000),
       });
 
       if (!res.ok || !res.body) {

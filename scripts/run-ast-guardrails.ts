@@ -177,9 +177,18 @@ export class AstGuardrailsEngine {
           const args = node.arguments;
           let hasSignal = false;
 
-          if (args.length >= 2 && ts.isObjectLiteralExpression(args[1])) {
-            const options = args[1] as ts.ObjectLiteralExpression;
-            hasSignal = options.properties.some((prop) => {
+          let secondArg = args.length >= 2 ? args[1] : undefined;
+          while (
+            secondArg &&
+            (ts.isAsExpression(secondArg) ||
+              ts.isTypeAssertionExpression(secondArg) ||
+              ts.isParenthesizedExpression(secondArg))
+          ) {
+            secondArg = secondArg.expression;
+          }
+
+          if (secondArg && ts.isObjectLiteralExpression(secondArg)) {
+            hasSignal = secondArg.properties.some((prop) => {
               if (ts.isPropertyAssignment(prop) || ts.isShorthandPropertyAssignment(prop)) {
                 return prop.name.getText(sourceFile) === 'signal';
               }

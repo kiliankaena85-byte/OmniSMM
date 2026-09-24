@@ -66,7 +66,7 @@ export function SuccessContent() {
       if (paymentId) params.append('paymentId', paymentId);
       if (effectiveToken) params.append('token', effectiveToken);
 
-      const res = await fetch(`/api/order-status?${params.toString()}`);
+      const res = await fetch(`/api/order-status?${params.toString()}`, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) {
         setPageState('error');
         return;

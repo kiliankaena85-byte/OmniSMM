@@ -155,7 +155,7 @@ export function FluxDashboardShell({
               onClick={async (e) => {
                 e.preventDefault();
                 try {
-                  await fetch('/api/auth/logout', { method: 'POST' });
+                  await fetch('/api/auth/logout', { method: 'POST', signal: AbortSignal.timeout(5000) });
                 } catch {}
                 window.location.href = '/login?tenant=flux';
               }}

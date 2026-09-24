@@ -84,12 +84,14 @@ export async function GET(request: Request) {
       });
     }
 
+    // tenant-isolation-ignore: user resolved by authToken foreign key and verified in serializable tx
     const targetUser = await tx.user.findUnique({ where: { id: record.userId } });
     if (!targetUser || targetUser.isDeleted || !targetUser.isActive) {
       return { status: 'blocked' as const };
     }
 
     if (!targetUser.isEmailVerified) {
+      // tenant-isolation-ignore: updating verified user email status
       await tx.user.update({ where: { id: targetUser.id }, data: { isEmailVerified: true } });
     }
 

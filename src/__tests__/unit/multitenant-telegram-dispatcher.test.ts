@@ -228,7 +228,7 @@ describe('Multi-Tenant Telegram Bot Dispatcher (Phase 4)', () => {
         body: JSON.stringify(dummyUpdate),
       });
 
-      const res = await handleTelegramWebhookRequest(req as any, 'good-brand');
+      const res = await handleTelegramWebhookRequest(req as any, 'good-brand', multiBotManager);
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.ok).toBe(true);

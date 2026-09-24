@@ -66,6 +66,7 @@ export function PreLaunchHoldingScreen({
           source: 'prelaunch_holding_hero',
           company_fax_id: honeypot,
         }),
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await res.json();

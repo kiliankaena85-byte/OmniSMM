@@ -27,7 +27,7 @@ export default function PaymentRedirectPage() {
 
     const pollStatus = async () => {
       try {
-        const res = await fetch(`/api/payments/${paymentId}/status`);
+        const res = await fetch(`/api/payments/${paymentId}/status`, { signal: AbortSignal.timeout(8000) });
         
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {

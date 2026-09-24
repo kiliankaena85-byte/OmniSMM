@@ -49,7 +49,7 @@ export function SystemEmergencyBanner() {
   const checkHealth = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/admin/telemetry/health', { cache: 'no-store' });
+      const res = await fetch('/api/admin/telemetry/health', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
       if (res.ok) {
         const data = await res.json();
         if (data.activeAlerts && data.activeAlerts.length > 0) {

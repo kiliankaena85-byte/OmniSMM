@@ -118,46 +118,5 @@ export async function deleteTelegramErrorAction(errorId: string): Promise<Telegr
   });
 }
 
-export async function logTelegramError(params: {
-  level: 'ERROR' | 'WARN' | 'FATAL';
-  source: 'webhook' | 'polling' | 'command' | 'callback_query' | 'scene';
-  errorCode?: string;
-  errorMessage: string;
-  stackTrace?: string;
-  updateData?: string;
-  userId?: string;
-  chatId?: string;
-}): Promise<void> {
-  try {
-    const tenantId = await getTenantId();
-    const oneHourAgo = new Date(Date.now() - 3600000);
-    const existing = await db.telegramErrorLog.findFirst({
-      where: {
-        tenantId,
-        errorCode: params.errorCode || null,
-        source: params.source,
-        isResolved: false,
-        lastSeenAt: { gte: oneHourAgo },
-      },
-      orderBy: { lastSeenAt: 'desc' },
-    });
+export { logTelegramError } from '@/lib/telegram/telegram-error-logger.service';
 
-    if (existing) {
-      await db.telegramErrorLog.update({
-        where: { id: existing.id },
-        data: {
-          occurrenceCount: { increment: 1 },
-          lastSeenAt: new Date(),
-          ...(params.level === 'FATAL' && { level: 'FATAL' }),
-        },
-      });
-    } else {
-      const id = generateCuid2();
-      await db.telegramErrorLog.create({
-        data: { id, tenantId, ...params },
-      });
-    }
-  } catch (err) {
-    console.error('[TelegramErrorLog] Failed to log error:', err);
-  }
-}

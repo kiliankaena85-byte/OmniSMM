@@ -7,7 +7,7 @@ export function useUnreadSupport(initialCount: number = 0) {
 
   const fetchUnread = useCallback(async () => {
     try {
-      const res = await fetch("/api/support/unread-count", { cache: "no-store" });
+      const res = await fetch("/api/support/unread-count", { cache: "no-store", signal: AbortSignal.timeout(5000) });
       if (res.ok) {
         const data = await res.json();
         setUnreadCount(typeof data.count === "number" ? data.count : 0);

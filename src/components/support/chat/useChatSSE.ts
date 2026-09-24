@@ -84,7 +84,8 @@ export function useChatSSE({
         const res = await fetch(
           `/api/support/messages?ticketId=${ticketId}&after=${encodeURIComponent(
             lastCheckedRef.current
-          )}`
+          )}`,
+          { signal: AbortSignal.timeout(10000) }
         );
         if (!res.ok) return;
         const data = await res.json();

@@ -12,6 +12,7 @@ import { getTelegramProxyAgent } from '@/lib/telegram-agent';
 import { VaultService } from '@/lib/vault';
 import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
+import { registerTelegramWebhookDispatcher } from '@/lib/telegram/webhook-handler';
 import type { TelegramMenuButton } from '@/types/telegram';
 import type { BotFlowStep } from '@/types/telegram-builder';
 
@@ -349,3 +350,4 @@ export class MultiBotManager {
 }
 
 export const multiBotManager = MultiBotManager.getInstance();
+registerTelegramWebhookDispatcher(multiBotManager);

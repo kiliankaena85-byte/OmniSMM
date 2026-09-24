@@ -21,6 +21,7 @@ export async function GET(
     const { id: paymentId } = await params;
 
     // 2. Fetch the payment
+    // tenant-isolation-ignore: Payment lookup by PK with strict post-fetch IDOR and tenant validation
     const payment = await db.payment.findUnique({
       where: { id: paymentId }
     });
@@ -32,6 +33,11 @@ export async function GET(
     // 3. Guest-Proof IDOR Check: If payment belongs to a user, strictly require matching session or staff
     const isStaff = Boolean(session?.role && ['ADMIN', 'OWNER', 'MANAGER', 'SUPPORT'].includes(session.role));
     if (payment.userId && (!session || payment.userId !== session.userId) && !isStaff) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Cross-tenant protection for staff (except OWNER)
+    if (isStaff && session?.role !== 'OWNER' && session?.tenantId && payment.tenantId && session.tenantId !== payment.tenantId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

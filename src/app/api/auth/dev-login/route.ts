@@ -81,6 +81,7 @@ export async function GET(request: Request) {
         }
       });
     } else {
+      // tenant-isolation-ignore: updating user resolved with tenantId in dev-login
       user = await db.user.update({
         where: { id: user.id },
         data: { role: role as any, tenantId },

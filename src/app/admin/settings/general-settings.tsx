@@ -136,7 +136,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
       if (telegramBotToken && telegramBotToken.trim().length > 10 && !telegramBotToken.includes('•••')) {
         url.searchParams.set('token', telegramBotToken.trim());
       }
-      const res = await fetch(url.toString(), { cache: 'no-store' });
+      const res = await fetch(url.toString(), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
       const data = await res.json();
       setBotTestResult(data);
       if (data.success) {
@@ -189,6 +189,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
       const res = await fetch('/api/admin/upload-branding', {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(15000),
       });
 
       const data = await res.json();

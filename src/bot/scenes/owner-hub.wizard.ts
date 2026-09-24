@@ -290,7 +290,8 @@ ownerHubWizard.action('owner_ai_test', async (ctx) => {
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.1 }
-      })
+      }),
+      signal: AbortSignal.timeout(15000),
     });
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

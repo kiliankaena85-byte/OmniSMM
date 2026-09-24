@@ -502,7 +502,10 @@ export class UniversalNetworkRouter {
     }
 
     if (route.target === 'DIRECT' || !route.proxyConfig) {
-      return fetch(url, init);
+      return fetch(url, {
+        ...init,
+        signal: init?.signal || AbortSignal.timeout(10000),
+      });
     }
 
     // Try primary proxy, automatically failover to secondary if connection drops

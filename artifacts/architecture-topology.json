@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OmniSMM Architecture Topology (Uncle Bob Pattern)",
-  "generatedAt": "2026-09-24T00:14:21.454Z",
+  "generatedAt": "2026-09-24T06:08:49.524Z",
   "layers": [
     {
       "level": 0,
@@ -2824,10 +2824,10 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 164,
+      "linesCount": 123,
       "isClientComponent": false,
       "exportsCount": 5,
-      "functionsCount": 9,
+      "functionsCount": 8,
       "maxCyclomaticComplexity": 11,
       "maxCrapScore": 132,
       "crapLoad": 204,
@@ -2853,12 +2853,12 @@
           "isCrappy": true
         },
         {
-          "name": "logTelegramError",
-          "startLine": 121,
-          "endLine": 163,
-          "cyclomaticComplexity": 5,
+          "name": "resolveTelegramErrorAction",
+          "startLine": 44,
+          "endLine": 72,
+          "cyclomaticComplexity": 4,
           "coverageRatio": null,
-          "crapScore": 30,
+          "crapScore": 20,
           "isCrappy": false
         }
       ]
@@ -13906,7 +13906,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 354,
+      "linesCount": 355,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 13,
@@ -13919,7 +13919,7 @@
         {
           "name": "GeneralSettings",
           "startLine": 25,
-          "endLine": 353,
+          "endLine": 354,
           "cyclomaticComplexity": 91,
           "coverageRatio": null,
           "crapScore": 8372,
@@ -13937,7 +13937,7 @@
         {
           "name": "handleBrandingUpload",
           "startLine": 164,
-          "endLine": 207,
+          "endLine": 208,
           "cyclomaticComplexity": 15,
           "coverageRatio": null,
           "crapScore": 240,
@@ -17044,7 +17044,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 106,
+      "linesCount": 107,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 5,
@@ -17057,7 +17057,7 @@
         {
           "name": "POST",
           "startLine": 18,
-          "endLine": 105,
+          "endLine": 106,
           "cyclomaticComplexity": 10,
           "coverageRatio": null,
           "crapScore": 110,
@@ -17065,8 +17065,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 62,
-          "endLine": 88,
+          "startLine": 63,
+          "endLine": 89,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -17074,8 +17074,8 @@
         },
         {
           "name": "writeSSE",
-          "startLine": 57,
-          "endLine": 59,
+          "startLine": 58,
+          "endLine": 60,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -17089,7 +17089,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 471,
+      "linesCount": 472,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 13,
@@ -17102,7 +17102,7 @@
         {
           "name": "GET",
           "startLine": 57,
-          "endLine": 469,
+          "endLine": 470,
           "cyclomaticComplexity": 89,
           "coverageRatio": null,
           "crapScore": 8010,
@@ -17110,8 +17110,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 342,
-          "endLine": 354,
+          "startLine": 343,
+          "endLine": 355,
           "cyclomaticComplexity": 9,
           "coverageRatio": null,
           "crapScore": 90,
@@ -17119,8 +17119,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 286,
-          "endLine": 297,
+          "startLine": 287,
+          "endLine": 298,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -17134,7 +17134,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 39,
+      "linesCount": 40,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -17147,7 +17147,7 @@
         {
           "name": "GET",
           "startLine": 6,
-          "endLine": 38,
+          "endLine": 39,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -17161,7 +17161,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 103,
+      "linesCount": 106,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -17174,7 +17174,7 @@
         {
           "name": "GET",
           "startLine": 11,
-          "endLine": 102,
+          "endLine": 105,
           "cyclomaticComplexity": 32,
           "coverageRatio": null,
           "crapScore": 1056,
@@ -17188,7 +17188,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 129,
+      "linesCount": 130,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 2,
@@ -17201,7 +17201,7 @@
         {
           "name": "POST",
           "startLine": 15,
-          "endLine": 128,
+          "endLine": 129,
           "cyclomaticComplexity": 27,
           "coverageRatio": null,
           "crapScore": 756,
@@ -17209,8 +17209,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 33,
-          "endLine": 33,
+          "startLine": 34,
+          "endLine": 34,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -17269,7 +17269,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 148,
+      "linesCount": 149,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -17282,7 +17282,7 @@
         {
           "name": "GET",
           "startLine": 9,
-          "endLine": 148,
+          "endLine": 149,
           "cyclomaticComplexity": 34,
           "coverageRatio": null,
           "crapScore": 1190,
@@ -17341,7 +17341,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 166,
+      "linesCount": 168,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 2,
@@ -17354,7 +17354,7 @@
         {
           "name": "GET",
           "startLine": 10,
-          "endLine": 165,
+          "endLine": 167,
           "cyclomaticComplexity": 46,
           "coverageRatio": null,
           "crapScore": 2162,
@@ -17363,7 +17363,7 @@
         {
           "name": "<anonymous>",
           "startLine": 56,
-          "endLine": 97,
+          "endLine": 99,
           "cyclomaticComplexity": 10,
           "coverageRatio": null,
           "crapScore": 110,
@@ -17503,7 +17503,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 67,
+      "linesCount": 68,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -17516,7 +17516,7 @@
         {
           "name": "GET",
           "startLine": 8,
-          "endLine": 66,
+          "endLine": 67,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -17683,23 +17683,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 72,
+      "linesCount": 76,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 12,
-      "maxCrapScore": 156,
-      "crapLoad": 126,
+      "maxCyclomaticComplexity": 15,
+      "maxCrapScore": 240,
+      "crapLoad": 210,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "GET",
           "startLine": 11,
-          "endLine": 71,
-          "cyclomaticComplexity": 12,
+          "endLine": 75,
+          "cyclomaticComplexity": 15,
           "coverageRatio": null,
-          "crapScore": 156,
+          "crapScore": 240,
           "isCrappy": true
         }
       ]
@@ -17737,7 +17737,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 245,
+      "linesCount": 249,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
@@ -17750,7 +17750,7 @@
         {
           "name": "GET",
           "startLine": 16,
-          "endLine": 244,
+          "endLine": 248,
           "cyclomaticComplexity": 76,
           "coverageRatio": null,
           "crapScore": 5852,
@@ -17764,29 +17764,29 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ORDERS_CHECKOUT",
-      "linesCount": 99,
+      "linesCount": 108,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 5,
-      "maxCyclomaticComplexity": 9,
-      "maxCrapScore": 90,
-      "crapLoad": 60,
+      "maxCyclomaticComplexity": 14,
+      "maxCrapScore": 210,
+      "crapLoad": 180,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "GET",
           "startLine": 8,
-          "endLine": 98,
-          "cyclomaticComplexity": 9,
+          "endLine": 107,
+          "cyclomaticComplexity": 14,
           "coverageRatio": null,
-          "crapScore": 90,
+          "crapScore": 210,
           "isCrappy": true
         },
         {
           "name": "start",
-          "startLine": 48,
-          "endLine": 88,
+          "startLine": 57,
+          "endLine": 97,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -17794,8 +17794,8 @@
         },
         {
           "name": "listener",
-          "startLine": 58,
-          "endLine": 65,
+          "startLine": 67,
+          "endLine": 74,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -17809,23 +17809,23 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "FINTECH_LEDGER",
-      "linesCount": 128,
+      "linesCount": 134,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 1,
-      "maxCyclomaticComplexity": 34,
-      "maxCrapScore": 1190,
-      "crapLoad": 1160,
+      "maxCyclomaticComplexity": 41,
+      "maxCrapScore": 1722,
+      "crapLoad": 1692,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "GET",
           "startLine": 13,
-          "endLine": 127,
-          "cyclomaticComplexity": 34,
+          "endLine": 133,
+          "cyclomaticComplexity": 41,
           "coverageRatio": null,
-          "crapScore": 1190,
+          "crapScore": 1722,
           "isCrappy": true
         }
       ]
@@ -18070,7 +18070,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 129,
+      "linesCount": 130,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 5,
@@ -18083,7 +18083,7 @@
         {
           "name": "GET",
           "startLine": 26,
-          "endLine": 128,
+          "endLine": 129,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -18091,8 +18091,8 @@
         },
         {
           "name": "start",
-          "startLine": 77,
-          "endLine": 116,
+          "startLine": 78,
+          "endLine": 117,
           "cyclomaticComplexity": 6,
           "coverageRatio": null,
           "crapScore": 42,
@@ -18100,8 +18100,8 @@
         },
         {
           "name": "listener",
-          "startLine": 82,
-          "endLine": 92,
+          "startLine": 83,
+          "endLine": 93,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -18115,7 +18115,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 153,
+      "linesCount": 154,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 3,
@@ -18128,7 +18128,7 @@
         {
           "name": "GET",
           "startLine": 9,
-          "endLine": 151,
+          "endLine": 152,
           "cyclomaticComplexity": 29,
           "coverageRatio": null,
           "crapScore": 870,
@@ -18136,8 +18136,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 107,
-          "endLine": 140,
+          "startLine": 108,
+          "endLine": 141,
           "cyclomaticComplexity": 12,
           "coverageRatio": null,
           "crapScore": 156,
@@ -18145,8 +18145,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 123,
-          "endLine": 131,
+          "startLine": 124,
+          "endLine": 132,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18592,7 +18592,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 18,
+      "linesCount": 19,
       "isClientComponent": false,
       "exportsCount": 2,
       "functionsCount": 2,
@@ -18604,8 +18604,8 @@
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 6,
-          "endLine": 10,
+          "startLine": 7,
+          "endLine": 11,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -18613,8 +18613,8 @@
         },
         {
           "name": "GET",
-          "startLine": 12,
-          "endLine": 16,
+          "startLine": 13,
+          "endLine": 17,
           "cyclomaticComplexity": 2,
           "coverageRatio": null,
           "crapScore": 6,
@@ -18628,7 +18628,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 25,
+      "linesCount": 26,
       "isClientComponent": false,
       "exportsCount": 2,
       "functionsCount": 2,
@@ -18640,8 +18640,8 @@
       "topRiskFunctions": [
         {
           "name": "POST",
-          "startLine": 6,
-          "endLine": 12,
+          "startLine": 7,
+          "endLine": 13,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -18649,8 +18649,8 @@
         },
         {
           "name": "GET",
-          "startLine": 14,
-          "endLine": 24,
+          "startLine": 15,
+          "endLine": 25,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -22345,7 +22345,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 352,
+      "linesCount": 354,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 13,
@@ -22357,8 +22357,8 @@
       "topRiskFunctions": [
         {
           "name": "startBot",
-          "startLine": 73,
-          "endLine": 147,
+          "startLine": 74,
+          "endLine": 148,
           "cyclomaticComplexity": 14,
           "coverageRatio": null,
           "crapScore": 210,
@@ -22366,8 +22366,8 @@
         },
         {
           "name": "getBotForTenant",
-          "startLine": 226,
-          "endLine": 296,
+          "startLine": 227,
+          "endLine": 297,
           "cyclomaticComplexity": 12,
           "coverageRatio": null,
           "crapScore": 156,
@@ -22375,8 +22375,8 @@
         },
         {
           "name": "verifyToken",
-          "startLine": 43,
-          "endLine": 68,
+          "startLine": 44,
+          "endLine": 69,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -22480,7 +22480,7 @@
       "level": 2,
       "layer": "Application",
       "boundedContext": "ASYNC_DAEMONS",
-      "linesCount": 518,
+      "linesCount": 519,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 19,
@@ -22492,8 +22492,8 @@
       "topRiskFunctions": [
         {
           "name": "<anonymous>",
-          "startLine": 430,
-          "endLine": 503,
+          "startLine": 431,
+          "endLine": 504,
           "cyclomaticComplexity": 19,
           "coverageRatio": null,
           "crapScore": 380,
@@ -22502,7 +22502,7 @@
         {
           "name": "<anonymous>",
           "startLine": 254,
-          "endLine": 332,
+          "endLine": 333,
           "cyclomaticComplexity": 13,
           "coverageRatio": null,
           "crapScore": 182,
@@ -23738,7 +23738,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 197,
+      "linesCount": 198,
       "isClientComponent": true,
       "exportsCount": 0,
       "functionsCount": 23,
@@ -23751,7 +23751,7 @@
         {
           "name": "ManualChatTab",
           "startLine": 20,
-          "endLine": 196,
+          "endLine": 197,
           "cyclomaticComplexity": 33,
           "coverageRatio": null,
           "crapScore": 1122,
@@ -23760,7 +23760,7 @@
         {
           "name": "handleSend",
           "startLine": 41,
-          "endLine": 135,
+          "endLine": 136,
           "cyclomaticComplexity": 26,
           "coverageRatio": null,
           "crapScore": 702,
@@ -23768,8 +23768,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 174,
-          "endLine": 179,
+          "startLine": 175,
+          "endLine": 180,
           "cyclomaticComplexity": 3,
           "coverageRatio": null,
           "crapScore": 12,
@@ -29351,7 +29351,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 75,
+      "linesCount": 76,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 2,
@@ -29364,7 +29364,7 @@
         {
           "name": "LogoutCard",
           "startLine": 7,
-          "endLine": 74,
+          "endLine": 75,
           "cyclomaticComplexity": 5,
           "coverageRatio": null,
           "crapScore": 30,
@@ -29373,7 +29373,7 @@
         {
           "name": "handleLogout",
           "startLine": 10,
-          "endLine": 22,
+          "endLine": 23,
           "cyclomaticComplexity": 4,
           "coverageRatio": null,
           "crapScore": 20,
@@ -34808,7 +34808,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 369,
+      "linesCount": 370,
       "isClientComponent": true,
       "exportsCount": 1,
       "functionsCount": 5,
@@ -34821,7 +34821,7 @@
         {
           "name": "PreLaunchHoldingScreen",
           "startLine": 30,
-          "endLine": 368,
+          "endLine": 369,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -34830,7 +34830,7 @@
         {
           "name": "handleSubmit",
           "startLine": 46,
-          "endLine": 83,
+          "endLine": 84,
           "cyclomaticComplexity": 8,
           "coverageRatio": null,
           "crapScore": 72,
@@ -34838,8 +34838,8 @@
         },
         {
           "name": "<anonymous>",
-          "startLine": 211,
-          "endLine": 211,
+          "startLine": 212,
+          "endLine": 212,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -37793,7 +37793,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 489,
+      "linesCount": 490,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 33,
@@ -37806,7 +37806,7 @@
         {
           "name": "ChatInput",
           "startLine": 47,
-          "endLine": 488,
+          "endLine": 489,
           "cyclomaticComplexity": 77,
           "coverageRatio": null,
           "crapScore": 6006,
@@ -37815,7 +37815,7 @@
         {
           "name": "handleSubmit",
           "startLine": 163,
-          "endLine": 289,
+          "endLine": 290,
           "cyclomaticComplexity": 39,
           "coverageRatio": null,
           "crapScore": 1560,
@@ -38477,7 +38477,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 155,
+      "linesCount": 156,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 19,
@@ -38490,7 +38490,7 @@
         {
           "name": "useChatMessages",
           "startLine": 39,
-          "endLine": 154,
+          "endLine": 155,
           "cyclomaticComplexity": 17,
           "coverageRatio": null,
           "crapScore": 306,
@@ -38499,7 +38499,7 @@
         {
           "name": "handleLoadOlder",
           "startLine": 94,
-          "endLine": 116,
+          "endLine": 117,
           "cyclomaticComplexity": 7,
           "coverageRatio": null,
           "crapScore": 56,
@@ -38522,7 +38522,7 @@
       "level": 3,
       "layer": "Presentation",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 183,
+      "linesCount": 184,
       "isClientComponent": false,
       "exportsCount": 1,
       "functionsCount": 14,
@@ -38535,7 +38535,7 @@
         {
           "name": "useChatSSE",
           "startLine": 39,
-          "endLine": 182,
+          "endLine": 183,
           "cyclomaticComplexity": 32,
           "coverageRatio": null,
           "crapScore": 1056,
@@ -38544,7 +38544,7 @@
         {
           "name": "<anonymous>",
           "startLine": 50,
-          "endLine": 181,
+          "endLine": 182,
           "cyclomaticComplexity": 32,
           "coverageRatio": null,
           "crapScore": 1056,
@@ -38552,8 +38552,8 @@
         },
         {
           "name": "connectSSE",
-          "startLine": 122,
-          "endLine": 167,
+          "startLine": 123,
+          "endLine": 168,
           "cyclomaticComplexity": 11,
           "coverageRatio": null,
           "crapScore": 132,
@@ -43488,23 +43488,23 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 596,
+      "linesCount": 599,
       "isClientComponent": false,
       "exportsCount": 0,
       "functionsCount": 9,
-      "maxCyclomaticComplexity": 32,
-      "maxCrapScore": 1056,
-      "crapLoad": 2538,
+      "maxCyclomaticComplexity": 34,
+      "maxCrapScore": 1190,
+      "crapLoad": 2672,
       "crappyMethodsCount": 5,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "fetch",
           "startLine": 483,
-          "endLine": 579,
-          "cyclomaticComplexity": 32,
+          "endLine": 582,
+          "cyclomaticComplexity": 34,
           "coverageRatio": null,
-          "crapScore": 1056,
+          "crapScore": 1190,
           "isCrappy": true
         },
         {
@@ -45424,6 +45424,42 @@
       ]
     },
     {
+      "id": "src/lib/telegram/telegram-error-logger.service.ts",
+      "label": "telegram-error-logger.service.ts",
+      "level": 1,
+      "layer": "Services",
+      "boundedContext": "CORE_FRAMEWORK",
+      "linesCount": 88,
+      "isClientComponent": false,
+      "exportsCount": 2,
+      "functionsCount": 2,
+      "maxCyclomaticComplexity": 10,
+      "maxCrapScore": 110,
+      "crapLoad": 80,
+      "crappyMethodsCount": 1,
+      "coverageStatus": "UNMEASURED",
+      "topRiskFunctions": [
+        {
+          "name": "logTelegramError",
+          "startLine": 32,
+          "endLine": 87,
+          "cyclomaticComplexity": 10,
+          "coverageRatio": null,
+          "crapScore": 110,
+          "isCrappy": true
+        },
+        {
+          "name": "generateCuid2",
+          "startLine": 10,
+          "endLine": 18,
+          "cyclomaticComplexity": 2,
+          "coverageRatio": null,
+          "crapScore": 6,
+          "isCrappy": false
+        }
+      ]
+    },
+    {
       "id": "src/lib/telegram/token-resolver.ts",
       "label": "token-resolver.ts",
       "level": 1,
@@ -45474,29 +45510,38 @@
       "level": 1,
       "layer": "Services",
       "boundedContext": "CORE_FRAMEWORK",
-      "linesCount": 119,
+      "linesCount": 143,
       "isClientComponent": false,
-      "exportsCount": 1,
-      "functionsCount": 2,
-      "maxCyclomaticComplexity": 29,
-      "maxCrapScore": 870,
-      "crapLoad": 840,
+      "exportsCount": 3,
+      "functionsCount": 4,
+      "maxCyclomaticComplexity": 31,
+      "maxCrapScore": 992,
+      "crapLoad": 962,
       "crappyMethodsCount": 1,
       "coverageStatus": "UNMEASURED",
       "topRiskFunctions": [
         {
           "name": "handleTelegramWebhookRequest",
-          "startLine": 15,
-          "endLine": 118,
-          "cyclomaticComplexity": 29,
+          "startLine": 28,
+          "endLine": 142,
+          "cyclomaticComplexity": 31,
           "coverageRatio": null,
-          "crapScore": 870,
+          "crapScore": 992,
           "isCrappy": true
         },
         {
-          "name": "<anonymous>",
-          "startLine": 114,
-          "endLine": 114,
+          "name": "registerTelegramWebhookDispatcher",
+          "startLine": 20,
+          "endLine": 22,
+          "cyclomaticComplexity": 1,
+          "coverageRatio": null,
+          "crapScore": 2,
+          "isCrappy": false
+        },
+        {
+          "name": "getRegisteredTelegramWebhookDispatcher",
+          "startLine": 24,
+          "endLine": 26,
           "cyclomaticComplexity": 1,
           "coverageRatio": null,
           "crapScore": 2,
@@ -69027,8 +69072,22 @@
       "isViolating": false
     },
     {
+      "source": "src/app/api/webhooks/telegram/route.ts",
+      "target": "src/bot/manager/multi-bot-manager.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/app/api/webhooks/telegram/[tenantId]/route.ts",
       "target": "src/lib/telegram/webhook-handler.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/app/api/webhooks/telegram/[tenantId]/route.ts",
+      "target": "src/bot/manager/multi-bot-manager.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -71486,6 +71545,13 @@
     {
       "source": "src/bot/manager/multi-bot-manager.ts",
       "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/bot/manager/multi-bot-manager.ts",
+      "target": "src/lib/telegram/webhook-handler.ts",
       "kind": "dependency",
       "isTypeOnly": false,
       "isViolating": false
@@ -80045,6 +80111,20 @@
       "isViolating": false
     },
     {
+      "source": "src/lib/telegram/telegram-error-logger.service.ts",
+      "target": "src/lib/db.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
+      "source": "src/lib/telegram/telegram-error-logger.service.ts",
+      "target": "src/lib/tenant-resolver-edge.ts",
+      "kind": "dependency",
+      "isTypeOnly": false,
+      "isViolating": false
+    },
+    {
       "source": "src/lib/telegram/token-resolver.ts",
       "target": "src/lib/tenant-resolver-edge.ts",
       "kind": "dependency",
@@ -80074,14 +80154,6 @@
     },
     {
       "source": "src/lib/telegram/webhook-handler.ts",
-      "target": "src/bot/manager/multi-bot-manager.ts",
-      "kind": "dependency",
-      "isTypeOnly": false,
-      "isViolating": true,
-      "violationReason": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/bot/manager/multi-bot-manager.ts)."
-    },
-    {
-      "source": "src/lib/telegram/webhook-handler.ts",
       "target": "src/lib/telegram/token-resolver.ts",
       "kind": "dependency",
       "isTypeOnly": false,
@@ -80096,11 +80168,10 @@
     },
     {
       "source": "src/lib/telegram/webhook-handler.ts",
-      "target": "src/actions/admin/telegram-bot.ts",
+      "target": "src/lib/telegram/telegram-error-logger.service.ts",
       "kind": "dependency",
       "isTypeOnly": false,
-      "isViolating": true,
-      "violationReason": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/actions/admin/telegram-bot.ts)."
+      "isViolating": false
     },
     {
       "source": "src/lib/telemetry/bullmq-bridge.ts",
@@ -84926,40 +84997,21 @@
       "isViolating": false
     }
   ],
-  "violations": [
-    {
-      "id": "clean-architecture-dependency-violation",
-      "severity": "BLOCKER",
-      "sourceFile": "src/lib/telegram/webhook-handler.ts",
-      "targetModule": "src/bot/manager/multi-bot-manager.ts",
-      "line": 10,
-      "message": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/bot/manager/multi-bot-manager.ts).",
-      "snippet": "import { multiBotManager } from '@/bot/manager/multi-bot-manager';"
-    },
-    {
-      "id": "clean-architecture-dependency-violation",
-      "severity": "BLOCKER",
-      "sourceFile": "src/lib/telegram/webhook-handler.ts",
-      "targetModule": "src/actions/admin/telegram-bot.ts",
-      "line": 13,
-      "message": "Clean Architecture Violation: бизнес-сервис 'Services' (src/lib/telegram/webhook-handler.ts) не имеет права зависеть от внешнего слоя 'Application' (src/actions/admin/telegram-bot.ts).",
-      "snippet": "import { logTelegramError } from '@/actions/admin/telegram-bot';"
-    }
-  ],
+  "violations": [],
   "cycles": [],
   "metrics": {
-    "totalFiles": 1459,
-    "totalEdges": 4103,
-    "violationsCount": 2,
+    "totalFiles": 1460,
+    "totalEdges": 4107,
+    "violationsCount": 0,
     "cyclesCount": 0,
-    "blockersCount": 2,
-    "totalFunctions": 10019,
+    "blockersCount": 0,
+    "totalFunctions": 10022,
     "highestCrapModule": {
       "id": "src/proxy.ts",
       "maxCrap": 55460,
       "maxCC": 235
     },
-    "totalCrappyFunctions": 2349,
-    "totalCrapLoad": 1413538
+    "totalCrappyFunctions": 2350,
+    "totalCrapLoad": 1414610
   }
 }

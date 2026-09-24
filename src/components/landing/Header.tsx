@@ -25,7 +25,7 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
     e.stopPropagation();
     setIsLoggingOut(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { method: 'POST', signal: AbortSignal.timeout(5000) });
     } catch (err) {
       console.error('Logout error:', err);
     }

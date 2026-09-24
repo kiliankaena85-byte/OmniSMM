@@ -19,6 +19,7 @@ export async function GET(
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });
     const userId = payload.userId as string;
+    // tenant-isolation-ignore: session authentication verification by verified jwt payload userId
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) return new NextResponse('Unauthorized', { status: 401 });
 
@@ -38,12 +39,15 @@ export async function GET(
     const ticketMatch = relativePath.match(/^tickets\/([^/]+)\//);
     if (ticketMatch) {
       const ticketId = ticketMatch[1];
+      // tenant-isolation-ignore: ticket checked against user.id and tenant boundary
       const ticket = await db.ticket.findUnique({ where: { id: ticketId } });
       if (!ticket) return new NextResponse('Not Found', { status: 404 });
 
       const isStaff = ['ADMIN', 'SUPPORT', 'OWNER'].includes(user.role);
-      if (ticket.userId !== userId && !isStaff) {
-        return new NextResponse('Forbidden', { status: 403 });
+      if (ticket.userId !== userId) {
+        if (!isStaff || (user.tenantId && ticket.tenantId && user.tenantId !== ticket.tenantId)) {
+          return new NextResponse('Forbidden', { status: 403 });
+        }
       }
     }
 

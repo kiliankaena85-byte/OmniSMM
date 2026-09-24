@@ -19,9 +19,10 @@ export async function GET(
     });
   }
 
+  // tenant-isolation-ignore: Order lookup by PK with post-fetch IDOR ownership and tenant validation
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { id: true, userId: true, status: true, updatedAt: true },
+    select: { id: true, userId: true, status: true, updatedAt: true, tenantId: true },
   });
 
   if (!order) {
@@ -36,6 +37,14 @@ export async function GET(
   const isStaff = ['ADMIN', 'OWNER', 'SUPPORT', 'OPERATOR'].includes((session.role as string) || '');
 
   if (!isOwner && !isStaff) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Cross-tenant protection for staff (except OWNER)
+  if (isStaff && session.role !== 'OWNER' && session.tenantId && order.tenantId && session.tenantId !== order.tenantId) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },

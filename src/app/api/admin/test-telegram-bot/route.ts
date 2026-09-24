@@ -76,7 +76,10 @@ export async function GET(req: NextRequest) {
       (fetchOptions as Record<string, unknown>).dispatcher = dispatcher;
     }
 
-    const res = await fetch(targetUrl, fetchOptions);
+    const res = await fetch(targetUrl, {
+      ...fetchOptions,
+      signal: AbortSignal.timeout(8000),
+    });
     const pingMs = Date.now() - startTime;
     const data = await res.json();
 

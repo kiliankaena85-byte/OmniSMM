@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
 
     const { payload } = await jwtVerify(token, getEncodedKey(), { algorithms: ['HS256'] });
     const userId = payload.userId as string;
+    // tenant-isolation-ignore: session authentication verification by unique primary key
     const user = await db.user.findUnique({
       where: { id: userId },
       include: { staffRole: { include: { permissions: true } } }
