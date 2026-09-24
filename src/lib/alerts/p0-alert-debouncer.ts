@@ -15,6 +15,8 @@ export interface IncidentTokenBucket {
   silenceUntil: number;
   occurrences: number;
   suppressedInWindow: number;
+  pendingOfflineDelta: number;
+  lastAccessedAt: number;
 }
 
 // In-memory fallback stores
@@ -35,8 +37,9 @@ function pruneInMemoryStores(): void {
   if (!needsPruning) return;
 
   const now = Date.now();
+  // 1. Evict expired entries strictly
   for (const [key, bucket] of inMemoryIncidentBuckets.entries()) {
-    if (now > bucket.silenceUntil + 3600_000) {
+    if (now > bucket.silenceUntil) {
       inMemoryIncidentBuckets.delete(key);
     }
   }
@@ -51,28 +54,36 @@ function pruneInMemoryStores(): void {
     }
   }
 
-  // Hard FIFO eviction cap if still exceeding limit after expired cleanup
+  // 2. Least-Recently-Used (LRU) eviction if stores still exceed capacity after expired cleanup
   if (inMemoryCounters.size > MAX_IN_MEMORY_ENTRIES) {
-    const excess = inMemoryCounters.size - MAX_IN_MEMORY_ENTRIES;
-    let count = 0;
-    for (const key of inMemoryCounters.keys()) {
-      if (count++ >= excess) break;
+    const sorted = Array.from(inMemoryCounters.entries()).sort(
+      (a, b) => a[1].expiresAt - b[1].expiresAt
+    );
+    const toRemove = sorted.slice(0, inMemoryCounters.size - MAX_IN_MEMORY_ENTRIES);
+    for (const [key] of toRemove) {
       inMemoryCounters.delete(key);
     }
   }
+
   if (inMemoryIncidentBuckets.size > MAX_IN_MEMORY_ENTRIES) {
-    const excess = inMemoryIncidentBuckets.size - MAX_IN_MEMORY_ENTRIES;
-    let count = 0;
-    for (const key of inMemoryIncidentBuckets.keys()) {
-      if (count++ >= excess) break;
+    const sorted = Array.from(inMemoryIncidentBuckets.entries()).sort((a, b) => {
+      const aActive = a[1].silenceUntil > now ? 1 : 0;
+      const bActive = b[1].silenceUntil > now ? 1 : 0;
+      if (aActive !== bActive) return aActive - bActive; // Inactive buckets evicted first
+      return (a[1].lastAccessedAt || a[1].lastRefillTime) - (b[1].lastAccessedAt || b[1].lastRefillTime);
+    });
+    const toRemove = sorted.slice(0, inMemoryIncidentBuckets.size - MAX_IN_MEMORY_ENTRIES);
+    for (const [key] of toRemove) {
       inMemoryIncidentBuckets.delete(key);
     }
   }
+
   if (inMemoryLocks.size > MAX_IN_MEMORY_ENTRIES) {
-    const excess = inMemoryLocks.size - MAX_IN_MEMORY_ENTRIES;
-    let count = 0;
-    for (const key of inMemoryLocks.keys()) {
-      if (count++ >= excess) break;
+    const sorted = Array.from(inMemoryLocks.entries()).sort(
+      (a, b) => a[1] - b[1]
+    );
+    const toRemove = sorted.slice(0, inMemoryLocks.size - MAX_IN_MEMORY_ENTRIES);
+    for (const [key] of toRemove) {
       inMemoryLocks.delete(key);
     }
   }
@@ -103,29 +114,57 @@ export class P0AlertDebouncer {
     const fullKey = `${this.PREFIX}${alertKey}`;
     const now = Date.now();
 
+    const silenceDurationMs = Math.max(cooldownSeconds * 1000, DEFAULT_FALLBACK_SILENCE_WINDOW_MS);
+
     // Respect active in-memory silence window even if Redis reconnected / flapped
     const activeBucket = inMemoryIncidentBuckets.get(fullKey);
-    if (activeBucket && now < activeBucket.silenceUntil) {
-      activeBucket.occurrences += 1;
-      activeBucket.suppressedInWindow += 1;
-      return false;
+    if (activeBucket) {
+      activeBucket.lastAccessedAt = now;
+      if (now < activeBucket.silenceUntil) {
+        activeBucket.occurrences += 1;
+        activeBucket.suppressedInWindow += 1;
+        return false;
+      }
     }
 
-    try {
-      if (!this.forceInMemory && redis && typeof redis.set === 'function' && (redis.status === 'ready' || redis.status === 'connecting')) {
+    const isRedisReady = !this.forceInMemory && redis && typeof redis.set === 'function' && redis.status === 'ready';
+
+    if (isRedisReady) {
+      try {
         const acquired = await redis.set(fullKey, '1', 'EX', cooldownSeconds, 'NX');
-        if (acquired !== null) {
-          return acquired === 'OK';
+        const shouldSend = acquired === 'OK';
+
+        if (shouldSend) {
+          inMemoryIncidentBuckets.set(fullKey, {
+            tokens: 0,
+            capacity: 1,
+            refillRatePerSec: 1 / (silenceDurationMs / 1000),
+            lastRefillTime: now,
+            silenceUntil: now + silenceDurationMs,
+            occurrences: 1,
+            suppressedInWindow: 0,
+            pendingOfflineDelta: 0,
+            lastAccessedAt: now,
+          });
+          inMemoryLocks.set(fullKey, now + silenceDurationMs);
+          pruneInMemoryStores();
+          return true;
+        } else {
+          if (activeBucket) {
+            activeBucket.occurrences += 1;
+            activeBucket.suppressedInWindow += 1;
+            activeBucket.lastAccessedAt = now;
+          }
+          return false;
         }
+      } catch (redisErr) {
+        log.warn('[P0AlertDebouncer] Redis unavailable, activating in-memory Token Bucket fallback', {
+          error: (redisErr as Error)?.message,
+        });
       }
-    } catch (redisErr) {
-      log.warn('[P0AlertDebouncer] Redis unavailable, activating in-memory Token Bucket fallback', {
-        error: (redisErr as Error)?.message,
-      });
     }
 
     // ── Local Token Bucket Fallback with Silence Window ────────────────────────
-    const silenceDurationMs = Math.max(cooldownSeconds * 1000, DEFAULT_FALLBACK_SILENCE_WINDOW_MS);
 
     let bucket = inMemoryIncidentBuckets.get(fullKey);
     if (!bucket) {
@@ -137,6 +176,8 @@ export class P0AlertDebouncer {
         silenceUntil: now + silenceDurationMs,
         occurrences: 1,
         suppressedInWindow: 0,
+        pendingOfflineDelta: 0,
+        lastAccessedAt: now,
       };
       inMemoryIncidentBuckets.set(fullKey, bucket);
       inMemoryLocks.set(fullKey, now + silenceDurationMs);
@@ -146,6 +187,7 @@ export class P0AlertDebouncer {
 
     // Existing incident bucket
     bucket.occurrences += 1;
+    bucket.lastAccessedAt = now;
 
     // Active Silence Window check
     if (now < bucket.silenceUntil) {
@@ -182,8 +224,10 @@ export class P0AlertDebouncer {
   ): Promise<{ count: number; shouldTrigger: boolean }> {
     const fullKey = `${this.THRESHOLD_PREFIX}${key}`;
 
-    try {
-      if (!this.forceInMemory && redis && typeof redis.incr === 'function' && (redis.status === 'ready' || redis.status === 'connecting')) {
+    const isRedisReady = !this.forceInMemory && redis && typeof redis.incr === 'function' && redis.status === 'ready';
+
+    if (isRedisReady) {
+      try {
         const currentCount = await redis.incr(fullKey);
         if (currentCount === 1) {
           await redis.expire(fullKey, windowSeconds);
@@ -192,11 +236,11 @@ export class P0AlertDebouncer {
           count: currentCount,
           shouldTrigger: currentCount >= thresholdLimit,
         };
+      } catch (redisErr) {
+        log.warn('[P0AlertDebouncer] Redis unavailable, using in-memory threshold counter', {
+          error: (redisErr as Error)?.message,
+        });
       }
-    } catch (redisErr) {
-      log.warn('[P0AlertDebouncer] Redis unavailable, using in-memory threshold counter', {
-        error: (redisErr as Error)?.message,
-      });
     }
 
     // In-memory fallback
@@ -221,14 +265,20 @@ export class P0AlertDebouncer {
   public static async resetLock(alertKey: string): Promise<void> {
     const fullKey = `${this.PREFIX}${alertKey}`;
     const countKey = `${this.THRESHOLD_PREFIX}occurrences:${alertKey}`;
-    try {
-      if (!this.forceInMemory && redis && typeof redis.del === 'function' && (redis.status === 'ready' || redis.status === 'connecting')) {
+    const isRedisReady = !this.forceInMemory && redis && typeof redis.del === 'function' && redis.status === 'ready';
+
+    if (isRedisReady) {
+      try {
         await Promise.allSettled([
           redis.del(fullKey),
           redis.del(countKey),
         ]);
+      } catch (err) {
+        log.warn('[P0AlertDebouncer] Redis error resetting lock', {
+          error: (err as Error)?.message,
+        });
       }
-    } catch { /* ignore */ }
+    }
     inMemoryIncidentBuckets.delete(fullKey);
     inMemoryLocks.delete(fullKey);
     inMemoryCounters.delete(countKey);
@@ -237,7 +287,7 @@ export class P0AlertDebouncer {
   /**
    * Smart Deduplication with occurrence count tracker.
    * Returns shouldSend = true on first occurrence, plus the total occurrences accumulated.
-   * Resilient to Redis failure: retains occurrence counts in local memory.
+   * Resilient to Redis failure: retains occurrence counts in local memory and merges offline deltas on reconnect.
    */
   public static async checkDeduplicatedAlert(
     alertKey: string,
@@ -248,28 +298,49 @@ export class P0AlertDebouncer {
     let occurrences = 1;
     let redisAvailable = false;
 
-    try {
-      if (!this.forceInMemory && redis && typeof redis.incr === 'function' && (redis.status === 'ready' || redis.status === 'connecting')) {
-        occurrences = await redis.incr(countKey);
-        if (occurrences === 1) {
+    const activeBucket = inMemoryIncidentBuckets.get(fullKey);
+    const isRedisReady = !this.forceInMemory && redis && typeof redis.incr === 'function' && redis.status === 'ready';
+
+    if (isRedisReady) {
+      try {
+        const deltaToFlush = activeBucket && activeBucket.pendingOfflineDelta > 0 ? activeBucket.pendingOfflineDelta : 0;
+        const incrementAmount = 1 + deltaToFlush;
+
+        if (typeof redis.incrby === 'function' && incrementAmount > 1) {
+          occurrences = await redis.incrby(countKey, incrementAmount);
+        } else {
+          occurrences = await redis.incr(countKey);
+        }
+
+        if (occurrences === incrementAmount) {
           await redis.expire(countKey, cooldownSeconds);
         }
+
+        if (activeBucket) {
+          activeBucket.pendingOfflineDelta = 0;
+          activeBucket.occurrences = Math.max(activeBucket.occurrences, occurrences);
+        }
+
         redisAvailable = true;
+      } catch (redisErr) {
+        log.warn('[P0AlertDebouncer] Redis error on occurrence increment', {
+          error: (redisErr as Error)?.message,
+        });
       }
-    } catch (redisErr) {
-      log.warn('[P0AlertDebouncer] Redis error on occurrence increment', {
-        error: (redisErr as Error)?.message,
-      });
     }
 
     const shouldSend = await this.shouldSendAlert(alertKey, cooldownSeconds);
 
     if (!redisAvailable) {
       const bucket = inMemoryIncidentBuckets.get(fullKey);
-      return {
-        shouldSend,
-        occurrences: bucket ? bucket.occurrences : 1,
-      };
+      if (bucket) {
+        bucket.pendingOfflineDelta = (bucket.pendingOfflineDelta || 0) + 1;
+        return {
+          shouldSend,
+          occurrences: bucket.occurrences,
+        };
+      }
+      return { shouldSend, occurrences: 1 };
     }
 
     return { shouldSend, occurrences };

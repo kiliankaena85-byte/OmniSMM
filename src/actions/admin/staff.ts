@@ -194,6 +194,14 @@ export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam
 
     // Fetch all audit logs for today for these staff members
     const staffIds = staffUsers.map((u) => u.id);
+    const allowedTenantsList = (admin.allowedTenants && admin.allowedTenants.length > 0)
+      ? admin.allowedTenants
+      : [admin.tenantId || 'smmplan'];
+
+    const tenantLogFilter = (resolvedTenant !== 'all')
+      ? { tenantId: resolvedTenant }
+      : (admin.role === 'OWNER' ? {} : { tenantId: { in: allowedTenantsList } });
+
     const logsToday = await db.adminAuditLog.findMany({
       where: {
         adminId: { in: staffIds },
@@ -201,6 +209,7 @@ export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam
           gte: startOfDay,
           lte: endOfDay,
         },
+        ...tenantLogFilter,
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -288,10 +297,63 @@ export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam
 /**
  * Fetches chronological human-readable audit logs for a single staff member.
  */
-export async function getStaffPersonalLogsAction(staffUserId: string, limit = 50) {
-  return requireStaffPermission('settings', 'view', async () => {
+export async function getStaffPersonalLogsAction(staffUserId: string, limit = 50, tenantParam?: string) {
+  return requireStaffPermission('settings', 'view', async (admin) => {
+    // 1. Fetch target staff member to check tenant boundaries
+    const targetStaffUser = await db.user.findUnique({
+      where: { id: staffUserId },
+      select: { id: true, role: true, tenantId: true, allowedTenants: true },
+    });
+
+    if (!targetStaffUser) {
+      return { success: false as const, error: 'Сотрудник не найден' };
+    }
+
+    // 2. Cookie & Tenant resolution
+    let cookieTenant: string | null = null;
+    try {
+      const { cookies } = await import('next/headers');
+      const c = await cookies();
+      cookieTenant = c.get('x_admin_tenant')?.value || null;
+    } catch {}
+
+    const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
+    const resolvedTenant = resolveAdminTenantContext(admin, tenantParam, cookieTenant);
+
+    // 3. Multi-tenant access check: caller admin must share allowedTenants with target staff
+    const adminAllowed = (admin.role === 'OWNER')
+      ? null
+      : ((admin.allowedTenants && admin.allowedTenants.length > 0) ? admin.allowedTenants : [admin.tenantId || 'smmplan']);
+
+    if (adminAllowed) {
+      const targetTenants = (targetStaffUser.allowedTenants && targetStaffUser.allowedTenants.length > 0)
+        ? targetStaffUser.allowedTenants
+        : [targetStaffUser.tenantId || 'smmplan'];
+
+      const hasOverlap = targetTenants.some((t) => adminAllowed.includes(t));
+      if (!hasOverlap) {
+        return { success: false as const, error: 'Доступ запрещен (403): ограничен доступ к сотруднику другого бренда' };
+      }
+    }
+
+    // 4. Role Hierarchy Check (IDOR protection):
+    // Non-OWNER staff cannot inspect audit logs of OWNER (unless inspecting self)
+    if (admin.role !== 'OWNER' && admin.id !== staffUserId) {
+      if (targetStaffUser.role === 'OWNER' || (admin.role === 'SUPPORT' && (targetStaffUser.role === 'ADMIN' || targetStaffUser.role === 'MANAGER'))) {
+        return { success: false as const, error: 'Доступ запрещен (403): недостаточно прав для просмотра аудита данного сотрудника' };
+      }
+    }
+
+    // 5. Query audit logs with strict tenantId filter
+    const tenantFilter = (resolvedTenant !== 'all')
+      ? { tenantId: resolvedTenant }
+      : (adminAllowed ? { tenantId: { in: adminAllowed } } : {});
+
     const logs = await db.adminAuditLog.findMany({
-      where: { adminId: staffUserId },
+      where: {
+        adminId: staffUserId,
+        ...tenantFilter,
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

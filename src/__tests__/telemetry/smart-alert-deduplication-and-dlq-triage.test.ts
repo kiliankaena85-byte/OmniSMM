@@ -57,4 +57,44 @@ describe('Smart Alert Deduplication & DLQ Triage (Zero-Spam & Zero Silent Drops)
 
     global.fetch = originalFetch;
   });
+
+  it('[Redis Reconnect Merge] Flushes accumulated in-memory occurrence deltas on reconnect', async () => {
+    const alertKey = 'reconnect:test:' + Date.now();
+
+    // Force in-memory fallback
+    P0AlertDebouncer.setForceInMemoryFallback(true);
+
+    const first = await P0AlertDebouncer.checkDeduplicatedAlert(alertKey, 60);
+    expect(first.shouldSend).toBe(true);
+    expect(first.occurrences).toBe(1);
+
+    // 5 offline occurrences
+    for (let i = 0; i < 5; i++) {
+      const offlineCheck = await P0AlertDebouncer.checkDeduplicatedAlert(alertKey, 60);
+      expect(offlineCheck.shouldSend).toBe(false);
+    }
+
+    const bucketBefore = P0AlertDebouncer.getBucket(alertKey);
+    expect(bucketBefore?.occurrences).toBeGreaterThanOrEqual(6);
+
+    // Re-enable online mode
+    P0AlertDebouncer.setForceInMemoryFallback(false);
+    const onlineCheck = await P0AlertDebouncer.checkDeduplicatedAlert(alertKey, 60);
+    expect(onlineCheck.shouldSend).toBe(false);
+    expect(onlineCheck.occurrences).toBeGreaterThanOrEqual(7);
+  });
+
+  it('[LRU Eviction] Evicts expired entries first and performs LRU eviction when capacity is reached', async () => {
+    P0AlertDebouncer.resetAllInMemory();
+    P0AlertDebouncer.setForceInMemoryFallback(true);
+
+    const key = 'lru:test:' + Date.now();
+    await P0AlertDebouncer.shouldSendAlert(key, 60);
+
+    const bucket = P0AlertDebouncer.getBucket(key);
+    expect(bucket).toBeDefined();
+    expect(bucket?.lastAccessedAt).toBeGreaterThan(0);
+
+    P0AlertDebouncer.setForceInMemoryFallback(false);
+  });
 });

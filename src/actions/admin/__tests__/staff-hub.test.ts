@@ -114,4 +114,58 @@ describe('👥 Staff Hub & Audit Analytics Server Actions', () => {
     expect(updatedUser?.role).toBe('MANAGER');
     expect(updatedUser?.supportLimitCents).toBe(750000); // 7500 RUB * 100 cents
   });
+
+  it('4. Blocks non-OWNER from inspecting OWNER personal logs (IDOR / Hierarchy Shield)', async () => {
+    // Switch session to SUPPORT
+    vi.mocked(verifySession).mockResolvedValue({
+      userId: testSupportId,
+      email: 'support@smmplan.pro',
+      role: 'SUPPORT',
+      tenantId: 'smmplan',
+    } as any);
+
+    const res = await getStaffPersonalLogsAction(testAdminId);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toContain('недостаточно прав');
+    }
+  });
+
+  it('5. Blocks staff from accessing staff of a different tenant (Cross-Tenant Shield)', async () => {
+    // Create foreign staff user on different tenant
+    const foreignStaff = await db.user.create({
+      data: {
+        email: `foreign_agent_${Date.now()}@smmflux.ru`,
+        role: 'SUPPORT',
+        balance: BigInt(0),
+        tenantId: 'flux',
+        allowedTenants: ['flux'],
+      },
+    });
+
+    // Session is ADMIN on smmplan only
+    const planAdmin = await db.user.create({
+      data: {
+        email: `plan_admin_${Date.now()}@smmplan.pro`,
+        role: 'ADMIN',
+        balance: BigInt(0),
+        tenantId: 'smmplan',
+        allowedTenants: ['smmplan'],
+      },
+    });
+
+    vi.mocked(verifySession).mockResolvedValue({
+      userId: planAdmin.id,
+      email: planAdmin.email,
+      role: 'ADMIN',
+      tenantId: 'smmplan',
+    } as any);
+
+    const res = await getStaffPersonalLogsAction(foreignStaff.id);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toContain('ограничен доступ к сотруднику другого бренда');
+    }
+  });
 });
+

@@ -75,6 +75,7 @@ export function calculateRedisRetryDelay(times: number, env: string = process.en
 export const redis =
   globalForRedis.redis ||
   new Redis(redisUrl, {
+    password: process.env.REDIS_PASSWORD || undefined,
     maxRetriesPerRequest: process.env.NODE_ENV === 'test' ? null : 3,
     connectTimeout: 5000,
     lazyConnect: true,

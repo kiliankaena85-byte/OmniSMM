@@ -19,13 +19,17 @@ export function maskEmail(email: string): string {
 }
 
 export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
-  // 1. Credentials, API keys, and auth tokens in JSON / key-value
+  // 1. Credentials, API keys, and auth tokens in JSON / key-value (quoted and unquoted password=abc, password: abc)
   {
     pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret\s+key|secretKey|webhookSecret|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret|key)"?\s*[:=]\s*)"([^"]+)"/gi,
     replacement: '$1"[REDACTED]"',
   },
   {
     pattern: /("?(?:apiKey|token|sessionToken|magicToken|authToken|accessToken|refreshToken|secret\s+key|secretKey|webhookSecret|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret|key)"?\s*[:=]\s*)'([^']+)'/gi,
+    replacement: '$1"[REDACTED]"',
+  },
+  {
+    pattern: /\b((?:apiKey|sessionToken|magicToken|authToken|accessToken|refreshToken|secret\s+key|secretKey|webhookSecret|secret|password|twoFactorSecret|databaseUrl|redisUrl|appEncryptionKey|jwtSecret)\s*[:=]\s*)([^\s,}'"&?]+)/gi,
     replacement: '$1"[REDACTED]"',
   },
 
@@ -51,7 +55,7 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
     replacement: '$1"[REDACTED]"',
   },
 
-  // 5. Database and Redis connection strings with credentials
+  // 5. Database, Cache, Queue, and Service connection URIs with credentials (known schemes & general fallback pattern)
   {
     pattern: /(DATABASE_URL\s*=\s*)([^\s]+)/gi,
     replacement: '$1"[REDACTED]"',
@@ -60,13 +64,16 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
     pattern: /(REDIS_URL\s*=\s*)([^\s]+)/gi,
     replacement: '$1"[REDACTED]"',
   },
+  // All URI schemes (postgres, mysql, mariadb, mongodb(+srv), http(s), amqp(s), clickhouse, redis(s), and custom schemes)
+  // Supports complex passwords containing @, %40, and symbols
   {
-    pattern: /(postgres(?:ql)?:\/\/[^:]*:)([^@]+)(@)/gi,
+    pattern: /([a-z][a-z0-9+.-]*:\/\/[^\/\s:@?#]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,
     replacement: '$1*****$3',
   },
+  // Scheme-less userinfo URIs: username:password@host
   {
-    pattern: /(redis(?:s)?:\/\/[^:]*:)([^@]+)(@)/gi,
-    replacement: '$1*****$3',
+    pattern: /(^|[\s,;("'])((?!:\/\/)[a-zA-Z0-9_.-]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,
+    replacement: '$1$2*****$4',
   },
 
   // 6. Emails in JSON / key-value fields (e.g. "email":"user@domain.com" -> "email":"u***@domain.com")

@@ -40,6 +40,9 @@
   ],
   "exclude": [
     "node_modules",
+    ".agents/**/*",
+    "artifacts/**/*",
+    ".planning/**/*",
     "scratch/**/*",
     "prisma/seed.ts",
     "test/**/*",
