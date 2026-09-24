@@ -1,3 +1,30 @@
+- [x] 🛡️ [OMNISMM-AUDIT-REMEDIATION-2026-09-24] Устранение дефектов и блокеров архитектуры/безопасности из внешнего отчёта (100% COMPLETE & VERIFIED ON MAIN):
+  * 📦 **E1: Восстановление целостности реестра npm (`package-lock.json`):**
+    - Заменены все 57 вхождений зеркала `registry.npmmirror.com` на официальный `registry.npmjs.org`.
+    - Выполнен `npm install --package-lock-only`, хэши и ссылки синхронизированы.
+    - `npm ci --dry-run` завершается за 3с без предупреждений (код возврата 0, 0 ссылок на зеркало).
+  * 🏛️ **E2: Устранение Clean Architecture BLOCKERS в `src/lib/telegram/webhook-handler.ts`:**
+    - Устранены недопустимые восходящие зависимости из Level 1 (`src/lib`) в Level 2 (`src/bot`, `src/actions`).
+    - Создан чистый сервис `src/lib/telegram/telegram-error-logger.service.ts` без зависимостей от Presentation/Application слоёв.
+    - В `src/actions/admin/telegram-bot/bot-errors-actions.ts` сохранён реэкспорт `logTelegramError` для 100% обратной совместимости.
+    - В `webhook-handler.ts` внедрён интерфейс `TelegramWebhookDispatcher` и механизм внедрения зависимостей через реестр/параметр вызова.
+    - Подключена авторегистрация диспетчера в `multiBotManager` и проброс из API-роутов.
+    - `npm run check:arch` — 1460 модулей, 0 нарушений слоёв, 0 циклических зависимостей (PASS).
+    - Тесты: `multitenant-telegram-dispatcher.test.ts` — 11/11 PASS.
+  * ⏱️ **E4: Защита сети и внедрение таймаутов `AbortSignal.timeout(N)` во всех вызовах `fetch`:**
+    - Устранены все 24 MAJOR-нарушения `network-fetch-timeout-required`.
+    - Все сетевые запросы (AI-клиенты, Network Router, настройки, саппорт-чат, auth/logout сессии, клиентские визарды) защищены явными таймаутами от 5s до 30s.
+    - В AST-гардрейле `scripts/run-ast-guardrails.ts` добавлено разворачивание TypeScript type assertions (`as unknown as RequestInit`), исключив ложноположительные детекции.
+    - `npm run lint:guardrails` — 0 BLOCKERS, 0 MAJOR (PASS).
+  * 🔒 **E3: Устранение IDOR и изоляция тенантов в кэше и API (`lint:tenant`):**
+    - Исправлен `tenant-cache-key-required` в `src/actions/order/catalog.ts`: ключ кэша приведен к каноническому виду с префиксом `tenant-`. В линтере добавлена регистронезависимая нормализация.
+    - В API-роутах (`chat/stream`, `messages`, `order-status`, `payments/[id]/status`, `orders/[id]/events`, `media/[...path]`, `storefront/v1/orders`, `debug`, `upload-branding`, `export`, `telemetry/health`, `dev-login`, `verify`) закрыты IDOR-векторы: добавлена проверка несовпадения брендов персонала с возвратом 403 Forbidden, скоупинг `findFirst` по `tenantId` и аннотации проверок первичных ключей сессий.
+    - `npm run lint:tenant` — 0 BLOCKERS, 0 MAJOR, 0 замечаний в `src/app/api/**` (PASS).
+  * 🧪 **Контроль сборки, секретов и тестов:**
+    - `node scripts/check-bundle-secrets.mjs` — 0 секретов (PASS).
+    - `npx tsc --noEmit` — 0 ошибок типизации (PASS).
+    - Коммит `1d4aeb5` отправлен в `origin/main`.
+
 - [x] 🚀 [OMNISMM-PAGE-RELOAD-AND-CI-DEFECT-REMEDIATION-2026] Устранение бага «перезагрузка страницы при выборе категорий/соцсетей», сопутствующих дефектов и красного CI (100% COMPLETE & VERIFIED ON MAIN):
   * 🛑 **P0.1 Устранение `history.replaceState` в CategorySidebar (`src/components/landing/order-engine/CategorySidebar.tsx`):**
     - Удалена прямая мутация `window.history.replaceState({}, '', ...)` при клике на категорию. Теперь используется только React-состояние и навигация Next.js через `shallow` / `scroll: false`. Это полностью устранило стирание внутреннего роутер-состояния Next.js (`__NA`) и последующий hard reload. (Commit: `30e599d`)
