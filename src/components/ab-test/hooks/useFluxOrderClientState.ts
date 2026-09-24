@@ -6,7 +6,7 @@ import { checkoutAction, getAvailableGatewaysAction } from "@/actions/order/chec
 import { validateDripFeedDuration, DRIP_FEED_MAX_ERROR_MESSAGE, detectNetworkByUrl } from "@/hooks/useOrderWizard";
 import { analyzeUrl } from "@/actions/order/analyze-url";
 import { isLinkServiceCompatible } from "@/constants/link-service-compatibility";
-import { inferTargetTypeFromName } from "@/utils/target-type";
+import { resolveServiceTargetType } from "@/utils/target-type-mapper";
 import type { FluxNetwork, FluxCategory, FluxService } from "@/types/flux";
 import type { FluxStep } from "../sub/FluxNavHeader";
 import { toast } from "sonner";
@@ -212,7 +212,7 @@ export function useFluxOrderClientState({
       let srvList: FluxService[] = (fetched as any) || [];
       if (detectedType) {
         const compatible = srvList.filter(s =>
-          isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name))
+          isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
         );
         if (compatible.length > 0) srvList = compatible;
       }

@@ -42,9 +42,13 @@ export function MaintenanceGuardian({
 
     const checkStatus = async () => {
       try {
-        const timeoutSignal = AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined;
+        const timeoutSignal = typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(5000) : undefined;
+        let signal: AbortSignal = controller.signal;
+        if (typeof AbortSignal.any === 'function' && timeoutSignal) {
+          signal = AbortSignal.any([controller.signal, timeoutSignal]);
+        }
         const res = await fetch('/api/maintenance-status', {
-          signal: timeoutSignal || controller.signal,
+          signal,
         });
         if (res.ok && isMounted) {
           const data = await res.json();
@@ -64,7 +68,7 @@ export function MaintenanceGuardian({
       }
     };
 
-    // Check immediately on route change
+    // Check on mount
     checkStatus();
 
     // Poll every 60 seconds for idle tabs
@@ -74,7 +78,7 @@ export function MaintenanceGuardian({
       controller.abort();
       clearInterval(interval);
     };
-  }, [pathname, isExcluded]);
+  }, [isExcluded]);
 
   if (!isExcluded && isMaintenance) {
     return (

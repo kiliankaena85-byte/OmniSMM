@@ -129,7 +129,7 @@ export function restorePendingOrderSnapshot(
       try {
         const urlObj = new URL(window.location.href);
         urlObj.searchParams.delete('auth_resume');
-        window.history.replaceState({}, '', urlObj.pathname + (urlObj.search ? urlObj.search : '') + '#step-4');
+        window.history.replaceState(typeof window.history.state === 'object' && window.history.state !== null ? { ...window.history.state } : {}, '', urlObj.pathname + (urlObj.search ? urlObj.search : '') + '#step-4');
       } catch {
         /* ignore history state error */
       }

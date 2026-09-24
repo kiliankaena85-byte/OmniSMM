@@ -69,13 +69,16 @@ export async function calculatePriceAction(
       }
     }
 
+    const runsMultiplier = (runs && Number.isInteger(runs) && runs > 1) ? runs : 1;
+    const finalMultiplier = markupMultiplier * runsMultiplier;
+
     const safeResult: PricingResult = {
-      totalCents: Math.round(result.totalCents * markupMultiplier),
-      originalTotalCents: Math.round(result.originalTotalCents * markupMultiplier),
-      discountCents: Math.round(result.discountCents * markupMultiplier),
+      totalCents: Math.round(result.totalCents * finalMultiplier),
+      originalTotalCents: Math.round(result.originalTotalCents * finalMultiplier),
+      discountCents: Math.round(result.discountCents * finalMultiplier),
       discountPercent: result.discountPercent,
       providerCostCents: 0,
-      safetyFloorCents: Math.round(result.safetyFloorCents * markupMultiplier),
+      safetyFloorCents: Math.round(result.safetyFloorCents * finalMultiplier),
       tier: result.tier,
     };
 

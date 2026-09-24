@@ -59,14 +59,45 @@ export function PlanFullscreenCheckout({
 
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const isClosingRef = useRef(false);
+  const pushedHistoryRef = useRef(false);
+
+  const handleClose = React.useCallback(() => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    if (pushedHistoryRef.current) {
+      pushedHistoryRef.current = false;
+      if (typeof window !== 'undefined' && window.history.state?.smmplan_fullscreen_checkout) {
+        window.history.back();
+      }
+    }
+    onCloseRef.current();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.history.pushState({ smmplan_fullscreen_checkout: true }, '', window.location.href);
+      if (!window.history.state?.smmplan_fullscreen_checkout && !pushedHistoryRef.current) {
+        window.history.pushState(typeof window.history.state === 'object' && window.history.state !== null ? { ...window.history.state, smmplan_fullscreen_checkout: true } : { smmplan_fullscreen_checkout: true }, '', window.location.href);
+        pushedHistoryRef.current = true;
+      }
     }
-    const handlePopState = () => onCloseRef.current();
+
+    const handlePopState = () => {
+      if (pushedHistoryRef.current) {
+        pushedHistoryRef.current = false;
+      }
+      isClosingRef.current = true;
+      onCloseRef.current();
+    };
+
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (pushedHistoryRef.current && typeof window !== 'undefined' && window.history.state?.smmplan_fullscreen_checkout) {
+        pushedHistoryRef.current = false;
+        window.history.back();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -145,10 +176,10 @@ export function PlanFullscreenCheckout({
         activeCategory={activeCategory}
         minQty={minQty}
         maxQty={maxQty}
-        onBackClick={onClose}
+        onBackClick={handleClose}
         onResetClick={() => {
           engine.resetOrder();
-          onClose();
+          handleClose();
         }}
       />
 

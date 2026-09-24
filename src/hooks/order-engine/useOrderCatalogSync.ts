@@ -50,6 +50,8 @@ export function useOrderCatalogSync({
   const [catalog, setCatalog] = useState<PublicNetwork[]>(sortedInitialCatalog);
   const [services, setServices] = useState<PublicService[]>(initialServices);
   const [isServicesLoading, setIsServicesLoading] = useState(false);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const isInitialServicesMount = useRef(initialServices.length > 0);
   const serviceRequestIdRef = useRef(0);
@@ -69,23 +71,25 @@ export function useOrderCatalogSync({
             categories: sortCategories(net.categories),
           }));
           setCatalog(sortedData);
-          setNetworkId((current: string) => {
-            if (!current && sortedData.length > 0) {
-              if (initialNetworkId) {
-                if (initialCategoryId) setCategoryId(initialCategoryId);
-                return initialNetworkId;
-              }
-              const defNet = sortedData.find((n: PublicNetwork) => n.slug === 'telegram') || sortedData[0];
-              if (defNet) {
-                const defCatItem =
-                  defNet.categories.find((c: PublicCategory) => c.name.toLowerCase().includes('подписчики')) ||
-                  defNet.categories[0];
-                if (defCatItem) setCategoryId(defCatItem.id);
-                return defNet.id;
-              }
+
+          let targetNetId = initialNetworkId;
+          let targetCatId = initialCategoryId;
+          if (!targetNetId && sortedData.length > 0) {
+            const defNet = sortedData.find((n: PublicNetwork) => n.slug === 'telegram') || sortedData[0];
+            if (defNet) {
+              targetNetId = defNet.id;
+              const defCatItem =
+                defNet.categories.find((c: PublicCategory) => c.name.toLowerCase().includes('подписчики')) ||
+                defNet.categories[0];
+              if (defCatItem) targetCatId = defCatItem.id;
             }
-            return current;
-          });
+          }
+          if (targetNetId) {
+            setNetworkId(targetNetId);
+          }
+          if (targetCatId) {
+            setCategoryId(targetCatId);
+          }
         }
       });
     } else if (catalog.length > 0 && initialNetworkId && !hasFetchedCatalog.current) {
@@ -94,6 +98,8 @@ export function useOrderCatalogSync({
       if (initialCategoryId) setCategoryId(initialCategoryId);
     }
   }, [catalog.length, initialNetworkId, initialCategoryId, setNetworkId, setCategoryId]);
+
+  const isLinkFilled = Boolean(url && url.trim().length >= 5);
 
   // Load Services when Category changes
   useEffect(() => {
@@ -110,20 +116,22 @@ export function useOrderCatalogSync({
 
     if (!categoryId) {
       setServices([]);
+      setServicesError(null);
       if (!selectedServiceRef.current) setSelectedService(null);
       setIsServicesLoading(false);
       onResetDrip?.();
       return;
     }
 
-    const isLinkFilled = Boolean(url && url.trim().length >= 5);
     const cachedSvcs = categoryServicesCache.current[categoryId];
     if (cachedSvcs && cachedSvcs.length > 0) {
       let finalSvcs = cachedSvcs;
       if (detectedType && isLinkFilled && !selectedServiceRef.current) {
-        finalSvcs = cachedSvcs.filter((s) => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+        const filtered = cachedSvcs.filter((s) => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+        finalSvcs = filtered.length > 0 ? filtered : cachedSvcs;
       }
       setServices(finalSvcs);
+      setServicesError(null);
       setIsServicesLoading(false);
       if (initialServiceId && !selectedServiceRef.current) {
         const found = finalSvcs.find((s) => s.id === initialServiceId);
@@ -133,11 +141,13 @@ export function useOrderCatalogSync({
     }
 
     setServices([]);
+    setServicesError(null);
     if (!selectedServiceRef.current) setSelectedService(null);
     const currentRequestId = ++serviceRequestIdRef.current;
 
     const loadServices = async () => {
       setIsServicesLoading(true);
+      setServicesError(null);
       try {
         const svcs = await getServicesByCategoryAction(categoryId);
         if (currentRequestId !== serviceRequestIdRef.current) return;
@@ -153,20 +163,24 @@ export function useOrderCatalogSync({
         categoryServicesCache.current[categoryId] = sortedSvcs;
         let finalSvcs = sortedSvcs;
         if (detectedType && isLinkFilled && !selectedServiceRef.current) {
-          finalSvcs = sortedSvcs.filter((s) => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+          const filtered = sortedSvcs.filter((s) => isLinkServiceCompatible(detectedType, resolveServiceTargetType(s)));
+          finalSvcs = filtered.length > 0 ? filtered : sortedSvcs;
         }
 
         setServices(finalSvcs);
+        setServicesError(null);
         if (initialServiceId && !selectedServiceRef.current) {
           const found = finalSvcs.find((s) => s.id === initialServiceId);
           if (found) setSelectedService(found);
         } else if (!selectedServiceRef.current) {
           setSelectedService(null);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         if (currentRequestId !== serviceRequestIdRef.current) return;
+        const msg = err instanceof Error ? err.message : String(err);
         console.error('Failed to load services:', err);
         setServices([]);
+        setServicesError(msg || 'Не удалось загрузить услуги');
         if (!selectedServiceRef.current) setSelectedService(null);
         toast.error('Не удалось загрузить услуги. Проверьте подключение к сети.');
       } finally {
@@ -183,15 +197,30 @@ export function useOrderCatalogSync({
     initialServiceId,
     initialServices,
     detectedType,
-    url.trim().length >= 5,
+    isLinkFilled,
     onResetDrip,
     selectedServiceRef,
     setSelectedService,
+    retryCount,
   ]);
 
-  // Live Sync on focus & visibilitychange
+  const retryServices = () => {
+    if (!categoryId) return;
+    delete categoryServicesCache.current[categoryId];
+    setServicesError(null);
+    setRetryCount((c) => c + 1);
+  };
+
+  // Live Sync on focus & visibilitychange (throttled to at most once per 30s)
   useEffect(() => {
+    let lastSyncTime = 0;
+
     const handleSync = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      const now = Date.now();
+      if (now - lastSyncTime < 30000) return; // 30s throttle
+      lastSyncTime = now;
+
       if (selectedServiceRef.current?.id) {
         getFreshServiceAction(selectedServiceRef.current.id)
           .then((fresh) => {
@@ -231,5 +260,7 @@ export function useOrderCatalogSync({
     setServices,
     isServicesLoading,
     categoryServicesCache,
+    servicesError,
+    retryServices,
   };
 }

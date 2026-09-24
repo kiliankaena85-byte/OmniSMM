@@ -8,7 +8,7 @@ import { formatRubles } from '@/utils/format-price';
 import { detectNetworkByUrl } from '@/hooks/useOrderWizard';
 import { analyzeUrl } from '@/actions/order/analyze-url';
 import { isLinkServiceCompatible } from '@/constants/link-service-compatibility';
-import { inferTargetTypeFromName } from '@/utils/target-type';
+import { resolveServiceTargetType } from '@/utils/target-type-mapper';
 import { safeFocus } from '@/utils/scroll-helpers';
 import type { FluxNetwork, FluxCategory, FluxService } from '@/types/flux';
 import type { Step, FluxDashboardOrderWizardProps } from '../wizard-steps/types';
@@ -208,7 +208,7 @@ export function useFluxDashboardWizardState({
 
       if (detectedType) {
         const compatible = srvList.filter((s) =>
-          isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name))
+          isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
         );
         if (compatible.length > 0) {
           srvList = compatible;

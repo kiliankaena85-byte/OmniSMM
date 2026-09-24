@@ -46,7 +46,7 @@ export function AdminCheckoutVariantSwitcher({ currentMode, onModeChange }: Swit
     // Update URL query without page reload
     const url = new URL(window.location.href);
     url.searchParams.set("checkout", mode);
-    window.history.replaceState({}, "", url.toString());
+    window.history.replaceState(typeof window.history.state === 'object' && window.history.state !== null ? { ...window.history.state } : {}, "", url.toString());
   };
 
   return (

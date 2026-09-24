@@ -35,7 +35,9 @@ export function LayoutVariantToggle({
             if (saved !== currentFlow) onFlowChange(saved);
           }
         }
-      } catch {}
+      } catch {
+        /* SSR / restricted storage */
+      }
     }
   }, [currentFlow, onFlowChange]);
 
@@ -49,8 +51,10 @@ export function LayoutVariantToggle({
         document.cookie = `smmplan_order_flow=${flow}; path=/; max-age=31536000; SameSite=Lax`;
         const url = new URL(window.location.href);
         url.searchParams.set("flow", flow);
-        window.history.replaceState({}, "", url.toString());
-      } catch {}
+        window.history.replaceState(typeof window.history.state === 'object' && window.history.state !== null ? { ...window.history.state } : {}, "", url.toString());
+      } catch {
+        /* SSR / restricted storage */
+      }
     }
   };
 

@@ -143,6 +143,10 @@ export class CheckoutTransactionService {
       throw new Error("Для совершения единовременных платежей свыше 15 000 ₽, пожалуйста, привяжите ваш Telegram-аккаунт в личном кабинете либо используйте безналичный расчет по счету для юрлиц и ИП.");
     }
 
+    if (gateway === 'cryptobot' && paymentAmount > 1_500_000) {
+      throw new Error("Криптовалюта доступна для пополнений до 15 000 ₽. Для больших сумм используйте карту.");
+    }
+
     const consentVersion = `terms:${tenantId}:${new Date().toISOString().split('T')[0]}`;
 
     const executeTx = async () => {

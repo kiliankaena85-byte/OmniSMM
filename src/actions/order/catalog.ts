@@ -567,8 +567,9 @@ export async function getServicesByCategoryAction(categoryId: string, rawTenantI
 
     return result;
   } catch (error) {
-    console.error("Failed to fetch services:", error);
-    return [];
+    const errMsg = error instanceof Error ? error.message : String(error);
+    logger.error("getServicesByCategoryAction failed", { categoryId, tenantId, error: errMsg });
+    throw new Error(`Failed to fetch services: ${errMsg}`);
   }
 }
 

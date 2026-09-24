@@ -74,14 +74,19 @@ export function useMobileWizard(engine: OrderEngine) {
     if (prevStep === activeStepRaw) return;
     prevStepRef.current = activeStepRaw;
 
+    const safeState = (extra: Record<string, unknown>) =>
+      typeof window.history.state === 'object' && window.history.state !== null
+        ? { ...window.history.state, ...extra }
+        : extra;
+
     if (activeStepRaw > prevStep) {
-      window.history.pushState({ wizardStep: activeStepRaw }, '', '#step-' + activeStepRaw);
+      window.history.pushState(safeState({ wizardStep: activeStepRaw }), '', '#step-' + activeStepRaw);
     } else if (activeStepRaw === 1) {
       if (window.location.hash.startsWith('#step-')) {
-        window.history.replaceState({ wizardStep: 1 }, '', window.location.pathname + window.location.search);
+        window.history.replaceState(safeState({ wizardStep: 1 }), '', window.location.pathname + window.location.search);
       }
     } else {
-      window.history.replaceState({ wizardStep: activeStepRaw }, '', '#step-' + activeStepRaw);
+      window.history.replaceState(safeState({ wizardStep: activeStepRaw }), '', '#step-' + activeStepRaw);
     }
   }, [activeStepRaw, mounted]);
 

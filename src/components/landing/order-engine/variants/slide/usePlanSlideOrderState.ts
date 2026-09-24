@@ -7,7 +7,7 @@ import type { PricingResult } from "@/services/marketing.service";
 import { detectNetworkByUrl } from "@/hooks/useOrderWizard";
 import { analyzeUrl } from "@/actions/order/analyze-url";
 import { isLinkServiceCompatible } from "@/constants/link-service-compatibility";
-import { inferTargetTypeFromName } from "@/utils/target-type";
+import { resolveServiceTargetType } from "@/utils/target-type-mapper";
 import { toast } from "sonner";
 import type { Step } from "./types";
 
@@ -34,6 +34,9 @@ export function usePlanSlideOrderState({
   const [services, setServices] = useState<PublicService[]>([]);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
+
+  const categoryServicesCache = useRef<Record<string, PublicService[]>>({});
+  const serviceRequestIdRef = useRef(0);
 
   const [quantity, setQuantity] = useState<number | string>("");
   const [email, setEmail] = useState(initialEmail || "");
@@ -93,6 +96,7 @@ export function usePlanSlideOrderState({
                   setActiveCategory(foundCat);
                   getServicesByCategoryAction(foundCat.id, tenantId).then(srvs => {
                     if (srvs) {
+                      categoryServicesCache.current[foundCat.id] = srvs;
                       setServices(srvs);
                       const targetSrv = srvs.find(s => s.id === snapshot.serviceId);
                       if (targetSrv) {
@@ -314,23 +318,46 @@ export function usePlanSlideOrderState({
 
   const selectCategory = async (cat: PublicCategory) => {
     setActiveCategory(cat);
+    navigateTo('service');
+
+    const cached = categoryServicesCache.current[cat.id];
+    if (cached && cached.length > 0) {
+      let srvList: PublicService[] = cached;
+      if (detectedType) {
+        const compatible = srvList.filter(s =>
+          isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
+        );
+        if (compatible.length > 0) srvList = compatible;
+      }
+      setServices(srvList);
+      setIsLoadingServices(false);
+      return;
+    }
+
     setIsLoadingServices(true);
     setServices([]);
-    navigateTo('service');
+    const currentRequestId = ++serviceRequestIdRef.current;
+
     try {
       const fetched = await getServicesByCategoryAction(cat.id, tenantId);
+      if (currentRequestId !== serviceRequestIdRef.current) return;
+      categoryServicesCache.current[cat.id] = fetched || [];
+
       let srvList: PublicService[] = fetched || [];
       if (detectedType) {
         const compatible = srvList.filter(s =>
-          isLinkServiceCompatible(detectedType, s.targetType || inferTargetTypeFromName(s.name))
+          isLinkServiceCompatible(detectedType, resolveServiceTargetType(s))
         );
         if (compatible.length > 0) srvList = compatible;
       }
       setServices(srvList);
     } catch {
+      if (currentRequestId !== serviceRequestIdRef.current) return;
       setServices([]);
     } finally {
-      setIsLoadingServices(false);
+      if (currentRequestId === serviceRequestIdRef.current) {
+        setIsLoadingServices(false);
+      }
     }
   };
 
@@ -445,5 +472,6 @@ export function usePlanSlideOrderState({
     handleAnalyzeLink,
     selectCategory,
     selectService,
+    categoryServicesCache,
   };
 }

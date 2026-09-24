@@ -34,6 +34,7 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
   const [searchNetwork, setSearchNetwork] = useState(''); const [searchCategory, setSearchCategory] = useState('');
   const [tariffSubtypeFilter, setTariffSubtypeFilter] = useState<TariffSubtypeFilter>('auto');
   const serviceRequestIdRef = useRef(0);
+  const categoryServicesCache = useRef<Record<string, PublicService[]>>({});
   const formRef = useRef<HTMLFormElement>(null); const errorRef = useRef<HTMLDivElement>(null); const hasRestoredUrlRef = useRef(false);
 
   const linkAnalyzer = useWizardLinkAnalyzer({
@@ -82,7 +83,10 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
         }
         if (srvId && catId) {
           getServicesByCategoryAction(catId, tenantId).then(servs => {
-            const s = servs.find(srv => srv.id === srvId); if (s) { setSelectedService(s); setQuantity(s.minQty || 100); }
+            if (servs) {
+              categoryServicesCache.current[catId] = servs;
+              const s = servs.find(srv => srv.id === srvId); if (s) { setSelectedService(s); setQuantity(s.minQty || 100); }
+            }
           }).catch(() => {});
         }
         setStep(parsed as WizardStep);
@@ -106,44 +110,50 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     }).catch(console.error).finally(() => setIsLoadingCatalog(false));
   }, [initialReorderData, tenantId]);
 
-  // [T1-2 + T1-6] resolveServiceTargetType in filter + requestId race-condition guard
+  const isLinkFilled = link.trim().length >= 5;
+
+  // [T1-2 + T1-6] resolveServiceTargetType in filter + requestId race-condition guard + categoryServicesCache
   useEffect(() => {
     if (!selectedCategory) { setServices([]); return; }
-    const currentRequestId = ++serviceRequestIdRef.current;
-    setIsLoadingServices(true);
-    getServicesByCategoryAction(selectedCategory.id, tenantId).then(servs => {
-      if (currentRequestId !== serviceRequestIdRef.current) return;
-      let finalServs = servs;
-      if (linkAnalyzer.detectedType && link.trim().length >= 5) {
-        const comp = servs.filter(s => isLinkServiceCompatible(linkAnalyzer.detectedType, resolveServiceTargetType(s)));
-        if (comp.length > 0) finalServs = comp;
+
+    const applyServs = (raw: PublicService[]) => {
+      let final = raw;
+      if (linkAnalyzer.detectedType && isLinkFilled) {
+        const comp = raw.filter(s => isLinkServiceCompatible(linkAnalyzer.detectedType, resolveServiceTargetType(s)));
+        if (comp.length > 0) final = comp;
       }
-      setServices(finalServs);
+      setServices(final);
       const targetId = initialReorderData?.serviceId || searchParams.get('serviceId');
       if (targetId) {
-        const s = finalServs.find(srv => srv.id === targetId);
+        const s = final.find(srv => srv.id === targetId);
         if (s) {
           setSelectedService(s);
           if (initialReorderData) { setQuantity(initialReorderData.quantity); setLink(initialReorderData.link); } else setQuantity(s.minQty || 100);
           if (searchParams.get('step') === '4' || initialReorderData) setStep(4);
         }
       }
+    };
+
+    const cached = categoryServicesCache.current[selectedCategory.id];
+    if (cached && cached.length > 0) {
+      applyServs(cached);
+      setIsLoadingServices(false);
+      return;
+    }
+
+    const currentRequestId = ++serviceRequestIdRef.current;
+    setIsLoadingServices(true);
+    getServicesByCategoryAction(selectedCategory.id, tenantId).then(servs => {
+      if (currentRequestId !== serviceRequestIdRef.current) return;
+      categoryServicesCache.current[selectedCategory.id] = servs || [];
+      applyServs(servs || []);
     }).catch(console.error).finally(() => {
       if (currentRequestId === serviceRequestIdRef.current) setIsLoadingServices(false);
     });
-  }, [selectedCategory, initialReorderData, searchParams, linkAnalyzer.detectedType, link, tenantId]);
+  }, [selectedCategory, initialReorderData, searchParams, linkAnalyzer.detectedType, isLinkFilled, tenantId]);
 
   const totalQuantity = quantity;
-
-  const pricing = useWizardPricing({
-    selectedService,
-    quantity,
-    setQuantity,
-    totalQuantity,
-    isDripFeedEnabled,
-    dripRuns,
-    isSmartDrip,
-  });
+  const pricing = useWizardPricing({ selectedService, quantity, setQuantity, totalQuantity, isDripFeedEnabled, dripRuns, isSmartDrip });
 
   // [T1-7] Drip-Feed Floor Invariant warning via shared validation engine
   const dripFloorWarning = (!isDripFeedEnabled || !selectedService) ? null :
@@ -172,24 +182,16 @@ export function useSmmplanOrderWizard({ userEmail = '', initialReorderData, tena
     selectedNetwork, setSelectedNetwork, selectedCategory, setSelectedCategory,
     services, isLoadingServices, selectedService, setSelectedService, handleSelectService,
     link, setLink, handleBlurLink: linkAnalyzer.handleBlurLink, validateLinkFormat: linkAnalyzer.validateLinkFormat,
-    quantity, setQuantity, addQuantity: pricing.addQuantity, totalQuantity,
-    email, setEmail,
+    quantity, setQuantity, addQuantity: pricing.addQuantity, totalQuantity, email, setEmail,
     promoCodeInput: pricing.promoCodeInput, setPromoCodeInput: pricing.setPromoCodeInput,
     appliedPromo: pricing.appliedPromo, promoMessage: pricing.promoMessage, isApplyingPromo: pricing.isApplyingPromo,
-    showPromo: pricing.showPromo, setShowPromo: pricing.setShowPromo,
-    handleApplyPromo: pricing.handleApplyPromo, handleRemovePromo: pricing.handleRemovePromo,
-    gateway, setGateway, availableGateways,
-    isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval,
-    isSmartDrip, setIsSmartDrip, dripFloorWarning,
-    customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed,
-    isTgGuideOpen, setIsTgGuideOpen,
-    idempotencyKey, resetIdempotencyKey,
-    errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey,
-    calculatedPriceRub: pricing.calculatedPriceRub, isCalculatingPrice: pricing.isCalculatingPrice,
-    searchNetwork, setSearchNetwork, searchCategory, setSearchCategory,
+    showPromo: pricing.showPromo, setShowPromo: pricing.setShowPromo, handleApplyPromo: pricing.handleApplyPromo, handleRemovePromo: pricing.handleRemovePromo,
+    gateway, setGateway, availableGateways, isDripFeedEnabled, setIsDripFeedEnabled, dripRuns, setDripRuns, dripInterval, setDripInterval,
+    isSmartDrip, setIsSmartDrip, dripFloorWarning, customData, setCustomData, isRequirementsConfirmed, setIsRequirementsConfirmed,
+    isTgGuideOpen, setIsTgGuideOpen, idempotencyKey, resetIdempotencyKey, errors, setErrors, isSubmitting, setIsSubmitting, shakeKey, setShakeKey,
+    calculatedPriceRub: pricing.calculatedPriceRub, isCalculatingPrice: pricing.isCalculatingPrice, searchNetwork, setSearchNetwork, searchCategory, setSearchCategory,
     detectedType: linkAnalyzer.detectedType, showAllCategories: linkAnalyzer.showAllCategories, setShowAllCategories: linkAnalyzer.setShowAllCategories, tariffSubtypeFilter, setTariffSubtypeFilter,
-    formRef, errorRef,
-    hasSmartFilter, matchedCategories, filteredCategories,
-    channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices
+    formRef, errorRef, hasSmartFilter, matchedCategories, filteredCategories,
+    channelServicesCount, postServicesCount, hasMultipleSubtypes, effectiveSubtype, displayedServices, categoryServicesCache,
   };
 }

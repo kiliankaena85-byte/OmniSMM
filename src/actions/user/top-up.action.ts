@@ -64,6 +64,13 @@ export async function createTopUpPaymentAction(
       }
     }
 
+    if (gateway === 'cryptobot' && amountCents > 1_500_000) {
+      return {
+        success: false,
+        error: "Криптовалюта доступна для пополнений до 15 000 ₽. Для больших сумм используйте карту."
+      };
+    }
+
     // Check for existing pending payment with same key created within the last 60 seconds (anti-double-click)
     const twoMinutesAgo = new Date(Date.now() - 60 * 1000);
     const existingPayment = await db.payment.findFirst({
