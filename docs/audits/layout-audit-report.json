@@ -1,10 +1,99 @@
 {
-  "timestamp": "2026-09-17T08:37:40.535Z",
+  "timestamp": "2026-09-24T00:57:19.931Z",
   "filesScanned": 50,
-  "totalDefects": 0,
+  "totalDefects": 11,
   "highSeverity": 0,
-  "mediumSeverity": 0,
+  "mediumSeverity": 11,
   "lowSeverity": 0,
-  "verdict": "CLEAN",
-  "findings": []
+  "verdict": "WARNINGS",
+  "findings": [
+    {
+      "file": "src/components/dashboard/balance/BalanceDisplay.tsx",
+      "line": 38,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"text-[11px] sm:text-xs font-black font-mono tabular-nums tracking-tight sm:tracking-wide truncate max-w-[95px] sm:max-w-none\" title={balance}>{balance}</span>",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/dashboard/classic/ClassicDashboardHome.tsx",
+      "line": 188,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate\">",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/dashboard/classic/ClassicDashboardHome.tsx",
+      "line": 221,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate\">",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/dashboard/classic/ClassicDashboardHome.tsx",
+      "line": 269,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate\">",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/dashboard/classic/ClassicDashboardHome.tsx",
+      "line": 309,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground truncate\">",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/dashboard/settings/SettingsTabsClient.tsx",
+      "line": 123,
+      "type": "SQUASHED_ELEMENT",
+      "severity": "MEDIUM",
+      "snippet": "<Key className=\"w-4 h-4\" />",
+      "remediation": "Add \"shrink-0\" to icon to prevent element squashing on narrow viewports."
+    },
+    {
+      "file": "src/components/dashboard/transactions/TransactionsClient.tsx",
+      "line": 611,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"truncate max-w-[170px]\" title={item.reason}>{item.reason}</span>",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/orders/DesktopOrderCards.tsx",
+      "line": 128,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "className=\"text-primary hover:underline truncate max-w-[220px] font-medium\"",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/orders/DesktopOrderTable.tsx",
+      "line": 146,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "className=\"text-primary hover:underline text-xs max-w-[180px] truncate font-medium\"",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/landing/order-engine/wizard-steps/MobileCheckoutOrderSummary.tsx",
+      "line": 81,
+      "type": "TRUNCATE_WITHOUT_MIN_W_ZERO",
+      "severity": "MEDIUM",
+      "snippet": "<span className=\"truncate flex items-center gap-2\">",
+      "remediation": "Add \"min-w-0\" to element or flex-parent with \"truncate\" to allow text shrinkage."
+    },
+    {
+      "file": "src/components/auth/FluxLoginHero.tsx",
+      "line": 10,
+      "type": "SQUASHED_ELEMENT",
+      "severity": "MEDIUM",
+      "snippet": "<Sparkles className=\"w-6 h-6 animate-pulse\" />",
+      "remediation": "Add \"shrink-0\" to icon to prevent element squashing on narrow viewports."
+    }
+  ]
 }

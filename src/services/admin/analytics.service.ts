@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { normalizeTenantId } from '@/lib/tenant-scope';
 
 interface ServiceProfitability {
   serviceId: string;
@@ -21,17 +22,24 @@ interface CategoryProfitability {
   ordersCount: number;
 }
 
+function resolveTenantWhere(tenantId?: string) {
+  const resolved = normalizeTenantId(tenantId);
+  return resolved === 'all' ? {} : { tenantId: resolved };
+}
+
 class AnalyticsService {
   async getServiceProfitability(days: number, tenantId?: string): Promise<ServiceProfitability[]> {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
+
+    const tenantFilter = resolveTenantWhere(tenantId);
 
     // Fetch orders with service and category info
     const orders = await db.order.findMany({
       where: {
         createdAt: { gte: cutoff },
         status: { notIn: ['AWAITING_PAYMENT', 'PENDING', 'ERROR'] },
-        ...(tenantId ? { tenantId } : {})
+        ...tenantFilter,
       },
       include: {
         service: {
@@ -119,9 +127,10 @@ class AnalyticsService {
   }
 
   async getLTVAnalytics(tenantId?: string) {
+    const tenantFilter = resolveTenantWhere(tenantId);
     const userFilter = {
       role: 'USER' as const,
-      ...(tenantId ? { tenantId } : {})
+      ...tenantFilter,
     };
     const totalUsers = await db.user.count({ where: userFilter });
     const users = await db.user.findMany({

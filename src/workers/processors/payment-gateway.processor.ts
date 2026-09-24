@@ -12,20 +12,31 @@ const log = logger.child({ component: 'PaymentGatewayProcessor' });
 export default async function paymentGatewayProcessor(job: Job<PaymentGatewayJobPayload>) {
   let tenantId = job.data?.tenantId;
 
-  // Fail-safe guard: if tenantId is absent or empty, query the payment using runWithTenantBypass
-  if (!tenantId && job.data?.paymentId) {
+  // Server-side tenantId validation: query true tenantId from DB and reject spoofed payloads
+  if (job.data?.paymentId) {
     const paymentRecord = await runWithTenantBypass('BullMQ paymentGatewayProcessor resolve tenantId', async () => {
       return await db.payment.findUnique({
         where: { id: job.data.paymentId },
         select: { tenantId: true }
       });
     });
-    tenantId = paymentRecord?.tenantId;
+
+    if (!paymentRecord) {
+      log.warn(`[PaymentGatewayProcessor] Payment ${job.data.paymentId} not found in DB. Discarding job.`);
+      return;
+    }
+
+    const trueTenantId = paymentRecord.tenantId || 'smmplan';
+    if (tenantId && tenantId !== trueTenantId) {
+      log.warn(`[TenantSpoofGuard] Discarding job ${job.id}: Payload tenantId '${tenantId}' does not match DB owner tenantId '${trueTenantId}' for payment ${job.data.paymentId}.`);
+      return;
+    }
+    tenantId = trueTenantId;
   }
 
   const resolvedTenantId = (tenantId as string | undefined) || 'smmplan';
   registerValidTenant(resolvedTenantId);
-  if (job.data && !job.data.tenantId && tenantId) {
+  if (job.data) {
     job.data.tenantId = resolvedTenantId;
   }
 

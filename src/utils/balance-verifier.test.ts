@@ -3,6 +3,91 @@ import { db } from '@/lib/db';
 import { BalanceVerifier } from './balance-verifier';
 import { sendAdminAlert } from '@/lib/notifications';
 
+const mockUsers = new Map<string, any>();
+const mockLedgerEntries = new Map<string, any>();
+const mockAuditLogs: any[] = [];
+const mockSystemSettings = new Map<string, any>();
+
+vi.mock('@/lib/db', () => {
+  const dbMock = {
+    $executeRawUnsafe: vi.fn().mockResolvedValue(0),
+    $transaction: vi.fn().mockImplementation(async (cb: any) => cb(dbMock)),
+    systemSettings: {
+      upsert: vi.fn().mockImplementation(async ({ where, update, create }: any) => {
+        const id = where.id;
+        const existing = mockSystemSettings.get(id);
+        const data = existing ? { ...existing, ...update } : { id, ...create };
+        mockSystemSettings.set(id, data);
+        return data;
+      }),
+    },
+    user: {
+      create: vi.fn().mockImplementation(async ({ data }: any) => {
+        const id = data.id || `user_${Math.random().toString(36).substring(2, 9)}`;
+        const record = { id, adminNote: null, ...data };
+        mockUsers.set(id, record);
+        return record;
+      }),
+      findMany: vi.fn().mockImplementation(async ({ where }: any) => {
+        let list = Array.from(mockUsers.values());
+        if (where?.isActive !== undefined) list = list.filter((u) => u.isActive === where.isActive);
+        if (where?.isDeleted !== undefined) list = list.filter((u) => u.isDeleted === where.isDeleted);
+        return list;
+      }),
+      findUnique: vi.fn().mockImplementation(async ({ where }: any) => mockUsers.get(where.id) || null),
+      findUniqueOrThrow: vi.fn().mockImplementation(async ({ where }: any) => {
+        const u = mockUsers.get(where.id);
+        if (!u) throw new Error('User not found');
+        return u;
+      }),
+      update: vi.fn().mockImplementation(async ({ where, data }: any) => {
+        const u = mockUsers.get(where.id);
+        if (u) {
+          Object.assign(u, data);
+        }
+        return u;
+      }),
+    },
+    ledgerEntry: {
+      create: vi.fn().mockImplementation(async ({ data }: any) => {
+        const id = data.id || `ledger_${Math.random().toString(36).substring(2, 9)}`;
+        const record = { id, status: 'APPROVED', ...data };
+        mockLedgerEntries.set(id, record);
+        return record;
+      }),
+      createMany: vi.fn().mockImplementation(async ({ data }: any) => {
+        for (const item of data) {
+          const id = item.id || `ledger_${Math.random().toString(36).substring(2, 9)}`;
+          mockLedgerEntries.set(id, { id, status: 'APPROVED', ...item });
+        }
+        return { count: data.length };
+      }),
+      aggregate: vi.fn().mockImplementation(async ({ where }: any) => {
+        let sum = BigInt(0);
+        for (const entry of mockLedgerEntries.values()) {
+          if (entry.userId === where.userId && entry.status === where.status) {
+            sum += BigInt(entry.amount);
+          }
+        }
+        return { _sum: { amount: sum } };
+      }),
+    },
+    adminAuditLog: {
+      create: vi.fn().mockImplementation(async ({ data }: any) => {
+        const record = { id: `audit_${Math.random().toString(36).substring(2, 9)}`, createdAt: new Date(), ...data };
+        mockAuditLogs.push(record);
+        return record;
+      }),
+      findMany: vi.fn().mockImplementation(async () => mockAuditLogs),
+      deleteMany: vi.fn().mockImplementation(async () => {
+        mockAuditLogs.length = 0;
+        return { count: 0 };
+      }),
+    },
+  };
+  return { db: dbMock };
+});
+
 // Mock the notification service to assert that alerts are correctly sent.
 vi.mock('@/lib/notifications', () => ({
   sendAdminAlert: vi.fn(),
@@ -10,22 +95,23 @@ vi.mock('@/lib/notifications', () => ({
 
 describe('BalanceVerifier Service Tests', () => {
   beforeEach(async () => {
-    // 1. Clear tables to have a pristine test environment using raw SQL truncation with CASCADE
+    mockUsers.clear();
+    mockLedgerEntries.clear();
+    mockAuditLogs.length = 0;
+    mockSystemSettings.clear();
+
     await db.$executeRawUnsafe('TRUNCATE TABLE "LedgerEntry", "AdminAuditLog", "User" CASCADE;');
 
-    // 2. Enable test mode
     await db.systemSettings.upsert({
       where: { id: 'global' },
       update: { isTestMode: true },
       create: { id: 'global', isTestMode: true },
     });
 
-    // 3. Reset mock state
     vi.clearAllMocks();
   });
 
   it('should successfully reconcile a user with a perfectly matching balance and ledger entries', async () => {
-    // Create clean user with 10.00 RUB (1000 cents) balance
     const user = await db.user.create({
       data: {
         email: 'clean_user@example.com',
@@ -35,7 +121,6 @@ describe('BalanceVerifier Service Tests', () => {
       },
     });
 
-    // Create approved ledger entries summing to exactly 1000 cents
     await db.ledgerEntry.createMany({
       data: [
         {
@@ -55,26 +140,22 @@ describe('BalanceVerifier Service Tests', () => {
 
     const results = await BalanceVerifier.verifyAllBalances();
 
-    // Verification result assertions
     expect(results.length).toBe(1);
     expect(results[0].email).toBe(user.email);
     expect(results[0].isDiscrepancy).toBe(false);
     expect(results[0].lockedSuccessfully).toBe(false);
 
-    // Verify DB user remains active and clean
     const dbUser = await db.user.findUnique({ where: { id: user.id } });
     expect(dbUser).toBeDefined();
     expect(dbUser!.isActive).toBe(true);
     expect(dbUser!.adminNote).toBeNull();
 
-    // Verify no alerts and no audit logs
     expect(sendAdminAlert).not.toHaveBeenCalled();
     const auditLogs = await db.adminAuditLog.findMany();
     expect(auditLogs.length).toBe(0);
   });
 
   it('should identify a user discrepancy, lock the user, log to AdminAuditLog, and send an alert (balance > ledger)', async () => {
-    // Create user with 1500 cents but ledger approved entries sum only to 1000 cents
     const user = await db.user.create({
       data: {
         email: 'discrepant_high@example.com',
@@ -95,13 +176,11 @@ describe('BalanceVerifier Service Tests', () => {
 
     const results = await BalanceVerifier.verifyAllBalances();
 
-    // Check result
     expect(results.length).toBe(1);
     expect(results[0].isDiscrepancy).toBe(true);
     expect(results[0].discrepancy).toBe(BigInt(500));
     expect(results[0].lockedSuccessfully).toBe(true);
 
-    // Check that user is locked and has appropriate adminNote
     const dbUser = await db.user.findUnique({ where: { id: user.id } });
     expect(dbUser).toBeDefined();
     expect(dbUser!.isActive).toBe(false);
@@ -109,13 +188,11 @@ describe('BalanceVerifier Service Tests', () => {
       '[CRITICAL DISCREPANCY] Автоматическая блокировка: баланс (1500) не сходится с реестром (1000). Разница: 500 центов.'
     );
 
-    // Check that alert was sent
     expect(sendAdminAlert).toHaveBeenCalledWith(
       expect.stringContaining('🚨 [CRITICAL BALANCE DISCREPANCY]'),
       'CRITICAL'
     );
 
-    // Check that AdminAuditLog entry was successfully written
     const auditLogs = await db.adminAuditLog.findMany();
     expect(auditLogs.length).toBe(1);
     expect(auditLogs[0].action).toBe('USER_BALANCE_DISCREPANCY');
@@ -127,7 +204,6 @@ describe('BalanceVerifier Service Tests', () => {
   });
 
   it('should identify a user discrepancy, lock the user, log to AdminAuditLog, and send an alert (balance < ledger)', async () => {
-    // Create user with 500 cents but approved ledger entries sum to 1000 cents
     const user = await db.user.create({
       data: {
         email: 'discrepant_low@example.com',
@@ -148,20 +224,17 @@ describe('BalanceVerifier Service Tests', () => {
 
     const results = await BalanceVerifier.verifyAllBalances();
 
-    // Verification result assertions
     expect(results.length).toBe(1);
     expect(results[0].isDiscrepancy).toBe(true);
     expect(results[0].discrepancy).toBe(BigInt(-500));
     expect(results[0].lockedSuccessfully).toBe(true);
 
-    // Verify DB user is locked with correct note
     const dbUser = await db.user.findUnique({ where: { id: user.id } });
     expect(dbUser!.isActive).toBe(false);
     expect(dbUser!.adminNote).toBe(
       '[CRITICAL DISCREPANCY] Автоматическая блокировка: баланс (500) не сходится с реестром (1000). Разница: -500 центов.'
     );
 
-    // Verify alert and audit log were created
     expect(sendAdminAlert).toHaveBeenCalledWith(expect.any(String), 'CRITICAL');
     const auditLogs = await db.adminAuditLog.findMany();
     expect(auditLogs.length).toBe(1);
@@ -171,7 +244,6 @@ describe('BalanceVerifier Service Tests', () => {
   });
 
   it('should completely ignore inactive or deleted users', async () => {
-    // 1. Create inactive user with mismatched ledger
     await db.user.create({
       data: {
         email: 'already_inactive@example.com',
@@ -181,7 +253,6 @@ describe('BalanceVerifier Service Tests', () => {
       },
     });
 
-    // 2. Create deleted user with mismatched ledger
     await db.user.create({
       data: {
         email: 'already_deleted@example.com',
@@ -193,7 +264,6 @@ describe('BalanceVerifier Service Tests', () => {
 
     const results = await BalanceVerifier.verifyAllBalances();
 
-    // Should return empty list because neither user is active and non-deleted
     expect(results.length).toBe(0);
     expect(sendAdminAlert).not.toHaveBeenCalled();
     const auditLogs = await db.adminAuditLog.findMany();
@@ -201,7 +271,6 @@ describe('BalanceVerifier Service Tests', () => {
   });
 
   it('should ignore non-approved (REJECTED/QUARANTINE) ledger entries during summation', async () => {
-    // Create user with 1000 cents
     const user = await db.user.create({
       data: {
         email: 'clean_with_various_ledgers@example.com',
@@ -211,7 +280,6 @@ describe('BalanceVerifier Service Tests', () => {
       },
     });
 
-    // Create approved entries that sum to 1000, and non-approved entries
     await db.ledgerEntry.createMany({
       data: [
         {
@@ -237,7 +305,6 @@ describe('BalanceVerifier Service Tests', () => {
 
     const results = await BalanceVerifier.verifyAllBalances();
 
-    // Verify user is reconciled because non-approved entries are ignored, summing strictly to 1000
     expect(results.length).toBe(1);
     expect(results[0].isDiscrepancy).toBe(false);
 

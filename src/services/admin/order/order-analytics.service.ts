@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+import { normalizeTenantId } from '@/lib/tenant-scope';
 import { OrderFailureStatsService } from './order-failure-stats.service';
+
+function resolveTenantIdFilter(tenantId?: string): string | null {
+  const resolved = normalizeTenantId(tenantId);
+  return resolved === 'all' ? null : resolved;
+}
 
 export class OrderAnalyticsService {
   private static statsCache = new Map<
@@ -24,7 +30,8 @@ export class OrderAnalyticsService {
    * Retrieves order stats using a single high-performance groupBy query with 15s cache.
    */
   static async getOrderStats(startDate?: Date, endDate?: Date, tenantId?: string) {
-    const cacheKey = `${startDate?.toISOString() || 'all'}_${endDate?.toISOString() || 'all'}_${tenantId || 'all'}`;
+    const targetTenant = resolveTenantIdFilter(tenantId);
+    const cacheKey = `${startDate?.toISOString() || 'all'}_${endDate?.toISOString() || 'all'}_${targetTenant || 'all'}`;
     const cached = OrderAnalyticsService.statsCache.get(cacheKey);
     const now = Date.now();
 
@@ -34,7 +41,7 @@ export class OrderAnalyticsService {
 
     const where: Prisma.OrderWhereInput = {};
     if (startDate && endDate) where.createdAt = { gte: startDate, lte: endDate };
-    if (tenantId && tenantId !== 'all') where.tenantId = tenantId;
+    if (targetTenant) where.tenantId = targetTenant;
 
     const statusGroups = await db.order.groupBy({
       by: ['status'],
@@ -72,9 +79,9 @@ export class OrderAnalyticsService {
    * Get recent live orders for dashboard feed
    */
   static async getRecentOrders(limit = 6, tenantId?: string) {
-    const isSingleTenant = tenantId && tenantId !== 'all';
+    const targetTenant = resolveTenantIdFilter(tenantId);
     return db.order.findMany({
-      where: isSingleTenant ? { tenantId } : {},
+      where: targetTenant ? { tenantId: targetTenant } : {},
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
@@ -99,10 +106,10 @@ export class OrderAnalyticsService {
    * Get top services by volume and revenue for analytics
    */
   static async getTopServices(limit = 6, startDate?: Date, endDate?: Date, tenantId?: string) {
-    const isSingleTenant = tenantId && tenantId !== 'all';
+    const targetTenant = resolveTenantIdFilter(tenantId);
     const where: Prisma.OrderWhereInput = {};
     if (startDate && endDate) where.createdAt = { gte: startDate, lte: endDate };
-    if (isSingleTenant) where.tenantId = tenantId;
+    if (targetTenant) where.tenantId = targetTenant;
 
     const orders = await db.order.findMany({
       where,

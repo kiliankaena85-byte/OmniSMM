@@ -209,7 +209,7 @@ export async function sendMagicLink(email: string, token: string, tenantId?: str
   const redirectParam = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : '';
   const link = `${baseUrl}/api/auth/verify?token=${token}${tenantParam}${redirectParam}`;
 
-  const isDebugMagicLink = process.env.DEBUG_MAGIC_LINK === 'true' && process.env.NODE_ENV !== 'production';
+  const isDebugMagicLink = (process.env.DEBUG_MAGIC_LINK === 'true' || process.env.NODE_ENV === 'test') && process.env.NODE_ENV !== 'production';
   const maskedLink = link.replace(/token=[^&]+/, 'token=***');
 
   if (isDebugMagicLink) {

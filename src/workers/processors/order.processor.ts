@@ -13,8 +13,8 @@ export { DatabaseOrderError } from './order/types';
 export default async function orderProcessor(job: Job<OrderJobPayload>) {
   let tenantId = job.data?.tenantId;
 
-  // Fail-safe guard: if tenantId is absent or empty, query the order using runWithTenantBypass to get its true tenantId
-  if (!tenantId && job.data?.orderId) {
+  // Server-side tenantId validation: query true tenantId from DB and reject spoofed payloads
+  if (job.data?.orderId) {
     const orderRecord = await runWithTenantBypass('BullMQ orderProcessor resolve tenantId', async () => {
       // tenant-isolation-ignore: Fallback tenantId recovery for background job with missing tenant context
       return await db.order.findUnique({
@@ -22,14 +22,27 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
         select: { tenantId: true }
       });
     });
-    tenantId = orderRecord?.tenantId;
+
+    if (!orderRecord) {
+      const { logger } = await import('@/lib/logger');
+      logger.warn(`[OrderProcessor] Order ${job.data.orderId} not found in DB. Discarding job.`);
+      return;
+    }
+
+    const trueTenantId = orderRecord.tenantId || 'smmplan';
+    if (tenantId && tenantId !== trueTenantId) {
+      const { logger } = await import('@/lib/logger');
+      logger.warn(`[TenantSpoofGuard] Discarding job ${job.id}: Payload tenantId '${tenantId}' does not match DB owner tenantId '${trueTenantId}' for order ${job.data.orderId}.`);
+      return;
+    }
+    tenantId = trueTenantId;
   }
 
   // Fallback to 'smmplan' for backward compatibility
   const resolvedTenantId = tenantId || 'smmplan';
   registerValidTenant(resolvedTenantId);
-  if (job.data && !job.data.tenantId && tenantId) {
-    job.data.tenantId = tenantId;
+  if (job.data) {
+    job.data.tenantId = resolvedTenantId;
   }
   
   const traceId = job.data?.metadata?.traceId || generateTraceId();

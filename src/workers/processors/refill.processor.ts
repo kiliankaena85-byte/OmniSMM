@@ -12,21 +12,32 @@ const log = logger.child({ component: 'RefillProcessor' });
 export default async function refillProcessor(job: Job<RefillJobPayload>) {
   let tenantId = job.data?.tenantId;
 
-  // Fail-safe guard: if tenantId is absent or empty, query the refill's order using runWithTenantBypass
-  if (!tenantId && job.data?.refillId) {
+  // Server-side tenantId validation: query true tenantId from DB and reject spoofed payloads
+  if (job.data?.refillId) {
     const refillRecord = await runWithTenantBypass('BullMQ refillProcessor resolve tenantId', async () => {
       return await db.refill.findUnique({
         where: { id: job.data.refillId },
         select: { order: { select: { tenantId: true } } }
       });
     });
-    tenantId = refillRecord?.order?.tenantId;
+
+    if (!refillRecord) {
+      log.warn(`[RefillProcessor] Refill ${job.data.refillId} not found in DB. Discarding job.`);
+      return;
+    }
+
+    const trueTenantId = refillRecord.order?.tenantId || 'smmplan';
+    if (tenantId && tenantId !== trueTenantId) {
+      log.warn(`[TenantSpoofGuard] Discarding job ${job.id}: Payload tenantId '${tenantId}' does not match DB owner tenantId '${trueTenantId}' for refill ${job.data.refillId}.`);
+      return;
+    }
+    tenantId = trueTenantId;
   }
 
   const resolvedTenantId = tenantId || 'smmplan';
   registerValidTenant(resolvedTenantId);
-  if (job.data && !job.data.tenantId && tenantId) {
-    job.data.tenantId = tenantId;
+  if (job.data) {
+    job.data.tenantId = resolvedTenantId;
   }
 
   const traceId = job.data?.metadata?.traceId || generateTraceId();
