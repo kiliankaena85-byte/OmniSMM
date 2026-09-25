@@ -15,7 +15,7 @@ const inputSchema = z.object({
 export async function getUserFinancialSummaryAction(userId: string) {
   const parsed = inputSchema.safeParse({ userId });
   if (!parsed.success) {
-    throw new Error('Некорректный ID пользователя');
+    return { success: false, error: 'Некорректный ID пользователя' };
   }
 
   return requireOperatorPermission('orders', 'view', async () => {

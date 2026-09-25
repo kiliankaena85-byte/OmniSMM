@@ -34,24 +34,28 @@ export class RefundPolicyService {
     let refundCents = 0;
     let reason = `Возврат Заказ #${order.id}`;
 
+    const previousRefundsAgg = await txClient.ledgerEntry.aggregate({
+      where: {
+        userId: order.userId,
+        status: 'APPROVED',
+        ...(order.tenantId ? { tenantId: order.tenantId } : {}),
+        OR: [
+          { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+          { idempotencyKey: `refund-order-${order.id}` },
+          { idempotencyKey: `refund-ttl-${order.id}` },
+          { idempotencyKey: `refund-dlq-${order.id}` },
+        ]
+      },
+      _sum: { amount: true },
+    });
+    const alreadyRefunded = Number(previousRefundsAgg._sum.amount || 0);
+
     if (order.status === 'CANCELED' || order.status === 'ERROR') {
-      // 100% Full Refund MINUS any previous partial refunds
-      let previousRefunds = 0;
-      const partialRefundLedger = await txClient.ledgerEntry.findFirst({
-        where: {
-          idempotencyKey: `refund_${order.id}_PARTIAL`,
-          ...(order.tenantId ? { tenantId: order.tenantId } : {})
-        }
-      });
-      if (partialRefundLedger) {
-        previousRefunds += Number(partialRefundLedger.amount);
-      }
-      
-      refundCents = Math.max(0, order.charge - previousRefunds);
+      refundCents = Math.max(0, order.charge - alreadyRefunded);
       reason = `Полный возврат (${order.status}) Заказ #${order.id} ${reasonDetail}`.trim();
     } else if (order.status === 'PARTIAL') {
-      // Proportional mathematical partial refund via ARCHITECTURE CONTRACT
-      refundCents = calculatePartialRefund(order);
+      const partialCalc = calculatePartialRefund(order);
+      refundCents = Math.max(0, Math.min(partialCalc, order.charge - alreadyRefunded));
       reason = `Частичный возврат (Partial, ${order.remains} не выполнено) Заказ #${order.id}`.trim();
     }
 

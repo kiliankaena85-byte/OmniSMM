@@ -308,9 +308,10 @@ class TicketService {
         </p>
       `;
 
-      const supportDomain = await SettingsProvider.getSupportEmailDomain();
-      const settings = await SettingsProvider.getContactAndLegalSettings();
-      const companyName = settings.COMPANY_NAME || "SMMplan";
+      const ticketTenantId = message.ticket.tenantId || message.ticket.user?.tenantId || 'smmplan';
+      const supportDomain = await SettingsProvider.getSupportEmailDomain(ticketTenantId);
+      const settings = await SettingsProvider.getContactAndLegalSettings(ticketTenantId);
+      const companyName = settings.COMPANY_NAME || (ticketTenantId === 'flux' ? 'SMMflux' : 'SMMplan');
       const replyToAddress = `support+${message.ticket.id}@${supportDomain}`;
       
       const escapeHtml = (unsafe?: string | null) => (unsafe ?? '')
@@ -364,7 +365,7 @@ class TicketService {
           ${actionText}
           ${historyHtml}
         </div>
-      `, replyToAddress);
+      `, replyToAddress, ticketTenantId);
     }
 
     // Realtime SSE broadcast to all active live chat tabs

@@ -208,10 +208,11 @@ export async function handleYooKassaWebhookRequest(
     const webhookEventId = (rawBody as Record<string, unknown>).id as string | undefined || 
       (gatewayId ? `yoo:${rawBody.event || 'evt'}:${gatewayId}:${rawBody.object?.status || 'status'}` : undefined);
     
+    let replayKey: string | null = null;
     if (webhookEventId) {
       try {
         const { redis } = await import('@/lib/redis');
-        const replayKey = `webhook:yoo:event:${webhookEventId}`;
+        replayKey = `webhook:yoo:event:${webhookEventId}`;
         const isNew = await redis.set(replayKey, '1', 'EX', 86400, 'NX');
         if (!isNew) {
           logger.info('[YooKassa Webhook] Idempotent duplicate event bypassed', { webhookEventId });
@@ -237,6 +238,14 @@ export async function handleYooKassaWebhookRequest(
         });
         return result;
       } catch (lockError) {
+        if (replayKey) {
+          try {
+            const { redis } = await import('@/lib/redis');
+            await redis.del(replayKey).catch(() => {});
+          } catch {
+            // ignore
+          }
+        }
         console.error(`[YooKassa Webhook] Failed to acquire lock for payment ${gId}:`, lockError);
         return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
       }
@@ -302,6 +311,14 @@ export async function handleYooKassaWebhookRequest(
         
         return result;
       } catch (lockError) {
+        if (replayKey) {
+          try {
+            const { redis } = await import('@/lib/redis');
+            await redis.del(replayKey).catch(() => {});
+          } catch {
+            // ignore
+          }
+        }
         console.error(`[YooKassa Webhook] Failed to acquire lock for payment ${gId}:`, lockError);
         return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
       }

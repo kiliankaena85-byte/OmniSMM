@@ -19,7 +19,6 @@ export const TENANT_SCOPED_MODELS = [
   'category',
   'customerGroup',
   'ticketFeedback',
-  'promoCode',
   'ledgerEntry',
   'supportFinancialAction',
 ] as const;

@@ -50,7 +50,7 @@ export class GatewaysAvailabilityService {
       !secrets.cryptoBotToken.startsWith('test_')
     );
 
-    const legalDetails = await SettingsProvider.getContactAndLegalSettings();
+    const legalDetails = await SettingsProvider.getContactAndLegalSettings(resolvedTenantId);
     const hasValidApi = Boolean(
       legalDetails.LEGAL_INN && 
       legalDetails.LEGAL_INN !== 'Укажите ИНН' && 

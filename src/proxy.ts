@@ -211,8 +211,8 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
     if (customHosts.includes(clean)) return true;
   }
 
-  // 5. Check dynamic L1 domain registry cache
-  if (DomainRegistryService.isKnownInMemory(clean)) {
+  // 5. Check dynamic L1 domain registry cache and registered tenant root domains
+  if (DomainRegistryService.isKnownRootOrSubdomain(clean)) {
     return true;
   }
 
@@ -221,7 +221,7 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
 
 /**
  * Strict CORS origin validator (CORS-01 / OWASP ASVS 4.0.3).
- * In production: strictly whitelist smmplan.pro, smmflux.ru, and their subdomains.
+ * In production: strictly whitelist smmplan.pro, smmflux.ru, and all registered dynamic tenant domains.
  * Blocks localhost, private IPs, and arbitrary domains from cross-origin credential sharing.
  */
 export function isAllowedCorsOrigin(origin: string | null | undefined): boolean {
@@ -242,6 +242,11 @@ export function isAllowedCorsOrigin(origin: string | null | undefined): boolean 
       }
     }
 
+    // Check dynamic L1 domain registry cache and registered tenant root domains
+    if (DomainRegistryService.isKnownRootOrSubdomain(originHost)) {
+      return true;
+    }
+
     // In non-production, allow internal/test hosts
     if (!isProd && isInternalHost(originHost)) {
       return true;
@@ -249,11 +254,6 @@ export function isAllowedCorsOrigin(origin: string | null | undefined): boolean 
 
     if (ALLOWED_CONTOUR_DOMAINS.has(originHost)) {
       if (isProd && isInternalHost(originHost)) return false;
-      return true;
-    }
-
-    // Check dynamic L1 domain registry cache
-    if (DomainRegistryService.isKnownInMemory(originHost)) {
       return true;
     }
 

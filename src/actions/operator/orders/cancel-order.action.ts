@@ -21,6 +21,8 @@ export async function cancelOrderAction(orderId: string) {
       await adminOrderService.cancelOrder(parsed.data.orderId, {
         id: admin.id,
         email: admin.email,
+        tenantId: admin.tenantId,
+        role: admin.role,
       });
 
       // Await audit for compliance & non-repudiation

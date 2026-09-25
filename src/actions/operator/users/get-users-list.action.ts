@@ -17,7 +17,7 @@ export async function getUsersListAction(params: {
 } = {}) {
   const parsed = inputSchema.safeParse(params);
   if (!parsed.success) {
-    throw new Error('Некорректные параметры запроса');
+    return { success: false, error: 'Некорректные параметры запроса' };
   }
 
   return requireOperatorPermission('orders', 'view', async () => {

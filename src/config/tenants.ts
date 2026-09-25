@@ -64,18 +64,39 @@ export function normalizeTenantId(tenantId: unknown): TenantId {
   return 'smmplan';
 }
 
+import { DomainRegistryService } from '@/services/tenant/domain-registry.service';
+
 export function getTenantConfig(tenantId: string | null | undefined): TenantConfig {
   const norm = normalizeTenantId(tenantId);
+  const dynamicDomain = typeof DomainRegistryService !== 'undefined'
+    ? DomainRegistryService.getTenantDomain(norm)
+    : null;
+
   const found = TENANTS.find((t) => t.id === norm);
-  if (found) return found;
-  const capitalized = norm.charAt(0).toUpperCase() + norm.slice(1);
-  return {
+  const baseConfig = found || {
     id: norm,
-    name: capitalized,
+    name: norm.charAt(0).toUpperCase() + norm.slice(1),
     domain: `${norm}.pro`,
     testDomain: `test.${norm}.pro`,
     allowedHosts: [`${norm}.pro`, `www.${norm}.pro`, `test.${norm}.pro`],
   };
+
+  // If dynamic domain is configured in DB/cache, override canonical domain and whitelist hosts
+  if (dynamicDomain && dynamicDomain !== baseConfig.domain) {
+    const customAllowed = Array.from(new Set([
+      dynamicDomain,
+      `www.${dynamicDomain}`,
+      `test.${dynamicDomain}`,
+      ...baseConfig.allowedHosts,
+    ]));
+    return {
+      ...baseConfig,
+      domain: dynamicDomain,
+      allowedHosts: customAllowed,
+    };
+  }
+
+  return baseConfig;
 }
 
 export function getTenantSiteName(tenantId: string | null | undefined): string {

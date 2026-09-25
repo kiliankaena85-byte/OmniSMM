@@ -26,6 +26,18 @@ const REDIS_KEY = 'domain:registry';
 
 // L1 In-Memory Cache
 const l1Cache = new Map<string, CacheItem>();
+// Fast L1 mappings for dynamic tenant -> canonical domain resolution
+const tenantDomainMap = new Map<string, string>([
+  ['smmplan', 'smmplan.pro'],
+  ['flux', 'smmflux.ru'],
+]);
+// Dynamic set of all registered root domains
+const registeredRootDomains = new Set<string>([
+  'smmplan.pro',
+  'smmflux.ru',
+  'smmplan.ru',
+]);
+
 // In-flight promise coalescing to eliminate thundering herd attacks
 const inFlightResolutions = new Map<string, Promise<DomainRegistryEntry | null>>();
 
@@ -130,6 +142,74 @@ export class DomainRegistryService {
       return cached.entry.tenantId;
     }
     return null;
+  }
+
+  /**
+   * Fast synchronous lookup of the canonical production domain for a given tenantId.
+   * Prioritizes dynamically configured domain from DB/memory over static fallback.
+   */
+  static getTenantDomain(tenantId: string | null | undefined): string | null {
+    if (!tenantId || typeof tenantId !== 'string') return null;
+    const clean = tenantId.trim().toLowerCase();
+    return tenantDomainMap.get(clean) || null;
+  }
+
+  /**
+   * Checks whether a given host belongs to any registered tenant domain or is a subdomain of it.
+   * Enables zero-code-change support for arbitrary custom domains in Proxy, CORS, and CSP.
+   */
+  static isKnownRootOrSubdomain(rawHost: string | null | undefined): boolean {
+    if (!rawHost) return false;
+    const clean = this.cleanHost(rawHost);
+    let stripped = clean;
+    if (stripped.startsWith('www.')) stripped = stripped.slice(4);
+
+    // 1. Direct match with registered root domains
+    if (registeredRootDomains.has(clean) || registeredRootDomains.has(stripped)) {
+      return true;
+    }
+
+    // 2. Subdomain check (*.registeredDomain)
+    for (const root of registeredRootDomains) {
+      if (stripped.endsWith('.' + root)) {
+        return true;
+      }
+    }
+
+    // 3. Fast L1 in-memory check
+    return this.isKnownInMemory(clean);
+  }
+
+  /**
+   * Preloads all active tenants and their domains from PostgreSQL into L1 memory and L2 Redis.
+   * Ensures that any domain changed directly in DB or admin is immediately recognized without server rebuild.
+   */
+  static async preloadAllTenants(): Promise<void> {
+    try {
+      const { db } = await import('@/lib/db');
+      const tenants = await db.tenant.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          slug: true,
+          domain: true,
+          customDomain: true,
+          isActive: true,
+        },
+      });
+
+      for (const t of tenants) {
+        await this.registerDomain({
+          id: t.id,
+          slug: t.slug,
+          domain: t.domain,
+          customDomain: t.customDomain,
+          isActive: t.isActive,
+        });
+      }
+    } catch (err) {
+      // Non-fatal if DB is temporarily unreachable during early startup/tests
+    }
   }
 
   /**
@@ -314,6 +394,11 @@ export class DomainRegistryService {
     };
 
     registerValidTenant(cleanSlug);
+    tenantDomainMap.set(cleanSlug, cleanDomain);
+    registeredRootDomains.add(cleanDomain);
+    if (cleanCustomDomain) {
+      registeredRootDomains.add(cleanCustomDomain);
+    }
 
     // Invalidate and pre-fill L1 cache
     const expiresAt = Date.now() + L1_TTL_MS;
@@ -368,14 +453,17 @@ export class DomainRegistryService {
       if (!d) continue;
       const clean = d.toLowerCase().trim();
       l1Cache.delete(clean);
+      registeredRootDomains.delete(clean);
       redisFields.push(clean);
       if (clean.startsWith('www.')) {
         const stripped = clean.slice(4);
         l1Cache.delete(stripped);
+        registeredRootDomains.delete(stripped);
         redisFields.push(stripped);
       } else {
         const withWww = `www.${clean}`;
         l1Cache.delete(withWww);
+        registeredRootDomains.delete(withWww);
         redisFields.push(withWww);
       }
     }

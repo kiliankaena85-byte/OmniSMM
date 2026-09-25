@@ -1,3 +1,11 @@
+// Mock server-only before any other imports
+import Module from "module";
+const origReq = (Module as any).prototype.require;
+(Module as any).prototype.require = function (id: string) {
+  if (id === "server-only" || id.includes("server-only")) return {};
+  return origReq.apply(this, arguments);
+};
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -6,13 +14,6 @@ process.env.DATABASE_URL = pgUrl;
 process.env.POSTGRES_PRISMA_URL = pgUrl;
 process.env.POSTGRES_URL = pgUrl;
 
-import { db } from '../src/lib/db';
-import { SettingsProvider, SettingsManager } from '../src/lib/settings';
-import { getAvailableGatewaysAction } from '../src/actions/order/checkout';
-import { paymentService } from '../src/services/financial/payment.service';
-import { WalletOps } from '../src/services/financial/wallet-ops';
-import { RefundPolicy } from '../src/services/financial/refund-policy';
-import { ExactMath } from '../src/lib/financial/exact-math';
 import { randomUUID } from 'crypto';
 
 interface TestResult {
@@ -41,6 +42,14 @@ async function runTest(suite: string, name: string, fn: () => Promise<void | str
 }
 
 export async function runLiveContainerSmokeTest() {
+  const { db } = await import('../src/lib/db');
+  const { SettingsProvider, SettingsManager } = await import('../src/lib/settings');
+  const { getAvailableGatewaysAction } = await import('../src/actions/order/checkout');
+  const { paymentService } = await import('../src/services/financial/payment.service');
+  const { WalletOps } = await import('../src/services/financial/wallet-ops');
+  const { RefundPolicy } = await import('../src/services/financial/refund-policy');
+  const { ExactMath } = await import('../src/lib/financial/exact-math');
+
   console.log('\n═════════════════════════════════════════════════════════════════════════════════');
   console.log('  🧪 SMOKE TEST: РАЗВЕРНУТЫЙ КОНТЕЙНЕР, ПЛАТЕЖИ, РЕЖИМЫ, ЮKASSA И ПРОВАЙДЕРЫ');
   console.log('═════════════════════════════════════════════════════════════════════════════════\n');
@@ -405,5 +414,8 @@ runLiveContainerSmokeTest()
     process.exit(1);
   })
   .finally(async () => {
-    await db.$disconnect();
+    try {
+      const { db } = await import('../src/lib/db');
+      await db.$disconnect();
+    } catch {}
   });

@@ -194,9 +194,14 @@ export async function setOrderStatusAction(
         const previousRefunds = await tx.ledgerEntry.aggregate({
           where: {
             userId: order.userId,
-            idempotencyKey: { startsWith: `refund_${order.id}_` },
             status: 'APPROVED',
-            ...(order.tenantId ? { tenantId: order.tenantId } : {})
+            ...(order.tenantId ? { tenantId: order.tenantId } : {}),
+            OR: [
+              { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+              { idempotencyKey: `refund-order-${order.id}` },
+              { idempotencyKey: `refund-ttl-${order.id}` },
+              { idempotencyKey: `refund-dlq-${order.id}` },
+            ]
           },
           _sum: { amount: true },
         });
@@ -300,7 +305,11 @@ export async function forceCompleteOrderAction(orderId: string) {
 
       // Лояльность (Loyalty Sync)
       const { LoyaltyService } = await import('@/services/users/loyalty.service');
-      await LoyaltyService.confirmCommission(tx, order.id);
+      if (refundCents > 0 && order.quantity > 0) {
+        await LoyaltyService.handlePartialCommission(tx, order.id, order.remains, order.quantity);
+      } else {
+        await LoyaltyService.confirmCommission(tx, order.id);
+      }
 
       if (refundCents > 0) {
         await WalletOps.refund(tx, order.userId, refundCents,

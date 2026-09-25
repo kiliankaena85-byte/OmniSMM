@@ -514,6 +514,19 @@ export async function supportGoodwillCreditAction(formData: FormData) {
     const { WalletOps } = await import('@/services/financial/wallet-ops');
     const { auditAdminAwaitable } = await import('@/lib/admin-audit');
 
+    if (direction === 'DEBIT') {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { balance: true }
+      });
+      if (!user || user.balance < amountKopecks) {
+        return {
+          success: false as const,
+          error: `Недостаточно средств у клиента для списания. Текущий баланс: ${(Number(user?.balance || 0) / 100).toFixed(2)} ₽`
+        };
+      }
+    }
+
     const resolvedTenant = targetUser.tenantId || tenantId || 'smmplan';
     const txIdempotencyKey = crypto.randomUUID();
 

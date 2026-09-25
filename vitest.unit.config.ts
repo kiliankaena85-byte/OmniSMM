@@ -16,6 +16,19 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       'server-only': path.resolve(__dirname, './node_modules/server-only/empty.js'),
     },
+    server: {
+      deps: {
+        // Force Vitest to inline (transform) these ESM-only packages that break
+        // when required() by CJS test worker pool (ERR_REQUIRE_ESM).
+        inline: [
+          'sanitize-html',
+          'htmlparser2',
+          '@exodus/bytes',
+          'html-encoding-sniffer',
+          'std-env',
+        ],
+      },
+    },
     include: [
       'src/__tests__/architecture/tenant-isolation-ast.test.ts',
       'src/__tests__/architecture-boundaries.test.ts',

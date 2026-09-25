@@ -739,23 +739,50 @@ export async function runInProgressTTLSweep(): Promise<void> {
           }
 
           // Handle refund
-          if (refundCents > 0) {
-            const refundKey = `refund-ttl-${order.id}`;
-            const existingLedger = await tx.ledgerEntry.findFirst({
+          if (refundCents > 0 && order.userId) {
+            const previousRefunds = await tx.ledgerEntry.aggregate({
               where: {
-                idempotencyKey: refundKey,
-                ...(order.tenantId ? { tenantId: order.tenantId } : {})
-              }
+                userId: order.userId,
+                status: 'APPROVED',
+                ...(order.tenantId ? { tenantId: order.tenantId } : {}),
+                OR: [
+                  { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+                  { idempotencyKey: `refund-order-${order.id}` },
+                  { idempotencyKey: `refund-ttl-${order.id}` },
+                  { idempotencyKey: `refund-dlq-${order.id}` },
+                ]
+              },
+              _sum: { amount: true },
             });
+            const alreadyRefunded = Number(previousRefunds._sum.amount || 0);
 
-            if (!existingLedger && order.userId) {
-              await WalletOps.refund(
-                tx,
-                order.userId,
-                refundCents,
-                reasonText,
-                { idempotencyKey: refundKey, tenantId: order.tenantId }
-              );
+            let effectiveRefundCents = refundCents;
+            if (targetStatus === 'ERROR') {
+              effectiveRefundCents = Math.max(0, Number(order.charge) - alreadyRefunded);
+            } else {
+              effectiveRefundCents = Math.max(0, Math.min(refundCents, Number(order.charge) - alreadyRefunded));
+            }
+
+            refundCents = effectiveRefundCents;
+
+            if (effectiveRefundCents > 0) {
+              const refundKey = `refund-ttl-${order.id}`;
+              const existingLedger = await tx.ledgerEntry.findFirst({
+                where: {
+                  idempotencyKey: refundKey,
+                  ...(order.tenantId ? { tenantId: order.tenantId } : {})
+                }
+              });
+
+              if (!existingLedger) {
+                await WalletOps.refund(
+                  tx,
+                  order.userId,
+                  effectiveRefundCents,
+                  reasonText,
+                  { idempotencyKey: refundKey, tenantId: order.tenantId }
+                );
+              }
             }
           }
 

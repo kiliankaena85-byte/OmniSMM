@@ -35,16 +35,17 @@ const getCachedAnomalyCount = (tenantId: string) => unstable_cache(
   { revalidate: 60, tags: ['catalog', 'anomaly-count', `catalog-${tenantId}`] }
 )();
 
-// Cached count of OPEN tickets requiring staff response
-const getCachedOpenTicketCount = unstable_cache(
+// Cached count of OPEN tickets requiring staff response (tenant-isolated)
+const getCachedOpenTicketCount = (tenantId: string) => unstable_cache(
   async () => db.ticket.count({
     where: {
-      status: 'OPEN'
+      status: 'OPEN',
+      tenantId
     }
   }),
-  ['admin-open-tickets-count-v1'],
-  { revalidate: 30, tags: ['tickets', 'open-count'] }
-);
+  [`admin-open-tickets-count-v1-${tenantId}`],
+  { revalidate: 30, tags: ['tickets', 'open-count', `tickets-${tenantId}`] }
+)();
 
 // RBAC: Allowed roles for admin panel access
 const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT'];
@@ -115,7 +116,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   const anomalyCount = await getCachedAnomalyCount(activeTenantId);
-  const openTicketCount = await getCachedOpenTicketCount();
+  const openTicketCount = await getCachedOpenTicketCount(activeTenantId);
 
   // Filter navigation based on canonical RBAC sections
   const navigation = ADMIN_NAVIGATION.map(group => ({

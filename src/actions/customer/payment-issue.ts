@@ -101,6 +101,7 @@ export async function reportPaymentIssueAction(paymentId: string): Promise<Repor
     const ticket = await db.ticket.create({
       data: {
         userId: payment.userId,
+        tenantId: payment.tenantId || 'smmplan',
         subject: `[Авто-проверка оплаты] Платёж #${payment.id.slice(0, 8)}`,
         status: 'OPEN',
         tags: ['PAYMENT', 'AUTO_CHECK', 'URGENT'],

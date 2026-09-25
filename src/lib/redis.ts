@@ -23,8 +23,12 @@ export function validateRedisUrl(
   explicitPassword?: string
 ): RedisValidationResult {
   if (env === 'production') {
-    // In production, ALL Redis connections must explicitly contain authentication credentials
-    const hasAuth = url.includes('@') || Boolean(explicitPassword || process.env.REDIS_PASSWORD);
+    // In production, ALL Redis connections must explicitly contain authentication credentials.
+    // NOTE: Only the URL itself and the explicitly passed explicitPassword are checked.
+    // We do NOT fall back to process.env.REDIS_PASSWORD here — that would make unit tests
+    // non-deterministic and allow misconfigured URLs to pass silently in CI.
+    // Callers at startup (redis.ts module level) must pass the env var explicitly if needed.
+    const hasAuth = url.includes('@') || Boolean(explicitPassword);
     if (!hasAuth) {
       return {
         valid: false,
@@ -52,8 +56,8 @@ export function validateRedisUrl(
   return { valid: true };
 }
 
-// Enforce SEC-001 Hardening at startup
-const redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV);
+// Enforce SEC-001 Hardening at startup (pass env password explicitly so URL+envPass combo is accepted)
+const redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV, process.env.REDIS_PASSWORD);
 if (!redisCheck.valid) {
   throw new Error(redisCheck.error);
 }

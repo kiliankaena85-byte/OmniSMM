@@ -70,6 +70,11 @@ export const SENSITIVE_PATTERNS: SensitivePatternRule[] = [
     pattern: /([a-z][a-z0-9+.-]*:\/\/[^\/\s:@?#]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,
     replacement: '$1*****$3',
   },
+  // URI with empty username but non-empty password: scheme://:password@host (e.g. redis://:SecretPass@localhost)
+  {
+    pattern: /([a-z][a-z0-9+.-]*:\/\/):([^@/\s][^@/\s]*)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?#\s]|$))/gi,
+    replacement: '$1:*****$3',
+  },
   // Scheme-less userinfo URIs: username:password@host
   {
     pattern: /(^|[\s,;("'])((?!:\/\/)[a-zA-Z0-9_.-]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,

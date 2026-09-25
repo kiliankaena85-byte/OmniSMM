@@ -145,8 +145,28 @@ class OrderService {
           throw new Error('SERVICE_NOT_FOUND');
         }
 
-        if (input.quantity < service.minQty || input.quantity > service.maxQty) {
-          throw new Error(`QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`);
+        const isDripFeed = Boolean(input.runs && input.runs > 1);
+        const effectiveRunQty = isDripFeed ? Math.floor(input.quantity / input.runs!) : input.quantity;
+
+        if (effectiveRunQty < service.minQty) {
+          throw new Error(
+            isDripFeed
+              ? `Для Drip-feed количество на один запуск (${effectiveRunQty}) не может быть меньше минимального (${service.minQty})`
+              : `QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`
+          );
+        }
+
+        if (effectiveRunQty > service.maxQty) {
+          throw new Error(
+            isDripFeed
+              ? `Для Drip-feed количество на один запуск (${effectiveRunQty}) не может превышать максимальное (${service.maxQty})`
+              : `QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`
+          );
+        }
+
+        const maxTotalDripLimit = service.maxQty * (input.runs || 1);
+        if (input.quantity > maxTotalDripLimit) {
+          throw new Error(`QUANTITY_OUT_OF_BOUNDS: Total quantity cannot exceed ${maxTotalDripLimit}`);
         }
 
         // 2b. Unconditionally attempt charge (Double spreading & Race condition protected)
@@ -373,19 +393,27 @@ class OrderService {
   async processStatusUpdate(externalId: string, providerStatus: string, remains: number): Promise<{ success: boolean; orderId?: string; status?: string }> {
     try {
       // 1. Map Provider Status to Internal Status
-      const statusMap: Record<string, string> = {
-        'Pending':     'PENDING',
-        'In progress': 'IN_PROGRESS',
-        'In_progress': 'IN_PROGRESS',
-        'Processing':  'IN_PROGRESS',
-        'Completed':   'COMPLETED',
-        'Partial':     'PARTIAL',
-        'Canceled':    'CANCELED',
-        'Cancelled':   'CANCELED',
-        'Error':       'ERROR'
+      const normalizedStatus = (providerStatus || '').toLowerCase().trim();
+      const statusMap: Record<string, OrderStatus> = {
+        'pending':             OrderStatus.PENDING,
+        'in progress':         OrderStatus.IN_PROGRESS,
+        'in_progress':         OrderStatus.IN_PROGRESS,
+        'processing':          OrderStatus.IN_PROGRESS,
+        'completed':           OrderStatus.COMPLETED,
+        'complete':            OrderStatus.COMPLETED,
+        'success':             OrderStatus.COMPLETED,
+        'partial':             OrderStatus.PARTIAL,
+        'partially completed': OrderStatus.PARTIAL,
+        'partially_completed': OrderStatus.PARTIAL,
+        'canceled':            OrderStatus.CANCELED,
+        'cancelled':           OrderStatus.CANCELED,
+        'cancel':              OrderStatus.CANCELED,
+        'error':               OrderStatus.ERROR,
+        'failed':              OrderStatus.ERROR,
+        'fail':                OrderStatus.ERROR,
       };
 
-      const internalStatus = (statusMap[providerStatus] || providerStatus?.toUpperCase()) as OrderStatus;
+      const internalStatus = (statusMap[normalizedStatus] || normalizedStatus.toUpperCase()) as OrderStatus;
 
       if (!internalStatus || !Object.values(OrderStatus).includes(internalStatus)) {
         console.error(`[ORDER_SERVICE] Invalid status mapping: providerStatus "${providerStatus}" mapped to non-enum value "${internalStatus}"`);
@@ -454,14 +482,34 @@ class OrderService {
         if (refundCents > 0) {
           // Use a deterministic idempotency key to prevent double-crediting
           const refundKey = `refund-order-${order.id}`;
-          
+
+          // Aggregate already refunded amounts across all key patterns to prevent double payouts
+          const previousRefunds = await tx.ledgerEntry.aggregate({
+            where: {
+              userId: order.userId,
+              status: 'APPROVED',
+              ...(order.tenantId ? { tenantId: order.tenantId } : {}),
+              OR: [
+                { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+                { idempotencyKey: `refund-order-${order.id}` },
+                { idempotencyKey: `refund-ttl-${order.id}` },
+                { idempotencyKey: `refund-dlq-${order.id}` },
+              ]
+            },
+            _sum: { amount: true },
+          });
+          const alreadyRefunded = Number(previousRefunds._sum.amount || 0);
+          const effectiveRefundCents = internalStatus === 'CANCELED'
+            ? Math.max(0, Number(order.charge) - alreadyRefunded)
+            : Math.max(0, Math.min(Number(refundCents), Number(order.charge) - alreadyRefunded));
+
           // Check if ledger entry with this key already exists
           const existingLedger = await tx.ledgerEntry.findFirst({
              where: { idempotencyKey: refundKey, tenantId: order.tenantId }
           });
 
-          if (!existingLedger) {
-            await WalletOps.refund(tx, order.userId, Number(refundCents),
+          if (!existingLedger && effectiveRefundCents > 0) {
+            await WalletOps.refund(tx, order.userId, Number(effectiveRefundCents),
               `Системный возврат за заказ #${order.numericId} (Статус: ${internalStatus}, Остаток: ${remains})`,
               { idempotencyKey: refundKey, tenantId: order.tenantId }
             );

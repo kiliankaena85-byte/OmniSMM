@@ -17,7 +17,7 @@ export class OrderAllRoutesFailedHandler {
     if (marginRejectionCount > 0 && marginRejectionCount === candidateRoutes.length) {
       const holdMessage = `PRICE_DRIFT_HOLD: ${lastMarginError || 'Себестоимость поставщика превышает оплату клиента.'}`;
       await db.order.update({ where: { id: order.id }, data: { status: 'PENDING_CHECK', error: holdMessage } });
-      await connection.del(redisKey).catch(() => {});
+      await connection.del(redisKey, `order:dispatch_lock:${order.id}`).catch(() => {});
       throw new UnrecoverableError(`Price Drift Hold: ${holdMessage}`);
     }
 
@@ -40,7 +40,7 @@ export class OrderAllRoutesFailedHandler {
       }
     });
 
-    await connection.del(redisKey).catch(() => {});
+    await connection.del(redisKey, `order:dispatch_lock:${order.id}`).catch(() => {});
     throw new UnrecoverableError(`Order moved to PENDING_CHECK: ${lastError}`);
   }
 }

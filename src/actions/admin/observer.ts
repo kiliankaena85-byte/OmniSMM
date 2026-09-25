@@ -4,7 +4,7 @@ import { requireStaffPermission } from '@/lib/server/rbac';
 import { AiObserverService, type ExecutiveDigestResult } from '@/services/observer/ai-observer.service';
 import { auditAdminAwaitable } from '@/lib/admin-audit';
 
-export async function getLatestAiDigestAction(): Promise<{
+export async function getLatestAiDigestAction(tenantId?: string): Promise<{
   success: boolean;
   data?: {
     digest: ExecutiveDigestResult | null;
@@ -12,11 +12,12 @@ export async function getLatestAiDigestAction(): Promise<{
   };
   error?: string;
 }> {
-  return requireStaffPermission('analytics', 'view', async () => {
+  return requireStaffPermission('analytics', 'view', async (staffUser) => {
     try {
+      const effectiveTenantId = tenantId || staffUser?.tenantId || 'smmplan';
       const [digest, isKillswitchActive] = await Promise.all([
-        AiObserverService.getLatestDigest(),
-        AiObserverService.isKillswitchActive(),
+        AiObserverService.getLatestDigest(effectiveTenantId),
+        AiObserverService.isKillswitchActive(effectiveTenantId),
       ]);
 
       return {
@@ -68,16 +69,17 @@ export async function triggerAiObserverManualAction(options?: {
   });
 }
 
-export async function toggleAiObserverKillswitchAction(enabled: boolean): Promise<{
+export async function toggleAiObserverKillswitchAction(enabled: boolean, tenantId?: string): Promise<{
   success: boolean;
   isKillswitchActive?: boolean;
   error?: string;
 }> {
   return requireStaffPermission('settings', 'edit', async (staffUser) => {
     try {
+      const effectiveTenantId = tenantId || staffUser?.tenantId || 'smmplan';
       // If enabled = true, killswitch is inactive (disabled = false)
       const isKilled = !enabled;
-      await AiObserverService.setKillswitch(isKilled);
+      await AiObserverService.setKillswitch(isKilled, effectiveTenantId);
 
       await auditAdminAwaitable({
         adminId: staffUser.id,

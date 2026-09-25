@@ -21,6 +21,8 @@ export async function restartOrderAction(orderId: string) {
       await adminOrderService.restartOrder(parsed.data.orderId, {
         id: admin.id,
         email: admin.email,
+        tenantId: admin.tenantId,
+        role: admin.role,
       });
 
       // Await audit for compliance

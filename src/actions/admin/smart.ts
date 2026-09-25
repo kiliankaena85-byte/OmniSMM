@@ -188,26 +188,28 @@ export async function updateServiceConfig(
   });
 }
 
-export async function getSmartGlobalStatus() {
-  return requireStaffPermission('settings', 'view', async () => {
-    const disabled = (await redis.get('smart:disabled')) === 'true';
+export async function getSmartGlobalStatus(explicitTenantId?: string) {
+  return requireStaffPermission('settings', 'view', async (user, _role, activeTenantId) => {
+    const tenantId = explicitTenantId || activeTenantId || user.tenantId || 'smmplan';
+    const disabled = (await redis.get(`smart:${tenantId}:disabled`)) === 'true';
     return { success: true, disabled };
   });
 }
 
-export async function toggleSmartGlobalStatus(disabled: boolean) {
-  return requireStaffPermission('settings', 'edit', async (admin) => {
-    await redis.set('smart:disabled', String(disabled));
+export async function toggleSmartGlobalStatus(disabled: boolean, explicitTenantId?: string) {
+  return requireStaffPermission('settings', 'edit', async (admin, _role, activeTenantId) => {
+    const tenantId = explicitTenantId || activeTenantId || admin.tenantId || 'smmplan';
+    await redis.set(`smart:${tenantId}:disabled`, String(disabled));
 
     const ipAddress = await getClientIp();
     auditAdmin({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SMART_GLOBAL_TOGGLE',
-      target: 'global',
+      target: `smart:${tenantId}`,
       targetType: 'SETTINGS',
       oldValue: { disabled: !disabled },
-      newValue: { disabled },
+      newValue: { disabled, tenantId },
       ipAddress,
     });
 

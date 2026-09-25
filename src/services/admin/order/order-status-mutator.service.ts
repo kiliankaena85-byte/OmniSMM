@@ -14,13 +14,17 @@ export class OrderStatusMutatorService {
    */
   static async cancelOrder(
     orderId: string,
-    admin: { id: string; email: string; tenantId?: string },
+    admin: { id: string; email: string; tenantId?: string; role?: string },
     options?: { forceWriteOff?: boolean }
   ) {
     const orderBefore = await db.order.findUniqueOrThrow({
       where: { id: orderId },
       include: { provider: true, service: true },
     });
+
+    if (admin.role !== 'OWNER' && orderBefore.tenantId !== admin.tenantId) {
+      throw new Error('Доступ ограничен: заказ принадлежит другому тенанту');
+    }
 
     if (['CANCELED', 'ERROR', 'PARTIAL'].includes(orderBefore.status)) {
       throw new Error(`Order ${orderBefore.numericId} is already in terminal state ${orderBefore.status} and cannot be canceled.`);
@@ -62,9 +66,14 @@ export class OrderStatusMutatorService {
         const previousRefunds = await tx.ledgerEntry.aggregate({
           where: {
             userId: order.userId,
-            idempotencyKey: { startsWith: `refund_${order.id}_` },
             status: 'APPROVED',
             ...(order.tenantId ? { tenantId: order.tenantId } : {}),
+            OR: [
+              { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+              { idempotencyKey: `refund-order-${order.id}` },
+              { idempotencyKey: `refund-ttl-${order.id}` },
+              { idempotencyKey: `refund-dlq-${order.id}` },
+            ]
           },
           _sum: { amount: true },
         });

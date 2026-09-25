@@ -1,3 +1,28 @@
+- [x] 💰 [OMNISMM-FINANCIAL-HARDENING-2026] Сплошной аудит и нормативное устранение дефектов финансового ядра, леджера и Escrow (100% COMPLETE & VERIFIED):
+  * 🔴 **FIN-01 (Ledger-First / Escrow Quarantine):** В `src/services/financial/wallet-ops.ts:quarantineAdd` порядок операций приведен в строгое соответствие с Ledger-First: `tx.ledgerEntry.create` вызывается строго ДО `tx.user.updateMany` с предварительной проверкой идемпотентности и изоляции тенанта.
+  * 🔴 **FIN-02 (Trust Boundary / Escrow Approval):** В `WalletOps` реализован защищенный метод `quarantineApprove` с проверкой `tenantId`. В `src/services/admin/escrow.service.ts` ликвидирована прямая мутация `user.balance` в обход финансового шлюза.
+  * 🔴 **FIN-03 & FIN-19 (TOCTOU & Hardware Non-Negative Guard):** В `WalletOps.adminAdjust` при списании средств (`rawCents < 0`) внедрен атомарный предикат `balance: { gte: absCents }`. При нехватке средств выбрасывается типизированное доменное исключение `WalletInsufficientFundsError` вместо аварии транзакции по `23514 check_violation`. В `src/actions/admin/clients.ts` добавлен pre-flight guard достаточности средств с информативным сообщением оператору.
+  * 🔴 **FIN-16 (Loyalty Commission Leak):** В `src/actions/admin/orders.ts:forceCompleteOrderAction` при принудительном завершении заказа с частичным возвратом (`refundCents > 0`) комиссия рефереру начисляется пропорционально через `LoyaltyService.handlePartialCommission`.
+  * 🔴 **FIN-17 (Referral Balance Non-Negative Guard):** В `src/services/users/loyalty.service.ts:reverseCommission` добавлено ограничение списания `Math.min(currentRefBalance, commAmount)`, предотвращающее уход `referralBalance` в минус при отмене заказов.
+  * 🟠 **FIN-04 & FIN-15 (Audit Logging Contract):** В `src/actions/support/ticket.ts` неасинхронный вызов `auditAdmin` для массового возврата средств заменен на обязательный по контракту `await auditAdminAwaitable()`.
+  * 🟠 **FIN-20 (Accounting VAT / Annual Revenue):** В `src/services/financial/accounting.service.ts` расчет годовых возвратов расширен на `transactionType: { in: ['REFUND', 'ORDER_CANCEL'] }`, устраняя искажение налогооблагаемой базы.
+  * 🟡 **FIN-05 (Tenant Isolation / Quarantine Release):** В `quarantineRelease` добавлен фильтр `tenantId` в `updateMany`.
+  * 🧪 **Верификация:** `npm run typecheck` (`tsc --noEmit`) — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек секретов, AST-тесты инвариантов — 100% PASS.
+
+- [x] 🛡️ [OMNISMM-DEEP-AUDIT-DEFECT-REMEDIATION-2026] Глубокий аудит и устранение критических и системных дефектов ядра, мульти-тенантности и фискализации (100% COMPLETE & VERIFIED):
+  * 🔴 **P0-01 (Prisma / Tenant Enforcer):** Исключена несуществующая колонка `tenantId` модели `PromoCode` из `TENANT_SCOPED_MODELS` в `src/lib/prisma-tenant-enforcer.ts` — ликвидирован риск сбоя runtime-запросов промокодов.
+  * 🔴 **P0-02 (Redis Locks / Deadlock):** В `src/services/admin/order/order-provider-sync.service.ts` добавлено атомарное удаление блокировки `order:dispatch_lock:${orderId}` вместе с `order:dispatched:${orderId}` при перезапуске заказов администратором — ликвидирован дедлок зависания заказов в статусе PENDING.
+  * 🔴 **P0-03 (Brand Bleeding / Support Tickets):** В `src/services/support/ticket.service.ts` вычислен `ticketTenantId` и передан во все вызовы `getSupportEmailDomain`, `getContactAndLegalSettings` и 5-м параметром в `sendMail` — гарантирована строгая изоляция брендинга SMMflux и SMMplan в тикетах и письмах клиентам.
+  * 🔴 **P0-04 (Multi-Tenant Isolation / Payment Issues):** В `src/actions/customer/payment-issue.ts` добавлен `tenantId: payment.tenantId || 'smmplan'` при создании тикета по платежу — ликвидирована утечка тикетов между тенантами.
+  * 🟠 **P1-01 (Фискализация / 54-ФЗ / ст. 145 НК РФ 2026):** В `src/services/financial/payment-gateway.service.ts` и `src/services/financial/accounting.service.ts` порог НДС 20 млн ₽ (22% с 2026 г.) рассчитывается строго по входящему валовому приходу `grossKopecks >= VAT_THRESHOLD_KOPECKS` и `grossAnnual >= 2000000000` без вычитания возвратов.
+  * 🟠 **P1-02 (ACID / 152-ФЗ / Защита аудита):** В `prisma/schema.prisma` каскадные удаления `onDelete: Cascade` заменены на `Restrict` для `Ticket.user` и `Commission.referrer`. При soft-delete пользователей их тикеты и финансовые комиссии гарантированно сохраняются для бухгалтерского и юридического аудита.
+  * 🟠 **P1-03 (БД Производительность / Индексы FK):** В `prisma/schema.prisma` добавлены 10 недостающих индексов внешних ключей (`User.referredById`, `User.staffRoleId`, `Order.promoCodeId`, `TicketMessage.replyToId`, `LedgerEntry.periodId`, `SmartExecution.providerId`, `SmartSnapshot.campaignId`, `SmartDetectedUser.campaignId`, `ManualBalanceAdjustment.approvedBy/rejectedBy`, `StaffShift.substituteUserId`), ликвидированы `Seq Scan` и строчные блокировки в PostgreSQL. Создана миграция `20260925000000_audit_remediation_retention_and_indexes` и БД синхронизирована (Zero-Drift).
+  * 🟠 **P1-04 (Multi-Tenant UI / Admin Layout):** В `src/app/admin/layout.tsx` счетчик открытых тикетов и теги кэша `unstable_cache` изолированы по `activeTenantId` — операторы видят бейджи строго своего тенанта.
+  * 🟡 **P2-01 (Server Actions / Error Masking):** В `get-users-list.action.ts`, `get-user-financial-summary.action.ts` и `network-routing.ts` устранены `throw new Error`, заменены на типизированный `{ success: false, error }`.
+  * 🟡 **P2-02 (Redis Scoping / Smart Mode):** В `src/actions/admin/smart.ts` статус глобального смарт-режима изолирован по ключу `smart:${tenantId}:disabled`.
+  * 🟡 **P2-03 (Tenant Isolation / Gateways Availability):** В `src/services/orders/gateways-availability.service.ts` передан `resolvedTenantId` в `SettingsProvider.getContactAndLegalSettings(resolvedTenantId)`.
+  * 🧪 **Верификация:** `npx tsc --noEmit` (0 ошибок), `check-bundle-secrets.mjs` (0 утечек секретов), `npm run lint:tenant` (PASS), `npm run check:arch` (PASS, 0 нарушений), `npm run lint:guardrails` (PASS, 0 блокеров).
+
 - [x] 🌟 [OMNISMM-BRANCH-INTEGRATION-AND-HYGIENE-2026] Комплексная интеграция ценных наработок веток, устранение дефектов ядра, декомпозиция чекаута и санитарная очистка репозитория (100% COMPLETE & VERIFIED ON MAIN):
   * 🧹 **Фаза 1: Санитарная очистка репозитория от мусорных и опасных веток:**
     - Удалена токсичная ветка `origin/bug-search-84259` (содержавшая 78 146 закоммиченных файлов `node_modules`).
@@ -4687,3 +4712,12 @@
      - Выровнен UX мобильной (`MobileStep1Link.tsx`) и десктопной (`HeroInput.tsx`) версии витрины.
      - Добавлен блок `AnimatePresence` для обработки ошибочного ввода email вместо ссылки (Positive Path Interception).
      - Перехвачен `onPaste` и нажатие клавиши `Enter` для email-адресов. Ошибки вида «Неверная ссылка» для email на смартфонах больше не возникают.
+
+6. **[FEATURE-HIGH-MARGIN-AI-DECISION-ENGINE-2026] Двухуровневый AI-движок сверхвысокой маржинальности (Gemini System 2 + System 1 Jev-Analog) с наценками 500–700% и кросс-провайдерным арбитражем:**
+   - **Цель:** Переход платформы на режим максимальной чистой прибыли (60–80% чистыми) за счет премиального сегментирования услуг, алгоритмического кросс-провайдерного арбитража в реальном времени и автоматической защиты от списаний.
+   - **Спецификация:** [`docs/specs/SPEC-2026-09-24-HIGH-MARGIN-AI-DECISION-ENGINE.md`](file:///e:/OmniSMM/docs/specs/SPEC-2026-09-24-HIGH-MARGIN-AI-DECISION-ENGINE.md)
+   - **Компоненты реализации:**
+     1. *System 2 (Gemini Flash/Pro):* Анализ каталогов 6 провайдеров (`VexBoost`, `Soc-Rocket`, `SMMPrime`, `Stream-Promotion`, `ProSMM-Shop`, `SMMPanelUS`), упаковка в «Золотой каталог» (B2B/VIP офферы с наценкой 500–700%), синтез комплексных бизнес-бандлов, расчет эластичности цен.
+     2. *System 1 (Локальный аналог Jev — Von/ModernBERT):* Суб-30мс сопоставление и динамическая маршрутизация заказов на поставщика с минимальным True Cost, проверка `MarginGuard` (защита от отрицательной маржи), авто-триаж тикетов.
+     3. *Silent Auto-Refill Sentinel:* Превентивный долив подписчиков фоновым воркером BullMQ при списании $> 2\%$ до фиксации проблемы клиентом.
+

@@ -92,20 +92,10 @@ export async function checkVatThreshold(tenantId: string = 'smmplan'): Promise<b
   });
   const grossKopecks = BigInt(grossResult._sum?.amount || 0);
 
-  // 2. Deduct refunds from net taxable turnover
-  const refundResult = await db.ledgerEntry.aggregate({
-    _sum: { amount: true },
-    where: {
-      tenantId: cleanTenant,
-      transactionType: 'REFUND',
-      createdAt: { gte: startOfYear }
-    }
-  }).catch(() => ({ _sum: { amount: BigInt(0) } }));
-  const refundKopecks = BigInt(refundResult._sum?.amount || 0);
-
-  const netAnnualRevenueKopecks = grossKopecks > refundKopecks ? (grossKopecks - refundKopecks) : BigInt(0);
-
-  const isExceeded = netAnnualRevenueKopecks >= VAT_THRESHOLD_KOPECKS;
+  // 2. Fiscal evaluation: Under Art. 145 of the Russian Tax Code (176-FZ / 425-FZ 2026),
+  // the 20,000,000 ₽ threshold for loss of VAT exemption is based on gross cumulative turnover.
+  // Once the threshold is reached, subsequent customer refunds do not restore exemption status.
+  const isExceeded = grossKopecks >= VAT_THRESHOLD_KOPECKS;
   vatThresholdCache.set(cleanTenant, { result: isExceeded, expiresAt: now + 3600 * 1000 });
   return isExceeded;
 }

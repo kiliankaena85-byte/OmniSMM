@@ -33,7 +33,7 @@ export async function saveNetworkRoutingConfigAction(
   return requireStaffPermission('providers', 'edit', async (user) => {
     // Validate rules
     if (!newConfig || !Array.isArray(newConfig.rules)) {
-      throw new Error('Некорректный формат конфигурации правил');
+      return { success: false, error: 'Некорректный формат конфигурации правил' };
     }
 
     // Ensure Russian fintech invariants cannot be overridden by user
@@ -46,7 +46,10 @@ export async function saveNetworkRoutingConfigAction(
           rule.target !== 'DIRECT' &&
           rule.target !== 'RU_SOVEREIGN_POOL'
         ) {
-          throw new Error(`Домен ${locked} является критическим узлом РФ и может быть направлен только DIRECT или через суверенный резерв (RU_SOVEREIGN_POOL).`);
+          return {
+            success: false,
+            error: `Домен ${locked} является критическим узлом РФ и может быть направлен только DIRECT или через суверенный резерв (RU_SOVEREIGN_POOL).`
+          };
         }
       }
     }
@@ -91,7 +94,10 @@ export async function updateServiceToggleAction(
 ): Promise<{ success: true; data: ServiceTogglesConfig } | { success: false; error: string }> {
   return requireStaffPermission('providers', 'edit', async (user) => {
     if (service === 'paymentsRu' && target !== 'DIRECT' && target !== 'RU_SOVEREIGN_POOL') {
-      throw new Error('Российские платежные шлюзы (ЮKassa, Robokassa) разрешено направлять только DIRECT или через суверенный резерв (RU_SOVEREIGN_POOL).');
+      return {
+        success: false,
+        error: 'Российские платежные шлюзы (ЮKassa, Robokassa) разрешено направлять только DIRECT или через суверенный резерв (RU_SOVEREIGN_POOL).'
+      };
     }
 
     const currentConfig = await UniversalNetworkRouter.getConfig();
@@ -133,7 +139,7 @@ export async function inspectRouteAction(
 > {
   return requireStaffPermission('providers', 'view', async () => {
     if (!url || !url.trim()) {
-      throw new Error('Укажите корректный URL для проверки');
+      return { success: false, error: 'Укажите корректный URL для проверки' };
     }
     const report = await UniversalNetworkRouter.inspectRoute(url.trim(), service);
     return { success: true, data: report };

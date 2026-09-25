@@ -207,10 +207,19 @@ export class LoyaltyService {
       
       // Only withdraw if it was already credited to the spendable balance
       if (wasConfirmed) {
-        await tx.user.update({
+        const commAmount = Number(comm.amount);
+        const referrer = await tx.user.findUnique({
           where: { id: comm.referrerId },
-          data: { referralBalance: { decrement: Number(comm.amount) } }
+          select: { referralBalance: true }
         });
+        const currentRefBalance = Number(referrer?.referralBalance || 0);
+        const decrementAmount = Math.min(currentRefBalance, commAmount);
+        if (decrementAmount > 0) {
+          await tx.user.update({
+            where: { id: comm.referrerId },
+            data: { referralBalance: { decrement: decrementAmount } }
+          });
+        }
       }
 
       await tx.auditLog.create({

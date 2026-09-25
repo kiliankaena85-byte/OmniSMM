@@ -201,6 +201,14 @@ export async function handleRobokassaWebhookRequest(
 
       return result;
     } catch (lockError) {
+      if (replayKey) {
+        try {
+          const { redis } = await import('@/lib/redis');
+          await redis.del(replayKey).catch(() => {});
+        } catch {
+          // ignore redis del errors during error handling
+        }
+      }
       console.error(`[Robokassa Webhook] Failed to acquire lock for payment ${shp_paymentId}:`, lockError);
       return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
     }

@@ -124,10 +124,15 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
             log.error(`Failed to update SLA error metrics for ${providerDef.id}`, { cause: slaErr });
           }
 
-          // [DEF-005] Controlled concurrency chunking: 5 requests per batch to avoid worker timeouts
+          // [DEF-005] Controlled concurrency chunking: limit fallback polling to MAX_FALLBACK (25) to fit in lockDuration (60s)
+          const MAX_FALLBACK = 25;
+          const fallbackExtIds = allExtIds.slice(0, MAX_FALLBACK);
+          if (allExtIds.length > MAX_FALLBACK) {
+            log.warn(`[SyncProcessor] Fallback polling truncated from ${allExtIds.length} to ${MAX_FALLBACK} orders for ${providerDef.name} to respect worker lockDuration`);
+          }
           const CHUNK_SIZE = 5;
-          for (let i = 0; i < allExtIds.length; i += CHUNK_SIZE) {
-            const chunk = allExtIds.slice(i, i + CHUNK_SIZE);
+          for (let i = 0; i < fallbackExtIds.length; i += CHUNK_SIZE) {
+            const chunk = fallbackExtIds.slice(i, i + CHUNK_SIZE);
             await Promise.allSettled(chunk.map(async (extId) => {
               try {
                 const single = await provider.getOrderStatus(extId);

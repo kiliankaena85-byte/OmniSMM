@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { db } from '@/lib/db';
 
+// Mock sanitize-html to avoid ERR_REQUIRE_ESM: sanitize-html v3+ uses ESM-only htmlparser2
+// which cannot be require()'d in Vitest's CJS worker pool. The mock is a transparent
+// pass-through — RBAC and cache isolation tests do not exercise HTML sanitization logic.
+vi.mock('sanitize-html', () => ({
+  default: (dirty: string) => dirty ?? '',
+}));
+
 const mockCookieStore = {
   get: vi.fn((key: string) => (key === 'x_admin_tenant' ? { value: 'smmplan' } : undefined)),
   set: vi.fn(),

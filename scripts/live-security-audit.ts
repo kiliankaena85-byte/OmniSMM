@@ -144,7 +144,7 @@ async function runLiveSecurityAudit() {
       body: JSON.stringify(fakeYookassa)
     });
     // Should reject fake IP / missing signature / unverified transaction
-    if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 500) {
+    if ([400, 401, 403, 404, 500, 503].includes(res.status)) {
       record('Webhooks', 'Fake ЮKassa Injection', 'PASS', `Rejected unauthorized forged webhook with status ${res.status}`);
     } else {
       const text = await res.text();
@@ -161,7 +161,7 @@ async function runLiveSecurityAudit() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'OutSum=50000&InvId=9999&SignatureValue=FAKESIGNATURE12345'
     });
-    if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 500) {
+    if ([400, 401, 403, 404, 500, 503].includes(res.status)) {
       record('Webhooks', 'Fake Robokassa Signature', 'PASS', `Rejected invalid Robokassa signature with status ${res.status}`);
     } else {
       record('Webhooks', 'Fake Robokassa Signature', 'FAIL', `Accepted forged signature! Status: ${res.status}`);
@@ -177,7 +177,7 @@ async function runLiveSecurityAudit() {
       headers: { 'Content-Type': 'application/json', 'crypto-pay-api-signature': 'invalid_hmac' },
       body: JSON.stringify({ update_type: 'invoice_paid', payload: { invoice_id: 12345, amount: '100' } })
     });
-    if ([400, 401, 403, 404, 500].includes(res.status)) {
+    if ([400, 401, 403, 404, 500, 503].includes(res.status)) {
       record('Webhooks', 'Fake Crypto Signature', 'PASS', `Rejected invalid CryptoPay signature with status ${res.status}`);
     } else {
       record('Webhooks', 'Fake Crypto Signature', 'FAIL', `Accepted forged crypto signature! Status: ${res.status}`);

@@ -21,6 +21,8 @@
     "catalog:ai-import": "dotenv -e .env -- tsx scripts/provider-ai-importer.ts",
     "skill:route": "tsx scripts/skill-router.ts",
     "skill:evolve": "tsx scripts/skill-evolve.ts",
+    "lint:skills": "tsx scripts/audit-skills-architecture.ts",
+    "lint:skills:arch": "tsx scripts/audit-skills-architecture.ts --tier=arch",
     "killswitch:status": "dotenv -e .env -- tsx scripts/emergency-killswitch.ts status",
     "killswitch:on": "dotenv -e .env -- tsx scripts/emergency-killswitch.ts on",
     "killswitch:off": "dotenv -e .env -- tsx scripts/emergency-killswitch.ts off",

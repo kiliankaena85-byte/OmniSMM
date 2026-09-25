@@ -11,12 +11,16 @@ export class OrderProviderSyncService {
    */
   static async syncOrderStatusWithProvider(
     orderId: string,
-    admin?: { id: string; email: string; tenantId?: string }
+    admin?: { id: string; email: string; tenantId?: string; role?: string }
   ) {
     const order = await db.order.findUniqueOrThrow({
       where: { id: orderId },
       include: { provider: true, service: true, user: true },
     });
+
+    if (admin && admin.role !== 'OWNER' && order.tenantId !== admin.tenantId) {
+      throw new Error('Доступ ограничен: заказ принадлежит другому тенанту');
+    }
 
     if (!order.provider || !order.externalId) {
       throw new Error(`У заказа #${order.numericId} отсутствует внешний ID провайдера.`);
@@ -105,12 +109,16 @@ export class OrderProviderSyncService {
   /**
    * Restart a failed/error order by resetting it to PENDING.
    */
-  static async restartOrder(orderId: string, admin: { id: string; email: string; tenantId?: string }) {
+  static async restartOrder(orderId: string, admin: { id: string; email: string; tenantId?: string; role?: string }) {
     const result = await runSerializableTransaction(async (tx) => {
       const order = await tx.order.findUniqueOrThrow({
         where: { id: orderId },
         include: { user: true },
       });
+
+      if (admin.role !== 'OWNER' && order.tenantId !== admin.tenantId) {
+        throw new Error('Доступ ограничен: заказ принадлежит другому тенанту');
+      }
 
       if (order.status !== 'ERROR' && order.status !== 'PENDING_CHECK' && order.status !== 'CANCELED') {
         throw new Error(`Order ${order.numericId} cannot be restarted (status: ${order.status}). Используйте "Дублировать заказ".`);
@@ -134,7 +142,7 @@ export class OrderProviderSyncService {
     try {
       const { ordersQueue, getRedisConnection } = await import('@/lib/queue-manager');
       const connection = getRedisConnection();
-      await connection.del(`order:dispatched:${orderId}`);
+      await connection.del(`order:dispatched:${orderId}`, `order:dispatch_lock:${orderId}`);
       const jobId = `dispatch-${orderId}-${Date.now()}`;
       await ordersQueue.add('order-dispatch', { orderId, tenantId: result.tenantId }, { jobId });
     } catch (queueErr) {

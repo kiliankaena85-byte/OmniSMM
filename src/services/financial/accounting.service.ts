@@ -203,7 +203,7 @@ class AccountingService {
       db.ledgerEntry ? db.ledgerEntry.aggregate({
         _sum: { amount: true },
         where: {
-          transactionType: 'REFUND',
+          transactionType: { in: ['REFUND', 'ORDER_CANCEL'] },
           ...(isSingleTenant ? { tenantId } : {}),
           createdAt: {
             gte: startOfYear,
@@ -217,8 +217,8 @@ class AccountingService {
     const refundAnnual = Number(annualRefunds?._sum?.amount || 0);
     const annualRevenue = Math.max(0, grossAnnual - refundAnnual);
 
-    // Threshold is 20 million rubles (2,000,000,000 cents) (п. 1 ст. 145 НК РФ)
-    const isVatThresholdExceeded = annualRevenue >= 2000000000;
+    // Threshold is 20 million rubles (2,000,000,000 cents) (п. 1 ст. 145 НК РФ, 176-ФЗ / 425-ФЗ: расчет строго по валовому приходу)
+    const isVatThresholdExceeded = grossAnnual >= 2000000000;
     
     // Under 2026 tax reform (ФЗ № 425-ФЗ), VAT rate upon exceeding 20M limit is 22% (п. 3 ст. 164 НК РФ)
     const effectiveTaxRate = isVatThresholdExceeded ? baseTaxRate + 22.0 : baseTaxRate;

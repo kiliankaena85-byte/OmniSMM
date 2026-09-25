@@ -183,27 +183,27 @@ describe('Audit R4: Concurrency & ACID Financial Integrity Invariants', () => {
     });
   });
 
-  describe('R4-P1-02: Ledger-First Ordering Violation in WalletOps.quarantineAdd', () => {
+  describe('R4-P1-02: Ledger-First Ordering in WalletOps.quarantineAdd', () => {
     const walletOpsPath = path.resolve(process.cwd(), 'src/services/financial/wallet-ops.ts');
 
-    it('AST Invariant: quarantineAdd mutates User before creating LedgerEntry', () => {
+    it('AST Invariant: quarantineAdd creates LedgerEntry before mutating User quarantineBalance', () => {
       const content = fs.readFileSync(walletOpsPath, 'utf-8');
 
       const fnIndex = content.indexOf('async quarantineAdd(');
       expect(fnIndex).toBeGreaterThan(0);
-      const fnBody = content.substring(fnIndex, fnIndex + 1500);
+      const fnBody = content.substring(fnIndex, fnIndex + 2000);
 
-      const userUpdateIndex = fnBody.indexOf('tx.user.update');
+      const userUpdateIndex = fnBody.indexOf('tx.user.updateMany');
       const ledgerCreateIndex = fnBody.indexOf('tx.ledgerEntry.create');
 
       expect(userUpdateIndex).toBeGreaterThan(0);
       expect(ledgerCreateIndex).toBeGreaterThan(0);
 
-      // VIOLATION: tx.user.update happens BEFORE tx.ledgerEntry.create
-      expect(userUpdateIndex).toBeLessThan(ledgerCreateIndex);
+      // LEDGER-FIRST ENFORCED: tx.ledgerEntry.create happens BEFORE tx.user.updateMany
+      expect(ledgerCreateIndex).toBeLessThan(userUpdateIndex);
 
-      // Missing idempotency pre-check
-      expect(fnBody.includes('tx.ledgerEntry.findFirst')).toBe(false);
+      // Idempotency pre-check present
+      expect(fnBody.includes('tx.ledgerEntry.findFirst')).toBe(true);
     });
   });
 

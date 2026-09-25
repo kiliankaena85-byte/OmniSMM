@@ -317,9 +317,37 @@ export const WalletOps = {
       }
     });
 
-    const updatedUser = await tx.user.update({
+    // 4. Atomically mutate balance with non-negative guard for debit adjustments
+    if (rawCents < BigInt(0)) {
+      const absCents = -rawCents;
+      const updatedUserBatch = await tx.user.updateMany({
+        where: {
+          id: userId,
+          balance: { gte: absCents },
+          ...(tenantId ? { tenantId } : {})
+        },
+        data: { balance: { increment: rawCents } }
+      });
+
+      if (updatedUserBatch.count === 0) {
+        const checkUser = await tx.user.findUnique({
+          where: { id: userId },
+          select: { id: true, balance: true },
+        });
+        throw new WalletInsufficientFundsError(absCents, checkUser?.balance ?? BigInt(0));
+      }
+    } else {
+      await tx.user.updateMany({
+        where: {
+          id: userId,
+          ...(tenantId ? { tenantId } : {})
+        },
+        data: { balance: { increment: rawCents } }
+      });
+    }
+
+    const updatedUser = await tx.user.findUniqueOrThrow({
       where: { id: userId },
-      data: { balance: { increment: rawCents } },
       select: { balance: true }
     });
 
@@ -399,6 +427,7 @@ export const WalletOps = {
 
   /**
    * Add funds to user quarantine balance bubble instead of main balance.
+   * Strictly enforces Ledger-First Principle (LedgerEntry created BEFORE balance mutation).
    */
   async quarantineAdd(
     tx: PrismaTx,
@@ -411,26 +440,37 @@ export const WalletOps = {
     const rawCents = typeof amountCents === 'bigint' ? amountCents : BigInt(amountCents);
     const absAmount = rawCents < BigInt(0) ? -rawCents : rawCents;
 
-    if (tenantId) {
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { id: true, tenantId: true }
+    // 1. Validate User existence and tenant isolation
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { id: true, tenantId: true }
+    });
+
+    if (!user) {
+      throw new WalletUserNotFoundError(userId);
+    }
+
+    if (tenantId && user.tenantId !== tenantId) {
+      throw new WalletUserNotFoundError(userId);
+    }
+
+    const resolvedTenantId = tenantId || user.tenantId || 'smmplan';
+
+    // 2. Idempotency pre-check
+    if (idempotencyKey) {
+      const existing = await tx.ledgerEntry.findFirst({
+        where: { idempotencyKey, tenantId: resolvedTenantId }
       });
-      if (!user || user.tenantId !== tenantId) {
-        throw new WalletUserNotFoundError(userId);
+      if (existing) {
+        return existing;
       }
     }
 
-    const user = await tx.user.update({
-      where: { id: userId },
-      data: { quarantineBalance: { increment: absAmount } },
-      select: { tenantId: true }
-    });
-
-    return await tx.ledgerEntry.create({
+    // 3. LEDGER-FIRST INVARIANT: Create LedgerEntry FIRST before updating User.quarantineBalance
+    const entry = await tx.ledgerEntry.create({
       data: {
         userId,
-        tenantId: tenantId || user.tenantId || 'smmplan',
+        tenantId: resolvedTenantId,
         adminId,
         amount: rawCents,
         reason,
@@ -439,6 +479,51 @@ export const WalletOps = {
         transactionType: 'COMPENSATION'
       }
     });
+
+    // 4. Atomically mutate quarantine balance
+    await tx.user.updateMany({
+      where: { 
+        id: userId,
+        ...(tenantId ? { tenantId } : {})
+      },
+      data: { quarantineBalance: { increment: absAmount } }
+    });
+
+    return entry;
+  },
+
+  /**
+   * Approve funds from quarantine into user main balance.
+   * Encapsulates the balance transition without creating a duplicate LedgerEntry.
+   * Strictly enforces Trust Boundary and tenant isolation.
+   */
+  async quarantineApprove(
+    tx: PrismaTx,
+    userId: string,
+    amountCents: number | bigint,
+    opts?: { tenantId?: string; adminId?: string }
+  ) {
+    const rawCents = typeof amountCents === 'bigint' ? amountCents : BigInt(amountCents);
+    const { tenantId } = opts || {};
+
+    const updatedUserBatch = await tx.user.updateMany({
+      where: {
+        id: userId,
+        ...(tenantId ? { tenantId } : {})
+      },
+      data: { balance: { increment: rawCents } }
+    });
+
+    if (updatedUserBatch.count === 0) {
+      throw new WalletUserNotFoundError(userId);
+    }
+
+    const updatedUser = await tx.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { balance: true }
+    });
+
+    return { success: true, balance: updatedUser.balance };
   },
 
   /**

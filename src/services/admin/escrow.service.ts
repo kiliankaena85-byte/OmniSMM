@@ -274,16 +274,16 @@ export class EscrowService {
 
       // Step 2: Release the quarantine bubble (quarantineBalance -= absAmount).
       // quarantineRelease does NOT touch user.balance — only quarantineBalance.
-      await WalletOps.quarantineRelease(tx, entry.userId, absAmount);
+      await WalletOps.quarantineRelease(tx, entry.userId, absAmount, { tenantId: user.tenantId });
 
       if (resolution === 'APPROVE') {
-        // Step 3 (APPROVE only): Credit the main balance directly.
+        // Step 3 (APPROVE only): Credit the main balance via WalletOps.
         // We do NOT call WalletOps.adminAdjust() here — that would create a duplicate
         // LedgerEntry (type=ADJUSTMENT). The original entry (now APPROVED) IS the ledger record.
         // Ledger-First invariant: the entry is already APPROVED (step 1) before this update.
-        await tx.user.update({
-          where: { id: entry.userId },
-          data: { balance: { increment: entry.amount } },
+        await WalletOps.quarantineApprove(tx, entry.userId, entry.amount, {
+          tenantId: user.tenantId,
+          adminId: owner.id
         });
       }
       // REJECT: no balance change — funds simply vanish from quarantine (chargeback/fraud case).

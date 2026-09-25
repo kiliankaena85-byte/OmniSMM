@@ -19,16 +19,21 @@ export interface ExecutiveDigestResult {
 }
 
 export class AiObserverService {
-  private static readonly REDIS_CACHE_KEY = 'ai:observer:latest_digest';
-  private static readonly REDIS_KILLSWITCH_KEY = 'ai:observer:killswitch';
+  private static getCacheKey(tenantId?: string): string {
+    return `ai:observer:${tenantId || 'all'}:latest_digest`;
+  }
+
+  private static getKillswitchKey(tenantId?: string): string {
+    return `ai:observer:${tenantId || 'all'}:killswitch`;
+  }
 
   /**
    * Checks whether the Master Kill-Switch is active.
    * Fail-Closed: returns true if Redis read fails to prevent unmonitored LLM generation.
    */
-  static async isKillswitchActive(): Promise<boolean> {
+  static async isKillswitchActive(tenantId?: string): Promise<boolean> {
     try {
-      const cached = await redis.get(this.REDIS_KILLSWITCH_KEY);
+      const cached = await redis.get(this.getKillswitchKey(tenantId));
       return cached === '1';
     } catch (err) {
       logger.error('[AiObserverService] Redis read error for killswitch (failing closed):', err);
@@ -39,9 +44,9 @@ export class AiObserverService {
   /**
    * Sets the Master Kill-Switch state in Redis.
    */
-  static async setKillswitch(disabled: boolean): Promise<void> {
+  static async setKillswitch(disabled: boolean, tenantId?: string): Promise<void> {
     try {
-      await redis.set(this.REDIS_KILLSWITCH_KEY, disabled ? '1' : '0');
+      await redis.set(this.getKillswitchKey(tenantId), disabled ? '1' : '0');
     } catch (e) {
       console.error('[AiObserverService] Failed to set killswitch in Redis:', e);
     }
@@ -244,7 +249,7 @@ export class AiObserverService {
     const t0 = Date.now();
 
     // 1. Check Master Kill-Switch
-    const isKilled = await this.isKillswitchActive();
+    const isKilled = await this.isKillswitchActive(tenantId);
     if (isKilled && !forceRun) {
       logger.info('[AiObserverService] Execution skipped: Master Kill-Switch is ACTIVE.');
       return {
@@ -317,7 +322,7 @@ export class AiObserverService {
 
     // 4. Save to Redis Cache (persisted for 7 days)
     try {
-      await redis.set(this.REDIS_CACHE_KEY, JSON.stringify(result), 'EX', 7 * 24 * 3600);
+      await redis.set(this.getCacheKey(tenantId), JSON.stringify(result), 'EX', 7 * 24 * 3600);
     } catch {
       // Best-effort cache
     }
@@ -337,9 +342,9 @@ export class AiObserverService {
   /**
    * Retrieves the latest cached digest from Redis.
    */
-  static async getLatestDigest(): Promise<ExecutiveDigestResult | null> {
+  static async getLatestDigest(tenantId?: string): Promise<ExecutiveDigestResult | null> {
     try {
-      const cached = await redis.get(this.REDIS_CACHE_KEY);
+      const cached = await redis.get(this.getCacheKey(tenantId));
       if (cached) {
         return JSON.parse(cached) as ExecutiveDigestResult;
       }

@@ -146,6 +146,20 @@ export class SmartDripService {
       throw new Error('Умный Dripfeed не поддерживается для этой услуги');
     }
 
+    // Idempotency: prevent duplicate SmartCampaign creation on transaction retries or duplicate webhook delivery
+    if (orderId) {
+      const existingCampaign = await tx.smartCampaign.findUnique({
+        where: { orderId },
+        include: { tasks: true },
+      });
+      if (existingCampaign) {
+        return {
+          campaign: existingCampaign,
+          tasks: existingCampaign.tasks,
+        };
+      }
+    }
+
     // 1. Создаем саму кампанию
     const campaign = await tx.smartCampaign.create({
       data: {

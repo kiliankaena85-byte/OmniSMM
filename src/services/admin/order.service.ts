@@ -33,7 +33,7 @@ class AdminOrderService {
    */
   async cancelOrder(
     orderId: string,
-    admin: { id: string; email: string; tenantId?: string },
+    admin: { id: string; email: string; tenantId?: string; role?: string },
     options?: { forceWriteOff?: boolean }
   ) {
     return OrderStatusMutatorService.cancelOrder(orderId, admin, options);
@@ -44,7 +44,7 @@ class AdminOrderService {
    */
   async syncOrderStatusWithProvider(
     orderId: string,
-    admin?: { id: string; email: string; tenantId?: string }
+    admin?: { id: string; email: string; tenantId?: string; role?: string }
   ) {
     return OrderProviderSyncService.syncOrderStatusWithProvider(orderId, admin);
   }
@@ -55,7 +55,7 @@ class AdminOrderService {
    */
   async restartOrder(
     orderId: string,
-    admin: { id: string; email: string; tenantId?: string }
+    admin: { id: string; email: string; tenantId?: string; role?: string }
   ) {
     return OrderProviderSyncService.restartOrder(orderId, admin);
   }

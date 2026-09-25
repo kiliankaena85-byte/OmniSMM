@@ -8,7 +8,7 @@ import { fetchOrderWithRelations, OrderWithRelations } from './types';
 const log = logger.child({ component: 'OrderPreflightGuard' });
 
 export class OrderPreflightGuard {
-  static async validateAndFetchOrder(job: Job<OrderJobPayload>): Promise<{ order: OrderWithRelations | null; redisKey: string }> {
+  static async validateAndFetchOrder(job: Job<OrderJobPayload>): Promise<{ order: OrderWithRelations | null; redisKey: string; lockHeld?: boolean }> {
     let orderId: string;
     try {
       const { OrderJobSchema } = await import('../../../schemas/jobs.schema');
@@ -96,7 +96,7 @@ export class OrderPreflightGuard {
     const acquiredLock = await connection.set(dispatchLockKey, '1', 'EX', 120, 'NX');
     if (!acquiredLock) {
       log.warn(`[OrderProcessor] Concurrent dispatch lock active for order ${order.id}. Skipping duplicate.`);
-      return { order: null, redisKey: '' };
+      return { order: null, redisKey: '', lockHeld: true };
     }
 
     return { order, redisKey };

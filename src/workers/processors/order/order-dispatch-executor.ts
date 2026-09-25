@@ -103,6 +103,7 @@ export class OrderDispatchExecutor {
 
         log.info(`[OrderProcessor] Dispatched Order ${order.id} | Provider: ${route.provider.name} | External ID: ${extId}`);
         dispatched = true;
+        await connection.del(`order:dispatch_lock:${order.id}`).catch(() => {});
         break;
 
       } catch (error: unknown) {
@@ -126,6 +127,7 @@ export class OrderDispatchExecutor {
               'WARNING'
             );
           } catch { /* ignore */ }
+          await connection.del(redisKey, `order:dispatch_lock:${order.id}`).catch(() => {});
           throw new UnrecoverableError(`Ambiguous Timeout: ${error instanceof Error ? error.message : String(error)}`);
         }
 
@@ -151,7 +153,7 @@ export class OrderDispatchExecutor {
             }, originalError, route.provider.name);
           } catch { /* ignore */ }
 
-          await connection.del(redisKey).catch(() => {});
+          await connection.del(redisKey, `order:dispatch_lock:${order.id}`).catch(() => {});
           throw new UnrecoverableError(`Manual failover mode: operator triage required`);
         }
 

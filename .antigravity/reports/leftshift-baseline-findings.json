@@ -1,369 +1,441 @@
 {
   "findings": [
     {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/admin/balance-adjustments.ts",
+      "line": 161,
+      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: data.ticketId } });",
+      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/admin/balance-adjustments.ts",
+      "line": 406,
+      "snippet": "? await db.payment.findUnique({ where: { id: adjustment.paymentId } })",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/ledger.ts",
-      "line": 138,
+      "file": "E:/OmniSMM/src/actions/admin/balance-adjustments.ts",
+      "line": 419,
+      "snippet": "amountRub: Number(adjustment.amount) / 100,",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/clients.ts",
+      "line": 418,
+      "snippet": "const amountRub = parseFloat(amountStr);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/clients.ts",
+      "line": 473,
+      "snippet": "reqFormData.set('amount', (Number(amountKopecks) / 100).toFixed(2));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/clients.ts",
+      "line": 497,
+      "snippet": "reqFormData.set('amount', (Number(amountKopecks) / 100).toFixed(2));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/clients.ts",
+      "line": 691,
+      "snippet": "const amountNum = Number(e.amount) / 100;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/clients.ts",
+      "line": 695,
+      "snippet": "amountCents: Number(e.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/ledger.ts",
+      "line": 327,
+      "snippet": "transactionType: e.transactionType || (Number(e.amount) >= 0 ? 'PAYMENT' : 'DEBIT'),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/ledger.ts",
+      "line": 341,
       "snippet": "approved: Number(approvedAgg._sum?.amount ?? 0),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/ledger.ts",
-      "line": 139,
+      "file": "E:/OmniSMM/src/actions/admin/finance/ledger.ts",
+      "line": 342,
       "snippet": "quarantine: Number(quarantineAgg._sum?.amount ?? 0),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/ledger.ts",
-      "line": 140,
+      "file": "E:/OmniSMM/src/actions/admin/finance/ledger.ts",
+      "line": 343,
       "snippet": "refunds: Math.abs(Number(refundsAgg._sum?.amount ?? 0)),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/payments.ts",
-      "line": 152,
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 346,
       "snippet": "const payment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/payments.ts",
-      "line": 110,
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 164,
       "snippet": "amount: Number(e.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/payments.ts",
-      "line": 213,
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 290,
       "snippet": "amount: Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/finance/payments.ts",
-      "line": 236,
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 313,
       "snippet": "charge: Number(o.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 244,
-      "snippet": "const safeOrder = await tx.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 321,
+      "snippet": "amount: Number(l.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 375,
+      "snippet": "const amountRub = Number(payment.amount) / 100;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 446,
+      "snippet": "oldValue: { status: 'PENDING', amount: Number(payment.amount) },",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/finance/payments.ts",
+      "line": 449,
+      "snippet": "amount: Number(payment.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 300,
-      "snippet": "const order = await db.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 329,
-      "snippet": "const shadowSvc = await db.shadowService.findUnique({",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 632,
+      "snippet": "const shadowSvc = await tx.shadowService.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 329,
-      "snippet": "const shadowSvc = await db.shadowService.findUnique({",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 632,
+      "snippet": "const shadowSvc = await tx.shadowService.findUnique({",
       "message": "Master catalog model query (shadowservice) missing tenantId filter in customer-facing path."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 367,
-      "snippet": "const order = await tx.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 401,
-      "snippet": "const shadowSvc = await db.shadowService.findUnique({",
-      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 401,
-      "snippet": "const shadowSvc = await db.shadowService.findUnique({",
-      "message": "Master catalog model query (shadowservice) missing tenantId filter in customer-facing path."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 469,
-      "snippet": "const order = await db.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 698,
+      "snippet": "await redis.del(`order:dispatched:${orderId}`).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 124,
-      "snippet": "refundCents = newStatus === 'COMPLETED' ? 0 : Number(order.charge);",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 177,
+      "snippet": "calculatedRefundCents = Number(order.charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 251,
-      "snippet": "? Number(safeOrder.charge)",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 208,
+      "snippet": "const alreadyRefunded = Number(previousRefunds._sum.amount || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 340,
-      "snippet": "const marginCents = Number(order.charge) - newCostCents;",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 402,
+      "snippet": "calculatedRefundCents = Number(safeOrder.charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 341,
-      "snippet": "const marginPercent = Number(order.charge) > 0",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 419,
+      "snippet": "refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 357,
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 602,
       "snippet": "clientPaidCents: Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 394,
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 653,
       "snippet": "throw new Error(`Недостаточно средств: баланс ${(Number(user.balance)/100).toFixed(2)} ₽, требуется ${(Number(order.charge)/100).toFixed(2)} ₽`);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 415,
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 663,
       "snippet": "await WalletOps.charge(tx, order.userId, Number(order.charge), `MANUAL_REROUTE: Order #${order.numericId}`, {",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/admin/orders.ts",
-      "line": 501,
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 755,
       "snippet": "charge: Number(order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/orders.ts",
+      "line": 835,
+      "snippet": "const formattedCost = (Number(order.charge) / 100).toFixed(2);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/smart.ts",
-      "line": 55,
+      "file": "E:/OmniSMM/src/actions/admin/provider-proxy.ts",
+      "line": 378,
+      "snippet": "const provider = await db.provider.findUnique({ where: { id: providerId } });",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/actions/admin/refills.ts",
+      "line": 77,
+      "snippet": "await redis.del(`refill:dispatched:${refillId}`).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/actions/admin/refills.ts",
+      "line": 78,
+      "snippet": "await redis.del(`refill:client-lock:${refill.orderId}`).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/admin/smart.ts",
+      "line": 56,
       "snippet": "const campaign = await db.smartCampaign.findUnique({",
       "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/admin/smart.ts",
-      "line": 117,
+      "file": "E:/OmniSMM/src/actions/admin/smart.ts",
+      "line": 137,
       "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/operator/tickets/change-status.action.ts",
-      "line": 28,
-      "snippet": "const oldTicket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/operator/tickets/reply-ticket.action.ts",
-      "line": 33,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/support-review.ts",
+      "line": 56,
+      "snippet": "amountRub: (Number(item.amountCents) / 100).toFixed(2)",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/operator/transactions/get-transactions-list.action.ts",
-      "line": 132,
+      "file": "E:/OmniSMM/src/actions/admin/support-review.ts",
+      "line": 172,
+      "snippet": "sanitizeCSV((Number(i.amountCents) / 100).toFixed(2)),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/admin/users.ts",
+      "line": 274,
+      "snippet": "const payment = await db.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/users.ts",
+      "line": 228,
+      "snippet": "const rubAmount = (Number(amount) / 100).toFixed(2);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/users.ts",
+      "line": 388,
+      "snippet": "? `Баланс клиента списан на ${(Number(amountKopecks) / 100).toFixed(2)} ₽. Заявка на возврат через ЮKassa передана финансисту.`",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/admin/users.ts",
+      "line": 389,
+      "snippet": ": `Баланс клиента списан на ${(Number(amountKopecks) / 100).toFixed(2)} ₽. Заявка создана. Внимание: шлюз ${gwName} требует ручного оформления возврата в личном кабинете эквайринга после утверждения.`",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC12_LOG_SECRET",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/actions/auth/password-login.ts",
+      "line": 260,
+      "snippet": "log.info('Auto-rehashed legacy password hash to scrypt N=65536', { userId: user.id });",
+      "message": "Sensitive secret (password, secret, apiKey, token, signature) logged in logger invocation."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/customer/payment-issue.ts",
+      "line": 37,
+      "snippet": "const payment = await db.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/customer/payment-issue.ts",
+      "line": 113,
+      "snippet": "text: `Клиент сообщил о проблеме с зачислением платежа.\\nСумма: ${(Number(payment.amount) / 100).toFixed(2)} ₽\\nШлюз: ${payment.gateway}\\nGateway ID: ${payment.gatewayId || 'отсутствует'}\\nТекущий статус в БД: ${payment.status}`,",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/actions/operator/transactions/get-transactions-list.action.ts",
+      "line": 272,
       "snippet": "amount: Number(e.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/operator/transactions/get-transactions-list.action.ts",
-      "line": 141,
+      "file": "E:/OmniSMM/src/actions/operator/transactions/get-transactions-list.action.ts",
+      "line": 284,
       "snippet": "approved: Number(approvedAgg._sum?.amount ?? 0),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/operator/transactions/get-transactions-list.action.ts",
-      "line": 142,
+      "file": "E:/OmniSMM/src/actions/operator/transactions/get-transactions-list.action.ts",
+      "line": 285,
       "snippet": "quarantine: Number(quarantineAgg._sum?.amount ?? 0),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/operator/transactions/get-transactions-list.action.ts",
-      "line": 143,
+      "file": "E:/OmniSMM/src/actions/operator/transactions/get-transactions-list.action.ts",
+      "line": 286,
       "snippet": "refunds: Math.abs(Number(refundsAgg._sum?.amount ?? 0)),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 43,
+      "file": "E:/OmniSMM/src/actions/order/catalog.ts",
+      "line": 630,
+      "snippet": "const s = await db.service.findUnique({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/actions/order/checkout.ts",
+      "line": 41,
       "snippet": "const service = await db.service.findUnique({ where: { id: serviceId } });",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 158,
-      "snippet": "const service = await db.service.findUnique({",
-      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 392,
-      "snippet": "existingOrder = await tx.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 539,
-      "snippet": "const existingOrder = await db.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 785,
-      "snippet": "const order = await db.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 835,
-      "snippet": "const existingPayment = order.payment || await tx.payment.findUnique({ where: { orderId: order.id } });",
-      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 805,
-      "snippet": "Number(order.payment.amount),",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 827,
-      "snippet": "await WalletOps.charge(tx, order.userId, Number(order.charge), `Оплата заказа с баланса`, {",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/order/checkout.ts",
-      "line": 970,
-      "snippet": "amountRub: Number(order.charge) / 100,",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/mass.ts",
-      "line": 227,
-      "snippet": "const existingOrder = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/mass.ts",
-      "line": 460,
-      "snippet": "const existingOrder = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/order/smart.ts",
-      "line": 70,
+      "file": "E:/OmniSMM/src/actions/order/smart.ts",
+      "line": 76,
       "snippet": "const campaign = await db.smartCampaign.findUnique({",
       "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/order/sync-payment.ts",
-      "line": 56,
+      "file": "E:/OmniSMM/src/actions/order/sync-payment.ts",
+      "line": 59,
       "snippet": "Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/compensation.ts",
-      "line": 47,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/offline-ticket.ts",
+      "file": "E:/OmniSMM/src/actions/support/offline-ticket.ts",
       "line": 100,
       "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
@@ -371,7 +443,7 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/offline-ticket.ts",
+      "file": "E:/OmniSMM/src/actions/support/offline-ticket.ts",
       "line": 114,
       "snippet": "const p = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
@@ -379,7 +451,7 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/offline-ticket.ts",
+      "file": "E:/OmniSMM/src/actions/support/offline-ticket.ts",
       "line": 124,
       "snippet": "const o = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
@@ -387,167 +459,71 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/offline-ticket.ts",
-      "line": 135,
-      "snippet": "const recentOrder = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 105,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 111,
-      "snippet": "const order = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 125,
-      "snippet": "const order = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 159,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 167,
-      "snippet": "const order = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 182,
-      "snippet": "const order = await db.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 239,
-      "snippet": "const oldTicket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 347,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId }, include: { user: true } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 387,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId }, include: { user: true } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 487,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 497,
-      "snippet": "const order = await tx.order.findFirst({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 576,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 602,
+      "file": "E:/OmniSMM/src/actions/support/ticket.ts",
+      "line": 752,
       "snippet": "const order = await tx.order.findUnique({ where: { id: orderId } });",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 429,
+      "file": "E:/OmniSMM/src/actions/support/ticket.ts",
+      "line": 579,
       "snippet": "const amount = Number(tempUser.balance);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/actions/support/ticket.ts",
-      "line": 698,
+      "file": "E:/OmniSMM/src/actions/support/ticket.ts",
+      "line": 847,
       "snippet": "const amt = Number(entry.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/actions/user/referral.action.ts",
-      "line": 34,
+      "file": "E:/OmniSMM/src/actions/user/referral.action.ts",
+      "line": 40,
       "snippet": "referralBalance: { decrement: transferAmount }",
       "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/catalog/quarantine/quarantine-client.tsx",
-      "line": 389,
+      "file": "E:/OmniSMM/src/actions/user/top-up.action.ts",
+      "line": 43,
+      "snippet": "const amountCents = Number(ExactMath.rublesToKopecks(amountRub));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/catalog/quarantine/quarantine-client.tsx",
+      "line": 483,
       "snippet": "const pOld = Number(oldVal.pricePer1000Cents || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/catalog/quarantine/quarantine-client.tsx",
-      "line": 390,
+      "file": "E:/OmniSMM/src/app/admin/catalog/quarantine/quarantine-client.tsx",
+      "line": 484,
       "snippet": "const pNew = Number(newVal.pricePer1000Cents || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/clients/page.tsx",
-      "line": 222,
-      "snippet": "<span className=\"font-bold font-mono text-foreground tabular-nums tracking-tight border-l border-border/50 pl-3\">{(Number(o.charge) / 100).toLocaleString('ru-RU')} ₽</span>",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/app/admin/catalog/[id]/page.tsx",
+      "line": 23,
+      "snippet": "db.service.findUnique({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/clients/[id]/client-orders-table.tsx",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/client-orders-table.tsx",
       "line": 67,
       "snippet": "<span className=\"text-[13px] font-bold tracking-tight tabular-nums font-mono text-foreground\">{(Number(o.charge) / 100).toFixed(2)} ₽</span>",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
@@ -555,47 +531,119 @@
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/clients/[id]/client-orders-table.tsx",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/client-orders-table.tsx",
       "line": 106,
       "snippet": "{(Number(o.charge) / 100).toFixed(2)} ₽",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/page.tsx",
+      "line": 216,
+      "snippet": "amountRub: Math.abs(Number(e.amount) / 100),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/page.tsx",
+      "line": 217,
+      "snippet": "amountCents: Number(e.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/page.tsx",
+      "line": 295,
+      "snippet": "chargeRub: Number(o.charge) / 100,",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/page.tsx",
+      "line": 302,
+      "snippet": "amountRub: (Number(p.amount) / 100),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/page.tsx",
+      "line": 303,
+      "snippet": "amountCents: Number(p.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/support-command-center.tsx",
+      "line": 111,
+      "snippet": "const amount = parseFloat(adjAmount);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/clients/[id]/tabs/balance-terminal-form.tsx",
+      "line": 33,
+      "snippet": "const parsedAmountRub = parseFloat(amountRub) || 0;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/admin/dashboard/page.tsx",
-      "line": 54,
+      "file": "E:/OmniSMM/src/app/admin/dashboard/page.tsx",
+      "line": 117,
       "snippet": "const oldestOrder = await db.order.findFirst({ orderBy: { createdAt: 'asc' } });",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/orders/components/lovable-orders-kanban.tsx",
-      "line": 106,
-      "snippet": "<span className=\"font-mono text-foreground/80\">{Number(o.charge).toFixed(2)} ₽</span>",
+      "file": "E:/OmniSMM/src/app/admin/finance/balance-requests/balance-requests-client.tsx",
+      "line": 348,
+      "snippet": "{fmt(Number(item.amount), isCredit)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/admin/orders/components/columns.tsx",
+      "line": 479,
+      "snippet": "const chargeNum = Number(chargeBig) / 100;",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/admin/orders/page.tsx",
-      "line": 92,
+      "file": "E:/OmniSMM/src/app/admin/orders/page.tsx",
+      "line": 158,
       "snippet": "const extraOrder = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/orders/page.tsx",
-      "line": 185,
-      "snippet": "charge: Number(o.charge),",
+      "file": "E:/OmniSMM/src/app/admin/orders/[id]/order-standalone-view.tsx",
+      "line": 77,
+      "snippet": "const chargeRub = Number(chargeBig) / 100;",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/admin/services/[id]/routing/page.tsx",
+      "file": "E:/OmniSMM/src/app/admin/orders/[id]/page.tsx",
+      "line": 26,
+      "snippet": "const order = await db.order.findFirst({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/app/admin/services/[id]/routing/page.tsx",
       "line": 11,
       "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
@@ -603,447 +651,511 @@
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 467,
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 469,
       "snippet": "<div className=\"font-bold text-foreground mt-0.5\">{(Number(activeTicket.order.charge) / 100).toFixed(2)} ₽</div>",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 562,
-      "snippet": "orders: activeTicket.user.orders.map((o: any) => ({ ...o, charge: Number(o.charge) })),",
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 575,
+      "snippet": "orders: activeTicket.user.orders.map((o: ActiveTicketUserOrder) => ({ ...o, charge: Number(o.charge) })),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 564,
-      "snippet": "payments: activeTicket.user.payments.map((p: any) => ({ ...p, amount: Number(p.amount) }))",
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 576,
+      "snippet": "payments: activeTicket.user.payments.map((p: ActiveTicketUserPayment) => ({ ...p, amount: Number(p.amount) }))",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 587,
-      "snippet": "orders: activeTicket.user.orders.map((o: any) => ({ ...o, charge: Number(o.charge) })),",
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 599,
+      "snippet": "orders: activeTicket.user.orders.map((o: ActiveTicketUserOrder) => ({ ...o, charge: Number(o.charge) })),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 589,
-      "snippet": "payments: activeTicket.user.payments.map((p: any) => ({ ...p, amount: Number(p.amount) }))",
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 600,
+      "snippet": "payments: activeTicket.user.payments.map((p: ActiveTicketUserPayment) => ({ ...p, amount: Number(p.amount) }))",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/components/unified-workspace.tsx",
-      "line": 622,
+      "file": "E:/OmniSMM/src/app/admin/tickets/components/unified-workspace.tsx",
+      "line": 633,
       "snippet": "<>Вы действительно хотите перезапустить заказ <strong>#{activeTicket?.order?.numericId}</strong>? Будет повторно списано <strong>{activeTicket?.order?.charge ? (Number(activeTicket.order.charge) / 100).toFixed(2) : '—'} ₽</strong>.</>",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/admin/tickets/page.tsx",
-      "line": 88,
-      "snippet": "const amt = Number(entry.amount);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/admin/export/route.ts",
-      "line": 59,
+      "file": "E:/OmniSMM/src/app/api/admin/export/route.ts",
+      "line": 171,
       "snippet": "(Number(o.charge) / 100).toFixed(2),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
-      "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/app/api/cron/sync-cbr/route.ts",
-      "line": 59,
-      "snippet": "await redis.del(lockKey);",
-      "message": "Mutex release without ownership token validation or Lua script guard."
-    },
-    {
-      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
-      "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/app/api/cron/sync-orders/route.ts",
-      "line": 46,
-      "snippet": "await redis.del(lockKey);",
-      "message": "Mutex release without ownership token validation or Lua script guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/dev/mock-payment/route.ts",
-      "line": 19,
-      "snippet": "const payment = await db.payment.findUnique({",
-      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/dev/mock-payment/route.ts",
-      "line": 42,
-      "snippet": "const order = await tx.order.findUnique({ where: { id: payment.orderId } });",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/api/admin/export/route.ts",
+      "line": 347,
+      "snippet": "(Number(e.amount) / 100).toFixed(2),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/dev/mock-payment/route.ts",
-      "line": 57,
-      "snippet": "await WalletOps.credit(tx, payment.userId, Number(payment.amount),",
+      "file": "E:/OmniSMM/src/app/api/admin/export/route.ts",
+      "line": 423,
+      "snippet": "(Number(p.amount) / 100).toFixed(2),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/dev/test-checkout/route.ts",
-      "line": 25,
-      "snippet": "const service = await db.service.findFirst();",
-      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/api/admin/export/route.ts",
+      "line": 510,
+      "snippet": "(Number(a.amount) / 100).toFixed(2),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/cron/sync-cbr/route.ts",
+      "line": 65,
+      "snippet": "await redis.del(lockKey);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/cron/sync-orders/route.ts",
+      "line": 50,
+      "snippet": "await redis.del(lockKey);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/media/[...path]/route.ts",
-      "line": 41,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 47,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 55,
       "snippet": "let order = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 122,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 134,
       "snippet": "const updatedOrder = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 151,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 156,
       "snippet": "let payment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 221,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 226,
       "snippet": "const updatedPayment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 74,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 82,
       "snippet": "let checkAmount = Number(order.payment.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 145,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 149,
       "snippet": "charge: Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 173,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 174,
       "snippet": "let checkAmount = Number(payment.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/order-status/route.ts",
-      "line": 232,
+      "file": "E:/OmniSMM/src/app/api/order-status/route.ts",
+      "line": 237,
       "snippet": "charge: Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/payments/[id]/status/route.ts",
-      "line": 16,
+      "file": "E:/OmniSMM/src/app/api/payments/[id]/status/route.ts",
+      "line": 25,
       "snippet": "const payment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/support/chat/stream/route.ts",
-      "line": 56,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/support/chat/stream/route.ts",
-      "line": 61,
-      "snippet": "const ticket = await db.ticket.findFirst({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/support/messages/route.ts",
-      "line": 38,
-      "snippet": "ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/support/messages/route.ts",
-      "line": 41,
-      "snippet": "ticket = await db.ticket.findFirst({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/support/messages/route.ts",
-      "line": 135,
+      "file": "E:/OmniSMM/src/app/api/support/messages/route.ts",
+      "line": 137,
       "snippet": "charge: Number(m.order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/support/upload/route.ts",
-      "line": 43,
-      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/v2/route.ts",
-      "line": 199,
-      "snippet": "const createdOrder = await db.order.findUnique({ where: { id: result.orderId }, select: { numericId: true }});",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/v2/route.ts",
-      "line": 322,
-      "snippet": "const createdOrder = await db.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/v2/route.ts",
-      "line": 368,
+      "file": "E:/OmniSMM/src/app/api/v2/route.ts",
+      "line": 568,
       "snippet": "charge: (Number(order.charge) / 100).toFixed(4),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/v2/route.ts",
-      "line": 396,
+      "file": "E:/OmniSMM/src/app/api/v2/route.ts",
+      "line": 595,
       "snippet": "charge: (Number(order.charge) / 100).toFixed(4),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/crypto/route.ts",
-      "line": 87,
-      "snippet": "const payment = await db.payment.findUnique({ where: { id: paymentId } });",
+      "file": "E:/OmniSMM/src/app/api/webhooks/crypto/route.ts",
+      "line": 184,
+      "snippet": "const payment = await db.payment.findFirst({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/crypto/route.ts",
+      "line": 248,
+      "snippet": "await redis.del(`webhook:crypto:event:${updateId}`);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/inbound-email/route.ts",
-      "line": 218,
+      "file": "E:/OmniSMM/src/app/api/webhooks/inbound-email/route.ts",
+      "line": 341,
       "snippet": "const ticket = await db.ticket.findUnique({",
       "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/provider/route.ts",
-      "line": 61,
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/route.ts",
+      "line": 95,
       "snippet": "const order = await db.order.findFirst({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/provider/route.ts",
-      "line": 82,
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/route.ts",
+      "line": 116,
       "snippet": "const providerDef = await db.provider.findUnique({ where: { id: order.providerId } });",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/provider/route.ts",
-      "line": 120,
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/route.ts",
+      "line": 154,
       "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, '(Отмена на стороне провайдера)', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/provider/route.ts",
-      "line": 137,
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/route.ts",
+      "line": 174,
       "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, '', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/robokassa/route.ts",
-      "line": 95,
-      "snippet": "const payment = await db.payment.findUnique({",
-      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/[providerName]/route.ts",
+      "line": 61,
+      "snippet": "const provider = await db.provider.findUnique({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/yookassa/route.ts",
-      "line": 154,
-      "snippet": "existingPayment = await db.payment.findUnique({ where: { id: internalPaymentId } });",
-      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/api/webhooks/yookassa/route.ts",
-      "line": 157,
-      "snippet": "existingPayment = await db.payment.findUnique({ where: { gatewayId } });",
-      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/orders/page.tsx",
-      "line": 305,
-      "snippet": "{(Number(order.charge) / 100).toLocaleString('ru-RU', {",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/orders/page.tsx",
-      "line": 348,
-      "snippet": "charge={Number(order.charge)}",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/dashboard/orders/[id]/page.tsx",
-      "line": 43,
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/[providerName]/route.ts",
+      "line": 118,
       "snippet": "const order = await db.order.findFirst({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/orders/[id]/page.tsx",
-      "line": 108,
-      "snippet": "charge={Number(order.charge)}",
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/[providerName]/route.ts",
+      "line": 154,
+      "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, `(Отмена на стороне провайдера ${providerName})`, tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/orders/[id]/page.tsx",
-      "line": 124,
-      "snippet": "{(Number(order.charge) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽",
+      "file": "E:/OmniSMM/src/app/api/webhooks/provider/[providerName]/route.ts",
+      "line": 169,
+      "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, '', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/robokassa/route.ts",
+      "line": 5,
+      "snippet": "export async function POST(req: NextRequest) {",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/robokassa/[tenantId]/route.ts",
+      "line": 5,
+      "snippet": "export async function POST(",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/robokassa/[tenantId]/route.ts",
+      "line": 13,
+      "snippet": "export async function GET(",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/dashboard/tickets/[id]/page.tsx",
-      "line": 21,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+      "file": "E:/OmniSMM/src/app/api/webhooks/vexboost/route.ts",
+      "line": 119,
+      "snippet": "const order = await db.order.findFirst({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/app/api/webhooks/vexboost/route.ts",
+      "line": 138,
+      "snippet": "const providerDef = await db.provider.findUnique({ where: { id: order.providerId } });",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/tickets/[id]/page.tsx",
-      "line": 101,
-      "snippet": "charge: Number(m.order.charge),",
+      "file": "E:/OmniSMM/src/app/api/webhooks/vexboost/route.ts",
+      "line": 162,
+      "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, '(Отмена на стороне провайдера VexBoost)', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/tickets/[id]/page.tsx",
-      "line": 173,
-      "snippet": "charge: Number(m.order.charge),",
+      "file": "E:/OmniSMM/src/app/api/webhooks/vexboost/route.ts",
+      "line": 177,
+      "snippet": "await RefundPolicyService.processRefund({ ...freshOrder, charge: Number(freshOrder.charge) }, '', tx);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/yookassa/route.ts",
+      "line": 5,
+      "snippet": "export async function POST(req: NextRequest) {",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/yookassa/[tenantId]/route.ts",
+      "line": 5,
+      "snippet": "export async function POST(",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
+    },
+    {
+      "ruleId": "SC11_MISSING_CURRENCY_CHECK",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/app/api/webhooks/yookassa/[tenantId]/route.ts",
+      "line": 13,
+      "snippet": "export async function GET(",
+      "message": "Payment confirmation/webhook handler missing explicit currency verification."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/client-demo/components/flux-views.tsx",
+      "line": 135,
+      "snippet": "const rate = parseFloat(tariff?.price || '0.03');",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/tickets/[id]/page.tsx",
-      "line": 216,
-      "snippet": "charge: Number(o.charge),",
+      "file": "E:/OmniSMM/src/app/client-demo/components/plan-views.tsx",
+      "line": 109,
+      "snippet": "const rate = parseFloat(tariff?.price || '0.03');",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/tickets/[id]/page.tsx",
-      "line": 301,
-      "snippet": "<span className=\"font-bold text-foreground\">{(Number(ticket.order.charge) / 100).toFixed(2)} ₽</span>",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/transactions/page.tsx",
-      "line": 42,
+      "file": "E:/OmniSMM/src/app/dashboard/finance/page.tsx",
+      "line": 74,
       "snippet": "amountCents: typeof entry.amount === 'bigint' ? Number(entry.amount) : entry.amount,",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/dashboard/transactions/page.tsx",
-      "line": 43,
-      "snippet": "amountRub: (Number(entry.amount) / 100),",
+      "file": "E:/OmniSMM/src/app/dashboard/finance/page.tsx",
+      "line": 75,
+      "snippet": "amountRub: Number(entry.amount) / 100,",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/app/operator/orders/page.tsx",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/page.tsx",
+      "line": 201,
+      "snippet": "charge: Number(o.charge ?? 0),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/page.tsx",
+      "line": 202,
+      "snippet": "chargeCents: Number(o.charge ?? 0),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/[id]/page.tsx",
+      "line": 28,
+      "snippet": "const order = await db.order.findFirst({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/[id]/page.tsx",
+      "line": 102,
+      "snippet": "charge={Number(order.charge)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/[id]/page.tsx",
+      "line": 119,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/orders/[id]/page.tsx",
+      "line": 223,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/page.tsx",
+      "line": 87,
+      "snippet": "charge: Number(order.charge ?? 0),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/page.tsx",
+      "line": 88,
+      "snippet": "chargeCents: Number(order.charge ?? 0),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/referrals/page.tsx",
+      "line": 99,
+      "snippet": "amountRub: Number(c.amount) / 100,",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/app/dashboard/tickets/[id]/page.tsx",
+      "line": 29,
+      "snippet": "const ticket = await db.ticket.findUnique({",
+      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/tickets/[id]/page.tsx",
+      "line": 113,
+      "snippet": "charge: Number(m.order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/tickets/[id]/page.tsx",
+      "line": 185,
+      "snippet": "charge: Number(m.order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/tickets/[id]/page.tsx",
+      "line": 228,
+      "snippet": "charge: Number(o.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/dashboard/tickets/[id]/page.tsx",
+      "line": 328,
+      "snippet": "<span className=\"font-bold text-foreground\">{(Number(ticket.order.charge) / 100).toFixed(2)} ₽</span>",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/app/operator/orders/page.tsx",
       "line": 58,
       "snippet": "charge: Number(o.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
@@ -1051,15 +1163,15 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/page.tsx",
-      "line": 34,
+      "file": "E:/OmniSMM/src/app/page.tsx",
+      "line": 94,
       "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/app/support/payment-error/page.tsx",
+      "file": "E:/OmniSMM/src/app/support/payment-error/page.tsx",
       "line": 67,
       "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
@@ -1067,143 +1179,271 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/bot/index.ts",
-      "line": 352,
+      "file": "E:/OmniSMM/src/bot/constructors/role-handlers.ts",
+      "line": 863,
       "snippet": "const category = await db.category.findUnique({",
       "message": "Master catalog model query (category) missing tenantId filter in customer-facing path."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/bot/index.ts",
-      "line": 425,
-      "snippet": "const service = await db.service.findUnique({",
-      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
-    },
-    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/bot/index.ts",
-      "line": 130,
-      "snippet": "const amount = Number(tempUser.balance);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/bot/index.ts",
-      "line": 483,
+      "file": "E:/OmniSMM/src/bot/constructors/role-handlers.ts",
+      "line": 531,
       "snippet": "`   ${o.quantity} шт. | ${(Number(o.charge) / 100).toFixed(2)}₽ | ${o.status}\\n\\n`;",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/ab-test/LovableOrderClient.tsx",
-      "line": 697,
+      "file": "E:/OmniSMM/src/bot/constructors/role-handlers.ts",
+      "line": 719,
+      "snippet": "const amount = Number(tempUser.balance);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 372,
+      "snippet": "payment = await db.payment.findUnique({ where: { id: paymentId } });",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 1000,
+      "snippet": "const category = await db.category.findUnique({",
+      "message": "Master catalog model query (category) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 1163,
+      "snippet": "const ticket = await db.ticket.findUnique({ where: { id: ticketId } });",
+      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 234,
+      "snippet": "const amount = Number(tempUser.balance);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 382,
+      "snippet": "const formattedAmount = (Number(payment.amount) / 100).toLocaleString('ru-RU');",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 955,
+      "snippet": "`   ${o.quantity} шт. | ${(Number(o.charge) / 100).toFixed(2)}₽ | ${o.status}\\n\\n`;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/bot/index.ts",
+      "line": 1118,
+      "snippet": "`   ${o.quantity} шт. | ${(Number(o.charge) / 100).toFixed(2)}₽ | ${o.status}\\n\\n`;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/bot/scenes/owner-hub.wizard.ts",
+      "line": 167,
+      "snippet": "const primaryProvider = await db.provider.findFirst({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/bot/scenes/owner-hub.wizard.ts",
+      "line": 408,
+      "snippet": "await redis.del(...allKeys);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/ab-test/flux-steps/FluxStepCheckout.tsx",
+      "line": 131,
       "snippet": "{parseFloat(price) < 10 ? \"10.00\" : price}",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/ab-test/LovableOrderClient.tsx",
-      "line": 703,
-      "snippet": "{parseFloat(price) < 10 && parseFloat(price) > 0 && (",
+      "file": "E:/OmniSMM/src/components/admin/balance/BalanceAdjustmentDrawer.tsx",
+      "line": 67,
+      "snippet": "const amountRub = (Number(adjustment.amount) / 100).toFixed(2);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/admin/catalog-table-v2.tsx",
-      "line": 267,
-      "snippet": "const originalRate = selectedService.pricePerUnitProcurementUsd ? selectedService.pricePerUnitProcurementUsd * 1000 : parseFloat(selectedService.rate || \"0\");",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/dashboard/classic/ClassicDashboardHome.tsx",
-      "line": 203,
-      "snippet": "{(Number(order.charge) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/dashboard/lovable/LovableOrdersView.tsx",
-      "line": 37,
+      "file": "E:/OmniSMM/src/components/dashboard/flux/FluxOrdersView.tsx",
+      "line": 40,
       "snippet": "charge: Number(o.charge) / 100,",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/order-wizard/StepCheckout.tsx",
-      "line": 328,
-      "snippet": "{parseFloat(price) < 10 ? \"10.00\" : price}",
+      "file": "E:/OmniSMM/src/components/dashboard/flux/FluxOrdersView.tsx",
+      "line": 41,
+      "snippet": "chargeCents: Number(o.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/order-wizard/StepCheckout.tsx",
-      "line": 334,
-      "snippet": "{parseFloat(price) < 10 && parseFloat(price) > 0 && (",
+      "file": "E:/OmniSMM/src/components/landing/catalog/StepByStepWizard.tsx",
+      "line": 65,
+      "snippet": "const pricePerUnitNumeric = parseFloat(selectedService.pricePerUnit.replace(/[^0-9.]/g, '')) || 0.18;",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/orders/MobileOrderList.tsx",
-      "line": 123,
-      "snippet": "{(Number(order.charge) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽",
+      "file": "E:/OmniSMM/src/components/orders/ChargeBreakdownModal.tsx",
+      "line": 35,
+      "snippet": "const netCents = Number(chargeCents);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/orders/MobileOrderList.tsx",
-      "line": 167,
+      "file": "E:/OmniSMM/src/components/orders/DesktopOrderCards.tsx",
+      "line": 150,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/DesktopOrderCards.tsx",
+      "line": 213,
       "snippet": "charge={Number(order.charge)}",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/orders/MobileOrderList.tsx",
-      "line": 229,
-      "snippet": "{(Number(selectedOrder.charge) / 100).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽",
+      "file": "E:/OmniSMM/src/components/orders/DesktopOrderTable.tsx",
+      "line": 175,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/orders/MobileOrderList.tsx",
-      "line": 296,
+      "file": "E:/OmniSMM/src/components/orders/DesktopOrderTable.tsx",
+      "line": 244,
+      "snippet": "charge={Number(order.charge)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 144,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 249,
+      "snippet": "{formatRubles(Number(order.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 381,
+      "snippet": "charge={Number(order.charge)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 472,
+      "snippet": "{formatRubles(Number(selectedOrder?.charge ?? 0) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 581,
+      "snippet": "{formatRubles(Number(selectedOrder.charge) / 100)}",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/components/orders/MobileOrderList.tsx",
+      "line": 631,
       "snippet": "charge={Number(selectedOrder.charge)}",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/support/chat/ChatInput.tsx",
-      "line": 283,
+      "file": "E:/OmniSMM/src/components/support/chat/ChatInput.tsx",
+      "line": 198,
       "snippet": "charge: Number(selectedOrder.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/components/support/chat/ChatMessageList.tsx",
-      "line": 412,
-      "snippet": "{(Number(msg.order.charge) / 100).toFixed(2)} ₽",
+      "file": "E:/OmniSMM/src/components/support/chat/messages/ChatAttachedOrderCard.tsx",
+      "line": 78,
+      "snippet": "{(Number(order.charge) / 100).toFixed(2)} ₽",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/circuit-breaker.ts",
+      "file": "E:/OmniSMM/src/lib/alerts/p0-alert-debouncer.ts",
+      "line": 273,
+      "snippet": "redis.del(fullKey),",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/lib/alerts/p0-alert-debouncer.ts",
+      "line": 274,
+      "snippet": "redis.del(countKey),",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/lib/cache/redis-cache.service.ts",
+      "line": 109,
+      "snippet": "await redis.del(...keys);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/lib/circuit-breaker.ts",
       "line": 59,
       "snippet": "await redis.del(`cb:${host}:failures`);",
       "message": "Mutex release without ownership token validation or Lua script guard."
@@ -1211,7 +1451,7 @@
     {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/circuit-breaker.ts",
+      "file": "E:/OmniSMM/src/lib/circuit-breaker.ts",
       "line": 60,
       "snippet": "await redis.del(`cb:${host}:open`);",
       "message": "Mutex release without ownership token validation or Lua script guard."
@@ -1219,7 +1459,7 @@
     {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/circuit-breaker.ts",
+      "file": "E:/OmniSMM/src/lib/circuit-breaker.ts",
       "line": 61,
       "snippet": "await redis.del(`cb:${host}:half_open`);",
       "message": "Mutex release without ownership token validation or Lua script guard."
@@ -1227,7 +1467,7 @@
     {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/circuit-breaker.ts",
+      "file": "E:/OmniSMM/src/lib/circuit-breaker.ts",
       "line": 62,
       "snippet": "await redis.del(`cb:${host}:probe_lock`);",
       "message": "Mutex release without ownership token validation or Lua script guard."
@@ -1235,111 +1475,183 @@
     {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/circuit-breaker.ts",
-      "line": 102,
+      "file": "E:/OmniSMM/src/lib/circuit-breaker.ts",
+      "line": 104,
       "snippet": "await redis.del(`cb:${host}:probe_lock`);",
-      "message": "Mutex release without ownership token validation or Lua script guard."
-    },
-    {
-      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
-      "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/lib/redis-lock.ts",
-      "line": 32,
-      "snippet": "await redis.del(lockKey);",
       "message": "Mutex release without ownership token validation or Lua script guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/ai-support.service.ts",
-      "line": 9,
-      "snippet": "const ticket = await db.ticket.findUnique({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+      "file": "E:/OmniSMM/src/lib/fraud/manual-review-queue.ts",
+      "line": 71,
+      "snippet": "const payment = await db.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/fraud/manual-review-queue.ts",
+      "line": 116,
+      "snippet": "const payment = await db.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/pricing/currency-invariant.ts",
+      "line": 139,
+      "snippet": "const provider = await db.provider.findUnique({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/pricing/drift-circuit-breaker.ts",
+      "line": 65,
+      "snippet": "const historical = await db.shadowService.findFirst({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/pricing/drift-circuit-breaker.ts",
+      "line": 65,
+      "snippet": "const historical = await db.shadowService.findFirst({",
+      "message": "Master catalog model query (shadowservice) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/lib/providers/circuit-breaker.ts",
+      "line": 61,
+      "snippet": "await redis.del(keyFailures);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/providers/fallback-router.ts",
+      "line": 31,
+      "snippet": "const service = await db.service.findUnique({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/lib/providers/rate-change-detector.ts",
+      "line": 29,
+      "snippet": "const current = await db.service.findUnique({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/lib/security/rate-limit.ts",
+      "line": 82,
+      "snippet": "await redis.del(k);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/analytics.service.ts",
-      "line": 65,
+      "file": "E:/OmniSMM/src/lib/smtp.ts",
+      "line": 376,
+      "snippet": "const chargedRub = Number(chargedCents) / 100;",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC05_REFUND_OVERCHARGE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/admin/ai-manual/runbooks/orders-runbooks.ts",
+      "line": 66,
+      "snippet": "instruction: 'Убедитесь, что средства возвращены клиенту через WalletOps.refund() с генерацией проводки REFUND в LedgerEntry.',",
+      "message": "WalletOps.refund invocation missing required idempotencyKey parameter."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/admin/ai-support.service.ts",
+      "line": 84,
+      "snippet": "`Заказ #${o.id}: «${sanitizeProviderData(o.service.name)}», Статус: ${o.status}, Заказано: ${o.quantity}, Остаток: ${o.remains ?? 0}, Сумма: ${(Number(o.charge) / 100).toFixed(2)} ₽${o.error ? `, Лог: ${sanitizeProviderData(o.error)}` : ''}`",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/admin/analytics.service.ts",
+      "line": 74,
       "snippet": "let revenue = Number(order.charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/catalog.service.ts",
-      "line": 284,
+      "file": "E:/OmniSMM/src/services/admin/catalog/catalog-import-preflight.ts",
+      "line": 54,
       "snippet": "const providerDbRecord = await db.provider.findUnique({ where: { id: providerId } });",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/catalog.service.ts",
-      "line": 394,
+      "file": "E:/OmniSMM/src/services/admin/catalog/catalog-import-preflight.ts",
+      "line": 88,
+      "snippet": "const latestShadow = await db.shadowService.findFirst({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/catalog/catalog-import-preflight.ts",
+      "line": 88,
+      "snippet": "const latestShadow = await db.shadowService.findFirst({",
+      "message": "Master catalog model query (shadowservice) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/catalog/catalog-sync.service.ts",
+      "line": 73,
       "snippet": "const providerDbRecord = await db.provider.findUnique({ where: { id: providerId } });",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/catalog.service.ts",
-      "line": 768,
+      "file": "E:/OmniSMM/src/services/admin/catalog/catalog-sync.service.ts",
+      "line": 240,
       "snippet": "const providerDbRecord = await db.provider.findUnique({ where: { id: providerId } });",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/escrow.service.ts",
-      "line": 118,
+      "file": "E:/OmniSMM/src/services/admin/escrow.service.ts",
+      "line": 123,
       "snippet": "const totalVolumeToday = Number(dailyAdjustments._sum.amount || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/escrow.service.ts",
-      "line": 192,
-      "snippet": "quarantineBalance: Number(user.quarantineBalance) + Math.abs(amountCents),",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/escrow.service.ts",
-      "line": 226,
+      "file": "E:/OmniSMM/src/services/admin/escrow.service.ts",
+      "line": 235,
       "snippet": "amount: Number(entry.amount),",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/escrow.service.ts",
-      "line": 257,
-      "snippet": "const absAmount = Math.abs(Number(entry.amount));",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/escrow.service.ts",
-      "line": 262,
-      "snippet": "const amount = Number(entry.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/marketing.service.ts",
-      "line": 158,
+      "file": "E:/OmniSMM/src/services/admin/marketing.service.ts",
+      "line": 165,
       "snippet": "data: { referralBalance: { decrement: amountToPayCents } },",
       "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/marketing.service.ts",
+      "file": "E:/OmniSMM/src/services/admin/marketing.service.ts",
       "line": 114,
       "snippet": "monthlyData[month] += Number(commission.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
@@ -1347,375 +1659,719 @@
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/order.service.ts",
-      "line": 265,
-      "snippet": "? Number(order.charge)",
+      "file": "E:/OmniSMM/src/services/admin/order/order-provider-sync.service.ts",
+      "line": 55,
+      "snippet": "{ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: order.quantity, status: 'CANCELED', tenantId: order.tenantId },",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/order.service.ts",
-      "line": 325,
+      "file": "E:/OmniSMM/src/services/admin/order/order-provider-sync.service.ts",
+      "line": 70,
+      "snippet": "{ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: 'PARTIAL', tenantId: order.tenantId },",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/admin/order/order-provider-sync.service.ts",
+      "line": 128,
       "snippet": "await WalletOps.charge(tx, order.userId, Number(order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/admin/order/order-status-mutator.service.ts",
+      "line": 60,
+      "snippet": "else if (['PENDING', 'PENDING_CHECK'].includes(order.status)) calculatedRefundCents = Number(order.charge);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/admin/order/order-status-mutator.service.ts",
+      "line": 80,
+      "snippet": "refundCents = Math.max(0, calculatedRefundCents - Number(previousRefunds._sum.amount || 0));",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/provider.service.ts",
-      "line": 106,
+      "file": "E:/OmniSMM/src/services/admin/provider-balance.service.ts",
+      "line": 60,
+      "snippet": "const provider = await db.provider.findUnique({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/provider.service.ts",
+      "line": 110,
       "snippet": "const p = await db.provider.findUnique({",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/admin/ticket.service.ts",
-      "line": 226,
-      "snippet": "const ticket = await db.ticket.findUnique({",
+      "file": "E:/OmniSMM/src/services/admin/services-lifecycle.service.ts",
+      "line": 393,
+      "snippet": "const category = await db.category.findUnique({ where: { id: draft.categoryId } });",
+      "message": "Master catalog model query (category) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/services-lifecycle.service.ts",
+      "line": 510,
+      "snippet": "const service = await db.service.findUnique({ where: { id: serviceId } });",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/services-lifecycle.service.ts",
+      "line": 594,
+      "snippet": "const service = await db.service.findUnique({ where: { id: serviceId } });",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/admin/ticket.service.ts",
+      "line": 243,
+      "snippet": "const ticket = await db.ticket.findFirst({",
       "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/ticket.service.ts",
-      "line": 354,
+      "file": "E:/OmniSMM/src/services/admin/ticket.service.ts",
+      "line": 376,
       "snippet": "charge: Number(m.order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/ticket.service.ts",
-      "line": 423,
+      "file": "E:/OmniSMM/src/services/admin/ticket.service.ts",
+      "line": 443,
       "snippet": "charge: Number(o.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/ticket.service.ts",
-      "line": 442,
+      "file": "E:/OmniSMM/src/services/admin/ticket.service.ts",
+      "line": 462,
       "snippet": "charge: Number(ticket.order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/ticket.service.ts",
-      "line": 466,
+      "file": "E:/OmniSMM/src/services/admin/ticket.service.ts",
+      "line": 487,
       "snippet": "charge: Number(o.charge),",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/admin/user.service.ts",
-      "line": 146,
-      "snippet": "newValue: { balance: Number(oldBalance) + amountCents, delta: amountCents, reason },",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 206,
+      "file": "E:/OmniSMM/src/services/api/webhook-dispatcher.ts",
+      "line": 14,
+      "snippet": "const order = await db.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/api/webhook-dispatcher.ts",
+      "line": 46,
+      "snippet": "chargeCents: Number(order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/bonus/bonus-issuer.service.ts",
+      "line": 84,
+      "snippet": "data: { quarantineBalance: { increment: amountBigInt } },",
+      "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
+    },
+    {
+      "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/bonus/vesting-manager.service.ts",
+      "line": 37,
+      "snippet": "data: { quarantineBalance: { decrement: log.amountCents } },",
+      "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
+    },
+    {
+      "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/bonus/vesting-manager.service.ts",
+      "line": 71,
+      "snippet": "data: { quarantineBalance: { decrement: log.amountCents } },",
+      "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
+    },
+    {
+      "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/bonus/vesting-manager.service.ts",
+      "line": 102,
+      "snippet": "data: { quarantineBalance: { decrement: log.amountCents } },",
+      "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/catalog/catalog-cache.service.ts",
+      "line": 222,
+      "snippet": "await redis.del(networkKey);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/catalog/catalog-cache.service.ts",
+      "line": 232,
+      "snippet": "await redis.del(...keys);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/catalog/catalog-cache.service.ts",
+      "line": 238,
+      "snippet": "await redis.del(...keys);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 252,
       "snippet": "db.service.findUnique({ where: { id: input.serviceId }, select: { name: true } }).then(s => {",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 230,
-      "snippet": "const order = await tx.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 278,
-      "snippet": "db.service.findUnique({ where: { id: order.serviceId }, select: { name: true } }).then(s => {",
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 352,
+      "snippet": "tx.service.findUnique({ where: { id: order.serviceId }, select: { name: true } })",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 323,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 426,
       "snippet": "const order = await tx.order.findFirst({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 413,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 535,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 496,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 617,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 267,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 342,
       "snippet": "await WalletOps.refund(tx, userId, Number(charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 353,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 456,
       "snippet": "refundCents = Number(order.charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 443,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 501,
+      "snippet": "const alreadyRefunded = Number(previousRefunds._sum.amount || 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 503,
+      "snippet": "? Math.max(0, Number(order.charge) - alreadyRefunded)",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 504,
+      "snippet": ": Math.max(0, Math.min(Number(refundCents), Number(order.charge) - alreadyRefunded));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 565,
       "snippet": "await WalletOps.refund(tx, order.userId, Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/core/order.service.ts",
-      "line": 530,
+      "file": "E:/OmniSMM/src/services/core/order.service.ts",
+      "line": 651,
       "snippet": "Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/dripfeed/smart-drip.service.ts",
-      "line": 82,
+      "file": "E:/OmniSMM/src/services/dripfeed/smart-drip.service.ts",
+      "line": 83,
       "snippet": "const service = await prisma.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/dripfeed/smart-drip.service.ts",
+      "file": "E:/OmniSMM/src/services/dripfeed/smart-drip.service.ts",
       "line": 135,
       "snippet": "const service = await tx.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/dripfeed/smart-drip.service.ts",
+      "line": 151,
+      "snippet": "const existingCampaign = await tx.smartCampaign.findUnique({",
+      "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
+    },
+    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/accounting.service.ts",
-      "line": 46,
+      "file": "E:/OmniSMM/src/services/financial/accounting.service.ts",
+      "line": 44,
       "snippet": "const amount = Number(group._sum.amount || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/accounting.service.ts",
-      "line": 73,
+      "file": "E:/OmniSMM/src/services/financial/accounting.service.ts",
+      "line": 114,
       "snippet": "refunds += Number(order.charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/accounting.service.ts",
-      "line": 157,
-      "snippet": "}).then(res => Number(res._sum.amount || 0));",
+      "file": "E:/OmniSMM/src/services/financial/accounting.service.ts",
+      "line": 216,
+      "snippet": "const grossAnnual = Number(annualPayments._sum.amount || 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/accounting.service.ts",
+      "line": 217,
+      "snippet": "const refundAnnual = Number(annualRefunds?._sum?.amount || 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/accounting.service.ts",
+      "line": 354,
+      "snippet": "}).sort((a, b) => Number(b.amountKopecks - a.amountKopecks));",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/compensation.service.ts",
+      "file": "E:/OmniSMM/src/services/financial/compensation.service.ts",
       "line": 22,
       "snippet": "const order = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/cx-apology-bonus.service.ts",
+      "line": 84,
+      "snippet": "log.info(`[Compensation GRANTED] ${Number(amountCents) / 100} RUB bonus credited to User ${userId}`);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/ledger-reconciliation.service.ts",
+      "line": 252,
+      "snippet": "const amt = Number(e.amount);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/nightly-ledger-audit.service.ts",
+      "line": 58,
+      "snippet": "const ledgerSum = Number(entry._sum.amount || 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment-gateway.service.ts",
-      "line": 248,
+      "file": "E:/OmniSMM/src/services/financial/payment-gateway.service.ts",
+      "line": 588,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment-gateway.service.ts",
-      "line": 396,
+      "file": "E:/OmniSMM/src/services/financial/payment-gateway.service.ts",
+      "line": 757,
       "snippet": "const payment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment-gateway.service.ts",
-      "line": 77,
-      "snippet": "}).then(res => Number(res._sum.amount || 0));",
+      "file": "E:/OmniSMM/src/services/financial/payment-gateway.service.ts",
+      "line": 431,
+      "snippet": "amountRub: parseFloat(data.amount?.value || String(params.amountRub)),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 81,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 100,
       "snippet": "payment = await tx.payment.findUnique({ where: { id: internalPaymentId } });",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 84,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 103,
       "snippet": "payment = await tx.payment.findUnique({ where: { gatewayId } });",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 89,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 110,
       "snippet": "? await tx.payment.findUnique({ where: { id: payment.id } })",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 90,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 111,
       "snippet": ": await tx.payment.findUnique({ where: { gatewayId } });",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 127,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 164,
+      "snippet": "const fresh = await tx.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 196,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 275,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 477,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 150,
-      "snippet": "await WalletOps.charge(tx, userId, Number(order.charge),",
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 227,
+      "snippet": "amount: Number(creditAmount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 173,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 269,
       "snippet": "amount: Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 188,
-      "snippet": "const totalChargeCents = basketOrders.reduce((sum, order) => sum + Number(order.charge), 0);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 294,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 497,
       "snippet": "await WalletOps.credit(tx, payment.userId, Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 298,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 501,
       "snippet": "await WalletOps.charge(tx, payment.userId, Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 328,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 532,
       "snippet": "await WalletOps.credit(tx, payment.userId, Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 334,
-      "snippet": "const totalChargeCents = basketOrders.reduce((sum, order) => sum + Number(order.charge), 0);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/payment.service.ts",
-      "line": 348,
+      "file": "E:/OmniSMM/src/services/financial/payment.service.ts",
+      "line": 552,
       "snippet": "await WalletOps.credit(tx, payment.userId, Number(payment.amount),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/refund-policy.service.ts",
-      "line": 43,
-      "snippet": "previousRefunds += Number(partialRefundLedger.amount);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/financial/wallet-ops.ts",
-      "line": 251,
-      "snippet": "const safeDecrement = Math.min(amountCents, Number(currentUser?.totalSpent ?? 0));",
+      "file": "E:/OmniSMM/src/services/financial/refund-policy.service.ts",
+      "line": 51,
+      "snippet": "const alreadyRefunded = Number(previousRefundsAgg._sum.amount || 0);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/marketing-utils.ts",
-      "line": 2,
+      "file": "E:/OmniSMM/src/services/financial/robokassa-webhook.handler.ts",
+      "line": 156,
+      "snippet": "const payment = await db.payment.findUnique({",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/financial/robokassa-webhook.handler.ts",
+      "line": 207,
+      "snippet": "await redis.del(replayKey).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/financial/support-balance-policy.service.ts",
+      "line": 284,
+      "snippet": "const ticket = await tx.ticket.findUnique({",
+      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/financial/support-balance-policy.service.ts",
+      "line": 325,
+      "snippet": "error: `Сумма операции (${(Number(amountCents) / 100).toFixed(2)} ₽) превышает максимально допустимый лимит на 1 операцию (${(Number(maxPerReq) / 100).toFixed(2)} ₽)`",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/financial/yookassa-webhook.handler.ts",
+      "line": 291,
+      "snippet": "existingPayment = await db.payment.findUnique({ where: { id: paymentInternalId } });",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/financial/yookassa-webhook.handler.ts",
+      "line": 294,
+      "snippet": "existingPayment = await db.payment.findUnique({ where: { gatewayId: gId } });",
+      "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/financial/yookassa-webhook.handler.ts",
+      "line": 244,
+      "snippet": "await redis.del(replayKey).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/financial/yookassa-webhook.handler.ts",
+      "line": 317,
+      "snippet": "await redis.del(replayKey).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/marketing-utils.ts",
+      "line": 3,
       "snippet": "const order = await tx.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/marketing.service.ts",
-      "line": 69,
+      "file": "E:/OmniSMM/src/services/marketing.service.ts",
+      "line": 81,
       "snippet": ": await db.service.findUnique({ where: { id: serviceId } });",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/observer/ai-observer.service.ts",
+      "line": 95,
+      "snippet": "let rev = Number(o.charge);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/orders/checkout-pipeline.service.ts",
+      "line": 89,
+      "snippet": "totalKopecks: existingOrder.charge ? Number(existingOrder.charge) : 0,",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/orders/checkout-preflight-guard.service.ts",
+      "line": 104,
+      "snippet": "const service = await db.service.findUnique({",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/post-sync-rules.ts",
+      "file": "E:/OmniSMM/src/services/orders/checkout-transaction.service.ts",
+      "line": 150,
+      "snippet": "const existingOrder = await tx.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/orders/order-triage-alert.service.ts",
+      "line": 272,
+      "snippet": "const chargeRub = (Number(order.chargeKopecks) / 100).toFixed(2);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/orders/retry-checkout.service.ts",
+      "line": 70,
+      "snippet": "Number(order.payment.amount),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/orders/retry-checkout.service.ts",
+      "line": 107,
+      "snippet": "for (const o of ordersToProcess) totalChargeCents += Number(o.charge);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/provider/order-dispatch.service.ts",
+      "line": 73,
+      "snippet": "const provider = await db.provider.findUnique({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/provider/order-dispatch.service.ts",
+      "line": 171,
+      "snippet": "const order = await db.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/provider/smart-recovery.engine.ts",
+      "line": 20,
+      "snippet": "const order = await db.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/providers/balance-autoflush.service.ts",
+      "line": 130,
+      "snippet": "const provider = await db.provider.findUnique({",
+      "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/providers/balance-autoflush.service.ts",
+      "line": 220,
+      "snippet": "await redis.del(`order:dispatched:${order.id}`).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/providers/balance-autoflush.service.ts",
+      "line": 295,
+      "snippet": "await redis.del(lockKey);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/providers/balance-autoflush.service.ts",
+      "line": 210,
+      "snippet": ": (order.charge ? Number(order.charge) / 100 : 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/providers/post-sync-rules.ts",
       "line": 140,
       "snippet": "let category = await db.category.findFirst({",
       "message": "Master catalog model query (category) missing tenantId filter in customer-facing path."
@@ -1723,7 +2379,7 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/post-sync-rules.ts",
+      "file": "E:/OmniSMM/src/services/providers/post-sync-rules.ts",
       "line": 195,
       "snippet": "let category = await db.category.findFirst({",
       "message": "Master catalog model query (category) missing tenantId filter in customer-facing path."
@@ -1731,215 +2387,367 @@
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/provider.service.ts",
-      "line": 92,
+      "file": "E:/OmniSMM/src/services/providers/provider.service.ts",
+      "line": 170,
       "snippet": "const provider = await db.provider.findFirst({",
       "message": "Master catalog model query (provider) missing tenantId filter in customer-facing path."
     },
     {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/providers/proxy-pool.service.ts",
+      "line": 194,
+      "snippet": "await redis.del(key);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/quarantine.service.ts",
-      "line": 23,
+      "file": "E:/OmniSMM/src/services/providers/quarantine.service.ts",
+      "line": 50,
       "snippet": "const service = await db.service.findUnique({ where: { id: serviceId }, select: { id: true, name: true, cooldownUntil: true }});",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/quarantine.service.ts",
-      "line": 72,
+      "file": "E:/OmniSMM/src/services/providers/quarantine.service.ts",
+      "line": 99,
       "snippet": "const service = await db.service.findUnique({ where: { id: serviceId } });",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/providers/quarantine.service.ts",
-      "line": 131,
+      "file": "E:/OmniSMM/src/services/providers/quarantine.service.ts",
+      "line": 158,
       "snippet": "const service = await db.service.findUnique({ where: { id: group.serviceId }, select: { id: true, name: true }});",
       "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
     },
     {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/support/ai-copilot.service.ts",
+      "line": 42,
+      "snippet": "const ticket = await db.ticket.findUnique({",
+      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/services/support/sentinel-concierge.service.ts",
+      "line": 21,
+      "snippet": "const order = await db.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/support/sse.service.ts",
-      "line": 49,
+      "file": "E:/OmniSMM/src/services/support/sse.service.ts",
+      "line": 50,
       "snippet": "charge: Number(fullMsg.order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/support/ticket.service.ts",
-      "line": 23,
-      "snippet": "const existing = await tx.ticket.findFirst({",
-      "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC12_LOG_SECRET",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/support/support-bot.service.ts",
+      "line": 147,
+      "snippet": "logger.warn('[SupportBot] Failed to resolve token via resolveTelegramToken', { tenantId: normTenant, error: dbErr });",
+      "message": "Sensitive secret (password, secret, apiKey, token, signature) logged in logger invocation."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/support/ticket.service.ts",
-      "line": 90,
+      "file": "E:/OmniSMM/src/services/support/ticket.service.ts",
+      "line": 204,
       "snippet": "const ticketToUpdate = await db.ticket.findUnique({",
       "message": "Tenant-scoped model query (ticket) missing tenantId filter or tenantWhere guard."
     },
     {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/support/vip-sentiment-escalator.service.ts",
+      "line": 36,
+      "snippet": "? user.orders.reduce((sum, o) => sum + Number(o.charge || 0) / 100, 0)",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
       "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
       "severity": "HIGH",
-      "file": "D:/SMM_plan_2/src/services/system/feature-flag.service.ts",
+      "file": "E:/OmniSMM/src/services/system/feature-flag.service.ts",
       "line": 89,
       "snippet": "await redis.del(cacheKey(key));",
       "message": "Mutex release without ownership token validation or Lua script guard."
     },
     {
+      "ruleId": "SC12_LOG_SECRET",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/services/telemetry/p0-threat-sensor.service.ts",
+      "line": 198,
+      "snippet": "log.info('[P0ThreatSensor] Cleaned expired sessions and auth tokens', {",
+      "message": "Sensitive secret (password, secret, apiKey, token, signature) logged in logger invocation."
+    },
+    {
       "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 108,
-      "snippet": "data: { referralBalance: { increment: comm.amount } }",
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 118,
+      "snippet": "data: { referralBalance: { increment: Number(comm.amount) } }",
       "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
     },
     {
       "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 163,
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 172,
       "snippet": "data: { referralBalance: { increment: confirmedAmount } }",
       "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
     },
     {
       "ruleId": "SC01_DIRECT_BALANCE_MUTATION",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 204,
-      "snippet": "data: { referralBalance: { decrement: comm.amount } }",
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 220,
+      "snippet": "data: { referralBalance: { decrement: decrementAmount } }",
       "message": "Direct balance/totalSpent/referralBalance/quarantineBalance mutation detected outside WalletOps service."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 64,
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 75,
       "snippet": "const existingComm = await tx.commission.findFirst({",
       "message": "Tenant-scoped model query (commission) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 115,
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 118,
+      "snippet": "data: { referralBalance: { increment: Number(comm.amount) } }",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 125,
       "snippet": "details: `Комиссия за заказ подтверждена и начислена: ${(Number(comm.amount) / 100).toFixed(2)} руб.`",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/services/users/loyalty.service.ts",
-      "line": 148,
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 157,
       "snippet": "const originalAmount = Number(comm.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/utils/refund.ts",
-      "line": 19,
-      "snippet": "const charge = Number(order.charge);",
+      "file": "E:/OmniSMM/src/services/users/loyalty.service.ts",
+      "line": 210,
+      "snippet": "const commAmount = Number(comm.amount);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/cleanup.processor.ts",
-      "line": 303,
+      "file": "E:/OmniSMM/src/workers/index.ts",
+      "line": 159,
+      "snippet": "const currentOrder = await db.order.findUnique({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/jobs/provider-status-sync.job.ts",
+      "line": 72,
+      "snippet": "charge: Number(order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/jobs/provider-status-sync.job.ts",
+      "line": 88,
+      "snippet": "charge: Number(order.charge),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/payment-reconciliation.ts",
+      "line": 118,
+      "snippet": "amountRub: (Number(payment.amount) / 100).toFixed(2),",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 223,
+      "snippet": "const firstOrder = await tx.order.findFirst({",
+      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 435,
       "snippet": "const recovered = await db.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/cleanup.processor.ts",
-      "line": 320,
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 451,
       "snippet": "const refundRub = (Number(orphan.charge) / 100).toFixed(2);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/cleanup.processor.ts",
-      "line": 463,
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 671,
       "snippet": "refundCents = Number(charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/cleanup.processor.ts",
-      "line": 474,
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 688,
       "snippet": "refundCents = Number(charge);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/cleanup.processor.ts",
-      "line": 643,
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 757,
+      "snippet": "const alreadyRefunded = Number(previousRefunds._sum.amount || 0);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 761,
+      "snippet": "effectiveRefundCents = Math.max(0, Number(order.charge) - alreadyRefunded);",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 763,
+      "snippet": "effectiveRefundCents = Math.max(0, Math.min(refundCents, Number(order.charge) - alreadyRefunded));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
+    },
+    {
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/processors/cleanup.processor.ts",
+      "line": 914,
       "snippet": "Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/workers/processors/dripfeed-watchdog.ts",
+      "line": 69,
+      "snippet": "await redis.del(WATCHDOG_LOCK_KEY);",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/dripfeed.processor.ts",
-      "line": 12,
+      "file": "E:/OmniSMM/src/workers/processors/dripfeed.processor.ts",
+      "line": 14,
       "snippet": "const campaign = await prisma.smartCampaign.findUnique({",
       "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/dripfeed.processor.ts",
-      "line": 51,
-      "snippet": "const order = await tx.order.findUnique({",
-      "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
-    },
-    {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/dripfeed.processor.ts",
-      "line": 63,
+      "file": "E:/OmniSMM/src/workers/processors/dripfeed.processor.ts",
+      "line": 65,
       "snippet": "const refundCents = Math.floor(Number(order.charge) * refundRatio);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/order.processor.ts",
-      "line": 17,
-      "snippet": "const order = await db.order.findUnique({",
+      "file": "E:/OmniSMM/src/workers/processors/order/order-route-evaluator.ts",
+      "line": 91,
+      "snippet": "shadowSvc = await db.shadowService.findUnique({",
+      "message": "Master catalog model query (service) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/workers/processors/order/order-route-evaluator.ts",
+      "line": 91,
+      "snippet": "shadowSvc = await db.shadowService.findUnique({",
+      "message": "Master catalog model query (shadowservice) missing tenantId filter in customer-facing path."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/workers/processors/order/types.ts",
+      "line": 15,
+      "snippet": "return database.order.findUnique({",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/payment-gateway.processor.ts",
-      "line": 14,
+      "file": "E:/OmniSMM/src/workers/processors/payment-gateway.processor.ts",
+      "line": 61,
       "snippet": "const payment = await db.payment.findUnique({",
       "message": "Tenant-scoped model query (payment) missing tenantId filter or tenantWhere guard."
     },
     {
-      "ruleId": "SC03_TENANTLESS_LOOKUP",
-      "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/quality-detector.processor.ts",
-      "line": 23,
-      "snippet": "const campaign = await prisma.smartCampaign.findUnique({",
-      "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
+      "ruleId": "SC09_FLOAT_MONEY",
+      "severity": "MEDIUM",
+      "file": "E:/OmniSMM/src/workers/processors/payment-sync.ts",
+      "line": 156,
+      "snippet": "const realAmountCents = Number(ExactMath.rublesToKopecks(data.amount.value));",
+      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC03_TENANTLESS_LOOKUP",
       "severity": "CRITICAL",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
+      "file": "E:/OmniSMM/src/workers/processors/quality-detector.processor.ts",
+      "line": 24,
+      "snippet": "const campaign = await prisma.smartCampaign.findUnique({",
+      "message": "Tenant-scoped model query (smartcampaign) missing tenantId filter or tenantWhere guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/workers/processors/refill.processor.ts",
+      "line": 134,
+      "snippet": "await redis.del(mutexKey).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC08_UNSAFE_MUTEX_RELEASE",
+      "severity": "HIGH",
+      "file": "E:/OmniSMM/src/workers/processors/refill.processor.ts",
+      "line": 169,
+      "snippet": "await redis.del(mutexKey).catch(() => {});",
+      "message": "Mutex release without ownership token validation or Lua script guard."
+    },
+    {
+      "ruleId": "SC03_TENANTLESS_LOOKUP",
+      "severity": "CRITICAL",
+      "file": "E:/OmniSMM/src/workers/processors/sync.processor.ts",
       "line": 19,
       "snippet": "const fresh = await tx.order.findUnique({ where: { id: orderId } });",
       "message": "Tenant-scoped model query (order) missing tenantId filter or tenantWhere guard."
@@ -1947,43 +2755,27 @@
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
-      "line": 144,
-      "snippet": "await RefundPolicyService.processRefund({ ...updated, charge: Number(updated.charge) }, undefined, tx);",
+      "file": "E:/OmniSMM/src/workers/processors/sync.processor.ts",
+      "line": 202,
+      "snippet": "charge: Number(order.charge),",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
-      "line": 162,
-      "snippet": "await RefundPolicyService.processRefund({ ...updated, charge: Number(updated.charge) }, '(Орфан-заказ: провайдер удалил заказ)', tx);",
+      "file": "E:/OmniSMM/src/workers/processors/sync.processor.ts",
+      "line": 269,
+      "snippet": "await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeCancelRemains, status: 'CANCELED', tenantId: order.tenantId }, 'Авто-возврат: провайдер отменил заказ', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     },
     {
       "ruleId": "SC09_FLOAT_MONEY",
       "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
-      "line": 180,
-      "snippet": "await RefundPolicyService.processRefund({ ...updated, charge: Number(updated.charge) }, '(Ошибка синхронизации или истек таймер)', tx);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
-      "line": 195,
-      "snippet": "await RefundPolicyService.processRefund({ ...updated, charge: Number(updated.charge) }, '(Отмена на стороне провайдера)', tx);",
-      "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
-    },
-    {
-      "ruleId": "SC09_FLOAT_MONEY",
-      "severity": "MEDIUM",
-      "file": "D:/SMM_plan_2/src/workers/processors/sync.processor.ts",
-      "line": 210,
-      "snippet": "await RefundPolicyService.processRefund({ ...updated, charge: Number(updated.charge) }, undefined, tx);",
+      "file": "E:/OmniSMM/src/workers/processors/sync.processor.ts",
+      "line": 285,
+      "snippet": "await RefundPolicyService.processRefund({ id: order.id, userId: order.userId, charge: Number(order.charge), quantity: order.quantity, remains: safeRemains, status: 'PARTIAL', tenantId: order.tenantId }, 'Авто-возврат за недовыполненную часть заказа', tx);",
       "message": "Floating point conversion (parseFloat/Number) used for monetary values without integer cents parsing."
     }
   ],
-  "timestamp": "2026-07-25T16:06:25.021Z"
+  "timestamp": "2026-09-25T00:02:57.980Z"
 }

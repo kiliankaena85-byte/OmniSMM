@@ -48,7 +48,10 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
   const traceId = job.data?.metadata?.traceId || generateTraceId();
 
   return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: 'OrderProcessor' }, async () => {
-    const { order, redisKey } = await OrderPreflightGuard.validateAndFetchOrder(job);
+    const { order, redisKey, lockHeld } = await OrderPreflightGuard.validateAndFetchOrder(job);
+    if (lockHeld) {
+      throw new Error(`[OrderProcessor] Order ${job.data?.orderId} is currently locked by another concurrent process. Retrying via BullMQ backoff.`);
+    }
     if (!order) return;
 
     const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);

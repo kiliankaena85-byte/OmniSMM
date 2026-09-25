@@ -11,7 +11,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getClientIp } from '@/utils/ip';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdmin, auditAdminAwaitable } from '@/lib/admin-audit';
 import { WalletOps } from '@/services/financial/wallet-ops';
 import { CompensationService } from '@/services/financial/compensation.service';
 
@@ -804,7 +804,7 @@ export async function bulkRefundOrdersAction(ticketId: string, orderIds: string[
     }
 
     const ipAddress = await getClientIp('unknown');
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'TICKET_BULK_REFUND',
