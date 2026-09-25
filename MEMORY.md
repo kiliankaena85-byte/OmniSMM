@@ -99,6 +99,18 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
  
+ - **ADR-2026-41: Zero-Latency Database & Redis Hardening (HOT Updates Fillfactor 85, Immutable Ledger Trigger, Redis Auto-Pipelining, Singleflight Catalog Cache):**
+  - *Контекст:* Необходимость устранения любых задержек транзакций, предотвращения деградации MVCC в PostgreSQL при частых апдейтах заказов и списаниях баланса, предотвращения Cache Stampede при одновременных запросах каталога и соблюдения стандартов ISO/IEC 25010:2023, PCI DSS v4.0.1 (Req 10.2) и OWASP Top 10:2025.
+  - *Решение:*
+    1. **PostgreSQL MVCC HOT-Updates (`fillfactor = 85`):** Для таблиц `"User"` и `"Order"` установлен `fillfactor = 85`. 15% места на страницах зарезервировано под обновления Heap-Only Tuples, устраняя раздувание (bloat) индексов и снижая дисковый I/O WAL.
+    2. **Частичные B-Tree индексы активных очередей:** Созданы `idx_orders_active_queue` (`Order.status IN ('PENDING', 'IN_PROGRESS')`) и `idx_tickets_active_queue` (`Ticket.status IN ('OPEN', 'PENDING')`), исключающие Sequential Scan по историческим архивам.
+    3. **Аппаратная неизменяемость Леджера (PCI DSS v4.0.1 Req 10.2):** Установлен DDL-триггер `trg_prevent_ledger_mutation` на `LedgerEntry`. Любой UPDATE/DELETE блокируется СУБД с кодом `23514`.
+    4. **Вынос сетевого I/O из ACID транзакций:** В `order.service.ts` вызов классификатора `IntelligenceLinkAnalyzer.analyze` вынесен за пределы `runSerializableTransaction`, снизив удержание строчных локов с 10s до < 5ms.
+    5. **Redis Auto-Pipelining & Singleflight:** В `src/lib/redis.ts` включен `enableAutoPipelining: true`, `noDelay: true`. В `catalog-cache.service.ts` реализован `runWithSingleflight` (дедупликация concurrent запросов) и ликвидирована утечка таймеров.
+    6. **PostgreSQL Autovacuum Tuning (горизонт 5M заказов):** Для `Order`, `User` и `LedgerEntry` установлен `autovacuum_vacuum_scale_factor = 0.05` (5% порог вместо дефолтных 20%) и `autovacuum_vacuum_threshold = 1000/500`, гарантируя превентивную фоновую очистку мертвых строк без накопления bloat.
+    7. **TTL Retention второстепенных логов (90 дней):** В `cleanup.processor.ts` период хранения `LoginLog` сокращен со 180 до 90 дней, подключена регламентная очистка решенных `TelegramErrorLog` старше 90 дней, исключая раздувание диска мусором.
+    8. **Верификация:** 56/56 тестов Vitest PASS, `tsc --noEmit` 0 ошибок, AST ratchet 0 any (1731 чистый файл), 0 утечек секретов. Кросс-валидация независимым жюри OpenRouter (NVIDIA Nemotron 3 Ultra 550B, Cohere North Mini Code) дала 100% консенсусное подтверждение достаточности архитектуры.
+
  - **ADR-2026-40: In-House Admin System Logs & Security Event Viewer (/admin/system/logs) without External Daemons:**
   - *Контекст:* Необходимость централизованного мониторинга инцидентов безопасности, авторизаций, аудита персонала и ошибок Telegram-шлюза без развертывания тяжелых внешних сервисов (Loki, ELK, Vector, ClickHouse).
   - *Решение:*

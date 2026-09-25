@@ -34,7 +34,7 @@ const log = logger.child({ component: 'CleanupProcessor' });
 
 /** Retention policy constants */
 const ANALYTICS_RETENTION_DAYS = 90;
-const LOGIN_LOG_RETENTION_DAYS = 180;
+const LOGIN_LOG_RETENTION_DAYS = 90;
 
 export async function runCleanup(): Promise<void> {
   const startedAt = Date.now();
@@ -157,6 +157,26 @@ export async function runCleanup(): Promise<void> {
     }
   } catch (err) {
     log.error('Failed to cleanup empty categories in maintenance cycle', { error: err });
+  }
+
+  // ── 3.11. TelegramErrorLog: resolved errors older than 90 days ─────────────
+  try {
+    const telegramLogThreshold = new Date(now);
+    telegramLogThreshold.setDate(telegramLogThreshold.getDate() - 90);
+
+    const telegramLogResult = await db.telegramErrorLog.deleteMany({
+      where: {
+        isResolved: true,
+        createdAt: { lt: telegramLogThreshold },
+      },
+    });
+
+    log.info('TelegramErrorLog (resolved) cleanup done', {
+      deleted: telegramLogResult.count,
+      olderThan: telegramLogThreshold.toISOString(),
+    });
+  } catch (err) {
+    log.error('Failed to prune old resolved TelegramErrorLog records', { error: err });
   }
 
   // ── 4. Orders: Zombie AWAITING_PAYMENT ────────────────────────────────────

@@ -118,3 +118,13 @@
 - 🧹 [`.agents/rules/code-hygiene-lint.md`](.agents/rules/code-hygiene-lint.md) — Strict Types, No-Crutch Policy (анти-костыли), Server Actions, React 19 / Next.js 16.
 - 🧠 [`.agents/rules/memory-and-swarms.md`](.agents/rules/memory-and-swarms.md) — 4-Tier Memory, GraphRAG (:8100), Состязательный аудит Red Team, Zero-Hallucination 3-Tier Hierarchy.
 - 🛡️ [`.agents/rules/security-and-postmortem.md`](.agents/rules/security-and-postmortem.md) — Pentest Immunity (OWASP Top 10:2025, PCI DSS 4.0), RFC 9116/9331, Production Post-Mortem Hard Invariants.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -68,7 +68,7 @@ export class LoyaltyService {
 
     const effectivePercent = await this.getReferralPercent(user.referredById);
     const orderAmount = BigInt(depositAmountCents);
-    const commissionCentsBig = (orderAmount * BigInt(effectivePercent)) / 100n;
+    const commissionCentsBig = (orderAmount * BigInt(Math.round(effectivePercent * 100))) / 10000n;
     const commissionCents = Number(commissionCentsBig);
     if (commissionCents <= 0) return;
 
@@ -120,24 +120,14 @@ export class LoyaltyService {
       const tenantId = referrer?.tenantId || 'smmplan';
       const commAmount = BigInt(comm.amount);
 
-      // Ledger-First: Record referral commission in ledger
-      await tx.ledgerEntry.create({
-        data: {
-          userId: comm.referrerId,
-          tenantId,
-          amount: commAmount,
-          reason: `Начисление реферальной комиссии за заказ ${orderId}`,
-          status: 'APPROVED',
-          idempotencyKey: `ref_comm_${comm.id}`,
-          transactionType: 'REFERRAL_COMMISSION',
-        }
-      });
-
-      // Increment referrer's referral balance ONLY upon confirmation
-      await tx.user.update({
-        where: { id: comm.referrerId },
-        data: { referralBalance: { increment: Number(comm.amount) } }
-      });
+      const { WalletOps } = await import('@/services/financial/wallet-ops');
+      await WalletOps.referralCredit(
+        tx,
+        comm.referrerId,
+        commAmount,
+        `Начисление реферальной комиссии за заказ ${orderId}`,
+        { tenantId, idempotencyKey: `ref_comm_${comm.id}`, transactionType: 'REFERRAL_COMMISSION' }
+      );
 
       await tx.auditLog.create({
         data: {
@@ -194,24 +184,14 @@ export class LoyaltyService {
         });
         const tenantId = referrer?.tenantId || 'smmplan';
 
-        // Ledger-First: Record partial commission in ledger
-        await tx.ledgerEntry.create({
-          data: {
-            userId: comm.referrerId,
-            tenantId,
-            amount: confirmedAmountBig,
-            reason: `Частичное начисление реферальной комиссии за заказ ${orderId}`,
-            status: 'APPROVED',
-            idempotencyKey: `ref_comm_partial_${comm.id}`,
-            transactionType: 'REFERRAL_COMMISSION',
-          }
-        });
-
-        // Increment balance by the partial confirmed amount
-        await tx.user.update({
-          where: { id: comm.referrerId },
-          data: { referralBalance: { increment: confirmedAmount } }
-        });
+        const { WalletOps } = await import('@/services/financial/wallet-ops');
+        await WalletOps.referralCredit(
+          tx,
+          comm.referrerId,
+          confirmedAmountBig,
+          `Частичное начисление реферальной комиссии за заказ ${orderId}`,
+          { tenantId, idempotencyKey: `ref_comm_partial_${comm.id}`, transactionType: 'REFERRAL_COMMISSION' }
+        );
 
         await tx.auditLog.create({
           data: {
@@ -255,24 +235,14 @@ export class LoyaltyService {
         });
         const tenantId = referrer?.tenantId || 'smmplan';
 
-        // Ledger-First: Record reversal in ledger
-        await tx.ledgerEntry.create({
-          data: {
-            userId: comm.referrerId,
-            tenantId,
-            amount: -BigInt(comm.amount),
-            reason: `Отзыв реферальной комиссии за отмену заказа ${orderId}`,
-            status: 'APPROVED',
-            idempotencyKey: `ref_reversal_${comm.id}`,
-            transactionType: 'REFERRAL_REVERSAL',
-          }
-        });
-
-        // Decrement full commission amount even if balance goes negative
-        await tx.user.update({
-          where: { id: comm.referrerId },
-          data: { referralBalance: { decrement: commAmount } }
-        });
+        const { WalletOps } = await import('@/services/financial/wallet-ops');
+        await WalletOps.referralDebit(
+          tx,
+          comm.referrerId,
+          commAmount,
+          `Отзыв реферальной комиссии за отмену заказа ${orderId}`,
+          { tenantId, idempotencyKey: `ref_reversal_${comm.id}`, transactionType: 'REFERRAL_REVERSAL' }
+        );
       }
 
       await tx.auditLog.create({
@@ -285,3 +255,5 @@ export class LoyaltyService {
     }
   }
 }
+
+

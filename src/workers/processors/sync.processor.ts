@@ -93,11 +93,14 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
 
         // multiStatus API with Timeout and 2-Tier Fallback
         let statuses: Record<string, any> = {};
+        let batchTimer: NodeJS.Timeout | undefined;
         try {
           const syncStartTime = Date.now();
           statuses = await Promise.race([
             provider.getMultiOrderStatus(allExtIds),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('PROVIDER_TIMEOUT')), 15000))
+            new Promise<never>((_, reject) => {
+              batchTimer = setTimeout(() => reject(new Error('PROVIDER_TIMEOUT')), 15000);
+            })
           ]);
           const elapsedMs = Date.now() - syncStartTime;
 
@@ -142,6 +145,8 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
               } catch { /* skip individual failure */ }
             }));
           }
+        } finally {
+          if (batchTimer) clearTimeout(batchTimer);
         }
 
         // 3. Update orders based on responses
@@ -324,33 +329,9 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
     log.error('Failed to execute Quarantine Service tasks', { cause: e });
   }
 
-  // Sweep Orphaned PENDING Orders (> 15m) — Re-enqueue instead of destructive auto-cancel
-  try {
-    const orphanThreshold = new Date(Date.now() - 15 * 60 * 1000);
-    const orphanOrders = await db.order.findMany({
-      where: {
-        status: 'PENDING',
-        updatedAt: { lt: orphanThreshold },
-        externalId: null
-      },
-      select: { id: true, numericId: true, tenantId: true }
-    });
+  // Note: Orphaned PENDING orders are swept canonically by cleanup.processor.ts (runOrphanSweep)
+  // with strict concurrency checks, idempotency guards, and bounded batches (take: 100).
 
-    if (orphanOrders.length > 0) {
-      log.warn(`Found ${orphanOrders.length} orphaned PENDING orders. Re-enqueuing to dispatch queue...`);
-      const { ordersQueue } = await import('@/lib/queue-manager');
-      for (const orphan of orphanOrders) {
-        try {
-          await ordersQueue.add('order-dispatch', { orderId: orphan.id, tenantId: orphan.tenantId }, { jobId: `dispatch-${orphan.id}-${Date.now()}` });
-          log.info(`[SyncProcessor] Re-enqueued orphan order #${orphan.numericId} (ID: ${orphan.id})`);
-        } catch (enqueueErr) {
-          log.error(`[SyncProcessor] Failed to re-enqueue orphan order #${orphan.numericId}`, { error: enqueueErr });
-        }
-      }
-    }
-  } catch (e: unknown) {
-    log.error('Failed to execute Orphan Sweeper', { cause: e });
-  }
 
   // Smart Auto-Flush: PENDING_CHECK orders if provider balance restored
   try {

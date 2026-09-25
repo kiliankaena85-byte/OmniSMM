@@ -49,7 +49,7 @@ export function getBasePrismaClient(): PrismaClient {
         : ['error', 'warn'],
     });
 
-  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_RUNTIME !== 'edge') {
+  if (process.env.NEXT_RUNTIME !== 'edge') {
     globalForPrisma.rawPrisma = rawPrisma;
   }
   return rawPrisma;

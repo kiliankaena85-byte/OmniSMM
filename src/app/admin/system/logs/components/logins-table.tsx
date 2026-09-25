@@ -2,7 +2,7 @@
 
 import { LoginLogDTO } from '@/types/system-logs.dto';
 import { CheckCircle2, XCircle, LogIn } from 'lucide-react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+import { Table } from '@/components/admin/hero-ui';
 
 interface LoginsTableProps {
   items: LoginLogDTO[];
@@ -47,42 +47,44 @@ export function LoginsTable({ items }: LoginsTableProps) {
     <>
       {/* Desktop View: HeroUI Table (Hidden on Mobile) */}
       <div className="hidden md:block w-full">
-        <Table aria-label="Таблица попыток авторизации" classNames={{ wrapper: "bg-card shadow-sm border border-border" }}>
-          <TableHeader>
-            <TableColumn>Дата и время</TableColumn>
-            <TableColumn>Email аккаунта</TableColumn>
-            <TableColumn>Статус</TableColumn>
-            <TableColumn>Причина сбоя</TableColumn>
-            <TableColumn>IP адрес</TableColumn>
-            <TableColumn>Клиент (User-Agent)</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs font-medium">{item.email}</span>
-                </TableCell>
-                <TableCell>{renderStatus(item.success)}</TableCell>
-                <TableCell>
-                  {item.failReason ? (
-                    <span className="px-1.5 py-0.5 rounded bg-muted text-[11px] text-rose-400 font-mono">{item.failReason}</span>
-                  ) : <span className="text-muted-foreground/60">—</span>}
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-muted-foreground">{item.ipAddress}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="text-muted-foreground max-w-[220px] truncate" title={item.userAgent || ''}>
-                    {item.userAgent || '—'}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="bg-card shadow-sm border border-border rounded-xl overflow-hidden">
+          <Table aria-label="Таблица попыток авторизации">
+            <Table.Header>
+              <Table.Column>Дата и время</Table.Column>
+              <Table.Column>Email аккаунта</Table.Column>
+              <Table.Column>Статус</Table.Column>
+              <Table.Column>Причина сбоя</Table.Column>
+              <Table.Column>IP адрес</Table.Column>
+              <Table.Column>Клиент (User-Agent)</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {items.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-xs font-medium">{item.email}</span>
+                  </Table.Cell>
+                  <Table.Cell>{renderStatus(item.success)}</Table.Cell>
+                  <Table.Cell>
+                    {item.failReason ? (
+                      <span className="px-1.5 py-0.5 rounded bg-muted text-[11px] text-rose-400 font-mono">{item.failReason}</span>
+                    ) : <span className="text-muted-foreground/60">—</span>}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-muted-foreground">{item.ipAddress}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="text-muted-foreground max-w-[220px] truncate" title={item.userAgent || ''}>
+                      {item.userAgent || '—'}
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
       </div>
 
       {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
@@ -99,19 +101,17 @@ export function LoginsTable({ items }: LoginsTableProps) {
               {item.failReason && (
                 <div className="flex justify-between">
                   <span>Причина:</span>
-                  <span className="text-rose-400 font-mono text-right">{item.failReason}</span>
+                  <span className="text-rose-400 font-mono">{item.failReason}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>IP:</span>
-                <span className="font-mono text-foreground text-right">{item.ipAddress}</span>
+                <span className="font-mono text-foreground">{item.ipAddress}</span>
               </div>
-              {item.userAgent && (
-                <div className="flex flex-col text-[11px] opacity-70 mt-1">
-                  <span>Клиент:</span>
-                  <span className="truncate" title={item.userAgent}>{item.userAgent}</span>
-                </div>
-              )}
+              <div className="flex justify-between items-center gap-2">
+                <span>Клиент:</span>
+                <span className="text-muted-foreground truncate max-w-[180px]">{item.userAgent || '—'}</span>
+              </div>
             </div>
           </div>
         ))}

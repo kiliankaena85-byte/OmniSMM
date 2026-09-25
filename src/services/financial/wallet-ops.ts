@@ -27,7 +27,7 @@ export class WalletUserNotFoundError extends Error {
 
 export class WalletInvalidAmountError extends Error {
   readonly code = 'INVALID_AMOUNT';
-  constructor(action: 'Charge' | 'Credit' | 'Adjustment' | 'Refund') {
+  constructor(action: 'Charge' | 'Credit' | 'Adjustment' | 'Refund' | 'Debit') {
     super(`${action} amount must be a strictly positive finite number.`);
     this.name = 'WalletInvalidAmountError';
   }
@@ -561,6 +561,118 @@ export const WalletOps = {
     // No ledgerEntry.create here intentionally.
     // The caller (escrow.service resolveQuarantine) already updated the original
     // QUARANTINE entry to APPROVED/REJECTED via updateMany before calling this method.
+  },
+
+  /**
+   * Safe referral credit mechanism (e.g., from partner purchases).
+   * Modifies referralBalance instead of main balance.
+   */
+  async referralCredit(
+    tx: PrismaTx,
+    userId: string,
+    amountCents: number | bigint,
+    reason: string,
+    opts?: WalletOpsOptions
+  ) {
+    const rawCents = typeof amountCents === 'bigint' ? amountCents : BigInt(amountCents);
+    if (rawCents <= BigInt(0)) {
+      throw new WalletInvalidAmountError('Credit');
+    }
+
+    const { idempotencyKey, adminId, tenantId, transactionType } = opts || {};
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { id: true, tenantId: true }
+    });
+
+    if (!user || (tenantId && user.tenantId !== tenantId)) {
+      throw new WalletUserNotFoundError(userId);
+    }
+    const resolvedTenantId = tenantId || user.tenantId || 'smmplan';
+
+    if (idempotencyKey) {
+      const existing = await tx.ledgerEntry.findFirst({
+        where: { idempotencyKey, tenantId: resolvedTenantId },
+      });
+      if (existing) return { success: true, entry: existing, cached: true };
+    }
+
+    const entry = await tx.ledgerEntry.create({
+      data: {
+        userId,
+        tenantId: resolvedTenantId,
+        amount: rawCents,
+        reason,
+        status: 'APPROVED',
+        transactionType: transactionType || 'REFERRAL_COMMISSION',
+        idempotencyKey,
+        adminId,
+      }
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { referralBalance: { increment: Number(rawCents) } }
+    });
+
+    return { success: true, entry, cached: false };
+  },
+
+  /**
+   * Safe referral debit mechanism (e.g., from order cancellations).
+   * Modifies referralBalance instead of main balance.
+   */
+  async referralDebit(
+    tx: PrismaTx,
+    userId: string,
+    amountCents: number | bigint,
+    reason: string,
+    opts?: WalletOpsOptions
+  ) {
+    const rawCents = typeof amountCents === 'bigint' ? amountCents : BigInt(amountCents);
+    if (rawCents <= BigInt(0)) {
+      throw new WalletInvalidAmountError('Debit');
+    }
+
+    const { idempotencyKey, adminId, tenantId, transactionType } = opts || {};
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { id: true, tenantId: true }
+    });
+
+    if (!user || (tenantId && user.tenantId !== tenantId)) {
+      throw new WalletUserNotFoundError(userId);
+    }
+    const resolvedTenantId = tenantId || user.tenantId || 'smmplan';
+
+    if (idempotencyKey) {
+      const existing = await tx.ledgerEntry.findFirst({
+        where: { idempotencyKey, tenantId: resolvedTenantId },
+      });
+      if (existing) return { success: true, entry: existing, cached: true };
+    }
+
+    const entry = await tx.ledgerEntry.create({
+      data: {
+        userId,
+        tenantId: resolvedTenantId,
+        amount: -rawCents,
+        reason,
+        status: 'APPROVED',
+        transactionType: transactionType || 'REFERRAL_REVERSAL',
+        idempotencyKey,
+        adminId,
+      }
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { referralBalance: { decrement: Number(rawCents) } }
+    });
+
+    return { success: true, entry, cached: false };
   },
 };
 

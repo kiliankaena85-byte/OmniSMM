@@ -105,7 +105,7 @@ interface PostSyncResult {
  * Применяет все пост-синк правила к базе.
  * Вызывать ПОСЛЕ завершения синхронизации.
  */
-export async function applyPostSyncRules(): Promise<PostSyncResult> {
+export async function applyPostSyncRules(tenantId: string = 'smmplan'): Promise<PostSyncResult> {
   const result: PostSyncResult = {
     blacklisted: 0,
     hidden: 0,
@@ -133,7 +133,7 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
 
   // Preload all categories and networks into Map to eliminate N+1 queries (DEF-005)
   const [allCategories, allNetworks] = await Promise.all([
-    db.category.findMany(),
+    db.category.findMany({ where: { tenantId } }),
     db.network.findMany(),
   ]);
 
@@ -149,7 +149,7 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
     let cat = categoryMap.get(key);
     if (!cat) {
       cat = await db.category.create({
-        data: { name, networkId, sort: 0 },
+        data: { name, networkId, sort: 0, tenantId },
       });
       categoryMap.set(key, cat);
     }
@@ -228,7 +228,7 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
 
   // 5. Удалить пустые категории
   const emptyCats = await db.category.findMany({
-    where: { services: { none: {} } },
+    where: { tenantId, services: { none: {} } },
   });
   if (emptyCats.length > 0) {
     await db.category.deleteMany({

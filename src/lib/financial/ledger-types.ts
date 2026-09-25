@@ -19,7 +19,9 @@ export const LEDGER_TRANSACTION_TYPES = [
   'COMPENSATION', // 🎁 Бонус / компенсация клиенту
   'REROUTE',      // 🔄 Перезапуск/перемаршрутизация заказа (повторное списание)
   // legacy — остаётся для обратной совместимости со старыми записями в БД
-  'PAYMENT',      // (устаревший) — был общим типом до v2.0
+  'PAYMENT',
+  'REFERRAL_COMMISSION',
+  'REFERRAL_REVERSAL',
 ] as const;
 
 export type LedgerTransactionType = typeof LEDGER_TRANSACTION_TYPES[number];
@@ -73,6 +75,16 @@ export const LEDGER_TYPE_CONFIG: Record<LedgerTransactionType, LedgerTypeConfig>
     emoji: '💰',
     badgeClass: 'bg-muted text-muted-foreground border-border',
   },
+  REFERRAL_COMMISSION: {
+    label: 'Реферальная комиссия',
+    emoji: '💸',
+    badgeClass: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
+  },
+  REFERRAL_REVERSAL: {
+    label: 'Отзыв комиссии',
+    emoji: '📉',
+    badgeClass: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
+  },
 };
 
 /**
@@ -109,12 +121,14 @@ export const LEDGER_TYPE_FILTER_OPTIONS: Array<{ value: string; label: string }>
   { value: 'REFUND',       label: '↩️ Авто-возврат' },
   { value: 'COMPENSATION', label: '🎁 Бонус / компенсация' },
   { value: 'ADJUSTMENT',   label: '⚙️ Ручная корректировка' },
-  { value: 'REROUTE',      label: '🔄 Перезапуск заказа' },
+  { value: 'REROUTE', label: 'Перезапуск заказа' },
+  { value: 'REFERRAL_COMMISSION', label: 'Реферальная комиссия' },
+  { value: 'REFERRAL_REVERSAL', label: 'Отзыв комиссии' },
 ];
 
 /** Zod-энум для валидации параметров фильтра в Server Actions */
 export const LEDGER_TYPE_ZOD_VALUES = [
   'ALL', 'TOPUP', 'ORDER_CHARGE', 'ORDER_CANCEL',
-  'REFUND', 'COMPENSATION', 'ADJUSTMENT', 'REROUTE', 'PAYMENT',
+  'REFUND', 'COMPENSATION', 'ADJUSTMENT', 'REROUTE', 'PAYMENT', 'REFERRAL_COMMISSION', 'REFERRAL_REVERSAL',
 ] as const;
 export type LedgerTypeFilterValue = typeof LEDGER_TYPE_ZOD_VALUES[number];

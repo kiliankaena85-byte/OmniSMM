@@ -73,7 +73,9 @@ export interface LogStatsDTO {
   telegramErrorsCount: number;
 }
 
-export interface SystemLogsResult<T> {
+export type AnyLogItemDTO = SecurityEventDTO | LoginLogDTO | AdminAuditLogDTO | TelegramErrorLogDTO;
+
+export interface SystemLogsResult<T = AnyLogItemDTO> {
   category: LogCategory;
   items: T[];
   total: number;

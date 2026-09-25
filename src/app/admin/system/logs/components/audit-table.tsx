@@ -2,7 +2,7 @@
 
 import { AdminAuditLogDTO } from '@/types/system-logs.dto';
 import { Eye, History, ShieldCheck } from 'lucide-react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button } from "@heroui/react";
+import { Table, Button } from '@/components/admin/hero-ui';
 
 interface AuditTableProps {
   items: AdminAuditLogDTO[];
@@ -37,53 +37,56 @@ export function AuditTable({ items, onInspect }: AuditTableProps) {
   return (
     <>
       <div className="hidden md:block w-full">
-        <Table aria-label="Таблица аудита действий администраторов" classNames={{ wrapper: "bg-card shadow-sm border border-border" }}>
-          <TableHeader>
-            <TableColumn>Дата и время</TableColumn>
-            <TableColumn>Администратор</TableColumn>
-            <TableColumn>Действие</TableColumn>
-            <TableColumn>Тип сущности</TableColumn>
-            <TableColumn>ID сущности</TableColumn>
-            <TableColumn>IP адрес</TableColumn>
-            <TableColumn align="end">Дифф</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs">{item.adminEmail}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] bg-primary/10 text-primary border border-primary/20">
-                    <ShieldCheck className="w-3 h-3" />
-                    {item.action}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="px-1.5 py-0.5 rounded bg-muted text-[11px] text-muted-foreground font-mono">
-                    {item.targetType}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="font-mono text-muted-foreground max-w-[140px] truncate" title={item.target}>
-                    {item.target}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-muted-foreground">{item.ipAddress || '—'}</span>
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="flat" onPress={() => onInspect(item)} startContent={<Eye className="w-3.5 h-3.5" />}>
-                    Изменения
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="bg-card shadow-sm border border-border rounded-xl overflow-hidden">
+          <Table aria-label="Таблица аудита действий администраторов">
+            <Table.Header>
+              <Table.Column>Дата и время</Table.Column>
+              <Table.Column>Администратор</Table.Column>
+              <Table.Column>Действие</Table.Column>
+              <Table.Column>Тип сущности</Table.Column>
+              <Table.Column>ID сущности</Table.Column>
+              <Table.Column>IP адрес</Table.Column>
+              <Table.Column className="text-right">Дифф</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {items.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-xs">{item.adminEmail}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] bg-primary/10 text-primary border border-primary/20">
+                      <ShieldCheck className="w-3 h-3" />
+                      {item.action}
+                    </span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="px-1.5 py-0.5 rounded bg-muted text-[11px] text-muted-foreground font-mono">
+                      {item.targetType}
+                    </span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="font-mono text-muted-foreground max-w-[140px] truncate" title={item.target}>
+                      {item.target}
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-muted-foreground">{item.ipAddress || '—'}</span>
+                  </Table.Cell>
+                  <Table.Cell className="text-right">
+                    <Button size="sm" variant="secondary" onClick={() => onInspect(item)}>
+                      <Eye className="w-3.5 h-3.5 mr-1" />
+                      Изменения
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
       </div>
 
       <div className="md:hidden flex flex-col gap-3">
@@ -113,7 +116,8 @@ export function AuditTable({ items, onInspect }: AuditTableProps) {
             </div>
             
             <div className="mt-2 flex justify-end border-t border-border/50 pt-2">
-              <Button size="sm" variant="flat" onPress={() => onInspect(item)} startContent={<Eye className="w-3.5 h-3.5" />}>
+              <Button size="sm" variant="secondary" onClick={() => onInspect(item)}>
+                <Eye className="w-3.5 h-3.5 mr-1" />
                 Изменения
               </Button>
             </div>

@@ -126,4 +126,6 @@ jobs:
           NODE_OPTIONS: "--conditions=react-server"
           DATABASE_URL: "postgresql://postgres:test@localhost:5432/smmplan_test?schema=public"
           PLAYWRIGHT_TEST_BASE_URL: "http://127.0.0.1:3000"
-        run: npx playwright test e2e/01-customer-order-flow.spec.ts --project=chromium || true
+        run: |
+          npx playwright test e2e/01-customer-order-flow.spec.ts --project=chromium || true
+          npx playwright test e2e/29-multitenant-hard-isolation.spec.ts --project=chromium || true

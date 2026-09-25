@@ -180,16 +180,17 @@ export class CBRRateService {
         });
         const targetSlugs = new Set(['smmplan', 'flux', ...activeTenants.map((t) => t.slug)]);
         if (tenantId) targetSlugs.add(tenantId);
-        for (const slug of targetSlugs) {
-          await SettingsManager.setExchangeRateUSD(systemRate, slug);
-        }
+        
+        await Promise.allSettled(
+          Array.from(targetSlugs).map(slug => SettingsManager.setExchangeRateUSD(systemRate, slug))
+        );
       } catch {
-        for (const t of ['smmplan', 'flux']) {
-          await SettingsManager.setExchangeRateUSD(systemRate, t);
-        }
-        if (tenantId && tenantId !== 'smmplan' && tenantId !== 'flux') {
-          await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
-        }
+        const fallbackSlugs = new Set(['smmplan', 'flux']);
+        if (tenantId) fallbackSlugs.add(tenantId);
+        
+        await Promise.allSettled(
+          Array.from(fallbackSlugs).map(slug => SettingsManager.setExchangeRateUSD(systemRate, slug))
+        );
       }
 
       return { nominalRate: usdRate, systemRate, crossRates, updated: true };

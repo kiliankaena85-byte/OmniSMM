@@ -5,6 +5,7 @@ import { getSystemLogs } from '@/actions/admin/system-logs';
 import {
   type LogCategory,
   type SystemLogsResult,
+  type AnyLogItemDTO,
   type SecurityEventDTO,
   type LoginLogDTO,
   type AdminAuditLogDTO,
@@ -18,14 +19,14 @@ import { LogDetailsModal } from './log-details-modal';
 import { LogsStatCards } from './logs-stat-cards';
 import { LogsFilterBar } from './logs-filter-bar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/admin/hero-ui';
 
 interface SystemLogsClientProps {
-  initialData: SystemLogsResult<any>;
+  initialData: SystemLogsResult<AnyLogItemDTO>;
 }
 
 export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
-  const [data, setData] = useState<SystemLogsResult<any>>(initialData);
+  const [data, setData] = useState<SystemLogsResult<AnyLogItemDTO>>(initialData);
   const [category, setCategory] = useState<LogCategory>(initialData.category || 'security');
   const [search, setSearch] = useState('');
   const [severity, setSeverity] = useState('ALL');
@@ -103,7 +104,7 @@ export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
       <div className={`transition-opacity duration-200 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
         {category === 'security' && (
           <SecurityTable
-            items={data.items}
+            items={data.items as SecurityEventDTO[]}
             onInspect={(item: SecurityEventDTO) =>
               setModalState({
                 isOpen: true,
@@ -117,7 +118,7 @@ export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
         {category === 'logins' && <LoginsTable items={data.items as LoginLogDTO[]} />}
         {category === 'audit' && (
           <AuditTable
-            items={data.items}
+            items={data.items as AdminAuditLogDTO[]}
             onInspect={(item: AdminAuditLogDTO) =>
               setModalState({
                 isOpen: true,
@@ -135,7 +136,7 @@ export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
         )}
         {category === 'telegram' && (
           <TelegramTable
-            items={data.items}
+            items={data.items as TelegramErrorLogDTO[]}
             onInspect={(item: TelegramErrorLogDTO) =>
               setModalState({
                 isOpen: true,
@@ -161,11 +162,11 @@ export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
           </div>
           <div className="flex items-center gap-1.5">
             <Button
-              isIconOnly
               size="sm"
-              variant="flat"
-              onPress={() => handlePageChange(data.page - 1)}
-              isDisabled={data.page <= 1 || isPending}
+              variant="secondary"
+              onClick={() => handlePageChange(data.page - 1)}
+              disabled={data.page <= 1 || isPending}
+              className="h-8 w-8 p-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -173,11 +174,11 @@ export function SystemLogsClient({ initialData }: SystemLogsClientProps) {
               {data.page} / {data.totalPages}
             </span>
             <Button
-              isIconOnly
               size="sm"
-              variant="flat"
-              onPress={() => handlePageChange(data.page + 1)}
-              isDisabled={data.page >= data.totalPages || isPending}
+              variant="secondary"
+              onClick={() => handlePageChange(data.page + 1)}
+              disabled={data.page >= data.totalPages || isPending}
+              className="h-8 w-8 p-0"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

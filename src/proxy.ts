@@ -549,6 +549,8 @@ export async function proxy(request: NextRequest) {
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml' ||
+    pathname === '/security.txt' ||
+    pathname === '/.well-known/security.txt' ||
     pathname === '/api/v1/internal-sync' || // honeypot itself
     pathname === '/api/security/challenge' ||
     pathname === '/api/maintenance-status' ||

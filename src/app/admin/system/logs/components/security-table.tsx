@@ -2,7 +2,7 @@
 
 import { SecurityEventDTO } from '@/types/system-logs.dto';
 import { Eye, ShieldAlert, AlertTriangle, Info } from 'lucide-react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button } from "@heroui/react";
+import { Table, Button } from '@/components/admin/hero-ui';
 
 interface SecurityTableProps {
   items: SecurityEventDTO[];
@@ -64,36 +64,39 @@ export function SecurityTable({ items, onInspect }: SecurityTableProps) {
     <>
       {/* Desktop View: HeroUI Table (Hidden on Mobile) */}
       <div className="hidden md:block w-full">
-        <Table aria-label="Таблица событий безопасности" classNames={{ wrapper: "bg-card shadow-sm border border-border" }}>
-          <TableHeader>
-            <TableColumn>Дата и время</TableColumn>
-            <TableColumn>Событие</TableColumn>
-            <TableColumn>Уровень</TableColumn>
-            <TableColumn>IP адрес</TableColumn>
-            <TableColumn align="end">Детали</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs font-medium">{item.event}</span>
-                </TableCell>
-                <TableCell>{renderSeverityBadge(item.severity)}</TableCell>
-                <TableCell>
-                  <span className="font-mono text-muted-foreground">{item.ip || '—'}</span>
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="flat" onPress={() => onInspect(item)} startContent={<Eye className="w-3.5 h-3.5" />}>
-                    Контекст
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="bg-card shadow-sm border border-border rounded-xl overflow-hidden">
+          <Table aria-label="Таблица событий безопасности">
+            <Table.Header>
+              <Table.Column>Дата и время</Table.Column>
+              <Table.Column>Событие</Table.Column>
+              <Table.Column>Уровень</Table.Column>
+              <Table.Column>IP адрес</Table.Column>
+              <Table.Column className="text-right">Детали</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {items.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <span className="font-mono text-[11px] text-muted-foreground">{formatDate(item.createdAt)}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-xs font-medium">{item.event}</span>
+                  </Table.Cell>
+                  <Table.Cell>{renderSeverityBadge(item.severity)}</Table.Cell>
+                  <Table.Cell>
+                    <span className="font-mono text-muted-foreground">{item.ip || '—'}</span>
+                  </Table.Cell>
+                  <Table.Cell className="text-right">
+                    <Button size="sm" variant="secondary" onClick={() => onInspect(item)}>
+                      <Eye className="w-3.5 h-3.5 mr-1" />
+                      Контекст
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
       </div>
 
       {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
@@ -107,7 +110,8 @@ export function SecurityTable({ items, onInspect }: SecurityTableProps) {
             <div className="font-mono text-sm font-medium">{item.event}</div>
             <div className="flex items-center justify-between mt-1">
               <span className="font-mono text-xs text-muted-foreground">IP: {item.ip || '—'}</span>
-              <Button size="sm" variant="flat" onPress={() => onInspect(item)} startContent={<Eye className="w-3.5 h-3.5" />}>
+              <Button size="sm" variant="secondary" onClick={() => onInspect(item)}>
+                <Eye className="w-3.5 h-3.5 mr-1" />
                 Контекст
               </Button>
             </div>

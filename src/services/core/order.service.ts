@@ -50,6 +50,20 @@ class OrderService {
 
       const isDripFeed = input.runs ? input.runs > 1 : false;
 
+      // 1b. Pre-flight Link Analysis BEFORE opening serializable transaction to eliminate external HTTP I/O lock holding (P0 Latency & Lock Hazard)
+      let preDetectedLinkType = 'generic_link';
+      if (!input.isLinkOverridden) {
+        try {
+          const { IntelligenceLinkAnalyzer } = await import('@/services/analyzer/link-analyzer');
+          const analyzer = new IntelligenceLinkAnalyzer();
+          const analysis = await analyzer.analyze(input.link.trim());
+          preDetectedLinkType = analysis?.type || 'generic_link';
+        } catch (e) {
+          console.warn(`[OrderService] IntelligenceLinkAnalyzer error:`, e);
+          preDetectedLinkType = 'generic_link';
+        }
+      }
+
       // 2. Atomic Charge & Creation (Prevents Ghost Deductions)
       const newOrder = await runSerializableTransaction(async (tx) => {
         // 2a. Fetch User tenant and validate service tenant isolation
@@ -98,19 +112,10 @@ class OrderService {
           throw new Error('SERVICE_INACTIVE');
         }
 
-        // 2a.1 Link-Service Domain Compatibility Check
+        // 2a.1 Link-Service Domain Compatibility Check (In-memory, zero network latency)
         if (!input.isLinkOverridden) {
           const { isLinkServiceCompatible, getCompatibilityError, normalizeServiceTargetType } = await import('@/constants/link-service-compatibility');
-          let detectedLinkType = 'generic_link';
-          try {
-            const { IntelligenceLinkAnalyzer } = await import('@/services/analyzer/link-analyzer');
-            const analyzer = new IntelligenceLinkAnalyzer();
-            const analysis = await analyzer.analyze(input.link.trim());
-            detectedLinkType = analysis?.type || 'generic_link';
-          } catch (e) {
-            console.warn(`[OrderService] IntelligenceLinkAnalyzer error:`, e);
-            detectedLinkType = 'generic_link';
-          }
+          const detectedLinkType = preDetectedLinkType;
           const resolvedTargetType = service.targetType || (service.category?.name ? (await import('@/utils/target-type')).inferTargetTypeFromCategory(service.category.name) : 'POST');
           const serviceTargetType = normalizeServiceTargetType(resolvedTargetType);
 
