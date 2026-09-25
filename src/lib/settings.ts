@@ -1,3 +1,5 @@
+import { getTenantFallbackBranding } from './tenant-branding';
+export { getTenantFallbackBranding };
 import { db } from "@/lib/db";
 import { SystemSettings, UsnScheme } from "@prisma/client";
 import { VaultService } from "./vault";
@@ -46,8 +48,6 @@ export type ContactAndLegalSettings = {
   LEGAL_ADDRESS: string;
 };
 
-import { getTenantFallbackBranding } from './tenant-branding';
-export { getTenantFallbackBranding };
 
 /**
  * SettingsProvider: Optimized, cached, and Zod-validated source for system settings.
