@@ -52,6 +52,16 @@ export async function register() {
           console.warn('[Instrumentation] Failed to load watchdog daemon:', watchdogImportErr);
         }
       }
+
+      // Preload all dynamic tenants & domains into L1 Memory, L2 Redis and VALID_TENANTS
+      try {
+        const { DomainRegistryService } = await import('@/services/tenant/domain-registry.service');
+        DomainRegistryService.preloadAllTenants().catch((err) => {
+          console.warn('[Instrumentation] Tenant domain preload warning:', err);
+        });
+      } catch (domainImportErr) {
+        console.warn('[Instrumentation] Failed to load DomainRegistryService:', domainImportErr);
+      }
     }
   }
 }

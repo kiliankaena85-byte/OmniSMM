@@ -1,16 +1,15 @@
 ---
 name: concurrency-acid-guard
-description: >
-  Архитектурный скилл защиты от состояний гонки (Race Conditions, TOCTOU, Lost Updates)
-  и обеспечения ACID-гарантий в финансовых транзакциях, списаниях баланса и обработке заказов OmniSMM.
-  Применяй этот скилл ВСЕГДА, когда затрагиваются: User.balance, WalletOps, LedgerEntry,
-  параллельное списание или пополнение средств, списание квот, изменение статусов заказов,
-  блокировки строк в PostgreSQL (SELECT ... FOR UPDATE, FOR UPDATE SKIP LOCKED),
-  уровни изоляции транзакций (Read Committed, Repeatable Read, Serializable),
-  детекция утечек контекста транзакции (Transaction Escape: db.* внутри tx: PrismaTx),
-  распределенные блокировки в Redis (Redlock / ioredis SET NX EX), точные финансовые вычисления
-  ExactMath в копейках (BigInt) с банковским округлением (Half-Even), а также предотвращение
-  двойных трат (Double-Spending) и дедупликация через idempotencyKey (P2002).
+description: "Используй этот скилл ВСЕГДА, когда Архитектурный скилл защиты от
+  состояний гонки (Race Conditions, TOCTOU, Lost Updates) и обеспечения
+  ACID-гарантий в финансовых транзакциях, списаниях баланса и обработке заказов
+  OmniSMM. Применяй этот скилл ВСЕГДА, когда затрагиваются: User.balance,
+  WalletOps, LedgerEntry, параллельное списание или пополнение средств, списание
+  квот, изменение статусов заказов, блокировки строк в PostgreSQL (SELECT ...
+  FOR UPDATE, FOR UPDATE SKIP LOCKED), уровни изоляции транзакций (Read
+  Committed, Repeatable Read, Serializable), детекция утечек контекста
+  транзакции (Transaction Escape: db.* внутри. НЕ применять для верстки UI или
+  стилизации компонентов Tailwind CSS."
 ---
 
 # Concurrency & ACID Guard — Защита от состояний гонки и финансовая целостность OmniSMM

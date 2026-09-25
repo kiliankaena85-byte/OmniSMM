@@ -171,8 +171,26 @@ export class CBRRateService {
         // Non-blocking cache update
       }
 
-      // Update in DB with the spread-adjusted system rate
-      await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
+      // Update in DB with the spread-adjusted system rate for all active tenants in DB
+      try {
+        const { db } = await import('@/lib/db');
+        const activeTenants = await db.tenant.findMany({
+          where: { isActive: true },
+          select: { slug: true }
+        });
+        const targetSlugs = new Set(['smmplan', 'flux', ...activeTenants.map((t) => t.slug)]);
+        if (tenantId) targetSlugs.add(tenantId);
+        for (const slug of targetSlugs) {
+          await SettingsManager.setExchangeRateUSD(systemRate, slug);
+        }
+      } catch {
+        for (const t of ['smmplan', 'flux']) {
+          await SettingsManager.setExchangeRateUSD(systemRate, t);
+        }
+        if (tenantId && tenantId !== 'smmplan' && tenantId !== 'flux') {
+          await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
+        }
+      }
 
       return { nominalRate: usdRate, systemRate, crossRates, updated: true };
     } catch (error: unknown) {

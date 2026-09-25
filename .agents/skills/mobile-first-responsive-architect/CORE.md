@@ -1,4 +1,6 @@
 # CORE: mobile-first-responsive-architect (Mobile & Touch Standard)
+
+## 🛑 HARD INVARIANTS
 1. **Mobile-First (320–390px):** Стили по умолчанию строятся для смартфона (`w-full flex-col`). Брейкпоинты (`sm:`, `md:`, `lg:`) — только для прогрессивного расширения.
 2. **Touch Target Floor:** Минимальная область клика интерактивных элементов $\ge 44 \times 44\text{px}$ (WCAG 2.2 AA). Зазор между кнопками $\ge 8\text{px}$.
 3. **Safe Area Insets:** Нижние фиксированные панели обязаны включать `pb-[calc(1rem+env(safe-area-inset-bottom,0px))]` или `pb-safe`.

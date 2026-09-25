@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const reactPlugin = typeof react === 'function' ? react : react?.default;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [reactPlugin ? reactPlugin() : []],
   test: {
     environment: 'node',
     exclude: [
@@ -16,15 +20,15 @@ export default defineConfig({
       '**/.planning/**',
       'scripts/**',
     ],
-    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)', 'src/**/*.{test,spec}.{ts,tsx}'],
     clearMocks: true,
     restoreMocks: true,
     unstubGlobals: true,
     maxWorkers: 1,
     fileParallelism: false,
-    retry: 3,
-    testTimeout: 120000,
-    hookTimeout: 120000,
+    retry: 0,
+    testTimeout: 60000,
+    hookTimeout: 60000,
     setupFiles: ['./test/setup.ts'],
     globals: true,
     alias: {

@@ -65,6 +65,13 @@ jobs:
       - name: TypeScript Type Check
         run: npx tsc --noEmit
 
+      - name: Anthropic Agent Skills Specification & Unit Tests
+        run: npm run test:skills
+
+      - name: OmniSMM Architectural Skills Standard & Health Audit
+        run: npm run lint:skills:arch -- --ci
+
+
       - name: Run ESLint Security Verification
         run: npx eslint src/
 

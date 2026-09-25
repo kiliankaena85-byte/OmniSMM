@@ -277,7 +277,7 @@ export async function GET(request: Request) {
       }
 
       case 'profitability': {
-        const stats = await analyticsService.getServiceProfitability(30);
+        const stats = await analyticsService.getServiceProfitability(30, effectiveTenantId);
         csv = toCsv(
           ['Услуга', 'Категория', 'Заказов', 'Выручка ₽', 'Себестоимость ₽', 'Прибыль ₽', 'Маржа %'],
           stats.map(s => [

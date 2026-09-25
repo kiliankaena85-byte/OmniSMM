@@ -59,9 +59,18 @@ export class ProviderStatusSyncJob {
 
             if (targetStatus && targetStatus !== order.status) {
               await db.$transaction(async (tx) => {
+                const remainsNum = statusResult.remains !== undefined ? parseInt(String(statusResult.remains), 10) : undefined;
+                const parsedRemains = (remainsNum !== undefined && !isNaN(remainsNum)) ? remainsNum : undefined;
+                const safeRemains = targetStatus === 'PARTIAL'
+                  ? Math.min(order.quantity, Math.max(0, parsedRemains ?? order.remains ?? 0))
+                  : undefined;
+
                 await tx.order.update({
                   where: { id: order.id },
-                  data: { status: targetStatus },
+                  data: {
+                    status: targetStatus,
+                    ...(targetStatus === 'PARTIAL' ? { remains: safeRemains ?? order.remains } : {}),
+                  },
                 });
 
                 if (targetStatus === 'CANCELED') {
@@ -79,15 +88,13 @@ export class ProviderStatusSyncJob {
                     tx
                   );
                 } else if (targetStatus === 'PARTIAL') {
-                  const remainsNum = statusResult.remains !== undefined ? parseInt(String(statusResult.remains), 10) : 0;
-                  const safeRemains = Math.min(order.quantity, Math.max(0, isNaN(remainsNum) ? 0 : remainsNum));
                   await RefundPolicyService.processRefund(
                     {
                       id: order.id,
                       userId: order.userId,
                       charge: Number(order.charge),
                       quantity: order.quantity,
-                      remains: safeRemains,
+                      remains: safeRemains ?? order.remains,
                       status: 'PARTIAL',
                       tenantId: order.tenantId,
                     },

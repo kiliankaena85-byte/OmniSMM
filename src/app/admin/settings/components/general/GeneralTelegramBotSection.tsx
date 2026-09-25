@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Sparkles, Unlink, ShieldCheck, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
+import { getTenantFallbackBranding } from '@/lib/tenant-branding';
 import type { BotTestResult } from './types';
 
 interface GeneralTelegramBotSectionProps {
@@ -51,6 +52,8 @@ export function GeneralTelegramBotSection({
   botTestResult,
   handleTestBot,
 }: GeneralTelegramBotSectionProps) {
+  const branding = getTenantFallbackBranding(tenantId);
+
   return (
     <Card className="rounded-3xl border border-border/60 shadow-lg bg-card/70 backdrop-blur-xl p-6 sm:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-5">
@@ -62,7 +65,7 @@ export function GeneralTelegramBotSection({
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-foreground">Telegram Бот Поддержки</h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                {tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}
+                {branding.name}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -105,9 +108,9 @@ export function GeneralTelegramBotSection({
               <DialogTitle className="text-lg font-bold">Отвязать Telegram-бота?</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Вы уверены, что хотите отвязать бота <strong className="text-foreground">@{telegramBot}</strong> от бренда <strong className="text-foreground">{tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}</strong>?
+              Вы уверены, что хотите отвязать бота <strong className="text-foreground">@{telegramBot}</strong> от бренда <strong className="text-foreground">{branding.name}</strong>?
               <br /><br />
-              ⚠️ Клиенты сайта <strong className="text-foreground">{tenantId === 'flux' ? 'smmflux.ru' : 'smmplan.pro'}</strong> потеряют возможность обращаться в поддержку через Telegram, пока не будет подключен новый бот. Настройки других брендов затронуты не будут.
+              ⚠️ Клиенты сайта <strong className="text-foreground">{branding.domain}</strong> потеряют возможность обращаться в поддержку через Telegram, пока не будет подключен новый бот. Настройки других брендов затронуты не будут.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 pt-4">
@@ -143,7 +146,7 @@ export function GeneralTelegramBotSection({
             name="contactTelegramBot"
             value={telegramBot}
             onChange={(e) => setTelegramBot(e.target.value)}
-            placeholder={tenantId === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot'}
+            placeholder={branding.bot || `${tenantId}_support_bot`}
             className="font-mono text-xs"
           />
           <p className="text-[11px] text-muted-foreground">
@@ -163,7 +166,7 @@ export function GeneralTelegramBotSection({
             name="contactTelegramChannel"
             value={telegramChannel}
             onChange={(e) => setTelegramChannel(e.target.value)}
-            placeholder={tenantId === 'flux' ? '@smmflux_news' : '@smmplan_news'}
+            placeholder={`@${branding.name.toLowerCase()}_news`}
             className="font-mono text-xs"
           />
           <p className="text-[11px] text-muted-foreground">

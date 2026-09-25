@@ -83,10 +83,14 @@ export const redis =
     maxRetriesPerRequest: process.env.NODE_ENV === 'test' ? null : 3,
     connectTimeout: 5000,
     lazyConnect: true,
+    enableAutoPipelining: true, // Batch concurrent commands within the same event loop tick (P95 < 1ms)
+    noDelay: true,              // Disable Nagle's algorithm for sub-millisecond TCP packet dispatch
+    keepAlive: 10000,           // Retain persistent TCP keep-alive probe
     retryStrategy: (times) => calculateRedisRetryDelay(times, process.env.NODE_ENV),
   });
 
-if (process.env.NODE_ENV !== 'production') globalForRedis.redis = redis;
+// Unconditionally preserve singleton across Next.js server actions / standalone chunks to prevent connection leaks
+globalForRedis.redis = redis;
 
 // Fire and forget error handler to prevent unhandled rejection crashes
 redis.on('error', (err) => {

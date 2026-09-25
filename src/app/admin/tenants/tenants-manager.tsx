@@ -61,6 +61,9 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
   const [domain, setDomain] = useState('');
   const [customDomain, setCustomDomain] = useState('');
   const [themePreset, setThemePreset] = useState<'sky' | 'violet' | 'emerald' | 'amber' | 'rose' | 'indigo' | 'slate'>('sky');
+  const [cloneCatalog, setCloneCatalog] = useState(true);
+  const [cloneSourceTenant, setCloneSourceTenant] = useState('smmplan');
+  const [markupPercent, setMarkupPercent] = useState<number>(15);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -79,7 +82,10 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
         slug,
         domain,
         customDomain: customDomain ? customDomain : null,
-        themeVariant: themePreset
+        themeVariant: themePreset,
+        cloneCatalog,
+        cloneSourceTenant,
+        markupPercent: Number(markupPercent) || 0,
       });
 
       if (res.success && res.data) {
@@ -444,6 +450,47 @@ export function TenantsManager({ initialTenants }: TenantsManagerProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/20 space-y-2.5">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-foreground text-xs select-none">
+                  <input
+                    type="checkbox"
+                    checked={cloneCatalog}
+                    onChange={(e) => setCloneCatalog(e.target.checked)}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary border-border"
+                  />
+                  <span>Скопировать готовый каталог услуг (Turnkey White-Label)</span>
+                </label>
+                
+                {cloneCatalog && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 animate-in fade-in duration-200">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">Источник услуг</label>
+                      <select
+                        value={cloneSourceTenant}
+                        onChange={(e) => setCloneSourceTenant(e.target.value)}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-background border border-border text-foreground text-xs"
+                      >
+                        {tenants.map((t) => (
+                          <option key={t.id} value={t.slug}>{t.name} ({t.domain})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">Наценка к ценам (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="500"
+                        value={markupPercent}
+                        onChange={(e) => setMarkupPercent(Number(e.target.value))}
+                        placeholder="15"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-background border border-border text-foreground font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="p-3.5 rounded-lg bg-secondary/40 border border-border/50 space-y-2 text-[11px] text-muted-foreground">

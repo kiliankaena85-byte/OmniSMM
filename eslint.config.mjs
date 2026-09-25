@@ -59,6 +59,16 @@ export default tseslint.config(
     }
   },
   {
+    files: [
+      "src/__tests__/multitenant-e2e-matrix.test.ts",
+      "src/__tests__/unit/true-multitenancy-full-isolation.test.ts",
+      "src/__tests__/unit/zero-any-ratchet.test.ts"
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error"
+    }
+  },
+  {
     ignores: [
       ".next/**",
       "node_modules/**",

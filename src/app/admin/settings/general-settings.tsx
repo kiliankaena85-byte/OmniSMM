@@ -8,6 +8,7 @@ import { toggleTenantMaintenanceAction } from '@/actions/admin/tenants';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import type { SystemSettings } from '@prisma/client';
+import { getTenantFallbackBranding } from '@/lib/tenant-branding';
 import {
   GeneralMaintenanceSection,
   GeneralBrandingSection,
@@ -29,10 +30,11 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
   const [isDisconnectingBot, startDisconnectBotTransition] = useTransition();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Live Preview States (Tenant-Aware Defaults)
-  const defaultSiteName = tenantId === 'flux' ? 'SMMflux' : 'SMMplan';
-  const defaultEmail = tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro';
-  const defaultPrivacyEmail = tenantId === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro';
+  // Live Preview States (Tenant-Aware Defaults for arbitrary N-tenants)
+  const branding = getTenantFallbackBranding(tenantId);
+  const defaultSiteName = branding.name;
+  const defaultEmail = branding.supportEmail;
+  const defaultPrivacyEmail = branding.privacyEmail;
 
   const [maintenance, setMaintenance] = useState<boolean>(Boolean(settings.maintenanceMode));
   const [siteName, setSiteName] = useState<string>(settings.siteName || defaultSiteName);
@@ -63,15 +65,16 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
   const [botTestResult, setBotTestResult] = useState<BotTestResult | null>(null);
 
   useEffect(() => {
+    const curBranding = getTenantFallbackBranding(tenantId);
     setMaintenance(Boolean(settings.maintenanceMode));
-    setSiteName(settings.siteName || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan'));
+    setSiteName(settings.siteName || curBranding.name);
     setSiteDescription(settings.siteDescription || '');
-    setSupportEmail(settings.contactSupportEmail || (tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro'));
-    setPrivacyEmail(settings.contactPrivacyEmail || (tenantId === 'flux' ? 'privacy@smmflux.ru' : 'privacy@smmplan.pro'));
+    setSupportEmail(settings.contactSupportEmail || curBranding.supportEmail);
+    setPrivacyEmail(settings.contactPrivacyEmail || curBranding.privacyEmail);
     setTelegramBot(settings.contactTelegramBot || '');
     setTelegramBotToken('');
     setTelegramChannel(settings.contactTelegramChannel || '');
-    setCompanyName(settings.legalCompanyName || (tenantId === 'flux' ? 'SMMflux' : 'SMMplan'));
+    setCompanyName(settings.legalCompanyName || curBranding.name);
     setCompanyInn(settings.legalCompanyInn || '');
     setCompanyOgrnip(settings.legalCompanyOgrnip || '');
     setCompanyAddress(settings.legalCompanyAddress || '');

@@ -1,9 +1,20 @@
 ---
-name: "tdd-guide"
-description: "Test-driven development skill for writing unit tests, generating test fixtures and mocks, analyzing coverage gaps, and guiding red-green-refactor workflows across Jest, Pytest, JUnit, Vitest, and Mocha. Use when the user asks to write tests, improve test coverage, practice TDD, generate mocks or stubs, or mentions testing frameworks like Jest, pytest, or JUnit."
+name: tdd-guide
+description: Используй этот скилл ВСЕГДА, когда Test-driven development skill
+  for writing unit tests, generating test fixtures and mocks, analyzing coverage
+  gaps, and guiding red-green-refactor workflows across Jest, Pytest, JUnit,
+  Vitest, and Mocha. Use when the user asks to write tests, improve test
+  coverage, practice TDD, generate mocks or stubs, or mentions testing
+  frameworks like Jest, pytest, or JUnit. НЕ применять для прямой модификации
+  боевой базы данных в обход миграций.
 ---
 
 # TDD Guide
+
+## Назначение и границы (Overview & Scope)
+Скилл `tdd-guide` регламентирует методологию Test-Driven Development (Red-Green-Refactor) в Next.js 16, React 19, Vitest и Prisma 5 для платформы OmniSMM 1.0.
+
+---
 
 Test-driven development skill for generating tests, analyzing coverage, and guiding red-green-refactor workflows across Jest, Pytest, JUnit, and Vitest.
 
@@ -401,3 +412,28 @@ Mutation testing modifies your production code (creates "mutants") and checks wh
 - E2E testing: Playwright, Cypress, Selenium
 - Performance testing: k6, JMeter, Locust
 - Security testing: OWASP ZAP, Burp Suite
+
+---
+
+## Жесткие инварианты (Hard Invariants)
+- 🛑 **ИНВАРИАНТ 1:** Red Phase Invariant: продуктовый код пишется строго после написания падающего теста.
+- 🛑 **ИНВАРИАНТ 2:** ExactMath Money Verification: финансовые тесты проверяют вычисления строго в BigInt копейках.
+- 🛑 **ИНВАРИАНТ 3:** Prisma Transaction Isolation: тесты базы данных выполняются в изолированных транзакциях с откатом.
+- 🛑 **ИНВАРИАНТ 4:** No Skipped Tests: запрещено использование it.skip() без привязки к номеру тикета в багтрекере.
+- 🛑 **ИНВАРИАНТ 5:** 100% CI Gate Pass: релиз разрешен только при полном прохождении всего сьюта тестов Vitest.
+
+---
+
+## Предотвращаемые антипаттерны (Gotchas / Bad vs Good)
+❌ **Плохо:** Игнорирование архитектурных инвариантов ради быстрой реализации.
+- ✅ **Хорошо:** Строгое соблюдение чистоты слоев и контрактов платформы.
+❌ **Плохо:** Отсутствие автоматических тестов на граничные условия.
+- ✅ **Хорошо:** Покрытие сценариев тестами до выкатки изменений.
+
+---
+
+## Чеклист верификации (Verification Checklist)
+- [ ] Проверены ли ключевые архитектурные инварианты?
+- [ ] Укладывается ли код в лимиты сложности и размера?
+- [ ] Отсутствуют ли регрессии в смежных подсистемах?
+- [ ] Пройден ли автоматический запуск npm run lint:skills?

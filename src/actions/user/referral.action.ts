@@ -60,9 +60,9 @@ export async function transferReferralBalanceAction(): Promise<{ success: boolea
       await tx.payment.create({
         data: {
           userId: session.userId,
-          amount: transferAmount,
+          amount: BigInt(transferAmount),
           currency: "RUB",
-          status: "COMPLETED",
+          status: "SUCCEEDED",
           gateway: "referral_transfer",
           gatewayId: transferId,
           tenantId: user.tenantId || 'smmplan'

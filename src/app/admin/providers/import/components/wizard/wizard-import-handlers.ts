@@ -146,7 +146,7 @@ export async function executeImportServices(
   selectedCategories: Record<string, string>,
   autoMappedCategories: Record<string, string>,
   markup: string,
-  targetTenant: 'smmplan' | 'flux' | 'both',
+  targetTenant: string,
   cb: ExecuteImportCallbacks
 ) {
   cb.setShowConfirmModal(false);

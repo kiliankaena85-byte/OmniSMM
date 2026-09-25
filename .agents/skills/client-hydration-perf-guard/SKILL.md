@@ -1,7 +1,19 @@
 ---
 name: client-hydration-perf-guard
-description: Инженерный стандарт контроля гидратации React 19 / Next.js 16 (Zero Hydration Mismatch), предотвращения сдвигов макета (Cumulative Layout Shift CLS < 0.05) и изоляции SSR.
-tags: [react-19, nextjs-16, hydration, cls-zero, suspense, skeletons, svg-guard, ssr-isolation]
+description: Используй этот скилл ВСЕГДА, когда Инженерный стандарт контроля
+  гидратации React 19 / Next.js 16 (Zero Hydration Mismatch), предотвращения
+  сдвигов макета (Cumulative Layout Shift CLS < 0.05) и изоляции SSR. НЕ
+  применять для серверных очередей BullMQ или DDL миграций базы данных.
+metadata:
+  tags:
+    - react-19
+    - nextjs-16
+    - hydration
+    - cls-zero
+    - suspense
+    - skeletons
+    - svg-guard
+    - ssr-isolation
 ---
 
 # Client Hydration & Layout Stability Engineering Standard
@@ -85,3 +97,12 @@ export function ChartGradient() {
 3. [ ] Скелетоны `Suspense` имеют `min-h-*`, соответствующий высоте контента.
 4. [ ] Локальные даты содержат `suppressHydrationWarning`.
 5. [ ] В коде отсутствуют `<button>` внутри `<button>` и `<p>` внутри `<p>`.
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.

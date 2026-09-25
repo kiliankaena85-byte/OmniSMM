@@ -1,16 +1,23 @@
 ---
 name: ddd-aggregate-invariants
-description: >
-  Управление инвариантами агрегатов и транзакционными границами Domain-Driven Design (DDD) в платформе
-  OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда проектируются или модифицируются
-  доменные агрегаты: User & Wallet (баланс, LedgerEntry, WalletOps), Order (жизненный цикл статусов, Drip-Feed Floor,
-  диспетчеризация провайдерам), Service & Provider (буфер Shadow Catalog в Redis, ценообразование за 1 шт).
-  Применяется при предотвращении Transaction Escape (db vs tx), защите от мутаций дочерних сущностей в обход
-  корня агрегата, обеспечении правила «1 транзакция = 1 агрегат», настройке транзакционного Outbox и BullMQ
-  для меж-агрегатных взаимодействий. НЕ применять для верстки UI или настройки Tailwind CSS.
+description: "Используй этот скилл ВСЕГДА, когда Управление инвариантами
+  агрегатов и транзакционными границами Domain-Driven Design (DDD) в платформе
+  OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда
+  проектируются или модифицируются доменные агрегаты: User & Wallet (баланс,
+  LedgerEntry, WalletOps), Order (жизненный цикл статусов, Drip-Feed Floor,
+  диспетчеризация провайдерам), Service & Provider (буфер Shadow Catalog в
+  Redis, ценообразование за 1 шт). Применяется при предотвращении Transaction
+  Escape (db vs tx), защите от мутаций дочерних сущностей в обход корня
+  агрегата, обеспечении правила «1 транзакция =. НЕ применять для стилизации
+  компонентов Tailwind или верстки интерфейсов."
 ---
 
 # SKILL: ddd-aggregate-invariants — Инварианты агрегатов DDD в OmniSMM
+
+## Назначение и границы (Overview & Scope)
+Скилл `ddd-aggregate-invariants` обеспечивает соблюдение границ агрегатов Domain-Driven Design в платформе OmniSMM 1.0. Устанавливает жесткое правило «1 транзакция = 1 корень агрегата», предотвращает Transaction Escape (db vs tx), гарантирует соблюдение Drip-Feed Floor Invariant и буферизацию Shadow Catalog в Redis.
+
+---
 
 > **Статус:** Обязательный доменный стандарт платформы OmniSMM 1.0 (SMMplan & SMMflux).  
 > **Стек:** Prisma 5 (PostgreSQL), TypeScript 5.7+ (Strict), BullMQ, Redis 7+, BigInt ExactMath.

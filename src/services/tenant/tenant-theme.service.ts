@@ -1,4 +1,4 @@
-import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
+import { normalizeTenantId, sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
 import { redis } from '@/lib/redis';
 
@@ -345,7 +345,7 @@ export class TenantThemeService {
    * Generates sanitized CSS variables scoped for light and dark modes
    */
   static generateCss(config: TenantThemeConfig, tenantId: string): string {
-    const cleanTenant = normalizeTenantId(tenantId) || 'smmplan';
+    const cleanTenant = sanitizeTenantSlug(tenantId) || normalizeTenantId(tenantId) || 'smmplan';
     const preset = config.preset && config.preset in THEME_PRESETS ? config.preset : 'sky';
     const fallback = THEME_PRESETS[preset === 'custom' ? 'sky' : (preset as Exclude<ThemePresetName, 'custom'>)];
 

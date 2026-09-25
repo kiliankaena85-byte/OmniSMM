@@ -181,7 +181,7 @@ export function TenantSwitcher({
               Список сайтов
             </span>
             <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-              {visibleTenants.length} {visibleTenants.length === 1 ? 'сайт' : 'сайта'}
+              {visibleTenants.length} {visibleTenants.length === 1 ? 'сайт' : visibleTenants.length >= 2 && visibleTenants.length <= 4 ? 'сайта' : 'сайтов'}
             </span>
           </div>
 
@@ -206,7 +206,7 @@ export function TenantSwitcher({
                         ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'bg-muted text-muted-foreground group-hover:bg-background group-hover:text-foreground'
                     }`}>
-                      {t.id === 'flux' ? <Sparkles className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                      {t.id === 'flux' ? <Sparkles className="w-4 h-4" /> : t.id === 'smmplan' ? <Globe className="w-4 h-4" /> : t.name.charAt(0).toUpperCase()}
                     </div>
                     
                     <div className="flex flex-col min-w-0">

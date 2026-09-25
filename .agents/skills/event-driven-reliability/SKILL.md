@@ -1,12 +1,15 @@
 ---
 name: event-driven-reliability
-description: >
-  Архитектурный скилл обеспечения надежности асинхронного взаимодействия, очередей фоновых задач и транзакционного обмена сообщениями в OmniSMM.
-  Применяй этот скилл ВСЕГДА, когда затрагиваются: Transactional Outbox (таблица ProviderOutbox / Outbox), устранение уязвимости Dual-Write,
-  интеграция и конфигурация очередей BullMQ (ordersQueue, syncQueue, paymentSyncQueue, criticalQueue), дедупликация задач (jobId = eventId),
-  гарантия Exactly-Once / At-Least-Once доставки, идемпотентные воркеры и консьюмеры (Check-Then-Set, lease locks),
-  политики повторов с экспоненциальным backoff и джиттером (jitteredBackoff), маршрутизация в Dead-Letter Queue (DLQ / dead-letter-queue),
-  алертинг в Telegram и SecurityAlertService, а также Graceful Shutdown жизненного цикла воркеров при деплое.
+description: "Используй этот скилл ВСЕГДА, когда Архитектурный скилл обеспечения
+  надежности асинхронного взаимодействия, очередей фоновых задач и
+  транзакционного обмена сообщениями в OmniSMM. Применяй этот скилл ВСЕГДА,
+  когда затрагиваются: Transactional Outbox (таблица ProviderOutbox / Outbox),
+  устранение уязвимости Dual-Write, интеграция и конфигурация очередей BullMQ
+  (ordersQueue, syncQueue, paymentSyncQueue, criticalQueue), дедупликация задач
+  (jobId = eventId), гарантия Exactly-Once / At-Least-Once доставки,
+  идемпотентные воркеры и консьюмеры (Check-Then-Set, lease locks), политики
+  повторов с экспоненциальным backoff и джиттеро. НЕ применять для синхронных
+  клиентских мутаций формы без очередей."
 ---
 
 # Event-Driven Reliability — Транзакционный Outbox, надежные очереди BullMQ и отказоустойчивость OmniSMM
@@ -470,3 +473,12 @@ ordersQueue.on('failed', async (job, err) => {
   # Реплей упавших задач обратно в рабочий контур
   npx tsx scripts/harness/replay-dlq.ts --from=dead-letter-queue --to=ordersQueue --limit=100
   ```
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.

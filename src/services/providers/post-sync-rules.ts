@@ -131,20 +131,37 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
     result.hidden = r.count;
   }
 
+  // Preload all categories and networks into Map to eliminate N+1 queries (DEF-005)
+  const [allCategories, allNetworks] = await Promise.all([
+    db.category.findMany(),
+    db.network.findMany(),
+  ]);
+
+  const categoryMap = new Map<string, (typeof allCategories)[0]>();
+  for (const cat of allCategories) {
+    categoryMap.set(`${cat.networkId}:${cat.name}`, cat);
+  }
+
+  const networkMap = new Map(allNetworks.map(n => [n.name, n]));
+
+  async function getOrCreateCategory(name: string, networkId: string) {
+    const key = `${networkId}:${name}`;
+    let cat = categoryMap.get(key);
+    if (!cat) {
+      cat = await db.category.create({
+        data: { name, networkId, sort: 0 },
+      });
+      categoryMap.set(key, cat);
+    }
+    return cat;
+  }
+
   // 3. Применить переклассификацию
   for (const [extId, rule] of Object.entries(RECLASSIFY_RULES)) {
-    const network = await db.network.findFirst({ where: { name: rule.network } });
+    const network = networkMap.get(rule.network);
     if (!network) continue;
 
-    // Найти или создать категорию
-    let category = await db.category.findFirst({
-      where: { name: rule.category, networkId: network.id },
-    });
-    if (!category) {
-      category = await db.category.create({
-        data: { name: rule.category, networkId: network.id, sort: 0 },
-      });
-    }
+    const category = await getOrCreateCategory(rule.category, network.id);
 
     const r = await db.service.updateMany({
       where: { externalId: extId },
@@ -157,7 +174,7 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
   const servicesToCheck = await db.service.findMany({ include: { category: { include: { network: true } } } });
   let autoReclassified = 0;
   for (const s of servicesToCheck) {
-    if (!s.category) continue;
+    if (!s.category || !s.category.networkId) continue;
     const n = s.name.toLowerCase();
     const isAuto = n.includes('авто') || n.includes('auto') || n.includes('последн') || n.includes('будущ') || n.includes('на 5 пост') || n.includes('на 10 пост') || n.includes('на 50 пост') || n.includes('на 100 пост') || n.includes('7 дней') || n.includes('7 дн') || n.includes('30 дн') || n.includes('подписк на');
     
@@ -192,14 +209,7 @@ export async function applyPostSyncRules(): Promise<PostSyncResult> {
     }
 
     if (targetCatName && s.category.name !== targetCatName) {
-      let category = await db.category.findFirst({
-        where: { name: targetCatName, networkId: s.category.networkId },
-      });
-      if (!category) {
-        category = await db.category.create({
-          data: { name: targetCatName, networkId: s.category.networkId, sort: 0 },
-        });
-      }
+      const category = await getOrCreateCategory(targetCatName, s.category.networkId);
       await db.service.update({
         where: { id: s.id },
         data: { categoryId: category.id }

@@ -61,20 +61,35 @@ export async function requestMagicLink(prevState: unknown, formData: FormData) {
       return { error: "Слишком много запросов Magic Link на этот email. Пожалуйста, подождите перед новым запросом.", success: false };
     }
 
+    const reqHeaders = await headers();
+    const rawTenantId = reqHeaders.get("x-tenant-id");
+    const tenantId = normalizeTenantId(rawTenantId) || "smmplan";
+
     const cookieStore = await cookies();
     const refCode = cookieStore.get("ref")?.value;
     let referredById = null;
 
     if (refCode) {
-      const referrer = await db.user.findUnique({ where: { referralCode: refCode } });
-      if (referrer) referredById = referrer.id;
+      const cleanRefCode = refCode.trim();
+      const referrer = await db.user.findFirst({
+        where: { referralCode: cleanRefCode, tenantId },
+      });
+      if (referrer) {
+        const { ReferralValidatorService } = await import('@/services/referral/referral-validator.service');
+        const validation = await ReferralValidatorService.validateReferralLink(referrer.id, null, {
+          inviteeEmail: cleanEmail,
+          tenantId,
+        });
+        if (validation.valid && validation.riskLevel !== 'CRITICAL') {
+          referredById = referrer.id;
+        } else {
+          log.warn('Referral rejected by Anti-Fraud shield', { refCode: cleanRefCode, email: cleanEmail, reason: validation.reason });
+        }
+      }
     }
 
     const txResult = await db.$transaction(async (tx) => {
       let isNewUser = false;
-      const reqHeaders = await headers();
-      const rawTenantId = reqHeaders.get("x-tenant-id");
-      const tenantId = normalizeTenantId(rawTenantId) || "smmplan";
       
       let user = await tx.user.findFirst({
         where: { 
@@ -138,7 +153,7 @@ export async function requestMagicLink(prevState: unknown, formData: FormData) {
       return { success: true, error: null };
     }
 
-    const { user, isNewUser, rawToken, tenantId } = txResult;
+    const { user, isNewUser, rawToken } = txResult;
 
     try {
       await sendMagicLink(cleanEmail, rawToken, tenantId, redirectTo);

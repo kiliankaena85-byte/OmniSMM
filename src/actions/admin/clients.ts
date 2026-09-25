@@ -14,7 +14,7 @@
 
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { db } from '@/lib/db';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { serializeForClient } from '@/lib/bigint-serializer';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -67,7 +67,7 @@ export async function updateClientDiscountAction(
       },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_DISCOUNT_SET',
@@ -149,7 +149,7 @@ export async function createClientNoteAction(userId: string, content: string) {
       }
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_NOTE_CREATE',
@@ -199,7 +199,7 @@ export async function editClientNoteAction(noteId: string, userId: string, conte
         }
       });
 
-      auditAdmin({
+      await auditAdminAwaitable({
         adminId: admin.id,
         adminEmail: admin.email,
         action: 'CLIENT_NOTE_CREATE',
@@ -235,7 +235,7 @@ export async function editClientNoteAction(noteId: string, userId: string, conte
       }
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_NOTE_EDIT',
@@ -297,7 +297,7 @@ export async function deleteClientNoteAction(noteId: string, userId: string) {
       }
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_NOTE_DELETE',
@@ -335,7 +335,7 @@ export async function clearClientNoteAction(userId: string) {
       },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_NOTES_CLEAR',
@@ -386,7 +386,7 @@ export async function sendPasswordResetEmailAction(userId: string) {
       incomingHost
     );
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'CLIENT_PASSWORD_RESET_SENT',
@@ -438,6 +438,11 @@ export async function supportGoodwillCreditAction(formData: FormData) {
 
     if (!targetUser) {
       return { success: false as const, error: 'Клиент не найден' };
+    }
+
+    const sessionTenantId = tenantId || admin.tenantId;
+    if (admin.role !== 'OWNER' && targetUser.tenantId !== sessionTenantId) {
+      return { success: false as const, error: 'Доступ ограничен: клиент принадлежит другому бренду' };
     }
 
     const amountKopecks = BigInt(Math.round(amountRub * 100));
@@ -512,7 +517,6 @@ export async function supportGoodwillCreditAction(formData: FormData) {
     }
 
     const { WalletOps } = await import('@/services/financial/wallet-ops');
-    const { auditAdminAwaitable } = await import('@/lib/admin-audit');
 
     if (direction === 'DEBIT') {
       const user = await db.user.findUnique({

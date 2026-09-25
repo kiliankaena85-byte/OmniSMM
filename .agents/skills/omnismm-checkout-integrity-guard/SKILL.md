@@ -1,10 +1,29 @@
 ---
 name: omnismm-checkout-integrity-guard
-description: Инженерный стандарт надежности витрин, чекаута и визардов в OmniSMM 1.0 (ExactMath копейка-в-копейку, Drip-Feed Floor, изоляция tenantId, активный CTA, эргономика мобильного чекаута и декомпозиция монолитов).
-tags: [omnismm, checkout, wizard, exactmath, drip-feed, tenant-isolation, mobile-cro, heroui-v3, react-19]
+description: Используй этот скилл ВСЕГДА, когда Инженерный стандарт надежности
+  витрин, чекаута и визардов в OmniSMM 1.0 (ExactMath копейка-в-копейку,
+  Drip-Feed Floor, изоляция tenantId, активный CTA, эргономика мобильного
+  чекаута и декомпозиция монолитов). НЕ применять для настройки системных
+  демонов Docker или Linux cgroups.
+metadata:
+  tags:
+    - omnismm
+    - checkout
+    - wizard
+    - exactmath
+    - drip-feed
+    - tenant-isolation
+    - mobile-cro
+    - heroui-v3
+    - react-19
 ---
 
 # omnismm-checkout-integrity-guard — OmniSMM Checkout & Wizard Integrity Standard
+
+## Назначение и границы (Overview & Scope)
+Скилл `omnismm-checkout-integrity-guard` регламентирует целостность чекаута, валидацию ссылок, расчет стоимости и защиту от мошенничества при оформлении заказов в OmniSMM.
+
+---
 
 ## 1. Концепция: Защита витрины и чекаута OmniSMM 1.0
 Чекаут — это главная точка конверсии платформы, где сходятся деньги, каталог поставщика (Vexboost), мульти-тенантность и мобильные пользователи.
@@ -123,3 +142,29 @@ const target = resolveServiceTargetType(s);
 const isCompatible = isLinkServiceCompatible(detectedLinkType, target);
 ```
 При любой фильтрации каталога по типу ссылки (`channel`, `post`, `profile`) или проверке совместимости в чекауте обязательно использовать `resolveServiceTargetType(service)`.
+
+---
+
+## Жесткие инварианты (Hard Invariants)
+- 🛑 **ИНВАРИАНТ 1:** Server-Side Price Calculation: цена заказа рассчитывается строго на сервере в копейках BigInt.
+- 🛑 **ИНВАРИАНТ 2:** TargetType Semantic Resolution: тип услуги определяется через resolveServiceTargetType.
+- 🛑 **ИНВАРИАНТ 3:** Drip-Feed Floor Enforcement: минимальный объем заказа с автоподачей масштабируется кратно запускам.
+- 🛑 **ИНВАРИАНТ 4:** No Phantom Brands: поддержка строго брендов SMMplan (smmplan.pro) и SMMflux (smmflux.ru).
+- 🛑 **ИНВАРИАНТ 5:** Idempotent Order Creation: каждый заказ создается с уникальным ключом дедупликации.
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.
+
+---
+
+## Чеклист верификации (Verification Checklist)
+- [ ] Проверены ли ключевые архитектурные инварианты?
+- [ ] Укладывается ли код в лимиты сложности и размера?
+- [ ] Отсутствуют ли регрессии в смежных подсистемах?
+- [ ] Пройден ли автоматический запуск npm run lint:skills?

@@ -16,10 +16,11 @@ interface ConfirmationModalProps {
   markup: number;
   platformBreakdown: PlatformBreakdown[];
   isPending: boolean;
-  targetTenant: 'smmplan' | 'flux' | 'both';
-  onTargetTenantChange: (tenant: 'smmplan' | 'flux' | 'both') => void;
+  targetTenant: string;
+  onTargetTenantChange: (tenant: string) => void;
   incompatibleCount?: number;
   onExcludeIncompatible?: () => void;
+  allTenants?: Array<{ id: string; name: string }>;
 }
 
 function formatMarkupPercent(val: number): string {
@@ -49,13 +50,13 @@ export function ConfirmationModal({
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Импортировать в сайт:</label>
             <div className="grid grid-cols-3 gap-2">
-              {[{ id: 'smmplan', label: 'SMMplan' }, { id: 'flux', label: 'SMMflux' }, { id: 'both', label: 'Оба сайта' }].map((t) => (
+              {[{ id: 'smmplan', label: 'SMMplan' }, { id: 'flux', label: 'SMMflux' }, { id: 'all', label: 'Все сайты' }].map((t) => (
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => onTargetTenantChange(t.id as 'smmplan' | 'flux' | 'both')}
+                  onClick={() => onTargetTenantChange(t.id)}
                   className={`py-2 px-3 text-xs font-extrabold rounded-lg border transition-all cursor-pointer ${
-                    targetTenant === t.id
+                    targetTenant === t.id || (t.id === 'all' && (targetTenant === 'both' || targetTenant === 'all'))
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-muted/40 hover:bg-muted text-muted-foreground border-border'
                   }`}

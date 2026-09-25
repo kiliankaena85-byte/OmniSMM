@@ -1,14 +1,15 @@
 ---
 name: docker-memory-ops
-description: >
-  Комплексное управление памятью, расследование OOM-инцидентов, диагностика cgroups v2
-  и кризисный менеджмент контейнеров Docker. Используй этот скилл ВСЕГДА, когда пользователь
-  упоминает Docker, docker-compose, падение контейнера, код ошибки 137, OOMKilled, утечку памяти
-  (memory leak), лимиты RAM (--memory, --memory-reservation, --memory-swap), cgroups v2,
-  расхождения в docker stats, PSI (Pressure Stall Information), жор памяти в Node.js/Next.js/PostgreSQL/Redis,
-  проблемы с vmmem / ext4.vhdx в WSL2 на Windows, либо требует провести аудит или экстренную стабилизацию
-  памяти в контейнерной среде. Скилл реализует строгий 4-фазный SRE-протокол: Детекция -> Локализация ->
-  Глубокая форензика -> Долгосрочный харденинг.
+description: Используй этот скилл ВСЕГДА, когда Комплексное управление памятью,
+  расследование OOM-инцидентов, диагностика cgroups v2 и кризисный менеджмент
+  контейнеров Docker. Используй этот скилл ВСЕГДА, когда пользователь упоминает
+  Docker, docker-compose, падение контейнера, код ошибки 137, OOMKilled, утечку
+  памяти (memory leak), лимиты RAM (--memory, --memory-reservation,
+  --memory-swap), cgroups v2, расхождения в docker stats, PSI (Pressure Stall
+  Information), жор памяти в Node.js/Next.js/PostgreSQL/Redis, проблемы с vmmem
+  / ext4.vhdx в WSL2 на Windows, либо требует провести аудит или экстренную
+  стабилизацию памяти. НЕ применять для верстки клиентских интерфейсов или
+  настройки DDL базы данных.
 ---
 
 # Docker Memory Ops & Crisis Management — Руководство оператора
@@ -200,3 +201,11 @@ description: >
 - [`wsl2_windows_docker_tuning.md`](references/wsl2_windows_docker_tuning.md) — Специфика Windows/WSL2, обуздание `vmmem`, сжатие `ext4.vhdx`.
 - [`assets/memory_incident_runbook.md`](assets/memory_incident_runbook.md) — Пошаговый регламент дежурного инженера в условиях OOM-инцидента.
 - [`assets/docker-compose.resilient-template.yml`](assets/docker-compose.resilient-template.yml) — Готовый шаблон конфигурации для боевого развертывания.
+
+---
+
+## Чеклист верификации (Verification Checklist)
+- [ ] Проверены ли ключевые архитектурные инварианты?
+- [ ] Укладывается ли код в лимиты сложности и размера?
+- [ ] Отсутствуют ли регрессии в смежных подсистемах?
+- [ ] Пройден ли автоматический запуск npm run lint:skills?

@@ -1,13 +1,17 @@
 ---
 name: skill-architecture-guard
-version: 1.0.0
-description: >
-  Стандарт и аудит архитектуры Agent Skills (канонический стандарт Claude Code & Anthropic Skills Architecture)
-  для платформы OmniSMM 1.0. Используй этот скилл ВСЕГДА, когда создаешь, валидируешь, редактируешь или рефакторишь
-  навыки (SKILL.md, CORE.md) в кодовой базе. Проверяет корректность YAML Frontmatter (name, description, triggers),
-  наличие 6 обязательных разделов Anthropic (Overview, Decision Tree, Hard Invariants, Execution Protocol, Anti-Patterns,
-  Verification), предотвращает раздувание контекста (L1/L2 контракт, CORE.md <= 65 строк) и запускает статический
-  аудит качества через "npm run lint:skills". НЕ применять для написания продуктового кода бизнес-логики.
+description: Используй этот скилл ВСЕГДА, когда Стандарт и аудит архитектуры
+  Agent Skills (канонический стандарт Claude Code & Anthropic Skills
+  Architecture) для платформы OmniSMM 1.0. Используй этот скилл ВСЕГДА, когда
+  создаешь, валидируешь, редактируешь или рефакторишь навыки (SKILL.md, CORE.md)
+  в кодовой базе. Проверяет корректность YAML Frontmatter (name, description,
+  triggers), наличие 6 обязательных разделов Anthropic (Overview, Decision Tree,
+  Hard Invariants, Execution Protocol, Anti-Patterns, Verification),
+  предотвращает раздувание контекста (L1/L2 контракт, CORE.md <= 65 строк) и
+  запускает статический аудит качества через "npm r. НЕ применять для написания
+  продуктового кода бизнес-логики.
+metadata:
+  version: 1.0.0
 ---
 
 # SKILL: skill-architecture-guard — Стандарт и Аудит Архитектуры Скиллов
@@ -136,6 +140,6 @@ npm run lint:skills -- --skill=<skill-name>
 - [ ] Поле `name` валидно и совпадает с именем директории.
 - [ ] Поле `description` содержит условия активации и границы применения (длина 60–750 симв.).
 - [ ] Присутствуют все 6 обязательных разделов (Overview, Decision Tree, Invariants, Protocol, Anti-Patterns, Verification).
-- [ ] В тексте нет локальных абсолютных путей операционной системы (`C:\Users\...`).
+- [ ] В тексте нет локальных абсолютных путей операционной системы (`%USERPROFILE%\appdata`).
 - [ ] Для архитектурных скилов создан файл `CORE.md` объемом $\le 65$ строк с блоком `HARD INVARIANTS`.
 - [ ] Запущен `npm run lint:skills` — результат **Grade A (Health Score $\ge 90$)**, 0 CRITICAL / 0 ERROR.

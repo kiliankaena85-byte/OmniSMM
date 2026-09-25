@@ -461,6 +461,18 @@
         "redis",
         "nextjs16"
       ]
+    },
+    {
+      "title": "Google Antigravity Standards Integration & Rules Modularization",
+      "context": "Antigravity truncated AGENTS.md due to 24 KB per-file hard cap, causing loss of contract rules",
+      "decision": "Modularized AGENTS.md into .agents/rules/*.md files <= 15 KB and added AGY-001 through AGY-004 to linter",
+      "rationale": "Guarantees zero contract truncation and validates Antigravity slash commands and Generative UI CDN",
+      "tags": [
+        "antigravity",
+        "skills",
+        "rules",
+        "linter"
+      ]
     }
   ]
 }

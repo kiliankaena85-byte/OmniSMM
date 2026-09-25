@@ -1,7 +1,19 @@
 ---
 name: react-19-next-16-ui-engine
-description: Инженерный стандарт фронтенд-рантайма React 19 и Next.js 16 App Router (Server Actions, useActionState, useOptimistic, Streaming SSR, Suspense).
-tags: [react-19, nextjs-16, server-actions, use-action-state, use-optimistic, streaming-ssr, suspense, transitions]
+description: Используй этот скилл ВСЕГДА, когда Инженерный стандарт
+  фронтенд-рантайма React 19 и Next.js 16 App Router (Server Actions,
+  useActionState, useOptimistic, Streaming SSR, Suspense). НЕ применять для DDL
+  миграций базы данных или серверных cron-задач.
+metadata:
+  tags:
+    - react-19
+    - nextjs-16
+    - server-actions
+    - use-action-state
+    - use-optimistic
+    - streaming-ssr
+    - suspense
+    - transitions
 ---
 
 # React 19 & Next.js 16 UI Runtime Engine (L2 Deep Standard)
@@ -195,3 +207,20 @@ const handleFilterChange = (category: string) => {
 - [ ] Имеют ли оптимистичные элементы таймер отката 10–12s?
 - [ ] Все асинхронные серверные секции изолированы через `<Suspense>` со скелетонами?
 - [ ] Отсутствуют ли прямые `throw new Error()` в Server Actions?\n
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.
+
+---
+
+## Предотвращаемые антипаттерны (Gotchas / Bad vs Good)
+❌ **Плохо:** Игнорирование архитектурных инвариантов ради быстрой реализации.
+- ✅ **Хорошо:** Строгое соблюдение чистоты слоев и контрактов платформы.
+❌ **Плохо:** Отсутствие автоматических тестов на граничные условия.
+- ✅ **Хорошо:** Покрытие сценариев тестами до выкатки изменений.

@@ -1,16 +1,23 @@
 ---
 name: arch-boundary-guard
-description: >
-  Защита архитектурных границ и чистоты слоев (Hexagonal/Clean Architecture) в Next.js 16 App Router
-  платформы OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда создаются или изменяются
-  компоненты React, Server Actions, роуты API, доменные сервисы, клиентские формы, хуки, DTO или схемы базы
-  данных Prisma. Применяется при рефакторинге спагетти-кода, проверке Server/Client Boundary, аудитах безопасности
-  Server Actions, разделении DTO и моделей БД, декомпозиции компонентов (лимит 150-200 строк), предотвращении
-  утечек секретов в клиентские бандлы и обеспечении типизированных контрактов { success: boolean, error?: string, data?: T }.
-  НЕ применять для настройки сетевых туннелей или конфигурации docker-compose.
+description: Используй этот скилл ВСЕГДА, когда Защита архитектурных границ и
+  чистоты слоев (Hexagonal/Clean Architecture) в Next.js 16 App Router платформы
+  OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда создаются
+  или изменяются компоненты React, Server Actions, роуты API, доменные сервисы,
+  клиентские формы, хуки, DTO или схемы базы данных Prisma. Применяется при
+  рефакторинге спагетти-кода, проверке Server/Client Boundary, аудитах
+  безопасности Server Actions, разделении DTO и моделей БД, декомпозиции
+  компонентов (лимит 150-200 строк), предотвращении утечек секретов в клиентские
+  бандлы. НЕ применять для низкоуровневой настройки сетевых туннелей или
+  конфигурации docker-compose.
 ---
 
 # SKILL: arch-boundary-guard — Защита архитектурных границ OmniSMM
+
+## Назначение и границы (Overview & Scope)
+Скилл `arch-boundary-guard` регламентирует строгое соблюдение архитектурных границ Clean Architecture в Next.js 16 и React 19 платформы OmniSMM 1.0 (SMMplan / SMMflux). Предотвращает утечки данных из слоя базы данных в компоненты представления, запрещает "use server" в page.tsx, форсирует контракт { success, error, data } и лимит файлов до 150-200 строк.
+
+---
 
 > **Статус:** Обязательный архитектурный стандарт платформы OmniSMM 1.0 (SMMplan & SMMflux).  
 > **Стек:** Next.js 16 (App Router, Turbopack/Webpack), React 19, Tailwind 4, Prisma 5, PostgreSQL, TypeScript 5.7+ (strict mode).

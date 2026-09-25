@@ -1,17 +1,15 @@
 ---
 name: impact-blast-radius
-description: >
-  Комплексный архитектурный скилл для анализа радиуса поражения (Blast Radius Mapping),
-  расчёта архитектурной связанности (Afferent и Efferent Coupling) и состязательного
-  моделирования отказов на 3 шага вперёд (Pre-Mortem Failure Simulation) в платформе OmniSMM
-  (Next.js 16 App Router, React 19, Tailwind 4, Prisma 5, BullMQ, Redis). Используй этот скилл
-  ВСЕГДА перед редактированием общих утилит (src/lib/*, src/utils/*), Server Actions (src/actions/*),
-  хуков React, схемы базы данных Prisma (schema.prisma), финансового движка (WalletOps, ExactMath),
-  прокси-слоя (src/proxy.ts), RBAC-стражей (requireStaffPermission, requireAdmin) или общих UI-компонентов
-  (@/components/ui/*). Скилл обязывает выполнять поиск зависимостей (grep_search), рассчитывать
-  метрики стабильности Роберта Мартина, оценивать каскадный эффект изменений на Auth, Ledger,
-  Кэш, Мобильный визард, Вебхуки и Мульти-тенантность, а также внедрять Fail-Closed защитные барьеры
-  до первого редактирования кода.
+description: Используй этот скилл ВСЕГДА, когда Комплексный архитектурный скилл
+  для анализа радиуса поражения (Blast Radius Mapping), расчёта архитектурной
+  связанности (Afferent и Efferent Coupling) и состязательного моделирования
+  отказов на 3 шага вперёд (Pre-Mortem Failure Simulation) в платформе OmniSMM
+  (Next.js 16 App Router, React 19, Tailwind 4, Prisma 5, BullMQ, Redis).
+  Используй этот скилл ВСЕГДА перед редактированием общих утилит (src/lib/*,
+  src/utils/*), Server Actions (src/actions/*), хуков React, схемы базы данных
+  Prisma (schema.prisma), финансового движка (WalletOps, ExactMath), прокси-слоя
+  (src/proxy.ts). НЕ применять для чисто текстовых правок документации или
+  изолированных тестов.
 ---
 
 # Impact Blast Radius — Анализ Радиуса Поражения и Моделирование Отказов на 3 Шага Вперёд

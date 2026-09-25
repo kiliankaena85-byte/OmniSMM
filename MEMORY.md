@@ -99,6 +99,14 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
  
+ - **ADR-2026-40: In-House Admin System Logs & Security Event Viewer (/admin/system/logs) without External Daemons:**
+  - *Контекст:* Необходимость централизованного мониторинга инцидентов безопасности, авторизаций, аудита персонала и ошибок Telegram-шлюза без развертывания тяжелых внешних сервисов (Loki, ELK, Vector, ClickHouse).
+  - *Решение:*
+    1. **Легковесная In-House архитектура:** Использование существующих PostgreSQL таблиц (`SecurityEvent`, `LoginLog`, `AdminAuditLog`, `TelegramErrorLog`) с пагинацией `take: 25`, фильтрацией по индексам (`tenantId`, `createdAt`, `event`, `severity`) и параллельным подсчетом агрегатов для сводных карточек.
+    2. **Защита от утечек (PII & Secret Scrubbing):** Интеграция `redactSensitiveTokens` в Server Action (`src/actions/admin/system-logs-fetchers.ts`) для автоматической очистки JSON-деталей, стэктрейсов и дифф-полей перед отправкой на клиент.
+    3. **Эргономика и дизайн-система (Лимит <= 200 строк):** Декомпозиция монолита на модульные компоненты (`LogsStatCards`, `LogsFilterBar`, `SecurityTable`, `LoginsTable`, `AuditTable`, `TelegramTable`, `LogDetailsModal`), 100% ширина экрана без горизонтального скролла.
+    4. **Сквозная SDD-TDD верификация:** 9/9 тестов в `src/__tests__/unit/admin-system-logs.test.ts`, 0 нарушений архитектуры (`npm run check:arch`), 0 ошибок компиляции (`tsc --noEmit`).
+
  - **ADR-2026-39: Two-Tier High-Margin AI Decision Engine (Gemini System 2 + System 1 Jev-Analog) (OmniSMM 1.0 RAC-2026):**
   - *Контекст:* Перевод платформы OmniSMM 1.0 в премиальный сегмент со сверхвысокой маржинальностью (500–700% чистыми), исключив ручной труд, демпинг и потери на возвратах.
   - *Решение:*

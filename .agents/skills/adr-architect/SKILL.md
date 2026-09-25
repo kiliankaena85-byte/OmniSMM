@@ -1,17 +1,23 @@
 ---
 name: adr-architect
-description: >
-  Управление архитектурными решениями (Architecture Decision Records — ADR) по стандарту MADR 3.0
-  в платформе OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда принимаются новые
-  структурные решения, изменяется системный дизайн, выбираются библиотеки или протоколы, а также при
-  проведении аудита существующих решений (src/proxy.ts vs middleware.ts, Tailscale Funnel vs Cloudflare,
-  BigInt копейки vs Float, ExactMath Half-Even, мульти-тенантность OmniSMM).
-  Скилл предотвращает «архитектурную амнезию» и регрессии, регламентирует оформление MADR 3.0
-  (Context, Decision, Consequences, Alternatives Considered, Validation Strategy), правила изменения статусов
-  (PROPOSED, ACCEPTED, DEPRECATED, SUPERSEDED) и синхронизацию с GraphRAG памятью платформы на http://localhost:8100/api/decision.
+description: Используй этот скилл ВСЕГДА, когда Управление архитектурными
+  решениями (Architecture Decision Records — ADR) по стандарту MADR 3.0 в
+  платформе OmniSMM 1.0 (SMMplan / SMMflux). Используй этот скилл ВСЕГДА, когда
+  принимаются новые структурные решения, изменяется системный дизайн, выбираются
+  библиотеки или протоколы, а также при проведении аудита существующих решений
+  (src/proxy.ts vs middleware.ts, Tailscale Funnel vs Cloudflare, BigInt копейки
+  vs Float, ExactMath Half-Even, мульти-тенантность OmniSMM). Скилл
+  предотвращает «архитектурную амнезию» и регрессии, регламентирует оформление
+  MADR 3.0 (Context, Decision, Cons. НЕ применять для рутинных правок CSS или
+  мелких исправлений опечаток.
 ---
 
 # SKILL: adr-architect — Архитектурные решения (ADR) по стандарту MADR 3.0 в OmniSMM
+
+## Назначение и границы (Overview & Scope)
+Скилл `adr-architect` регламентирует создание и ведение архитектурных записей решений (Architectural Decision Records) по стандарту MADR 3.0 в платформе OmniSMM.
+
+---
 
 > **Статус:** Обязательный архитектурный стандарт платформы OmniSMM 1.0 (SMMplan & SMMflux).  
 > **Формат:** MADR 3.0 (Markdown Architectural Decision Records).  
@@ -281,3 +287,12 @@ flowchart TD
   npx vitest run src/__tests__/ai-data-math-and-schema-integrity.test.ts
   npx vitest run src/__tests__/catalog-multitenant-e2e.test.ts
   ```
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.

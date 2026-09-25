@@ -178,6 +178,11 @@ vi.mock('ioredis', () => {
       zcard: vi.fn().mockReturnThis(),
       zadd: vi.fn().mockReturnThis(),
       expire: vi.fn().mockReturnThis(),
+      hset: vi.fn().mockReturnThis(),
+      hget: vi.fn().mockReturnThis(),
+      hdel: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      del: vi.fn().mockReturnThis(),
       exec: vi.fn().mockResolvedValue([[null, 0], [null, 0], [null, 1], [null, 1]]),
     });
     multi = vi.fn().mockReturnValue({
@@ -326,6 +331,7 @@ beforeAll(async () => {
     testPath.includes('src/__tests__/telemetry') ||
     testPath.includes('multitenant-staff-isolation') ||
     testPath.includes('multitenant-isolation') ||
+    testPath.includes('multitenant-e2e-matrix') ||
     testPath.includes('admin-audit.test.ts')
   ) && ![
     'marketing.test.ts',

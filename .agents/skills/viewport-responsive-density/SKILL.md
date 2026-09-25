@@ -1,7 +1,18 @@
 ---
 name: viewport-responsive-density
-description: Регламент высокой плотности компоновки данных (High-Density Dashboard Standard), таблиц без горизонтального скролла (Zero-Scroll) и компоновки сплит-панелей.
-tags: [dashboard, high-density, tables, zero-scroll, master-detail, data-grid, linear-style]
+description: Используй этот скилл ВСЕГДА, когда Регламент высокой плотности
+  компоновки данных (High-Density Dashboard Standard), таблиц без
+  горизонтального скролла (Zero-Scroll) и компоновки сплит-панелей. НЕ применять
+  для написания низкоуровневых скриптов миграции базы данных.
+metadata:
+  tags:
+    - dashboard
+    - high-density
+    - tables
+    - zero-scroll
+    - master-detail
+    - data-grid
+    - linear-style
 ---
 
 # Viewport Responsive Density & High-Density Dashboard Architecture
@@ -61,3 +72,34 @@ tags: [dashboard, high-density, tables, zero-scroll, master-detail, data-grid, l
 3. [ ] Текстовые поля защищены связкой `truncate min-w-0` с ограничителем `max-w-[...]`.
 4. [ ] Кнопки действий компактны (`h-7 w-7` или `h-8 px-2.5 text-xs`).
 5. [ ] Числовые данные используют `tabular-nums` для предотвращения скачков колонок.
+
+---
+
+## Дерево решений (Decision Tree)
+```mermaid
+flowchart TD
+    Start(["Задача в домене viewport-responsive-density"]) --> CheckReq{"Соответствует ли архитектурным инвариантам?"}
+    CheckReq -->|"Да"| ExecuteStep["Выполнение по стандартному протоколу"]
+    CheckReq -->|"Нет"| RefactorStep["Рефакторинг с приведением к стандарту"]
+    ExecuteStep --> VerifyStep["Верификация тестами и линтером"]
+    RefactorStep --> VerifyStep
+    VerifyStep --> Finish(["Релиз / Handoff"])
+```
+
+---
+
+## Жесткие инварианты (Hard Invariants)
+- 🛑 **ИНВАРИАНТ 1:** 100% Viewport Width Fit: интерфейс полностью умещается по ширине видимого экрана без скролла.
+- 🛑 **ИНВАРИАНТ 2:** High-Density Admin Grids: админ-панели используют компактные отступы ячеек и шрифты text-xs.
+- 🛑 **ИНВАРИАНТ 3:** Column Prioritization: вторичные колонки в таблицах скрываются в Tooltip или мобильные карточки.
+- 🛑 **ИНВАРИАНТ 4:** Adaptive Breakpoints: плавная перестройка сетки на контрольных точках sm, md, lg, xl, 2xl.
+- 🛑 **ИНВАРИАНТ 5:** Touch Friendly Controls: кнопки на тач-экранах масштабируются до комфортных 44px.
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.

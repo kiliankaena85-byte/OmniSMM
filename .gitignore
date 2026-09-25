@@ -46,6 +46,8 @@ strix_runs/
 # Skills are shared team knowledge — tracked by git
 !.agents/skills/
 !.agents/skills/**
+!.agents/rules/
+!.agents/rules/**
 .planning/audits/
 teamwork_projects/
 lovable_ui_spec.md
@@ -194,7 +196,9 @@ clash/geosite.dat
 clash/cache.db
 clash/ruleset/
 
-# ── Local database backups (never commit to git) ──
-backups/
+# ── Local database backups (never commit ad-hoc dumps, allow verified golden snapshot) ──
+/backups/
 *.sql
 *.sql.gz
+!prisma/backups/
+!prisma/backups/smmplan_golden_backup_latest.sql

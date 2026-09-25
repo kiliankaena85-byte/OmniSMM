@@ -13,6 +13,11 @@ const STEPS: CheckStep[] = [
     command: "npx tsc --noEmit",
   },
   {
+    name: "Zero-Any Ratchet AST Audit (Hard Blocker on new `any`)",
+    category: "TYPES",
+    command: "npx tsx scripts/lint-zero-any.ts",
+  },
+  {
     name: "Tailwind CSS 4 Semantic Design Tokens Audit (UI Arsenal)",
     category: "DESIGN",
     command: "npx tsx scripts/check-design-system.ts src/components/ui",

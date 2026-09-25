@@ -1,10 +1,26 @@
 ---
 name: google-stitch-architect
-description: Генератор высокоточных интерфейсов и прототипов Google Stitch / StitchMCP с конвертацией в React 19, защитой от шаблонных ИИ-клише (Zero-Slop) и поддержкой 6 продуктовых дизайн-ДНК.
-tags: [google-stitch, generative-ui, design-to-code, bespoke-design, react-19, tailwind-4, zero-slop]
+description: Используй этот скилл ВСЕГДА, когда Генератор высокоточных
+  интерфейсов и прототипов Google Stitch / StitchMCP с конвертацией в React 19,
+  защитой от шаблонных ИИ-клише (Zero-Slop) и поддержкой 6 продуктовых
+  дизайн-ДНК. НЕ применять для написания SQL запросов или миграций базы данных.
+metadata:
+  tags:
+    - google-stitch
+    - generative-ui
+    - design-to-code
+    - bespoke-design
+    - react-19
+    - tailwind-4
+    - zero-slop
 ---
 
 # google-stitch-architect — Google Stitch Generative UI & Zero-Slop Architecture
+
+## Назначение и границы (Overview & Scope)
+Скилл `google-stitch-architect` регламентирует работу с дизайн-системами, дизайн-токенами и макетами интерфейсов через Google Stitch MCP в платформе OmniSMM.
+
+---
 
 ## 1. Концепция: Google Stitch Pipeline
 Скилл управляет генеративным дизайн-пайплайном на базе инструментов Google Stitch, нашего моста [stitch-pipeline-bridge.ts](file:///c:/Users/Shadow/Documents/SMM/scripts/harness/stitch-pipeline-bridge.ts) и дизайн-движка [bespoke-design-engine.ts](file:///c:/Users/Shadow/Documents/SMM/scripts/harness/bespoke-design-engine.ts).
@@ -41,3 +57,42 @@ tags: [google-stitch, generative-ui, design-to-code, bespoke-design, react-19, t
    - Глубокий монохром, игра матовых и зеркальных фактур, микро-грани света.
 6. **Bio-Mechanical Precision:**
    - Органические плавные пружинные физики анимаций, кинетические ползунки.
+
+---
+
+## Дерево решений (Decision Tree)
+```mermaid
+flowchart TD
+    Start(["Задача в домене google-stitch-architect"]) --> CheckReq{"Соответствует ли архитектурным инвариантам?"}
+    CheckReq -->|"Да"| ExecuteStep["Выполнение по стандартному протоколу"]
+    CheckReq -->|"Нет"| RefactorStep["Рефакторинг с приведением к стандарту"]
+    ExecuteStep --> VerifyStep["Верификация тестами и линтером"]
+    RefactorStep --> VerifyStep
+    VerifyStep --> Finish(["Релиз / Handoff"])
+```
+
+---
+
+## Жесткие инварианты (Hard Invariants)
+- 🛑 **ИНВАРИАНТ 1:** Single Source of Truth: макеты Stitch синхронизируются с дизайн-токенами globals.css.
+- 🛑 **ИНВАРИАНТ 2:** Zero Props Loss: экспорт компонентов сохраняет все типизированные свойства React 19.
+- 🛑 **ИНВАРИАНТ 3:** Tailwind 4 Alignment: сгенерированные стили соответствуют семантическим токенам Tailwind 4.
+- 🛑 **ИНВАРИАНТ 4:** Viewport Scalability: макеты проектируются с поддержкой мобильных и десктопных экранов.
+- 🛑 **ИНВАРИАНТ 5:** HeroUI v3 Synergy: визуальные примитивы макетов согласованы с компонентами HeroUI.
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.
+
+---
+
+## Чеклист верификации (Verification Checklist)
+- [ ] Проверены ли ключевые архитектурные инварианты?
+- [ ] Укладывается ли код в лимиты сложности и размера?
+- [ ] Отсутствуют ли регрессии в смежных подсистемах?
+- [ ] Пройден ли автоматический запуск npm run lint:skills?

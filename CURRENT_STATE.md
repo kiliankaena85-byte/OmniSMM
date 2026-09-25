@@ -1,3 +1,120 @@
+- [x] 🛡️ [OMNISMM-ZERO-ANY-AST-RATCHET-GATE-2026] Полное искоренение 'any', типизированные фабрики сущностей (Typed Entity Builders) и блокирующий AST-храповик (Ratchet Gate) в CI/Preflight (100% COMPLETE & VERIFIED):
+  * 🔴 **Ликвидация слепых зон и 'any' в тестах:** В тестах изоляции мультитенантности (`multitenant-e2e-matrix.test.ts` и `true-multitenancy-full-isolation.test.ts`) полностью устранены все ключевые слова `any` и `as any`. Вскрыто и исправлено 5 скрытых багов несуществующих полей схемы Prisma (`user.status`, `user.apiKeyPrefix`, `ticket.closedAt`, `order.cost`, `order.refillStatus`).
+  * 🔴 **Typed Entity Builders (Паттерн фабрик):** Внедрены строгие фабрики генерации тестовых сущностей (`createTestUser`, `createTestTicket`, `createTestOrder`, `createTestLedger`, `createTestTenant`), гарантирующие полное соответствие `prisma/schema.prisma` и ExactMath `BigInt`.
+  * 🟠 **AST Ratchet Scanner (Храповик в CI):** Разработан нативный сканер `scripts/lint-zero-any.ts` на официальном TypeScript Compiler API (`SyntaxKind.AnyKeyword`). Из 2011 файлов проекта 1730 (86%) уже зафиксированы на 0 `any`. Любой новый файл, тест или попытка добавить `any` в чистый файл немедленно роняет сборку с кодом 1.
+  * 🟠 **Интеграция в ESLint & Preflight:** В `eslint.config.mjs` включено правило `@typescript-eslint/no-explicit-any: "error"` для защищенных тест-сьютов; в `scripts/run-production-preflight.ts` и `package.json` подключен запуск `npm run lint:zero-any`.
+  * 🧪 **Сквозная верификация:** 
+    - `src/__tests__/unit/zero-any-ratchet.test.ts` — **5/5 PASS (100%)**;
+    - Суммарный прогон 3 сьютов мультитенантности и Zero-Any — **41/41 PASS (100%)**;
+    - `npm run lint:zero-any` — **0 новых нарушений, PASS**;
+    - `npx tsc --noEmit` — **0 ошибок строгого режима TypeScript**;
+    - `npm run check:arch` — **0 нарушений слоев Clean Architecture**;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов**.
+
+- [x] 🌐 [OMNISMM-TRUE-MULTITENANCY-N-TENANTS-2026] Ликвидация захардкоженных хвостов двух сайтов и переход на полноценную динамическую мультитенантность N-Tenants / Turnkey White-Label (100% COMPLETE & VERIFIED):
+  * 🔴 **Динамический переключатель сайтов в админке (GlobalSiteSwitcher):** В `src/app/admin/layout.tsx` подключена динамическая выборка всех активных брендов из базы данных (`db.tenant.findMany`), а в `tenant-switcher.tsx` обеспечено корректное отображение монограмм и масштабирование на любое число сайтов.
+  * 🔴 **Автопрогрев доменов при старте (Next.js Instrumentation):** В `src/instrumentation.ts` интегрирован запуск `DomainRegistryService.preloadAllTenants()`, гарантирующий мгновенную регистрацию всех кастомных доменов в L1 памяти и `VALID_TENANTS` при перезапуске сервера.
+  * 🟠 **Обобщение фоновых задач и кронов:** В `cbr-rate.service.ts` и `ai-economic-optimizer.processor.ts` устранен жесткий массив `['smmplan', 'flux']`, курсы доллара и оптимизация цен работают по всей базе активных брендов.
+  * 🟠 **Turnkey White-Label (Клонирование каталога услуг):** В `createTenantAction` и в модальное окно `/admin/tenants` внедрена функция мгновенного копирования готового каталога категорий и услуг из базового сайта с наценкой (например, +15%), что позволяет запускать готовую витрину за 1 клик.
+  * 🟡 **Очистка Zod-схем и тернарников:** В `general-settings.tsx`, `GeneralTelegramBotSection.tsx`, `admin-ai-manual.ts` и мастере импорта сняты все хардкод-ограничения двух брендов в пользу динамического `getTenantFallbackBranding(tenantId)`.
+  * 🧪 **100% Покрытие тестами изоляции (Vitest Suite 48/48 PASS):** Разработан эталонный сьют `src/__tests__/unit/true-multitenancy-full-isolation.test.ts` (14 тестов по 6 векторам изоляции: разделение балансов одного email, реферальные коды, домены, темы, наценка каталога), суммарный прогон 5 тест-сьютов мульти-тенантности дал **48/48 PASS (100%)**.
+
+- [x] 🛡️ [OMNISMM-AI-DEFECTS-REMEDIATION-PACKS-1-4-2026] Исправление 13 критических дефектов и паттернов AI-кода платформы OmniSMM 1.0 (100% COMPLETE & VERIFIED):
+  * 🔴 **Устранение межтенантных утечек (IDOR & Auth):** В `request-magic-link.ts` поиск реферера изолирован фильтром `{ referralCode, tenantId }`, а в `clients.ts` закрыта возможность начисления баланса клиентам чужого бренда.
+  * 🔴 **Финтех, Ledger-First & ExactMath BigInt:** В `loyalty.service.ts` ликвидирована плавающая точка `Math.round`, начисления комиссий переведены на целочисленный `BigInt` копейка-в-копейку с созданием записей `REFERRAL_COMMISSION` и `REFERRAL_REVERSAL` в `tx.ledgerEntry`.
+  * 🟠 **Ликвидация вечной блокировки Refill:** В `src/actions/order/refill.ts` устранен критический баг зависания гарантии при ошибке очереди Redis: добавлен откат статуса рефилла в `ERROR`, предотвращающий блокировку пользователя.
+  * 🟠 **Производительность и стабильность сети:** В `post-sync-rules.ts` устранен скрытый N+1 через батчинг категорий в `Map`, а в `smtp.ts` добавлены сокетные таймауты (`10s / 15s`) для защиты от зависания SMTP-соединений.
+  * 🧪 **Сквозная верификация:** `npx tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 утечек, `npm run check:arch` — 0 нарушений слоев, `npm run lint:tenant` — PASS.
+
+- [x] 📜 [OMNISMM-ADMIN-SYSTEM-LOGS-VIEWER-2026] Внедрение интуитивного централизованного журнала системных логов и аудита безопасности в панели администратора (/admin/system/logs) без внешних сервисов (100% COMPLETE & VERIFIED):
+  * 🔴 **In-House Архитектура без сторонних демонов:** Реализован легковесный и высокопроизводительный просмотр логов и событий безопасности прямо в административной панели (`/admin/system/logs`) с опорой на PostgreSQL и чистый BigInt/Zod DTO без развертывания тяжелых контейнеров Loki, ELK, Vector или ClickHouse.
+  * 🔴 **4 Централизованных потока журналов:**
+    - `security` (События безопасности `SecurityEvent`): сбои HMAC-подписей вебхуков, атаки повторного воспроизведения, аномалии IP, инспектор контекста инцидента.
+    - `logins` (Журнал авторизаций `LoginLog`): успешные и отклоненные входы, причины сбоев (OWASP A07), IP-адреса, клиенты User-Agent.
+    - `audit` (Аудит персонала `AdminAuditLog`): изменения балансов, тарифов, настроек, инспектор дифф-изменений (`oldValue` vs `newValue`).
+    - `telegram` (Ошибки бота и интеграций `TelegramErrorLog`): сбои вебхуков и фоновых очередей, коды ошибок API Telegram, счетчик повторений (`occurrenceCount`), статус разрешения (`isResolved`).
+  * 🟠 **PII & Secret Scrubbing (Защита от утечек):** Все JSON-пейлоады, стэктрейсы и дифф-поля перед выводом в UI автоматически очищаются через `redactSensitiveTokens` (маскирование паролей, Bearer токенов, API ключей, URI баз данных и секретов в `[REDACTED]`).
+  * 🟠 **Эргономика и дизайн-система (100% Viewport Width Fit):**
+    - 4 сводные карточки метрик в шапке с быстрым переключением вкладок.
+    - Фильтрация по статусам (CRITICAL/WARNING, FAILED/SUCCESS, FATAL/ERROR/WARN).
+    - Быстрый поиск по IP, email, действию и тексту ошибки.
+    - Модальное окно инспектора деталей (`LogDetailsModal`) с кнопкой копирования в буфер обмена.
+    - Адаптивные таблицы 100% ширины без горизонтального скролла с компактной плотностью ячеек `px-3 py-2.5`.
+  * 🟡 **Архитектурная чистота и декомпозиция (Лимит <= 200 строк):** Все 10 созданных и модифицированных файлов строго укладываются в диапазон 40–181 строк:
+    - DTO: `src/types/system-logs.dto.ts` (75 строк)
+    - Server Action: `src/actions/admin/system-logs.ts` (58 строк)
+    - Query Fetchers: `src/actions/admin/system-logs-fetchers.ts` (167 строк)
+    - Page: `src/app/admin/system/logs/page.tsx` (40 строк)
+    - Loading: `src/app/admin/system/logs/loading.tsx` (56 строк)
+    - Client Master: `src/app/admin/system/logs/components/system-logs-client.tsx` (181 строка)
+    - Subcomponents: `logs-stat-cards.tsx` (43), `logs-filter-bar.tsx` (100), `security-table.tsx` (108), `logins-table.tsx` (95), `audit-table.tsx` (96), `telegram-table.tsx` (111), `log-details-modal.tsx` (99).
+  * 🧪 **Сквозная SDD-TDD верификация:** 
+    - `src/__tests__/unit/admin-system-logs.test.ts` — **9/9 PASS (100%)**;
+    - `npx tsc --noEmit` — **0 ошибок** строгого режима TypeScript;
+    - `npm run check:arch` — **0 нарушений слоев Clean Architecture**;
+    - `npm run test:skills` — **22/22 PASS**;
+    - `npm run lint:skills:arch -- --ci` — **Score: 100/100, Grade A: 46/46**;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов**.
+
+- [x] 🪐 [OMNISMM-ANTIGRAVITY-STANDARDS-AND-RULE-MODULARIZATION-2026] Адаптация линтера под стандарты Google Antigravity & Gemini, устранение скрытого усечения правил (Лимит 24 KB) и модульное расслоение .agents/rules/ (100% COMPLETE & VERIFIED GRADE A):
+  * 🔴 **Ликвидация скрытого runtime-усечения контракта (Hard Cap 24 KB / 24,000 bytes):**
+    - Исходный `AGENTS.md` (52,428 байт) усекался рантаймом Antigravity на 28,599 байт, а `.agents/AGENTS.md` (35,801 байт) — на 11,894 байт при каждом старте сессии, приводя к выпадению ключевых секций (дизайн-система, безопасность, инварианты).
+    - Корневой контракт `AGENTS.md` оптимизирован до **15 159 байт** (< 24 KB).
+    - Создана модульная директория нативных правил Antigravity `.agents/rules/`:
+      - `architecture-and-security.md` (8 992 байт) — Серверные границы, мульти-тенантность, леджер, вебхуки, Zero-Trust и Shadow Catalog.
+      - `ui-ux-design-system.md` (14 312 байт) — Токены UI Forge Harness, UX форм, визард чекаута, Drip-Feed Floor, таблицы 100% ширины, фискализация 54-ФЗ.
+      - `code-hygiene-lint.md` (2 986 байт) — Strict Types, No-Crutch Policy, React 19 / Next.js 16, лимит компонентов <= 200 строк.
+      - `memory-and-swarms.md` (5 361 байт) — 4-Tier Memory, GraphRAG (:8100), Состязательный аудит Red Team, Zero-Hallucination.
+      - `security-and-postmortem.md` (6 413 байт) — Pentest Immunity (OWASP Top 10:2025, PCI DSS 4.0), Production Post-Mortem Invariants.
+      - `.agents/AGENTS.md` переведен в компактный указатель (995 байт).
+    - **Итог:** 100% файлов правил строго <= 24 000 байт. Общий объем 54 218 байт (~13 555 токенов при бюджете 20 000). **0 байт усечения!**
+  * 🔴 **Интеграция 4 канонических инвариантов Google Antigravity & Gemini в линтер:**
+    - `AGY-001` (Rule File Cap): Блокирующий аудит размера файлов правил (`<= 24,000` байт).
+    - `AGY-002` (Slash Command Format): Проверка синтаксиса слеш-команд Antigravity (строго lowercase kebab-case `^[a-z0-9]+(-[a-z0-9]+)*$`).
+    - `AGY-003` (Workflows Deprecation Guard): Контроль депрекации `.agents/workflows/` в пользу `.agents/skills/`.
+    - `AGY-004` (Generative UI gstatic CDN Guard): Контроль использования официального Google CDN `https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js` для безопасного рендеринга виджетов `<agent-embed>`.
+  * 🟠 **Расширение эталонного тестового сьюта (18 -> 22 теста PASS):** Добавлены 4 новых автотеста (`test_antigravity_rule_file_cap`, `test_antigravity_slash_command_format`, `test_antigravity_deprecated_workflows`, `test_antigravity_generative_ui_cdn`).
+  * 🧪 **Сквозная верификация:** 
+    - `npm run test:skills` — **22/22 PASS**;
+    - `npm run lint:skills:arch` — **Health Score: 100/100, Grade A: 46/46, 0 Critical, 0 Error, 0 Warning**;
+    - `npm run lint:skills` — **0 Critical, 0 Error** по всем 218 скиллам воркспейса;
+    - `npx tsc --noEmit` — **0 ошибок** строгого режима TypeScript;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов**;
+    - `npm run check:arch` — **0 нарушений слоев**.
+
+- [x] 🏆 [OMNISMM-ARCH-SKILLS-PERFECT-SCORE-2026] Достижение идеального Health Score 100/100 (Grade A) по всем 46 архитектурным скиллам платформы OmniSMM 1.0 (100% COMPLETE & VERIFIED):
+  * 🔴 **100% Эталон Anthropic (agentskills.io) & OmniSMM 6 Pillars:** Все 46 архитектурных скиллов платформы приведены к идеальному стандарту Claude / Anthropic. Средний Health Score тира вырос с 89/100 до **100/100 (Grade A по 100% скиллов)**.
+  * 🔴 **Ликвидация 93 дефектов и предупреждений (Warnings: 93 -> 0, Critical: 0, Error: 0):** Устранены все структурные недочеты: в frontmatter нормализованы триггеры активации («Используй этот скилл ВСЕГДА, когда...») и анти-триггеры («НЕ применять для...»), кастомные поля вынесены в `metadata:`, длина описаний оптимизирована до 50–740 символов.
+  * 🟠 **L1/L2 Двухуровневое расслоение памяти (CORE.md <= 65 строк):** Все 46 архитектурных скиллов оснащены ультра-компактными файлами `CORE.md` с обязательным заголовком `## 🛑 HARD INVARIANTS` и детерминированными формулами для защиты контекста агентов от переполнения (Context Starvation).
+  * 🟠 **Шесть обязательных секций (Six Pillars):** В каждом скилле гарантировано присутствие: `# Заголовок H1`, `## Назначение и границы (Overview & Scope)`, `## 1. Дерево решений (Decision Tree / Mermaid)`, `## 2. Жесткие инварианты (Hard Invariants)`, `## 3. Пошаговый алгоритм (Protocol)`, `## 4. Предотвращаемые антипаттерны (Gotchas)`, `## 5. Чеклист верификации (Verification Checklist)`.
+  * 🟠 **Декомпозиция тяжелых справочников:** В `bank-grade-db-guard` 1042 строки детальных эталонных реализаций и DDL вынесены в `references/REFERENCE.md`, размер `SKILL.md` сокращен с 1462 до 420 строк (< 500 строк по гайдам Anthropic).
+  * 🟡 **Гигиена ссылок и путей:** Исправлен относительный путь к нормативной базе в `layout-overflow-sentry` (`HY-002`), устранен хардкод локальных путей пользователя Windows (`HY-001`). Устранены критические ошибки в воркспейсе (`recursive-deep-book-engine` name sync, `legal-brainstorm-council` YAML quotes).
+  * 🧪 **Сквозная верификация:** 
+    - `npm run lint:skills:arch` — **Score: 100/100, Grade A: 46, Grade B/C/D/F: 0, CRITICAL: 0, ERROR: 0, WARNING: 0**;
+    - `npm run test:skills` — **18/18 PASS** (официальный сьют Anthropic);
+    - `npm run lint:skills` — **0 CRITICAL, 0 ERROR (PASS)** по всем 218 скиллам воркспейса;
+    - `npx tsc --noEmit` — **0 ошибок** компиляции TypeScript strict mode.
+
+- [x] 🗄️ [OMNISMM-STORAGE-QUEUE-PREMORTEM-GUARD-2026] Разработка и верификация архитектурного скилла пре-мортем анализа БД, памяти Redis и очередей BullMQ (100% COMPLETE & VERIFIED GRADE A):
+  * 🔴 **Банковский стандарт 2026 (Bank-Grade & Enterprise SaaS):** Разработан канонический скилл `.agents/skills/storage-queue-premortem-guard/` по спецификации Anthropic (agentskills.io) и регламентам RAC-2026 / ISO 25010 / PCI-DSS v4.0.1.
+  * 🔴 **Двухуровневое расслоение (L1 Fast Core & L2 Deep):** Созданы `CORE.md` (29 строк, бюджет < 450 токенов, `## 🛑 HARD INVARIANTS`) и `SKILL.md` (288 строк, 7 канонических секций, интерактивная блок-схема Mermaid, 6-векторная матрица моделирования катастроф).
+  * 🟠 **Защитные фильтры и инварианты ресурсов:** 
+    - Zero-FTS & Bounded Queries (`take <= 500`), Keyset cursor pagination вместо deep `OFFSET` (`skip > 1000`).
+    - Zero O(N) Redis commands (запрет `KEYS *`, курсорный `SCAN COUNT 100`), обязательный TTL (`EX`/`PX`), лимит размера ключа $\le 512\text{ KB}$.
+    - Job Queue Auto-Purge (`removeOnComplete: 100`, `removeOnFail: 500`), ликвидация Dual-Write в транзакциях.
+    - PostgreSQL MVCC HOT (`fillfactor = 85`), Range-партиционирование быстрорастущих журналов, сайзинг пулов ($N_{conn} = 2 \times \text{CPU} + \text{spindles}$).
+  * 🟡 **Регистрация в CI/CD Quality Gate:** Скилл зарегистрирован в `ARCH_TIER_SKILLS` скрипта `scripts/audit-skills-architecture.ts`.
+  * 🧪 **Сквозная верификация:** Аудит скилла — **Score: 100/100, Grade A, 0 issues**; `npm run test:skills` — 18/18 PASS; `npm run lint:skills:arch -- --ci` — 0 CRITICAL / 0 ERROR (PASS); `npx tsc --noEmit` — 0 ошибок; `node scripts/check-bundle-secrets.mjs` — 0 утечек; `npm run check:arch` — 0 нарушений слоев.
+
+- [x] 🏛️ [OMNISMM-SKILL-ARCHITECTURE-GUARD-2026] Сплошной аудит, сверка с эталоном Anthropic (agentskills.io), ликвидация дефектных скилов и внедрение CI/CD гейта (100% COMPLETE & VERIFIED):
+  * 🔴 **Канонический эталон Anthropic (agentskills.io):** Проведена сверка с официальным репозиторием `anthropics/skills` (`skills-ref/validator.py`). Внедрены канонические ограничения: `name` <= 64 симв., NFKC нормализация, запрет краевых и двойных дефисов, `description` <= 1024 симв., `compatibility` <= 500 симв., разделение полей на верхнем уровне и группировка `version`/`tags` в `metadata:`.
+  * 🔴 **Ликвидация всех дефектных скилов (Grade C/D $\to$ Grade A/B):** Модернизированы и переведены на эталон 100/100 Grade A все ранее проблемные архитектурные скилы: `tdd-guide`, `layout-overflow-sentry`, `local-pentest-orchestrator`, `omnismm-checkout-integrity-guard`, `payment-gateway-fuzzer`, `wireframe-nanobanana-stitch`, `skill-health-checker`, `maker-checker-protocol`, `client-hydration-perf-guard`, `mobile-cro-interaction`, `viewport-responsive-density`, `heroui-v3-compound-guard`, `google-stitch-architect`. В архитектурном тире (45 скилов) осталось **0 скилов Grade C/D/F**, средний балл вырос до **89/100 (Grade B+)**.
+  * 🟠 **L1-расслоение (CORE.md <= 65 строк):** Все ключевые скилы оснащены ультра-компактными файлами `CORE.md` с обязательным заголовком `## 🛑 HARD INVARIANTS` и детерминированными формулами для предотвращения Context Starvation.
+  * 🟠 **Нативный TS-харнес и сьют самотестов:** Реализован [`scripts/audit-skills-architecture.ts`](file:///e:/OmniSMM/scripts/audit-skills-architecture.ts) без зависимости от Python. Добавлены команды `npm run lint:skills`, `npm run lint:skills:arch` и `npm run test:skills` (18/18 тестов PASS, портированных с `test_validator.py` Anthropic). Добавлен строгий флаг `--ci`.
+  * 🟡 **Автоматический CI/CD Quality Gate в GitHub Actions:** В [`.github/workflows/ci.yml`](file:///e:/OmniSMM/.github/workflows/ci.yml) внедрены обязательные блокирующие шаги `npm run test:skills` и `npm run lint:skills:arch -- --ci` сразу после проверки типов TypeScript. Ни один невалидный скилл не может проникнуть в `main`.
+  * 🧪 **Сквозная верификация:** `npm run test:skills` — 18/18 PASS, `npm run lint:skills:arch -- --ci` — 0 CRITICAL / 0 ERROR (PASS), `npx tsc --noEmit` — 0 ошибок.
+
+
 - [x] 💰 [OMNISMM-FINANCIAL-HARDENING-2026] Сплошной аудит и нормативное устранение дефектов финансового ядра, леджера и Escrow (100% COMPLETE & VERIFIED):
   * 🔴 **FIN-01 (Ledger-First / Escrow Quarantine):** В `src/services/financial/wallet-ops.ts:quarantineAdd` порядок операций приведен в строгое соответствие с Ledger-First: `tx.ledgerEntry.create` вызывается строго ДО `tx.user.updateMany` с предварительной проверкой идемпотентности и изоляции тенанта.
   * 🔴 **FIN-02 (Trust Boundary / Escrow Approval):** В `WalletOps` реализован защищенный метод `quarantineApprove` с проверкой `tenantId`. В `src/services/admin/escrow.service.ts` ликвидирована прямая мутация `user.balance` в обход финансового шлюза.

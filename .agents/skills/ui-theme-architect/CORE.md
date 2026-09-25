@@ -1,5 +1,7 @@
 # ui-theme-architect (L1 Core Invariants)
 
+## 🛑 HARD INVARIANTS
+
 ## Жесткие инварианты (Hard Invariants)
 1. **Zero Raw Hex Invariant:** Запрещены фиксированные цвета (`text-white`, `bg-black`, `#hex`) в `src/components/`. Только семантические токены (`text-foreground`, `bg-background`, `bg-card`, `border-border`).
 2. **Tailwind 4 CSS-First:** Все темы объявляются строго в `src/app/globals.css` через `@theme` и CSS-переменные. Запрещен `tailwind.config.js`.

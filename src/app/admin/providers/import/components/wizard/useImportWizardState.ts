@@ -24,7 +24,7 @@ export function useImportWizardState(initialCategories: CategoryItem[], provider
   const [autoMappedCategories, setAutoMappedCategories] = useState<Record<string, string>>({});
   const [aiConfidence, setAiConfidence] = useState<Record<string, boolean>>({});
   const [markup, setMarkup] = useState<string>('200');
-  const [targetTenant, setTargetTenant] = useState<'smmplan' | 'flux' | 'both'>('smmplan');
+  const [targetTenant, setTargetTenant] = useState<string>('smmplan');
   const [activeTab, setActiveTab] = useState<'ready' | 'attention'>('ready');
   const [filters, setFilters] = useState({ ...DEFAULT_FILTERS });
   const [localSearch, setLocalSearch] = useState('');

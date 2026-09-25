@@ -16,7 +16,7 @@ export type AdminAssistantMessage = z.infer<typeof AdminAssistantMessageSchema>;
 export const AdminAssistantQuerySchema = z.object({
   query: z.string().trim().min(2, 'Запрос должен содержать не менее 2 символов').max(2000),
   currentRoute: z.string().max(200).default('/admin/dashboard'),
-  activeTenantId: z.enum(['smmplan', 'flux']).default('smmplan'),
+  activeTenantId: z.string().min(2).default('smmplan'),
   conversationHistory: z.array(AdminAssistantMessageSchema).max(10).optional().default([]),
 });
 

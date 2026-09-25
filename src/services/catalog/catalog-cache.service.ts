@@ -27,16 +27,39 @@ export const CATALOG_CACHE_KEYS = {
   tenantPattern: (tenantId: string) => `catalog:v1:${normalizeTenantId(tenantId)}:*`,
 };
 
+// In-flight Promise deduplication registry to eliminate Cache Stampede / Thundering Herd
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
 /**
- * Executes a Redis get operation with an internal timeout guard.
+ * Deduplicates concurrent identical async fetchers into a single shared execution.
+ */
+export async function runWithSingleflight<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const existing = inFlightRequests.get(key);
+  if (existing) {
+    return existing as Promise<T>;
+  }
+  const promise = (async () => {
+    try {
+      return await fetcher();
+    } finally {
+      inFlightRequests.delete(key);
+    }
+  })();
+  inFlightRequests.set(key, promise);
+  return promise;
+}
+
+/**
+ * Executes a Redis get operation with an internal timeout guard and guaranteed timer cleanup.
  */
 async function safeRedisGet(key: string): Promise<string | null> {
+  let timer: NodeJS.Timeout | undefined;
   try {
     return await Promise.race([
       redis.get(key),
-      new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Redis get timeout')), 500)
-      ),
+      new Promise<null>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Redis get timeout')), 500);
+      }),
     ]);
   } catch (error) {
     logger.warn('[CATALOG_CACHE] Redis read failed or timed out, degrading to DB fetcher', {
@@ -44,6 +67,8 @@ async function safeRedisGet(key: string): Promise<string | null> {
       error: error instanceof Error ? error.message : String(error),
     });
     return null;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -81,8 +106,8 @@ export async function getCachedNetworksWithRedis<T>(
     }
   }
 
-  // 2. Cache miss or Redis error -> fetch from DB
-  const data = await fetcher();
+  // 2. Cache miss or Redis error -> fetch from DB with Singleflight deduplication
+  const data = await runWithSingleflight(`sf:${cacheKey}`, fetcher);
 
   // 3. Populate Redis asynchronously
   if (data !== undefined && data !== null) {
@@ -113,8 +138,8 @@ export async function getCachedCategoryServicesWithRedis<T>(
     }
   }
 
-  // 2. Cache miss or Redis error -> fetch from DB
-  const data = await fetcher();
+  // 2. Cache miss or Redis error -> fetch from DB with Singleflight deduplication
+  const data = await runWithSingleflight(`sf:${cacheKey}`, fetcher);
 
   // 3. Populate Redis asynchronously
   if (data !== undefined && data !== null) {
@@ -143,7 +168,7 @@ export async function getCachedPublicCatalogWithRedis<T>(
     }
   }
 
-  const data = await fetcher();
+  const data = await runWithSingleflight(`sf:${cacheKey}`, fetcher);
 
   if (data !== undefined && data !== null) {
     void safeRedisSet(cacheKey, JSON.stringify(data), CATALOG_CACHE_TTL_SECONDS);
@@ -172,7 +197,7 @@ export async function getCachedProcessedServicesWithRedis<T>(
     }
   }
 
-  const data = await fetcher();
+  const data = await runWithSingleflight(`sf:${cacheKey}`, fetcher);
 
   if (data !== undefined && data !== null) {
     void safeRedisSet(cacheKey, JSON.stringify(data), CATALOG_CACHE_TTL_SECONDS);
@@ -200,7 +225,7 @@ export async function getCachedGuestBundleWithRedis<T>(
     }
   }
 
-  const data = await fetcher();
+  const data = await runWithSingleflight(`sf:${cacheKey}`, fetcher);
 
   if (data !== undefined && data !== null) {
     void safeRedisSet(cacheKey, JSON.stringify(data), 600); // 10 minutes TTL

@@ -26,6 +26,9 @@ const CreateTenantSchema = z.object({
     .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/i, 'Укажите корректный домен (например, smmflux.ru)'),
   customDomain: z.string().max(100).optional().nullable(),
   themeVariant: z.string().default('sky'),
+  cloneCatalog: z.boolean().optional().default(false),
+  cloneSourceTenant: z.string().optional().default('smmplan'),
+  markupPercent: z.number().min(0).max(500).optional().default(0),
 });
 
 const UpdateTenantSchema = z.object({
@@ -70,7 +73,7 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
       return { success: false, error: parsed.error.issues[0]?.message || 'Невалидные данные' };
     }
 
-    const { name, slug, domain, customDomain, themeVariant } = parsed.data;
+    const { name, slug, domain, customDomain, themeVariant, cloneCatalog, cloneSourceTenant, markupPercent } = parsed.data;
     const cleanDomain = domain.toLowerCase().trim();
     const cleanSlug = slug.toLowerCase().trim();
 
@@ -143,6 +146,60 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
       await TenantThemeService.saveTheme(cleanSlug, { preset: presetToUse }, staffUser.email).catch((err) => {
         console.warn(`[TenantsAction] Failed to initialize theme for ${cleanSlug}:`, err);
       });
+
+      // Optional Turnkey White-Label catalog cloning
+      if (cloneCatalog) {
+        try {
+          const srcTenant = cloneSourceTenant || 'smmplan';
+          const multiplier = 1 + (Number(markupPercent) || 0) / 100;
+
+          const sourceCategories = await db.category.findMany({
+            where: { tenantId: srcTenant },
+            include: { services: { where: { tenantId: srcTenant } } },
+          });
+
+          for (const cat of sourceCategories) {
+            const newCat = await db.category.create({
+              data: {
+                name: cat.name,
+                slug: `${cat.slug}-${cleanSlug}`,
+                networkId: cat.networkId,
+                tenantId: cleanSlug,
+                sort: cat.sort,
+                activityType: cat.activityType,
+                requireWarning: cat.requireWarning,
+                warningMessage: cat.warningMessage,
+                analyzerTags: cat.analyzerTags,
+                icon: cat.icon,
+              },
+            });
+
+            if (cat.services && cat.services.length > 0) {
+              await db.service.createMany({
+                data: cat.services.map((s) => ({
+                  name: s.name,
+                  description: s.description,
+                  icon: s.icon,
+                  features: s.features ?? undefined,
+                  categoryId: newCat.id,
+                  tenantId: cleanSlug,
+                  providerId: s.providerId,
+                  externalId: s.externalId,
+                  rate: Math.round(s.rate * multiplier * 100) / 100,
+                  costPer1kRub: s.costPer1kRub ? Math.round(s.costPer1kRub * multiplier * 100) / 100 : Math.round(s.rate * multiplier * 100) / 100,
+                  providerCurrency: s.providerCurrency,
+                  minQty: s.minQty,
+                  maxQty: s.maxQty,
+                  isActive: s.isActive,
+                  sortOrder: s.sortOrder,
+                })),
+              });
+            }
+          }
+        } catch (catErr) {
+          console.warn(`[TenantsAction] Failed to clone catalog for ${cleanSlug}:`, catErr);
+        }
+      }
 
       await auditAdminAwaitable({
         adminId: staffUser.id,

@@ -139,6 +139,7 @@ export function createPrismaClient(): PrismaClient {
 
 export const db = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== 'production' && process.env.NEXT_RUNTIME !== 'edge') {
+// Strictly preserve singleton across Next.js Server Actions & standalone chunks to prevent pool proliferation
+if (process.env.NEXT_RUNTIME !== 'edge') {
   globalForPrisma.prisma = db;
 }

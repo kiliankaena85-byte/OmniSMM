@@ -149,6 +149,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     user.staffRole?.permissions?.some((p: { section: string; canEdit: boolean }) => p.section.toUpperCase() === 'SETTINGS' && p.canEdit)
   );
 
+  const allTenants = await db.tenant.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true, domain: true },
+    orderBy: { createdAt: 'asc' },
+  }).catch(() => []);
+
   return (
     <DensityProvider>
       <ShortcutsProvider>
@@ -177,6 +183,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
                   currentTenant={activeTenantId} 
                   allowedTenants={userAllowedTenants}
                   isOwner={isOwner}
+                  allTenants={allTenants}
                 />
                 <EnvironmentModeSwitcher readOnly={!canEditSettings} />
               </div>

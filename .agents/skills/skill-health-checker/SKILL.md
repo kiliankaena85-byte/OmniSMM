@@ -1,12 +1,21 @@
 ---
 name: skill-health-checker
-version: 1.2.0
-description: |
-  Lints and validates SKILL.md files for structural integrity, frontmatter correctness,
-  instruction quality, and activation reliability. Detects missing sections, vague
+description: >-
+  Используй этот скилл ВСЕГДА, когда Lints and validates SKILL.md files for
+  structural integrity, frontmatter correctness,
+
+  instruction quality, and activation reliability. Detects missing sections,
+  vague
+
   descriptions, contradictory imperatives, broken script references, incomplete
-  response-cycle coverage, and semantic status conflicts. Use before publishing a skill,
-  after editing, when a skill fails to activate, or as a CI pipeline check.
+
+  response-cycle coverage, and semantic status conflicts. Use before publishing
+  a skill,
+
+  after editing, when a skill fails to activate, or as a CI pipeline check. НЕ
+  применять для линтинга общего кода TypeScript или компонентов React.
+metadata:
+  version: 1.2.0
 ---
 
 # Skill Health Checker 🏥
@@ -436,3 +445,20 @@ This skill validates **SKILL.md structure and content quality**.
 - `scripts/rules/` — modular rule implementations
 - [Keep a Changelog](https://keepachangelog.com/)
 - [Semantic Versioning](https://semver.org/)
+
+---
+
+## Жесткие инварианты (Hard Invariants)
+- 🛑 **ИНВАРИАНТ 1:** Frontmatter Integrity: парсинг YAML без синтаксических ошибок и с закрывающими дефисами.
+- 🛑 **ИНВАРИАНТ 2:** Trigger Coverage: наличие явных триггеров («Используй когда...») и анти-триггеров.
+- 🛑 **ИНВАРИАНТ 3:** Relative Link Validity: все ссылки Markdown проверяются на физическое существование файлов.
+- 🛑 **ИНВАРИАНТ 4:** Concise Description Cap: длина описания frontmatter оптимизирована в пределах 50-740 символов.
+- 🛑 **ИНВАРИАНТ 5:** Section Completeness: обязательное присутствие дерева решений, инвариантов и протокола.
+
+---
+
+## Чеклист верификации (Verification Checklist)
+- [ ] Проверены ли ключевые архитектурные инварианты?
+- [ ] Укладывается ли код в лимиты сложности и размера?
+- [ ] Отсутствуют ли регрессии в смежных подсистемах?
+- [ ] Пройден ли автоматический запуск npm run lint:skills?

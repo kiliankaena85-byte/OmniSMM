@@ -41,7 +41,7 @@ export class LoyaltyService {
    * Awards a commission to the referrer when a referred user makes a deposit.
    * Safe to run inside an existing PostgreSQL transaction.
    */
-  static async awardCommission(tx: Prisma.TransactionClient, referredUserId: string, depositAmountCents: number, orderId: string): Promise<void> {
+  static async awardCommission(tx: Prisma.TransactionClient, referredUserId: string, depositAmountCents: number | bigint, orderId: string): Promise<void> {
     const user = await tx.user.findUnique({
       where: { id: referredUserId },
       select: { referredById: true }
@@ -66,9 +66,10 @@ export class LoyaltyService {
         return;
     }
 
-    const percent = await this.getReferralPercent(user.referredById);
-    
-    const commissionCents = Math.round((depositAmountCents * percent) / 100);
+    const effectivePercent = await this.getReferralPercent(user.referredById);
+    const orderAmount = BigInt(depositAmountCents);
+    const commissionCentsBig = (orderAmount * BigInt(effectivePercent)) / 100n;
+    const commissionCents = Number(commissionCentsBig);
     if (commissionCents <= 0) return;
 
     // Idempotent check: prevent duplicate commissions for the same order and referrer
@@ -82,7 +83,7 @@ export class LoyaltyService {
       data: {
         orderId,
         referrerId: user.referredById,
-        amount: commissionCents,
+        amount: commissionCentsBig,
         status: 'PENDING'
       }
     });
@@ -92,7 +93,7 @@ export class LoyaltyService {
       data: {
         userId: user.referredById,
         action: 'REFERRAL_PENDING',
-        details: `Ожидается комиссия ${percent}% (${commissionCents / 100} руб) за пополнение от привлеченного пользователя.`
+        details: `Ожидается комиссия ${effectivePercent}% (${commissionCents / 100} руб) за пополнение от привлеченного пользователя.`
       }
     });
   }
@@ -101,7 +102,7 @@ export class LoyaltyService {
    * Confirms a pending commission when an order completes.
    * Moves it from PENDING to CONFIRMED.
    */
-    static async confirmCommission(tx: Prisma.TransactionClient, orderId: string): Promise<void> {
+  static async confirmCommission(tx: Prisma.TransactionClient, orderId: string): Promise<void> {
     const commissions = await tx.commission.findMany({
       where: { orderId, status: 'PENDING' }
     });
@@ -110,6 +111,26 @@ export class LoyaltyService {
       await tx.commission.update({
         where: { id: comm.id },
         data: { status: 'CONFIRMED' }
+      });
+
+      const referrer = await tx.user.findUnique({
+        where: { id: comm.referrerId },
+        select: { id: true, tenantId: true }
+      });
+      const tenantId = referrer?.tenantId || 'smmplan';
+      const commAmount = BigInt(comm.amount);
+
+      // Ledger-First: Record referral commission in ledger
+      await tx.ledgerEntry.create({
+        data: {
+          userId: comm.referrerId,
+          tenantId,
+          amount: commAmount,
+          reason: `Начисление реферальной комиссии за заказ ${orderId}`,
+          status: 'APPROVED',
+          idempotencyKey: `ref_comm_${comm.id}`,
+          transactionType: 'REFERRAL_COMMISSION',
+        }
       });
 
       // Increment referrer's referral balance ONLY upon confirmation
@@ -131,7 +152,7 @@ export class LoyaltyService {
   /**
    * Partially confirms a commission proportional to the delivered quantity.
    */
-    static async handlePartialCommission(tx: Prisma.TransactionClient, orderId: string, remains: number, quantity: number): Promise<void> {
+  static async handlePartialCommission(tx: Prisma.TransactionClient, orderId: string, remains: number, quantity: number): Promise<void> {
     const commissions = await tx.commission.findMany({
       where: { orderId, status: 'PENDING' }
     });
@@ -154,15 +175,35 @@ export class LoyaltyService {
         continue;
       }
 
-      const originalAmount = Number(comm.amount);
-      const confirmedAmount = Math.round((originalAmount * (quantity - remains)) / quantity);
+      const originalAmount = BigInt(comm.amount);
+      const confirmedAmountBig = (originalAmount * BigInt(quantity - remains)) / BigInt(quantity);
+      const confirmedAmount = Number(confirmedAmountBig);
 
       if (confirmedAmount > 0) {
         await tx.commission.update({
           where: { id: comm.id },
           data: { 
             status: 'CONFIRMED',
-            amount: confirmedAmount
+            amount: confirmedAmountBig
+          }
+        });
+
+        const referrer = await tx.user.findUnique({
+          where: { id: comm.referrerId },
+          select: { id: true, tenantId: true }
+        });
+        const tenantId = referrer?.tenantId || 'smmplan';
+
+        // Ledger-First: Record partial commission in ledger
+        await tx.ledgerEntry.create({
+          data: {
+            userId: comm.referrerId,
+            tenantId,
+            amount: confirmedAmountBig,
+            reason: `Частичное начисление реферальной комиссии за заказ ${orderId}`,
+            status: 'APPROVED',
+            idempotencyKey: `ref_comm_partial_${comm.id}`,
+            transactionType: 'REFERRAL_COMMISSION',
           }
         });
 
@@ -176,7 +217,7 @@ export class LoyaltyService {
           data: {
             userId: comm.referrerId,
             action: 'REFERRAL_CONFIRMED',
-            details: `Комиссия за заказ подтверждена частично: ${confirmedAmount / 100} руб (оригинальная сумма: ${originalAmount / 100} руб).`
+            details: `Комиссия за заказ подтверждена частично: ${confirmedAmount / 100} руб (оригинальная сумма: ${Number(originalAmount) / 100} руб).`
           }
         });
       } else {
@@ -192,7 +233,7 @@ export class LoyaltyService {
    * Reverses a pending or confirmed commission if the order fails.
    * Moves it to REVERSED and decrements referralBalance only if it was confirmed.
    */
-    static async reverseCommission(tx: Prisma.TransactionClient, orderId: string): Promise<void> {
+  static async reverseCommission(tx: Prisma.TransactionClient, orderId: string): Promise<void> {
     const commissions = await tx.commission.findMany({
       where: { orderId, status: { in: ['PENDING', 'CONFIRMED'] } }
     });
@@ -210,16 +251,28 @@ export class LoyaltyService {
         const commAmount = Number(comm.amount);
         const referrer = await tx.user.findUnique({
           where: { id: comm.referrerId },
-          select: { referralBalance: true }
+          select: { id: true, tenantId: true }
         });
-        const currentRefBalance = Number(referrer?.referralBalance || 0);
-        const decrementAmount = Math.min(currentRefBalance, commAmount);
-        if (decrementAmount > 0) {
-          await tx.user.update({
-            where: { id: comm.referrerId },
-            data: { referralBalance: { decrement: decrementAmount } }
-          });
-        }
+        const tenantId = referrer?.tenantId || 'smmplan';
+
+        // Ledger-First: Record reversal in ledger
+        await tx.ledgerEntry.create({
+          data: {
+            userId: comm.referrerId,
+            tenantId,
+            amount: -BigInt(comm.amount),
+            reason: `Отзыв реферальной комиссии за отмену заказа ${orderId}`,
+            status: 'APPROVED',
+            idempotencyKey: `ref_reversal_${comm.id}`,
+            transactionType: 'REFERRAL_REVERSAL',
+          }
+        });
+
+        // Decrement full commission amount even if balance goes negative
+        await tx.user.update({
+          where: { id: comm.referrerId },
+          data: { referralBalance: { decrement: commAmount } }
+        });
       }
 
       await tx.auditLog.create({

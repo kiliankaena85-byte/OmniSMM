@@ -15827,7 +15827,6 @@ var init_prisma_tenant_enforcer = __esm({
       "category",
       "customerGroup",
       "ticketFeedback",
-      "promoCode",
       "ledgerEntry",
       "supportFinancialAction"
     ];
@@ -15964,7 +15963,7 @@ var init_db = __esm({
     init_prisma_tenant_enforcer();
     globalForPrisma = globalThis;
     db = globalForPrisma.prisma ?? createPrismaClient();
-    if (process.env.NODE_ENV !== "production" && process.env.NEXT_RUNTIME !== "edge") {
+    if (process.env.NEXT_RUNTIME !== "edge") {
       globalForPrisma.prisma = db;
     }
   }
@@ -16356,9 +16355,34 @@ var init_wallet_ops = __esm({
             transactionType: txTypeOverride ?? "ADJUSTMENT"
           }
         });
-        const updatedUser = await tx.user.update({
+        if (rawCents < BigInt(0)) {
+          const absCents = -rawCents;
+          const updatedUserBatch = await tx.user.updateMany({
+            where: {
+              id: userId,
+              balance: { gte: absCents },
+              ...tenantId ? { tenantId } : {}
+            },
+            data: { balance: { increment: rawCents } }
+          });
+          if (updatedUserBatch.count === 0) {
+            const checkUser = await tx.user.findUnique({
+              where: { id: userId },
+              select: { id: true, balance: true }
+            });
+            throw new WalletInsufficientFundsError(absCents, checkUser?.balance ?? BigInt(0));
+          }
+        } else {
+          await tx.user.updateMany({
+            where: {
+              id: userId,
+              ...tenantId ? { tenantId } : {}
+            },
+            data: { balance: { increment: rawCents } }
+          });
+        }
+        const updatedUser = await tx.user.findUniqueOrThrow({
           where: { id: userId },
-          data: { balance: { increment: rawCents } },
           select: { balance: true }
         });
         return { success: true, balance: updatedUser.balance, cached: false, entry };
@@ -16416,29 +16440,35 @@ var init_wallet_ops = __esm({
       },
       /**
        * Add funds to user quarantine balance bubble instead of main balance.
+       * Strictly enforces Ledger-First Principle (LedgerEntry created BEFORE balance mutation).
        */
       async quarantineAdd(tx, userId, amountCents, reason, opts) {
         const { idempotencyKey, adminId, tenantId } = opts || {};
         const rawCents = typeof amountCents === "bigint" ? amountCents : BigInt(amountCents);
         const absAmount = rawCents < BigInt(0) ? -rawCents : rawCents;
-        if (tenantId) {
-          const user2 = await tx.user.findUnique({
-            where: { id: userId },
-            select: { id: true, tenantId: true }
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { id: true, tenantId: true }
+        });
+        if (!user) {
+          throw new WalletUserNotFoundError(userId);
+        }
+        if (tenantId && user.tenantId !== tenantId) {
+          throw new WalletUserNotFoundError(userId);
+        }
+        const resolvedTenantId = tenantId || user.tenantId || "smmplan";
+        if (idempotencyKey) {
+          const existing = await tx.ledgerEntry.findFirst({
+            where: { idempotencyKey, tenantId: resolvedTenantId }
           });
-          if (!user2 || user2.tenantId !== tenantId) {
-            throw new WalletUserNotFoundError(userId);
+          if (existing) {
+            return existing;
           }
         }
-        const user = await tx.user.update({
-          where: { id: userId },
-          data: { quarantineBalance: { increment: absAmount } },
-          select: { tenantId: true }
-        });
-        return await tx.ledgerEntry.create({
+        const entry = await tx.ledgerEntry.create({
           data: {
             userId,
-            tenantId: tenantId || user.tenantId || "smmplan",
+            tenantId: resolvedTenantId,
             adminId,
             amount: rawCents,
             reason,
@@ -16447,6 +16477,38 @@ var init_wallet_ops = __esm({
             transactionType: "COMPENSATION"
           }
         });
+        await tx.user.updateMany({
+          where: {
+            id: userId,
+            ...tenantId ? { tenantId } : {}
+          },
+          data: { quarantineBalance: { increment: absAmount } }
+        });
+        return entry;
+      },
+      /**
+       * Approve funds from quarantine into user main balance.
+       * Encapsulates the balance transition without creating a duplicate LedgerEntry.
+       * Strictly enforces Trust Boundary and tenant isolation.
+       */
+      async quarantineApprove(tx, userId, amountCents, opts) {
+        const rawCents = typeof amountCents === "bigint" ? amountCents : BigInt(amountCents);
+        const { tenantId } = opts || {};
+        const updatedUserBatch = await tx.user.updateMany({
+          where: {
+            id: userId,
+            ...tenantId ? { tenantId } : {}
+          },
+          data: { balance: { increment: rawCents } }
+        });
+        if (updatedUserBatch.count === 0) {
+          throw new WalletUserNotFoundError(userId);
+        }
+        const updatedUser = await tx.user.findUniqueOrThrow({
+          where: { id: userId },
+          select: { balance: true }
+        });
+        return { success: true, balance: updatedUser.balance };
       },
       /**
        * Release or clear quarantine balance for a user.
@@ -25768,6 +25830,46 @@ var require_cache = __commonJS({
     exports2.unstable_cacheTag = cacheExports.unstable_cacheTag;
     exports2.refresh = cacheExports.refresh;
     exports2.io = cacheExports.io;
+  }
+});
+
+// src/lib/tenant-branding.ts
+function getTenantFallbackBranding2(tenantSlug) {
+  const clean = (tenantSlug || "").trim().toLowerCase();
+  if (clean === "flux") {
+    return {
+      name: "SMMflux",
+      domain: "smmflux.ru",
+      supportEmail: "support@smmflux.ru",
+      privacyEmail: "privacy@smmflux.ru",
+      bot: "smmflux_support_bot",
+      channel: "smmflux_support"
+    };
+  }
+  if (clean === "smmplan") {
+    return {
+      name: "SMMplan",
+      domain: "smmplan.pro",
+      supportEmail: "support@smmplan.pro",
+      privacyEmail: "privacy@smmplan.pro",
+      bot: "smmplan_support_bot",
+      channel: "smmplan_support"
+    };
+  }
+  const capitalized = clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : "OmniSMM";
+  const domain = clean ? `${clean}.pro` : "smmplan.pro";
+  return {
+    name: capitalized,
+    domain,
+    supportEmail: `support@${domain}`,
+    privacyEmail: `privacy@${domain}`,
+    bot: clean ? `${clean}_support_bot` : "smmplan_support_bot",
+    channel: clean ? `${clean}_support` : "smmplan_support"
+  };
+}
+var init_tenant_branding = __esm({
+  "src/lib/tenant-branding.ts"() {
+    "use strict";
   }
 });
 
@@ -35471,6 +35573,11 @@ var init_sensitive_data_filter = __esm({
         pattern: /([a-z][a-z0-9+.-]*:\/\/[^\/\s:@?#]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,
         replacement: "$1*****$3"
       },
+      // URI with empty username but non-empty password: scheme://:password@host (e.g. redis://:SecretPass@localhost)
+      {
+        pattern: /([a-z][a-z0-9+.-]*:\/\/):([^@/\s][^@/\s]*)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?#\s]|$))/gi,
+        replacement: "$1:*****$3"
+      },
       // Scheme-less userinfo URIs: username:password@host
       {
         pattern: /(^|[\s,;("'])((?!:\/\/)[a-zA-Z0-9_.-]+:)([^\/\s?#]+)(@(?:[a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])(?::\d+)?(?:[/?\s#]|$))/gi,
@@ -35507,7 +35614,7 @@ __export2(redis_exports, {
 });
 function validateRedisUrl(url, env = process.env.NODE_ENV || "development", explicitPassword) {
   if (env === "production") {
-    const hasAuth = url.includes("@") || Boolean(explicitPassword || process.env.REDIS_PASSWORD);
+    const hasAuth = url.includes("@") || Boolean(explicitPassword);
     if (!hasAuth) {
       return {
         valid: false,
@@ -35538,7 +35645,7 @@ var init_redis = __esm({
     init_sensitive_data_filter();
     globalForRedis = global;
     redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-    redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV);
+    redisCheck = validateRedisUrl(redisUrl, process.env.NODE_ENV, process.env.REDIS_PASSWORD);
     if (!redisCheck.valid) {
       throw new Error(redisCheck.error);
     }
@@ -35550,9 +35657,15 @@ var init_redis = __esm({
       maxRetriesPerRequest: process.env.NODE_ENV === "test" ? null : 3,
       connectTimeout: 5e3,
       lazyConnect: true,
+      enableAutoPipelining: true,
+      // Batch concurrent commands within the same event loop tick (P95 < 1ms)
+      noDelay: true,
+      // Disable Nagle's algorithm for sub-millisecond TCP packet dispatch
+      keepAlive: 1e4,
+      // Retain persistent TCP keep-alive probe
       retryStrategy: (times) => calculateRedisRetryDelay(times, process.env.NODE_ENV)
     });
-    if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
+    globalForRedis.redis = redis;
     redis.on("error", (err) => {
       console.error("[REDIS] Connection error:", redactSensitiveTokens(err.message));
     });
@@ -35564,41 +35677,8 @@ var settings_exports = {};
 __export2(settings_exports, {
   SettingsManager: () => SettingsManager,
   SettingsProvider: () => SettingsProvider,
-  getTenantFallbackBranding: () => getTenantFallbackBranding
+  getTenantFallbackBranding: () => getTenantFallbackBranding2
 });
-function getTenantFallbackBranding(tenantSlug) {
-  const clean = (tenantSlug || "").trim().toLowerCase();
-  if (clean === "flux") {
-    return {
-      name: "SMMflux",
-      domain: "smmflux.ru",
-      supportEmail: "support@smmflux.ru",
-      privacyEmail: "privacy@smmflux.ru",
-      bot: "smmflux_support_bot",
-      channel: "smmflux_support"
-    };
-  }
-  if (clean === "smmplan") {
-    return {
-      name: "SMMplan",
-      domain: "smmplan.pro",
-      supportEmail: "support@smmplan.pro",
-      privacyEmail: "privacy@smmplan.pro",
-      bot: "smmplan_support_bot",
-      channel: "smmplan_support"
-    };
-  }
-  const capitalized = clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : "OmniSMM";
-  const domain = clean ? `${clean}.pro` : "smmplan.pro";
-  return {
-    name: capitalized,
-    domain,
-    supportEmail: `support@${domain}`,
-    privacyEmail: `privacy@${domain}`,
-    bot: clean ? `${clean}_support_bot` : "smmplan_support_bot",
-    channel: clean ? `${clean}_support` : "smmplan_support"
-  };
-}
 var import_cache, localSettingsCache, CACHE_TTL_MS, SettingsProvider, SettingsManager;
 var init_settings = __esm({
   "src/lib/settings.ts"() {
@@ -35607,6 +35687,7 @@ var init_settings = __esm({
     init_vault();
     import_cache = __toESM(require_cache());
     init_tenant_resolver_edge();
+    init_tenant_branding();
     localSettingsCache = {};
     CACHE_TTL_MS = 60 * 1e3;
     SettingsProvider = class _SettingsProvider {
@@ -35985,6 +36066,7 @@ var init_settings = __esm({
         });
         try {
           (0, import_cache.revalidateTag)("settings", "default");
+          (0, import_cache.revalidateTag)(`settings-${activeTenantId}`, "default");
         } catch (cacheErr) {
           console.error("[SettingsProvider] Warning: Failed to invalidate cache tag:", cacheErr);
         }
@@ -74165,8 +74247,10 @@ var init_loyalty_service = __esm({
           console.warn(`[SECURITY] Cyclic referral detected between ${referredUserId} and ${user.referredById}. Commission rejected.`);
           return;
         }
-        const percent = await this.getReferralPercent(user.referredById);
-        const commissionCents = Math.round(depositAmountCents * percent / 100);
+        const effectivePercent = await this.getReferralPercent(user.referredById);
+        const orderAmount = BigInt(depositAmountCents);
+        const commissionCentsBig = orderAmount * BigInt(effectivePercent) / 100n;
+        const commissionCents = Number(commissionCentsBig);
         if (commissionCents <= 0) return;
         const existingComm = await tx.commission.findFirst({
           where: { orderId, referrerId: user.referredById }
@@ -74176,7 +74260,7 @@ var init_loyalty_service = __esm({
           data: {
             orderId,
             referrerId: user.referredById,
-            amount: commissionCents,
+            amount: commissionCentsBig,
             status: "PENDING"
           }
         });
@@ -74184,7 +74268,7 @@ var init_loyalty_service = __esm({
           data: {
             userId: user.referredById,
             action: "REFERRAL_PENDING",
-            details: `\u041E\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044F \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u044F ${percent}% (${commissionCents / 100} \u0440\u0443\u0431) \u0437\u0430 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u043E\u0442 \u043F\u0440\u0438\u0432\u043B\u0435\u0447\u0435\u043D\u043D\u043E\u0433\u043E \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F.`
+            details: `\u041E\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044F \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u044F ${effectivePercent}% (${commissionCents / 100} \u0440\u0443\u0431) \u0437\u0430 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u043E\u0442 \u043F\u0440\u0438\u0432\u043B\u0435\u0447\u0435\u043D\u043D\u043E\u0433\u043E \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F.`
           }
         });
       }
@@ -74200,6 +74284,23 @@ var init_loyalty_service = __esm({
           await tx.commission.update({
             where: { id: comm.id },
             data: { status: "CONFIRMED" }
+          });
+          const referrer = await tx.user.findUnique({
+            where: { id: comm.referrerId },
+            select: { id: true, tenantId: true }
+          });
+          const tenantId = referrer?.tenantId || "smmplan";
+          const commAmount = BigInt(comm.amount);
+          await tx.ledgerEntry.create({
+            data: {
+              userId: comm.referrerId,
+              tenantId,
+              amount: commAmount,
+              reason: `\u041D\u0430\u0447\u0438\u0441\u043B\u0435\u043D\u0438\u0435 \u0440\u0435\u0444\u0435\u0440\u0430\u043B\u044C\u043D\u043E\u0439 \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u0438 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 ${orderId}`,
+              status: "APPROVED",
+              idempotencyKey: `ref_comm_${comm.id}`,
+              transactionType: "REFERRAL_COMMISSION"
+            }
           });
           await tx.user.update({
             where: { id: comm.referrerId },
@@ -74236,14 +74337,31 @@ var init_loyalty_service = __esm({
             });
             continue;
           }
-          const originalAmount = Number(comm.amount);
-          const confirmedAmount = Math.round(originalAmount * (quantity - remains) / quantity);
+          const originalAmount = BigInt(comm.amount);
+          const confirmedAmountBig = originalAmount * BigInt(quantity - remains) / BigInt(quantity);
+          const confirmedAmount = Number(confirmedAmountBig);
           if (confirmedAmount > 0) {
             await tx.commission.update({
               where: { id: comm.id },
               data: {
                 status: "CONFIRMED",
-                amount: confirmedAmount
+                amount: confirmedAmountBig
+              }
+            });
+            const referrer = await tx.user.findUnique({
+              where: { id: comm.referrerId },
+              select: { id: true, tenantId: true }
+            });
+            const tenantId = referrer?.tenantId || "smmplan";
+            await tx.ledgerEntry.create({
+              data: {
+                userId: comm.referrerId,
+                tenantId,
+                amount: confirmedAmountBig,
+                reason: `\u0427\u0430\u0441\u0442\u0438\u0447\u043D\u043E\u0435 \u043D\u0430\u0447\u0438\u0441\u043B\u0435\u043D\u0438\u0435 \u0440\u0435\u0444\u0435\u0440\u0430\u043B\u044C\u043D\u043E\u0439 \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u0438 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 ${orderId}`,
+                status: "APPROVED",
+                idempotencyKey: `ref_comm_partial_${comm.id}`,
+                transactionType: "REFERRAL_COMMISSION"
               }
             });
             await tx.user.update({
@@ -74254,7 +74372,7 @@ var init_loyalty_service = __esm({
               data: {
                 userId: comm.referrerId,
                 action: "REFERRAL_CONFIRMED",
-                details: `\u041A\u043E\u043C\u0438\u0441\u0441\u0438\u044F \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E: ${confirmedAmount / 100} \u0440\u0443\u0431 (\u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u044C\u043D\u0430\u044F \u0441\u0443\u043C\u043C\u0430: ${originalAmount / 100} \u0440\u0443\u0431).`
+                details: `\u041A\u043E\u043C\u0438\u0441\u0441\u0438\u044F \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430 \u0447\u0430\u0441\u0442\u0438\u0447\u043D\u043E: ${confirmedAmount / 100} \u0440\u0443\u0431 (\u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u044C\u043D\u0430\u044F \u0441\u0443\u043C\u043C\u0430: ${Number(originalAmount) / 100} \u0440\u0443\u0431).`
               }
             });
           } else {
@@ -74280,9 +74398,26 @@ var init_loyalty_service = __esm({
             data: { status: "REVERSED" }
           });
           if (wasConfirmed) {
+            const commAmount = Number(comm.amount);
+            const referrer = await tx.user.findUnique({
+              where: { id: comm.referrerId },
+              select: { id: true, tenantId: true }
+            });
+            const tenantId = referrer?.tenantId || "smmplan";
+            await tx.ledgerEntry.create({
+              data: {
+                userId: comm.referrerId,
+                tenantId,
+                amount: -BigInt(comm.amount),
+                reason: `\u041E\u0442\u0437\u044B\u0432 \u0440\u0435\u0444\u0435\u0440\u0430\u043B\u044C\u043D\u043E\u0439 \u043A\u043E\u043C\u0438\u0441\u0441\u0438\u0438 \u0437\u0430 \u043E\u0442\u043C\u0435\u043D\u0443 \u0437\u0430\u043A\u0430\u0437\u0430 ${orderId}`,
+                status: "APPROVED",
+                idempotencyKey: `ref_reversal_${comm.id}`,
+                transactionType: "REFERRAL_REVERSAL"
+              }
+            });
             await tx.user.update({
               where: { id: comm.referrerId },
-              data: { referralBalance: { decrement: Number(comm.amount) } }
+              data: { referralBalance: { decrement: commAmount } }
             });
           }
           await tx.auditLog.create({
@@ -99519,15 +99654,14 @@ function normalizeTenantId2(tenantId) {
 function getTenantConfig(tenantId) {
   const norm = normalizeTenantId2(tenantId);
   const found = TENANTS.find((t) => t.id === norm);
-  if (found) return found;
-  const capitalized = norm.charAt(0).toUpperCase() + norm.slice(1);
-  return {
+  const baseConfig = found || {
     id: norm,
-    name: capitalized,
+    name: norm.charAt(0).toUpperCase() + norm.slice(1),
     domain: `${norm}.pro`,
     testDomain: `test.${norm}.pro`,
     allowedHosts: [`${norm}.pro`, `www.${norm}.pro`, `test.${norm}.pro`]
   };
+  return baseConfig;
 }
 function getTenantSiteName(tenantId) {
   return getTenantConfig(tenantId).name;
@@ -99743,8 +99877,11 @@ async function getTransporter(tenantId) {
       user: s.smtpUser,
       pass: s.smtpPassword
     },
-    family: 4
+    family: 4,
     // Force IPv4 to prevent ENETUNREACH on systems without IPv6 routing
+    connectionTimeout: 1e4,
+    greetingTimeout: 1e4,
+    socketTimeout: 15e3
   });
   return { provider: "SMTP", transporter, smtpUser: s.smtpUser, fromEmail: s.smtpUser };
 }
@@ -131744,8 +131881,21 @@ var init_order_service = __esm({
               }
               throw new Error("SERVICE_NOT_FOUND");
             }
-            if (input.quantity < service.minQty || input.quantity > service.maxQty) {
-              throw new Error(`QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`);
+            const isDripFeed2 = Boolean(input.runs && input.runs > 1);
+            const effectiveRunQty = isDripFeed2 ? Math.floor(input.quantity / input.runs) : input.quantity;
+            if (effectiveRunQty < service.minQty) {
+              throw new Error(
+                isDripFeed2 ? `\u0414\u043B\u044F Drip-feed \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u043E\u0434\u0438\u043D \u0437\u0430\u043F\u0443\u0441\u043A (${effectiveRunQty}) \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043C\u0435\u043D\u044C\u0448\u0435 \u043C\u0438\u043D\u0438\u043C\u0430\u043B\u044C\u043D\u043E\u0433\u043E (${service.minQty})` : `QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`
+              );
+            }
+            if (effectiveRunQty > service.maxQty) {
+              throw new Error(
+                isDripFeed2 ? `\u0414\u043B\u044F Drip-feed \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u043E\u0434\u0438\u043D \u0437\u0430\u043F\u0443\u0441\u043A (${effectiveRunQty}) \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0442\u044C \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E\u0435 (${service.maxQty})` : `QUANTITY_OUT_OF_BOUNDS: Allowed ${service.minQty}-${service.maxQty}`
+              );
+            }
+            const maxTotalDripLimit = service.maxQty * (input.runs || 1);
+            if (input.quantity > maxTotalDripLimit) {
+              throw new Error(`QUANTITY_OUT_OF_BOUNDS: Total quantity cannot exceed ${maxTotalDripLimit}`);
             }
             await WalletOps.charge(
               tx,
@@ -131786,9 +131936,9 @@ var init_order_service = __esm({
                 remains: input.quantity,
                 runs: input.runs,
                 interval: input.interval,
-                isDripFeed,
+                isDripFeed: isDripFeed2,
                 currentRun: 0,
-                nextRunAt: isDripFeed ? /* @__PURE__ */ new Date() : null,
+                nextRunAt: isDripFeed2 ? /* @__PURE__ */ new Date() : null,
                 email: input.email?.toLowerCase(),
                 isTest: input.isTestMode || false,
                 customData: input.customData
@@ -131931,18 +132081,26 @@ var init_order_service = __esm({
        */
       async processStatusUpdate(externalId, providerStatus, remains) {
         try {
+          const normalizedStatus = (providerStatus || "").toLowerCase().trim();
           const statusMap = {
-            "Pending": "PENDING",
-            "In progress": "IN_PROGRESS",
-            "In_progress": "IN_PROGRESS",
-            "Processing": "IN_PROGRESS",
-            "Completed": "COMPLETED",
-            "Partial": "PARTIAL",
-            "Canceled": "CANCELED",
-            "Cancelled": "CANCELED",
-            "Error": "ERROR"
+            "pending": import_client2.OrderStatus.PENDING,
+            "in progress": import_client2.OrderStatus.IN_PROGRESS,
+            "in_progress": import_client2.OrderStatus.IN_PROGRESS,
+            "processing": import_client2.OrderStatus.IN_PROGRESS,
+            "completed": import_client2.OrderStatus.COMPLETED,
+            "complete": import_client2.OrderStatus.COMPLETED,
+            "success": import_client2.OrderStatus.COMPLETED,
+            "partial": import_client2.OrderStatus.PARTIAL,
+            "partially completed": import_client2.OrderStatus.PARTIAL,
+            "partially_completed": import_client2.OrderStatus.PARTIAL,
+            "canceled": import_client2.OrderStatus.CANCELED,
+            "cancelled": import_client2.OrderStatus.CANCELED,
+            "cancel": import_client2.OrderStatus.CANCELED,
+            "error": import_client2.OrderStatus.ERROR,
+            "failed": import_client2.OrderStatus.ERROR,
+            "fail": import_client2.OrderStatus.ERROR
           };
-          const internalStatus = statusMap[providerStatus] || providerStatus?.toUpperCase();
+          const internalStatus = statusMap[normalizedStatus] || normalizedStatus.toUpperCase();
           if (!internalStatus || !Object.values(import_client2.OrderStatus).includes(internalStatus)) {
             console.error(`[ORDER_SERVICE] Invalid status mapping: providerStatus "${providerStatus}" mapped to non-enum value "${internalStatus}"`);
             return { success: false };
@@ -131989,14 +132147,30 @@ var init_order_service = __esm({
             }
             if (refundCents > 0) {
               const refundKey = `refund-order-${order.id}`;
+              const previousRefunds = await tx.ledgerEntry.aggregate({
+                where: {
+                  userId: order.userId,
+                  status: "APPROVED",
+                  ...order.tenantId ? { tenantId: order.tenantId } : {},
+                  OR: [
+                    { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+                    { idempotencyKey: `refund-order-${order.id}` },
+                    { idempotencyKey: `refund-ttl-${order.id}` },
+                    { idempotencyKey: `refund-dlq-${order.id}` }
+                  ]
+                },
+                _sum: { amount: true }
+              });
+              const alreadyRefunded = Number(previousRefunds._sum.amount || 0);
+              const effectiveRefundCents = internalStatus === "CANCELED" ? Math.max(0, Number(order.charge) - alreadyRefunded) : Math.max(0, Math.min(Number(refundCents), Number(order.charge) - alreadyRefunded));
               const existingLedger = await tx.ledgerEntry.findFirst({
                 where: { idempotencyKey: refundKey, tenantId: order.tenantId }
               });
-              if (!existingLedger) {
+              if (!existingLedger && effectiveRefundCents > 0) {
                 await WalletOps.refund(
                   tx,
                   order.userId,
-                  Number(refundCents),
+                  Number(effectiveRefundCents),
                   `\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0439 \u0432\u043E\u0437\u0432\u0440\u0430\u0442 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 #${order.numericId} (\u0421\u0442\u0430\u0442\u0443\u0441: ${internalStatus}, \u041E\u0441\u0442\u0430\u0442\u043E\u043A: ${remains})`,
                   { idempotencyKey: refundKey, tenantId: order.tenantId }
                 );
@@ -132386,7 +132560,25 @@ var init_cbr_rate_service = __esm({
             await redis2.set("fx:cross_rates", JSON.stringify(crossRates), "EX", 86400);
           } catch {
           }
-          await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
+          try {
+            const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+            const activeTenants = await db2.tenant.findMany({
+              where: { isActive: true },
+              select: { slug: true }
+            });
+            const targetSlugs = /* @__PURE__ */ new Set(["smmplan", "flux", ...activeTenants.map((t) => t.slug)]);
+            if (tenantId) targetSlugs.add(tenantId);
+            for (const slug of targetSlugs) {
+              await SettingsManager.setExchangeRateUSD(systemRate, slug);
+            }
+          } catch {
+            for (const t of ["smmplan", "flux"]) {
+              await SettingsManager.setExchangeRateUSD(systemRate, t);
+            }
+            if (tenantId && tenantId !== "smmplan" && tenantId !== "flux") {
+              await SettingsManager.setExchangeRateUSD(systemRate, tenantId);
+            }
+          }
           return { nominalRate: usdRate, systemRate, crossRates, updated: true };
         } catch (error2) {
           console.error("[CBRRateService] CBR sync failed:", error2 instanceof Error ? error2.message : String(error2));
@@ -133849,17 +134041,7 @@ async function checkVatThreshold(tenantId = "smmplan") {
     }
   });
   const grossKopecks = BigInt(grossResult._sum?.amount || 0);
-  const refundResult = await db.ledgerEntry.aggregate({
-    _sum: { amount: true },
-    where: {
-      tenantId: cleanTenant,
-      transactionType: "REFUND",
-      createdAt: { gte: startOfYear }
-    }
-  }).catch(() => ({ _sum: { amount: BigInt(0) } }));
-  const refundKopecks = BigInt(refundResult._sum?.amount || 0);
-  const netAnnualRevenueKopecks = grossKopecks > refundKopecks ? grossKopecks - refundKopecks : BigInt(0);
-  const isExceeded = netAnnualRevenueKopecks >= VAT_THRESHOLD_KOPECKS;
+  const isExceeded = grossKopecks >= VAT_THRESHOLD_KOPECKS;
   vatThresholdCache.set(cleanTenant, { result: isExceeded, expiresAt: now + 3600 * 1e3 });
   return isExceeded;
 }
@@ -134125,7 +134307,7 @@ var init_payment_gateway_service = __esm({
           throw new Error("\u041F\u043B\u0430\u0442\u0451\u0436\u043D\u044B\u0439 \u0448\u043B\u044E\u0437 CryptoBot \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D. \u041F\u043E\u0436\u0430\u043B\u0443\u0439\u0441\u0442\u0430, \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0439 API \u0442\u043E\u043A\u0435\u043D \u0432 \u043F\u0430\u043D\u0435\u043B\u0438 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F.");
         }
         const legalSettings = await SettingsProvider.getContactAndLegalSettings(tenantId);
-        const fallbackBrandName = getTenantFallbackBranding(tenantId).name;
+        const fallbackBrandName = getTenantFallbackBranding2(tenantId).name;
         const brandName = legalSettings.COMPANY_NAME || fallbackBrandName;
         const cleanDesc = params.description.startsWith("Test ") ? params.description.substring(5) : params.description;
         const hiddenMessage = `${brandName} ${cleanDesc}`;
@@ -143465,9 +143647,10 @@ var init_ticket_service = __esm({
           \u0418\u043B\u0438 \u0432\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0432\u043E\u0439\u0442\u0438 \u0432 \u043F\u0430\u043D\u0435\u043B\u044C \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F (Dashboard) \u0434\u043B\u044F \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430 \u0432\u0441\u0435\u0439 \u043F\u0435\u0440\u0435\u043F\u0438\u0441\u043A\u0438.
         </p>
       `;
-          const supportDomain = await SettingsProvider.getSupportEmailDomain();
-          const settings = await SettingsProvider.getContactAndLegalSettings();
-          const companyName = settings.COMPANY_NAME || "SMMplan";
+          const ticketTenantId = message.ticket.tenantId || message.ticket.user?.tenantId || "smmplan";
+          const supportDomain = await SettingsProvider.getSupportEmailDomain(ticketTenantId);
+          const settings = await SettingsProvider.getContactAndLegalSettings(ticketTenantId);
+          const companyName = settings.COMPANY_NAME || (ticketTenantId === "flux" ? "SMMflux" : "SMMplan");
           const replyToAddress = `support+${message.ticket.id}@${supportDomain}`;
           const escapeHtml4 = (unsafe) => (unsafe ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, "<br>");
           const previousMessages = await db.ticketMessage.findMany({
@@ -143508,7 +143691,7 @@ var init_ticket_service = __esm({
           ${actionText}
           ${historyHtml}
         </div>
-      `, replyToAddress);
+      `, replyToAddress, ticketTenantId);
         }
         void Promise.resolve(publishMessageSSE(ticketId, message.id)).catch((err) => {
           console.error("[TicketService] SSE broadcast error:", err);

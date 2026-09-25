@@ -1,7 +1,8 @@
 ---
 name: legal-brainstorm-council
-version: 4.0.0
-description: Мультиагентный совет юристов: Dual-Track Dialectic, Live Judge Scoring (Win Rate), Auto-Redline Diff, Evidence Packs, Temporal GraphRAG Decay, адвокатские тактики и аудит IT-рисков.
+metadata:
+  version: 4.0.0
+description: "Мультиагентный совет юристов: Dual-Track Dialectic, Live Judge Scoring (Win Rate), Auto-Redline Diff, Evidence Packs, Temporal GraphRAG Decay, адвокатские тактики и аудит IT-рисков."
 ---
 
 # Legal Brainstorm Council — Юридический совет и судебный реверс-инжиниринг ⚖️

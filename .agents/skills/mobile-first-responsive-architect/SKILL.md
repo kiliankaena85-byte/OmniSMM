@@ -1,7 +1,19 @@
 ---
 name: mobile-first-responsive-architect
-description: Архитектурный норматив Mobile-First разработки, проектирования сначала под смартфоны, адаптации под десктоп, Touch Ergonomics, Safe Area Insets и защиты от багов мобильных браузеров.
-tags: [mobile-first, responsive, tailwind-4, touch-target, safe-area, dvh, thumb-zone, ios-safari]
+description: Используй этот скилл ВСЕГДА, когда Архитектурный норматив
+  Mobile-First разработки, проектирования сначала под смартфоны, адаптации под
+  десктоп, Touch Ergonomics, Safe Area Insets и защиты от багов мобильных
+  браузеров. НЕ применять для DDL миграций базы данных или настройки BullMQ.
+metadata:
+  tags:
+    - mobile-first
+    - responsive
+    - tailwind-4
+    - touch-target
+    - safe-area
+    - dvh
+    - thumb-zone
+    - ios-safari
 ---
 
 # mobile-first-responsive-architect — Mobile-First Responsive Engineering Standard
@@ -165,3 +177,12 @@ export function OrdersFeed({ orders }: { orders: Order[] }) {
 8. [ ] Отсутствие `will-change-transform` на родительских скролл-контейнерах (защита от WebKit GPU glitch).
 9. [ ] Программный фокус инпутов выполняется строго через `safeFocus` (без прыжков страницы).
 10. [ ] Классы Tailwind CSS 4 валидны, размер шрифтов смыслового контента $\ge 10\text{px}$.
+
+---
+
+## Пошаговый алгоритм выполнения (Step-by-step Protocol)
+1. **Шаг 1:** Анализ контекста задачи и определение границ влияния.
+2. **Шаг 2:** Проверка соответствия архитектурным инвариантам.
+3. **Шаг 3:** Реализация изменений с соблюдением контрактов.
+4. **Шаг 4:** Верификация через автоматические тесты и линтеры.
+5. **Шаг 5:** Документирование и сохранение точки стабильности.

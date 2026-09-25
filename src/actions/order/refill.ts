@@ -136,9 +136,9 @@ export async function requestClientRefillAction(input: string | { orderId: strin
 
     try {
       const { getRedisConnection } = await import('@/lib/queue-manager');
-      const redis = getRedisConnection();
+      const redis = typeof getRedisConnection === 'function' ? getRedisConnection() : null;
       if (redis && typeof redis.set === 'function') {
-        const acquired = await redis.set(`refill:client-lock:${order.id}`, '1', 'EX', 15, 'NX').catch(() => 'OK');
+        const acquired = await redis.set(`refill:client-lock:${order.id}`, '1', 'EX', 15, 'NX');
         if (!acquired) {
           return {
             success: false as const,
@@ -146,8 +146,12 @@ export async function requestClientRefillAction(input: string | { orderId: strin
           };
         }
       }
-    } catch {
-      // Redis unavailable or mock in unit test
+    } catch (redisErr) {
+      console.error('[RefillAction] Redis lock failure:', redisErr);
+      return {
+        success: false as const,
+        error: 'Временный сбой сервиса очередей. Пожалуйста, повторите запрос позже.',
+      };
     }
 
     const refill = await db.refill.create({
@@ -159,11 +163,23 @@ export async function requestClientRefillAction(input: string | { orderId: strin
 
     try {
       const { refillQueue } = await import('@/lib/queue-manager');
-      if (refillQueue) {
-        await refillQueue.add('process-refill', { refillId: refill.id, tenantId: order.tenantId });
+      if (!refillQueue) {
+        throw new Error('Очередь обработки докруток недоступна');
       }
-    } catch {
-      // Queue worker fallback
+      await refillQueue.add('process-refill', { refillId: refill.id, tenantId: order.tenantId });
+    } catch (queueErr) {
+      console.error('[RefillAction] Failed to add refill to queue:', queueErr);
+      
+      // Cleanup the pending refill so the user is not permanently locked
+      await db.refill.update({
+        where: { id: refill.id },
+        data: { status: 'ERROR' }
+      });
+
+      return {
+        success: false as const,
+        error: 'Ошибка постановки заявки на докрутку в очередь. Пожалуйста, повторите попытку.',
+      };
     }
 
     revalidatePath('/dashboard/orders');
