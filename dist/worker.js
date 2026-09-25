@@ -109589,6 +109589,21 @@ function registerValidTenant(slug) {
     VALID_TENANTS.add(slug.trim().toLowerCase());
   }
 }
+function registerValidTenants(slugs) {
+  if (Array.isArray(slugs)) {
+    for (const s of slugs) {
+      registerValidTenant(s);
+    }
+  }
+}
+function unregisterValidTenant(slug) {
+  if (slug && typeof slug === "string") {
+    const clean = slug.trim().toLowerCase();
+    if (clean !== "smmplan" && clean !== "flux") {
+      VALID_TENANTS.delete(clean);
+    }
+  }
+}
 function sanitizeTenantSlug(tenantId) {
   if (!tenantId || typeof tenantId !== "string") return "smmplan";
   const clean = tenantId.trim().toLowerCase();
@@ -126719,6 +126734,23 @@ var init_get_base_url = __esm({
 });
 
 // src/config/tenants.ts
+var tenants_exports = {};
+__export2(tenants_exports, {
+  CORE_TENANTS: () => CORE_TENANTS,
+  TENANTS: () => TENANTS,
+  TENANT_ALIASES: () => TENANT_ALIASES,
+  VALID_TENANTS: () => VALID_TENANTS,
+  absoluteCanonical: () => absoluteCanonical,
+  getTenantConfig: () => getTenantConfig,
+  getTenantHost: () => getTenantHost,
+  getTenantSiteName: () => getTenantSiteName,
+  isValidTenant: () => isValidTenant,
+  normalizeTenantId: () => normalizeTenantId2,
+  registerValidTenant: () => registerValidTenant,
+  registerValidTenants: () => registerValidTenants,
+  resolveCanonicalHost: () => resolveCanonicalHost,
+  unregisterValidTenant: () => unregisterValidTenant
+});
 function isValidTenant(tenant) {
   if (!tenant || typeof tenant !== "string") return false;
   const clean = tenant.trim().toLowerCase();
@@ -126774,11 +126806,18 @@ function resolveCanonicalHost(tenantId, incomingHost) {
 function getTenantHost(tenantId, incomingHost) {
   return resolveCanonicalHost(tenantId, incomingHost);
 }
-var TENANTS, TENANT_ALIASES;
+function absoluteCanonical(tenantId, path5, incomingHost) {
+  const host = getTenantHost(tenantId, incomingHost);
+  const cleanPath = "/" + path5.replace(/^\/+/, "");
+  const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+  return `${protocol}://${host}${cleanPath}`;
+}
+var CORE_TENANTS, TENANTS, TENANT_ALIASES;
 var init_tenants = __esm({
   "src/config/tenants.ts"() {
     "use strict";
     init_tenant_resolver_edge();
+    CORE_TENANTS = ["smmplan", "flux"];
     TENANTS = [
       {
         id: "smmplan",
@@ -167214,9 +167253,10 @@ var CatalogImportService = class {
           where: { isActive: true },
           select: { slug: true }
         });
-        tenantsToImport = activeTenants.length > 0 ? activeTenants.map((t) => t.slug) : ["smmplan", "flux"];
+        tenantsToImport = activeTenants.map((t) => t.slug);
       } catch {
-        tenantsToImport = ["smmplan", "flux"];
+        const { CORE_TENANTS: CORE_TENANTS2 } = await Promise.resolve().then(() => (init_tenants(), tenants_exports));
+        tenantsToImport = [...CORE_TENANTS2];
       }
     } else {
       tenantsToImport = [targetTenantId];
@@ -169821,10 +169861,11 @@ async function aiEconomicOptimizerProcessor(job) {
         where: { isActive: true },
         select: { slug: true }
       });
-      tenantsToProcess = activeTenants.length > 0 ? activeTenants.map((t) => t.slug) : ["smmplan", "flux"];
+      tenantsToProcess = activeTenants.map((t) => t.slug);
     } catch (dbErr) {
       log29.warn(`Failed to fetch active tenants from DB, falling back to core tenants: ${dbErr.message}`);
-      tenantsToProcess = ["smmplan", "flux"];
+      const { CORE_TENANTS: CORE_TENANTS2 } = await Promise.resolve().then(() => (init_tenants(), tenants_exports));
+      tenantsToProcess = [...CORE_TENANTS2];
     }
   } else {
     tenantsToProcess = [tenantId];

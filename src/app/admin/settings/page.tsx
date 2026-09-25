@@ -53,6 +53,17 @@ export default async function AdminSettingsPage({
   const headerTenant = await SettingsProvider.getTenantId();
   const activeTenantId = urlTenant || cookieTenant || normalizeTenantId(headerTenant) || 'smmplan';
 
+  // Explicit isolation guard: restrict settings to the allowed tenants for this developer
+  if (admin.role !== 'OWNER') {
+    const adminAllowed = (admin.allowedTenants && admin.allowedTenants.length > 0)
+      ? admin.allowedTenants
+      : [admin.tenantId || 'smmplan'];
+    if (!adminAllowed.includes(activeTenantId)) {
+      const { redirect } = await import('next/navigation');
+      redirect('/admin/forbidden');
+    }
+  }
+
   const rawTab = params.tab || 'system';
   const { activeSubTab } = resolveSettingsNavigation(rawTab);
   const activeTab = activeSubTab;

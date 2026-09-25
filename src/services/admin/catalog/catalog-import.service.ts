@@ -91,9 +91,9 @@ export class CatalogImportService {
           where: { isActive: true },
           select: { slug: true }
         });
-        tenantsToImport = activeTenants.length > 0 ? activeTenants.map(t => t.slug) : ['smmplan', 'flux'];
+        tenantsToImport = activeTenants.map(t => t.slug);
       } catch {
-        tenantsToImport = ['smmplan', 'flux'];
+        const { CORE_TENANTS } = await import('@/config/tenants'); tenantsToImport = [...CORE_TENANTS];
       }
     } else {
       tenantsToImport = [targetTenantId];
@@ -432,3 +432,4 @@ export class CatalogImportService {
     };
   }
 }
+

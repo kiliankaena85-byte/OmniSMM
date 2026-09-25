@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: OmniSMM API v2
+  description: |
+    Официальное API для интеграции сторонних сервисов и фронтендов с платформой OmniSMM. 
+    API реализовано по стандарту SMM-панелей (v2). Все запросы отправляются методом `POST` на единый эндпоинт `/api/v2`.
+    Формат передачи данных: `application/x-www-form-urlencoded` или `multipart/form-data`.
+  version: 2.0.0
+servers:
+  - url: https://api.smmplan.pro
+    description: Production SMMplan Server
+  - url: https://api.smmflux.ru
+    description: Production SMMflux Server
+  - url: http://localhost:3000
+    description: Local Development Server
+
+paths:
+  /api/v2:
+    post:
+      summary: Единый эндпоинт API
+      description: |
+        Все операции выполняются через этот эндпоинт. Выбор операции определяется параметром `action`.
+        Доступные действия: `services`, `add`, `add_multi`, `status`, `balance`, `cancel`, `refill`, `refill_status`.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApiRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApiRequest'
+      responses:
+        '200':
+          description: Успешный запрос. Формат ответа зависит от переданного `action`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                services:
+                  summary: Пример ответа (action = services)
+                  value:
+                    - service: 1
+                      name: "Telegram Просмотры на пост"
+                      type: "Default"
+                      category: "Telegram"
+                      rate: "1.50"
+                      min: 100
+                      max: 10000
+                      dripfeed: false
+                      refill: false
+                      cancel: true
+                add:
+                  summary: Пример ответа (action = add)
+                  value:
+                    order: 12345
+                add_multi:
+                  summary: Пример ответа (action = add_multi)
+                  value:
+                    - order: 12345
+                    - error: "Incorrect parameters"
+                status:
+                  summary: Пример ответа (action = status)
+                  value:
+                    charge: "1.5000"
+                    start_count: "150"
+                    status: "In progress"
+                    remains: "100"
+                    currency: "RUB"
+                status_multiple:
+                  summary: Пример ответа (action = status, multiple)
+                  value:
+                    "12345":
+                      charge: "1.5000"
+                      start_count: "150"
+                      status: "In progress"
+                      remains: "100"
+                      currency: "RUB"
+                    "12346":
+                      error: "Incorrect order ID"
+                balance:
+                  summary: Пример ответа (action = balance)
+                  value:
+                    balance: "1500.5000"
+                    currency: "RUB"
+                cancel:
+                  summary: Пример ответа (action = cancel)
+                  value:
+                    "12345":
+                      cancel: true
+                    "12346":
+                      error: "Incorrect order ID"
+                refill_status:
+                  summary: Пример ответа (action = refill_status)
+                  value:
+                    - refill: 1001
+                      status: "Completed"
+        '400':
+          description: Ошибка валидации или бизнес-логики (например, неверный ключ API, недостаточно средств)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Incorrect parameters"
+        '401':
+          description: Отказано в доступе (неверный API-ключ или блокировка по IP)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid or revoked API key"
+        '413':
+          description: Payload Too Large (размер тела запроса превышает 500KB)
+        '429':
+          description: Too Many Requests (превышен лимит запросов в минуту)
+        '500':
+          description: Internal Server Error
+
+components:
+  schemas:
+    ApiRequest:
+      type: object
+      required:
+        - key
+        - action
+      properties:
+        key:
+          type: string
+          description: Ваш уникальный API ключ (можно получить в настройках профиля).
+          example: "ef4edc9fe34e3dea858e0a32308cbe95..."
+        action:
+          type: string
+          description: Действие, которое необходимо выполнить.
+          enum: [services, add, add_multi, status, balance, cancel, refill, refill_status]
+          example: "services"
+        offset:
+          type: string
+          description: "Смещение для пагинации (Опционально для action: `services`. Максимум 1000)."
+          example: "0"
+        service:
+          type: integer
+          description: "ID услуги (Обязательно для action: `add`)"
+          example: 1
+        link:
+          type: string
+          description: "Ссылка на объект накрутки (Обязательно для action: `add`)"
+          example: "https://t.me/channel/123"
+        quantity:
+          type: integer
+          description: "Количество (Обязательно для action: `add`)"
+          example: 1000
+        runs:
+          type: integer
+          description: "Количество запусков Drip-feed (Опционально для action: `add`)"
+          example: 2
+        interval:
+          type: integer
+          description: "Интервал Drip-feed в минутах (Опционально для action: `add`)"
+          example: 10
+        orders:
+          type: string
+          description: "Для `status`, `cancel`: список ID заказов через запятую (Макс 100). Для `add_multi`: массив объектов."
+          example: "12345,12346,12347"
+        order:
+          type: integer
+          description: "ID заказа (Обязательно для action: `status` [single] или `cancel` [single])"
+          example: 12345
+        refill:
+          type: integer
+          description: "ID рефилла (Обязательно для action: `refill_status` [single])"
+          example: 1001
+        refills:
+          type: string
+          description: "Список ID рефиллов через запятую (Обязательно для action: `refill_status` [multi])"
+          example: "1001,1002"
+
+    ApiResponse:
+      type: object
+      description: |
+        Структура ответа зависит от параметра `action`. 
+        В случае ошибки всегда возвращается объект `{"error": "Описание ошибки"}`. При вызове действия `refill` возвращается ошибка (рефилл доступен только через тикеты).

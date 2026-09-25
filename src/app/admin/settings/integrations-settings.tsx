@@ -15,6 +15,7 @@ import {
   testAlfaBankConnectionAction,
 } from '@/actions/admin/settings';
 import { testInboundEmailAction } from '@/actions/admin/test-inbound-email';
+import { getTenantFallbackBranding } from '@/lib/tenant-branding';
 import { toast } from 'sonner';
 import { useActionState, useEffect, useState } from 'react';
 import { 
@@ -431,7 +432,7 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
                 autoComplete="new-password"
               />
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Зарегистрируйте URL <span className="font-mono text-primary font-bold">https://{tenantId === 'flux' ? 'smmflux.ru' : 'smmplan.pro'}/api/webhooks/yookassa</span> в кабинете ЮKassa для мгновенного зачисления.
+                Зарегистрируйте URL <span className="font-mono text-primary font-bold">https://{getTenantFallbackBranding(tenantId).domain}/api/webhooks/yookassa</span> в кабинете ЮKassa для мгновенного зачисления.
               </p>
             </div>
           </div>
@@ -782,7 +783,7 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
               <Input
                 name="smtpUser"
                 defaultValue={settings.smtpUser || ''}
-                placeholder={tenantId === 'flux' ? 'support@smmflux.ru' : 'support@smmplan.pro'}
+                placeholder={getTenantFallbackBranding(tenantId).supportEmail}
                 className="font-mono text-xs"
               />
             </div>
@@ -822,11 +823,11 @@ export function IntegrationsSettings({ settings, tenantId = 'smmplan' }: Integra
                   <Input
                     name="supportEmailDomain"
                     defaultValue={settings.supportEmailDomain || ''}
-                    placeholder={tenantId === 'flux' ? 'smmflux.ru' : 'smmplan.pro'}
+                    placeholder={getTenantFallbackBranding(tenantId).domain}
                     className="font-mono text-xs"
                   />
                   <p className="text-[10px] text-muted-foreground">
-                    Генерирует адрес <code>support+ticketId@{tenantId === 'flux' ? 'smmflux.ru' : 'smmplan.pro'}</code>
+                    Генерирует адрес <code>support+ticketId@{getTenantFallbackBranding(tenantId).domain}</code>
                   </p>
                 </div>
 

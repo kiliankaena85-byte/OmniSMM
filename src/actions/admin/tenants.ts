@@ -158,44 +158,46 @@ export async function createTenantAction(formData: z.infer<typeof CreateTenantSc
             include: { services: { where: { tenantId: srcTenant } } },
           });
 
-          for (const cat of sourceCategories) {
-            const newCat = await db.category.create({
-              data: {
-                name: cat.name,
-                slug: `${cat.slug}-${cleanSlug}`,
-                networkId: cat.networkId,
-                tenantId: cleanSlug,
-                sort: cat.sort,
-                activityType: cat.activityType,
-                requireWarning: cat.requireWarning,
-                warningMessage: cat.warningMessage,
-                analyzerTags: cat.analyzerTags,
-                icon: cat.icon,
-              },
-            });
-
-            if (cat.services && cat.services.length > 0) {
-              await db.service.createMany({
-                data: cat.services.map((s) => ({
-                  name: s.name,
-                  description: s.description,
-                  icon: s.icon,
-                  features: s.features ?? undefined,
-                  categoryId: newCat.id,
+          await db.$transaction(async (tx) => {
+            for (const cat of sourceCategories) {
+              const newCat = await tx.category.create({
+                data: {
+                  name: cat.name,
+                  slug: `${cat.slug}-${cleanSlug}`,
+                  networkId: cat.networkId,
                   tenantId: cleanSlug,
-                  providerId: s.providerId,
-                  externalId: s.externalId,
-                  rate: Math.round(s.rate * multiplier * 100) / 100,
-                  costPer1kRub: s.costPer1kRub ? Math.round(s.costPer1kRub * multiplier * 100) / 100 : Math.round(s.rate * multiplier * 100) / 100,
-                  providerCurrency: s.providerCurrency,
-                  minQty: s.minQty,
-                  maxQty: s.maxQty,
-                  isActive: s.isActive,
-                  sortOrder: s.sortOrder,
-                })),
+                  sort: cat.sort,
+                  activityType: cat.activityType,
+                  requireWarning: cat.requireWarning,
+                  warningMessage: cat.warningMessage,
+                  analyzerTags: cat.analyzerTags,
+                  icon: cat.icon,
+                },
               });
+
+              if (cat.services && cat.services.length > 0) {
+                await tx.service.createMany({
+                  data: cat.services.map((s) => ({
+                    name: s.name,
+                    description: s.description,
+                    icon: s.icon,
+                    features: s.features ?? undefined,
+                    categoryId: newCat.id,
+                    tenantId: cleanSlug,
+                    providerId: s.providerId,
+                    externalId: s.externalId,
+                    rate: Math.round(s.rate * multiplier * 100) / 100,
+                    costPer1kRub: s.costPer1kRub ? Math.round(s.costPer1kRub * multiplier * 100) / 100 : Math.round(s.rate * multiplier * 100) / 100,
+                    providerCurrency: s.providerCurrency,
+                    minQty: s.minQty,
+                    maxQty: s.maxQty,
+                    isActive: s.isActive,
+                    sortOrder: s.sortOrder,
+                  })),
+                });
+              }
             }
-          }
+          }, { timeout: 30000 });
         } catch (catErr) {
           console.warn(`[TenantsAction] Failed to clone catalog for ${cleanSlug}:`, catErr);
         }
@@ -642,3 +644,4 @@ export async function regenerateDomainVerificationTokenAction(tenantId: string) 
     }
   });
 }
+

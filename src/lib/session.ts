@@ -54,7 +54,7 @@ export async function createSession(userId: string, canResetPassword: boolean = 
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { role: true, tenantId: true }
+    select: { role: true, tenantId: true, allowedTenants: true }
   });
   const role = user?.role || 'USER';
   const tenantId = user?.tenantId || 'smmplan';
@@ -62,6 +62,7 @@ export async function createSession(userId: string, canResetPassword: boolean = 
 
   // For staff: role is never stored in JWT payload (read dynamically from DB/Redis) (P2-10)
   const jwtRole = isStaff ? undefined : role;
+  const allowedTenants = user?.allowedTenants || [tenantId];
 
   // Шифруем ID сессии в JWT со сроком 24 часа, версией сессии и контуром (F-7.3)
   const sessionToken = await new SignJWT({ 
@@ -70,6 +71,7 @@ export async function createSession(userId: string, canResetPassword: boolean = 
     canResetPassword, 
     ...(jwtRole ? { role: jwtRole } : {}), 
     tenantId,
+    allowedTenants,
     contour,
     sessionVer: 1
   })

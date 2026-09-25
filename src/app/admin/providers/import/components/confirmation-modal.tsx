@@ -30,7 +30,7 @@ function formatMarkupPercent(val: number): string {
 
 export function ConfirmationModal({
   isOpen, onClose, onConfirm, selectedCount, markup, platformBreakdown,
-  isPending, targetTenant, onTargetTenantChange, incompatibleCount = 0, onExcludeIncompatible,
+  isPending, targetTenant, onTargetTenantChange, incompatibleCount = 0, onExcludeIncompatible, allTenants,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
   return (
@@ -50,7 +50,7 @@ export function ConfirmationModal({
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Импортировать в сайт:</label>
             <div className="grid grid-cols-3 gap-2">
-              {[{ id: 'smmplan', label: 'SMMplan' }, { id: 'flux', label: 'SMMflux' }, { id: 'all', label: 'Все сайты' }].map((t) => (
+              {(allTenants ? [...allTenants.map((t) => ({ id: t.id, label: t.name })), { id: 'all', label: 'Все сайты' }] : [{ id: 'smmplan', label: 'SMMplan' }, { id: 'flux', label: 'SMMflux' }, { id: 'all', label: 'Все сайты' }]).map((t) => (
                 <button
                   key={t.id}
                   type="button"
@@ -141,3 +141,5 @@ export function ConfirmationModal({
     </div>
   );
 }
+
+

@@ -28,7 +28,7 @@ services:
       context: .
       target: runner
     ports:
-      - "3005:3000"
+      - "3000:3000"
     env_file:
       - path: .env.production
         required: true

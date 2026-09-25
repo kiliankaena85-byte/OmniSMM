@@ -94,6 +94,7 @@ export async function decryptSessionToken(token: string) {
         userId: string; 
         role?: string; 
         tenantId: string; 
+        allowedTenants?: string[];
         contour?: ContourId;
         canResetPassword?: boolean;
         sessionVer?: number;

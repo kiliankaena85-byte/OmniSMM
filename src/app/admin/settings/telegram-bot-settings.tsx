@@ -51,6 +51,7 @@ import {
   type TelegramBotDiagnostics 
 } from '@/types/telegram';
 
+import { getTenantFallbackBranding } from '@/lib/tenant-branding';
 import { ConnectionPanel } from './telegram/connection-panel';
 import { TelegramMenuTab } from './telegram/telegram-menu-tab';
 import { TelegramTemplatesTab } from './telegram/telegram-templates-tab';
@@ -87,7 +88,7 @@ export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: Telegram
   const [isPendingReset, startTransitionReset] = useTransition();
 
   // General Settings State
-  const botUsername = settings.contactTelegramBot || (tenantId === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot');
+  const botUsername = settings.contactTelegramBot || getTenantFallbackBranding(tenantId).bot;
 
   // Enterprise Config States for Live Preview Synchronization
   const [menuButtons, setMenuButtons] = useState<TelegramMenuButton[]>(
@@ -535,3 +536,4 @@ export function TelegramBotSettings({ settings, tenantId = 'smmplan' }: Telegram
     </div>
   );
 }
+

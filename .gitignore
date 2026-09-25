@@ -135,9 +135,12 @@ pin.html
 .gemini/
 .agent/
 .agents/*
-# Skills are shared team knowledge — tracked by git
+# Skills and Rules are shared team knowledge — tracked by git
 !.agents/skills/
 !.agents/skills/**
+!.agents/rules/
+!.agents/rules/**
+!.agents/AGENTS.md
 .planning/audits/
 teamwork_projects/
 lovable_ui_spec.md
@@ -147,6 +150,10 @@ test-smtp.mjs
 knowledge-service/data/indexer_state.json
 
 # ── Data dumps (one-off, not source code) ──
+provider_data/
+fetch_catalogs.ts
+check_providers.ts
+build_catalog_preview.ts
 stream-promotion-services.json
 curl_out.txt
 *.dump.json

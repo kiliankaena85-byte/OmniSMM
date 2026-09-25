@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useActionState, useTransition, useState, useEffect } from 'react';
 import { Loader2, Send, RotateCcw, Radio, ExternalLink, Key, ShieldCheck, CheckCircle, AlertCircle, Wifi, WifiOff, Server, AlertTriangle, Unlink, Trash2 } from 'lucide-react';
+import { getTenantFallbackBranding } from '@/lib/tenant-branding';
 import { disconnectTelegramBotAction } from '@/actions/admin/settings';
 import { sendTelegramTestAlertAction, updateTelegramBotSettingsAction } from '@/actions/admin/telegram-bot';
 import type { TelegramBotDiagnostics } from '@/types/telegram';
@@ -89,7 +90,7 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
               <DialogTitle className="text-lg font-bold">Отвязать Telegram-бота?</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Вы уверены, что хотите отвязать бота от бренда <strong className="text-foreground">{tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}</strong>?
+              Вы уверены, что хотите отвязать бота от бренда <strong className="text-foreground">{getTenantFallbackBranding(tenantId).name}</strong>?
               <br /><br />
               ⚠️ Токен бота и юзернейм для этого бренда будут очищены. Настройки других брендов затронуты не будут.
             </DialogDescription>
@@ -140,7 +141,7 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
           <div className="flex items-center justify-between pb-3 border-b border-border/60">
             <div className="flex items-center gap-2.5">
               <span className="p-1 px-2.5 bg-primary/10 text-primary rounded-md text-[10px] font-bold">AUTH</span>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Идентификаторы и Секреты ({tenantId === 'flux' ? 'SMMflux' : 'SMMplan'})</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Идентификаторы и Секреты ({getTenantFallbackBranding(tenantId).name})</h3>
             </div>
             {Boolean(botName || settings.telegramBotToken) && (
               <Button
@@ -160,11 +161,11 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Юзернейм бота (без @)</Label>
-              <Input name="contactTelegramBot" value={botName} onChange={(e) => setBotName(e.target.value)} placeholder={tenantId === 'flux' ? 'smmflux_support_bot' : 'smmplan_support_bot'} className="font-mono text-xs" />
+              <Input name="contactTelegramBot" value={botName} onChange={(e) => setBotName(e.target.value)} placeholder={getTenantFallbackBranding(tenantId).bot} className="font-mono text-xs" />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Официальный канал</Label>
-              <Input name="contactTelegramChannel" value={channelName} onChange={(e) => setChannelName(e.target.value)} placeholder={tenantId === 'flux' ? '@smmflux_news' : '@smmplan_news'} className="font-mono text-xs" />
+              <Input name="contactTelegramChannel" value={channelName} onChange={(e) => setChannelName(e.target.value)} placeholder={'@' + getTenantFallbackBranding(tenantId).channel} className="font-mono text-xs" />
             </div>
           </div>
 
@@ -281,3 +282,5 @@ export function ConnectionPanel({ settings, tenantId = 'smmplan', diagnostics, o
     </div>
   );
 }
+
+

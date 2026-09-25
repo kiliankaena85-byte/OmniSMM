@@ -124,6 +124,7 @@ export async function registerWithPasswordAction(prevState: unknown, formData: F
           isActive: true,
           isEmailVerified: isTestEnv,
           tenantId,
+          allowedTenants: [tenantId],
           tosAcceptedAt: new Date(),
           tosAcceptedIp: clientIp,
         }

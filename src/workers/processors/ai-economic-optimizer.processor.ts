@@ -17,10 +17,10 @@ export default async function aiEconomicOptimizerProcessor(job: Job<AiEconomicOp
         where: { isActive: true },
         select: { slug: true },
       });
-      tenantsToProcess = activeTenants.length > 0 ? activeTenants.map((t) => t.slug) : ['smmplan', 'flux'];
+      tenantsToProcess = activeTenants.map((t) => t.slug);
     } catch (dbErr) {
       log.warn(`Failed to fetch active tenants from DB, falling back to core tenants: ${(dbErr as Error).message}`);
-      tenantsToProcess = ['smmplan', 'flux'];
+      const { CORE_TENANTS } = await import('../../config/tenants'); tenantsToProcess = [...CORE_TENANTS];
     }
   } else {
     tenantsToProcess = [tenantId];
@@ -62,3 +62,4 @@ export default async function aiEconomicOptimizerProcessor(job: Job<AiEconomicOp
   log.info(`[${job.id}] Nightly Economic Optimization finished across all tenants.`);
   return { success: true, processedTenants: results };
 }
+

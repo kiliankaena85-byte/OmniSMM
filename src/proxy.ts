@@ -732,15 +732,22 @@ export async function proxy(request: NextRequest) {
     const isAdminPath = pathname.startsWith('/admin');
     const isOperatorPath = pathname.startsWith('/operator');
 
-    // Enforce tenant isolation for regular users (Staff roles have global multi-tenant access)
-    const isTenantMismatch = isCustomer && !isStaffRole && !isAdminPath && !isOperatorPath && (!payload || normalizeTenantId(payload.tenantId) !== finalTenantId);
+    const payloadAllowedTenants = Array.isArray(payload?.allowedTenants)
+      ? payload.allowedTenants.map((t: unknown) => normalizeTenantId(t as string))
+      : [normalizeTenantId(payload?.tenantId as string)];
+
+    // Enforce tenant isolation for regular users
+    const isTenantMismatch = isCustomer && !isStaffRole && !isAdminPath && !isOperatorPath && (!payload || normalizeTenantId(payload.tenantId as string) !== finalTenantId);
+
+    // Enforce tenant isolation for staff (block access if tenant not in allowedTenants, except for global OWNER)
+    const isStaffTenantMismatch = isStaffRole && (isAdminPath || isOperatorPath) && payload?.role !== 'OWNER' && !payloadAllowedTenants.includes(finalTenantId);
 
     // Enforce contour matching in JWT (tokens issued in test contour cannot be used in prod contour)
     const currentContour = resolveContourFromHost(host);
-    const tokenContour = (payload?.contour as ContourId) || (normalizeTenantId(payload?.tenantId) === 'flux' ? 'flux' : 'test');
+    const tokenContour = (payload?.contour as ContourId) || (normalizeTenantId(payload?.tenantId as string) === 'flux' ? 'flux' : 'test');
     const isContourMismatch = !isLocalhost && tokenContour !== currentContour && (tokenContour === 'prod' || currentContour === 'prod' || tokenContour === 'flux' || currentContour === 'flux');
 
-    if (!payload || isTenantMismatch || isContourMismatch) {
+    if (!payload || isTenantMismatch || isContourMismatch || isStaffTenantMismatch) {
       if (isRSC) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }

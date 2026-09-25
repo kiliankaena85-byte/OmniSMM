@@ -51,6 +51,7 @@ export function StaffClient({
   const [editRole, setEditRole] = useState('SUPPORT');
   const [editStaffRoleId, setEditStaffRoleId] = useState<string | null>(null);
   const [editLimitRubles, setEditLimitRubles] = useState(5000);
+  const [editAllowedTenants, setEditAllowedTenants] = useState<string[]>(['smmplan']);
   const [isPending, startTransition] = useTransition();
 
   // Open personal logs drawer
@@ -76,6 +77,7 @@ export function StaffClient({
     setEditRole(staff.role);
     setEditStaffRoleId(staff.staffRoleId);
     setEditLimitRubles((staff.supportLimitCents || 0) / 100);
+    setEditAllowedTenants(staff.allowedTenants || ['smmplan']);
   }
 
   // Save Role and Limits
@@ -88,6 +90,7 @@ export function StaffClient({
           role: editRole as 'SUPPORT' | 'MANAGER' | 'ADMIN' | 'OWNER' | 'USER' | 'BANNED',
           staffRoleId: editStaffRoleId,
           supportLimitRubles: editLimitRubles,
+          allowedTenants: editAllowedTenants,
         });
 
         if (res.success) {
@@ -100,6 +103,7 @@ export function StaffClient({
                     role: editRole,
                     staffRoleId: editStaffRoleId,
                     supportLimitCents: Math.round(editLimitRubles * 100),
+                    allowedTenants: editAllowedTenants,
                   }
                 : s
             )
@@ -608,6 +612,39 @@ export function StaffClient({
                   Максимальная сумма, которую саппорт может вернуть клиентам за 1 сутки без одобрения админа.
                 </p>
               </div>
+
+              {/* Allowed Tenants (Multi-Tenancy Access) */}
+              {currentUserRole === 'OWNER' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Доступ к проектам (Брендам)
+                  </label>
+                  <div className="space-y-2 pt-1">
+                    {['smmplan', 'flux'].map((tenant) => (
+                      <label key={tenant} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editAllowedTenants.includes(tenant)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditAllowedTenants((prev) => [...prev, tenant]);
+                            } else {
+                              setEditAllowedTenants((prev) => prev.filter((t) => t !== tenant));
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                        />
+                        <span className="text-sm text-foreground">
+                          {tenant === 'smmplan' ? 'SMMplan (Основной)' : 'SMMflux (Резервный)'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Бренды, к панели управления которых сотрудник имеет доступ.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Modal Actions */}

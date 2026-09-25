@@ -87,9 +87,9 @@ export function SyncTable({ rows, stats }: SyncTableProps) {
   }, [rows, selectedSlugs]);
 
   // Copy services handler
-  const handleCopy = (sourceTenantId: 'smmplan' | 'flux', targetTenantId: 'smmplan' | 'flux') => {
+  const handleCopy = (sourceTenantId: string, targetTenantId: string) => {
     const targetServiceIds = selectedRows
-      .map((r) => r[sourceTenantId].serviceId)
+      .map((r) => (r as Record<string, { serviceId?: string | null }>)[sourceTenantId]?.serviceId)
       .filter((id): id is string => Boolean(id));
 
     if (targetServiceIds.length === 0) {
@@ -125,7 +125,7 @@ export function SyncTable({ rows, stats }: SyncTableProps) {
   };
 
   // Align prices handler
-  const handleAlign = (sourceTenantId: 'smmplan' | 'flux', targetTenantId: 'smmplan' | 'flux') => {
+  const handleAlign = (sourceTenantId: string, targetTenantId: string) => {
     const slugs = selectedRows.map((r) => r.slug);
     if (slugs.length === 0) {
       toast.error('Выберите хотя бы одну услугу для выравнивания цен');
@@ -374,3 +374,5 @@ export function SyncTable({ rows, stats }: SyncTableProps) {
     </div>
   );
 }
+
+

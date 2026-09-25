@@ -232,7 +232,7 @@ export function GeneralTelegramBotSection({
         ) : (
           <div className="flex items-center gap-2 text-muted-foreground font-medium">
             <div className="w-2.5 h-2.5 rounded-full bg-zinc-500" />
-            <span>Бот не привязан к {tenantId === 'flux' ? 'SMMflux' : 'SMMplan'}</span>
+            <span>Бот не привязан к {getTenantFallbackBranding(tenantId).name}</span>
           </div>
         )}
       </div>
@@ -263,3 +263,4 @@ export function GeneralTelegramBotSection({
     </Card>
   );
 }
+

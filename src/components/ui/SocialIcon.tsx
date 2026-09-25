@@ -132,5 +132,11 @@ export function SocialIcon({ slug, className = "", size = 24, colored = true }: 
   if (norm.includes('likee')) return <FaHeart {...iconProps('#FF0050')} />;
   if (norm.includes('kwai')) return <FaVideo {...iconProps('#FF7E00')} />;
 
+  const customSvgBrands = ['github', 'behance', 'quora', 'tumblr', 'trovo', 'pikabu', 'rumble'];
+  const matchedBrand = customSvgBrands.find(b => norm.includes(b));
+  if (matchedBrand) {
+    return <img src={`/brands/${matchedBrand}.svg`} alt={matchedBrand} width={size} height={size} className={className} style={{ objectFit: 'contain' }} />;
+  }
+
   return <FaGlobe {...iconProps('#64748b')} />;
 }

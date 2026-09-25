@@ -317,7 +317,7 @@ export function GeneralSettings({ settings, tenantId = 'smmplan' }: GeneralSetti
         setSupportEmail={setSupportEmail}
         privacyEmail={privacyEmail}
         setPrivacyEmail={setPrivacyEmail}
-        telegramChannelDefault={settings.contactTelegramChannel || (tenantId === 'flux' ? 'smmflux_news' : 'smmplan_news')}
+        telegramChannelDefault={settings.contactTelegramChannel || getTenantFallbackBranding(tenantId).channel}
         companyName={companyName}
         setCompanyName={setCompanyName}
         companyInn={companyInn}

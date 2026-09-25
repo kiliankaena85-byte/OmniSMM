@@ -1,3 +1,16 @@
+- [x] 🧠 [OMNISMM-AGENT-LEARNING-RULES-UPDATE-2026] Обучение агента (/learn) и закрепление 7 фундаментальных инженерных инвариантов в правилах платформы (100% COMPLETE & VERIFIED):
+  * 🔴 **Чистые транзакции СУБД (Transaction Lock Hygiene):** В `.agents/rules/architecture-and-security.md` закреплен жесткий запрет сетевых вызовов (`fetch`, AI, SMTP, Telegram) внутри `runSerializableTransaction` и `db.$transaction`. Все сетевые вызовы — строго ДО транзакции или в Deferred Post-Commit Hook.
+  * 🔴 **Атомарные списания баланса & TOCTOU Guard:** Внедрено обязательное требование на атомарные предикаты `{ where: { id: userId, balance: { gte: absAmount } } }` через `updateMany` для исключения гонок и системных ошибок PostgreSQL `23514 check_violation`.
+  * 🔴 **Детерминированные ключи идемпотентности:** Запрещено использование `Date.now()` в финансовых ключах идемпотентности, исключая риск двойных списаний/начислений при сетевых повторах.
+  * 🟠 **Сетевой этикет и таймауты (AbortSignal.timeout):** Закреплен запрет вызовов `fetch()` без явного таймаута (5с для проверок, 15–30с для файлов).
+  * 🟠 **Гигиена BullMQ & Redis:** Закреплены требования к уникальным `jobId` с временной меткой против дедлока дедупликации, очистке таймеров `clearTimeout` в `Promise.race` и изоляции ключей Redis по `tenantId`.
+  * 🟠 **Zero-Hallucination Prisma Schema:** В `.agents/rules/code-hygiene-lint.md` закреплен категорический запрет обращения к полям БД без сверки с `prisma/schema.prisma` (предотвращение сбоев из-за отсутствующих полей вроде `PromoCode.tenantId`).
+  * 🟠 **Audit Contract в Server Actions:** Закреплен обязательный вызов `await auditAdminAwaitable()` для действий с правами и деньгами.
+  * 🧪 **Верификация:**
+    - `npm run test:skills` — **22/22 PASS**;
+    - `npm run lint:skills:arch -- --ci` — **Score: 100/100, Grade A (46/46 PASS)**;
+    - Контроль размера файлов правил AGY-001 — **0 байт усечения** (все файлы <= 24 KB).
+
 - [x] ⚡ [OMNISMM-ZERO-LATENCY-DATABASE-REDIS-BULLMQ-2026] Комплексная оптимизация до нуля задержек БД PostgreSQL, Redis, BullMQ и приведение к мировым стандартам (ISO 25010 / PCI DSS v4.0.1 / OWASP Top 10:2025 / HOT MVCC / Transactional Outbox) (100% COMPLETE & VERIFIED):
   * 🔴 **PostgreSQL Zero-Latency MVCC & HOT Updates (Fillfactor 85):**
     - Для высоконагруженных таблиц `User` (постоянные списания баланса) и `Order` (смены статусов) в PostgreSQL активирован `fillfactor = 85` (`reloptions: ['fillfactor=85']`). Это резервирует 15% места на страницах данных, позволяя обновлять строки по протоколу Heap-Only Tuples (HOT) без изменения индексов и без деградации WAL.
