@@ -473,6 +473,19 @@
         "rules",
         "linter"
       ]
+    },
+    {
+      "title": "Transaction Purity, BullMQ JobId Deduplication and MarginGuard HotSwap Hardening",
+      "context": "Audit revealed external API calls inside db., static jobId deduplication deadlocks in BullMQ, and unvalidated margin in SmartRecoveryEngine.",
+      "decision": "Moved provider API calls outside transactions, added MarginGuard to SmartRecoveryEngine, and standardized timestamped job IDs for BullMQ.",
+      "rationale": "Prevents connection pool starvation, guarantees paid order delivery, and protects against financial loss from provider rate discrepancies.",
+      "tags": [
+        "database",
+        "bullmq",
+        "margins",
+        "fintech",
+        "smart-recovery"
+      ]
     }
   ]
 }

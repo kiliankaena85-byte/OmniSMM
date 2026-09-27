@@ -12,6 +12,7 @@ import { MutexManager } from '@/lib/redis-lock';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
 import { logger } from '@/lib/logger';
 import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 
 const MAX_BODY_SIZE = 1024 * 64; // 64KB
 
@@ -93,13 +94,16 @@ export async function handleRobokassaWebhookRequest(
     // 2. Resolve tenantId and fetch system secrets
     let resolvedTenantId = explicitTenantId ? sanitizeTenantSlug(explicitTenantId) : 'smmplan';
     if (shp_paymentId) {
-      const p = await db.payment.findUnique({
-        where: { id: shp_paymentId },
-        select: { tenantId: true }
+      const p = await runWithTenantBypass('Inbound robokassa tenant lookup', async () => {
+        return db.payment.findUnique({
+          where: { id: shp_paymentId },
+          select: { tenantId: true }
+        });
       });
       if (p?.tenantId) resolvedTenantId = p.tenantId;
     }
 
+    return await runWithTenant(resolvedTenantId, async () => {
     const secrets = await SettingsProvider.getPaymentSecrets(resolvedTenantId);
     const password = secrets.robokassaWebhookPassword;
 
@@ -212,6 +216,7 @@ export async function handleRobokassaWebhookRequest(
       console.error(`[Robokassa Webhook] Failed to acquire lock for payment ${shp_paymentId}:`, lockError);
       return NextResponse.json({ error: 'Concurrent processing lock timeout' }, { status: 429 });
     }
+    });
   } catch (error: unknown) {
     console.error('Webhook error:', (error instanceof Error ? error.message : String(error)));
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });

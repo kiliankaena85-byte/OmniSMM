@@ -7,6 +7,7 @@ import path from 'path';
 import { SettingsProvider } from '@/lib/settings';
 import { getMimeType } from '@/lib/mime';
 import { RateLimitService } from '@/services/core/rate-limit.service';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -338,55 +339,61 @@ export async function POST(req: NextRequest) {
 
     // ── CASE 1: Appending to an existing ticket ──
     if (targetTicketId) {
-      const ticket = await db.ticket.findUnique({
-        where: { id: targetTicketId },
-        include: { user: true }
+      const ticket = await runWithTenantBypass('Inbound email ticket lookup', async () => {
+        return db.ticket.findUnique({
+          where: { id: targetTicketId },
+          include: { user: true }
+        });
       });
 
       if (ticket) {
-        // Verify sender authorization
-        if (ticket.user.email && extractedFrom !== ticket.user.email.toLowerCase()) {
-          console.warn(`[Inbound Email] Sender ${extractedFrom} does not match ticket owner ${ticket.user.email}. Creating separate message with note.`);
-        }
+        return await runWithTenant(ticket.tenantId, async () => {
+          // Verify sender authorization
+          if (ticket.user.email && extractedFrom !== ticket.user.email.toLowerCase()) {
+            console.warn(`[Inbound Email] Sender ${extractedFrom} does not match ticket owner ${ticket.user.email}. Creating separate message with note.`);
+          }
 
-        await saveIncomingAttachments(ticket.id);
+          await saveIncomingAttachments(ticket.id);
 
-        await ticketService.addMessage(
-          ticket.id, 
-          'USER', 
-          textBody, 
-          undefined, 
-          undefined, 
-          undefined, 
-          undefined, 
-          attachmentsToSave
-        );
+          await ticketService.addMessage(
+            ticket.id, 
+            'USER', 
+            textBody, 
+            undefined, 
+            undefined, 
+            undefined, 
+            undefined, 
+            attachmentsToSave
+          );
 
-        return NextResponse.json({ success: true, ticketId: ticket.id, action: 'appended' });
+          return NextResponse.json({ success: true, ticketId: ticket.id, action: 'appended' });
+        });
       }
     }
 
     // ── CASE 2: Creating a NEW Ticket from direct customer email ──
     const tenantId = toAddress.toLowerCase().includes('flux') ? 'flux' : 'smmplan';
-    const tempFolderId = `temp-${crypto.randomBytes(8).toString('hex')}`;
-    await saveIncomingAttachments(tempFolderId);
+    return await runWithTenant(tenantId, async () => {
+      const tempFolderId = `temp-${crypto.randomBytes(8).toString('hex')}`;
+      await saveIncomingAttachments(tempFolderId);
 
-    const newTicket = await ticketService.createInboundEmailTicket({
-      fromEmail: extractedFrom,
-      fromName: extractedFromName,
-      toEmail: toAddress,
-      subject: subject || 'Новое обращение по Email',
-      text: textBody,
-      html: htmlBody,
-      tenantId,
-      attachments: attachmentsToSave
-    });
+      const newTicket = await ticketService.createInboundEmailTicket({
+        fromEmail: extractedFrom,
+        fromName: extractedFromName,
+        toEmail: toAddress,
+        subject: subject || 'Новое обращение по Email',
+        text: textBody,
+        html: htmlBody,
+        tenantId,
+        attachments: attachmentsToSave
+      });
 
-    return NextResponse.json({ 
-      success: true, 
-      ticketId: newTicket.id, 
-      action: 'created',
-      tenantId 
+      return NextResponse.json({ 
+        success: true, 
+        ticketId: newTicket.id, 
+        action: 'created',
+        tenantId 
+      });
     });
   } catch (e) {
     console.error('[Inbound Email Webhook] Error:', e);

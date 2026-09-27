@@ -104,9 +104,9 @@ export async function verifyDirectSmtpConnection(
           onFinish(false, 'TCP Connection timeout');
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearTimeout(timer);
-      onFinish(false, err?.message || String(err));
+      onFinish(false, err instanceof Error ? err.message : String(err));
     }
   });
 }
@@ -159,7 +159,7 @@ async function getTransporter(tenantId?: string): Promise<TransporterResult | nu
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
-  } as any);
+  } as nodemailer.TransportOptions);
 
   return { provider: 'SMTP', transporter, smtpUser: s.smtpUser, fromEmail: s.smtpUser };
 }
@@ -469,4 +469,43 @@ export async function sendTicketCreatedMail(
   `;
 
   return sendMail(email, `[Тикет #${shortId}] ${ticketSubject}`, htmlContent, replyTo, tenantId);
+}
+
+export async function sendTicketReplyMail(
+  email: string,
+  ticketId: string,
+  ticketSubject: string,
+  replyText: string,
+  tenantId?: string
+) {
+  const { companyName, supportDomain } = await getEmailContext(tenantId);
+  const shortId = ticketId.slice(-6).toUpperCase();
+  const replyTo = `support+${ticketId}@${supportDomain}`;
+
+  const safeReplyText = replyText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br/>');
+
+  const htmlContent = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 12px; margin-bottom: 20px;">
+        <h2 style="color: #0f172a; margin: 0; font-size: 20px;">Новый ответ от поддержки ${companyName}</h2>
+      </div>
+      <p style="color: #334155; font-size: 15px; line-height: 1.6;">
+        Специалист поддержки ответил на ваше обращение <b>#${ticketId}</b> (${ticketSubject}):
+      </p>
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 0; font-size: 15px; color: #166534; line-height: 1.6;">
+          ${safeReplyText}
+        </p>
+      </div>
+      <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-top: 24px;">
+        Для ответа просто <b>ответьте на это письмо</b>, либо перейдите в личный кабинет на сайте.
+      </p>
+    </div>
+  `;
+
+  return sendMail(email, `Ответ по обращению #${shortId}: ${ticketSubject}`, htmlContent, replyTo, tenantId);
 }

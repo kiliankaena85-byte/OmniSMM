@@ -33,6 +33,7 @@ class AccountingService {
       where: {
         ...dateFilter,
         status: 'SUCCEEDED',
+        gateway: { notIn: ['referral_transfer', 'test'] },
         ...(isSingleTenant ? { tenantId } : {})
       }
     });
@@ -193,6 +194,7 @@ class AccountingService {
         _sum: { amount: true },
         where: {
           status: 'SUCCEEDED',
+          gateway: { notIn: ['referral_transfer', 'test'] },
           ...(isSingleTenant ? { tenantId } : {}),
           createdAt: {
             gte: startOfYear,

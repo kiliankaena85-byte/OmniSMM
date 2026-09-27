@@ -52319,179 +52319,33 @@ var init_queue_manager = __esm({
 });
 
 // src/lib/prisma-tenant-enforcer.ts
-function applyTenantWhereClause(where, activeTenantId, model) {
-  if (!where.tenantId) {
-    if (model === "category" || model === "service") {
-      where.tenantId = { in: [activeTenantId, "all"] };
-    } else {
-      where.tenantId = activeTenantId;
-    }
-    return;
-  }
-  const requested = where.tenantId;
-  if (typeof requested === "string") {
-    if (requested !== activeTenantId && requested !== "all") {
-      throw new Error(`SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested}`);
-    }
-    return;
-  }
-  if (typeof requested === "object" && requested !== null) {
-    if (Array.isArray(requested.in)) {
-      const hasCrossTenant = requested.in.some(
-        (t) => typeof t === "string" && t !== activeTenantId && t !== "all"
-      );
-      if (hasCrossTenant) {
-        throw new Error(
-          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${JSON.stringify(requested)}`
-        );
-      }
-      return;
-    }
-    if (typeof requested.equals === "string") {
-      if (requested.equals !== activeTenantId && requested.equals !== "all") {
-        throw new Error(
-          `SECURITY_TENANT_MISMATCH: Cross-tenant query blocked! Active: ${activeTenantId}, Requested: ${requested.equals}`
-        );
-      }
-      return;
-    }
-  }
-  where.tenantId = activeTenantId;
-}
-function createTenantEnforcerExtension(options = {}) {
+function createTenantEnforcerExtension(prismaClient) {
   const queryExtensions = {};
   for (const model of TENANT_SCOPED_MODELS) {
     queryExtensions[model] = {
-      async findMany({ args, query }) {
+      async $allOperations({ args, query }) {
         if (isTenantBypassActive()) {
-          return query(args);
+          const [, , result2] = await prismaClient.$transaction([
+            prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
+            prismaClient.$executeRaw`SELECT set_config('app.current_tenant', 'bypass', TRUE)`,
+            query(args)
+          ]);
+          return result2;
         }
         const tenantId = await resolveActiveTenantId();
         if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
+          const [, , result2] = await prismaClient.$transaction([
+            prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
+            prismaClient.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, TRUE)`,
+            query(args)
+          ]);
+          return result2;
         }
-        return query(args);
-      },
-      async findFirst({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
-      },
-      async findUnique({ model: clientModel, args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (!tenantId) {
-          return query(args);
-        }
-        if (model === "user" && args.where && args.where.id) {
-          return query(args);
-        }
-        const scopedWhere = model === "category" || model === "service" ? { ...args.where, tenantId: { in: [tenantId, "all"] } } : { ...args.where, tenantId };
-        const scopedArgs = { ...args, where: scopedWhere };
-        if (options.findFirstDelegate) {
-          return options.findFirstDelegate(scopedArgs);
-        }
-        if (clientModel && typeof clientModel.findFirst === "function") {
-          return clientModel.findFirst(scopedArgs);
-        }
-        return query(scopedArgs);
-      },
-      async count({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
-      },
-      async create({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.data = args.data || {};
-          if (args.data.tenantId && args.data.tenantId !== tenantId && args.data.tenantId !== "all") {
-            throw new Error(`SECURITY_TENANT_MISMATCH: Cannot create record for another tenant! Active: ${tenantId}, Given: ${args.data.tenantId}`);
-          }
-          if (!args.data.tenantId) {
-            args.data.tenantId = tenantId;
-          }
-        }
-        return query(args);
-      },
-      async createMany({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId && Array.isArray(args.data)) {
-          for (const item of args.data) {
-            if (item.tenantId && item.tenantId !== tenantId && item.tenantId !== "all") {
-              throw new Error(`SECURITY_TENANT_MISMATCH: Batch creation contains record with mismatched tenant!`);
-            }
-            if (!item.tenantId) {
-              item.tenantId = tenantId;
-            }
-          }
-        }
-        return query(args);
-      },
-      async update({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
-      },
-      async updateMany({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
-      },
-      async delete({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
-      },
-      async deleteMany({ args, query }) {
-        if (isTenantBypassActive()) {
-          return query(args);
-        }
-        const tenantId = await resolveActiveTenantId();
-        if (tenantId) {
-          args.where = args.where || {};
-          applyTenantWhereClause(args.where, tenantId, model);
-        }
-        return query(args);
+        const [, result] = await prismaClient.$transaction([
+          prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
+          query(args)
+        ]);
+        return result;
       }
     };
   }
@@ -52514,7 +52368,13 @@ var init_prisma_tenant_enforcer = __esm({
       "customerGroup",
       "ticketFeedback",
       "ledgerEntry",
-      "supportFinancialAction"
+      "supportFinancialAction",
+      "ticketMessage",
+      "authToken",
+      "session",
+      "shadowService",
+      "storefrontKey",
+      "providerOutbox"
     ];
   }
 });
@@ -52638,7 +52498,7 @@ function createPrismaClient() {
       }
     }
   });
-  const tenantGuarded = guarded.$extends(createTenantEnforcerExtension());
+  const tenantGuarded = guarded.$extends(createTenantEnforcerExtension(guarded));
   return tenantGuarded;
 }
 var import_client, globalForPrisma, db;
@@ -126902,6 +126762,7 @@ __export2(smtp_exports, {
   sendOrderCompletedMail: () => sendOrderCompletedMail,
   sendOrderPaidMail: () => sendOrderPaidMail,
   sendTicketCreatedMail: () => sendTicketCreatedMail,
+  sendTicketReplyMail: () => sendTicketReplyMail,
   sendWelcomeLetter: () => sendWelcomeLetter,
   verifyDirectSmtpConnection: () => verifyDirectSmtpConnection
 });
@@ -127267,6 +127128,31 @@ async function sendTicketCreatedMail(email, ticketId, ticketSubject, tenantId) {
     </div>
   `;
   return sendMail(email, `[\u0422\u0438\u043A\u0435\u0442 #${shortId}] ${ticketSubject}`, htmlContent, replyTo, tenantId);
+}
+async function sendTicketReplyMail(email, ticketId, ticketSubject, replyText, tenantId) {
+  const { companyName, supportDomain } = await getEmailContext(tenantId);
+  const shortId = ticketId.slice(-6).toUpperCase();
+  const replyTo = `support+${ticketId}@${supportDomain}`;
+  const safeReplyText = replyText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
+  const htmlContent = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 12px; margin-bottom: 20px;">
+        <h2 style="color: #0f172a; margin: 0; font-size: 20px;">\u041D\u043E\u0432\u044B\u0439 \u043E\u0442\u0432\u0435\u0442 \u043E\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 ${companyName}</h2>
+      </div>
+      <p style="color: #334155; font-size: 15px; line-height: 1.6;">
+        \u0421\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0432\u0430\u0448\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u0435 <b>#${ticketId}</b> (${ticketSubject}):
+      </p>
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 0; font-size: 15px; color: #166534; line-height: 1.6;">
+          ${safeReplyText}
+        </p>
+      </div>
+      <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-top: 24px;">
+        \u0414\u043B\u044F \u043E\u0442\u0432\u0435\u0442\u0430 \u043F\u0440\u043E\u0441\u0442\u043E <b>\u043E\u0442\u0432\u0435\u0442\u044C\u0442\u0435 \u043D\u0430 \u044D\u0442\u043E \u043F\u0438\u0441\u044C\u043C\u043E</b>, \u043B\u0438\u0431\u043E \u043F\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u0432 \u043B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442 \u043D\u0430 \u0441\u0430\u0439\u0442\u0435.
+      </p>
+    </div>
+  `;
+  return sendMail(email, `\u041E\u0442\u0432\u0435\u0442 \u043F\u043E \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u044E #${shortId}: ${ticketSubject}`, htmlContent, replyTo, tenantId);
 }
 var import_dns, import_net, import_tls, log3;
 var init_smtp = __esm({
@@ -144832,6 +144718,7 @@ var init_ticket_service = __esm({
     init_settings();
     init_sse_service();
     init_mime();
+    init_smtp();
     TicketService = class {
       /**
        * Create a new ticket from an incoming customer email.
@@ -144898,8 +144785,8 @@ var init_ticket_service = __esm({
           }
         });
         try {
-          const { sendTicketCreatedMail: sendTicketCreatedMail2 } = await Promise.resolve().then(() => (init_smtp(), smtp_exports));
-          await sendTicketCreatedMail2(user.email, ticket.id, ticket.subject, resolvedTenant);
+          const { sendTicketCreatedMail: sendTicketCreatedMail3 } = await Promise.resolve().then(() => (init_smtp(), smtp_exports));
+          await sendTicketCreatedMail3(user.email, ticket.id, ticket.subject, resolvedTenant);
         } catch (mailErr) {
           console.error("[TicketService] Failed to send email confirmation for new ticket:", mailErr);
         }
@@ -145014,6 +144901,19 @@ var init_ticket_service = __esm({
             telegramError = e instanceof Error ? e.message : String(e);
             telegramMsgId = `FAILED: ${telegramError}`;
             console.error("[TicketService] Error sending to telegram:", e);
+          }
+        }
+        if (sender === "STAFF" && ticketToUpdate.user.email) {
+          try {
+            await sendTicketReplyMail(
+              ticketToUpdate.user.email,
+              ticketToUpdate.id,
+              ticketToUpdate.subject,
+              text,
+              ticketToUpdate.tenantId
+            );
+          } catch (e) {
+            console.error("[TicketService] Error sending email notification:", e);
           }
         }
         const message = await db.ticketMessage.create({

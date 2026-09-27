@@ -60,7 +60,7 @@ export class CheckoutTransactionService {
       ? idempotencyKey.trim()
       : randomUUID();
 
-    const isTestMode = await SettingsManager.isTestMode();
+    const isTestMode = await SettingsManager.isTestMode(tenantId);
 
     // 1. Resolve or create user
     let user = await db.user.findFirst({

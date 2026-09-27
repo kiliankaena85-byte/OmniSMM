@@ -16,6 +16,22 @@ function safeRevalidatePath(path: string, type?: 'layout' | 'page') {
   }
 }
 
+function parseYooKassaAmountToKopecks(val: unknown): bigint {
+  if (typeof val !== 'string') {
+    throw new Error('INVALID_GATEWAY_AMOUNT_FORMAT');
+  }
+  const normalized = val.trim();
+  const decimalMatch = /^(\d+)\.(\d{2})$/.exec(normalized);
+  if (decimalMatch) {
+    return BigInt(decimalMatch[1]) * 100n + BigInt(decimalMatch[2]);
+  }
+  const integerMatch = /^(\d+)$/.exec(normalized);
+  if (integerMatch) {
+    return BigInt(integerMatch[1]) * 100n;
+  }
+  throw new Error(`INVALID_GATEWAY_AMOUNT_FORMAT: ${normalized}`);
+}
+
 export class PaymentService {
   /**
    * Confirms a payment and activates the linked order.
@@ -73,9 +89,9 @@ export class PaymentService {
                     if (data.status !== 'succeeded') {
                         throw new Error(`PAYMENT_NOT_SUCCEEDED: Real gateway status is ${data.status}`);
                     }
-                    const realAmount = Math.round(parseFloat(data.amount.value) * 100);
-                    if (realAmount < amount) {
-                        throw new Error(`PAYMENT_AMOUNT_MISMATCH: Webhook amount ${amount} exceeds Real amount ${realAmount}`);
+                    const realAmountKopecks = parseYooKassaAmountToKopecks(data.amount?.value);
+                    if (realAmountKopecks < BigInt(amount)) {
+                        throw new Error(`PAYMENT_AMOUNT_MISMATCH: Webhook amount ${amount} exceeds Real amount ${realAmountKopecks.toString()}`);
                     }
                     console.info(`[Payment] Safely verified YooKassa payment ${gatewayId}`);
                 } else {
@@ -320,7 +336,7 @@ export class PaymentService {
       if (activatedOrders.length > 0) {
         const { ordersQueue } = await import('@/lib/queue-manager');
         for (const activated of activatedOrders) {
-          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
+          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}-${Date.now()}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
           
           if (activated.userEmail && activated.serviceName) {
             void sendOrderPaidMail(
@@ -549,7 +565,7 @@ export class PaymentService {
 
         if (!payment.orderId && basketOrders.length === 0) {
           // Direct top-up (Deposit) - Increment User Balance securely!
-          await WalletOps.credit(tx, payment.userId, Number(payment.amount),
+          await WalletOps.credit(tx, payment.userId, payment.amount,
             `Пополнение баланса через yookassa`,
             { idempotencyKey: `deposit-${paymentId}`, tenantId: payment.tenantId }
           );
@@ -562,7 +578,7 @@ export class PaymentService {
       if (activatedOrders.length > 0) {
         const { ordersQueue } = await import('@/lib/queue-manager');
         for (const activated of activatedOrders) {
-          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
+          await ordersQueue.add('order-dispatch', { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}-${Date.now()}`, delay: 3 * 60 * 1000 }); // 3 min cooling-off
           
           if (activated.userEmail && activated.serviceName) {
             void sendOrderPaidMail(

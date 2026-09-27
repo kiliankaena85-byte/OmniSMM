@@ -132,7 +132,7 @@ export function createPrismaClient(): PrismaClient {
 
   const tenantGuarded = (guarded as unknown as {
     $extends: (extension: unknown) => PrismaClient;
-  }).$extends(createTenantEnforcerExtension()) as unknown as PrismaClient;
+  }).$extends(createTenantEnforcerExtension(guarded)) as unknown as PrismaClient;
 
   return tenantGuarded;
 }

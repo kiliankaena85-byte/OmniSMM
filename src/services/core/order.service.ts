@@ -126,7 +126,7 @@ class OrderService {
         }
 
         const serviceTenantId = service.tenantId;
-        if (serviceTenantId !== userTenantId) {
+        if (serviceTenantId !== userTenantId && serviceTenantId !== 'all') {
           // [R1-P0-01] Persist SecurityEvent via tx to eliminate connection pool leak
           try {
             await tx.securityEvent.create({
@@ -240,7 +240,7 @@ class OrderService {
 
       // 3. Dispatch to Queues (Drip-feed is now passed natively to the provider)
       try {
-        await ordersQueue.add('order-dispatch', { orderId: newOrder.id, tenantId: newOrder.tenantId }, { jobId: `dispatch-${newOrder.id}`, delay: 3 * 60 * 1000 });
+        await ordersQueue.add('order-dispatch', { orderId: newOrder.id, tenantId: newOrder.tenantId }, { jobId: `dispatch-${newOrder.id}-${Date.now()}`, delay: 3 * 60 * 1000 });
       } catch (queueError: unknown) {
         // [FIN-006] Premortem Bugfix: Ghost Order Prevention.
         // If Redis is down, we MUST NOT fail the request since the balance is already charged 

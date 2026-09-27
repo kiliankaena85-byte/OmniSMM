@@ -1,12 +1,9 @@
 'use server';
 
 import { db } from "@/lib/db";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { IntelligencePlatform } from "@/services/analyzer/link-rules";
 import { applyBeautifulRounding, SAFETY_FLOOR_MARKUP } from "@/lib/financial-constants";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getCostRub } from "@/lib/pricing/currency-invariant";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { applyAntiNegativeMargin } from "@/lib/pricing/anti-negative-margin";
 import { SettingsProvider } from "@/lib/settings";
 import { unstable_cache } from "next/cache";
@@ -174,7 +171,12 @@ export async function getCachedServicesByCategory(categoryId: string, tenantId: 
         if (services.length > CATEGORY_SERVICES_HARD_LIMIT) {
           logger.warn(`[catalog] AUD-07: category ${categoryId} exceeds ${CATEGORY_SERVICES_HARD_LIMIT} services (${services.length}); storefront shows the cheapest ${CATEGORY_SERVICES_HARD_LIMIT} — consider splitting the category`, { categoryId, tenantId: normalizedTenant, count: services.length });
         }
-        return services.slice(0, CATEGORY_SERVICES_HARD_LIMIT);
+        
+        // Convert BigInt to Number for JSON serialization in unstable_cache and Redis
+        return services.slice(0, CATEGORY_SERVICES_HARD_LIMIT).map(s => ({
+          ...s,
+          pricePer1000Cents: typeof s.pricePer1000Cents === 'bigint' ? Number(s.pricePer1000Cents) : s.pricePer1000Cents
+        }));
       },
       [`public-services-by-category-v4-tenant-${normalizedTenant}-${categoryId}`],
       { revalidate: 60, tags: ['catalog', 'services', `catalog-${normalizedTenant}`, `category-${categoryId}-${normalizedTenant}`] }
@@ -504,8 +506,7 @@ export async function getServicesByCategoryAction(categoryId: string, rawTenantI
          }
 
          // Single Source of Truth & Systemic Beautiful Rounding Invariant
-         const rawPricePer1k = typeof s.pricePer1000Cents === 'number' && s.pricePer1000Cents > 0
-           ? s.pricePer1000Cents / 100
+         const rawPricePer1k = typeof s.pricePer1000Cents === 'bigint' && s.pricePer1000Cents > 0n ? Number(s.pricePer1000Cents) / 100 : typeof s.pricePer1000Cents === 'number' && s.pricePer1000Cents > 0 ? s.pricePer1000Cents / 100
            : (s.costPer1kRub || (s.rate * (s.providerCurrency === 'RUB' ? 1.0 : usdToRub))) * (s.markup || SAFETY_FLOOR_MARKUP);
          const pricePer1kRub = applyBeautifulRounding(rawPricePer1k);
          const pricePerUnitRub = Math.round((pricePer1kRub / 1000) * 10000) / 10000;
@@ -603,7 +604,9 @@ export async function getServiceBySlugAction(slug: string, tenantId: string = 's
     if (!service) return null;
 
     // Single Source of Truth & Systemic Beautiful Rounding Invariant
-    const rawPricePer1k = typeof service.pricePer1000Cents === 'number' && service.pricePer1000Cents > 0
+    const rawPricePer1k = typeof service.pricePer1000Cents === 'bigint' && service.pricePer1000Cents > 0n
+      ? Number(service.pricePer1000Cents) / 100
+      : typeof service.pricePer1000Cents === 'number' && service.pricePer1000Cents > 0
       ? service.pricePer1000Cents / 100
       : (service.costPer1kRub || (service.rate * (service.providerCurrency === 'RUB' ? 1.0 : usdToRub))) * (service.markup || SAFETY_FLOOR_MARKUP);
     const pricePer1kRub = applyBeautifulRounding(rawPricePer1k);
@@ -611,6 +614,7 @@ export async function getServiceBySlugAction(slug: string, tenantId: string = 's
 
     return {
       ...service,
+      pricePer1000Cents: typeof service.pricePer1000Cents === 'bigint' ? Number(service.pricePer1000Cents) : service.pricePer1000Cents,
       pricePer1kRub,
       pricePerUnitRub,
     };
@@ -623,7 +627,6 @@ export async function getServiceBySlugAction(slug: string, tenantId: string = 's
 /**
  * @public Fetches fresh, live un-cached service details for JIT modal refresh
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getFreshServiceAction(serviceId: string, tenantId: string = 'smmplan'): Promise<PublicService | null> {
   try {
     const usdToRub = await SettingsProvider.getExchangeRateUSD();
@@ -700,8 +703,7 @@ export async function getFreshServiceAction(serviceId: string, tenantId: string 
       badge = 'БЫСТРЫЕ';
     }
 
-    const rawPricePer1k = typeof s.pricePer1000Cents === 'number' && s.pricePer1000Cents > 0
-      ? s.pricePer1000Cents / 100
+    const rawPricePer1k = typeof s.pricePer1000Cents === 'bigint' && s.pricePer1000Cents > 0n ? Number(s.pricePer1000Cents) / 100 : typeof s.pricePer1000Cents === 'number' && s.pricePer1000Cents > 0 ? s.pricePer1000Cents / 100
       : (s.costPer1kRub || (s.rate * (s.providerCurrency === 'RUB' ? 1.0 : usdToRub))) * (s.markup || SAFETY_FLOOR_MARKUP);
     const pricePer1kRub = applyBeautifulRounding(rawPricePer1k);
     const pricePerUnitRub = Math.round((pricePer1kRub / 1000) * 10000) / 10000;

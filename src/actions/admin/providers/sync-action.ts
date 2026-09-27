@@ -13,7 +13,7 @@ import { db } from "@/lib/db";
 import { applyBeautifulRounding, SAFETY_FLOOR_MARKUP } from "@/lib/financial-constants";
 import { SettingsManager } from "@/lib/settings";
 import { requireStaffPermission } from "@/lib/server/rbac";
-import { auditAdmin } from "@/lib/admin-audit";
+import { auditAdminAwaitable } from "@/lib/admin-audit";
 import { MutexManager } from "@/lib/redis-lock";
 import { adminCatalogService } from "@/services/admin/catalog.service";
 import { providerService } from "@/services/providers/provider.service";
@@ -126,7 +126,7 @@ export async function approveQuarantinedService(serviceId: string) {
       });
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "QUARANTINE_APPROVE",
@@ -157,7 +157,7 @@ export async function rejectQuarantinedService(serviceId: string) {
       },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "QUARANTINE_REJECT",
@@ -218,7 +218,7 @@ export async function approveAllQuarantined() {
       }
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "QUARANTINE_APPROVE_ALL",
@@ -254,7 +254,7 @@ export async function archiveZombieService(serviceId: string) {
       },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "SERVICE_ARCHIVE_ZOMBIE",
@@ -287,7 +287,7 @@ export async function liftApiBlock(serviceId: string) {
       },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "SERVICE_LIFT_API_BLOCK",
@@ -436,7 +436,7 @@ export async function applyQuarantineResolutionAction(params: {
         }
       });
 
-      auditAdmin({
+      await auditAdminAwaitable({
         adminId: admin.id,
         adminEmail: admin.email,
         action: "QUARANTINE_RESOLVE_DEACTIVATE",
@@ -483,7 +483,7 @@ export async function applyQuarantineResolutionAction(params: {
         });
       });
 
-      auditAdmin({
+      await auditAdminAwaitable({
         adminId: admin.id,
         adminEmail: admin.email,
         action: "QUARANTINE_RESOLVE_PRICE_ONLY",
@@ -544,7 +544,7 @@ export async function applyQuarantineResolutionAction(params: {
       });
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: "QUARANTINE_RESOLVE_SYNC_ALL",

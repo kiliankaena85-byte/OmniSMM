@@ -1,0 +1,15 @@
+services:
+  smmplan_stage:
+    image: omnismm-web:stage
+    container_name: smmplan_stage
+    restart: unless-stopped
+    ports:
+      - "3005:3000"
+    networks:
+      - omnismm_backend
+    env_file:
+      - .env.docker
+
+networks:
+  omnismm_backend:
+    external: true

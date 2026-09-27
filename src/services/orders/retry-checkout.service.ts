@@ -67,7 +67,7 @@ export class RetryCheckoutService {
         const isTestMode = await SettingsManager.isTestMode(currentTenantId);
         await paymentService.confirmPayment(
           order.payment.gatewayId,
-          Number(order.payment.amount),
+          order.payment.amount,
           order.userId,
           isTestMode,
           'yookassa',
@@ -86,7 +86,7 @@ export class RetryCheckoutService {
       }
     }
 
-    const isTestMode = await SettingsManager.isTestMode();
+    const isTestMode = await SettingsManager.isTestMode(order.tenantId || currentTenantId);
 
     const result = await runSerializableTransaction<{ paymentId: string; totalPaymentAmount: number; linkedOrderIds: string[] }>(async (tx) => {
       const existingPayment = order.payment || await tx.payment.findUnique({ where: { orderId: order.id } });

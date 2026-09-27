@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { MarginGuard } from '@/services/providers/smart-routing.service';
 
 const log = logger.child({ component: 'SmartRecoveryEngine' });
 
@@ -44,10 +45,51 @@ export class SmartRecoveryEngine {
     }
 
     const targetRoute = fallbackRoutes[0];
+    const targetProviderCurrency = targetRoute.provider?.balanceCurrency || 'USD';
+
+    // 1. Resolve fallback provider rate from ShadowService
+    const shadowSvc = await db.shadowService.findUnique({
+      where: {
+        providerId_externalId: {
+          providerId: targetRoute.providerId,
+          externalId: targetRoute.providerServiceId,
+        },
+      },
+    });
+
+    const targetRate = shadowSvc ? shadowSvc.rate : (order.service.rate || 1.0);
+    const quantity = order.quantity || 1000;
     const originalCost = BigInt(order.providerCost || 0);
-    const unitsK = (order.quantity || 1000) / 1000;
-    const rate = order.service.rate || 1.0;
-    const newEstimatedCost = BigInt(Math.round(rate * unitsK * 100));
+
+    // 2. MarginGuard check against customer paid amount (if charge exists)
+    const clientPaidCents = order.charge != null ? BigInt(order.charge) : BigInt(0);
+
+    let newEstimatedCost: bigint;
+    if (clientPaidCents > BigInt(0)) {
+      const marginResult = await MarginGuard.checkMargin(
+        clientPaidCents,
+        quantity,
+        targetRate,
+        targetProviderCurrency
+      );
+
+      if (!marginResult.isProfitable) {
+        log.warn(`[HotSwap REJECTED] Order ${order.id}: negative margin on target provider ${targetRoute.providerId}. ${marginResult.reason}`);
+        return {
+          success: false,
+          orderId: order.id,
+          originalProviderId: currentProviderId,
+          absorbedDeltaCents: BigInt(0),
+          error: `Целевой провайдер отклонен: отрицательная маржа (${marginResult.reason})`,
+        };
+      }
+      newEstimatedCost = marginResult.costCents;
+    } else {
+      // In tests/free orders without recorded charge, calculate cost directly from rate
+      const unitsK = quantity / 1000;
+      newEstimatedCost = BigInt(Math.round(targetRate * unitsK * 100));
+    }
+
     const absorbedDelta = newEstimatedCost > originalCost ? newEstimatedCost - originalCost : BigInt(0);
 
     try {
@@ -71,6 +113,7 @@ export class SmartRecoveryEngine {
           data: {
             providerId: targetRoute.providerId,
             externalId: null, // Reset externalId for new dispatch
+            providerCost: newEstimatedCost,
             status: 'IN_PROGRESS',
           },
         });

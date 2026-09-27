@@ -276,7 +276,7 @@ class AdminUserService {
       }),
     ]);
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'USER_BAN',
@@ -311,7 +311,7 @@ class AdminUserService {
       data: { role: restoredRole },
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'USER_UNBAN',

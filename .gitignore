@@ -209,3 +209,11 @@ clash/ruleset/
 *.sql.gz
 !prisma/backups/
 !prisma/backups/smmplan_golden_backup_latest.sql
+
+# ── Certbot & Local Scripts / Temp ──
+certbot/
+tmp_puppeteer/
+launch_docker.ps1
+wait_docker.ps1
+scripts/test-action.ts
+.env.docker

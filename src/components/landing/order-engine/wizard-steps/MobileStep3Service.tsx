@@ -71,7 +71,7 @@ export function MobileStep3Service({
             </span>
           </div>
 
-          {isTariffLoading ? (
+          {isTariffLoading && services.length === 0 ? (
             <div className="grid grid-cols-1 gap-2.5">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-24 rounded-2xl bg-content2/70 animate-pulse border border-border/40" />
@@ -102,7 +102,7 @@ export function MobileStep3Service({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-2.5">
+            <div className={`flex flex-col gap-2.5 transition-opacity duration-200 ${isTariffLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
               {displayedServices.map((srv) => (
                 <TariffCard
                   key={srv.id}

@@ -7,6 +7,7 @@ import { QuarantineService } from "@/services/providers/quarantine.service";
 import { CompensationService } from "@/services/financial/compensation.service";
 import { runSerializableTransaction } from "@/lib/transactions";
 import { RateLimitService } from "@/services/core/rate-limit.service";
+import { runWithTenant, runWithTenantBypass } from "@/lib/tenant-context";
 
 /**
  * MANDATORY INTEGRITY WARNING:
@@ -91,16 +92,18 @@ export async function POST(req: Request) {
 
     console.info(`[Webhook] Received update signal for external ID: ${externalId}`);
 
-    // 1. Find the order
-    const order = await db.order.findFirst({
-      where: {
-        status: { in: ["IN_PROGRESS", "PENDING_CHECK"] },
-        OR: [
-          { externalId },
-          { dripExternalIds: { has: externalId } }
-        ]
-      },
-      include: { service: true, user: { select: { email: true } } }
+    // 1. Find the order with tenant bypass
+    const order = await runWithTenantBypass('Inbound provider webhook order lookup', async () => {
+      return db.order.findFirst({
+        where: {
+          status: { in: ["IN_PROGRESS", "PENDING_CHECK"] },
+          OR: [
+            { externalId },
+            { dripExternalIds: { has: externalId } }
+          ]
+        },
+        include: { service: true, user: { select: { email: true } } }
+      });
     });
 
     if (!order) {
@@ -108,6 +111,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Order not found or not active" }, { status: 200 });
     }
 
+    return await runWithTenant(order.tenantId, async () => {
     if (!order.providerId) {
       return NextResponse.json({ error: "Order has no assigned provider" }, { status: 400 });
     }
@@ -200,6 +204,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, verifiedStatus: providerStatus });
+    });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error(`[Webhook] Fatal error:`, errorMsg);

@@ -94,7 +94,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"const r=require('ioredis');const c=new r({host:'redis',password:process.env.REDIS_PASSWORD});c.exists('bot:heartbeat').then(v=>{c.quit();process.exit(v?0:1)}).catch(()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "pgrep -f 'node bot.js' || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

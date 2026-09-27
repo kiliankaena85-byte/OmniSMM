@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import { SettingsManager } from '@/lib/settings';
+import { ExactMath } from '@/lib/financial/exact-math';
 import { RateLimitService } from '@/services/core/rate-limit.service';
 import { getClientIp } from '@/utils/ip';
 import { verifyGuestOrderToken } from '@/lib/order-token';
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
         const pId = order.payment.id;
         
         let isActuallyPaid = false;
-        let checkAmount = Number(order.payment.amount);
+        let checkAmount: bigint = order.payment.amount;
 
         const orderTenantId = order.tenantId || 'smmplan';
 
@@ -98,7 +99,7 @@ export async function GET(req: NextRequest) {
                 const data = await response.json();
                 if (data.status === 'succeeded' || data.status === 'waiting_for_capture') {
                   isActuallyPaid = true;
-                  checkAmount = Math.round(parseFloat(data.amount.value) * 100);
+                  checkAmount = ExactMath.rublesToKopecks(data.amount.value);
                 }
               }
             } catch (e: unknown) {
@@ -171,7 +172,7 @@ export async function GET(req: NextRequest) {
         const gatewayId = payment.gatewayId;
         
         let isActuallyPaid = false;
-        let checkAmount = Number(payment.amount);
+        let checkAmount: bigint = payment.amount;
 
         const paymentTenantId = payment.tenantId || 'smmplan';
 
@@ -190,7 +191,7 @@ export async function GET(req: NextRequest) {
                 const data = await response.json();
                 if (data.status === 'succeeded' || data.status === 'waiting_for_capture') {
                   isActuallyPaid = true;
-                  checkAmount = Math.round(parseFloat(data.amount.value) * 100);
+                  checkAmount = ExactMath.rublesToKopecks(data.amount.value);
                 }
               }
             } catch (e: unknown) {

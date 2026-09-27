@@ -47,6 +47,10 @@ export async function logManualCompensation(formData: FormData) {
       return { success: false as const, error: 'Тикет не найден' };
     }
 
+    if (user.role !== 'OWNER' && ticket.tenantId !== user.tenantId && !user.allowedTenants?.includes(ticket.tenantId)) {
+      return { success: false as const, error: 'Доступ ограничен: тикет принадлежит другому бренду' };
+    }
+
     const reqHeaders = await headers();
     const userAgent = reqHeaders.get('user-agent') || 'Unknown';
     const ipAddress = await getClientIp('unknown');

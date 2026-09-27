@@ -103,7 +103,7 @@ export function useOrderCatalogSync({
 
   // Load Services when Category changes
   useEffect(() => {
-    if (isInitialServicesMount.current && categoryId === defaultCat?.id && initialServices.length > 0) {
+    if (isInitialServicesMount.current && (categoryId === defaultCat?.id || categoryId === initialCategoryId) && initialServices.length > 0) {
       isInitialServicesMount.current = false;
       categoryServicesCache.current[categoryId] = initialServices;
       if (initialServiceId && !selectedServiceRef.current) {
@@ -140,7 +140,7 @@ export function useOrderCatalogSync({
       return;
     }
 
-    setServices([]);
+    // Keep previous services in view to eliminate layout thrashing and skeleton flickering
     setServicesError(null);
     if (!selectedServiceRef.current) setSelectedService(null);
     const currentRequestId = ++serviceRequestIdRef.current;
@@ -210,6 +210,39 @@ export function useOrderCatalogSync({
     setServicesError(null);
     setRetryCount((c) => c + 1);
   };
+
+  // Background prefetch: quietly warm up services for other categories in active network
+  useEffect(() => {
+    if (!catalog.length) return;
+    const activeNet = catalog.find((n) => n.id === initialNetworkId) || catalog[0];
+    if (!activeNet?.categories) return;
+
+    const uncachedCats = activeNet.categories.filter(
+      (c) => c.id && c.id !== categoryId && !categoryServicesCache.current[c.id]
+    );
+    if (uncachedCats.length === 0) return;
+
+    let isCancelled = false;
+    const prefetchTimer = setTimeout(async () => {
+      for (const cat of uncachedCats) {
+        if (isCancelled) break;
+        try {
+          const svcs = await getServicesByCategoryAction(cat.id);
+          if (!isCancelled && svcs?.length > 0) {
+            categoryServicesCache.current[cat.id] = svcs;
+          }
+        } catch {
+          // Non-blocking prefetch failure is intentionally ignored
+        }
+        await new Promise((r) => setTimeout(r, 250));
+      }
+    }, 600);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(prefetchTimer);
+    };
+  }, [catalog, categoryId, initialNetworkId]);
 
   // Live Sync on focus & visibilitychange (throttled to at most once per 30s)
   useEffect(() => {

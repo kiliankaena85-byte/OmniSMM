@@ -10,7 +10,7 @@ import { revalidatePath } from 'next/cache';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { z } from 'zod';
 import { updateMarkupSchema, toggleServiceSchema, bulkUpdateMarkupSchema } from '@/validators/admin.validators';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdminAwaitable } from '@/lib/admin-audit';
 
 import { requireStaffPermission } from '@/lib/server/rbac';
 
@@ -26,7 +26,7 @@ async function updateMarkupAction(formData: FormData) {
       email: admin.email,
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SERVICE_MARKUP_UPDATE',
@@ -57,7 +57,7 @@ async function toggleServiceAction(formData: FormData) {
       email: admin.email,
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: isActive ? 'SERVICE_ENABLE' : 'SERVICE_DISABLE',
@@ -101,7 +101,7 @@ export async function bulkUpdateMarkupAction(formData: FormData) {
       admin: { id: admin.id, email: admin.email, role: admin.role }
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'BULK_MARKUP_UPDATE',

@@ -12,6 +12,7 @@ import { MutexManager } from '@/lib/redis-lock';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
 import { logger } from '@/lib/logger';
 import { sanitizeTenantSlug } from '@/lib/tenant-resolver-edge';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 
 interface YooKassaWebhookPayload {
   type?: string;
@@ -133,19 +134,22 @@ export async function handleYooKassaWebhookRequest(
     // Zero-Trust Database Resolution: determine tenant strictly from DB payment record first
     let webhookTenantId: string | undefined = explicitTenantId ? sanitizeTenantSlug(explicitTenantId) : undefined;
     if (!webhookTenantId && (internalPaymentId || gatewayId)) {
-      const p = await db.payment.findFirst({
-        where: {
-          OR: [
-            ...(internalPaymentId ? [{ id: internalPaymentId }] : []),
-            ...(gatewayId ? [{ gatewayId }] : [])
-          ]
-        },
-        select: { tenantId: true }
+      const p = await runWithTenantBypass('Inbound yookassa tenant lookup', async () => {
+        return db.payment.findFirst({
+          where: {
+            OR: [
+              ...(internalPaymentId ? [{ id: internalPaymentId }] : []),
+              ...(gatewayId ? [{ gatewayId }] : [])
+            ]
+          },
+          select: { tenantId: true }
+        });
       });
       if (p?.tenantId) webhookTenantId = p.tenantId;
     }
     webhookTenantId = webhookTenantId || metadataTenantId || 'smmplan';
 
+    return await runWithTenant(webhookTenantId, async () => {
     const secrets = await SettingsManager.getPaymentSecrets(webhookTenantId);
     const expectedSecret = secrets.yookassaWebhookSecret || (webhookTenantId === 'smmplan' ? process.env.YOOKASSA_WEBHOOK_SECRET : undefined);
 
@@ -325,6 +329,7 @@ export async function handleYooKassaWebhookRequest(
     }
 
     return NextResponse.json({ status: 'Ignored unsupported event' }, { status: 200 });
+    });
   } catch (error: unknown) {
     console.error('Webhook error:', (error instanceof Error ? error.message : String(error)));
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });

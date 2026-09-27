@@ -83,7 +83,7 @@ export async function createPromoCode(formData: FormData) {
       isSuspicious
     });
 
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'PROMOCODE_CREATE',
@@ -116,7 +116,7 @@ export async function togglePromoCode(id: string, isActive: boolean) {
 
     await adminMarketingService.togglePromoCode(id, isActive);
     
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: isActive ? 'PROMOCODE_ENABLE' : 'PROMOCODE_DISABLE',
@@ -136,7 +136,7 @@ export async function deletePromoCode(id: string) {
 
     await adminMarketingService.deletePromoCode(id);
     
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'PROMOCODE_DELETE',

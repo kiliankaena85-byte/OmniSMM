@@ -180,7 +180,7 @@ export function LandingCatalogContent({
                     </div>
                   </div>
                 ) : (
-                  <div className={`pb-8 pt-4 transition-opacity duration-300 hidden md:block ${isLoading && services.length === 0 ? 'opacity-50' : 'opacity-100'}`}>
+                  <div className={`pb-8 pt-4 transition-opacity duration-200 hidden md:block ${isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
                     <ServiceGrid 
                       engine={engine} 
                       checkoutProps={checkoutVariantProps}

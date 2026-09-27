@@ -87,7 +87,8 @@ export async function checkVatThreshold(tenantId: string = 'smmplan'): Promise<b
     where: {
       tenantId: cleanTenant,
       status: 'SUCCEEDED',
-      createdAt: { gte: startOfYear }
+      createdAt: { gte: startOfYear },
+      gateway: { notIn: ['referral_transfer', 'test'] }
     }
   });
   const grossKopecks = BigInt(grossResult._sum?.amount || 0);
@@ -665,7 +666,7 @@ class BalanceGateway extends BasePaymentGateway {
     }, { isolationLevel: 'Serializable', timeout: 15000 });
 
     for (const item of updatedOrders) {
-      await ordersQueue.add('order-dispatch', { orderId: item.id, tenantId: item.tenantId || params.tenantId || 'smmplan' }, { jobId: `dispatch-${item.id}`, delay: 3 * 60 * 1000 });
+      await ordersQueue.add('order-dispatch', { orderId: item.id, tenantId: item.tenantId || params.tenantId || 'smmplan' }, { jobId: `dispatch-${item.id}-${Date.now()}`, delay: 3 * 60 * 1000 });
     }
 
     return {

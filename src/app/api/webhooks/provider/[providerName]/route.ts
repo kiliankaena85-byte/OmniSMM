@@ -5,6 +5,7 @@ import { RefundPolicyService } from '@/services/financial/refund-policy.service'
 import { runSerializableTransaction } from '@/lib/transactions';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
 import { getClientIp } from '@/utils/ip';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 import crypto from 'crypto';
 
 export async function POST(
@@ -115,22 +116,25 @@ export async function POST(
     }
 
     // 4. Zero-Trust Verification: Query Provider Instance directly
-    const order = await db.order.findFirst({
-      where: {
-        status: { in: ['IN_PROGRESS', 'PENDING_CHECK'] },
-        OR: [
-          { externalId },
-          { id: externalId },
-          { dripExternalIds: { has: externalId } }
-        ]
-      },
-      include: { service: true, user: { select: { email: true } } }
+    const order = await runWithTenantBypass('Inbound provider webhook order lookup', async () => {
+      return db.order.findFirst({
+        where: {
+          status: { in: ['IN_PROGRESS', 'PENDING_CHECK'] },
+          OR: [
+            { externalId },
+            { id: externalId },
+            { dripExternalIds: { has: externalId } }
+          ]
+        },
+        include: { service: true, user: { select: { email: true } } }
+      });
     });
 
     if (!order) {
       return NextResponse.json({ message: 'Order not found or not active' }, { status: 200 });
     }
 
+    return await runWithTenant(order.tenantId, async () => {
     const providerInstance = await providerService.getWorkerProviderInstance(provider);
     const lookupId = order.externalId || externalId;
     const statuses = await providerInstance.getMultiOrderStatus([lookupId]);
@@ -192,6 +196,7 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, verifiedStatus, orderId: order.id });
+    });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error(`[ProviderWebhook:${providerName}] Error processing webhook:`, errorMsg);

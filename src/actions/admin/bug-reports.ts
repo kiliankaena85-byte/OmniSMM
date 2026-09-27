@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdminAwaitable } from '@/lib/admin-audit';
 
 export interface BugReportPayload {
   title: string;
@@ -109,7 +109,7 @@ ${payload.consoleLogs && payload.consoleLogs.length > 0 ? `#### Ошибки к�
 
     // 1. Audit Admin log in PostgreSQL
     if (userId) {
-      auditAdmin({
+      await auditAdminAwaitable({
         adminId: userId,
         adminEmail: user?.email || 'unknown@smmplan.pro',
         action: 'BUG_REPORT',

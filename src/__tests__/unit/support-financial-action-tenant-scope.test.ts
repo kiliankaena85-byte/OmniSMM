@@ -71,7 +71,12 @@ describe('TEN-01 & TEN-02: Tenant Isolation for Financial Adjustments', () => {
     });
 
     it('enforces tenantId in query extensions for supportFinancialAction', async () => {
-      const extension = createTenantEnforcerExtension();
+      const mockPrisma = {
+        $transaction: vi.fn(),
+        $executeRawUnsafe: vi.fn(),
+        $executeRaw: vi.fn(),
+      };
+      const extension = createTenantEnforcerExtension(mockPrisma);
       expect(extension.query.supportFinancialAction).toBeDefined();
 
       const mockQuery = vi.fn().mockResolvedValue([]);

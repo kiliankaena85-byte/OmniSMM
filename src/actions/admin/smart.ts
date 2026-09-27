@@ -3,7 +3,7 @@
 import { requireStaffPermission } from '@/lib/server/rbac';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-import { auditAdmin } from '@/lib/admin-audit';
+import { auditAdminAwaitable } from '@/lib/admin-audit';
 import { getClientIp } from '@/utils/ip';
 import { redis } from '@/lib/redis';
 import { z } from 'zod';
@@ -71,7 +71,7 @@ export async function updateCampaignStatus(campaignId: string, status: 'RUNNING'
     });
 
     const ipAddress = await getClientIp();
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SMART_DRIP_STATUS_CHANGE',
@@ -172,7 +172,7 @@ export async function updateServiceConfig(
     });
 
     const ipAddress = await getClientIp();
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SERVICE_SMART_CONFIG_UPDATE',
@@ -202,7 +202,7 @@ export async function toggleSmartGlobalStatus(disabled: boolean, explicitTenantI
     await redis.set(`smart:${tenantId}:disabled`, String(disabled));
 
     const ipAddress = await getClientIp();
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SMART_GLOBAL_TOGGLE',
@@ -271,7 +271,7 @@ export async function bulkUpdateServiceConfigs(
     }
 
     const ipAddress = await getClientIp();
-    auditAdmin({
+    await auditAdminAwaitable({
       adminId: admin.id,
       adminEmail: admin.email,
       action: 'SERVICE_SMART_CONFIG_BULK_UPDATE',

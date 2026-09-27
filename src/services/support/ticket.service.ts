@@ -2,9 +2,10 @@ import { db } from '@/lib/db';
 import { sendMail } from '@/lib/smtp';
 import { SettingsProvider } from '@/lib/settings';
 import { publishMessageSSE } from './sse.service';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { TicketSource, TicketStatus, MessageSender } from '@prisma/client';
+import type { MessageSender, TicketSource } from '@prisma/client';
 import { getMimeType } from '@/lib/mime';
+import { sendTicketCreatedMail, sendTicketReplyMail } from '@/lib/smtp';
+
 
 interface AddMessageOptions {
   ticketId: string;
@@ -258,6 +259,22 @@ class TicketService {
         telegramError = e instanceof Error ? e.message : String(e);
         telegramMsgId = `FAILED: ${telegramError}`;
         console.error('[TicketService] Error sending to telegram:', e);
+      }
+    }
+
+    
+    // Send Email Notification if user has email
+    if (sender === 'STAFF' && ticketToUpdate.user.email) {
+      try {
+        await sendTicketReplyMail(
+          ticketToUpdate.user.email,
+          ticketToUpdate.id,
+          ticketToUpdate.subject,
+          text,
+          ticketToUpdate.tenantId
+        );
+      } catch (e) {
+        console.error('[TicketService] Error sending email notification:', e);
       }
     }
 

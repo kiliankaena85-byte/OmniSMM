@@ -89,7 +89,7 @@ export function SyncTable({ rows, stats }: SyncTableProps) {
   // Copy services handler
   const handleCopy = (sourceTenantId: string, targetTenantId: string) => {
     const targetServiceIds = selectedRows
-      .map((r) => (r as Record<string, { serviceId?: string | null }>)[sourceTenantId]?.serviceId)
+      .map((r) => ((r as unknown) as Record<string, { serviceId?: string | null }>)[sourceTenantId]?.serviceId)
       .filter((id): id is string => Boolean(id));
 
     if (targetServiceIds.length === 0) {

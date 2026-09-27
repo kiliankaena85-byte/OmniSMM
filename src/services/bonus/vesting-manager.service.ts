@@ -31,11 +31,8 @@ export class VestingManagerService {
             data: { status: 'GRANTED' },
           });
 
-          // Decrement quarantine and credit main balance
-          await tx.user.update({
-            where: { id: log.userId },
-            data: { quarantineBalance: { decrement: log.amountCents } },
-          });
+          // Decrement quarantine using Ledger-First WalletOps
+          await WalletOps.quarantineRelease(tx, log.userId, log.amountCents, { tenantId: log.tenantId || 'smmplan' });
 
           await WalletOps.credit(tx, log.userId, log.amountCents, `Разблокировка бонуса: ${log.reason || log.bonusType}`, {
             idempotencyKey: `vesting-release-${log.id}`,
@@ -66,10 +63,7 @@ export class VestingManagerService {
         data: { status: 'GRANTED', unlockAt: new Date() },
       });
 
-      await tx.user.update({
-        where: { id: log.userId },
-        data: { quarantineBalance: { decrement: log.amountCents } },
-      });
+      await WalletOps.quarantineRelease(tx, log.userId, log.amountCents, { tenantId: log.tenantId || 'smmplan' });
 
       await WalletOps.credit(tx, log.userId, log.amountCents, `Досрочное одобрение бонуса админом: ${log.bonusType}`, {
         idempotencyKey: `vesting-early-${log.id}`,
@@ -97,10 +91,7 @@ export class VestingManagerService {
       });
 
       // Clear quarantine balance
-      await tx.user.update({
-        where: { id: log.userId },
-        data: { quarantineBalance: { decrement: log.amountCents } },
-      });
+      await WalletOps.quarantineRelease(tx, log.userId, log.amountCents, { tenantId: log.tenantId || 'smmplan' });
 
       await tx.adminAuditLog.create({
         data: {

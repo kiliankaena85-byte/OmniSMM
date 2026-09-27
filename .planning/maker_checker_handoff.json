@@ -1,13 +1,187 @@
 {
-  "timestamp": "2026-09-24T20:53:41.469Z",
+  "timestamp": "2026-09-27T05:14:55.254Z",
   "branch": "main",
-  "modifiedFiles": [],
-  "findings": [],
+  "modifiedFiles": [
+    "artifacts/architecture-topology.json",
+    "src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts",
+    "src/__tests__/unit/support-financial-action-tenant-scope.test.ts",
+    "src/actions/admin/routing.actions.ts",
+    "src/actions/order/catalog.ts",
+    "src/app/admin/catalog/sync/sync-table.tsx",
+    "src/components/ab-test/flux-steps/FluxStepLink.tsx",
+    "src/components/landing/LandingCatalogContent.tsx",
+    "src/components/landing/order-engine/wizard-steps/MobileStep3Service.tsx",
+    "src/hooks/order-engine/useOrderCatalogSync.ts",
+    "src/lib/db.ts",
+    "src/lib/prisma-tenant-enforcer.ts",
+    "src/lib/smtp.ts",
+    "src/services/core/order.service.ts",
+    "src/services/financial/payment-gateway.service.ts",
+    "src/services/financial/payment.service.ts",
+    "src/services/orders/checkout-payment.service.ts",
+    "src/services/provider/smart-recovery.engine.ts",
+    "src/services/support/ticket.service.ts",
+    "scripts/test-action.ts"
+  ],
+  "findings": [
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 20,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 22,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 42,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 297,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 381,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/actions/admin/routing.actions.ts",
+      "line": 561,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "} catch (valErr: any) {"
+    },
+    {
+      "vector": "Vector 5: Architecture & NFR",
+      "severity": "MAJOR",
+      "file": "src/app/admin/catalog/sync/sync-table.tsx",
+      "line": 379,
+      "message": "Компонент превышает лимит в 200 строк (всего 379 строк). Рекомендуется декомпозиция.",
+      "snippet": "Total lines: 379"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MINOR",
+      "file": "src/components/ab-test/flux-steps/FluxStepLink.tsx",
+      "line": 29,
+      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
+      "snippet": "<span className=\"inline-block bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-2xl sm:rounded-3xl -rotate-3 shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 z-10 relative\">"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 10,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 11,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "findFirstDelegate?: (args: any) => Promise<any>;"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 32,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 33,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "export function createTenantEnforcerExtension(prismaClient: any) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 34,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 39,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/lib/prisma-tenant-enforcer.ts",
+      "line": 40,
+      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
+      "snippet": "async $allOperations({ args, query }: { args: any; query: (args: any) => any }) {"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/services/core/order.service.ts",
+      "line": 4,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/services/core/order.service.ts",
+      "line": 603,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/services/financial/payment-gateway.service.ts",
+      "line": 5,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    },
+    {
+      "vector": "Vector 4: Code Hygiene",
+      "severity": "MAJOR",
+      "file": "src/services/financial/payment.service.ts",
+      "line": 46,
+      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
+      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
+    }
+  ],
   "summary": {
     "blockers": 0,
-    "majors": 0,
-    "minors": 0,
-    "passed": true
+    "majors": 18,
+    "minors": 1,
+    "passed": false
   },
-  "gitDiffSnippet": ""
+  "gitDiffSnippet": "diff --git a/.planning/maker_checker_handoff.json b/.planning/maker_checker_handoff.json\nindex d06addb..f4f8283 100644\n--- a/.planning/maker_checker_handoff.json\n+++ b/.planning/maker_checker_handoff.json\n@@ -1,13 +1,157 @@\n {\n-  \"timestamp\": \"2026-09-24T20:53:41.469Z\",\n+  \"timestamp\": \"2026-09-27T05:10:38.959Z\",\n   \"branch\": \"main\",\n-  \"modifiedFiles\": [],\n-  \"findings\": [],\n+  \"modifiedFiles\": [\n+    \"artifacts/architecture-topology.json\",\n+    \"src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts\",\n+    \"src/__tests__/unit/support-financial-action-tenant-scope.test.ts\",\n+    \"src/actions/order/catalog.ts\",\n+    \"src/app/admin/catalog/sync/sync-table.tsx\",\n+    \"src/components/ab-test/flux-steps/FluxStepLink.tsx\",\n+    \"src/components/landing/LandingCatalogContent.tsx\",\n+    \"src/components/landing/order-engine/wizard-steps/MobileStep3Service.tsx\",\n+    \"src/hooks/order-engine/useOrderCatalogSync.ts\",\n+    \"src/lib/db.ts\",\n+    \"src/lib/prisma-tenant-enforcer.ts\",\n+    \"src/lib/smtp.ts\",\n+    \"src/services/support/ticket.service.ts\",\n+    \"scripts/test-action.ts\"\n+  ],\n+  \"findings\": [\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 4,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 7,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 9,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 633,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 5: Architecture & NFR\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/app/admin/catalog/sync/sync-table.tsx\",\n+      \"line\": 379,\n+      \"message\": \"Компонент превышает лимит в 200 строк (всего 379 строк). Рекомендуется декомпозиция.\",\n+      \"snippet\": \"Total lines: 379\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MINOR\",\n+      \"file\": \"src/components/ab-test/flux-steps/FluxStepLink.tsx\",\n+      \"line\": 29,\n+      \"message\": \"Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-backgr\n... [diff truncated]"
 }

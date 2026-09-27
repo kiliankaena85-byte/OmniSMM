@@ -42,8 +42,8 @@ export async function GET(req: NextRequest) {
       type: 'RECONCILE_PRICES',
     });
 
-    const { auditAdmin } = await import('@/lib/admin-audit');
-    auditAdmin({
+    const { auditAdminAwaitable } = await import('@/lib/admin-audit');
+    await auditAdminAwaitable({
       adminId: 'system-cron',
       adminEmail: 'cron@smmplan.pro',
       action: 'CRON_RECONCILE_PRICES_QUEUED',

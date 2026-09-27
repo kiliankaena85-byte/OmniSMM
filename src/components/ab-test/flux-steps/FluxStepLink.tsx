@@ -24,13 +24,12 @@ export function FluxStepLink({
   return (
     <div className="w-full flex flex-col items-center">
       <div className="text-center mb-8 max-w-2xl">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground mb-4 leading-tight sm:leading-tight md:leading-tight lg:leading-tight">
-          Что будем <br className="hidden sm:inline" />
-          <span className="inline-block bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-2xl sm:rounded-3xl -rotate-[15deg] shadow-[0_8px_30px_rgb(0,0,0,0.4)] mx-2 border border-white/10 z-10 relative">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-foreground mb-6 leading-tight flex flex-wrap justify-center items-center gap-x-3 gap-y-4">
+          <span>Или выберите платформу из каталога</span>
+          <span className="inline-block bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-2xl sm:rounded-3xl -rotate-3 shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 z-10 relative">
             продвигать
           </span>
-          <br className="hidden sm:inline" />
-          сегодня?
+          <span>сегодня?</span>
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
           Вставьте ссылку на ваш профиль, канал или публикацию для автоматического подбора услуг

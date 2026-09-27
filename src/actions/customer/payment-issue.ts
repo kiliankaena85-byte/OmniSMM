@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { paymentService } from '@/services/financial/payment.service';
 import { SettingsManager } from '@/lib/settings';
+import { ExactMath } from '@/lib/financial/exact-math';
 import { safeFetch } from '@/lib/security/ssrf-guard';
 import { logger } from '@/lib/logger';
 import { verifySession } from '@/lib/session';
@@ -74,12 +75,13 @@ export async function reportPaymentIssueAction(paymentId: string): Promise<Repor
         if (res.ok) {
           const data = await res.json() as { status: string; amount?: { value: string } };
           if (data.status === 'succeeded') {
-            const realAmount = data.amount?.value ? Math.round(parseFloat(data.amount.value) * 100) : Number(payment.amount);
+            const realAmount = data.amount?.value ? ExactMath.rublesToKopecks(data.amount.value) : payment.amount;
+            const isTestMode = await SettingsManager.isTestMode(payment.tenantId || 'smmplan');
             await paymentService.confirmPayment(
               payment.gatewayId,
               realAmount,
               payment.userId,
-              false,
+              isTestMode,
               'yookassa',
               payment.id
             );

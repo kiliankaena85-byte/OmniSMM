@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifySession } from '@/lib/session';
 import { YooKassaStatusChecker } from '@/services/financial/yookassa-status-checker';
 import { paymentService } from '@/services/financial/payment.service';
+import { ExactMath } from '@/lib/financial/exact-math';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ component: 'PaymentStatusAPI' });
@@ -80,14 +81,15 @@ export async function GET(
             if (liveStatus && liveStatus.status === 'succeeded') {
               log.info(`[ActivePull] YooKassa confirmed payment ${paymentId} as succeeded. Activating...`);
 
-              const amountCents = Math.round(parseFloat(liveStatus.amount.value) * 100);
+              const amountCents = ExactMath.rublesToKopecks(liveStatus.amount.value);
+              const isTestMode = await SettingsManager.isTestMode(payment.tenantId || 'smmplan');
 
               // Fire confirmPayment (idempotent — will no-op if already SUCCEEDED)
               await paymentService.confirmPayment(
                 payment.gatewayId,
-                BigInt(amountCents),
+                amountCents,
                 payment.userId,
-                false,
+                isTestMode,
                 'yookassa',
                 payment.id
               );

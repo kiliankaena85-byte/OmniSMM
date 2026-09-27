@@ -6,6 +6,7 @@ import { runSerializableTransaction } from '@/lib/transactions';
 import { RateLimitService } from '@/services/core/rate-limit.service';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
 import { getClientIp } from '@/utils/ip';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -116,21 +117,24 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Zero-Trust Verification: Find order and fetch genuine status from Provider API
-    const order = await db.order.findFirst({
-      where: {
-        status: { in: ['IN_PROGRESS', 'PENDING_CHECK'] },
-        OR: [
-          { externalId },
-          { dripExternalIds: { has: externalId } }
-        ]
-      },
-      include: { service: true, user: { select: { email: true } } }
+    const order = await runWithTenantBypass('Inbound vexboost webhook order lookup', async () => {
+      return db.order.findFirst({
+        where: {
+          status: { in: ['IN_PROGRESS', 'PENDING_CHECK'] },
+          OR: [
+            { externalId },
+            { dripExternalIds: { has: externalId } }
+          ]
+        },
+        include: { service: true, user: { select: { email: true } } }
+      });
     });
 
     if (!order) {
       return NextResponse.json({ message: 'Order not found or not active' }, { status: 200 });
     }
 
+    return await runWithTenant(order.tenantId, async () => {
     if (!order.providerId) {
       return NextResponse.json({ error: 'Order has no assigned provider' }, { status: 400 });
     }
@@ -200,6 +204,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, verifiedStatus, orderId: order.id });
+    });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('[VexBoost Webhook] Error:', errorMsg);

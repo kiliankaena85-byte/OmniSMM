@@ -91,39 +91,47 @@ export async function executeHotSwap(input: z.infer<typeof swapSchema>) {
 
     const { serviceId, newRouteId, reason } = parsed.data;
 
+    const service = await db.service.findUnique({
+      where: { id: serviceId }
+    });
+    if (!service) throw new Error("Услуга не найдена");
+
+    const targetRoute = await db.serviceRoute.findUnique({
+      where: { id: newRouteId },
+      include: { provider: true }
+    });
+    if (!targetRoute) throw new Error("Маршрут не найден");
+    if (!targetRoute.isActive) throw new Error("Целевой маршрут отключен");
+    if (!targetRoute.provider) throw new Error("У целевого маршрута отсутствует конфигурация провайдера");
+
+    const oldProviderId = service.providerId;
+
+    // 1. LIVE-check OUTSIDE transaction: Fetch fresh services from Provider API to prevent arbitrage and verify availability
+    const providerInstance = await providerService.getProviderInstance(targetRoute.provider);
+    const liveServices = await providerService.getServicesWithCache(targetRoute.provider, providerInstance, false);
+    const liveSvc = liveServices.find(s => s.service.toString() === targetRoute.providerServiceId.toString());
+
+    if (!liveSvc) {
+      throw new Error(`Целевой провайдер не предоставляет услугу с внешним ID ${targetRoute.providerServiceId}`);
+    }
+
+    const rawRate = parseFloat(liveSvc.rate);
+    if (isNaN(rawRate) || rawRate <= 0) {
+      throw new Error(`Целевой провайдер вернул невалидный тариф ${liveSvc.rate} для услуги ${targetRoute.providerServiceId}`);
+    }
+
+    const newRate = rawRate;
+    const usdToRub = await SettingsProvider.getExchangeRateUSD();
+    const newProviderCurrency = targetRoute.provider?.balanceCurrency || 'USD';
+    const exchangeRate = newProviderCurrency === 'RUB' ? 1.0 : usdToRub;
+    const SAFETY_FLOOR_MARKUP = 1.5; // fallback
+    const newPricePer1000Cents = Math.round(
+      applyBeautifulRounding(newRate * Math.max(service.markup, SAFETY_FLOOR_MARKUP) * exchangeRate) * 100
+    );
+
+    // 2. Pure database transaction strictly for atomic state mutation
     await db.$transaction(async (tx) => {
-      const service = await tx.service.findUnique({
-        where: { id: serviceId }
-      });
-      if (!service) throw new Error("Услуга не найдена");
-
-      const targetRoute = await tx.serviceRoute.findUnique({
-        where: { id: newRouteId },
-        include: { provider: true }
-      });
-      if (!targetRoute) throw new Error("Маршрут не найден");
-      if (!targetRoute.isActive) throw new Error("Целевой маршрут отключен");
-
-      const oldProviderId = service.providerId;
-
-      // 1. LIVE-check: Fetch fresh services from Provider API to prevent arbitrage and verify availability
-      if (!targetRoute.provider) throw new Error("У целевого маршрута отсутствует конфигурация провайдера");
-      const providerInstance = await providerService.getProviderInstance(targetRoute.provider);
-      const liveServices = await providerService.getServicesWithCache(targetRoute.provider, providerInstance, false);
-      const liveSvc = liveServices.find(s => s.service.toString() === targetRoute.providerServiceId.toString());
-
-      if (!liveSvc) {
-        throw new Error(`Целевой провайдер не предоставляет услугу с внешним ID ${targetRoute.providerServiceId}`);
-      }
-
-      const rawRate = parseFloat(liveSvc.rate);
-      if (isNaN(rawRate) || rawRate <= 0) {
-        throw new Error(`Целевой провайдер вернул невалидный тариф ${liveSvc.rate} для услуги ${targetRoute.providerServiceId}`);
-      }
-
-      const newRate = rawRate;
-
-      // 2. Fetch shadow catalog record in DB to keep it updated as well
+      // Fetch shadow catalog record in DB to keep it updated as well
       const shadowSvc = await tx.shadowService.findUnique({
         where: {
           providerId_externalId: {
@@ -138,14 +146,6 @@ export async function executeHotSwap(input: z.infer<typeof swapSchema>) {
           data: { rate: newRate }
         });
       }
-
-      const usdToRub = await SettingsProvider.getExchangeRateUSD();
-      const newProviderCurrency = targetRoute.provider?.balanceCurrency || 'USD';
-      const exchangeRate = newProviderCurrency === 'RUB' ? 1.0 : usdToRub;
-      const SAFETY_FLOOR_MARKUP = 1.5; // fallback
-      const newPricePer1000Cents = Math.round(
-        applyBeautifulRounding(newRate * Math.max(service.markup, SAFETY_FLOOR_MARKUP) * exchangeRate) * 100
-      );
 
       await tx.serviceRoute.updateMany({
         where: { serviceId, isPrimary: true },
