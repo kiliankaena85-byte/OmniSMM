@@ -15637,6 +15637,7 @@ function createTenantEnforcerExtension(prismaClient) {
   const queryExtensions = {};
   for (const model of TENANT_SCOPED_MODELS) {
     queryExtensions[model] = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async $allOperations({ args, query }) {
         if (isTenantBypassActive()) {
           const [, , result2] = await prismaClient.$transaction([
@@ -15646,7 +15647,15 @@ function createTenantEnforcerExtension(prismaClient) {
           ]);
           return result2;
         }
-        const tenantId = await resolveActiveTenantId();
+        let tenantId = await resolveActiveTenantId();
+        if (!tenantId && args?.where?.tenantId) {
+          if (typeof args.where.tenantId === "string" && args.where.tenantId !== "all") {
+            tenantId = args.where.tenantId;
+          } else if (Array.isArray(args.where.tenantId?.in)) {
+            const found = args.where.tenantId.in.find((t) => t && t !== "all");
+            if (found) tenantId = found;
+          }
+        }
         if (tenantId) {
           const [, , result2] = await prismaClient.$transaction([
             prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
@@ -15655,8 +15664,9 @@ function createTenantEnforcerExtension(prismaClient) {
           ]);
           return result2;
         }
-        const [, result] = await prismaClient.$transaction([
+        const [, , result] = await prismaClient.$transaction([
           prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
+          prismaClient.$executeRaw`SELECT set_config('app.current_tenant', '', TRUE)`,
           query(args)
         ]);
         return result;
@@ -15683,12 +15693,9 @@ var init_prisma_tenant_enforcer = __esm({
       "ticketFeedback",
       "ledgerEntry",
       "supportFinancialAction",
-      "ticketMessage",
       "authToken",
-      "session",
       "shadowService",
-      "storefrontKey",
-      "providerOutbox"
+      "storefrontKey"
     ];
   }
 });
@@ -99808,7 +99815,7 @@ async function verifyDirectSmtpConnection(host = "smtp.yandex.ru", port = 465, t
       }
     } catch (err) {
       clearTimeout(timer);
-      onFinish(false, err?.message || String(err));
+      onFinish(false, err instanceof Error ? err.message : String(err));
     }
   });
 }
@@ -131852,7 +131859,7 @@ var init_order_service = __esm({
               }
             }
             const serviceTenantId = service.tenantId;
-            if (serviceTenantId !== userTenantId) {
+            if (serviceTenantId !== userTenantId && serviceTenantId !== "all") {
               try {
                 await tx.securityEvent.create({
                   data: {
@@ -131943,7 +131950,7 @@ var init_order_service = __esm({
             return createdOrder;
           });
           try {
-            await ordersQueue.add("order-dispatch", { orderId: newOrder.id, tenantId: newOrder.tenantId }, { jobId: `dispatch-${newOrder.id}`, delay: 3 * 60 * 1e3 });
+            await ordersQueue.add("order-dispatch", { orderId: newOrder.id, tenantId: newOrder.tenantId }, { jobId: `dispatch-${newOrder.id}-${Date.now()}`, delay: 3 * 60 * 1e3 });
           } catch (queueError) {
             console.error("[OrderService] Non-fatal queue dispatch error:", queueError instanceof Error ? queueError.message : String(queueError));
           }
@@ -134027,7 +134034,8 @@ async function checkVatThreshold(tenantId = "smmplan") {
     where: {
       tenantId: cleanTenant,
       status: "SUCCEEDED",
-      createdAt: { gte: startOfYear }
+      createdAt: { gte: startOfYear },
+      gateway: { notIn: ["referral_transfer", "test"] }
     }
   });
   const grossKopecks = BigInt(grossResult._sum?.amount || 0);
@@ -134479,7 +134487,7 @@ var init_payment_gateway_service = __esm({
           return items;
         }, { isolationLevel: "Serializable", timeout: 15e3 });
         for (const item of updatedOrders) {
-          await ordersQueue2.add("order-dispatch", { orderId: item.id, tenantId: item.tenantId || params.tenantId || "smmplan" }, { jobId: `dispatch-${item.id}`, delay: 3 * 60 * 1e3 });
+          await ordersQueue2.add("order-dispatch", { orderId: item.id, tenantId: item.tenantId || params.tenantId || "smmplan" }, { jobId: `dispatch-${item.id}-${Date.now()}`, delay: 3 * 60 * 1e3 });
         }
         return {
           paymentUrl: params.successUrl,
@@ -146072,6 +146080,21 @@ function safeRevalidatePath(path5, type) {
     console.warn(`[Cache] revalidatePath failed for ${path5}:`, msg);
   }
 }
+function parseYooKassaAmountToKopecks(val) {
+  if (typeof val !== "string") {
+    throw new Error("INVALID_GATEWAY_AMOUNT_FORMAT");
+  }
+  const normalized2 = val.trim();
+  const decimalMatch = /^(\d+)\.(\d{2})$/.exec(normalized2);
+  if (decimalMatch) {
+    return BigInt(decimalMatch[1]) * 100n + BigInt(decimalMatch[2]);
+  }
+  const integerMatch = /^(\d+)$/.exec(normalized2);
+  if (integerMatch) {
+    return BigInt(integerMatch[1]) * 100n;
+  }
+  throw new Error(`INVALID_GATEWAY_AMOUNT_FORMAT: ${normalized2}`);
+}
 var import_cache2, PaymentService, paymentService;
 var init_payment_service = __esm({
   "src/services/financial/payment.service.ts"() {
@@ -146123,9 +146146,9 @@ var init_payment_service = __esm({
                     if (data.status !== "succeeded") {
                       throw new Error(`PAYMENT_NOT_SUCCEEDED: Real gateway status is ${data.status}`);
                     }
-                    const realAmount = Math.round(parseFloat(data.amount.value) * 100);
-                    if (realAmount < amount) {
-                      throw new Error(`PAYMENT_AMOUNT_MISMATCH: Webhook amount ${amount} exceeds Real amount ${realAmount}`);
+                    const realAmountKopecks = parseYooKassaAmountToKopecks(data.amount?.value);
+                    if (realAmountKopecks < BigInt(amount)) {
+                      throw new Error(`PAYMENT_AMOUNT_MISMATCH: Webhook amount ${amount} exceeds Real amount ${realAmountKopecks.toString()}`);
                     }
                     console.info(`[Payment] Safely verified YooKassa payment ${gatewayId}`);
                   } else {
@@ -146329,7 +146352,7 @@ var init_payment_service = __esm({
           if (activatedOrders.length > 0) {
             const { ordersQueue: ordersQueue2 } = await Promise.resolve().then(() => (init_queue_manager(), queue_manager_exports));
             for (const activated of activatedOrders) {
-              await ordersQueue2.add("order-dispatch", { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1e3 });
+              await ordersQueue2.add("order-dispatch", { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}-${Date.now()}`, delay: 3 * 60 * 1e3 });
               if (activated.userEmail && activated.serviceName) {
                 void sendOrderPaidMail(
                   activated.userEmail,
@@ -146535,7 +146558,7 @@ var init_payment_service = __esm({
               await WalletOps.credit(
                 tx,
                 payment.userId,
-                Number(payment.amount),
+                payment.amount,
                 `\u041F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0431\u0430\u043B\u0430\u043D\u0441\u0430 \u0447\u0435\u0440\u0435\u0437 yookassa`,
                 { idempotencyKey: `deposit-${paymentId}`, tenantId: payment.tenantId }
               );
@@ -146545,7 +146568,7 @@ var init_payment_service = __esm({
           if (activatedOrders.length > 0) {
             const { ordersQueue: ordersQueue2 } = await Promise.resolve().then(() => (init_queue_manager(), queue_manager_exports));
             for (const activated of activatedOrders) {
-              await ordersQueue2.add("order-dispatch", { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}`, delay: 3 * 60 * 1e3 });
+              await ordersQueue2.add("order-dispatch", { orderId: activated.id, tenantId: activated.tenantId }, { jobId: `dispatch-${activated.id}-${Date.now()}`, delay: 3 * 60 * 1e3 });
               if (activated.userEmail && activated.serviceName) {
                 void sendOrderPaidMail(
                   activated.userEmail,
