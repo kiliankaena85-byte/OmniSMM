@@ -1,3 +1,25 @@
+- [x] ⚡ [OMNISMM-DUAL-AGENT-LAYA-ENGINE-DEPLOYMENT-2026-09-29] Развертывание и интеграция Dual Agent Self-Improving Loop с Laya Decision Engine в Docker (CPU / No NPU) (100% COMPLETE & LIVE ON PORT 8150):
+  * 🐳 **Контейнеризация Laya Decision Engine (CPU / No NPU):**
+    - Создана легковесная микросервисная архитектура `docker/laya/` (Node.js 22 Alpine, порт 8150, потребление RAM < 300 МБ, лимит 384M);
+    - Контейнер `laya_decision_engine` успешно собран и запущен (`docker compose -f docker-compose.laya.yml up -d --build`);
+    - Статус: `healthy`, задержка System 1 решений: 15–47 мс при пропускной способности > 100 rps;
+    - Реализованы 4 инструмента: `laya_decide` (многозадачный допуск), `laya_classify` (классификация дизайн-ДНК), `laya_score` (непрерывные метрики), `laya_check` (тернарный допуск);
+    - Встроен детектор 5 AI-клише: фиолетовый неон на темном фоне, эмодзи в бенто-сетках, пульсирующие пилюли, blob-mesh и градиентный текст.
+  * 🔌 **Клиент и MCP-интерфейс:**
+    - Создан клиент `scripts/laya/laya-client.ts` с автоматическим прозрачным fallback на локальный in-process движок;
+    - Создан stdio MCP-сервер `scripts/laya/laya-mcp-stdio.ts`;
+    - Сервер зарегистрирован в `.mcp/mcp-servers.json` (`http://127.0.0.1:8150`).
+  * 🎭 **Dual Agent протокол (Maker vs Checker) с эпистемической изоляцией:**
+    - `scripts/orchestrator/maker-checker-runner.ts`:
+    - Maker: агент генерации с правами записи и внутренним авто-хилером верстки на базе Laya;
+    - Checker: независимый ревизор СТРОГО READ-ONLY (`canWrite: false`) с чистым контекстом, оценивающий 5-векторную матрицу вето (Spec, Data Integrity/TOCTOU, Security, Code Hygiene, Laya UI/UX).
+  * 🧠 **Пайплайн непрерывного самосовершенствования (Self-Improving Loop):**
+    - Создана база знаний `docs/KNOWN_ANTI_PATTERNS.md`;
+    - `scripts/self-improving-loop.ts`: автоматически формализует дефекты при вето Ревизора и инжектирует их в системный контекст Создателя (No Repeat Regressions).
+  * 🧪 **Верификация & Тесты (100% PASS):**
+    - Сквозной сьют `src/__tests__/unit/laya-dual-agent.test.ts` — **4/4 PASS (100%)**;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов (PASS)**.
+
 - [x] 🧪 [OMNISMM-E2E-LIFECYCLE-PRODUCTION-VERIFICATION-2026-09-29] Сквозное E2E-тестирование полного жизненного цикла пользователя на живом боевом контуре (:3000) через Playwright Chromium (100% PASS — ALL 6 SCENARIOS VERIFIED):
   * 🌐 **Тестовый контур & Изолированное окружение:**
     - Протестирован живой боевой сервис `http://127.0.0.1:3000` (`smmplan_web`, PostgreSQL 15, Redis 7);

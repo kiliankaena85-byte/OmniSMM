@@ -40,6 +40,13 @@
       "enabled": true,
       "tier": "LEVEL_3_DEVOPS",
       "description": "Контроль состояния рабочего дерева и атомарности коммитов"
+    },
+    "laya-decision-engine": {
+      "type": "http",
+      "url": "http://127.0.0.1:8150",
+      "enabled": true,
+      "tier": "LEVEL_1_TYPES",
+      "description": "Laya Decision Engine — сверхбыстрый System 1 мультизадачный гейт (Density, WCAG, Touch, Zero-Slop)"
     }
   }
 }

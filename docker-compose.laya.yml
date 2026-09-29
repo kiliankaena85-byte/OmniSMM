@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  laya_engine:
+    build:
+      context: ./docker/laya
+      dockerfile: Dockerfile
+    container_name: laya_decision_engine
+    restart: unless-stopped
+    ports:
+      - "8150:8150"
+    environment:
+      - PORT=8150
+      - NODE_ENV=production
+    # Жесткие лимиты под стандартный домашний/офисный ПК без NPU
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 384M
+        reservations:
+          cpus: '0.2'
+          memory: 128M

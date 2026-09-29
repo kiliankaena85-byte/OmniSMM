@@ -173,6 +173,14 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
 
+ - **ADR-2026-51: Laya Decision Engine & Dual Agent Self-Improving Loop (System 1 + System 2 CPU Architecture):**
+  - *Контекст:* Дороговизна и задержки авторегрессионных LLM на микро-решениях (15 секунд на валидацию тач-таргета или контраста), авторская предвзятость (Confirmation Bias) моно-агентов и деградация интерфейсов в шаблонный AI-slop.
+  - *Решение:*
+    1. **System 1 (Laya Decision Engine в Docker на чистом CPU):** Микросервис на порту 8150 (RAM < 300 МБ, лимит 384M), время отклика 15–47 мс, пропускная способность > 100 rps. Детекция 5 AI-клише (purple neon, bento emoji, pulse pill, blob mesh, gradient text), строгая оценка WCAG AA, тач-таргетов ($\ge 44$px) и информационной плотности.
+    2. **Dual Agent с эпистемической изоляцией (Maker vs Checker):** Создатель обладает правами записи и авто-хилером верстки; Ревизор СТРОГО READ-ONLY (`canWrite: false`) с чистым контекстом, оценивающий 5-векторную матрицу вето (Spec, Data Integrity, Security, Hygiene, Laya UI/UX).
+    3. **Непрерывное самообучение (Self-Improving Loop):** База знаний `docs/KNOWN_ANTI_PATTERNS.md` автоматически пополняется при обнаружении дефектов, исключая повторные регрессии (No Repeat Regressions).
+    4. **MCP интеграция:** Поддержка HTTP и Stdio интерфейсов JSON-RPC 2.0 (`scripts/laya/laya-mcp-stdio.ts`), регистрация в `.mcp/mcp-servers.json`.
+
  - **ADR-2026-50: Hardened DB & Memory SRE Architecture (Pre-Mortem Failure Immunity):**
   - *Контекст:* Состязательный Pre-Mortem аудит Ревизора выявил риски деградации базы данных и хранилищ через 6–12 месяцев эксплуатации (табличный bloat из-за ложного fillfactor, $O(N)$ заморозки Redis от `KEYS`, V8 heap exhaustion из-за unbounded L1 cache, OOM воркеров из-за Rust Prisma Engine).
   - *Решение:*
