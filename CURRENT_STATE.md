@@ -1,3 +1,24 @@
+- [x] 🏆 [OMNISMM-PRODUCTION-ROLLOUT-2026-09-29] Интеграция входящих коммитов коллеги, проверка и накат миграций БД и релиз в продакшн по Blue-Green протоколу BGS-2026 (100% COMPLETE & LIVE IN PROD):
+  * 🔄 **Интеграция Git и ревизия изменений:**
+    - Выкачаны 9 коммитов (`465acea11`..`03b1a3ac7`, 344+ файлов);
+    - Устранена критическая брешь мультиарендности в `src/actions/customer/payment-issue.ts` (добавлен `tenantId: payment.tenantId` в запрос тикета);
+    - Устранены 22 неавторизованных ключевых слова `any` в новых тестах для строгого соблюдения `scripts/lint-zero-any.ts`;
+    - Изменения зафиксированы и запушены в `origin/main` (рабочее дерево чисто).
+  * 🗄️ **Аудит базы данных и накат миграций:**
+    - Контейнер `smmplan_lite_db` (PostgreSQL 15, порт 5435) проверен — активен и полностью исправен (88 таблиц);
+    - Успешно применена миграция `20260923180000_banking_grade_db_hardening` через `npx prisma migrate deploy` (все 32/32 миграций применены, дрифт отсутствует);
+    - В PostgreSQL создана роль `app_user` с необходимыми грантами для интерактивных транзакций RLS (`SET LOCAL ROLE app_user`).
+  * 🛡️ **Изолированный Stage-аудит (Blue-Green BGS-2026, Port 3005):**
+    - Выполнена сборка автономного standalone-бандла Next.js 16.3.6, воркера и бота через `scripts/lean-docker-build.ps1`;
+    - Собран и запущен изолированный кандидат `smmplan_stage` на порту `:3005`;
+    - Проведен автоматический сквозной визуальный аудит в Playwright Chromium для ролей `USER`, `SUPPORT`, `OWNER` по 7 ключевым экранам: **100% PASS** (0px horizontal overflow, 0 ошибок в консоли). Отчет: `.planning/STAGE_VISUAL_AUDIT_REPORT.md`.
+  * 🚀 **Zero-Downtime переключение в боевой продакшн (Port 3000):**
+    - Создан снапшот мгновенного отката `smmplan_backup:latest`;
+    - Образы `smm-web`, `smm-worker`, `smm-bot` повышены до `:latest`;
+    - Сервисы перезапущены в Docker-проекте `smm` (`docker compose -p smm up -d --no-build web worker bot`);
+    - Контейнер `smmplan_stage` безопасно остановлен и удален;
+    - Все контейнеры в статусе `healthy`, endpoint `http://127.0.0.1:3000/api/health` возвращает `{"status":"healthy"}`, Telegram-бот `@SMMplansapport_bot` и BullMQ SyncProcessor функционируют штатно.
+
 - [x] 🏆 [OMNISMM-DB-MEMORY-PREMORTEM-OPTIMIZATION-AUDIT-2026] Сквозная проверка оптимизации оперативной памяти и базы данных через Dual Agent Improving Loop (Maker-Checker) и состязательный Pre-Mortem анализ (100% COMPLETE & VERIFIED):
   * 🛡️ **Состязательный Pre-Mortem аудит Ревизора (Maker vs Checker):**
     - Независимый ревизор (`qa_reviewer`) в изолированном контексте выявил 5 скрытых архитектурных ловушек / «мин замедленного действия»: блокирующий вызов `redis.keys` ($O(N)$ freeze Event Loop при 100k+ ключей), неограниченный L1 `Map` in-memory кэш (риск V8 Heap Exhaustion OOM), OOM-kill воркера `smmplan_lite_worker` из-за недостаточного запаса под нативный Rust Query Engine Prisma, неэффективный `fillfactor = 85` на таблице `Order` (вызывающий 17.6% паразитного bloat без HOT) и дефолтные буферы PostgreSQL/Redis в проде.
