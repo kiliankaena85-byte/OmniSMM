@@ -6,13 +6,21 @@ services:
     ports:
       - "3005:3000"
     networks:
-      - omnismm_frontend
-      - omnismm_backend
+      - smm_default
     env_file:
-      - .env.docker
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=512
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=15
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
+      - CLASH_PROXY_URL=http://clash:7890
+      - RUN_MIGRATIONS=false
+      - SKIP_BOT=true
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - ALLOWED_ORIGINS=http://localhost:3005,http://127.0.0.1:3005
 
 networks:
-  omnismm_frontend:
-    external: true
-  omnismm_backend:
+  smm_default:
     external: true
