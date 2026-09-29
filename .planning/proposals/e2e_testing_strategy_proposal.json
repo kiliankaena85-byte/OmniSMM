@@ -1,0 +1,46 @@
+{
+  "actionId": "ACT-E2E-TESTING-STRATEGY-2026",
+  "intent": "Выбрать безопасную стратегию E2E тестирования перед финальным релизом",
+  "category": "OPTIMIZATION",
+  "context": {
+    "targetEnvironment": "STAGE",
+    "userIntentExplicit": true,
+    "hasBackup": true,
+    "activeGitDiffLines": 0
+  },
+  "options": [
+    {
+      "id": "OPT-SKIP-E2E",
+      "title": "Ограничиться пройденными Unit + Mutation (100%) + Smoke тестами",
+      "description": "Не запускать Playwright E2E тесты. Опираться на уже доказанную математическую надежность ExactMath, DDE-2026 и Smoke-прогон Omni-Sentinel.",
+      "riskLevel": "MEDIUM",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 0,
+      "touchesFinancialLedger": false,
+      "touchesAuthOrSecrets": false
+    },
+    {
+      "id": "OPT-TIER1-CRITICAL-E2E",
+      "title": "TOC Lean E2E: Запуск Tier-1 сценариев критического пути (Заказы, Биллинг, RBAC)",
+      "description": "Сфокусированный запуск ключевых тестов e2e/01-customer-order-flow.spec.ts, 03-billing-and-payments.spec.ts, 06-rbac-and-security.spec.ts с прямой изоляцией сессий без перегрузки физической памяти хоста.",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 3,
+      "touchesFinancialLedger": false,
+      "touchesAuthOrSecrets": false
+    },
+    {
+      "id": "OPT-FULL-29-E2E-BRUTE-FORCE",
+      "title": "Тотальный запуск всех 29 E2E сьютов",
+      "description": "Попытка прогнать все 29 файлов e2e подряд. Высокий риск сбоя по памяти V8/WSL2 на машине с ~750 МБ свободной RAM.",
+      "riskLevel": "HIGH",
+      "isDestructive": false,
+      "hasRollbackPlan": false,
+      "estimatedImpactFiles": 29,
+      "touchesFinancialLedger": true,
+      "touchesAuthOrSecrets": true
+    }
+  ]
+}

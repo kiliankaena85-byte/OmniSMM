@@ -70,11 +70,14 @@ test.describe.serial('BLOCK 6: RBAC, Security, Audit Trail & Vault Encryption E2
     const encrypted = VaultService.encrypt(plainApiKey);
     expect(encrypted).not.toBe(plainApiKey);
 
-    // 2. Verify encrypted format: iv:authTag:ciphertext (3 parts)
+    // 2. Verify encrypted format: v{version}:iv:authTag:ciphertext (versioned) or iv:authTag:ciphertext (legacy)
     const parts = encrypted.split(':');
-    expect(parts.length).toBe(3);
-    expect(parts[0].length).toBe(32); // 16 bytes IV = 32 hex chars
-    expect(parts[1].length).toBe(32); // 16 bytes AuthTag = 32 hex chars
+    const isVersioned = parts.length === 4;
+    expect(isVersioned || parts.length === 3).toBe(true);
+    const iv = isVersioned ? parts[1] : parts[0];
+    const authTag = isVersioned ? parts[2] : parts[1];
+    expect(iv.length).toBe(32); // 16 bytes IV = 32 hex chars
+    expect(authTag.length).toBe(32); // 16 bytes AuthTag = 32 hex chars
 
     // 3. Decrypt back
     const decrypted = VaultService.decrypt(encrypted);

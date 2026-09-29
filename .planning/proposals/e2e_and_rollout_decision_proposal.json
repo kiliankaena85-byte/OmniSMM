@@ -1,0 +1,46 @@
+{
+  "actionId": "ACT-E2E-AND-PROD-ROLLOUT-2026",
+  "intent": "Определить оптимальную стратегию E2E-верификации и выкатки в прод на основе рекомендаций круглого стола экспертов",
+  "category": "DEPLOY",
+  "context": {
+    "targetEnvironment": "PRODUCTION",
+    "userIntentExplicit": true,
+    "hasBackup": true,
+    "activeGitDiffLines": 0
+  },
+  "options": [
+    {
+      "id": "OPT-BLIND-PROD-CUTOVER",
+      "title": "Мгновенный деплой в прод без запуска E2E тестов (опираясь только на Unit, Mutation и Smoke)",
+      "description": "Пропустить запуск Playwright E2E тестов и сразу выполнить переключение контейнеров smmplan_app. Высокий риск необнаруженных сбоев на клиенте при оформлении заказа.",
+      "riskLevel": "HIGH",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 1,
+      "touchesFinancialLedger": true,
+      "touchesAuthOrSecrets": true
+    },
+    {
+      "id": "OPT-TIER1-CRITICAL-E2E-AND-STAGE-CUTOVER",
+      "title": "TOC Lean E2E Gate: Прогон E2E критического пути (Заказы, Биллинг, RBAC) + Blue-Green Cutover",
+      "description": "Сфокусированный запуск ключевых E2E-тестов бизнес-критического пути (01-customer-order-flow, 03-billing-and-payments, 06-rbac-and-security) на изолированной среде без риска исчерпания RAM от next dev, с последующей сборкой релизного кандидата и безопасным cutover по BGS-2026.",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 3,
+      "touchesFinancialLedger": false,
+      "touchesAuthOrSecrets": false
+    },
+    {
+      "id": "OPT-BRUTE-FORCE-FULL-29-E2E",
+      "title": "Тотальный прогон всех 29 E2E сьютов на хосте",
+      "description": "Попытка запустить подряд все 29 файлов E2E через поднятие next dev --port 3001. Критический риск V8 Heap Exhaustion / OOM-падения системы из-за лимита доступной RAM хоста (~750 МБ) и задержка релиза на 35 минут.",
+      "riskLevel": "CRITICAL",
+      "isDestructive": false,
+      "hasRollbackPlan": false,
+      "estimatedImpactFiles": 29,
+      "touchesFinancialLedger": true,
+      "touchesAuthOrSecrets": true
+    }
+  ]
+}

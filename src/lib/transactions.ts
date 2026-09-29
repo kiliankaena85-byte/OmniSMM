@@ -19,20 +19,22 @@ export async function runSerializableTransaction<T>(
         return await runInTransactionContext(async () => {
           return await fn(tx);
         });
-      }, { isolationLevel: 'Serializable', timeout: 30000 });
+      }, { isolationLevel: 'Serializable', timeout: 30000, maxWait: 15000 });
     } catch (err: unknown) {
       attempt++;
       const error = (typeof err === 'object' && err !== null ? err : {}) as { code?: string; message?: string };
       const isSerializationError = 
         error.code === 'P2034' || 
+        error.code === 'P2028' ||
         error.message?.includes('could not serialize access') ||
         error.message?.includes('deadlock') ||
-        error.message?.includes('40001');
+        error.message?.includes('40001') ||
+        error.message?.includes('Unable to start a transaction in the given time');
       
       if (isSerializationError && attempt < maxRetries) {
-        console.warn(`[Transaction] Serialization failure on attempt ${attempt}, retrying...`);
+        console.warn(`[Transaction] Serialization / connection contention failure on attempt ${attempt}, retrying...`);
         // Exponential backoff with jitter to resolve concurrent lock contention faster
-        const delay = Math.min(200, Math.pow(2, attempt) * 10) + Math.random() * 30;
+        const delay = Math.min(500, Math.pow(2, attempt) * 20) + Math.random() * 50;
         await new Promise(res => setTimeout(res, delay));
         continue;
       }

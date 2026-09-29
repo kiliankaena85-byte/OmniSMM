@@ -145,6 +145,7 @@ test.describe.serial('BLOCK 3: Billing, Payments, Webhooks & 54-FZ Fiscal E2E', 
     expect(updatedPayment?.status).toBe('SUCCEEDED');
 
     // 3. Second Webhook Execution (Simulate Network Retry / Duplicate Event)
+    await new Promise(res => setTimeout(res, 200));
     const confirmedSecondTime = await paymentService.confirmPayment(
       gatewayPaymentId,
       250_000,
