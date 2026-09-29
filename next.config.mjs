@@ -104,6 +104,7 @@ const nextConfig = {
   transpilePackages: ["@base-ui/react"],
 
   experimental: {
+    cpus: Math.min(4, Math.max(1, (process.env.BUILD_MAX_CPUS ? parseInt(process.env.BUILD_MAX_CPUS, 10) : 4))),
     serverActions: {
       bodySizeLimit: '2mb',
       allowedOrigins: dynamicOrigins,
