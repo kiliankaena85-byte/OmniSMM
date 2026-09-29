@@ -185,9 +185,9 @@ export function useOrderEngine(
     setWarningHasError(false);
     if (!newUrl) {
       setValidationErrors((prev) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { link, ...rest } = prev;
-        return rest;
+        const next = { ...prev };
+        delete next.link;
+        return next;
       });
     }
   }, []);

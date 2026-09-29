@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TENANT_SCOPED_MODELS, createTenantEnforcerExtension } from '@/lib/prisma-tenant-enforcer';
+import {
+  TENANT_SCOPED_MODELS,
+  createTenantEnforcerExtension,
+  type PrismaBatchTransactionClient,
+} from '@/lib/prisma-tenant-enforcer';
 import { createBalanceAdjustmentRequestAction } from '@/actions/admin/balance-adjustments';
 import { updateBalanceAction } from '@/actions/admin/users';
 import { reviewSupportFinancialAction, getSupportActionsReviewListAction } from '@/actions/admin/support-review';
@@ -71,22 +75,24 @@ describe('TEN-01 & TEN-02: Tenant Isolation for Financial Adjustments', () => {
     });
 
     it('enforces tenantId in query extensions for supportFinancialAction', async () => {
-      const mockPrisma = {
-        $transaction: vi.fn(),
-        $executeRawUnsafe: vi.fn(),
-        $executeRaw: vi.fn(),
+      const mockTxFn = vi.fn(async (arr: PromiseLike<unknown>[]) => Promise.all(arr));
+      const mockPrisma: PrismaBatchTransactionClient = {
+        $transaction: <T>(arr: PromiseLike<unknown>[]) => mockTxFn(arr) as Promise<T[]>,
+        $executeRawUnsafe: vi.fn(async () => 'ok'),
+        $executeRaw: vi.fn(async () => 'ok'),
       };
       const extension = createTenantEnforcerExtension(mockPrisma);
       expect(extension.query.supportFinancialAction).toBeDefined();
 
-      const mockQuery = vi.fn().mockResolvedValue([]);
-      const args = { where: {} as Record<string, any> };
+      const mockQuery = vi.fn(async () => []);
+      const args = { where: {} as Record<string, unknown> };
 
       // Set active tenant mock
       const { runWithTenant } = await import('@/lib/tenant-context');
       await runWithTenant('flux', async () => {
-        await extension.query.supportFinancialAction.findMany({ args, query: mockQuery });
-        expect(args.where.tenantId).toBe('flux');
+        await extension.query.supportFinancialAction.$allOperations({ args, query: mockQuery });
+        expect(mockTxFn).toHaveBeenCalled();
+        expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalledWith('SET LOCAL ROLE app_user');
       });
     });
 

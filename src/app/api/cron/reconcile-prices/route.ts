@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         else
           return 0
         end`;
-      await (redis as any).eval(script, 1, lockKey, lockToken);
+      await redis.eval(script, 1, lockKey, lockToken);
     } catch (err) {
       console.error('[Cron Reconcile] Lock release error:', err);
     }

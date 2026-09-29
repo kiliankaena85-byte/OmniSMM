@@ -1,0 +1,31 @@
+{
+  "actionId": "ACT-CLI-TEST-001",
+  "intent": "Оптимизация кэширования каталога в Redis",
+  "category": "OPTIMIZATION",
+  "options": [
+    {
+      "id": "OPT-SAFE-CACHE",
+      "title": "Добавить TTL кэширования и Singleflight mutex",
+      "description": "Изолированное добавление кэша без изменения сигнатур",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 2,
+      "touchesFinancialLedger": false
+    },
+    {
+      "id": "OPT-NO-CACHE",
+      "title": "Оставить без кэша",
+      "description": "Прямые запросы в базу данных",
+      "riskLevel": "MEDIUM",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 0
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true,
+    "userIntentExplicit": false
+  }
+}

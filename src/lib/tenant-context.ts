@@ -10,6 +10,7 @@ export interface TenantContextState {
   tenantId?: string;
   isBypass?: boolean;
   bypassReason?: string;
+  isInTransaction?: boolean;
 }
 
 export const tenantStorage = new AsyncLocalStorage<TenantContextState>();
@@ -23,6 +24,25 @@ export async function runWithTenant<T>(
 ): Promise<T> {
   const current = tenantStorage.getStore() || {};
   return tenantStorage.run({ ...current, tenantId, isBypass: false }, fn);
+}
+
+/**
+ * Runs an async function within an interactive transaction context.
+ * Signals to RLS interceptors that transaction-level session configuration is already active.
+ */
+export async function runInTransactionContext<T>(
+  fn: () => Promise<T>
+): Promise<T> {
+  const current = tenantStorage.getStore() || {};
+  return tenantStorage.run({ ...current, isInTransaction: true }, fn);
+}
+
+/**
+ * Checks whether an interactive transaction context is currently active.
+ */
+export function isInTransactionContext(): boolean {
+  const store = tenantStorage.getStore();
+  return Boolean(store?.isInTransaction);
 }
 
 /**
@@ -70,8 +90,7 @@ export async function resolveActiveTenantId(): Promise<string | null> {
 
   // Attempt reading from Next.js headers asynchronously if available or cached
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { headers } = require('next/headers');
+    const { headers } = await import('next/headers');
     if (typeof headers === 'function') {
       const h = await headers();
       const tenantHeader = h.get('x-tenant-id');

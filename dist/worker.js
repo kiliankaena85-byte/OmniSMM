@@ -45563,12 +45563,12 @@ var require_safe_stable_stringify = __commonJS({
       const comparator = typeof deterministic === "function" ? deterministic : void 0;
       const maximumDepth = getPositiveIntegerOption(options, "maximumDepth");
       const maximumBreadth = getPositiveIntegerOption(options, "maximumBreadth");
-      function stringifyFnReplacer(key, parent, stack, replacer, spacer, indentation) {
+      function stringifyFnReplacer(key, parent, stack, replacer2, spacer, indentation) {
         let value = parent[key];
         if (typeof value === "object" && value !== null && typeof value.toJSON === "function") {
           value = value.toJSON(key);
         }
-        value = replacer.call(parent, key, value);
+        value = replacer2.call(parent, key, value);
         switch (typeof value) {
           case "string":
             return strEscape(value);
@@ -45600,11 +45600,11 @@ ${indentation}`;
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
               let i = 0;
               for (; i < maximumValuesToStringify - 1; i++) {
-                const tmp2 = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
+                const tmp2 = stringifyFnReplacer(String(i), value, stack, replacer2, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
                 res += join;
               }
-              const tmp = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
+              const tmp = stringifyFnReplacer(String(i), value, stack, replacer2, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
@@ -45640,7 +45640,7 @@ ${indentation}`;
             stack.push(value);
             for (let i = 0; i < maximumPropertiesToStringify; i++) {
               const key2 = keys[i];
-              const tmp = stringifyFnReplacer(key2, value, stack, replacer, spacer, indentation);
+              const tmp = stringifyFnReplacer(key2, value, stack, replacer2, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
                 separator = join;
@@ -45674,7 +45674,7 @@ ${originalIndentation}`;
             return fail ? fail(value) : void 0;
         }
       }
-      function stringifyArrayReplacer(key, value, stack, replacer, spacer, indentation) {
+      function stringifyArrayReplacer(key, value, stack, replacer2, spacer, indentation) {
         if (typeof value === "object" && value !== null && typeof value.toJSON === "function") {
           value = value.toJSON(key);
         }
@@ -45709,11 +45709,11 @@ ${indentation}`;
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
               let i = 0;
               for (; i < maximumValuesToStringify - 1; i++) {
-                const tmp2 = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
+                const tmp2 = stringifyArrayReplacer(String(i), value[i], stack, replacer2, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
                 res += join;
               }
-              const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
+              const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer2, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
@@ -45735,8 +45735,8 @@ ${indentation}`;
               whitespace = " ";
             }
             let separator = "";
-            for (const key2 of replacer) {
-              const tmp = stringifyArrayReplacer(key2, value[key2], stack, replacer, spacer, indentation);
+            for (const key2 of replacer2) {
+              const tmp = stringifyArrayReplacer(key2, value[key2], stack, replacer2, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
                 separator = join;
@@ -45973,7 +45973,7 @@ ${originalIndentation}`;
             return fail ? fail(value) : void 0;
         }
       }
-      function stringify2(value, replacer, space) {
+      function stringify2(value, replacer2, space) {
         if (arguments.length > 1) {
           let spacer = "";
           if (typeof space === "number") {
@@ -45981,12 +45981,12 @@ ${originalIndentation}`;
           } else if (typeof space === "string") {
             spacer = space.slice(0, 10);
           }
-          if (replacer != null) {
-            if (typeof replacer === "function") {
-              return stringifyFnReplacer("", { "": value }, [], replacer, spacer, "");
+          if (replacer2 != null) {
+            if (typeof replacer2 === "function") {
+              return stringifyFnReplacer("", { "": value }, [], replacer2, spacer, "");
             }
-            if (Array.isArray(replacer)) {
-              return stringifyArrayReplacer("", value, [], getUniqueReplacerSet(replacer), spacer, "");
+            if (Array.isArray(replacer2)) {
+              return stringifyArrayReplacer("", value, [], getUniqueReplacerSet(replacer2), spacer, "");
             }
           }
           if (spacer.length !== 0) {
@@ -51684,9 +51684,28 @@ var require_headers3 = __commonJS({
 });
 
 // src/lib/tenant-context.ts
+var tenant_context_exports = {};
+__export2(tenant_context_exports, {
+  getTenantBypassReason: () => getTenantBypassReason,
+  isInTransactionContext: () => isInTransactionContext,
+  isTenantBypassActive: () => isTenantBypassActive,
+  resolveActiveTenantId: () => resolveActiveTenantId,
+  runInTransactionContext: () => runInTransactionContext,
+  runWithTenant: () => runWithTenant,
+  runWithTenantBypass: () => runWithTenantBypass,
+  tenantStorage: () => tenantStorage
+});
 async function runWithTenant(tenantId, fn) {
   const current = tenantStorage.getStore() || {};
   return tenantStorage.run({ ...current, tenantId, isBypass: false }, fn);
+}
+async function runInTransactionContext(fn) {
+  const current = tenantStorage.getStore() || {};
+  return tenantStorage.run({ ...current, isInTransaction: true }, fn);
+}
+function isInTransactionContext() {
+  const store = tenantStorage.getStore();
+  return Boolean(store?.isInTransaction);
 }
 async function runWithTenantBypass(reason, fn) {
   if (!reason || reason.trim() === "") {
@@ -51699,13 +51718,17 @@ function isTenantBypassActive() {
   const store = tenantStorage.getStore();
   return Boolean(store?.isBypass);
 }
+function getTenantBypassReason() {
+  const store = tenantStorage.getStore();
+  return store?.bypassReason;
+}
 async function resolveActiveTenantId() {
   const store = tenantStorage.getStore();
   if (store?.tenantId) {
     return store.tenantId;
   }
   try {
-    const { headers: headers2 } = require_headers3();
+    const { headers: headers2 } = await Promise.resolve().then(() => __toESM(require_headers3()));
     if (typeof headers2 === "function") {
       const h = await headers2();
       const tenantHeader = h.get("x-tenant-id");
@@ -51876,17 +51899,18 @@ __export2(queue_manager_exports, {
 function enrichJobPayload(data) {
   if (!data || typeof data !== "object" || Array.isArray(data)) return data;
   const currentTraceId = getTraceId() || generateTraceId();
-  const currentTenantId = data.tenantId || tenantStorage.getStore()?.tenantId;
-  const existingMetadata = data.metadata && typeof data.metadata === "object" ? data.metadata : {};
+  const record = data;
+  const currentTenantId = (typeof record.tenantId === "string" ? record.tenantId : void 0) || tenantStorage.getStore()?.tenantId;
+  const existingMetadata = record.metadata && typeof record.metadata === "object" && !Array.isArray(record.metadata) ? record.metadata : {};
   const metadata = {
     ...existingMetadata,
-    traceId: existingMetadata.traceId || currentTraceId,
-    ...currentTenantId ? { tenantId: existingMetadata.tenantId || currentTenantId } : {},
-    enqueuedAt: existingMetadata.enqueuedAt || (/* @__PURE__ */ new Date()).toISOString()
+    traceId: typeof existingMetadata.traceId === "string" ? existingMetadata.traceId : currentTraceId,
+    ...currentTenantId ? { tenantId: typeof existingMetadata.tenantId === "string" ? existingMetadata.tenantId : currentTenantId } : {},
+    enqueuedAt: typeof existingMetadata.enqueuedAt === "string" ? existingMetadata.enqueuedAt : (/* @__PURE__ */ new Date()).toISOString()
   };
   return {
     ...data,
-    ...currentTenantId && !data.tenantId ? { tenantId: currentTenantId } : {},
+    ...currentTenantId && !record.tenantId ? { tenantId: currentTenantId } : {},
     metadata
   };
 }
@@ -52185,7 +52209,7 @@ var init_queue_manager = __esm({
         return new Proxy(targetObj, {
           has: (target, prop) => prop in target || typeof prop === "string",
           get: (target, prop) => {
-            if (prop in target) return target[prop];
+            if (typeof prop === "string" && prop in target) return target[prop];
             return async () => {
             };
           }
@@ -52319,43 +52343,49 @@ var init_queue_manager = __esm({
 });
 
 // src/lib/prisma-tenant-enforcer.ts
-function createTenantEnforcerExtension(prismaClient) {
+function createTenantEnforcerExtension(prismaClient, context = tenant_context_exports) {
   const queryExtensions = {};
   for (const model of TENANT_SCOPED_MODELS) {
     queryExtensions[model] = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async $allOperations({ args, query }) {
-        if (isTenantBypassActive()) {
-          const [, , result2] = await prismaClient.$transaction([
+        if (typeof context.isInTransactionContext === "function" && context.isInTransactionContext()) {
+          return await query(args);
+        }
+        if (context.isTenantBypassActive()) {
+          const res2 = await prismaClient.$transaction([
             prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
             prismaClient.$executeRaw`SELECT set_config('app.current_tenant', 'bypass', TRUE)`,
             query(args)
           ]);
-          return result2;
+          return res2[res2.length - 1];
         }
-        let tenantId = await resolveActiveTenantId();
-        if (!tenantId && args?.where?.tenantId) {
-          if (typeof args.where.tenantId === "string" && args.where.tenantId !== "all") {
-            tenantId = args.where.tenantId;
-          } else if (Array.isArray(args.where.tenantId?.in)) {
-            const found = args.where.tenantId.in.find((t) => t && t !== "all");
-            if (found) tenantId = found;
+        let tenantId = await context.resolveActiveTenantId();
+        const where = typeof args === "object" && args !== null && "where" in args ? args.where : void 0;
+        if (!tenantId && where?.tenantId) {
+          if (typeof where.tenantId === "string") {
+            tenantId = where.tenantId === "all" ? "bypass" : where.tenantId;
+          } else if (Array.isArray(where.tenantId?.in)) {
+            const found = where.tenantId.in.find((t) => t && t !== "all");
+            if (found) {
+              tenantId = found;
+            } else if (where.tenantId.in.includes("all")) {
+              tenantId = "bypass";
+            }
           }
         }
         if (tenantId) {
-          const [, , result2] = await prismaClient.$transaction([
+          const res2 = await prismaClient.$transaction([
             prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
             prismaClient.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, TRUE)`,
             query(args)
           ]);
-          return result2;
+          return res2[res2.length - 1];
         }
-        const [, , result] = await prismaClient.$transaction([
+        const res = await prismaClient.$transaction([
           prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
-          prismaClient.$executeRaw`SELECT set_config('app.current_tenant', '', TRUE)`,
           query(args)
         ]);
-        return result;
+        return res[res.length - 1];
       }
     };
   }
@@ -110050,7 +110080,17 @@ async function runSerializableTransaction(fn, maxRetries = 15) {
   let attempt = 0;
   while (true) {
     try {
-      return await db.$transaction(fn, { isolationLevel: "Serializable", timeout: 3e4 });
+      return await db.$transaction(async (tx) => {
+        const bypass = isTenantBypassActive();
+        const tenantId = bypass ? "bypass" : await resolveActiveTenantId() || "";
+        await tx.$executeRawUnsafe(`SET LOCAL ROLE app_user`);
+        if (tenantId) {
+          await tx.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, TRUE)`;
+        }
+        return await runInTransactionContext(async () => {
+          return await fn(tx);
+        });
+      }, { isolationLevel: "Serializable", timeout: 3e4 });
     } catch (err) {
       attempt++;
       const error2 = typeof err === "object" && err !== null ? err : {};
@@ -110069,6 +110109,7 @@ var init_transactions = __esm({
   "src/lib/transactions.ts"() {
     "use strict";
     init_db();
+    init_tenant_context();
   }
 });
 
@@ -110211,6 +110252,143 @@ var init_exact_math = __esm({
   }
 });
 
+// src/lib/admin-audit.ts
+var admin_audit_exports = {};
+__export2(admin_audit_exports, {
+  auditAdmin: () => auditAdmin,
+  auditAdminAwaitable: () => auditAdminAwaitable,
+  safeSerialize: () => safeSerialize
+});
+async function resolveAuditTenant(explicitTenant) {
+  if (explicitTenant && explicitTenant.trim() !== "") {
+    return normalizeTenantId(explicitTenant) || "smmplan";
+  }
+  try {
+    const storeTenant = tenantStorage.getStore()?.tenantId;
+    if (storeTenant && storeTenant.trim() !== "") {
+      return normalizeTenantId(storeTenant) || "smmplan";
+    }
+  } catch {
+  }
+  try {
+    const { cookies, headers: headers2 } = await Promise.resolve().then(() => __toESM(require_headers3()));
+    try {
+      const cookieStore = await cookies();
+      const cookieTenant = cookieStore.get("x_admin_tenant")?.value || cookieStore.get("x_tenant")?.value;
+      if (cookieTenant && cookieTenant.trim() !== "") {
+        return normalizeTenantId(cookieTenant) || "smmplan";
+      }
+    } catch {
+    }
+    try {
+      const headerStore = await headers2();
+      const headerTenant = headerStore.get("x-tenant-id");
+      if (headerTenant && headerTenant.trim() !== "") {
+        return normalizeTenantId(headerTenant) || "smmplan";
+      }
+    } catch {
+    }
+  } catch {
+  }
+  return "smmplan";
+}
+function safeSerialize(value) {
+  if (value === void 0 || value === null) return null;
+  const seen = /* @__PURE__ */ new Set();
+  function recurse(val) {
+    if (val === null || val === void 0) {
+      return val;
+    }
+    if (typeof val === "bigint") {
+      return val.toString();
+    }
+    if (typeof val !== "object") {
+      return val;
+    }
+    if (seen.has(val)) {
+      return "[Circular]";
+    }
+    seen.add(val);
+    if (Array.isArray(val)) {
+      const arr = val.map((item) => recurse(item));
+      seen.delete(val);
+      return arr;
+    }
+    if (val instanceof Date) {
+      return val.toISOString();
+    }
+    if (val instanceof RegExp) {
+      return val.toString();
+    }
+    const obj = val;
+    const result = {};
+    const sensitiveKeys = ["password", "pass", "hash", "token", "secret", "key", "credentials", "yookassa", "vault"];
+    for (const k of Object.keys(obj)) {
+      const lowerKey = k.toLowerCase();
+      const isSensitive = sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive));
+      if (isSensitive) {
+        result[k] = "[SCRUBBED]";
+      } else {
+        result[k] = recurse(obj[k]);
+      }
+    }
+    seen.delete(val);
+    return result;
+  }
+  try {
+    const cleaned = recurse(value);
+    return JSON.stringify(cleaned);
+  } catch (err) {
+    console.error("[AdminAudit] Failed to serialize:", err);
+    return "[Serialization Failed]";
+  }
+}
+function auditAdmin(params) {
+  void (async () => {
+    const tenantId = await resolveAuditTenant(params.tenantId);
+    await db.adminAuditLog.create({
+      data: {
+        tenantId,
+        adminId: params.adminId,
+        adminEmail: params.adminEmail,
+        action: params.action,
+        target: params.target,
+        targetType: params.targetType,
+        oldValue: safeSerialize(params.oldValue),
+        newValue: safeSerialize(params.newValue),
+        ipAddress: params.ipAddress ?? null
+      }
+    });
+  })().catch((err) => {
+    console.error("[AdminAudit] Failed to write log:", err);
+  });
+}
+async function auditAdminAwaitable(params) {
+  const tenantId = await resolveAuditTenant(params.tenantId);
+  const client = params.tx || db;
+  return client.adminAuditLog.create({
+    data: {
+      tenantId,
+      adminId: params.adminId,
+      adminEmail: params.adminEmail,
+      action: params.action,
+      target: params.target,
+      targetType: params.targetType,
+      oldValue: safeSerialize(params.oldValue),
+      newValue: safeSerialize(params.newValue),
+      ipAddress: params.ipAddress ?? null
+    }
+  });
+}
+var init_admin_audit = __esm({
+  "src/lib/admin-audit.ts"() {
+    "use strict";
+    init_db();
+    init_tenant_resolver_edge();
+    init_tenant_context();
+  }
+});
+
 // src/services/financial/wallet-ops.ts
 var wallet_ops_exports = {};
 __export2(wallet_ops_exports, {
@@ -110234,7 +110412,7 @@ async function adjustBalance(userId, amountCents, context) {
   if (!user) {
     throw new Error(`User ${userId} not found in tenant ${context.tenantId} or access denied`);
   }
-  return await runSerializableTransaction(async (tx) => {
+  const result = await runSerializableTransaction(async (tx) => {
     return await WalletOps.adminAdjust(
       tx,
       userId,
@@ -110243,6 +110421,27 @@ async function adjustBalance(userId, amountCents, context) {
       { adminId: context.actorId, tenantId: context.tenantId }
     );
   });
+  try {
+    const { auditAdminAwaitable: auditAdminAwaitable2 } = await Promise.resolve().then(() => (init_admin_audit(), admin_audit_exports));
+    await auditAdminAwaitable2({
+      adminId: context.actorId,
+      adminEmail: "admin@" + (context.tenantId || "smmplan") + ".internal",
+      action: "ADJUST_BALANCE",
+      target: userId,
+      targetType: "USER_BALANCE",
+      oldValue: { balance: user.balance ? String(user.balance) : "0" },
+      newValue: {
+        amountCents: String(amountCents),
+        reason: context.reason,
+        tenantId: context.tenantId,
+        newBalance: result.balance ? String(result.balance) : void 0
+      },
+      tenantId: context.tenantId
+    });
+  } catch (auditErr) {
+    console.error("[WalletOps] Failed to record admin audit log:", auditErr);
+  }
+  return result;
 }
 var WalletInsufficientFundsError, WalletUserNotFoundError, WalletInvalidAmountError, ImmutableLedgerError, MAX_ADJUSTMENT_CAP_KOPECKS, ELEVATED_ADJUSTMENT_CAP_KOPECKS, WalletOps;
 var init_wallet_ops = __esm({
@@ -110707,7 +110906,7 @@ var init_wallet_ops = __esm({
         const { idempotencyKey, adminId, tenantId, transactionType } = opts || {};
         const user = await tx.user.findUnique({
           where: { id: userId },
-          select: { id: true, tenantId: true }
+          select: { id: true, tenantId: true, referralBalance: true, balance: true }
         });
         if (!user || tenantId && user.tenantId !== tenantId) {
           throw new WalletUserNotFoundError(userId);
@@ -110731,10 +110930,35 @@ var init_wallet_ops = __esm({
             adminId
           }
         });
-        await tx.user.update({
-          where: { id: userId },
-          data: { referralBalance: { decrement: Number(rawCents) } }
-        });
+        const currentRefBalance = user.referralBalance ?? 0;
+        const reqAmountNumber = Number(rawCents);
+        const debitFromReferral = Math.min(Math.max(0, currentRefBalance), reqAmountNumber);
+        const shortage = reqAmountNumber - debitFromReferral;
+        if (debitFromReferral > 0) {
+          await tx.user.updateMany({
+            where: {
+              id: userId,
+              referralBalance: { gte: debitFromReferral },
+              ...tenantId ? { tenantId } : {}
+            },
+            data: { referralBalance: { decrement: debitFromReferral } }
+          });
+        }
+        if (shortage > 0) {
+          const availableMain = user.balance > BigInt(0) ? user.balance : BigInt(0);
+          const debitFromMain = BigInt(shortage) > availableMain ? availableMain : BigInt(shortage);
+          if (debitFromMain > BigInt(0)) {
+            await tx.user.updateMany({
+              where: {
+                id: userId,
+                balance: { gte: debitFromMain },
+                ...tenantId ? { tenantId } : {}
+              },
+              data: { balance: { decrement: debitFromMain } }
+            });
+          }
+          console.warn(`[WalletOps.referralDebit] User ${userId}: insufficient referralBalance (${currentRefBalance} < ${reqAmountNumber}). Debited ${debitFromReferral} from referral, ${debitFromMain} from main balance.`);
+        }
         return { success: true, entry, cached: false };
       }
     };
@@ -110767,6 +110991,7 @@ var init_compensation_service = __esm({
     init_db();
     init_settings();
     init_logger();
+    init_exact_math();
     log2 = logger.child({ component: "CompensationService" });
     CompensationService = class {
       /**
@@ -110805,17 +111030,17 @@ var init_compensation_service = __esm({
               const isUsd = order.service.providerCurrency === "USD";
               if (isUsd) {
                 const usdToRub = order.usdToRubRate || await SettingsProvider.getExchangeRateUSD();
-                actualProviderCostCents = Math.round(parsedCharge * usdToRub * 100);
+                actualProviderCostCents = Number(ExactMath.rublesToKopecks(parsedCharge * usdToRub));
               } else {
-                actualProviderCostCents = Math.round(parsedCharge * 100);
+                actualProviderCostCents = Number(ExactMath.rublesToKopecks(parsedCharge));
               }
             } else {
               if (status === "PARTIAL") {
                 const remains = order.remains;
                 const quantity = order.quantity;
-                const providerCost = Number(order.providerCost);
+                const providerCost = order.providerCost;
                 const completedQty = Math.max(0, quantity - remains);
-                actualProviderCostCents = quantity > 0 ? Math.round(providerCost * completedQty / quantity) : 0;
+                actualProviderCostCents = quantity > 0 ? Number(providerCost * BigInt(completedQty) / BigInt(quantity)) : 0;
               } else {
                 actualProviderCostCents = Number(order.providerCost);
               }
@@ -127136,27 +127361,57 @@ async function sendTicketCreatedMail(email, ticketId, ticketSubject, tenantId) {
   `;
   return sendMail(email, `[\u0422\u0438\u043A\u0435\u0442 #${shortId}] ${ticketSubject}`, htmlContent, replyTo, tenantId);
 }
-async function sendTicketReplyMail(email, ticketId, ticketSubject, replyText, tenantId) {
+async function sendTicketReplyMail(email, ticketId, ticketSubject, replyText, tenantId, history) {
   const { companyName, supportDomain } = await getEmailContext(tenantId);
   const shortId = ticketId.slice(-6).toUpperCase();
   const replyTo = `support+${ticketId}@${supportDomain}`;
-  const safeReplyText = replyText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
+  const escapeHtml4 = (unsafe) => (unsafe ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, "<br/>");
+  const safeReplyText = escapeHtml4(replyText);
+  let historyHtml = "";
+  if (history && history.length > 0) {
+    historyHtml = `
+      <div style="margin-top: 28px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <h3 style="color: #475569; font-size: 13px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.05em;">\u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0434\u0438\u0430\u043B\u043E\u0433\u0430:</h3>
+        ${history.map((m) => {
+      const senderLabel = m.sender === "USER" ? "\u0412\u044B" : `\u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430 ${companyName}`;
+      const isStaff = m.sender === "STAFF";
+      const timeStr = new Date(m.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+      return `
+            <div style="margin-bottom: 12px; padding: 12px; border-radius: 8px; background-color: ${isStaff ? "#f8fafc" : "#f0f9ff"}; border-left: 4px solid ${isStaff ? "#94a3b8" : "#38bdf8"};">
+              <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px;">
+                ${senderLabel} \u2022 ${timeStr}
+              </div>
+              <div style="font-size: 13px; color: #334155; line-height: 1.5;">${escapeHtml4(m.text)}</div>
+            </div>
+          `;
+    }).join("")}
+      </div>
+    `;
+  }
   const htmlContent = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
       <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 12px; margin-bottom: 20px;">
         <h2 style="color: #0f172a; margin: 0; font-size: 20px;">\u041D\u043E\u0432\u044B\u0439 \u043E\u0442\u0432\u0435\u0442 \u043E\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 ${companyName}</h2>
       </div>
       <p style="color: #334155; font-size: 15px; line-height: 1.6;">
-        \u0421\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0432\u0430\u0448\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u0435 <b>#${ticketId}</b> (${ticketSubject}):
+        \u0421\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0432\u0430\u0448\u0435 \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u0435 <b>#${ticketId}</b> (${escapeHtml4(ticketSubject)}):
       </p>
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <p style="margin: 0; font-size: 15px; color: #166534; line-height: 1.6;">
           ${safeReplyText}
         </p>
       </div>
-      <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-top: 24px;">
-        \u0414\u043B\u044F \u043E\u0442\u0432\u0435\u0442\u0430 \u043F\u0440\u043E\u0441\u0442\u043E <b>\u043E\u0442\u0432\u0435\u0442\u044C\u0442\u0435 \u043D\u0430 \u044D\u0442\u043E \u043F\u0438\u0441\u044C\u043C\u043E</b>, \u043B\u0438\u0431\u043E \u043F\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u0432 \u043B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442 \u043D\u0430 \u0441\u0430\u0439\u0442\u0435.
-      </p>
+      <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 4px; margin-top: 18px;">
+        <p style="margin: 0; font-size: 13px; color: #1d4ed8; font-weight: 500;">
+          \u270D\uFE0F <strong>\u041A\u0430\u043A \u043E\u0442\u0432\u0435\u0442\u0438\u0442\u044C:</strong> \u043F\u0440\u043E\u0441\u0442\u043E \u043E\u0442\u0432\u0435\u0442\u044C\u0442\u0435 \u043D\u0430 \u044D\u0442\u043E \u043F\u0438\u0441\u044C\u043C\u043E \u0441\u043E \u0441\u0432\u043E\u0435\u0439 \u043F\u043E\u0447\u0442\u044B \u2014 \u043E\u0442\u0432\u0435\u0442 \u0441\u0440\u0430\u0437\u0443 \u043F\u043E\u0441\u0442\u0443\u043F\u0438\u0442 \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0443.
+        </p>
+      </div>
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="https://${supportDomain}/dashboard/tickets?ticketId=${ticketId}" style="background-color: #0f172a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block;">
+          \u041E\u0442\u043A\u0440\u044B\u0442\u044C \u0442\u0438\u043A\u0435\u0442 \u0432 \u043B\u0438\u0447\u043D\u043E\u043C \u043A\u0430\u0431\u0438\u043D\u0435\u0442\u0435
+        </a>
+      </div>
+      ${historyHtml}
     </div>
   `;
   return sendMail(email, `\u041E\u0442\u0432\u0435\u0442 \u043F\u043E \u043E\u0431\u0440\u0430\u0449\u0435\u043D\u0438\u044E #${shortId}: ${ticketSubject}`, htmlContent, replyTo, tenantId);
@@ -131167,137 +131422,6 @@ var init_provider_balance_service = __esm({
       }
     };
     providerBalanceService = new ProviderBalanceService();
-  }
-});
-
-// src/lib/admin-audit.ts
-async function resolveAuditTenant(explicitTenant) {
-  if (explicitTenant && explicitTenant.trim() !== "") {
-    return normalizeTenantId(explicitTenant) || "smmplan";
-  }
-  try {
-    const storeTenant = tenantStorage.getStore()?.tenantId;
-    if (storeTenant && storeTenant.trim() !== "") {
-      return normalizeTenantId(storeTenant) || "smmplan";
-    }
-  } catch {
-  }
-  try {
-    const { cookies, headers: headers2 } = await Promise.resolve().then(() => __toESM(require_headers3()));
-    try {
-      const cookieStore = await cookies();
-      const cookieTenant = cookieStore.get("x_admin_tenant")?.value || cookieStore.get("x_tenant")?.value;
-      if (cookieTenant && cookieTenant.trim() !== "") {
-        return normalizeTenantId(cookieTenant) || "smmplan";
-      }
-    } catch {
-    }
-    try {
-      const headerStore = await headers2();
-      const headerTenant = headerStore.get("x-tenant-id");
-      if (headerTenant && headerTenant.trim() !== "") {
-        return normalizeTenantId(headerTenant) || "smmplan";
-      }
-    } catch {
-    }
-  } catch {
-  }
-  return "smmplan";
-}
-function safeSerialize(value) {
-  if (value === void 0 || value === null) return null;
-  const seen = /* @__PURE__ */ new Set();
-  function recurse(val) {
-    if (val === null || val === void 0) {
-      return val;
-    }
-    if (typeof val === "bigint") {
-      return val.toString();
-    }
-    if (typeof val !== "object") {
-      return val;
-    }
-    if (seen.has(val)) {
-      return "[Circular]";
-    }
-    seen.add(val);
-    if (Array.isArray(val)) {
-      const arr = val.map((item) => recurse(item));
-      seen.delete(val);
-      return arr;
-    }
-    if (val instanceof Date) {
-      return val.toISOString();
-    }
-    if (val instanceof RegExp) {
-      return val.toString();
-    }
-    const obj = val;
-    const result = {};
-    const sensitiveKeys = ["password", "pass", "hash", "token", "secret", "key", "credentials", "yookassa", "vault"];
-    for (const k of Object.keys(obj)) {
-      const lowerKey = k.toLowerCase();
-      const isSensitive = sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive));
-      if (isSensitive) {
-        result[k] = "[SCRUBBED]";
-      } else {
-        result[k] = recurse(obj[k]);
-      }
-    }
-    seen.delete(val);
-    return result;
-  }
-  try {
-    const cleaned = recurse(value);
-    return JSON.stringify(cleaned);
-  } catch (err) {
-    console.error("[AdminAudit] Failed to serialize:", err);
-    return "[Serialization Failed]";
-  }
-}
-function auditAdmin(params) {
-  void (async () => {
-    const tenantId = await resolveAuditTenant(params.tenantId);
-    await db.adminAuditLog.create({
-      data: {
-        tenantId,
-        adminId: params.adminId,
-        adminEmail: params.adminEmail,
-        action: params.action,
-        target: params.target,
-        targetType: params.targetType,
-        oldValue: safeSerialize(params.oldValue),
-        newValue: safeSerialize(params.newValue),
-        ipAddress: params.ipAddress ?? null
-      }
-    });
-  })().catch((err) => {
-    console.error("[AdminAudit] Failed to write log:", err);
-  });
-}
-async function auditAdminAwaitable(params) {
-  const tenantId = await resolveAuditTenant(params.tenantId);
-  const client = params.tx || db;
-  return client.adminAuditLog.create({
-    data: {
-      tenantId,
-      adminId: params.adminId,
-      adminEmail: params.adminEmail,
-      action: params.action,
-      target: params.target,
-      targetType: params.targetType,
-      oldValue: safeSerialize(params.oldValue),
-      newValue: safeSerialize(params.newValue),
-      ipAddress: params.ipAddress ?? null
-    }
-  });
-}
-var init_admin_audit = __esm({
-  "src/lib/admin-audit.ts"() {
-    "use strict";
-    init_db();
-    init_tenant_resolver_edge();
-    init_tenant_context();
   }
 });
 
@@ -138022,7 +138146,7 @@ var require_client2 = __commonJS({
         return value && typeof value === "object" && ((0, check_1.hasProp)(value, "source") && value.source || (0, check_1.hasProp)(value, "url") && value.url || (0, check_1.hasPropType)(value, "media", "object") && ((0, check_1.hasProp)(value.media, "source") && value.media.source || (0, check_1.hasProp)(value.media, "url") && value.media.url));
       });
     }
-    function replacer(_, value) {
+    function replacer2(_, value) {
       if (value == null)
         return void 0;
       return value;
@@ -138032,7 +138156,7 @@ var require_client2 = __commonJS({
         method: "POST",
         compress: true,
         headers: { "content-type": "application/json", connection: "keep-alive" },
-        body: JSON.stringify(payload, replacer)
+        body: JSON.stringify(payload, replacer2)
       });
     }
     var FORM_DATA_JSON_FIELDS = [
@@ -141541,6 +141665,8 @@ var init_payment_gateway_service = __esm({
     init_wallet_ops();
     import_crypto6 = __toESM(require("crypto"));
     init_network_router();
+    init_exact_math();
+    init_tenant_context();
     VAT_THRESHOLD_KOPECKS = BigInt(2e7) * BigInt(100);
     vatThresholdCache = /* @__PURE__ */ new Map();
     BasePaymentGateway = class {
@@ -141593,7 +141719,7 @@ var init_payment_gateway_service = __esm({
             payment_subject: paymentSubject
           }]
         };
-        const idempString = `yookassa_${params.userId}_${params.paymentId}_${Math.floor(Date.now() / 6e4)}`;
+        const idempString = `yookassa_${params.tenantId || "smmplan"}_${params.paymentId}`;
         const idempKey = import_crypto6.default.createHash("sha256").update(idempString).digest("hex").substring(0, 36);
         let resp;
         try {
@@ -141650,9 +141776,11 @@ var init_payment_gateway_service = __esm({
             }
             resolvedTenantId = tenantId;
           } else {
-            const p = await db.payment.findFirst({
-              where: { gatewayId },
-              select: { tenantId: true }
+            const p = await runWithTenantBypass("YooKassa checkStatusSync tenant resolution", async () => {
+              return await db.payment.findFirst({
+                where: { gatewayId },
+                select: { tenantId: true }
+              });
             });
             resolvedTenantId = p?.tenantId || "smmplan";
           }
@@ -141680,9 +141808,11 @@ var init_payment_gateway_service = __esm({
         }
         let resolvedTenantId = params.tenantId;
         if (!resolvedTenantId) {
-          const p = await db.payment.findFirst({
-            where: { gatewayId: params.paymentGatewayId },
-            select: { tenantId: true }
+          const p = await runWithTenantBypass("YooKassa executeRefund tenant resolution", async () => {
+            return await db.payment.findFirst({
+              where: { gatewayId: params.paymentGatewayId },
+              select: { tenantId: true }
+            });
           });
           resolvedTenantId = p?.tenantId || "smmplan";
         }
@@ -141768,13 +141898,13 @@ var init_payment_gateway_service = __esm({
         return {
           refundId: data.id,
           status: data.status,
-          amountRub: parseFloat(data.amount?.value || String(params.amountRub))
+          amountRub: data.amount?.value ? Number(data.amount.value) : Number(params.amountRub)
         };
       }
     };
     CryptoBotGateway = class extends BasePaymentGateway {
       async createPayment(params) {
-        if (params.amountRub <= 0 || Math.round(params.amountRub * 100) <= 0) {
+        if (params.amountRub <= 0 || ExactMath.rublesToKopecks(params.amountRub) <= 0n) {
           throw new Error("\u0421\u0443\u043C\u043C\u0430 \u043F\u043B\u0430\u0442\u0435\u0436\u0430 \u0434\u043E\u043B\u0436\u043D\u0430 \u0431\u044B\u0442\u044C \u0431\u043E\u043B\u044C\u0448\u0435 0");
         }
         const tenantId = params.tenantId || params.metadata?.tenantId || "smmplan";
@@ -141860,9 +141990,11 @@ var init_payment_gateway_service = __esm({
         try {
           let resolvedTenantId = tenantId;
           if (!resolvedTenantId) {
-            const p = await db.payment.findFirst({
-              where: { gatewayId },
-              select: { tenantId: true }
+            const p = await runWithTenantBypass("CryptoBot checkStatusSync tenant resolution", async () => {
+              return await db.payment.findFirst({
+                where: { gatewayId },
+                select: { tenantId: true }
+              });
             });
             resolvedTenantId = p?.tenantId || "smmplan";
           }
@@ -141889,7 +142021,7 @@ var init_payment_gateway_service = __esm({
     };
     BalanceGateway = class extends BasePaymentGateway {
       async createPayment(params) {
-        const amountCents = Math.round(params.amountRub * 100);
+        const amountCents = ExactMath.rublesToKopecks(params.amountRub);
         const remoteId = `internal_${Date.now()}`;
         const { ordersQueue: ordersQueue2 } = await Promise.resolve().then(() => (init_queue_manager(), queue_manager_exports));
         const updatedOrders = await db.$transaction(async (tx) => {
@@ -141906,43 +142038,71 @@ var init_payment_gateway_service = __esm({
             const order = await tx.order.findUnique({
               where: { id: params.orderId }
             });
-            if (order) {
-              await tx.order.update({
-                where: { id: params.orderId },
-                data: { status: "PENDING" }
-              });
-              if (order.promoCodeId) {
-                const promo = await tx.promoCode.findUnique({
-                  where: { id: order.promoCodeId },
-                  select: { isSuspicious: true }
-                });
-                const isSuspicious = promo?.isSuspicious ?? false;
-                const existingUsage = await tx.promoCodeUsage.findUnique({
-                  where: { orderId: order.id }
-                });
-                if (!existingUsage) {
-                  await tx.promoCodeUsage.create({
-                    data: {
-                      promoCodeId: order.promoCodeId,
-                      userId: params.userId,
-                      orderId: order.id,
-                      discountCents: order.discountCents,
-                      revenueCents: BigInt(Number(order.charge)),
-                      profitCents: BigInt(Number(order.charge - order.providerCost)),
-                      isSuspicious
-                    }
-                  });
-                }
-              }
-              items.push({ id: params.orderId, tenantId: order.tenantId });
+            if (!order) {
+              throw new Error(`\u0417\u0430\u043A\u0430\u0437 #${params.orderId} \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D`);
             }
+            if (order.userId !== params.userId) {
+              throw new Error(`\u041E\u0442\u043A\u0430\u0437 \u0432 \u0434\u043E\u0441\u0442\u0443\u043F\u0435: \u0437\u0430\u043A\u0430\u0437 #${order.id} \u043F\u0440\u0438\u043D\u0430\u0434\u043B\u0435\u0436\u0438\u0442 \u0434\u0440\u0443\u0433\u043E\u043C\u0443 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044E`);
+            }
+            const expectedTenant = params.tenantId || "smmplan";
+            if (order.tenantId && order.tenantId !== expectedTenant && expectedTenant !== "all") {
+              throw new Error(`\u041D\u0435\u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u0435 \u0442\u0435\u043D\u0430\u043D\u0442\u0430 \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #${order.id}`);
+            }
+            if (order.status !== "AWAITING_PAYMENT") {
+              throw new Error(`\u0417\u0430\u043A\u0430\u0437 #${order.id} \u0443\u0436\u0435 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D \u0438\u043B\u0438 \u043D\u0435 \u043E\u0436\u0438\u0434\u0430\u0435\u0442 \u043E\u043F\u043B\u0430\u0442\u044B (\u0441\u0442\u0430\u0442\u0443\u0441: ${order.status})`);
+            }
+            if (amountCents < order.charge) {
+              throw new Error(`\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u0440\u0435\u0434\u0441\u0442\u0432 \u0434\u043B\u044F \u043E\u043F\u043B\u0430\u0442\u044B \u0437\u0430\u043A\u0430\u0437\u0430: \u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F ${order.charge} \u043A\u043E\u043F., \u043F\u0435\u0440\u0435\u0434\u0430\u043D\u043E ${amountCents} \u043A\u043E\u043F.`);
+            }
+            await tx.order.update({
+              where: { id: params.orderId },
+              data: { status: "PENDING" }
+            });
+            if (order.promoCodeId) {
+              const promo = await tx.promoCode.findUnique({
+                where: { id: order.promoCodeId },
+                select: { isSuspicious: true }
+              });
+              const isSuspicious = promo?.isSuspicious ?? false;
+              const existingUsage = await tx.promoCodeUsage.findUnique({
+                where: { orderId: order.id }
+              });
+              if (!existingUsage) {
+                await tx.promoCodeUsage.create({
+                  data: {
+                    promoCodeId: order.promoCodeId,
+                    userId: params.userId,
+                    orderId: order.id,
+                    discountCents: order.discountCents,
+                    revenueCents: order.charge,
+                    profitCents: order.charge - (order.providerCost ?? 0n),
+                    isSuspicious
+                  }
+                });
+              }
+            }
+            items.push({ id: params.orderId, tenantId: order.tenantId });
           }
           const basketOrders = await tx.order.findMany({
-            where: { paymentId: params.paymentId, status: "AWAITING_PAYMENT", ...params.tenantId ? { tenantId: params.tenantId } : {} }
+            where: {
+              paymentId: params.paymentId,
+              userId: params.userId,
+              status: "AWAITING_PAYMENT",
+              ...params.tenantId ? { tenantId: params.tenantId } : {}
+            }
           });
           if (basketOrders.length > 0) {
+            const totalBasketCharge = basketOrders.reduce((sum, o) => sum + o.charge, 0n);
+            if (amountCents < totalBasketCharge) {
+              throw new Error(`\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u0441\u0440\u0435\u0434\u0441\u0442\u0432 \u0434\u043B\u044F \u043E\u043F\u043B\u0430\u0442\u044B \u043A\u043E\u0440\u0437\u0438\u043D\u044B: \u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F ${totalBasketCharge} \u043A\u043E\u043F., \u043F\u0435\u0440\u0435\u0434\u0430\u043D\u043E ${amountCents} \u043A\u043E\u043F.`);
+            }
             await tx.order.updateMany({
-              where: { paymentId: params.paymentId, status: "AWAITING_PAYMENT", ...params.tenantId ? { tenantId: params.tenantId } : {} },
+              where: {
+                paymentId: params.paymentId,
+                userId: params.userId,
+                status: "AWAITING_PAYMENT",
+                ...params.tenantId ? { tenantId: params.tenantId } : {}
+              },
               data: { status: "PENDING" }
             });
             for (const order of basketOrders) {
@@ -141962,8 +142122,8 @@ var init_payment_gateway_service = __esm({
                       userId: params.userId,
                       orderId: order.id,
                       discountCents: order.discountCents,
-                      revenueCents: BigInt(Number(order.charge)),
-                      profitCents: BigInt(Number(order.charge - order.providerCost)),
+                      revenueCents: order.charge,
+                      profitCents: order.charge - (order.providerCost ?? 0n),
                       isSuspicious
                     }
                   });
@@ -142104,6 +142264,7 @@ var init_unified_payment_service = __esm({
     init_db();
     init_get_base_url();
     init_settings();
+    init_exact_math();
     UnifiedPaymentService = class {
       /**
        * Universal method to generate payment URLs for the Bot (Deposits & Top-ups).
@@ -142111,7 +142272,7 @@ var init_unified_payment_service = __esm({
        */
       static async createPayment(projectId, userId, amountRub, description, metadata, gateway = "yookassa", tenantId) {
         try {
-          const amountCents = Math.round(amountRub * 100);
+          const amountCents = ExactMath.rublesToKopecks(amountRub);
           const resolvedTenantId = tenantId || metadata?.tenantId || "smmplan";
           const payment = await db.payment.create({
             data: {
@@ -143942,6 +144103,150 @@ var init_geo_availability_service = __esm({
   }
 });
 
+// src/lib/cache/redis-cache.service.ts
+function setL1Bounded(key, value, expiresAt) {
+  const now = Date.now();
+  if (localL1Cache.size >= MAX_L1_ENTRIES) {
+    for (const [k, v] of localL1Cache.entries()) {
+      if (v.expiresAt <= now) {
+        localL1Cache.delete(k);
+      }
+    }
+    while (localL1Cache.size >= MAX_L1_ENTRIES) {
+      const oldestKey = localL1Cache.keys().next().value;
+      if (oldestKey) {
+        localL1Cache.delete(oldestKey);
+      } else {
+        break;
+      }
+    }
+  }
+  localL1Cache.set(key, { value, expiresAt });
+}
+var replacer, reviver, MAX_L1_ENTRIES, localL1Cache, RedisCacheService;
+var init_redis_cache_service = __esm({
+  "src/lib/cache/redis-cache.service.ts"() {
+    "use strict";
+    init_redis();
+    replacer = (_key, value) => {
+      if (typeof value === "bigint") {
+        return { __type: "BigInt", val: value.toString() };
+      }
+      return value;
+    };
+    reviver = (_key, value) => {
+      if (value && typeof value === "object" && value.__type === "BigInt") {
+        return BigInt(value.val);
+      }
+      return value;
+    };
+    MAX_L1_ENTRIES = 1e3;
+    localL1Cache = /* @__PURE__ */ new Map();
+    RedisCacheService = class {
+      /**
+       * Retrieves an item from L1 memory or L2 Redis.
+       */
+      static async get(key) {
+        const now = Date.now();
+        const l1 = localL1Cache.get(key);
+        if (l1) {
+          if (l1.expiresAt > now) {
+            return l1.value;
+          }
+          localL1Cache.delete(key);
+        }
+        try {
+          if (redis && (redis.status === "ready" || redis.status === "connecting")) {
+            const raw = await redis.get(key);
+            if (raw) {
+              const parsed = JSON.parse(raw, reviver);
+              setL1Bounded(key, parsed, now + 1e4);
+              return parsed;
+            }
+          }
+        } catch (err) {
+          console.warn(`[RedisCacheService] Read failed for key ${key}:`, err);
+        }
+        return null;
+      }
+      /**
+       * Stores an item into L1 and L2 Redis with TTL in seconds.
+       */
+      static async set(key, data, ttlSeconds = 300) {
+        const now = Date.now();
+        setL1Bounded(key, data, now + ttlSeconds * 1e3);
+        try {
+          if (redis && (redis.status === "ready" || redis.status === "connecting")) {
+            const serialized = JSON.stringify(data, replacer);
+            await redis.set(key, serialized, "EX", ttlSeconds);
+          }
+        } catch (err) {
+          console.warn(`[RedisCacheService] Write failed for key ${key}:`, err);
+        }
+      }
+      /**
+       * High-level get-or-set wrapper.
+       */
+      static async getOrSet(key, fetcher, ttlSeconds = 300) {
+        const cached = await this.get(key);
+        if (cached !== null && cached !== void 0) {
+          return cached;
+        }
+        const fresh = await fetcher();
+        await this.set(key, fresh, ttlSeconds);
+        return fresh;
+      }
+      /**
+       * Safely scans and deletes keys in Redis matching a pattern using non-blocking SCAN.
+       * Eliminates O(N) event loop freezes in Redis single-threaded engine.
+       */
+      static async scanAndDelete(pattern) {
+        if (!redis || redis.status !== "ready" && redis.status !== "connecting") {
+          return 0;
+        }
+        let deletedCount = 0;
+        let cursor = "0";
+        const redisPattern = pattern.includes("*") ? pattern : `${pattern}*`;
+        try {
+          do {
+            const [nextCursor, keys] = await redis.scan(cursor, "MATCH", redisPattern, "COUNT", 100);
+            cursor = nextCursor;
+            if (keys && keys.length > 0) {
+              const deleted = await redis.del(...keys);
+              deletedCount += deleted;
+            }
+          } while (cursor !== "0");
+        } catch (err) {
+          console.warn(`[RedisCacheService] scanAndDelete failed for ${pattern}:`, err);
+        }
+        return deletedCount;
+      }
+      /**
+       * Invalidates keys matching a pattern.
+       */
+      static async invalidate(pattern) {
+        const cleanPattern = pattern.endsWith("*") ? pattern.slice(0, -1) : pattern;
+        for (const key of localL1Cache.keys()) {
+          if (pattern === "*" || key.startsWith(cleanPattern) || key.includes(cleanPattern)) {
+            localL1Cache.delete(key);
+          }
+        }
+        try {
+          if (redis && (redis.status === "ready" || redis.status === "connecting")) {
+            await this.scanAndDelete(pattern);
+            if (typeof redis.publish === "function") {
+              await redis.publish("cache:invalidation:channel", pattern).catch(() => {
+              });
+            }
+          }
+        } catch (err) {
+          console.warn(`[RedisCacheService] Invalidation failed for pattern ${pattern}:`, err);
+        }
+      }
+    };
+  }
+});
+
 // src/bot/scenes/owner-hub.wizard.ts
 async function isOwnerOrAdmin(tgId) {
   const strId = String(tgId);
@@ -144020,6 +144325,7 @@ var init_owner_hub_wizard = __esm({
     init_p0_threat_sensor_service();
     init_geo_availability_service();
     init_provider_service();
+    init_redis_cache_service();
     ownerHubWizard = new import_telegraf3.Scenes.WizardScene(
       "owner-hub",
       async (ctx) => {
@@ -144093,7 +144399,8 @@ var init_owner_hub_wizard = __esm({
           primaryProviderBalance = `${bal.balance} ${bal.currency}`;
         }
       } catch (err) {
-        primaryProviderBalance = `\u041E\u0448\u0438\u0431\u043A\u0430: ${err.message?.slice(0, 30)}`;
+        const msg = err instanceof Error ? err.message : String(err);
+        primaryProviderBalance = `\u041E\u0448\u0438\u0431\u043A\u0430: ${msg.slice(0, 30)}`;
       }
       const text = `\u{1F310} <b>SMM-\u041F\u0410\u041D\u0415\u041B\u042C, \u041A\u0410\u0422\u0410\u041B\u041E\u0413 & \u041F\u0420\u041E\u0412\u0410\u0419\u0414\u0415\u0420\u042B</b>
 
@@ -144128,7 +144435,7 @@ var init_owner_hub_wizard = __esm({
       const recentErrors = await db.telegramErrorLog?.findMany({
         take: 3,
         orderBy: { createdAt: "desc" }
-      }).catch(() => []);
+      }).catch(() => []) ?? [];
       let ledgerVerdict = "\u{1F7E2} <b>\u0418\u0414\u0415\u0410\u041B\u042C\u041D\u041E:</b> \u0420\u0430\u0441\u0445\u043E\u0436\u0434\u0435\u043D\u0438\u0439 0. \u0411\u0430\u043B\u0430\u043D\u0441\u044B 100% \u0441\u0445\u043E\u0434\u044F\u0442\u0441\u044F \u0441 \u0442\u0440\u0430\u043D\u0437\u0430\u043A\u0446\u0438\u044F\u043C\u0438.";
       if (discrepancies.length > 0) {
         ledgerVerdict = `\u{1F534} <b>\u0412\u041D\u0418\u041C\u0410\u041D\u0418\u0415:</b> \u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E ${discrepancies.length} \u0440\u0430\u0441\u0445\u043E\u0436\u0434\u0435\u043D\u0438\u0439 \u0431\u0430\u043B\u0430\u043D\u0441\u0430! \u0410\u043A\u043A\u0430\u0443\u043D\u0442\u044B \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D\u044B.`;
@@ -144214,7 +144521,7 @@ ${errorLogSummary}`;
         } else {
           throw new Error(`AI Gateway HTTP ${res.status}`);
         }
-      } catch (err) {
+      } catch (_err) {
         reportText = `\u{1F9E0} <b>\u0420\u0415\u0417\u0423\u041B\u042C\u0422\u0410\u0422\u042B AI-\u0421\u0410\u041C\u041E\u041F\u0420\u041E\u0412\u0415\u0420\u041A\u0418</b>
 
 \u{1F3C6} <b>Health Score:</b> <b>100 / 100 (Green)</b>
@@ -144271,36 +144578,31 @@ ${errorLogSummary}`;
           [import_telegraf3.Markup.button.url("\u{1F680} \u041E\u0442\u043A\u0440\u044B\u0442\u044C \u0410\u0434\u043C\u0438\u043D\u043A\u0443", magicUrl)],
           [import_telegraf3.Markup.button.callback("\u25C0\uFE0F \u041D\u0430\u0437\u0430\u0434 \u0432 \u041F\u0443\u043B\u044C\u0442", "owner_back")]
         ]);
+        const extraOpts = {
+          parse_mode: "HTML",
+          link_preview_options: { is_disabled: true },
+          ...keyboard
+        };
         try {
-          await ctx.editMessageText(text, {
-            parse_mode: "HTML",
-            link_preview_options: { is_disabled: true },
-            ...keyboard
-          });
+          await ctx.editMessageText(text, extraOpts);
         } catch {
-          await ctx.reply(text, {
-            parse_mode: "HTML",
-            link_preview_options: { is_disabled: true },
-            ...keyboard
-          });
+          await ctx.reply(text, extraOpts);
         }
       } catch (err) {
-        await ctx.reply(`\u26A0\uFE0F \u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0441\u0441\u044B\u043B\u043A\u0438: ${err.message}`);
+        const msg = err instanceof Error ? err.message : String(err);
+        await ctx.reply(`\u26A0\uFE0F \u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0441\u0441\u044B\u043B\u043A\u0438: ${msg}`);
       }
     });
     ownerHubWizard.action("owner_flush_cache", async (ctx) => {
       if (!ctx.from || !await isOwnerOrAdmin(ctx.from.id)) return;
       await ctx.answerCbQuery("\u041E\u0447\u0438\u0441\u0442\u043A\u0430 \u043A\u044D\u0448\u0430...");
       try {
-        const keys = await redis.keys("catalog:*");
-        const settingsKeys = await redis.keys("settings:*");
-        const allKeys = [...keys, ...settingsKeys];
-        if (allKeys.length > 0) {
-          await redis.del(...allKeys);
-        }
+        const delCatalog = await RedisCacheService.scanAndDelete("catalog:*");
+        const delSettings = await RedisCacheService.scanAndDelete("settings:*");
+        const totalDeleted = delCatalog + delSettings;
         const text = `\u{1F9F9} <b>\u041A\u042D\u0428 REDIS \u0423\u0421\u041F\u0415\u0428\u041D\u041E \u041E\u0427\u0418\u0429\u0415\u041D!</b>
 
-\u0423\u0434\u0430\u043B\u0435\u043D\u043E \u043A\u043B\u044E\u0447\u0435\u0439 \u043A\u044D\u0448\u0430 \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0430 \u0438 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043A: <b>${allKeys.length}</b>.
+\u0423\u0434\u0430\u043B\u0435\u043D\u043E \u043A\u043B\u044E\u0447\u0435\u0439 \u043A\u044D\u0448\u0430 \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0430 \u0438 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043A: <b>${totalDeleted}</b>.
 \u041D\u043E\u0432\u044B\u0435 \u0437\u0430\u043F\u0440\u043E\u0441\u044B \u043A \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0443 \u0438 \u0446\u0435\u043D\u0430\u043C \u0431\u0443\u0434\u0443\u0442 \u043F\u0435\u0440\u0435\u0447\u0438\u0442\u0430\u043D\u044B \u043D\u0430\u043F\u0440\u044F\u043C\u0443\u044E \u0438\u0437 PostgreSQL.`;
         const keyboard = import_telegraf3.Markup.inlineKeyboard([
           [import_telegraf3.Markup.button.callback("\u25C0\uFE0F \u041D\u0430\u0437\u0430\u0434 \u0432 \u041F\u0443\u043B\u044C\u0442", "owner_back")]
@@ -144311,7 +144613,8 @@ ${errorLogSummary}`;
           await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
         }
       } catch (err) {
-        await ctx.reply(`\u26A0\uFE0F \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0447\u0438\u0441\u0442\u043A\u0438 \u043A\u044D\u0448\u0430: ${err.message}`);
+        const msg = err instanceof Error ? err.message : String(err);
+        await ctx.reply(`\u26A0\uFE0F \u041E\u0448\u0438\u0431\u043A\u0430 \u043E\u0447\u0438\u0441\u0442\u043A\u0438 \u043A\u044D\u0448\u0430: ${msg}`);
       }
     });
     ownerHubWizard.action("owner_geo_check", async (ctx) => {
@@ -144722,8 +145025,6 @@ var init_ticket_service = __esm({
   "src/services/support/ticket.service.ts"() {
     "use strict";
     init_db();
-    init_smtp();
-    init_settings();
     init_sse_service();
     init_mime();
     init_smtp();
@@ -144911,19 +145212,6 @@ var init_ticket_service = __esm({
             console.error("[TicketService] Error sending to telegram:", e);
           }
         }
-        if (sender === "STAFF" && ticketToUpdate.user.email) {
-          try {
-            await sendTicketReplyMail(
-              ticketToUpdate.user.email,
-              ticketToUpdate.id,
-              ticketToUpdate.subject,
-              text,
-              ticketToUpdate.tenantId
-            );
-          } catch (e) {
-            console.error("[TicketService] Error sending email notification:", e);
-          }
-        }
         const message = await db.ticketMessage.create({
           data: {
             ticketId,
@@ -144958,60 +145246,26 @@ var init_ticket_service = __esm({
             ...sender === "STAFF" && !ticketToUpdate.firstRespondedAt ? { firstRespondedAt: /* @__PURE__ */ new Date() } : {}
           }
         });
-        if (sender === "STAFF" && message.ticket.user.email && !message.ticket.user.telegramId) {
-          const actionText = `
-        <p style="color: #4f46e5; font-size: 14px; font-weight: bold; margin-top: 20px;">
-          \u270D\uFE0F \u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u0442\u044C \u043D\u0430 \u044D\u0442\u043E \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u043F\u0440\u044F\u043C\u043E \u0447\u0435\u0440\u0435\u0437 \u043F\u043E\u0447\u0442\u0443 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043D\u0430\u043F\u0438\u0448\u0438\u0442\u0435 \u043E\u0442\u0432\u0435\u0442\u043D\u043E\u0435 \u043F\u0438\u0441\u044C\u043C\u043E.
-        </p>
-        <p style="color: #64748b; font-size: 12px; margin-top: 5px;">
-          \u0418\u043B\u0438 \u0432\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0432\u043E\u0439\u0442\u0438 \u0432 \u043F\u0430\u043D\u0435\u043B\u044C \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F (Dashboard) \u0434\u043B\u044F \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430 \u0432\u0441\u0435\u0439 \u043F\u0435\u0440\u0435\u043F\u0438\u0441\u043A\u0438.
-        </p>
-      `;
-          const ticketTenantId = message.ticket.tenantId || message.ticket.user?.tenantId || "smmplan";
-          const supportDomain = await SettingsProvider.getSupportEmailDomain(ticketTenantId);
-          const settings = await SettingsProvider.getContactAndLegalSettings(ticketTenantId);
-          const companyName = settings.COMPANY_NAME || (ticketTenantId === "flux" ? "SMMflux" : "SMMplan");
-          const replyToAddress = `support+${message.ticket.id}@${supportDomain}`;
-          const escapeHtml4 = (unsafe) => (unsafe ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, "<br>");
-          const previousMessages = await db.ticketMessage.findMany({
-            where: { ticketId, sender: { in: ["USER", "STAFF"] } },
-            // exclude internal notes for safety
-            orderBy: { createdAt: "desc" },
-            take: 6
-            // get current + last 5 messages
-          });
-          const historyMessages = previousMessages.filter((m) => m.id !== message.id).reverse();
-          let historyHtml = "";
-          if (historyMessages.length > 0) {
-            historyHtml = `
-          <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-            <h3 style="color: #475569; font-size: 13px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.05em;">\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0435 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u044F:</h3>
-            ${historyMessages.map((m) => {
-              const senderLabel = m.sender === "USER" ? "\u0412\u044B" : "\u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430";
-              const isStaff = m.sender === "STAFF";
-              return `
-                <div style="margin-bottom: 12px; padding: 12px; border-radius: 8px; background-color: ${isStaff ? "#f8fafc" : "#f0f9ff"}; border-left: 4px solid ${isStaff ? "#94a3b8" : "#38bdf8"};">
-                  <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px;">
-                    ${senderLabel} \u2022 ${new Date(m.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
-                  </div>
-                  <div style="font-size: 13px; color: #334155; white-space: pre-wrap; line-height: 1.5;">${escapeHtml4(m.text)}</div>
-                </div>
-              `;
-            }).join("")}
-          </div>
-        `;
+        if (sender === "STAFF" && message.ticket.user.email) {
+          try {
+            const previousMessages = await db.ticketMessage.findMany({
+              where: { ticketId, sender: { in: ["USER", "STAFF"] } },
+              orderBy: { createdAt: "desc" },
+              take: 6,
+              select: { id: true, sender: true, text: true, createdAt: true }
+            });
+            const historyItems = previousMessages.filter((m) => m.id !== message.id).reverse();
+            await sendTicketReplyMail(
+              message.ticket.user.email,
+              message.ticket.id,
+              message.ticket.subject,
+              text,
+              message.ticket.tenantId,
+              historyItems
+            );
+          } catch (mailErr) {
+            console.error("[TicketService] Error sending unified email notification:", mailErr);
           }
-          void sendMail(message.ticket.user.email, `Support Reply: ${message.ticket.subject}`, `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-          <h2 style="color: #4f46e5; margin-top: 0;">\u041D\u043E\u0432\u043E\u0435 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u043E\u0442 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0438 ${companyName}</h2>
-          <p style="font-size: 14px; color: #475569;"><strong>\u0422\u0435\u043C\u0430:</strong> ${escapeHtml4(message.ticket.subject)}</p>
-          <div style="background: #f8fafc; padding: 18px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5; font-size: 15px; color: #1e293b; line-height: 1.6; white-space: pre-wrap;">
-            ${escapeHtml4(text)}
-          </div>
-          ${actionText}
-          ${historyHtml}
-        </div>
-      `, replyToAddress, ticketTenantId);
         }
         void Promise.resolve(publishMessageSSE(ticketId, message.id)).catch((err) => {
           console.error("[TicketService] SSE broadcast error:", err);
@@ -147591,7 +147845,15 @@ function getUnifiedCustomValidator(customDataType) {
     return external_exports.string().trim().regex(/^\d+$/, "\u0417\u043D\u0430\u0447\u0435\u043D\u0438\u0435 \u0434\u043E\u043B\u0436\u043D\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u0437 \u0446\u0438\u0444\u0440");
   }
   if (type === "TEXTAREA") {
-    return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C").max(1e4, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 (\u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10000 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)").refine((val) => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(val), "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0443\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0449\u0438\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B");
+    return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C").max(1e4, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043B\u0438\u043D\u043D\u044B\u0439 (\u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C 10000 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432)").refine((val) => {
+      for (let i = 0; i < val.length; i++) {
+        const code = val.charCodeAt(i);
+        if (code >= 0 && code <= 8 || code === 11 || code === 12 || code >= 14 && code <= 31 || code === 127) {
+          return false;
+        }
+      }
+      return true;
+    }, "\u0422\u0435\u043A\u0441\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0443\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0449\u0438\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B");
   }
   return external_exports.string().trim().min(1, "\u041F\u043E\u043B\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C");
 }
@@ -150789,6 +151051,7 @@ var init_payment_service = __esm({
     init_marketing_utils();
     init_promo_automation_service();
     init_security_alert_service();
+    init_tenant_context();
     PaymentService = class {
       /**
        * Confirms a payment and activates the linked order.
@@ -150796,22 +151059,25 @@ var init_payment_service = __esm({
        * 
        * Flow: Payment PENDING → SUCCEEDED → Order AWAITING_PAYMENT → PENDING
        */
-      async confirmPayment(gatewayId, amount, userId, isDevSandbox = false, gatewayType = "yookassa", internalPaymentId, metadataType, receiptId) {
+      async confirmPayment(gatewayId, amount, userId, _isDevSandbox = false, gatewayType = "yookassa", internalPaymentId, metadataType, receiptId) {
         const activatedOrders = [];
         let paidAmountBigInt = BigInt(amount);
         let isOrderFlow = false;
         let creditedUserId = null;
+        const pendingSecurityAlerts = [];
         try {
           const isMockPayment = gatewayId.startsWith("test_") || gatewayId.startsWith("mock_");
-          if (process.env.NODE_ENV === "production" && gatewayType === "yookassa" && !isDevSandbox && !isMockPayment) {
+          if (process.env.NODE_ENV === "production" && gatewayType === "yookassa" && !_isDevSandbox && !isMockPayment) {
             let paymentTenantId = "smmplan";
-            if (internalPaymentId) {
-              const p = await db.payment.findUnique({ where: { id: internalPaymentId }, select: { tenantId: true } });
-              if (p?.tenantId) paymentTenantId = p.tenantId;
-            } else if (gatewayId) {
-              const p = await db.payment.findUnique({ where: { gatewayId }, select: { tenantId: true } });
-              if (p?.tenantId) paymentTenantId = p.tenantId;
-            }
+            await runWithTenantBypass("Webhook pre-check payment tenant resolution", async () => {
+              if (internalPaymentId) {
+                const p = await db.payment.findUnique({ where: { id: internalPaymentId }, select: { tenantId: true } });
+                if (p?.tenantId) paymentTenantId = p.tenantId;
+              } else if (gatewayId) {
+                const p = await db.payment.findUnique({ where: { gatewayId }, select: { tenantId: true } });
+                if (p?.tenantId) paymentTenantId = p.tenantId;
+              }
+            });
             const { SettingsManager: SettingsManager2 } = await Promise.resolve().then(() => (init_settings(), settings_exports));
             const isTestMode = await SettingsManager2.isTestMode(paymentTenantId);
             if (!isTestMode) {
@@ -150847,15 +151113,16 @@ var init_payment_service = __esm({
             }
           }
           await runSerializableTransaction(async (tx) => {
-            let payment = null;
-            if (internalPaymentId) {
-              payment = await tx.payment.findUnique({ where: { id: internalPaymentId } });
-            }
-            if (!payment) {
-              payment = await tx.payment.findUnique({ where: { gatewayId } });
-            }
+            const payment = await runWithTenantBypass("Webhook confirmPayment lookup", async () => {
+              if (internalPaymentId) {
+                const found2 = await tx.payment.findUnique({ where: { id: internalPaymentId } });
+                if (found2) return found2;
+              }
+              const found = await tx.payment.findUnique({ where: { gatewayId } });
+              return found || null;
+            });
             const receivedAmountBigInt = BigInt(amount);
-            const currentPayment = payment ? await tx.payment.findUnique({ where: { id: payment.id } }) : await tx.payment.findUnique({ where: { gatewayId } });
+            const currentPayment = payment;
             if (currentPayment && currentPayment.status === "SUCCEEDED") {
               console.info(`[Payment] ${gatewayId} already processed (atomic idempotency hit)`);
               return;
@@ -150870,7 +151137,7 @@ var init_payment_service = __esm({
             }
             if (currentPayment && currentPayment.amount !== receivedAmountBigInt) {
               console.error(`[Payment] Amount mismatch exploit attempt for ${gatewayId}: expected ${currentPayment.amount}, got ${receivedAmountBigInt}`);
-              void SecurityAlertService.record({
+              pendingSecurityAlerts.push(() => SecurityAlertService.record({
                 event: "PAYMENT_AMOUNT_MISMATCH_EXPLOIT",
                 severity: "CRITICAL",
                 details: {
@@ -150880,7 +151147,7 @@ var init_payment_service = __esm({
                   gatewayId,
                   gatewayType
                 }
-              });
+              }));
               throw new Error("PAYMENT_AMOUNT_MISMATCH: Amount received from gateway does not match expected payment amount.");
             }
             let processedPaymentId;
@@ -150922,7 +151189,7 @@ var init_payment_service = __esm({
               if (order && order.status === "AWAITING_PAYMENT") {
                 if (creditAmount < order.charge) {
                   console.error(`[SECURITY] Underpaid order activation blocked: order #${order.numericId} requires ${order.charge} kopecks, but payment credited only ${creditAmount} kopecks.`);
-                  void SecurityAlertService.record({
+                  pendingSecurityAlerts.push(() => SecurityAlertService.record({
                     event: "UNDERPAID_ORDER_EXPLOIT_ATTEMPT",
                     severity: "CRITICAL",
                     details: {
@@ -150932,7 +151199,7 @@ var init_payment_service = __esm({
                       creditedAmount: creditAmount.toString(),
                       paymentId: processedPaymentId
                     }
-                  });
+                  }));
                   throw new Error(`UNDERPAID_ORDER: Credited amount (${creditAmount}) is less than required order charge (${order.charge})`);
                 }
                 await tx.order.update({
@@ -151090,6 +151357,13 @@ var init_payment_service = __esm({
           return true;
         } catch (e) {
           console.error("[PaymentService] Error confirming payment:", e instanceof Error ? e.message : String(e));
+          for (const alertFn of pendingSecurityAlerts) {
+            try {
+              await alertFn();
+            } catch (alertErr) {
+              console.error("[PaymentService] Deferred security alert failed:", alertErr);
+            }
+          }
           return false;
         }
       }
@@ -151187,14 +151461,14 @@ var init_payment_service = __esm({
                 await WalletOps.credit(
                   tx,
                   payment.userId,
-                  Number(payment.amount),
+                  payment.amount,
                   `\u041E\u043F\u043B\u0430\u0442\u0430 \u0437\u0430\u043A\u0430\u0437\u0430 #${order.numericId} \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
                   { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
                 );
                 await WalletOps.charge(
                   tx,
                   payment.userId,
-                  Number(order.charge),
+                  order.charge,
                   `\u0421\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0437\u0430 \u0437\u0430\u043A\u0430\u0437 #${order.numericId}`,
                   { idempotencyKey: `gateway-charge-${order.id}`, tenantId: payment.tenantId }
                 );
@@ -151223,7 +151497,7 @@ var init_payment_service = __esm({
               await WalletOps.credit(
                 tx,
                 payment.userId,
-                Number(payment.amount),
+                payment.amount,
                 `\u041E\u043F\u043B\u0430\u0442\u0430 \u043A\u043E\u0440\u0437\u0438\u043D\u044B \u0437\u0430\u043A\u0430\u0437\u043E\u0432 \u0447\u0435\u0440\u0435\u0437 \u0448\u043B\u044E\u0437`,
                 { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
               );
@@ -163839,110 +164113,69 @@ init_provider_service();
 
 // src/services/financial/refund-policy.service.ts
 init_db();
-init_wallet_ops();
-
-// src/services/financial/wallet.service.ts
-init_wallet_ops();
 init_transactions();
-var WalletService = class {
-  /**
-   * Safe charge mechanism with Serializable isolation & Idempotency.
-   * Modifying balances using this guarantees no double-spending.
-   */
-  static async charge(userId, amountCents, reason, idempotencyKey, adminId, tenantId) {
-    try {
-      return await runSerializableTransaction(
-        async (tx) => WalletOps.charge(tx, userId, amountCents, reason, { idempotencyKey, adminId, tenantId })
-      );
-    } catch (e) {
-      return { success: false, error: (e instanceof Error ? e.message : String(e)) || "Transaction failed", balance: null, cached: false };
-    }
-  }
-  /**
-   * Refill user balance (e.g., from Yookassa top-up)
-   */
-  static async credit(userId, amountCents, reason, idempotencyKey, adminId, tenantId) {
-    try {
-      return await runSerializableTransaction(
-        async (tx) => WalletOps.credit(tx, userId, amountCents, reason, { idempotencyKey, adminId, tenantId })
-      );
-    } catch (e) {
-      return { success: false, error: (e instanceof Error ? e.message : String(e)) || "Transaction failed", balance: null, cached: false };
-    }
-  }
-  /**
-   * Refund user balance: increments balance, decrements totalSpent, creates ledger entry.
-   * 
-   * ARCHITECTURE CONTRACT: Единственный способ оформить возврат клиенту.
-   * Гарантирует: идемпотентность, Serializable isolation, ledger audit trail.
-   */
-  static async refund(userId, amountCents, reason, idempotencyKey, adminId, tenantId) {
-    try {
-      return await runSerializableTransaction(
-        async (tx) => WalletOps.refund(tx, userId, amountCents, reason, { idempotencyKey, adminId, tenantId })
-      );
-    } catch (e) {
-      return { success: false, error: (e instanceof Error ? e.message : String(e)) || "Refund transaction failed", balance: null, cached: false };
-    }
-  }
-};
-
-// src/services/financial/refund-policy.service.ts
+init_wallet_ops();
 init_refund();
 init_loyalty_service();
 var RefundPolicyService = class {
   /**
-   * Processes an automated refund based on strict mathematical rules (Cents).
+   * Processes an automated refund based on strict mathematical rules (Cents/BigInt).
    * Supports PARTIAL, CANCELED, and ERROR statuses.
+   * Guarantees atomic transaction execution for balance refund and commission adjustments.
    */
   static async processRefund(order, reasonDetail = "", txClient = db) {
     if (["COMPLETED", "PENDING", "IN_PROGRESS", "AWAITING_PAYMENT"].includes(order.status)) {
       return null;
     }
-    try {
+    const executeInTx = async (tx) => {
       if (order.status === "CANCELED" || order.status === "ERROR") {
-        await LoyaltyService.reverseCommission(txClient, order.id);
+        await LoyaltyService.reverseCommission(tx, order.id);
       } else if (order.status === "PARTIAL") {
-        await LoyaltyService.handlePartialCommission(txClient, order.id, order.remains, order.quantity);
+        await LoyaltyService.handlePartialCommission(tx, order.id, order.remains, order.quantity);
       }
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[RefundPolicyService] Failed to process referral commission for order ${order.id}:`, errMsg);
-    }
-    let refundCents = 0;
-    let reason = `\u0412\u043E\u0437\u0432\u0440\u0430\u0442 \u0417\u0430\u043A\u0430\u0437 #${order.id}`;
-    const previousRefundsAgg = await txClient.ledgerEntry.aggregate({
-      where: {
-        userId: order.userId,
-        status: "APPROVED",
-        ...order.tenantId ? { tenantId: order.tenantId } : {},
-        OR: [
-          { idempotencyKey: { startsWith: `refund_${order.id}_` } },
-          { idempotencyKey: `refund-order-${order.id}` },
-          { idempotencyKey: `refund-ttl-${order.id}` },
-          { idempotencyKey: `refund-dlq-${order.id}` }
-        ]
-      },
-      _sum: { amount: true }
-    });
-    const alreadyRefunded = Number(previousRefundsAgg._sum.amount || 0);
-    if (order.status === "CANCELED" || order.status === "ERROR") {
-      refundCents = Math.max(0, order.charge - alreadyRefunded);
-      reason = `\u041F\u043E\u043B\u043D\u044B\u0439 \u0432\u043E\u0437\u0432\u0440\u0430\u0442 (${order.status}) \u0417\u0430\u043A\u0430\u0437 #${order.id} ${reasonDetail}`.trim();
-    } else if (order.status === "PARTIAL") {
-      const partialCalc = calculatePartialRefund(order);
-      refundCents = Math.max(0, Math.min(partialCalc, order.charge - alreadyRefunded));
-      reason = `\u0427\u0430\u0441\u0442\u0438\u0447\u043D\u044B\u0439 \u0432\u043E\u0437\u0432\u0440\u0430\u0442 (Partial, ${order.remains} \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E) \u0417\u0430\u043A\u0430\u0437 #${order.id}`.trim();
-    }
-    if (refundCents > 0) {
-      const idempotencyKey = `refund_${order.id}_${order.status}`;
-      if (txClient === db) {
-        return await WalletService.refund(order.userId, refundCents, reason, idempotencyKey, void 0, order.tenantId);
-      } else {
-        return await WalletOps.refund(txClient, order.userId, refundCents, reason, { idempotencyKey, tenantId: order.tenantId });
+      const previousRefundsAgg = await tx.ledgerEntry.aggregate({
+        where: {
+          userId: order.userId,
+          status: "APPROVED",
+          ...order.tenantId ? { tenantId: order.tenantId } : {},
+          OR: [
+            { idempotencyKey: { startsWith: `refund_${order.id}_` } },
+            { idempotencyKey: `refund-order-${order.id}` },
+            { idempotencyKey: `refund-ttl-${order.id}` },
+            { idempotencyKey: `refund-dlq-${order.id}` }
+          ]
+        },
+        _sum: { amount: true }
+      });
+      const chargeBig = typeof order.charge === "bigint" ? order.charge : BigInt(order.charge);
+      const alreadyRefundedBig = previousRefundsAgg._sum.amount ? BigInt(previousRefundsAgg._sum.amount) : 0n;
+      let refundBigInt = 0n;
+      let reason = `\u0412\u043E\u0437\u0432\u0440\u0430\u0442 \u0417\u0430\u043A\u0430\u0437 #${order.id}`;
+      if (order.status === "CANCELED" || order.status === "ERROR") {
+        refundBigInt = chargeBig > alreadyRefundedBig ? chargeBig - alreadyRefundedBig : 0n;
+        reason = `\u041F\u043E\u043B\u043D\u044B\u0439 \u0432\u043E\u0437\u0432\u0440\u0430\u0442 (${order.status}) \u0417\u0430\u043A\u0430\u0437 #${order.id} ${reasonDetail}`.trim();
+      } else if (order.status === "PARTIAL") {
+        const partialCalc = BigInt(calculatePartialRefund(order));
+        const maxAvailable = chargeBig > alreadyRefundedBig ? chargeBig - alreadyRefundedBig : 0n;
+        refundBigInt = partialCalc < maxAvailable ? partialCalc : maxAvailable;
+        reason = `\u0427\u0430\u0441\u0442\u0438\u0447\u043D\u044B\u0439 \u0432\u043E\u0437\u0432\u0440\u0430\u0442 (Partial, ${order.remains} \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E) \u0417\u0430\u043A\u0430\u0437 #${order.id}`.trim();
       }
+      if (refundBigInt > 0n) {
+        const idempotencyKey = `refund_${order.id}_${order.status}`;
+        return await WalletOps.refund(tx, order.userId, refundBigInt, reason, {
+          idempotencyKey,
+          tenantId: order.tenantId
+        });
+      }
+      return null;
+    };
+    if (txClient === db) {
+      return await runSerializableTransaction(async (tx) => {
+        return await executeInTx(tx);
+      });
+    } else {
+      return await executeInTx(txClient);
     }
-    return null;
   }
 };
 
@@ -164186,8 +164419,11 @@ async function syncProcessor(job) {
               });
             } else if (targetStatus === "IN_PROGRESS") {
               const safeProgressRemains = remainsNum !== void 0 && !isNaN(remainsNum) ? Math.min(order.quantity, Math.max(0, remainsNum)) : void 0;
-              await db.order.update({
-                where: { id: order.id },
+              await db.order.updateMany({
+                where: {
+                  id: order.id,
+                  status: { in: ["IN_PROGRESS", "PENDING", "PENDING_CHECK"] }
+                },
                 data: {
                   remains: safeProgressRemains,
                   startCount: startCountNum !== void 0 && !isNaN(startCountNum) ? startCountNum : void 0
@@ -168341,13 +168577,20 @@ async function refillProcessor(job) {
         throw new Error("No valid refill ID returned by provider");
       }
       const extId = response.refill.toString();
-      await db.refill.update({
-        where: { id: refill.id },
+      const updated = await db.refill.updateMany({
+        where: {
+          id: refill.id,
+          status: "PENDING"
+        },
         data: {
           status: "IN_PROGRESS",
           externalId: extId
         }
       });
+      if (updated.count === 0) {
+        log25.warn(`[RefillProcessor] Refill ${refill.id} is no longer PENDING (concurrent state mutation). Skipping overwrite.`);
+        return { success: false, status: "SKIPPED", reason: "Refill was updated concurrently" };
+      }
       log25.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order #${order.numericId} | External ID: ${extId}`);
       return { success: true, status: "IN_PROGRESS", externalId: extId };
     } catch (error2) {

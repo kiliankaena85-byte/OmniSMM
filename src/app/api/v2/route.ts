@@ -259,7 +259,7 @@ const addSchema = z.object({
   interval: z.coerce.number().int().positive().optional()
 });
 
-function resolvePlatformSlug(category?: { networkId?: string | null; slug?: string | null; name?: string | null; network?: any } | null): string {
+function resolvePlatformSlug(category?: { networkId?: string | null; slug?: string | null; name?: string | null; network?: string | { slug?: string | null } | null } | null): string {
   if (!category) return '';
   const netStr = typeof category.network === 'string' ? category.network : category.network?.slug || '';
   const text = `${netStr} ${category.networkId || ''} ${category.slug || ''} ${category.name || ''}`.toUpperCase();
@@ -345,6 +345,13 @@ async function handleAdd(user: User, formData: FormData) {
   }
 
   // API panels standard: for DripFeed, "quantity" parameter is quantity *per run*.
+  // Drip-Feed Floor Invariant: quantity per run cannot be lower than service.minQty
+  if (runs && runs > 0 && quantity < service.minQty) {
+    return NextResponse.json({
+      error: `Drip-feed run quantity (${quantity}) is below minimum requirement (${service.minQty})`
+    }, { status: 400 });
+  }
+
   // Our DB schema requires order.quantity to be the *total* overall quantity.
   const totalQuantity = (runs && runs > 0) ? quantity * runs : quantity;
 
@@ -377,7 +384,7 @@ async function handleAdd(user: User, formData: FormData) {
     // Prisma transaction conflict codes: P2034 (Serializable conflict), P2028 (Deadlock)
     const errCode = (typeof err === "object" && err !== null && "code" in err) ? (err as { code: unknown }).code : undefined;
     if (errCode === "P2034" || errCode === "P2028") {
-      return NextResponse.json({ error: 'Not enough funds on balance' }, { status: 400 });
+      return NextResponse.json({ error: 'System busy, please retry your request' }, { status: 503 });
     }
     console.error('[API v2 Error]:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -395,7 +402,7 @@ function parseOrders(formData: FormData): unknown[] | null {
     }
   }
 
-  const ordersMap: Record<number, any> = {};
+  const ordersMap: Record<number, Record<string, string>> = {};
   let hasEntries = false;
   for (const [key, value] of formData.entries()) {
     const match = key.match(/^orders\[(\d+)\]\[(\w+)\]$/);
@@ -447,7 +454,7 @@ async function handleAddMulti(user: User, formData: FormData) {
         where: {
           numericId: serviceNumericId,
           isActive: true,
-          tenantId: userTenantId,
+          tenantId: { in: [userTenantId, 'all'] },
           category: { tenantId: { in: [userTenantId, 'all'] } }
         },
         include: { category: true }
@@ -502,6 +509,14 @@ async function handleAddMulti(user: User, formData: FormData) {
         continue;
       }
 
+      // Drip-Feed Floor Invariant: quantity per run cannot be lower than service.minQty
+      if (runs && runs > 0 && quantity < service.minQty) {
+        results.push({
+          error: `Drip-feed run quantity (${quantity}) is below minimum requirement (${service.minQty})`
+        });
+        continue;
+      }
+
       const totalQuantity = (runs && runs > 0) ? quantity * runs : quantity;
 
       const pricing = await marketingService.calculatePrice(user.id, service.id, totalQuantity);
@@ -531,7 +546,7 @@ async function handleAddMulti(user: User, formData: FormData) {
       if (err instanceof Error && err.message === 'INSUFFICIENT_FUNDS') {
         results.push({ error: 'Not enough funds on balance' });
       } else if (errCode === 'P2034' || errCode === 'P2028') {
-        results.push({ error: 'Not enough funds on balance' });
+        results.push({ error: 'System busy, please retry your request' });
       } else {
         console.error('[API v2 add_multi item error]:', err);
         results.push({ error: 'Internal server error' });

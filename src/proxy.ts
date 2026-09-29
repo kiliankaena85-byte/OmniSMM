@@ -225,7 +225,7 @@ export function isKnownOrAllowedHost(h: string | null | undefined): boolean {
  * Blocks localhost, private IPs, and arbitrary domains from cross-origin credential sharing.
  */
 export function isAllowedCorsOrigin(origin: string | null | undefined): boolean {
-  if (!origin) return false;
+  if (!origin || origin === 'null') return false;
   try {
     const originHost = new URL(origin).host.toLowerCase().split(':')[0];
     const isProd = process.env.NODE_ENV === 'production';

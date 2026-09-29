@@ -303,8 +303,16 @@ export function getUnifiedCustomValidator(customDataType?: string | null): z.Zod
     return z.string().trim()
       .min(1, "Поле не может быть пустым")
       .max(10000, "Текст слишком длинный (максимум 10000 символов)")
-      // eslint-disable-next-line no-control-regex
-      .refine(val => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(val), "Текст содержит недопустимые управляющие символы");
+      .refine(val => {
+        for (let i = 0; i < val.length; i++) {
+          const code = val.charCodeAt(i);
+          // Disallow control characters: 0-8, 11-12, 14-31, 127 (keep 9=\t, 10=\n, 13=\r)
+          if ((code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127) {
+            return false;
+          }
+        }
+        return true;
+      }, "Текст содержит недопустимые управляющие символы");
   }
   return z.string().trim().min(1, "Поле не может быть пустым");
 }

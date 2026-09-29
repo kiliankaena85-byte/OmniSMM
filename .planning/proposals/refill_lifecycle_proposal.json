@@ -1,0 +1,41 @@
+{
+  "actionId": "ACT-REFILL-LIFECYCLE-2026",
+  "intent": "Устранение TOCTOU race conditions и внедрение дедупликации BullMQ в модуле гарантийных докруток (Refill)",
+  "category": "REFACTOR",
+  "options": [
+    {
+      "id": "OPT-QUICK-MUTEX",
+      "title": "Переставить Redis lock в начало функции (In-place)",
+      "description": "Быстрая перестановка строк кода без атомарных транзакций и без дедупликации очередей",
+      "riskLevel": "MEDIUM",
+      "isDestructive": false,
+      "hasRollbackPlan": false,
+      "estimatedImpactFiles": 1,
+      "touchesFinancialLedger": false
+    },
+    {
+      "id": "OPT-CANONICAL-REFILL-GUARD",
+      "title": "Канонический инвариант Refill-Guard (Distributed Mutex + BullMQ jobId + Атомарный CAS статус)",
+      "description": "Перенос Distributed Mutex в самое начало до чтения БД, внедрение детерминированного jobId: refill-${order.id}-${Date.now()} в BullMQ, атомарная проверка статуса PENDING в процессоре воркера. 100% обратная совместимость",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 2,
+      "touchesFinancialLedger": false
+    },
+    {
+      "id": "OPT-DO-NOTHING",
+      "title": "Оставить модуль без изменений",
+      "description": "Сохранить текущее поведение",
+      "riskLevel": "HIGH",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 0
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true,
+    "userIntentExplicit": false
+  }
+}

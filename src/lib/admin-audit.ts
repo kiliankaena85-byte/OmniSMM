@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import type { Prisma } from '@prisma/client';
 import { normalizeTenantId } from '@/lib/tenant-resolver-edge';
 import { tenantStorage } from '@/lib/tenant-context';
 
@@ -157,6 +158,14 @@ export function auditAdmin(params: {
   });
 }
 
+export type AuditLogRecord = Prisma.AdminAuditLogGetPayload<Record<string, never>>;
+
+export type AuditLogWriterClient = {
+  adminAuditLog: {
+    create: (args: Prisma.AdminAuditLogCreateArgs) => Promise<AuditLogRecord>;
+  };
+};
+
 /**
  * Awaitable version of auditAdmin for critical operations where we MUST ensure the log is saved
  * (e.g. role changes, financial changes).
@@ -171,10 +180,10 @@ export async function auditAdminAwaitable(params: {
   newValue?: unknown;
   ipAddress?: string;
   tenantId?: string;
-  tx?: any;
-}) {
+  tx?: AuditLogWriterClient;
+}): Promise<AuditLogRecord> {
   const tenantId = await resolveAuditTenant(params.tenantId);
-  const client = params.tx || db;
+  const client = (params.tx || db) as unknown as AuditLogWriterClient;
   return client.adminAuditLog.create({
     data: {
       tenantId,

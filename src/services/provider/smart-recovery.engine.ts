@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { MarginGuard } from '@/services/providers/smart-routing.service';
+import { runWithTenantBypass } from '@/lib/tenant-context';
 
 const log = logger.child({ component: 'SmartRecoveryEngine' });
 
@@ -18,9 +19,12 @@ export class SmartRecoveryEngine {
    * Executes 1-Click Hot-Swap of a failing order to the best matching alternative provider route.
    */
   public static async executeHotSwap(orderId: string, reason: string): Promise<HotSwapResult> {
-    const order = await db.order.findUnique({
-      where: { id: orderId },
-      include: { service: { include: { routes: { include: { provider: true } } } } },
+    // tenant-isolation-ignore: Internal order recovery hot-swap by ID
+    const order = await runWithTenantBypass('SmartRecovery executeHotSwap order lookup', async () => {
+      return await db.order.findUnique({
+        where: { id: orderId },
+        include: { service: { include: { routes: { include: { provider: true } } } } },
+      });
     });
 
     if (!order || !order.providerId) {
@@ -107,19 +111,34 @@ export class SmartRecoveryEngine {
           },
         });
 
-        // Update Order with new provider details
+        // Update Order with new provider details and status PENDING for immediate redispatch
+        // tenant-isolation-ignore: Internal order recovery hot-swap update by ID
         const updated = await tx.order.update({
           where: { id: order.id },
           data: {
             providerId: targetRoute.providerId,
+            providerServiceId: targetRoute.providerServiceId,
             externalId: null, // Reset externalId for new dispatch
             providerCost: newEstimatedCost,
-            status: 'IN_PROGRESS',
+            status: 'PENDING',
+            error: null,
           },
         });
 
         return updated;
       });
+
+      // Enqueue to ordersQueue so BullMQ worker picks up and executes dispatch to new provider
+      try {
+        const { ordersQueue } = await import('@/lib/queue-manager');
+        await ordersQueue.add(
+          'order-dispatch',
+          { orderId: order.id, tenantId: order.tenantId },
+          { jobId: `hotswap-${order.id}-${Date.now()}` }
+        );
+      } catch (queueErr) {
+        log.warn(`[HotSwap] Failed to enqueue order ${order.id} to ordersQueue:`, { queueErr });
+      }
 
       log.info(`[HotSwap SUCCESS] Order ${order.id} swapped from ${currentProviderId} to ${targetRoute.providerId}`);
 

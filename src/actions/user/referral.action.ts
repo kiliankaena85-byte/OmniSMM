@@ -1,7 +1,7 @@
 'use server';
 
-import { db } from "@/lib/db";
 import { verifySession } from "@/lib/session";
+import { runSerializableTransaction } from "@/lib/transactions";
 import { WalletOps } from "@/services/financial/wallet-ops";
 import crypto from "crypto";
 
@@ -15,7 +15,7 @@ export async function transferReferralBalanceAction(): Promise<{ success: boolea
     let transferAmount = 0;
     const transferId = crypto.randomUUID();
     
-    await db.$transaction(async (tx) => {
+    await runSerializableTransaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: session.userId },
         select: { referralBalance: true, balance: true, isActive: true, isDeleted: true, tenantId: true }
@@ -68,7 +68,7 @@ export async function transferReferralBalanceAction(): Promise<{ success: boolea
           tenantId: user.tenantId || 'smmplan'
         }
       });
-    }, { isolationLevel: 'Serializable' });
+    });
 
     return { success: true, amount: transferAmount };
   } catch (error) {

@@ -332,6 +332,7 @@ beforeAll(async () => {
     testPath.includes('multitenant-staff-isolation') ||
     testPath.includes('multitenant-isolation') ||
     testPath.includes('multitenant-e2e-matrix') ||
+    testPath.includes('packages/') ||
     testPath.includes('admin-audit.test.ts')
   ) && ![
     'marketing.test.ts',
@@ -588,6 +589,11 @@ beforeEach(async () => {
         shouldReset = false;
       }
       
+      // Skip unit/ and packages/ tests
+      if (normalizedPath.includes('packages/')) {
+        shouldReset = false;
+      }
+
       // Skip unit/ except for marketing, smart-feedback-loop, wallet.race, smart-drip, audit-log, pricing-invariants
       if (normalizedPath.includes('unit/')) {
         const allowedUnitTests = [

@@ -77,8 +77,7 @@ export async function calculatePriceAction(
       }
     }
 
-    const runsMultiplier = (runs && Number.isInteger(runs) && runs > 1) ? runs : 1;
-    const finalMultiplier = markupMultiplier * runsMultiplier;
+    const finalMultiplier = markupMultiplier;
 
     const safeResult: PricingResult = {
       totalCents: Math.round(result.totalCents * finalMultiplier),

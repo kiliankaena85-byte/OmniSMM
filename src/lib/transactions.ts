@@ -1,5 +1,6 @@
 import { db } from './db';
 import { Prisma } from '@prisma/client';
+import { resolveActiveTenantId, isTenantBypassActive, runInTransactionContext } from './tenant-context';
 
 export async function runSerializableTransaction<T>(
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
@@ -8,7 +9,17 @@ export async function runSerializableTransaction<T>(
   let attempt = 0;
   while (true) {
     try {
-      return await db.$transaction(fn, { isolationLevel: 'Serializable', timeout: 30000 });
+      return await db.$transaction(async (tx) => {
+        const bypass = isTenantBypassActive();
+        const tenantId = bypass ? 'bypass' : (await resolveActiveTenantId() || '');
+        await tx.$executeRawUnsafe(`SET LOCAL ROLE app_user`);
+        if (tenantId) {
+          await tx.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, TRUE)`;
+        }
+        return await runInTransactionContext(async () => {
+          return await fn(tx);
+        });
+      }, { isolationLevel: 'Serializable', timeout: 30000 });
     } catch (err: unknown) {
       attempt++;
       const error = (typeof err === 'object' && err !== null ? err : {}) as { code?: string; message?: string };

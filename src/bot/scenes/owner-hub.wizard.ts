@@ -8,6 +8,7 @@ import { BalanceVerifier } from '@/utils/balance-verifier';
 import { P0ThreatSensorService } from '@/services/telemetry/p0-threat-sensor.service';
 import { GeoAvailabilityService } from '@/services/telemetry/geo-availability.service';
 import { providerService } from '@/services/providers/provider.service';
+import { RedisCacheService } from '@/lib/cache/redis-cache.service';
 
 /**
  * Checks if the user is authorized to access the Owner DevOps Hub
@@ -172,8 +173,9 @@ ownerHubWizard.action('owner_smm', async (ctx) => {
       const bal = await instance.getBalance();
       primaryProviderBalance = `${bal.balance} ${bal.currency}`;
     }
-  } catch (err: any) {
-    primaryProviderBalance = `Ошибка: ${err.message?.slice(0, 30)}`;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    primaryProviderBalance = `Ошибка: ${msg.slice(0, 30)}`;
   }
 
   const text =
@@ -211,10 +213,11 @@ ownerHubWizard.action('owner_security', async (ctx) => {
   const discrepancies = results.filter(r => r.isDiscrepancy);
 
   // Recent bot errors
-  const recentErrors = await (db as any).telegramErrorLog?.findMany({
+  type ErrorLogItem = { level: string; errorMessage: string };
+  const recentErrors: ErrorLogItem[] = await (db as unknown as { telegramErrorLog?: { findMany: (opts: unknown) => Promise<ErrorLogItem[]> } }).telegramErrorLog?.findMany({
     take: 3,
     orderBy: { createdAt: 'desc' }
-  }).catch(() => []);
+  }).catch(() => []) ?? [];
 
   let ledgerVerdict = '🟢 <b>ИДЕАЛЬНО:</b> Расхождений 0. Балансы 100% сходятся с транзакциями.';
   if (discrepancies.length > 0) {
@@ -223,7 +226,7 @@ ownerHubWizard.action('owner_security', async (ctx) => {
 
   let errorLogSummary = '🟢 Ошибок не зафиксировано';
   if (recentErrors && recentErrors.length > 0) {
-    errorLogSummary = recentErrors.map((e: any) => `  ⚠️ [${e.level}] ${e.errorMessage.slice(0, 45)}...`).join('\n');
+    errorLogSummary = recentErrors.map((e) => `  ⚠️ [${e.level}] ${e.errorMessage.slice(0, 45)}...`).join('\n');
   }
 
   const text =
@@ -309,7 +312,7 @@ ownerHubWizard.action('owner_ai_test', async (ctx) => {
     } else {
       throw new Error(`AI Gateway HTTP ${res.status}`);
     }
-  } catch (err: any) {
+  } catch (_err: unknown) {
     reportText = 
       `🧠 <b>РЕЗУЛЬТАТЫ AI-САМОПРОВЕРКИ</b>\n\n` +
       `🏆 <b>Health Score:</b> <b>100 / 100 (Green)</b>\n` +
@@ -375,21 +378,20 @@ ownerHubWizard.action('owner_magic_link', async (ctx) => {
       [Markup.button.callback('◀️ Назад в Пульт', 'owner_back')]
     ]);
 
+    const extraOpts = {
+      parse_mode: 'HTML' as const,
+      link_preview_options: { is_disabled: true },
+      ...keyboard
+    } as unknown as Parameters<typeof ctx.editMessageText>[1];
+
     try {
-      await ctx.editMessageText(text, {
-        parse_mode: 'HTML',
-        link_preview_options: { is_disabled: true },
-        ...keyboard
-      } as any);
+      await ctx.editMessageText(text, extraOpts);
     } catch {
-      await ctx.reply(text, {
-        parse_mode: 'HTML',
-        link_preview_options: { is_disabled: true },
-        ...keyboard
-      } as any);
+      await ctx.reply(text, extraOpts);
     }
-  } catch (err: any) {
-    await ctx.reply(`⚠️ Ошибка генерации ссылки: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await ctx.reply(`⚠️ Ошибка генерации ссылки: ${msg}`);
   }
 });
 
@@ -399,18 +401,14 @@ ownerHubWizard.action('owner_flush_cache', async (ctx) => {
   await ctx.answerCbQuery('Очистка кэша...');
 
   try {
-    // Delete catalog and settings caches
-    const keys = await redis.keys('catalog:*');
-    const settingsKeys = await redis.keys('settings:*');
-    const allKeys = [...keys, ...settingsKeys];
-
-    if (allKeys.length > 0) {
-      await redis.del(...allKeys);
-    }
+    // Delete catalog and settings caches using non-blocking SCAN
+    const delCatalog = await RedisCacheService.scanAndDelete('catalog:*');
+    const delSettings = await RedisCacheService.scanAndDelete('settings:*');
+    const totalDeleted = delCatalog + delSettings;
 
     const text = 
       `🧹 <b>КЭШ REDIS УСПЕШНО ОЧИЩЕН!</b>\n\n` +
-      `Удалено ключей кэша каталога и настроек: <b>${allKeys.length}</b>.\n` +
+      `Удалено ключей кэша каталога и настроек: <b>${totalDeleted}</b>.\n` +
       `Новые запросы к каталогу и ценам будут перечитаны напрямую из PostgreSQL.`;
 
     const keyboard = Markup.inlineKeyboard([
@@ -422,8 +420,9 @@ ownerHubWizard.action('owner_flush_cache', async (ctx) => {
     } catch {
       await ctx.reply(text, { parse_mode: 'HTML', ...keyboard });
     }
-  } catch (err: any) {
-    await ctx.reply(`⚠️ Ошибка очистки кэша: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await ctx.reply(`⚠️ Ошибка очистки кэша: ${msg}`);
   }
 });
 
@@ -484,12 +483,13 @@ ownerHubWizard.action('owner_geo_check', async (ctx) => {
     `${globalSummary}\n\n` +
     `⚡ <b>Средняя задержка:</b> <b>${report.avgResponseTimeMs || '~120'} ms</b>`;
 
-  const keyboardButtons: any[][] = [
+  type InlineBtn = ReturnType<typeof Markup.button.callback>;
+  const keyboardButtons: InlineBtn[][] = [
     [Markup.button.callback('🔄 Перепроверить', 'owner_geo_check')]
   ];
 
   if (report.permanentLink) {
-    keyboardButtons[0].push(Markup.button.url('🔗 Подробный отчёт', report.permanentLink));
+    keyboardButtons[0].push(Markup.button.url('🔗 Подробный отчёт', report.permanentLink) as unknown as InlineBtn);
   }
 
   keyboardButtons.push([Markup.button.callback('◀️ Назад в Пульт', 'owner_back')]);

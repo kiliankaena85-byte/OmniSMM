@@ -6,6 +6,7 @@
 import { db } from '@/lib/db';
 import { SettingsProvider } from '@/lib/settings';
 import { logger } from '@/lib/logger';
+import { ExactMath } from '@/lib/financial/exact-math';
 
 const log = logger.child({ component: 'CompensationService' });
 
@@ -51,21 +52,21 @@ export class CompensationService {
           const isUsd = order.service.providerCurrency === 'USD';
           if (isUsd) {
             const usdToRub = order.usdToRubRate || (await SettingsProvider.getExchangeRateUSD());
-            // Converting USD charge to RUB cents: charge * usdToRub * 100
-            actualProviderCostCents = Math.round(parsedCharge * usdToRub * 100);
+            // Converting USD charge to RUB cents: charge * usdToRub * 100 via ExactMath
+            actualProviderCostCents = Number(ExactMath.rublesToKopecks(parsedCharge * usdToRub));
           } else {
             // RUB currency
-            actualProviderCostCents = Math.round(parsedCharge * 100);
+            actualProviderCostCents = Number(ExactMath.rublesToKopecks(parsedCharge));
           }
         } else {
           // Fallback calculations when charge is missing or invalid
           if (status === 'PARTIAL') {
-            // Proportional cost calculation based on quantity and remains for partial
+            // Proportional cost calculation based on quantity and remains for partial using exact BigInt math
             const remains = order.remains;
             const quantity = order.quantity;
-            const providerCost = Number(order.providerCost);
+            const providerCost = order.providerCost;
             const completedQty = Math.max(0, quantity - remains);
-            actualProviderCostCents = quantity > 0 ? Math.round((providerCost * completedQty) / quantity) : 0;
+            actualProviderCostCents = quantity > 0 ? Number((providerCost * BigInt(completedQty)) / BigInt(quantity)) : 0;
           } else {
             // COMPLETED or other positive statuses
             actualProviderCostCents = Number(order.providerCost);

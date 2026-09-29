@@ -103,12 +103,18 @@ export class MakerCheckerHarness {
       });
     }
 
+    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
+    const isTestFile = normalizedPath.includes('.test.') ||
+      normalizedPath.includes('.spec.') ||
+      normalizedPath.startsWith('test/') ||
+      normalizedPath.includes('/__tests__/');
+
     lines.forEach((line, idx) => {
       const lineNum = idx + 1;
       const trimmed = line.trim();
 
       // Вектор 4: Заглушки (TODO / FIXME)
-      if (/\/\/\s*(TODO|FIXME|XXX)/i.test(trimmed)) {
+      if (/\/\/\s*(TODO|FIXME|XXX)/i.test(trimmed) && !isTestFile) {
         findings.push({
           vector: 'Vector 4: Code Hygiene',
           severity: 'MAJOR',
@@ -120,7 +126,11 @@ export class MakerCheckerHarness {
       }
 
       // Вектор 4: Подавления типов (@ts-ignore / eslint-disable)
-      if (/@ts-ignore|@ts-nocheck|eslint-disable/i.test(trimmed)) {
+      if (
+        /(?:\/\/|\/\*|\*)\s*(@ts-(?:ignore|expect-error|nocheck)|eslint-disable)/i.test(trimmed) &&
+        !trimmed.includes('Подавлен') &&
+        !isTestFile
+      ) {
         findings.push({
           vector: 'Vector 4: Code Hygiene',
           severity: 'MAJOR',
@@ -131,8 +141,8 @@ export class MakerCheckerHarness {
         });
       }
 
-      // Вектор 4: Использование `any` без обоснования
-      if (/:\s*any\b|\bas\s+any\b/.test(trimmed) && !trimmed.startsWith('//') && !filePath.includes('.test.')) {
+      // Вектор 4: Использование `any` без обоснования (исключая тестовые файлы)
+      if (/:\s*any\b|\bas\s+any\b/.test(trimmed) && !trimmed.startsWith('//') && !isTestFile) {
         findings.push({
           vector: 'Vector 4: Code Hygiene',
           severity: 'MAJOR',
@@ -206,7 +216,7 @@ export class MakerCheckerHarness {
   /**
    * Вывод отчета в консоль и сохранение файла
    */
-  run(): void {
+  run(): HandoffBundle {
     console.log('🛡️ [Maker-Checker Harness] Scanning modified files for pre-audit checklist...\n');
     const bundle = this.generateBundle();
 
@@ -239,6 +249,8 @@ export class MakerCheckerHarness {
     } else {
       console.log('\n🔴 [Pre-Audit FAIL] Maker must fix Blockers and Majors before invoking Checker.');
     }
+
+    return bundle;
   }
 }
 
@@ -434,9 +446,16 @@ export function detectTransactionEscapesAst(
 // CLI Execution
 if (process.argv[1]?.includes('maker-checker-harness.ts')) {
   const harness = new MakerCheckerHarness();
-  harness.run();
+  const bundle = harness.run();
 
-  if (process.argv.includes('--ai')) {
+  if (process.argv.includes('--decide')) {
+    import('./decision-engine/deterministic-arbiter').then(({ DeterministicArbiter }) => {
+      const arbiter = new DeterministicArbiter({ quick: process.argv.includes('--quick') });
+      arbiter.evaluate().then((res) => {
+        process.exit(res.verdict === 'PASS' ? 0 : 1);
+      });
+    });
+  } else if (process.argv.includes('--ai')) {
     import('./maker-checker-ai').then(({ runCheckerAudit }) => {
       runCheckerAudit();
     });

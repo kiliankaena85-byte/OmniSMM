@@ -171,42 +171,24 @@ export function PlanFullscreenCheckout({
   return (
     <div ref={containerRef} className="w-full flex flex-col items-center py-2 sm:py-6 px-2 sm:px-4 animate-in fade-in duration-300">
       <PlanCheckoutHeader
-        selectedService={selectedService}
-        activeNetwork={activeNetwork}
-        activeCategory={activeCategory}
-        minQty={minQty}
-        maxQty={maxQty}
-        onBackClick={handleClose}
-        onResetClick={() => {
-          engine.resetOrder();
-          handleClose();
-        }}
+        selectedService={selectedService} activeNetwork={activeNetwork} activeCategory={activeCategory}
+        minQty={minQty} maxQty={maxQty} onBackClick={handleClose}
+        onResetClick={() => { engine.resetOrder(); handleClose(); }}
       />
-
       <div className="w-full max-w-2xl sm:max-w-3xl bg-card border border-border/80 shadow-2xl rounded-3xl p-4 sm:p-7 md:p-8 relative">
         <form onSubmit={handleFormSubmit} noValidate className="space-y-5">
           <PlanCheckoutInputs {...inputsProps} />
-
           <PlanCheckoutGateways
-            selectedGateway={selectedGateway}
-            setSelectedGateway={setSelectedGateway}
-            availableGateways={availableGateways}
-            userBalanceCents={userBalanceCents}
-            totalCents={pricing?.totalCents || 0}
-            setLocalError={setLocalError}
+            selectedGateway={selectedGateway} setSelectedGateway={setSelectedGateway}
+            availableGateways={availableGateways} userBalanceCents={userBalanceCents}
+            totalCents={pricing?.totalCents || 0} setLocalError={setLocalError}
           />
-
           <PlanCheckoutSummary
-            agreedToTerms={agreedToTerms}
-            setAgreedToTerms={setAgreedToTerms}
-            onOpenDocument={onOpenDocument}
-            localError={localError}
-            checkoutError={checkoutError}
-            shakeKey={shakeKey}
-            isSubmitting={isSubmitting}
-            totalPriceFormatted={totalPriceFormatted}
-            setLocalError={setLocalError}
-            pricing={pricing}
+            agreedToTerms={agreedToTerms} setAgreedToTerms={setAgreedToTerms}
+            onOpenDocument={onOpenDocument} localError={localError}
+            checkoutError={checkoutError} shakeKey={shakeKey}
+            isSubmitting={isSubmitting} totalPriceFormatted={totalPriceFormatted}
+            setLocalError={setLocalError} pricing={pricing}
           />
         </form>
       </div>

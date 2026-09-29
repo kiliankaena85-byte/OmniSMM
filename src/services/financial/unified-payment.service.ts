@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { getBaseUrlAsync } from '@/utils/get-base-url';
 import { SettingsManager } from '@/lib/settings';
-import {  } from '@/services/financial/payment-gateway.service';
+import { ExactMath } from '@/lib/financial/exact-math';
 
 type PaymentMetadata = {
   source?: string;
@@ -25,7 +25,7 @@ export class UnifiedPaymentService {
     tenantId?: string
   ): Promise<{ success: boolean; confirmationUrl?: string; paymentId?: string; error?: string }> {
     try {
-      const amountCents = Math.round(amountRub * 100);
+      const amountCents = ExactMath.rublesToKopecks(amountRub);
       const resolvedTenantId = tenantId || (metadata?.tenantId as string) || 'smmplan';
 
       // 1. Create a PENDING payment record

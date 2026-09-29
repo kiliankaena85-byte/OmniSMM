@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { SettingsProvider } from '@/lib/settings';
 import { PaymentGatewayFactory, checkVatThreshold, invalidateVatThresholdCache } from '@/services/financial/payment-gateway.service';
@@ -7,6 +8,59 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     invalidateVatThresholdCache();
+
+    (vi.spyOn(db.tenant, 'findUnique') as unknown as { mockImplementation: (fn: (args?: { where?: { slug?: string; id?: string } }) => Promise<unknown>) => void }).mockImplementation(async (args) => {
+      const where = args?.where;
+      return {
+        id: where?.slug || where?.id || 'mock-tenant-id',
+        slug: where?.slug || 'smmplan',
+        name: 'Mock Tenant',
+        customDomain: null,
+        ownerId: 'owner_1',
+        brandName: 'Mock Brand',
+        isDefault: false,
+        themePreset: 'default',
+        primaryColor: '#000',
+        contactEmail: 'contact@mock.com',
+        telegramSupport: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    });
+
+    (vi.spyOn(db.tenant, 'findFirst') as unknown as { mockImplementation: (fn: () => Promise<unknown>) => void }).mockImplementation(async () => ({
+      id: 'smmplan-id',
+      slug: 'smmplan',
+      name: 'SMMplan',
+      customDomain: null,
+      ownerId: 'owner_1',
+      brandName: 'SMMplan',
+      isDefault: true,
+      themePreset: 'default',
+      primaryColor: '#000',
+      contactEmail: 'contact@smmplan.ru',
+      telegramSupport: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    vi.spyOn(db.payment, 'findUnique').mockResolvedValue(null);
+    vi.spyOn(db.payment, 'aggregate').mockResolvedValue({
+      _sum: { amount: BigInt(0) },
+      _avg: {},
+      _count: {},
+      _max: {},
+      _min: {},
+    } as unknown as never);
+    vi.spyOn(db.ledgerEntry, 'aggregate').mockResolvedValue({
+      _sum: { amount: BigInt(0) },
+      _avg: {},
+      _count: {},
+      _max: {},
+      _min: {},
+    } as unknown as never);
+    vi.spyOn(db.systemSettings, 'upsert').mockResolvedValue({ id: 'smmplan-id' } as unknown as never);
+    vi.spyOn(db.securityEvent, 'create').mockResolvedValue({ id: 'sec_1' } as unknown as never);
   });
 
   describe('Zero-Commingling Credential Isolation (ст. 54.1 НК РФ)', () => {
@@ -28,7 +82,7 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
         robokassaLogin: null,
         robokassaPassword: null,
         cryptoBotToken: null,
-      } as any);
+      } as unknown as never);
 
       const secrets = await SettingsProvider.getPaymentSecrets('external-agency');
       
@@ -50,7 +104,7 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
         robokassaLogin: 'tenant_robo_login',
         robokassaPassword: VaultService.encrypt('robo_pass_123'),
         cryptoBotToken: 'tenant_crypto_token_456',
-      } as any);
+      } as unknown as never);
 
       const secrets = await SettingsProvider.getPaymentSecrets('premium-shop');
       expect(secrets.yookassaShopId).toBe('tenant_shop_999');
@@ -64,7 +118,7 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
         id: 'unconfigured-tenant',
         yookassaShopId: null,
         yookassaSecretKey: null,
-      } as any);
+      } as unknown as never);
 
       const gateway = PaymentGatewayFactory.getGateway('yookassa');
 
@@ -84,17 +138,22 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
 
   describe('54-ФЗ Fiscal Turnover & VAT Threshold Partitioning', () => {
     it('calculates 20M ₽ VAT threshold strictly scoped to target tenant', async () => {
-      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-
       // Mock aggregate to return 25M for tenant-a, but 5M for tenant-b
-      (vi.spyOn(db.payment, 'aggregate') as any).mockImplementation(async (args: any) => {
-        if (args.where?.tenantId === 'tenant-high-volume') {
+      (vi.spyOn(db.payment, 'aggregate') as unknown as { mockImplementation: (fn: (args?: { where?: { tenantId?: string } }) => Promise<unknown>) => void }).mockImplementation(async (args) => {
+        const tenantFilter = args?.where?.tenantId;
+        if (tenantFilter === 'tenant-high-volume') {
           return { _sum: { amount: BigInt(25_000_000_00) } }; // 25M RUB
         }
         return { _sum: { amount: BigInt(5_000_000_00) } }; // 5M RUB
       });
 
-      (vi.spyOn(db.ledgerEntry, 'aggregate') as any).mockResolvedValue({ _sum: { amount: BigInt(0) } });
+      vi.spyOn(db.ledgerEntry, 'aggregate').mockResolvedValue({
+        _sum: { amount: BigInt(0) },
+        _avg: {},
+        _count: {},
+        _max: {},
+        _min: {},
+      } as unknown as never);
 
       const isHighVolumeExceeded = await checkVatThreshold('tenant-high-volume');
       const isLowVolumeExceeded = await checkVatThreshold('tenant-low-volume');
@@ -112,7 +171,7 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
         robokassaLogin: 'boost_merchant',
         robokassaPassword: VaultService.encrypt('pass1'),
         robokassaWebhookPassword: VaultService.encrypt('pass2'),
-      } as any);
+      } as unknown as never);
 
       const gateway = PaymentGatewayFactory.getGateway('robokassa');
       const res = await gateway.createPayment({
@@ -133,8 +192,8 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
   describe('Parameterized Multi-Tenant Webhook Routing', () => {
     it('provides healthy GET diagnostic probe for yookassa tenant endpoint', async () => {
       const { GET } = await import('@/app/api/webhooks/yookassa/[tenantId]/route');
-      const req = new Request('https://smmflux.ru/api/webhooks/yookassa/flux');
-      const res = await GET(req as any, { params: Promise.resolve({ tenantId: 'flux' }) });
+      const req = new NextRequest('https://smmflux.ru/api/webhooks/yookassa/flux');
+      const res = await GET(req, { params: Promise.resolve({ tenantId: 'flux' }) });
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -145,8 +204,8 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
 
     it('provides healthy GET diagnostic probe for robokassa tenant endpoint', async () => {
       const { GET } = await import('@/app/api/webhooks/robokassa/[tenantId]/route');
-      const req = new Request('https://client-agency.com/api/webhooks/robokassa/agency');
-      const res = await GET(req as any, { params: Promise.resolve({ tenantId: 'agency' }) });
+      const req = new NextRequest('https://client-agency.com/api/webhooks/robokassa/agency');
+      const res = await GET(req, { params: Promise.resolve({ tenantId: 'agency' }) });
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -164,17 +223,16 @@ describe('Multi-Tenant Fiscal & Payment Gateway Partitioning (Phase 6)', () => {
         robokassaLogin: 'store_login',
         robokassaPassword: VaultService.encrypt('pass1'),
         robokassaWebhookPassword: VaultService.encrypt('valid_password_2'),
-      } as any);
+      } as unknown as never);
 
       // Create request with invalid signature
       const url = 'https://secure-store.com/api/webhooks/robokassa/secure-store?OutSum=500.00&InvId=101&SignatureValue=wrong_sig_value&shp_paymentId=pay_123';
-      const req = new Request(url, { method: 'POST' });
+      const req = new NextRequest(url, { method: 'POST' });
 
-      const res = await handleRobokassaWebhookRequest(req as any, 'secure-store');
+      const res = await handleRobokassaWebhookRequest(req, 'secure-store');
       expect(res.status).toBe(403);
       const json = await res.json();
       expect(json.error).toBe('Invalid signature');
     });
   });
 });
-

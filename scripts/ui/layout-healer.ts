@@ -20,7 +20,7 @@ import { COMPONENT_DIRS } from './layout-sentry';
 export interface AppliedFix {
   file: string;
   line: number;
-  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL' | 'INJECT_PB_SAFE' | 'BUTTON_TYPE_ATTRIBUTE' | 'ENSURE_TOUCH_TARGET_MIN';
+  type: 'INJECT_SHRINK_0' | 'REPLACE_W_SCREEN' | 'ADD_MIN_W_0' | 'FIX_IOS_INPUT_ZOOM' | 'TABLE_W_FULL' | 'INJECT_PB_SAFE' | 'BUTTON_TYPE_ATTRIBUTE' | 'ENSURE_TOUCH_TARGET_MIN' | 'INJECT_NUMERIC_INPUT_MODE';
   before: string;
   after: string;
 }
@@ -197,6 +197,19 @@ export function healLayoutFiles(options: HealOptions = {}): HealResult {
             });
             isFileDirty = true;
           }
+        }
+
+        // 9. Inject inputMode="numeric" into numeric inputs for mobile keypad ergonomics
+        if (/<input\s+[^>]*type=["']number["'][^>]*>/.test(line) && !line.includes('inputMode=')) {
+          line = line.replace(/<input\s+/, '<input inputMode="numeric" ');
+          appliedFixes.push({
+            file: relPath,
+            line: lineNum,
+            type: 'INJECT_NUMERIC_INPUT_MODE',
+            before: origLine.trim(),
+            after: line.trim()
+          });
+          isFileDirty = true;
         }
 
         lines[i] = line;

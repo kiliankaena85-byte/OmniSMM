@@ -6,6 +6,7 @@ import { sendOrderPaidMail } from '@/lib/smtp';
 import { logPromoCodeUsageIfNeeded } from '@/services/marketing-utils';
 import { PromoAutomationService } from '../users/promo-automation.service';
 import { SecurityAlertService } from '@/services/security/security-alert.service';
+import { runWithTenantBypass } from '@/lib/tenant-context';
 
 function safeRevalidatePath(path: string, type?: 'layout' | 'page') {
   try {
@@ -43,8 +44,7 @@ export class PaymentService {
     gatewayId: string, 
     amount: number | bigint, 
     userId: string, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isDevSandbox = false,
+    _isDevSandbox = false,
     gatewayType: 'yookassa' | 'cryptobot' | 'robokassa' = 'yookassa',
     internalPaymentId?: string,
     metadataType?: string,
@@ -56,19 +56,22 @@ export class PaymentService {
     // Beneficiary resolved from the DB payment record (NOT the caller-supplied userId).
     // Stays null on idempotent replays / no-op transitions -> post-commit side-effects are skipped.
     let creditedUserId: string | null = null;
+    const pendingSecurityAlerts: Array<() => Promise<unknown>> = [];
 
     try {
       // 1. Double-check against real gateway API in production
       const isMockPayment = gatewayId.startsWith('test_') || gatewayId.startsWith('mock_');
-      if (process.env.NODE_ENV === 'production' && gatewayType === 'yookassa' && !isDevSandbox && !isMockPayment) {
+      if (process.env.NODE_ENV === 'production' && gatewayType === 'yookassa' && !_isDevSandbox && !isMockPayment) {
         let paymentTenantId = 'smmplan';
-        if (internalPaymentId) {
-          const p = await db.payment.findUnique({ where: { id: internalPaymentId }, select: { tenantId: true } });
-          if (p?.tenantId) paymentTenantId = p.tenantId;
-        } else if (gatewayId) {
-          const p = await db.payment.findUnique({ where: { gatewayId }, select: { tenantId: true } });
-          if (p?.tenantId) paymentTenantId = p.tenantId;
-        }
+        await runWithTenantBypass('Webhook pre-check payment tenant resolution', async () => {
+          if (internalPaymentId) {
+            const p = await db.payment.findUnique({ where: { id: internalPaymentId }, select: { tenantId: true } });
+            if (p?.tenantId) paymentTenantId = p.tenantId;
+          } else if (gatewayId) {
+            const p = await db.payment.findUnique({ where: { gatewayId }, select: { tenantId: true } });
+            if (p?.tenantId) paymentTenantId = p.tenantId;
+          }
+        });
 
         const { SettingsManager } = await import('@/lib/settings');
         const isTestMode = await SettingsManager.isTestMode(paymentTenantId);
@@ -110,21 +113,20 @@ export class PaymentService {
 
       // 2. Atomic transaction: confirm payment + activate order
       await runSerializableTransaction(async (tx) => {
-        // Find payment by internal ID (preferred) or gateway ID
-        let payment = null;
-        if (internalPaymentId) {
-          payment = await tx.payment.findUnique({ where: { id: internalPaymentId } });
-        }
-        if (!payment) {
-          payment = await tx.payment.findUnique({ where: { gatewayId } });
-        }
+        type PaymentRecord = { id: string; amount: bigint; currency: string | null; status: string; gatewayId: string | null; tenantId: string; userId: string; orderId: string | null };
+        const payment: PaymentRecord | null = await runWithTenantBypass('Webhook confirmPayment lookup', async () => {
+          if (internalPaymentId) {
+            const found = await tx.payment.findUnique({ where: { id: internalPaymentId } });
+            if (found) return found as unknown as PaymentRecord;
+          }
+          const found = await tx.payment.findUnique({ where: { gatewayId } });
+          return (found as unknown as PaymentRecord) || null;
+        });
 
         const receivedAmountBigInt = BigInt(amount);
 
         // 1. Process or Create Payment atomically via Upsert to prevent orphaned double-creation
-        const currentPayment = payment
-          ? await tx.payment.findUnique({ where: { id: payment.id } })
-          : await tx.payment.findUnique({ where: { gatewayId } });
+        const currentPayment = payment;
 
         if (currentPayment && currentPayment.status === 'SUCCEEDED') {
           console.info(`[Payment] ${gatewayId} already processed (atomic idempotency hit)`);
@@ -146,7 +148,7 @@ export class PaymentService {
         // [SECURITY CR-4 FIX] Exact Amount Verification: Reject both underpayment and overpayment exploits
         if (currentPayment && currentPayment.amount !== receivedAmountBigInt) {
           console.error(`[Payment] Amount mismatch exploit attempt for ${gatewayId}: expected ${currentPayment.amount}, got ${receivedAmountBigInt}`);
-          void SecurityAlertService.record({
+          pendingSecurityAlerts.push(() => SecurityAlertService.record({
             event: 'PAYMENT_AMOUNT_MISMATCH_EXPLOIT',
             severity: 'CRITICAL',
             details: {
@@ -156,7 +158,7 @@ export class PaymentService {
               gatewayId,
               gatewayType
             }
-          });
+          }));
           throw new Error('PAYMENT_AMOUNT_MISMATCH: Amount received from gateway does not match expected payment amount.');
         }
 
@@ -217,7 +219,7 @@ export class PaymentService {
             // [FIN-P0 Guard] Ensure credited amount is strictly >= order.charge to prevent underpaid activation
             if (creditAmount < order.charge) {
               console.error(`[SECURITY] Underpaid order activation blocked: order #${order.numericId} requires ${order.charge} kopecks, but payment credited only ${creditAmount} kopecks.`);
-              void SecurityAlertService.record({
+              pendingSecurityAlerts.push(() => SecurityAlertService.record({
                 event: 'UNDERPAID_ORDER_EXPLOIT_ATTEMPT',
                 severity: 'CRITICAL',
                 details: {
@@ -227,7 +229,7 @@ export class PaymentService {
                   creditedAmount: creditAmount.toString(),
                   paymentId: processedPaymentId
                 }
-              });
+              }));
               throw new Error(`UNDERPAID_ORDER: Credited amount (${creditAmount}) is less than required order charge (${order.charge})`);
             }
 
@@ -397,6 +399,13 @@ export class PaymentService {
       return true;
     } catch (e: unknown) {
       console.error('[PaymentService] Error confirming payment:', (e instanceof Error ? e.message : String(e)));
+      for (const alertFn of pendingSecurityAlerts) {
+        try {
+          await alertFn();
+        } catch (alertErr) {
+          console.error('[PaymentService] Deferred security alert failed:', alertErr);
+        }
+      }
       return false;
     }
   }
@@ -510,11 +519,11 @@ export class PaymentService {
               tenantId: order.tenantId
             });
             
-            await WalletOps.credit(tx, payment.userId, Number(payment.amount),
+            await WalletOps.credit(tx, payment.userId, payment.amount,
               `Оплата заказа #${order.numericId} через шлюз`,
               { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
             );
-            await WalletOps.charge(tx, payment.userId, Number(order.charge),
+            await WalletOps.charge(tx, payment.userId, order.charge,
               `Списание за заказ #${order.numericId}`,
               { idempotencyKey: `gateway-charge-${order.id}`, tenantId: payment.tenantId }
             );
@@ -545,7 +554,7 @@ export class PaymentService {
            }
 
             // Credit full paid amount first
-            await WalletOps.credit(tx, payment.userId, Number(payment.amount),
+            await WalletOps.credit(tx, payment.userId, payment.amount,
               `Оплата корзины заказов через шлюз`,
               { idempotencyKey: `gateway-credit-${paymentId}`, tenantId: payment.tenantId }
             );

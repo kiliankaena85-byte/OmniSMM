@@ -1,0 +1,33 @@
+{
+  "name": "@omnismm/agent-task-pipeline",
+  "version": "1.0.0",
+  "description": "Standalone Autonomous Task Decomposition & Deterministic Decision Pipeline (WBS + AAA + DDE Invariants)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "task-pipeline": "dist/adapters/cli/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "mcp": "tsx src/adapters/mcp/server.ts"
+  },
+  "keywords": [
+    "ai-agent",
+    "wbs-decomposition",
+    "decision-engine",
+    "mcp",
+    "deterministic-arbiter",
+    "toc-poogi"
+  ],
+  "author": "OmniSMM Engineering",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.4"
+  }
+}

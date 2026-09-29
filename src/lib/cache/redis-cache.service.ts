@@ -20,8 +20,31 @@ const reviver = (_key: string, value: unknown) => {
   return value;
 };
 
-// In-memory L1 cache map for ultra-fast local hits (<1ms)
+// In-memory L1 cache map with strict bound to prevent V8 heap memory leaks (MAX 1,000 entries)
+const MAX_L1_ENTRIES = 1000;
 const localL1Cache = new Map<string, { value: unknown; expiresAt: number }>();
+
+function setL1Bounded(key: string, value: unknown, expiresAt: number) {
+  const now = Date.now();
+  // Evict expired entries if approaching capacity
+  if (localL1Cache.size >= MAX_L1_ENTRIES) {
+    for (const [k, v] of localL1Cache.entries()) {
+      if (v.expiresAt <= now) {
+        localL1Cache.delete(k);
+      }
+    }
+    // If still at capacity, drop the oldest entry (FIFO/LRU)
+    while (localL1Cache.size >= MAX_L1_ENTRIES) {
+      const oldestKey = localL1Cache.keys().next().value;
+      if (oldestKey) {
+        localL1Cache.delete(oldestKey);
+      } else {
+        break;
+      }
+    }
+  }
+  localL1Cache.set(key, { value, expiresAt });
+}
 
 export class RedisCacheService {
   /**
@@ -45,8 +68,8 @@ export class RedisCacheService {
         const raw = await redis.get(key);
         if (raw) {
           const parsed = JSON.parse(raw, reviver) as T;
-          // Store in L1 for next 10 seconds
-          localL1Cache.set(key, { value: parsed, expiresAt: now + 10000 });
+          // Store in bounded L1 for next 10 seconds
+          setL1Bounded(key, parsed, now + 10000);
           return parsed;
         }
       }
@@ -62,7 +85,7 @@ export class RedisCacheService {
    */
   static async set<T>(key: string, data: T, ttlSeconds: number = 300): Promise<void> {
     const now = Date.now();
-    localL1Cache.set(key, { value: data, expiresAt: now + ttlSeconds * 1000 });
+    setL1Bounded(key, data, now + ttlSeconds * 1000);
 
     try {
       if (redis && (redis.status === 'ready' || redis.status === 'connecting')) {
@@ -89,6 +112,34 @@ export class RedisCacheService {
   }
 
   /**
+   * Safely scans and deletes keys in Redis matching a pattern using non-blocking SCAN.
+   * Eliminates O(N) event loop freezes in Redis single-threaded engine.
+   */
+  static async scanAndDelete(pattern: string): Promise<number> {
+    if (!redis || (redis.status !== 'ready' && redis.status !== 'connecting')) {
+      return 0;
+    }
+    let deletedCount = 0;
+    let cursor = '0';
+    const redisPattern = pattern.includes('*') ? pattern : `${pattern}*`;
+
+    try {
+      do {
+        const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', redisPattern, 'COUNT', 100);
+        cursor = nextCursor;
+        if (keys && keys.length > 0) {
+          const deleted = await redis.del(...keys);
+          deletedCount += deleted;
+        }
+      } while (cursor !== '0');
+    } catch (err) {
+      console.warn(`[RedisCacheService] scanAndDelete failed for ${pattern}:`, err);
+    }
+
+    return deletedCount;
+  }
+
+  /**
    * Invalidates keys matching a pattern.
    */
   static async invalidate(pattern: string): Promise<void> {
@@ -103,11 +154,7 @@ export class RedisCacheService {
 
     try {
       if (redis && (redis.status === 'ready' || redis.status === 'connecting')) {
-        const redisPattern = pattern.includes('*') ? pattern : `${pattern}*`;
-        const keys = await redis.keys(redisPattern);
-        if (keys.length > 0) {
-          await redis.del(...keys);
-        }
+        await this.scanAndDelete(pattern);
         // Broadcast invalidation to all sibling Node.js instances via Redis Pub/Sub
         if (typeof redis.publish === 'function') {
           await redis.publish('cache:invalidation:channel', pattern).catch(() => {});

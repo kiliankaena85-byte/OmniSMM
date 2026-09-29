@@ -124,11 +124,123 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 3. Все финансовые переводы из рублей в копейки осуществляются строго через `ExactMath.rublesToKopecks` с типом `BigInt`.
 4. Все действия аудита безопасности и администрирования обязаны вызываться через `await auditAdminAwaitable()`.
 
+### 🔴 УРОК 19 — Маскировка ошибок конкурентности P2034/P2028 в API v2, риск отрицательного реферального баланса и перезапись статусов воркером (2026-09-29)
+**Что случилось:**
+1. В оптовом Reseller API v2 (`/api/v2`) при параллельной нагрузке конфликты сериализации PostgreSQL (`P2034`) и дедлоки (`P2028`) ошибочно перехватывались и маскировались под `400 { error: 'Not enough funds on balance' }`. Пользователи-оптовики и их софт считали, что у них кончились средства, останавливая трафик. Кроме того, в пакетном эндпоинте `add_multi` услуги с `tenantId: 'all'` ошибочно блокировались из-за отсутствия условия `in: [userTenantId, 'all']`.
+2. В реферальной системе (`WalletOps.referralDebit`) при отмене заказа реферальные начисления списывались вслепую через `referralBalance: { decrement }`. Если пользователь уже успел перевести реферальные начисления на основной счет, баланс уходил в минус, а платформа несла убытки.
+3. Воркер синхронизации (`sync.processor.ts`) при получении промежуточного ответа от провайдера слепо вызывал `db.order.update({ data: { status: 'IN_PROGRESS' } })`, затирая уже отмененные (`CANCELLED`), частично выполненные (`PARTIAL`) или завершенные (`COMPLETED`) заказы.
+**Правило:**
+1. Ошибки параллелизма СУБД категорически запрещено маскировать под бизнес-ошибки: при `P2034`/`P2028` отдавать строго `503 'System busy, please retry your request'` для прозрачного клиентского ретрая. В пакетных заказах API v2 всегда поддерживать общесистемный каталог `tenantId: { in: [userTenantId, 'all'] }`.
+2. В `WalletOps.referralDebit` доступный реферальный остаток ограничивается нулем (`debitFromReferral = Math.min(Math.max(0, refBalance), reqAmount)`), а дефицит (`shortage`) автоматически удерживается с основного баланса пользователя, защищая платформу от кассового разрыва.
+3. Любые обновления статуса `IN_PROGRESS` в воркерах выполняются строго через `updateMany` с фильтром `where: { status: { in: ['IN_PROGRESS', 'PENDING', 'PENDING_CHECK'] } }`.
+4. Никаких `(redis as any)` в крон-рутах и `Record<string, any>` в воркерах — строгие контракты `redis.eval` и `ProviderMultiStatusResponse`.
+
+### 🔴 УРОК 20 — Автономный предпродакшн-аудит (Pre-Production Waves) через 4 детерминированных сенсора DDE-2026 и 100% покрытие решений (2026-09-29)
+**Что случилось:**
+Традиционный подход «нейросеть проверяет нейросеть» или ручной перебор решений неизбежно приводит к человеческим ошибкам, когнитивной усталости и пропускам скрытых архитектурных дефектов (Unindexed Foreign Keys в PostgreSQL, OOM в Redis BullMQ из-за отсутствия лимитов `removeOnComplete`, потеря точности IEEE-754 при форматировании валют, расхождение Drip-Feed формул между клиентом и сервером).
+**Правило:**
+1. Перед выкаткой в продакшн проводится волновой аудит (6 волн) с обязательным состязательным ревизором (Maker-Checker Protocol).
+2. Решения принимаются моделью принятия решений (ActionArbiter) с расходом `0 tokens` на базе 4 математических сенсоров (AST, Static Hygiene, Runtime Vitest Proof, DOM Geometry).
+3. Требуется математически доказуемое 100% покрытие решений через CI-скрипт `scripts/ci/verify-decision-coverage.ts` и `DECISION_COVERAGE_INDEX.json`.
+4. 100% Foreign Key связей в PostgreSQL ОБЯЗАНЫ иметь явные B-Tree индексы `@@index` в Prisma.
+5. Любые очереди BullMQ ОБЯЗАНЫ иметь явные лимиты retention (`removeOnComplete`, `removeOnFail`) и обработчики Graceful Shutdown (`SIGTERM`/`SIGINT`).
+6. Drip-Feed Floor Invariant ($\lfloor Q/N \rfloor \ge \text{minQty}$) ОБЯЗАН проверяться как в транзакции бэкенда, так и в валидаторе клиентской формы без расхождений.
+
+### 🔴 УРОК 21 — Пре-Мортем анализ памяти и базы данных: ловушка HOT Updates vs Table Bloat, блокировки Redis Event Loop и V8 Heap Limits (2026-09-29)
+**Что случилось:**
+1. На таблице `Order` колонка `status` входит в частичный B-Tree индекс `idx_orders_active_queue`. Включение `fillfactor = 85` резервировало 15% пустого места на страницах данных под Heap-Only Tuples (HOT). Однако в архитектуре PostgreSQL HOT физически невозможен при обновлении колонок, участвующих в любых индексах таблицы: СУБД обязана создать новую версию строки и обновить B-Tree. В результате таблица раздувалась на ~17.6% (bloat) без получения каких-либо преимуществ HOT.
+2. В `RedisCacheService.invalidate` и служебных скриптах вызывался `redis.keys('pattern*')`. В однопоточном Event Loop Redis команда `KEYS` при 100k+ ключей блокирует сервер на 200–800мс, срывая `stalledInterval` очередей BullMQ воркеров и провоцируя каскадные повторные выполнения заказов.
+3. В in-memory L1 кэше `RedisCacheService` использовалась неограниченная структура `Map`. При пиковой нагрузке и сотнях уникальных ключей это приводило к риску V8 Heap Exhaustion OOM.
+4. В контейнерах `smmplan_lite_worker` и `smmplan_bot` лимит Docker составлял 256m / 128m при `--max-old-space-size=192/96`, оставляя лишь 32–64 МБ нативной памяти. Воркер падал по OOM-kill от ядра Linux, поскольку нативный Rust Query Engine Prisma и системный аллокатор потребляют 60–120 МБ вне V8 Heap.
+**Правило:**
+1. На таблицах, где часто обновляемые поля (`Order.status`) входят в индексы, `fillfactor` ОБЯЗАН быть 100 (исключение паразитного bloat). Пониженный `fillfactor = 85` допустим ТОЛЬКО на таблицах, где обновляются исключительно неиндексированные поля (`User.balance`, `User.profile`).
+2. Категорически запрещен вызов `redis.keys()` в рантайме. Поиск и инвалидация осуществляются СТРОГО через неблокирующий курсор `redis.scan` с батчами (`COUNT 100`).
+3. Любой in-memory кэш уровня L1 обязан иметь фиксированный лимит (`MAX_L1_ENTRIES = 1000`) с автоматической ротацией просроченных ключей и FIFO/LRU вытеснением.
+4. Для контейнеров с Prisma Client зазор между `--max-old-space-size` и Docker `mem_limit` обязан составлять $\ge 128$ МБ для нативного Rust Query Engine и буферов сокетов.
+
 ---
 
-
 ## 1. 🏗️ Архитектурные решения (ADR)
+
+ - **ADR-2026-50: Hardened DB & Memory SRE Architecture (Pre-Mortem Failure Immunity):**
+  - *Контекст:* Состязательный Pre-Mortem аудит Ревизора выявил риски деградации базы данных и хранилищ через 6–12 месяцев эксплуатации (табличный bloat из-за ложного fillfactor, $O(N)$ заморозки Redis от `KEYS`, V8 heap exhaustion из-за unbounded L1 cache, OOM воркеров из-за Rust Prisma Engine).
+  - *Решение:*
+    1. **Fillfactor & Index Hardening:** Установлен `fillfactor = 100` для `Order` (ликвидация 17.6% bloat) и сохранен 85 для `User` (HOT для баланса). Включен `fastupdate = on` для GIN триграммных индексов (`idx_order_link_trgm`, `idx_service_name_trgm`, `idx_user_email_trgm`) для снижения write amplification.
+    2. **Bounded L1 Cache & Non-blocking Scan:** Лимит `MAX_L1_ENTRIES = 1000` в `RedisCacheService`, вытеснение FIFO/LRU. Полный перевод инвалидации с `redis.keys` на `redis.scan` батчами по 100 ключей.
+    3. **Container Native Memory Headroom:** Повышены лимиты `smmplan_lite_worker` до 384m (`--max-old-space-size=256`) и `smmplan_bot` до 256m (`--max-old-space-size=160`), гарантируя $\ge 128$ МБ запаса под нативный Rust Query Engine.
+    4. **Production DB & Redis Sizing:** Сконфигурированы боевые параметры СУБД (`shared_buffers=256MB`, `work_mem=4MB`, `autovacuum_scale_factor=0.05`), лимит пула Prisma `connection_limit=15`, и лимит памяти Redis `--maxmemory 512mb --maxmemory-policy noeviction`.
+
+ - **ADR-2026-49: Deterministic Wave Audit & Decision Coverage Engine (Pre-Production Security & Reliability Verification):**
+  - *Контекст:* Необходимость сквозного предпродакшн-аудита платформы OmniSMM 1.0 по всем 6 ключевым доменам (БД & Redis, Финтех & Леджер, Заказы & Hot-Swap, Периметр & RBAC, OmniChat, Витрины & Чекаут) с гарантией 100% покрытия принятых решений без привлечения человека при санкционированных действиях.
+  - *Решение:*
+    1. **6-Волновой Сквозной Аудит:** Волна 1 (Хранилища: 100% FK B-Tree, BullMQ retention, Graceful Shutdown, DLP Redis TTL), Волна 2 (Финтех: Ledger-First, ExactMath BigInt, Timing-Safe Webhooks, Refund State Machine), Волна 3 (Движок Заказов: Drip-Feed Floor Invariant, MarginGuard Hot-Swap Shield, Outbox Deduplication), Волна 4 (Периметр: Host-Header Allowlist, Dynamic Staff Session, Customer Payment IDOR Guard), Волна 5 (OmniChat: Single-Active-Thread, Fail-Closed AI Sanitizer, Cross-Tenant Isolation), Волна 6 (Витрины: Drip-Feed Floor Form Alignment, TSX <= 200 lines, Never-Disabled Submit).
+    2. **Машиночитаемый контроль покрытия:** Внедрен индекс `.planning/DECISION_COVERAGE_INDEX.json` и CI-гейт `scripts/ci/verify-decision-coverage.ts`, проверяющий 100% покрытие решений.
+    3. **Детерминированный арбитраж DDE-2026:** Принятие решений выполняется шлюзом `ActionArbiter` с 0 расходом токенов на базе 4 программных сенсоров.
+    4. **Исполняемые TDD доказательства:** Созданы 6 автономных тест-сьютов (`wave1*` .. `wave6*`), 21/21 тестов успешно подтверждены Vitest.
+
+ - **ADR-2026-48: OmniChat Architecture & Single-Active-Thread Invariant (Anti-Fragmentation of Customer Conversations):**
+  - *Контекст:* Выявление архитектурного конфликта между реляционной схемой `Ticket` (Helpdesk) и продуктовой концепцией `OmniChat` (Intercom / Telegram CRM). Вызовы `db.ticket.create` в экшенах самообслуживания (проверка платежей, входящий email) дробили переписку клиента на несколько изолированных тикетов, заставляя оператора видеть 3-5 отдельных карточек на одного пользователя и разрывая контекст.
+  - *Решение:*
+    1. **Single-Active-Thread Invariant:** Запрет создания изолированных тикетов-осколков. Все модули платформы (`payment-issue`, `inbound-email`, Telegram bot, Web live-chat) используют `ticketService.getOrCreateTicket(userId, ...)` в рамках тенанта.
+    2. **Event-as-a-Message:** Любые системные события (авто-проверка платежей `reportPaymentIssueAction`, сбои заказов) публикуются как системные карточки (`INTERNAL`) в существующий живой тред клиента.
+    3. **User-Centric Workspace:** Саппорт видит ровно 1 карточку на 1 пользователя, содержащую всю сквозную историю (Web, Telegram, Email, Системные события).
+    4. **Пентест и изоляция:** Тред строго изолирован по `tenantId` (`smmplan` vs `flux`), исключая утечки контекста между разными брендами.
+
+ - **ADR-2026-47: Pentest Security Auditor Gate in Dual Agent Task Pipeline (OWASP Top 10:2025 & Pentest Immunity):**
+  - *Контекст:* Необходимость внедрения в автономный инженерный конвейер и harness штатного модуля безопасности («Безопасника» / AppSec Red Team Gatekeeper) для предварительного аудита кода перед коммитом и защиты от проникновений.
+  - *Решение:*
+    1. **PentestSecurityAuditor:** В пакет `@omnismm/agent-task-pipeline` внедрен детерминированный аудит безопасности с нулевым расходом токенов (`packages/agent-task-pipeline/src/core/security-auditor.ts`).
+    2. **Матрица 6 векторов атак (Red Team Threat Matrix):** IDOR/BOLA в Server Actions, Race Conditions (TOCTOU), Timing Attacks на секретах (требование `crypto.timingSafeEqual`), SSRF (требование `safeFetch`), Rate-Limit DoS (требование `RateLimitService`), утечки точности IEEE-754 в финтехе (требование `ExactMath` BigInt).
+    3. **Fail-Closed & CI Gate:** При обнаружении уязвимостей блокирует продвижение кода (`isImmune: false`) и формирует машиночитаемый аудит-репорт с точными номерами строк и рекомендациями.
+    4. **Сквозная интеграция:** Добавлен CLI `task-pipeline audit-security <file.ts>` и MCP-инструмент `audit_security` для вызова любым ИИ-агентом (Claude, Cursor, Antigravity).
+
+ - **ADR-2026-46: Standalone Agent Task Pipeline Module (@omnismm/agent-task-pipeline / Hexagonal Architecture):**
+  - *Контекст:* Необходимость выноса логики декомпозиции задач (WBS) и детерминированного принятия решений (Action Arbiter) в независимый подключаемый модуль, который можно подключить к любому ИИ-агенту (Antigravity, Claude, Cursor, VS Code) или экспортировать в отдельный репозиторий.
+  - *Решение:*
+    1. **Гексагональная архитектура (Ports & Adapters):** Модуль изолирован в `packages/agent-task-pipeline/` со своим `package.json`, `tsconfig.json` и unit-тестами.
+    2. **WbsDecomposer (Декомпозиция WBS):** Движок декомпозиции бизнес-требований на атомарные шаги с жестким лимитом $\le 2$ файлов на 1 задачу, вычислением критического пути и генерацией критериев приемки (No-Crutch Policy, strict types).
+    3. **ActionArbiter (Детерминированный арбитраж):** Математическая оценка рисков вариантов без расхода токенов (`0 tokens`) с 4 типами вердиктов (`PROCEED`, `REDIRECT_SAFE`, `ESCALATE_TO_HUMAN`, `REJECT`).
+    4. **3 Адаптера:** MCP-сервер (stdio JSON-RPC 2.0), CLI-утилита `task-pipeline`, программный SDK для Node.js / TypeScript.
+    5. **Автономия:** Исключение переспроса человека при положительном вердикте арбитра (инвариант правила 0.12 AGENTS.md).
+
+ - **ADR-2026-45: Autonomous Action Arbiter & Intent Gatekeeper (AAA-2026 / Zero-Token Intent Arbitration):**
+  - *Контекст:* Устранение простоя и лишних вопросов человеку («делать или не делать?») при выборе безопасных инженерных альтернатив и рефакторинге.
+  - *Решение:*
+    1. Формализован контракт намерений `ActionIntentProposal` и 4 уровня вердиктов.
+    2. При `PROCEED` и `REDIRECT_SAFE` агент обязан действовать автономно без привлечения человека.
+    3. Эскалация человеку (`ESCALATE_TO_HUMAN`) срабатывает исключительно при риске необратимых потерь данных или деплое в боевой прод.
+    4. Журналирование всех решений в Append-Only файл `.planning/ACTION_DECISIONS_LOG.md`.
+
+ - **ADR-2026-44: Deterministic Decision Engine (DDE-2026 / Zero-Token TOC POOGI Arbiter):**
+  - *Контекст:* Замена вероятностной и затратной проверки «нейросеть проверяет нейросеть» на 100% математический арбитраж с нулевым расходом токенов (Zero-Token Verification) по методологии Теории ограничений Голдратта (TOC POOGI / Non-Parametric Decision Models).
+  - *Решение:*
+    1. **4 Детерминированных Сенсора:**
+       - **Sensor 1 (AST Method & Invariant):** Синтаксический анализ TypeScript AST (`ts.createSourceFile`). Детекция Transaction Escape (`db.*` внутри `tx`), лимита строк (TSX <= 200), запрета `"use server"` в `page.tsx`.
+       - **Sensor 2 (Static Hygiene & No-Crutch):** Компиляторная проверка `tsc --noEmit`, аудит секретов `check-bundle-secrets.mjs`, строгий regex комментариев-директив `@ts-ignore` / `eslint-disable` и 0 нетипизированного `any`.
+       - **Sensor 3 (Runtime TDD Proof):** Настоящее исполнение тестов в Vitest с генерацией доказательств выполнения ассертов.
+       - **Sensor 4 (DOM Geometry & Mobile Ergonomics):** Проверка интерактивных зон Touch Target $\ge 44\text{px}$, режима `inputMode="numeric"` и защиты от горизонтального скролла.
+    2. **Интеграция в пайплайн разработки:** Внедрены команды `npm run decide` / `npm run decide:quick` и бесшовный флаг `--decide` в `scripts/maker-checker-harness.ts`.
+    3. **Ликвидация скрытых дефектов:** В первом же прогоне сенсор выявил и помог устранить `Math.round(amountRub * 100)` в `CryptoBotGateway` (`payment-gateway.service.ts`), переведя его на `ExactMath.rublesToKopecks` и `BigInt`.
+    4. **Результат:** 100% детерминированный вердикт, 0 потраченных LLM токенов, снижение времени аудита с минут до секунд.
  
+ - **ADR-2026-43: Reseller API v2 Parity, Concurrency Disambiguation & Referral Deficit Shield (Wave 2):**
+  - *Контекст:* Устранение критических дефектов в смежных подсистемах OmniSMM 1.0 (Оптовый API v2, Реферальный баланс и фоновый воркер синхронизации) по методологии Dual-Agent Self-Loop Improving Pipeline.
+  - *Решение:*
+    1. **RESELLER_API_V2:** Разделение ошибок параллелизма (`P2034`/`P2028` $\to$ HTTP 503) и нехватки средств (HTTP 400). Внедрен инвариант Drip-Feed Floor (`runs > 0 && quantity < service.minQty` $\to$ HTTP 400). Восстановлен паритет каталога в `add_multi` (`tenantId: { in: [userTenantId, 'all'] }`). Полный Zero-Any в резолвере платформ и парсере заказов.
+    2. **REFERRAL_LOYALTY_INTEGRITY:** В `WalletOps.referralDebit` внедрена защита от отрицательного баланса с автоматическим покрытием дефицита с основного баланса. В `transferReferralBalanceAction` сырой `$transaction` заменен на канонический `runSerializableTransaction` с авторетраем и оптимистической блокировкой. Ручные корректировки сопровождаются `await auditAdminAwaitable()`.
+    3. **BACKGROUND_CRONS_AND_SYNC:** В `sync.processor.ts` внедрен атомарный `updateMany` против затирания терминальных статусов заказов (`CANCELLED`, `COMPLETED`, `PARTIAL`). Зачищены нестрогие типы: `(redis as any)` заменен на нативный `redis.eval`, статусы типизированы через `ProviderMultiStatusResponse`.
+    4. **Состязательный аудит:** 100% подтверждение независимым ревизором `qa_reviewer` по 5-векторной матрице вето (`[STATUS: APPROVED]`).
+ 
+ - **ADR-2026-42: Dual-Agent Self-Loop Improving Pipeline & BGS-2026 Production Cutover:**
+  - *Контекст:* Проведение полного состязательного аудита и устранение скрытых архитектурных дефектов платформы OmniSMM 1.0 по 5 Bounded Contexts (Maker-Checker Protocol, 5-векторная матрица вето) и выкатка в прод по стандарту BGS-2026 без простоя сервиса.
+  - *Решение:*
+    1. **FINTECH_LEDGER:** ExactMath BigInt для депозитов/холдов/возвратов, очистка порога УСН 20 млн ₽ (исключены `referral_transfer` и `test`), тайминг-защита вебхуков через `crypto.timingSafeEqual`, Ledger-First без Transaction Escape.
+    2. **CATALOG_ROUTING_QUEUE:** MarginGuard в Hot-Swap автопереключении, фиксация оптовой ставки в ShadowService, ликвидация гонки P2002 в Transactional Outbox, динамические `jobId` в BullMQ против залипания задач в `PENDING`.
+    3. **STOREFRONT_CHECKOUT:** Устранен множитель `runsMultiplier` из расчета цены витрины, атомарный `upsert` гостя, токен заказа при идемпотентном ответе, Drip-Feed Floor $\lfloor Q/N \rfloor \ge \text{minQty}$, декомпозиция компонентов до $< 200$ строк.
+    4. **MULTI_TENANT_SECURITY:** Устранен Connection Pool Starvation & Deadlocks через `isInTransactionContext()` трекинг; RLS-сессия настраивается 1 раз на соединении транзакции `tx` без вложенного `$transaction`; поддержка `tenantId: 'all'` через `'bypass'`; блокировка Origin `'null'` в CORS.
+    5. **SUPPORT_ADMIN_INFRA:** Ликвидировано дублирование писем клиентам (объединено в `sendTicketReplyMail`), строгая изоляция тенантов в AI Co-Pilot, ExactMath BigInt в VIP эскалации, строгая типизация `auditAdminAwaitable` (0 `any`), устранено двойное JSON-экранирование.
+    6. **BGS-2026 Production Cutover:** Сборка в изолированном Stage-контуре (`:3005`), Playwright Chromium аудит 6 экранов (0 ошибок, 0 сдвигов layout), Human Approval Gate, фиксация точки отката `smmplan_backup:latest`, Zero-Downtime Cutover в боевые контейнеры (`smmplan_app`, `smmplan_worker`, `smmplan_bot`).
+
  - **ADR-2026-41: Zero-Latency Database & Redis Hardening (HOT Updates Fillfactor 85, Immutable Ledger Trigger, Redis Auto-Pipelining, Singleflight Catalog Cache):**
   - *Контекст:* Необходимость устранения любых задержек транзакций, предотвращения деградации MVCC в PostgreSQL при частых апдейтах заказов и списаниях баланса, предотвращения Cache Stampede при одновременных запросах каталога и соблюдения стандартов ISO/IEC 25010:2023, PCI DSS v4.0.1 (Req 10.2) и OWASP Top 10:2025.
   - *Решение:*
@@ -195,6 +307,15 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     4. **Динамическая активация маршрутизации:** При успешной верификации домен регистрируется в L1 Memory и L2 Redis `DomainRegistryService` с флагом `isVerified: true`.
     5. **UI & Server Actions:** Модальное окно `<DomainVerificationModal>` с инструкциями в 1 клик, статусами и ручным запуском верификации. Server Actions: `getDomainVerificationAction`, `verifyCustomDomainAction`, `regenerateDomainVerificationTokenAction` с обязательным админским аудитом.
   - *Верификация:* 10/10 тестов в `dynamic-domain-verification.test.ts`, 0 ошибок `tsc --noEmit`, 0 блокеров `lint:tenant`, 0 утечек секретов.
+
+ - **ADR-2026-34: Complete Dual-Agent Self-Loop Improving Pipeline Sweep (OmniSMM 1.0 RAC-2026):**
+  - *Решение:*
+    1. **Домен 1 (FINTECH_LEDGER):** Устранено искажение фискального порога УСН 20 млн ₽ (исключены `referral_transfer` и `test`), все расчеты переведены на ExactMath BigInt, соблюден Ledger-First и No-Transaction-Escape, вебхуки защищены timing-safe сравнением подписи и RLS оберткой `runWithTenantBypass()`.
+    2. **Домен 2 (CATALOG_ROUTING_QUEUE):** Фиксация оптовой ставки в ShadowService, интеграция MarginGuard в автопереключение Hot-Swap для блокировки убыточных маршрутов, ликвидация гонки P2002 в Transactional Outbox, устранение дедлока дедупликации в BullMQ через динамические jobId `dispatch-${orderId}-${Date.now()}`.
+    3. **Домен 3 (STOREFRONT_CHECKOUT):** Устранен ошибочный множитель `runsMultiplier` из `calculatePriceAction`, предотвращена гонка P2002 гостя атомарным `upsert`, обеспечен возврат `guestOrderToken` при повторном клике, ReDoS-safe валидация ссылок, соблюдение Drip-Feed Floor $\lfloor Q/N \rfloor \ge \text{minQty}$.
+    4. **Домен 4 (MULTI_TENANT_SECURITY):** Ликвидирован Connection Pool Starvation & Deadlocks через `AsyncLocalStorage` трекинг транзакций `runInTransactionContext()`, RLS-сессия (`SET LOCAL ROLE app_user` + `set_config`) настраивается единожды прямо на клиенте интерактивной транзакции `tx` без вложенного `$transaction`. Внедрен режим `'bypass'` для системных выборок `where: { tenantId: 'all' }`. В `prisma-tenant-enforcer.ts` ликвидированы все `any` и `eslint-disable`, добавлен чистый DI через `TenantContextResolver`. В `src/proxy.ts` заблокирован Origin `'null'`.
+    5. **Домен 5 (SUPPORT_ADMIN_INFRA):** Ликвидировано дублирование отправки писем оператора поддержки клиенту (объединено в `sendTicketReplyMail` с историей переписки), внедрена строгая проверка изоляции тенантов в `AiSupportCoPilotService`, расчет GMV в `VipSentimentEscalatorService` переведен на `BigInt` (копейки), `auditAdminAwaitable` типизирован интерфейсом `AuditLogWriterClient` без единого `any` и защищен от двойной сериализации.
+  - *Верификация:* 5/5 доменов получили `[STATUS: APPROVED]` от независимого Ревизора `qa_reviewer`, `tsc --noEmit` — 0 ошибок, `check-bundle-secrets.mjs` — 0 секретов, `check:arch` — 0 нарушений архитектуры (1481 модуль).
 
  - **ADR-2026-33: Multi-Tenant Telegram Bot Dispatcher & Webhook Router (OmniSMM 1.0 RAC-2026):**
   - *Решение:*

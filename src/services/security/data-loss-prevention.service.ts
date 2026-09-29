@@ -41,17 +41,16 @@ export class DataLossPreventionService {
 
     try {
       let currentCount: number;
-      if (typeof (redis as any).incrby === 'function') {
-        currentCount = await (redis as any).incrby(redisKey, recordCount);
+      if (typeof redis.incrby === 'function') {
+        currentCount = await redis.incrby(redisKey, recordCount);
+        if (typeof redis.expire === 'function') {
+          await redis.expire(redisKey, this.RATE_WINDOW_SEC).catch(() => {});
+        }
       } else {
         const raw = await redis.get(redisKey);
         const val = (Number(raw) || 0) + recordCount;
-        await redis.set(redisKey, String(val));
+        await redis.set(redisKey, String(val), 'EX', this.RATE_WINDOW_SEC);
         currentCount = val;
-      }
-
-      if (typeof (redis as any).expire === 'function') {
-        await (redis as any).expire(redisKey, this.RATE_WINDOW_SEC).catch(() => {});
       }
 
       if (currentCount > maxAllowed) {

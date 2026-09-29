@@ -18,7 +18,7 @@ import path from 'path';
 import fs from 'fs';
 import net from 'net';
 import { spawn, ChildProcess } from 'child_process';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { SignJWT } from 'jose';
 import { chromium, Browser, BrowserContext } from 'playwright';
 import { getEncodedKey } from '../src/lib/session-edge';
@@ -137,14 +137,14 @@ async function resolveStageServer(): Promise<{ url: string; port: number; spawne
 async function generateTestJwt(role: string, tenantId: string): Promise<string> {
   try {
     let user = await prisma.user.findFirst({
-      where: { role: role as any, tenantId },
+      where: { role: role as Role, tenantId },
     });
 
     if (!user && tenantId === 'flux') {
       user = await prisma.user.create({
         data: {
           email: `stage_test_flux_${Date.now()}@smmflux.ru`,
-          role: role as any,
+          role: role as Role,
           tenantId: 'flux',
           balance: 100000n,
           isActive: true,
@@ -154,7 +154,7 @@ async function generateTestJwt(role: string, tenantId: string): Promise<string> 
 
     if (!user) {
       user = await prisma.user.findFirst({
-        where: { role: role as any },
+        where: { role: role as Role },
       });
     }
 
@@ -189,21 +189,28 @@ async function generateTestJwt(role: string, tenantId: string): Promise<string> 
       .setIssuedAt()
       .setExpirationTime('24h')
       .sign(getEncodedKey());
-  } catch (err: any) {
-    const SEEDED_SESSIONS: Record<string, { sessionId: string; userId: string }> = {
-      USER_SMMPLAN: { sessionId: 'qa_session_user_smmplan', userId: 'cmtwi4ykh005lsfms6hickx5q' },
-      USER_FLUX: { sessionId: 'qa_session_user_flux', userId: 'cmtwn01qf00006jic4voymgzk' },
-      SUPPORT: { sessionId: 'qa_session_support', userId: 'cmtx5wvpi000blaw039q53erj' },
-      OWNER: { sessionId: 'qa_session_owner', userId: 'cmtx5wvmw0006law0ctx7jyzt' },
-    };
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn(`[generateTestJwt] Database session generation failed (${errMsg}), falling back to seeded test sessions...`);
+    const isStaff = ['OWNER', 'ADMIN', 'MANAGER', 'SUPPORT', 'OPERATOR'].includes(role);
+    let seededSessionId = 'qa_session_user_smmplan';
+    let seededUserId = 'cmumf87y00000w6bso3fcfrtg';
 
-    const seeded = SEEDED_SESSIONS[role] || SEEDED_SESSIONS.USER_SMMPLAN;
+    if (isStaff) {
+      seededSessionId = 'qa_session_owner';
+      seededUserId = 'cmugw141d00026vtakb62tr44';
+    } else if (tenantId === 'flux') {
+      seededSessionId = 'qa_session_user_flux';
+      seededUserId = 'cmumf87zb0001w6bs74tvohep';
+    }
+
     return new SignJWT({
-      sessionId: seeded.sessionId,
-      userId: seeded.userId,
+      sessionId: seededSessionId,
+      userId: seededUserId,
       canResetPassword: false,
-      role,
+      role: isStaff ? 'OWNER' : 'USER',
       tenantId,
+      allowedTenants: isStaff ? ['smmplan', 'flux'] : [tenantId],
       contour: 'test',
       sessionVer: 1,
     })
@@ -239,7 +246,7 @@ export class StageVisualAuditHarness {
 
     // Запуск Playwright Chromium (используем системный Chrome/Edge или Playwright binary)
     console.log('🌐 Launching headless Chromium browser...');
-    const launchOptions: any = {
+    const launchOptions: Parameters<typeof chromium.launch>[0] = {
       headless: true,
       args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-proxy-server'],
     };
@@ -341,14 +348,22 @@ export class StageVisualAuditHarness {
           deviceScaleFactor: 1.5,
         });
 
-        // Настройка сессионных кук
-        const cookies: Array<{ name: string; value: string; domain: string; path: string }> = [
-          { name: 'x_tenant', value: scen.tenantId, domain: '127.0.0.1', path: '/' },
+        // Настройка сессионных кук и заголовков тенанта
+        const cookies: Parameters<BrowserContext['addCookies']>[0] = [
+          { name: 'x_tenant', value: scen.tenantId, url: stageUrl },
         ];
         if (scen.token) {
-          cookies.push({ name: 'session_token', value: scen.token, domain: '127.0.0.1', path: '/' });
+          cookies.push({ name: 'session_token', value: scen.token, url: stageUrl });
         }
         await context.addCookies(cookies);
+
+        const extraHeaders: Record<string, string> = {
+          'x-tenant-id': scen.tenantId,
+        };
+        if (scen.tenantId === 'flux') {
+          extraHeaders['x-forwarded-host'] = 'flux.local';
+        }
+        await context.setExtraHTTPHeaders(extraHeaders);
 
         const page = await context.newPage();
         const consoleErrors: string[] = [];
@@ -384,9 +399,10 @@ export class StageVisualAuditHarness {
               });
               navSuccess = true;
               break;
-            } catch (navErr: any) {
+            } catch (navErr: unknown) {
+              const navMsg = navErr instanceof Error ? navErr.message : String(navErr);
               if (attempt === 3) throw navErr;
-              console.log(`   ⏳ Retrying navigation (attempt ${attempt}/3) after delay: ${navErr.message.slice(0, 80)}...`);
+              console.log(`   ⏳ Retrying navigation (attempt ${attempt}/3) after delay: ${navMsg.slice(0, 80)}...`);
               await new Promise((r) => setTimeout(r, 2500));
             }
           }
@@ -452,8 +468,9 @@ export class StageVisualAuditHarness {
             consoleErrors.forEach(err => console.log(`      -> ${err}`));
             console.log();
           }
-        } catch (e: any) {
-          console.log(`   ⚠️ Screen navigation error: ${e.message}\n`);
+        } catch (e: unknown) {
+          const eMsg = e instanceof Error ? e.message : String(e);
+          console.log(`   ⚠️ Screen navigation error: ${eMsg}\n`);
           results.push({
             id: scen.id,
             name: scen.name,

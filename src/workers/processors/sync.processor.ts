@@ -7,6 +7,7 @@ import { RefundPolicyService } from '../../services/financial/refund-policy.serv
 import { sendOrderCompletedMail } from '../../lib/smtp';
 import { logger } from '../../lib/logger';
 import { runWithTenantBypass } from '../../lib/tenant-context';
+import type { ProviderMultiStatusResponse } from '../../services/providers/base-provider';
 
 // tenant-isolation-ignore: Global cron job operating on all tenants
 const log = logger.child({ component: 'SyncProcessor' });
@@ -92,7 +93,7 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
         if (allExtIds.length === 0) continue;
 
         // multiStatus API with Timeout and 2-Tier Fallback
-        let statuses: Record<string, any> = {};
+        let statuses: ProviderMultiStatusResponse = {};
         let batchTimer: NodeJS.Timeout | undefined;
         try {
           const syncStartTime = Date.now();
@@ -292,8 +293,11 @@ export default async function syncProcessor(job: Job<SyncJobPayload>) {
           });
         } else if (targetStatus === 'IN_PROGRESS') {
           const safeProgressRemains = (remainsNum !== undefined && !isNaN(remainsNum)) ? Math.min(order.quantity, Math.max(0, remainsNum)) : undefined;
-          await db.order.update({
-            where: { id: order.id },
+          await db.order.updateMany({
+            where: {
+              id: order.id,
+              status: { in: ['IN_PROGRESS', 'PENDING', 'PENDING_CHECK'] }
+            },
             data: {
               remains: safeProgressRemains,
               startCount: startCountNum !== undefined && !isNaN(startCountNum) ? startCountNum : undefined

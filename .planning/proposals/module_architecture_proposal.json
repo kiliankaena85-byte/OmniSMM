@@ -1,0 +1,39 @@
+{
+  "actionId": "ACT-ARCH-MODULE-FORM-2026",
+  "intent": "Выбор архитектурной формы подключаемого модуля декомпозиции и арбитража задач с сохранением максимальной функциональности",
+  "category": "REFACTOR",
+  "options": [
+    {
+      "id": "OPT-PURE-SKILL",
+      "title": "Форма чистого скилла (Markdown Prompt instructions)",
+      "description": "Только текстовые промпты. Теряет функциональность: нет AST-анализа, нет реального рантайма тестов, зависит от вероятностей LLM",
+      "riskLevel": "CRITICAL",
+      "isDestructive": false,
+      "hasRollbackPlan": false,
+      "estimatedImpactFiles": 1
+    },
+    {
+      "id": "OPT-MONOLITHIC-INTERNAL",
+      "title": "Форма внутреннего монолитного сервиса (SMMplan specific)",
+      "description": "Максимальная функциональность внутри OmniSMM, но жестко привязана к проекту и не может быть выгружена в отдельный репозиторий",
+      "riskLevel": "MEDIUM",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 3
+    },
+    {
+      "id": "OPT-HYBRID-HEXAGONAL-MODULE",
+      "title": "Гексагональный подключаемый модуль (Standalone Core + MCP + CLI + SDK)",
+      "description": "100% функциональность ядра (AST, Vitest, WBS-декомпозитор, Risk Matrix) с 3 адаптерами: MCP для любых LLM-агентов (Claude, Cursor, Antigravity), CLI для шелла и SDK для нативного импорта. Легко выносится в отдельный репозиторий",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 5
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true,
+    "userIntentExplicit": true
+  }
+}

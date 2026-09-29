@@ -1,0 +1,32 @@
+{
+  "actionId": "ACT-OMNICHAT-UNIFICATION-2026",
+  "intent": "Устранение фрагментации тикетов и приведение к канонической архитектуре OmniChat (1 Пользователь = 1 Единый диалог на тенант)",
+  "category": "REFACTOR",
+  "options": [
+    {
+      "id": "OPT-CANONICAL-OMNICHAT-INVARIANT",
+      "title": "Канонический OmniChat-инвариант (Single-Active-Thread Invariant)",
+      "description": "Запрет создания изолированных тикетов-осколков при авто-проверке платежей и email. Все системные события и обращения добавляются как сообщения в единый активный тред getOrCreateTicket(). В сайдбаре саппорта отображается единый диалог клиента со всей хронологией (Web, Telegram, Email, Система).",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 2,
+      "touchesFinancialLedger": false
+    },
+    {
+      "id": "OPT-LEGACY-SPLIT-TICKETS",
+      "title": "Оставить раздельные тикеты (Legacy Helpdesk)",
+      "description": "Создавать отдельный тикет на каждый платеж и каждое письмо. Саппорт видит 5 отдельных карточек на одного клиента, контекст разорван.",
+      "riskLevel": "HIGH",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 0,
+      "touchesFinancialLedger": false
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true,
+    "userIntentExplicit": true
+  }
+}

@@ -22,8 +22,9 @@ export class AiSupportCoPilotService {
   static async generateDraft(ticketId: string, staffUserId?: string): Promise<CoPilotDraftResult> {
     try {
       // 0. Authorization check: if staffUserId is provided, verify operator role
+      let staff: { role: string; tenantId: string | null } | null = null;
       if (staffUserId) {
-        const staff = await db.user.findUnique({
+        staff = await db.user.findUnique({
           where: { id: staffUserId },
           select: { role: true, tenantId: true }
         });
@@ -69,6 +70,15 @@ export class AiSupportCoPilotService {
       }
 
       const tenantId = ticket.tenantId || ticket.user?.tenantId || 'smmplan';
+      if (staff && staff.role !== 'OWNER' && staff.tenantId && staff.tenantId !== tenantId) {
+        return {
+          success: false,
+          draftText: '',
+          confidence: 'FALLBACK',
+          source: 'DETERMINISTIC_FALLBACK',
+          error: 'Доступ запрещён: тикет принадлежит другому сайту',
+        };
+      }
       const brandName = tenantId === 'flux' ? 'SMMflux' : 'SMMplan';
       const host = getTenantHost(tenantId);
 

@@ -4,11 +4,10 @@
  * Automatically intercepts and scopes database operations by tenantId using PostgreSQL Row-Level Security.
  */
 
-import { resolveActiveTenantId, isTenantBypassActive } from './tenant-context';
+import * as tenantContext from './tenant-context';
 
 export interface TenantEnforcerOptions {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  findFirstDelegate?: (args: any) => Promise<any>;
+  findFirstDelegate?: (args: Record<string, unknown>) => Promise<unknown>;
 }
 
 export const TENANT_SCOPED_MODELS = [
@@ -29,52 +28,85 @@ export const TENANT_SCOPED_MODELS = [
 
 export type TenantScopedModel = (typeof TENANT_SCOPED_MODELS)[number];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createTenantEnforcerExtension(prismaClient: any) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const queryExtensions: Record<string, any> = {};
+export interface TenantContextResolver {
+  resolveActiveTenantId: () => Promise<string | null>;
+  isTenantBypassActive: () => boolean;
+  isInTransactionContext?: () => boolean;
+}
+
+export interface PrismaBatchTransactionClient {
+  $transaction<T>(arg: PromiseLike<unknown>[]): Promise<T[]>;
+  $executeRawUnsafe(query: string): Promise<unknown>;
+  $executeRaw(strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
+}
+
+export function createTenantEnforcerExtension(
+  prismaClient: PrismaBatchTransactionClient,
+  context: TenantContextResolver = tenantContext
+) {
+  const queryExtensions: Record<string, {
+    $allOperations: (params: {
+      args: Record<string, unknown>;
+      query: (args: Record<string, unknown>) => Promise<unknown>;
+    }) => Promise<unknown>;
+  }> = {};
 
   for (const model of TENANT_SCOPED_MODELS) {
     queryExtensions[model] = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async $allOperations({ args, query }: { args: any; query: (args: any) => any }) {
-        if (isTenantBypassActive()) {
-          const [, , result] = await prismaClient.$transaction([
+      async $allOperations({ args, query }: {
+        args: Record<string, unknown>;
+        query: (args: Record<string, unknown>) => Promise<unknown>;
+      }) {
+        // 1. If executing within an interactive transaction, RLS session is already configured on connection
+        if (typeof context.isInTransactionContext === 'function' && context.isInTransactionContext()) {
+          return await query(args);
+        }
+
+        // 2. Audit-verified bypass mode
+        if (context.isTenantBypassActive()) {
+          const res = await prismaClient.$transaction<unknown>([
             prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
             prismaClient.$executeRaw`SELECT set_config('app.current_tenant', 'bypass', TRUE)`,
             query(args)
           ]);
-          return result;
+          return res[res.length - 1];
         }
 
-        let tenantId = await resolveActiveTenantId();
+        let tenantId = await context.resolveActiveTenantId();
         
-        // Fallback for background caches / unstable_cache where headers() are not accessible
-        if (!tenantId && args?.where?.tenantId) {
-          if (typeof args.where.tenantId === 'string' && args.where.tenantId !== 'all') {
-            tenantId = args.where.tenantId;
-          } else if (Array.isArray(args.where.tenantId?.in)) {
-            const found = args.where.tenantId.in.find((t: string) => t && t !== 'all');
-            if (found) tenantId = found;
+        // 3. Fallback for background caches / unstable_cache where headers() are not accessible
+        const where = (typeof args === 'object' && args !== null && 'where' in args)
+          ? (args as { where?: { tenantId?: string | { in?: string[] } } }).where
+          : undefined;
+
+        if (!tenantId && where?.tenantId) {
+          if (typeof where.tenantId === 'string') {
+            tenantId = where.tenantId === 'all' ? 'bypass' : where.tenantId;
+          } else if (Array.isArray(where.tenantId?.in)) {
+            const found = where.tenantId.in.find((t: string) => t && t !== 'all');
+            if (found) {
+              tenantId = found;
+            } else if (where.tenantId.in.includes('all')) {
+              tenantId = 'bypass';
+            }
           }
         }
         
         if (tenantId) {
-          const [, , result] = await prismaClient.$transaction([
+          const res = await prismaClient.$transaction<unknown>([
             prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
             prismaClient.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, TRUE)`,
             query(args)
           ]);
-          return result;
+          return res[res.length - 1];
         }
 
-        // If no tenant context is resolved, explicitly set empty string so NULLIF(..., '') IS NULL triggers cleanly
-        const [, , result] = await prismaClient.$transaction([
+        // 4. If no tenant context is resolved, apply app_user role without set_config
+        const res = await prismaClient.$transaction<unknown>([
           prismaClient.$executeRawUnsafe(`SET LOCAL ROLE app_user`),
-          prismaClient.$executeRaw`SELECT set_config('app.current_tenant', '', TRUE)`,
           query(args)
         ]);
-        return result;
+        return res[res.length - 1];
       }
     };
   }

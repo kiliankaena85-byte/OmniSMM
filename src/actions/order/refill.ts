@@ -4,6 +4,7 @@ import { verifySession } from '@/lib/session';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { SettingsProvider } from '@/lib/settings';
+import type { Redis } from 'ioredis';
 
 export async function requestClientRefillAction(input: string | { orderId: string }) {
   const isModuleEnabled = await SettingsProvider.isRefillModuleEnabled();
@@ -22,6 +23,29 @@ export async function requestClientRefillAction(input: string | { orderId: strin
   const orderId = typeof input === 'string' ? input : input?.orderId;
   if (!orderId || typeof orderId !== 'string') {
     return { success: false as const, error: 'ID заказа не указан' };
+  }
+
+  // 1. Distributed Mutex FIRST: гарантирует защиту от TOCTOU гонок и параллельных кликов
+  const lockKey = `refill:client-lock:${orderId}`;
+  let redisClient: Redis | null = null;
+  try {
+    const { getRedisConnection } = await import('@/lib/queue-manager');
+    redisClient = typeof getRedisConnection === 'function' ? getRedisConnection() : null;
+    if (redisClient && typeof redisClient.set === 'function') {
+      const acquired = await redisClient.set(lockKey, '1', 'EX', 15, 'NX');
+      if (!acquired) {
+        return {
+          success: false as const,
+          error: 'Запрос на докрутку уже обрабатывается. Пожалуйста, подождите.',
+        };
+      }
+    }
+  } catch (redisErr) {
+    console.error('[RefillAction] Redis lock failure:', redisErr);
+    return {
+      success: false as const,
+      error: 'Временный сбой сервиса очередей. Пожалуйста, повторите запрос позже.',
+    };
   }
 
   try {
@@ -50,10 +74,12 @@ export async function requestClientRefillAction(input: string | { orderId: strin
     });
 
     if (!order) {
+      await redisClient?.del(lockKey).catch(() => {});
       return { success: false as const, error: 'Заказ не найден или недоступен' };
     }
 
     if (!order.service?.isRefillEnabled) {
+      await redisClient?.del(lockKey).catch(() => {});
       return {
         success: false as const,
         error: 'Для данной услуги бесплатная докрутка не предусмотрена',
@@ -61,6 +87,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
     }
 
     if (order.status !== 'COMPLETED' && order.status !== 'PARTIAL') {
+      await redisClient?.del(lockKey).catch(() => {});
       return {
         success: false as const,
         error: 'Докрутка доступна только для завершенных или частично выполненных заказов',
@@ -72,6 +99,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
     );
 
     if (hasActiveRefill) {
+      await redisClient?.del(lockKey).catch(() => {});
       const activeRefill = order.refills.find((r) =>
         ['PENDING', 'IN_PROGRESS'].includes(r.status)
       );
@@ -95,6 +123,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
       const COOLDOWN_1H_MS = 60 * 60 * 1000;
 
       if (latestRefill.status === 'REJECTED' && elapsedMs < COOLDOWN_24H_MS - 1000) {
+        await redisClient?.del(lockKey).catch(() => {});
         const remainingHours = Math.max(1, Math.ceil((COOLDOWN_24H_MS - elapsedMs) / (1000 * 60 * 60)));
         return {
           success: false as const,
@@ -108,6 +137,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
       }
 
       if (latestRefill.status === 'COMPLETED' && elapsedMs < COOLDOWN_24H_MS - 1000) {
+        await redisClient?.del(lockKey).catch(() => {});
         const remainingHours = Math.max(1, Math.ceil((COOLDOWN_24H_MS - elapsedMs) / (1000 * 60 * 60)));
         return {
           success: false as const,
@@ -121,6 +151,7 @@ export async function requestClientRefillAction(input: string | { orderId: strin
       }
 
       if (latestRefill.status === 'ERROR' && elapsedMs < COOLDOWN_1H_MS - 1000) {
+        await redisClient?.del(lockKey).catch(() => {});
         const remainingMinutes = Math.max(1, Math.ceil((COOLDOWN_1H_MS - elapsedMs) / (1000 * 60)));
         return {
           success: false as const,
@@ -132,26 +163,6 @@ export async function requestClientRefillAction(input: string | { orderId: strin
           },
         };
       }
-    }
-
-    try {
-      const { getRedisConnection } = await import('@/lib/queue-manager');
-      const redis = typeof getRedisConnection === 'function' ? getRedisConnection() : null;
-      if (redis && typeof redis.set === 'function') {
-        const acquired = await redis.set(`refill:client-lock:${order.id}`, '1', 'EX', 15, 'NX');
-        if (!acquired) {
-          return {
-            success: false as const,
-            error: 'Запрос на докрутку уже обрабатывается. Пожалуйста, подождите.',
-          };
-        }
-      }
-    } catch (redisErr) {
-      console.error('[RefillAction] Redis lock failure:', redisErr);
-      return {
-        success: false as const,
-        error: 'Временный сбой сервиса очередей. Пожалуйста, повторите запрос позже.',
-      };
     }
 
     const refill = await db.refill.create({
@@ -166,9 +177,19 @@ export async function requestClientRefillAction(input: string | { orderId: strin
       if (!refillQueue) {
         throw new Error('Очередь обработки докруток недоступна');
       }
-      await refillQueue.add('process-refill', { refillId: refill.id, tenantId: order.tenantId });
+      await refillQueue.add(
+        'process-refill',
+        { refillId: refill.id, tenantId: order.tenantId },
+        {
+          jobId: `refill-${refill.id}`,
+          removeOnComplete: true,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 5000 },
+        }
+      );
     } catch (queueErr) {
       console.error('[RefillAction] Failed to add refill to queue:', queueErr);
+      await redisClient?.del(lockKey).catch(() => {});
       
       // Cleanup the pending refill so the user is not permanently locked
       await db.refill.update({

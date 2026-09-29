@@ -2,10 +2,10 @@ import { db } from '@/lib/db';
 import { getBaseUrlAsync } from '@/utils/get-base-url';
 import { SettingsProvider, getTenantFallbackBranding } from '@/lib/settings';
 import { WalletOps } from './wallet-ops';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { MutexManager } from '@/lib/redis-lock';
 import crypto from 'crypto';
 import { UniversalNetworkRouter } from '@/lib/network/network-router';
+import { ExactMath } from '@/lib/financial/exact-math';
+import { runWithTenantBypass } from '@/lib/tenant-context';
 
 export const VAT_THRESHOLD_KOPECKS = BigInt(20_000_000) * BigInt(100); // 20,000,000 RUB in kopecks (2,000,000,000 cents)
 
@@ -234,7 +234,7 @@ class YooKassaGateway extends BasePaymentGateway {
       }]
     };
 
-    const idempString = `yookassa_${params.userId}_${params.paymentId}_${Math.floor(Date.now() / 60000)}`;
+    const idempString = `yookassa_${params.tenantId || 'smmplan'}_${params.paymentId}`;
     const idempKey = crypto.createHash('sha256').update(idempString).digest('hex').substring(0, 36);
 
     let resp: Response;
@@ -296,10 +296,12 @@ class YooKassaGateway extends BasePaymentGateway {
         }
         resolvedTenantId = tenantId;
       } else {
-        // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
-        const p = await db.payment.findFirst({
-          where: { gatewayId },
-          select: { tenantId: true }
+        // tenant-isolation-ignore: External callback tenant resolution via runWithTenantBypass
+        const p = await runWithTenantBypass('YooKassa checkStatusSync tenant resolution', async () => {
+          return await db.payment.findFirst({
+            where: { gatewayId },
+            select: { tenantId: true }
+          });
         });
         resolvedTenantId = p?.tenantId || 'smmplan';
       }
@@ -331,10 +333,12 @@ class YooKassaGateway extends BasePaymentGateway {
 
     let resolvedTenantId = params.tenantId;
     if (!resolvedTenantId) {
-      // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
-      const p = await db.payment.findFirst({
-        where: { gatewayId: params.paymentGatewayId },
-        select: { tenantId: true }
+      // tenant-isolation-ignore: External callback tenant resolution via runWithTenantBypass
+      const p = await runWithTenantBypass('YooKassa executeRefund tenant resolution', async () => {
+        return await db.payment.findFirst({
+          where: { gatewayId: params.paymentGatewayId },
+          select: { tenantId: true }
+        });
       });
       resolvedTenantId = p?.tenantId || 'smmplan';
     }
@@ -429,14 +433,14 @@ class YooKassaGateway extends BasePaymentGateway {
     return {
       refundId: data.id,
       status: data.status,
-      amountRub: parseFloat(data.amount?.value || String(params.amountRub)),
+      amountRub: data.amount?.value ? Number(data.amount.value) : Number(params.amountRub),
     };
   }
 }
 
 class CryptoBotGateway extends BasePaymentGateway {
   async createPayment(params: PaymentGatewayParams): Promise<PaymentGatewayResult> {
-    if (params.amountRub <= 0 || Math.round(params.amountRub * 100) <= 0) {
+    if (params.amountRub <= 0 || ExactMath.rublesToKopecks(params.amountRub) <= 0n) {
       throw new Error('Сумма платежа должна быть больше 0');
     }
 
@@ -532,10 +536,12 @@ class CryptoBotGateway extends BasePaymentGateway {
     try {
       let resolvedTenantId = tenantId;
       if (!resolvedTenantId) {
-        // tenant-isolation-ignore: Fallback lookup to resolve tenantId from payment.gatewayId when tenantId is not passed
-        const p = await db.payment.findFirst({
-          where: { gatewayId },
-          select: { tenantId: true }
+        // tenant-isolation-ignore: External callback tenant resolution via runWithTenantBypass
+        const p = await runWithTenantBypass('CryptoBot checkStatusSync tenant resolution', async () => {
+          return await db.payment.findFirst({
+            where: { gatewayId },
+            select: { tenantId: true }
+          });
         });
         resolvedTenantId = p?.tenantId || 'smmplan';
       }
@@ -566,7 +572,7 @@ class CryptoBotGateway extends BasePaymentGateway {
 
 class BalanceGateway extends BasePaymentGateway {
   async createPayment(params: PaymentGatewayParams): Promise<PaymentGatewayResult> {
-    const amountCents = Math.round(params.amountRub * 100);
+    const amountCents = ExactMath.rublesToKopecks(params.amountRub);
     const remoteId = `internal_${Date.now()}`;
     const { ordersQueue } = await import('@/lib/queue-manager');
 
@@ -589,47 +595,77 @@ class BalanceGateway extends BasePaymentGateway {
           const order = await tx.order.findUnique({
             where: { id: params.orderId }
           });
-          if (order) {
-            await tx.order.update({
-              where: { id: params.orderId },
-              data: { status: 'PENDING' }
-            });
-            if (order.promoCodeId) {
-              const promo = await tx.promoCode.findUnique({
-                where: { id: order.promoCodeId },
-                select: { isSuspicious: true }
-              });
-              const isSuspicious = promo?.isSuspicious ?? false;
-              
-              const existingUsage = await tx.promoCodeUsage.findUnique({
-                where: { orderId: order.id }
-              });
-              
-              if (!existingUsage) {
-                await tx.promoCodeUsage.create({
-                  data: {
-                    promoCodeId: order.promoCodeId,
-                    userId: params.userId,
-                    orderId: order.id,
-                    discountCents: order.discountCents,
-                    revenueCents: BigInt(Number(order.charge)),
-                    profitCents: BigInt(Number(order.charge - order.providerCost)),
-                    isSuspicious,
-                  }
-                });
-              }
-            }
-            items.push({ id: params.orderId, tenantId: order.tenantId });
+          if (!order) {
+            throw new Error(`Заказ #${params.orderId} не найден`);
           }
+          if (order.userId !== params.userId) {
+            throw new Error(`Отказ в доступе: заказ #${order.id} принадлежит другому пользователю`);
+          }
+          const expectedTenant = params.tenantId || 'smmplan';
+          if (order.tenantId && order.tenantId !== expectedTenant && expectedTenant !== 'all') {
+            throw new Error(`Несоответствие тенанта для заказа #${order.id}`);
+          }
+          if (order.status !== 'AWAITING_PAYMENT') {
+            throw new Error(`Заказ #${order.id} уже обработан или не ожидает оплаты (статус: ${order.status})`);
+          }
+          if (amountCents < order.charge) {
+            throw new Error(`Недостаточно средств для оплаты заказа: требуется ${order.charge} коп., передано ${amountCents} коп.`);
+          }
+
+          await tx.order.update({
+            where: { id: params.orderId },
+            data: { status: 'PENDING' }
+          });
+          if (order.promoCodeId) {
+            const promo = await tx.promoCode.findUnique({
+              where: { id: order.promoCodeId },
+              select: { isSuspicious: true }
+            });
+            const isSuspicious = promo?.isSuspicious ?? false;
+            
+            const existingUsage = await tx.promoCodeUsage.findUnique({
+              where: { orderId: order.id }
+            });
+            
+            if (!existingUsage) {
+              await tx.promoCodeUsage.create({
+                data: {
+                  promoCodeId: order.promoCodeId,
+                  userId: params.userId,
+                  orderId: order.id,
+                  discountCents: order.discountCents,
+                  revenueCents: order.charge,
+                  profitCents: order.charge - (order.providerCost ?? 0n),
+                  isSuspicious,
+                }
+              });
+            }
+          }
+          items.push({ id: params.orderId, tenantId: order.tenantId });
         }
 
         // Also update any orders linked to this paymentId (Mass Orders / Basket)
         const basketOrders = await tx.order.findMany({ 
-          where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT', ...(params.tenantId ? { tenantId: params.tenantId } : {}) } 
+          where: { 
+            paymentId: params.paymentId, 
+            userId: params.userId,
+            status: 'AWAITING_PAYMENT', 
+            ...(params.tenantId ? { tenantId: params.tenantId } : {}) 
+          } 
         });
         if (basketOrders.length > 0) {
+          const totalBasketCharge = basketOrders.reduce((sum, o) => sum + o.charge, 0n);
+          if (amountCents < totalBasketCharge) {
+            throw new Error(`Недостаточно средств для оплаты корзины: требуется ${totalBasketCharge} коп., передано ${amountCents} коп.`);
+          }
+
           await tx.order.updateMany({
-            where: { paymentId: params.paymentId, status: 'AWAITING_PAYMENT', ...(params.tenantId ? { tenantId: params.tenantId } : {}) },
+            where: { 
+              paymentId: params.paymentId, 
+              userId: params.userId,
+              status: 'AWAITING_PAYMENT', 
+              ...(params.tenantId ? { tenantId: params.tenantId } : {}) 
+            },
             data: { status: 'PENDING' }
           });
           for (const order of basketOrders) {
@@ -651,8 +687,8 @@ class BalanceGateway extends BasePaymentGateway {
                     userId: params.userId,
                     orderId: order.id,
                     discountCents: order.discountCents,
-                    revenueCents: BigInt(Number(order.charge)),
-                    profitCents: BigInt(Number(order.charge - order.providerCost)),
+                    revenueCents: order.charge,
+                    profitCents: order.charge - (order.providerCost ?? 0n),
                     isSuspicious,
                   }
                 });

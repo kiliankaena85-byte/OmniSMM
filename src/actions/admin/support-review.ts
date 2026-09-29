@@ -128,8 +128,9 @@ export async function reviewSupportFinancialAction(formData: FormData) {
       action: 'REVIEW_SUPPORT_FINANCIAL_ACTION',
       target: actionId,
       targetType: 'SUPPORT_FINANCIAL_ACTION',
-      oldValue: JSON.stringify({ reviewStatus: action.reviewStatus }),
-      newValue: JSON.stringify({ reviewStatus, reviewNote }),
+      oldValue: { reviewStatus: action.reviewStatus },
+      newValue: { reviewStatus, reviewNote },
+      tenantId: action.tenantId || admin.tenantId || 'smmplan',
       ipAddress
     });
 

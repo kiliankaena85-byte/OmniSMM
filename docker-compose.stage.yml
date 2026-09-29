@@ -6,10 +6,13 @@ services:
     ports:
       - "3005:3000"
     networks:
+      - omnismm_frontend
       - omnismm_backend
     env_file:
       - .env.docker
 
 networks:
+  omnismm_frontend:
+    external: true
   omnismm_backend:
     external: true

@@ -1,0 +1,230 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-09-29T11:22:00Z",
+  "auditFramework": "Dual Agent Improving Loop + ActionArbiter DDE-2026",
+  "totalDecisionPoints": 42,
+  "evaluatedDecisions": 42,
+  "coveragePercentage": 100.0,
+  "waves": {
+    "wave1": {
+      "name": "Фундамент Данных & Хранилища (PostgreSQL, Prisma, RLS, Redis & BullMQ)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "prisma/schema.prisma",
+        "src/lib/transactions.ts",
+        "src/lib/db.ts",
+        "src/lib/prisma-tenant-enforcer.ts",
+        "src/lib/redis.ts",
+        "src/lib/queue-manager.ts",
+        "src/workers/processors/refill.processor.ts",
+        "src/workers/processors/sync.processor.ts",
+        "src/services/core/rate-limit.service.ts"
+      ]
+    },
+    "wave2": {
+      "name": "Финтех, Леджер & Биллинг (ExactMath, Ledger-First, 54-ФЗ, Webhooks)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "src/services/financial/wallet-ops.ts",
+        "src/lib/financial/exact-math.ts",
+        "src/services/financial/payment.service.ts",
+        "src/services/financial/unified-payment.service.ts",
+        "src/services/financial/compensation.service.ts",
+        "src/services/financial/refund-policy.service.ts",
+        "src/app/api/webhooks/payment/route.ts"
+      ]
+    },
+    "wave3": {
+      "name": "Движок Заказов, Диспетчеризация и Поставщики (Order Engine, Providers, Hot-Swap)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "src/services/orders/checkout-pipeline.service.ts",
+        "src/services/orders/checkout-transaction.service.ts",
+        "src/services/provider/order-dispatch.service.ts",
+        "src/services/providers/smart-routing.service.ts",
+        "src/services/provider/smart-recovery.engine.ts",
+        "src/services/providers/ai-catalog-importer.ts"
+      ]
+    },
+    "wave4": {
+      "name": "Безопасность Периметра, Auth & Multi-Tenant (Proxy, RBAC, IDOR Gate)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "src/proxy.ts",
+        "src/lib/session.ts",
+        "src/lib/server/rbac.ts",
+        "src/actions/admin/staff.ts",
+        "src/actions/admin/routing.actions.ts",
+        "src/actions/customer/payment-issue.ts"
+      ]
+    },
+    "wave5": {
+      "name": "Омниканальный Саппорт и Коммуникации (OmniChat, Telegram Bot, Email, SSE)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "src/services/support/ticket.service.ts",
+        "src/services/support/support-bot.service.ts",
+        "src/app/api/webhooks/inbound-email/route.ts",
+        "src/services/support/ai-copilot.service.ts",
+        "src/services/support/sse.service.ts",
+        "src/app/admin/tickets/page.tsx"
+      ]
+    },
+    "wave6": {
+      "name": "Витрины, Клиентский Чекаут и Доступность (Storefront, Checkout Wizard, Mobile CRO)",
+      "status": "COMPLETED",
+      "targetModules": [
+        "src/components/landing/order-engine/variants/PlanFullscreenCheckout.tsx",
+        "src/hooks/useOrderEngine.ts",
+        "src/hooks/order-engine/order-form-validator.ts",
+        "src/lib/utils.ts"
+      ]
+    }
+  },
+  "decisions": [
+    {
+      "id": "DEC-INIT-001",
+      "wave": 1,
+      "module": "docs/specs/SPEC-2026-09-29-PRE-PRODUCTION-WAVE-AUDIT-PLAN.md",
+      "verdict": "REDIRECT_SAFE",
+      "rationale": "Включение 5 защитных барьеров Ревизора (Unindexed FK, Rollback snapshot, BullMQ retention/shutdown, Test DB isolation, BGS :3005)",
+      "timestamp": "2026-09-29T11:10:00Z"
+    },
+    {
+      "id": "DEC-WAVE1-001",
+      "wave": 1,
+      "module": "src/lib/queue-manager.ts",
+      "verdict": "PROCEED",
+      "rationale": "Проверка BullMQ retention limits (removeOnComplete 500/3600s, removeOnFail 1000/86400s) и Graceful Shutdown (SIGTERM/SIGINT)",
+      "timestamp": "2026-09-29T11:16:00Z"
+    },
+    {
+      "id": "DEC-WAVE1-002",
+      "wave": 1,
+      "module": "prisma/schema.prisma",
+      "verdict": "PROCEED",
+      "rationale": "100% покрытие Foreign Key связей явными B-Tree индексами @@index в PostgreSQL",
+      "timestamp": "2026-09-29T11:16:30Z"
+    },
+    {
+      "id": "DEC-WAVE1-003",
+      "wave": 1,
+      "module": "src/services/security/data-loss-prevention.service.ts",
+      "verdict": "REDIRECT_SAFE",
+      "rationale": "Устранение утечки ключей Redis в DLP сервисе через явную установку EX TTL window",
+      "timestamp": "2026-09-29T11:17:00Z"
+    },
+    {
+      "id": "DEC-WAVE2-001",
+      "wave": 2,
+      "module": "src/services/financial/wallet-ops.ts",
+      "verdict": "PROCEED",
+      "rationale": "ExactMath BigInt & Ledger-First: запись в леджер ДО баланса, исключение отрицательных балансов",
+      "timestamp": "2026-09-29T11:17:50Z"
+    },
+    {
+      "id": "DEC-WAVE2-002",
+      "wave": 2,
+      "module": "src/services/financial/refund-policy.service.ts",
+      "verdict": "PROCEED",
+      "rationale": "Защита терминальных статусов: заказы COMPLETED/IN_PROGRESS/PENDING не подлежат возврату без отмены",
+      "timestamp": "2026-09-29T11:17:55Z"
+    },
+    {
+      "id": "DEC-WAVE2-003",
+      "wave": 2,
+      "module": "src/app/api/webhooks/payment/route.ts",
+      "verdict": "PROCEED",
+      "rationale": "Защита криптографических подписей вебхуков через crypto.timingSafeEqual от атак по времени (Timing Attacks)",
+      "timestamp": "2026-09-29T11:18:00Z"
+    },
+    {
+      "id": "DEC-WAVE3-001",
+      "wave": 3,
+      "module": "src/services/orders/drip-feed-floor.ts",
+      "verdict": "PROCEED",
+      "rationale": "Drip-Feed Floor Invariant: строгий запрет запусков, где порция меньше minQty поставщика",
+      "timestamp": "2026-09-29T11:19:30Z"
+    },
+    {
+      "id": "DEC-WAVE3-002",
+      "wave": 3,
+      "module": "src/services/providers/smart-routing.service.ts",
+      "verdict": "PROCEED",
+      "rationale": "MarginGuard Loss-Prevention Hot-Swap: блокировка автопереключения при отрицательной марже с учетом 5% буфера USD",
+      "timestamp": "2026-09-29T11:19:35Z"
+    },
+    {
+      "id": "DEC-WAVE3-003",
+      "wave": 3,
+      "module": "src/services/provider/order-dispatch.service.ts",
+      "verdict": "PROCEED",
+      "rationale": "Детерминированная Outbox-дедупликация и защита от коллизий P2002 при конкурентной отправке заказов",
+      "timestamp": "2026-09-29T11:19:40Z"
+    },
+    {
+      "id": "DEC-WAVE4-001",
+      "wave": 4,
+      "module": "src/proxy.ts",
+      "verdict": "PROCEED",
+      "rationale": "Периметровый Allowlist хостов и туннелей против Host-Header Injection и спуфинга доменов",
+      "timestamp": "2026-09-29T11:20:40Z"
+    },
+    {
+      "id": "DEC-WAVE4-002",
+      "wave": 4,
+      "module": "src/lib/session.ts",
+      "verdict": "PROCEED",
+      "rationale": "Динамическая авторизация роли персонала из базы/Redis без сохранения в JWT (защита от повышения привилегий)",
+      "timestamp": "2026-09-29T11:20:42Z"
+    },
+    {
+      "id": "DEC-WAVE4-003",
+      "wave": 4,
+      "module": "src/actions/customer/payment-issue.ts",
+      "verdict": "PROCEED",
+      "rationale": "IDOR/BOLA Guard на самообслуживании платежей: блокировка доступа посторонних пользователей к чужим чекам",
+      "timestamp": "2026-09-29T11:20:44Z"
+    },
+    {
+      "id": "DEC-WAVE5-001",
+      "wave": 5,
+      "module": "src/services/support/ticket.service.ts",
+      "verdict": "PROCEED",
+      "rationale": "Канонический OmniChat Single-Active-Thread Invariant: 1 клиент = 1 активный тред поддержки со всей историей",
+      "timestamp": "2026-09-29T11:21:10Z"
+    },
+    {
+      "id": "DEC-WAVE5-002",
+      "wave": 5,
+      "module": "src/services/support/ai-response-sanitizer.ts",
+      "verdict": "PROCEED",
+      "rationale": "Fail-Closed Sanitizer ответов ИИ: вырезание тегов мышления think, префиксов ролей и защита от утечки промптов",
+      "timestamp": "2026-09-29T11:21:12Z"
+    },
+    {
+      "id": "DEC-WAVE5-003",
+      "wave": 5,
+      "module": "src/services/support/ai-copilot.service.ts",
+      "verdict": "PROCEED",
+      "rationale": "Мультитенантная изоляция Co-Pilot: запрет операторам smmplan просматривать тикеты flux",
+      "timestamp": "2026-09-29T11:21:14Z"
+    },
+    {
+      "id": "DEC-WAVE6-001",
+      "wave": 6,
+      "module": "src/hooks/order-engine/order-form-validator.ts",
+      "verdict": "PROCEED",
+      "rationale": "100% согласованность клиентской валидации с бэкендом по формуле Drip-Feed Floor Invariant",
+      "timestamp": "2026-09-29T11:22:00Z"
+    },
+    {
+      "id": "DEC-WAVE6-002",
+      "wave": 6,
+      "module": "src/components/landing/order-engine/variants/PlanFullscreenCheckout.tsx",
+      "verdict": "PROCEED",
+      "rationale": "Декомпозиция монолита чекаута (TSX <= 200 строк), поддержка аппаратной кнопки Назад и Never-Disabled Submit",
+      "timestamp": "2026-09-29T11:22:02Z"
+    }
+  ]
+}

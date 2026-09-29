@@ -1,0 +1,33 @@
+{
+  "actionId": "ACT-PAYMENT-ISSUE-RESOLVER-2026",
+  "intent": "Повышение надежности клиентского самообслуживания при проблемах с оплатой (payment-issue.ts)",
+  "category": "BUGFIX",
+  "options": [
+    {
+      "id": "OPT-HACK-SURFACE",
+      "title": "Поверхностный try/catch и Math.round",
+      "description": "Локальное подавление ошибок и округление через toFixed",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 1,
+      "qualityScore": 45,
+      "paradigm": "CONSERVATIVE"
+    },
+    {
+      "id": "OPT-FLAG-HACK",
+      "title": "Локальный boolean флаг в памяти",
+      "description": "Попытка отслеживать повторные клики через Set в памяти процесса Node.js",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 1,
+      "qualityScore": 50,
+      "paradigm": "CONSERVATIVE"
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true
+  }
+}

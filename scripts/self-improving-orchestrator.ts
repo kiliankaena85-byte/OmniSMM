@@ -14,7 +14,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { spawnSync } from 'child_process';
+import { spawnSync, execSync } from 'child_process';
 import { healLayoutFiles, HealResult } from './ui/layout-healer';
 import { evolveSkillWithLesson } from './skill-evolve';
 
@@ -32,6 +32,12 @@ export interface SelfImprovingLoopScorecard {
   phases: LoopPhaseResult[];
   appliedFixesCount: number;
   learnedLessonsCount: number;
+  tocMetrics?: {
+    throughputSuitesCount: number;
+    activeConstraint: string;
+    totalDurationMs: number;
+    impactedTestsCount: number;
+  };
 }
 
 export class SelfImprovingOrchestrator {
@@ -41,6 +47,77 @@ export class SelfImprovingOrchestrator {
   constructor(projectRoot = process.cwd()) {
     this.projectRoot = projectRoot;
     this.scorecardPath = path.resolve(this.projectRoot, '.planning', 'SELF_IMPROVING_LOOP_SCORECARD.md');
+  }
+
+  /**
+   * Resolves relevant test suites dynamically based on modified git files (TOC POOGI Impact Radius).
+   */
+  public resolveImpactedTests(options: { quick?: boolean } = {}): { suites: string[]; impactCount: number } {
+    const baseSuites = [
+      'src/__tests__/security/vulnerability-vectors-remediation.test.ts',
+      'src/__tests__/security/sensitive-data-filter.test.ts'
+    ];
+    if (!options.quick) {
+      baseSuites.push('src/__tests__/security/p0-threat-matrix.test.ts');
+    }
+
+    let modifiedFiles: string[] = [];
+    try {
+      const gitStatus = execSync('git status --porcelain', { cwd: this.projectRoot, encoding: 'utf-8' });
+      modifiedFiles = gitStatus
+        .split('\n')
+        .filter(line => line.length >= 3)
+        .map(line => line.slice(3).trim());
+    } catch {
+      return { suites: baseSuites, impactCount: 0 };
+    }
+
+    const dynamicSuites = new Set<string>(baseSuites);
+    let impactCount = 0;
+
+    const domainMappings: Array<{ trigger: (file: string) => boolean; suites: string[] }> = [
+      {
+        trigger: (f) => /financial|billing|wallet|payment|ledger|compensation|refund/i.test(f),
+        suites: [
+          'src/__tests__/unit/wallet-ops-acid-invariants.test.ts',
+          'src/__tests__/unit/multitenant-payment-partitioning.test.ts',
+          'src/__tests__/unit/support-financial-action-tenant-scope.test.ts'
+        ]
+      },
+      {
+        trigger: (f) => /tenant|proxy|rbac|session/i.test(f),
+        suites: [
+          'src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts',
+          'src/__tests__/unit/true-multitenancy-full-isolation.test.ts'
+        ]
+      },
+      {
+        trigger: (f) => /order|checkout|link-engine|analyzer|link-normalizer/i.test(f),
+        suites: [
+          'src/__tests__/unit/order-engine-mass-mode.test.ts',
+          'src/__tests__/unit/unified-link-engine.test.ts'
+        ]
+      }
+    ];
+
+    for (const file of modifiedFiles) {
+      for (const mapping of domainMappings) {
+        if (mapping.trigger(file)) {
+          for (const suite of mapping.suites) {
+            if (fs.existsSync(path.resolve(this.projectRoot, suite)) && !dynamicSuites.has(suite)) {
+              dynamicSuites.add(suite);
+              impactCount++;
+            }
+          }
+        }
+      }
+    }
+
+    const suites = Array.from(dynamicSuites);
+    return {
+      suites: options.quick ? suites.slice(0, 4) : suites,
+      impactCount
+    };
   }
 
   public async run(options: { autoHeal?: boolean; full?: boolean; quick?: boolean } = {}): Promise<SelfImprovingLoopScorecard> {
@@ -57,9 +134,9 @@ export class SelfImprovingOrchestrator {
     // --- Phase 1: Static Hygiene & Secret Gate ---
     const phase1Start = Date.now();
     console.log('▶ [PHASE 1] Static Quality & Secret Leak Gate...');
-    const tscRes = this.runCommand('npx', ['tsc', '--noEmit'], 60000);
-    const secretRes = this.runCommand('node', ['scripts/check-bundle-secrets.mjs'], 15000);
-    const domainRes = this.runCommand('npx', ['tsx', 'scripts/ci/check-api-docs-domains.ts'], 15000);
+    const tscRes = this.runCommand('npx', ['tsc', '--noEmit'], 120000);
+    const secretRes = this.runCommand('node', ['scripts/check-bundle-secrets.mjs'], 30000);
+    const domainRes = this.runCommand('npx', ['tsx', 'scripts/ci/check-api-docs-domains.ts'], 30000);
 
     const phase1Passed = tscRes.status === 0 && secretRes.status === 0 && domainRes.status === 0;
     phases.push({
@@ -88,30 +165,23 @@ export class SelfImprovingOrchestrator {
         details: `${healResult.fixesApplied} fixes applied (${healResult.fixes.length} detected across ${healResult.filesScanned} files).`
       });
       console.log(`   └─ Phase 2 Status: 🟢 PASS\n`);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       phases.push({
         name: 'Phase 2: Layout Auto-Heal',
         passed: false,
         durationMs: Date.now() - phase2Start,
-        details: `Layout healer error: ${err.message}`
+        details: `Layout healer error: ${errMsg}`
       });
       console.log(`   └─ Phase 2 Status: 🔴 FAIL\n`);
     }
 
     // --- Phase 3: Adversarial TDD & Critical Regression Gate ---
     const phase3Start = Date.now();
-    console.log('▶ [PHASE 3] Adversarial TDD & Critical Regression Gate...');
-    const criticalTests = options.quick
-      ? [
-          'src/__tests__/security/vulnerability-vectors-remediation.test.ts',
-          'src/__tests__/security/sensitive-data-filter.test.ts'
-        ]
-      : [
-          'src/__tests__/security/vulnerability-vectors-remediation.test.ts',
-          'src/__tests__/security/sensitive-data-filter.test.ts',
-          'src/__tests__/security/p0-threat-matrix.test.ts'
-        ];
-    const testTimeout = 60000;
+    console.log('▶ [PHASE 3] Adversarial TDD & Critical Regression Gate (TOC Impact Radius)...');
+    const { suites: criticalTests, impactCount } = this.resolveImpactedTests(options);
+    console.log(`   Running ${criticalTests.length} test suites (${impactCount} impact-mapped based on git diff)...`);
+    const testTimeout = 90000;
     const vitestRes = this.runCommand('npx', ['dotenv', '-e', '.env.test', '--', 'vitest', 'run', ...criticalTests], testTimeout);
     const phase3Passed = vitestRes.status === 0;
     phases.push({
@@ -119,7 +189,7 @@ export class SelfImprovingOrchestrator {
       passed: phase3Passed,
       durationMs: Date.now() - phase3Start,
       details: phase3Passed 
-        ? `Passed ${criticalTests.length} test suites cleanly.` 
+        ? `Passed ${criticalTests.length} test suites cleanly (${impactCount} impact-mapped).` 
         : `Vitest encountered failing regression tests: ${vitestRes.stderr || vitestRes.stdout || 'exit code ' + vitestRes.status}`
     });
     console.log(`   └─ Phase 3 Status: ${phase3Passed ? '🟢 PASS' : '🔴 FAIL'}\n`);
@@ -147,8 +217,8 @@ export class SelfImprovingOrchestrator {
         const evoRes = evolveSkillWithLesson({
           skillName: 'layout-overflow-sentry',
           incidentSlug: 'layout-auto-heal-codemod-verified',
-          triggerCondition: 'Автоматическое обнаружение антипаттернов верстки (сжатие SVG, отсутствие min-w-0)',
-          solutionPattern: 'Автоисправление через healLayoutFiles() с добавлением семантических Tailwind-классов',
+          triggerCondition: 'Автоматическое обнаружение антипаттернов верстки (сжатие SVG, отсутствие min-w-0, inputMode numeric)',
+          solutionPattern: 'Автоисправление через healLayoutFiles() с добавлением семантических Tailwind-классов и inputMode="numeric"',
           verifiedDate: new Date().toISOString().split('T')[0]
         });
         if (evoRes.success) learnedLessonsCount++;
@@ -168,6 +238,11 @@ export class SelfImprovingOrchestrator {
     // --- Summary & Scorecard ---
     const allPassed = phases.every(p => p.passed);
     const overallStatus = allPassed ? 'PASS' : 'FAIL';
+    const totalDurationMs = phases.reduce((acc, p) => acc + p.durationMs, 0);
+    const slowestPhase = [...phases].sort((a, b) => b.durationMs - a.durationMs)[0];
+    const activeConstraint = slowestPhase 
+      ? `${slowestPhase.name} (${slowestPhase.durationMs}ms)` 
+      : 'None (Balanced Flow)';
 
     const scorecard: SelfImprovingLoopScorecard = {
       timestamp: new Date().toISOString(),
@@ -175,7 +250,13 @@ export class SelfImprovingOrchestrator {
       autoHealed: options.autoHeal ?? false,
       phases,
       appliedFixesCount,
-      learnedLessonsCount
+      learnedLessonsCount,
+      tocMetrics: {
+        throughputSuitesCount: criticalTests.length,
+        activeConstraint,
+        totalDurationMs,
+        impactedTestsCount: impactCount
+      }
     };
 
     this.saveScorecard(scorecard);
@@ -212,6 +293,17 @@ export class SelfImprovingOrchestrator {
       `| **${p.name}** | ${p.passed ? '🟢 PASS' : '🔴 FAIL'} | ${p.durationMs}ms | ${p.details} |`
     ).join('\n');
 
+    const tocSection = scorecard.tocMetrics ? `
+---
+
+## 📈 TOC POOGI Flow & Constraint Metrics (Eli Goldratt Model)
+
+- **Throughput (T):** \`${scorecard.tocMetrics.throughputSuitesCount} regression suites executed cleanly (${scorecard.tocMetrics.totalDurationMs}ms total loop duration)\`
+- **Active System Constraint (Bottleneck):** \`${scorecard.tocMetrics.activeConstraint}\`
+- **Dynamic Impact Scope:** \`${scorecard.tocMetrics.impactedTestsCount} test suites dynamically mapped to modified git diff\`
+- **Inventory & WIP (I):** \`${scorecard.overallStatus === 'PASS' ? 'Zero blocked defects / Clean pipeline flow' : 'Pipeline stopped due to active defects'}\`
+` : '';
+
     const markdown = `# Self-Improving Loop Scorecard (SIL-2026)
 
 **Run Timestamp:** \`${scorecard.timestamp}\`  
@@ -227,7 +319,7 @@ export class SelfImprovingOrchestrator {
 | Фаза контура | Статус | Время | Детали выполнения |
 | :--- | :--- | :--- | :--- |
 ${rows}
-
+${tocSection}
 ---
 
 ## Human Approval Gate

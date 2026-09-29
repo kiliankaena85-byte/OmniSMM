@@ -471,22 +471,55 @@ export async function sendTicketCreatedMail(
   return sendMail(email, `[Тикет #${shortId}] ${ticketSubject}`, htmlContent, replyTo, tenantId);
 }
 
+export interface TicketReplyHistoryItem {
+  sender: 'USER' | 'STAFF' | string;
+  text: string;
+  createdAt: Date | string;
+}
+
 export async function sendTicketReplyMail(
   email: string,
   ticketId: string,
   ticketSubject: string,
   replyText: string,
-  tenantId?: string
+  tenantId?: string,
+  history?: TicketReplyHistoryItem[]
 ) {
   const { companyName, supportDomain } = await getEmailContext(tenantId);
   const shortId = ticketId.slice(-6).toUpperCase();
   const replyTo = `support+${ticketId}@${supportDomain}`;
 
-  const safeReplyText = replyText
+  const escapeHtml = (unsafe?: string | null) => (unsafe ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
     .replace(/\n/g, '<br/>');
+
+  const safeReplyText = escapeHtml(replyText);
+
+  let historyHtml = '';
+  if (history && history.length > 0) {
+    historyHtml = `
+      <div style="margin-top: 28px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <h3 style="color: #475569; font-size: 13px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.05em;">История диалога:</h3>
+        ${history.map(m => {
+          const senderLabel = m.sender === 'USER' ? 'Вы' : `Поддержка ${companyName}`;
+          const isStaff = m.sender === 'STAFF';
+          const timeStr = new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+          return `
+            <div style="margin-bottom: 12px; padding: 12px; border-radius: 8px; background-color: ${isStaff ? '#f8fafc' : '#f0f9ff'}; border-left: 4px solid ${isStaff ? '#94a3b8' : '#38bdf8'};">
+              <div style="font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 5px;">
+                ${senderLabel} • ${timeStr}
+              </div>
+              <div style="font-size: 13px; color: #334155; line-height: 1.5;">${escapeHtml(m.text)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
 
   const htmlContent = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -494,16 +527,24 @@ export async function sendTicketReplyMail(
         <h2 style="color: #0f172a; margin: 0; font-size: 20px;">Новый ответ от поддержки ${companyName}</h2>
       </div>
       <p style="color: #334155; font-size: 15px; line-height: 1.6;">
-        Специалист поддержки ответил на ваше обращение <b>#${ticketId}</b> (${ticketSubject}):
+        Специалист поддержки ответил на ваше обращение <b>#${ticketId}</b> (${escapeHtml(ticketSubject)}):
       </p>
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; border-radius: 8px; padding: 16px; margin: 20px 0;">
         <p style="margin: 0; font-size: 15px; color: #166534; line-height: 1.6;">
           ${safeReplyText}
         </p>
       </div>
-      <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-top: 24px;">
-        Для ответа просто <b>ответьте на это письмо</b>, либо перейдите в личный кабинет на сайте.
-      </p>
+      <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 4px; margin-top: 18px;">
+        <p style="margin: 0; font-size: 13px; color: #1d4ed8; font-weight: 500;">
+          ✍️ <strong>Как ответить:</strong> просто ответьте на это письмо со своей почты — ответ сразу поступит специалисту.
+        </p>
+      </div>
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="https://${supportDomain}/dashboard/tickets?ticketId=${ticketId}" style="background-color: #0f172a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block;">
+          Открыть тикет в личном кабинете
+        </a>
+      </div>
+      ${historyHtml}
     </div>
   `;
 

@@ -639,7 +639,7 @@ export const WalletOps = {
 
     const user = await tx.user.findUnique({
       where: { id: userId },
-      select: { id: true, tenantId: true }
+      select: { id: true, tenantId: true, referralBalance: true, balance: true }
     });
 
     if (!user || (tenantId && user.tenantId !== tenantId)) {
@@ -667,10 +667,37 @@ export const WalletOps = {
       }
     });
 
-    await tx.user.update({
-      where: { id: userId },
-      data: { referralBalance: { decrement: Number(rawCents) } }
-    });
+    const currentRefBalance = user.referralBalance ?? 0;
+    const reqAmountNumber = Number(rawCents);
+    const debitFromReferral = Math.min(Math.max(0, currentRefBalance), reqAmountNumber);
+    const shortage = reqAmountNumber - debitFromReferral;
+
+    if (debitFromReferral > 0) {
+      await tx.user.updateMany({
+        where: {
+          id: userId,
+          referralBalance: { gte: debitFromReferral },
+          ...(tenantId ? { tenantId } : {})
+        },
+        data: { referralBalance: { decrement: debitFromReferral } }
+      });
+    }
+
+    if (shortage > 0) {
+      const availableMain = user.balance > BigInt(0) ? user.balance : BigInt(0);
+      const debitFromMain = BigInt(shortage) > availableMain ? availableMain : BigInt(shortage);
+      if (debitFromMain > BigInt(0)) {
+        await tx.user.updateMany({
+          where: {
+            id: userId,
+            balance: { gte: debitFromMain },
+            ...(tenantId ? { tenantId } : {})
+          },
+          data: { balance: { decrement: debitFromMain } }
+        });
+      }
+      console.warn(`[WalletOps.referralDebit] User ${userId}: insufficient referralBalance (${currentRefBalance} < ${reqAmountNumber}). Debited ${debitFromReferral} from referral, ${debitFromMain} from main balance.`);
+    }
 
     return { success: true, entry, cached: false };
   },
@@ -695,7 +722,7 @@ export async function adjustBalance(
     throw new Error(`User ${userId} not found in tenant ${context.tenantId} or access denied`);
   }
 
-  return await runSerializableTransaction(async (tx) => {
+  const result = await runSerializableTransaction(async (tx) => {
     return await WalletOps.adminAdjust(
       tx,
       userId,
@@ -704,4 +731,27 @@ export async function adjustBalance(
       { adminId: context.actorId, tenantId: context.tenantId }
     );
   });
+
+  try {
+    const { auditAdminAwaitable } = await import('@/lib/admin-audit');
+    await auditAdminAwaitable({
+      adminId: context.actorId,
+      adminEmail: 'admin@' + (context.tenantId || 'smmplan') + '.internal',
+      action: 'ADJUST_BALANCE',
+      target: userId,
+      targetType: 'USER_BALANCE',
+      oldValue: { balance: user.balance ? String(user.balance) : '0' },
+      newValue: {
+        amountCents: String(amountCents),
+        reason: context.reason,
+        tenantId: context.tenantId,
+        newBalance: result.balance ? String(result.balance) : undefined
+      },
+      tenantId: context.tenantId
+    });
+  } catch (auditErr) {
+    console.error('[WalletOps] Failed to record admin audit log:', auditErr);
+  }
+
+  return result;
 }

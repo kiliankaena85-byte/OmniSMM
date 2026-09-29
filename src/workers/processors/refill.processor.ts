@@ -154,13 +154,21 @@ export default async function refillProcessor(job: Job<RefillJobPayload>) {
 
       const extId = response.refill.toString();
 
-      await db.refill.update({
-        where: { id: refill.id },
+      const updated = await db.refill.updateMany({
+        where: {
+          id: refill.id,
+          status: 'PENDING',
+        },
         data: {
           status: 'IN_PROGRESS',
-          externalId: extId
-        }
+          externalId: extId,
+        },
       });
+
+      if (updated.count === 0) {
+        log.warn(`[RefillProcessor] Refill ${refill.id} is no longer PENDING (concurrent state mutation). Skipping overwrite.`);
+        return { success: false, status: 'SKIPPED', reason: 'Refill was updated concurrently' };
+      }
 
       log.info(`[RefillProcessor] Successfully dispatched refill ${refill.id} for order #${order.numericId} | External ID: ${extId}`);
       return { success: true, status: 'IN_PROGRESS', externalId: extId };

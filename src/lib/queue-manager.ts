@@ -13,24 +13,25 @@ export interface JobMetadata {
 }
 
 export function enrichJobPayload<T extends object>(data: T): T & { tenantId?: string; metadata?: JobMetadata } {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return data as any;
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return data as T & { tenantId?: string; metadata?: JobMetadata };
   const currentTraceId = getTraceId() || generateTraceId();
-  const currentTenantId = (data as any).tenantId || tenantStorage.getStore()?.tenantId;
+  const record = data as Record<string, unknown>;
+  const currentTenantId = (typeof record.tenantId === 'string' ? record.tenantId : undefined) || tenantStorage.getStore()?.tenantId;
 
-  const existingMetadata = ((data as any).metadata && typeof (data as any).metadata === 'object')
-    ? (data as any).metadata
+  const existingMetadata = (record.metadata && typeof record.metadata === 'object' && !Array.isArray(record.metadata))
+    ? (record.metadata as Record<string, unknown>)
     : {};
 
   const metadata: JobMetadata = {
     ...existingMetadata,
-    traceId: existingMetadata.traceId || currentTraceId,
-    ...(currentTenantId ? { tenantId: existingMetadata.tenantId || currentTenantId } : {}),
-    enqueuedAt: existingMetadata.enqueuedAt || new Date().toISOString(),
+    traceId: typeof existingMetadata.traceId === 'string' ? existingMetadata.traceId : currentTraceId,
+    ...(currentTenantId ? { tenantId: typeof existingMetadata.tenantId === 'string' ? existingMetadata.tenantId : currentTenantId } : {}),
+    enqueuedAt: typeof existingMetadata.enqueuedAt === 'string' ? existingMetadata.enqueuedAt : new Date().toISOString(),
   };
 
   return {
     ...data,
-    ...(currentTenantId && !(data as any).tenantId ? { tenantId: currentTenantId } : {}),
+    ...(currentTenantId && !record.tenantId ? { tenantId: currentTenantId } : {}),
     metadata,
   };
 }
@@ -96,16 +97,16 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
   
   // Dummy object to prevent Redis connection during Vercel/Next build step and unit tests
   if (isBuildOrTest) {
-    const targetObj: any = {
-      add: async (jobName?: string, data?: any, opts?: any) => {
-        const enriched = enrichJobPayload(data);
+    const targetObj: Record<string, unknown> = {
+      add: async (jobName?: string, data?: unknown, opts?: { jobId?: string }) => {
+        const enriched = enrichJobPayload(data as object);
         return { id: opts?.jobId || 'mock-id', name: jobName, data: enriched };
       },
-      addBulk: async (jobs?: any[]) => {
+      addBulk: async (jobs?: Array<{ opts?: { jobId?: string }; name?: string; data?: unknown }>) => {
         return (jobs || []).map((j, idx) => ({
           id: j?.opts?.jobId || `mock-id-${idx}`,
           name: j?.name,
-          data: enrichJobPayload(j?.data),
+          data: enrichJobPayload(j?.data as object),
         }));
       },
       close: async () => {},
@@ -127,7 +128,7 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
     return new Proxy(targetObj, {
       has: (target, prop) => prop in target || typeof prop === 'string',
       get: (target, prop) => {
-        if (prop in target) return target[prop];
+        if (typeof prop === 'string' && prop in target) return target[prop];
         return async () => {};
       }
     }) as unknown as Queue<PayloadType, unknown, string>;
@@ -146,19 +147,19 @@ export const createQueue = <PayloadType>(name: string, defaultOptions?: Partial<
   });
 
   const originalAdd = queue.add.bind(queue);
-  queue.add = (async (jobName: any, data: any, opts?: any) => {
-    const enriched = enrichJobPayload(data);
-    return await (originalAdd as any)(jobName, enriched, opts);
-  }) as any;
+  queue.add = (async (jobName: Parameters<typeof originalAdd>[0], data: PayloadType, opts?: Parameters<typeof originalAdd>[2]) => {
+    const enriched = enrichJobPayload(data as object) as unknown as Parameters<typeof originalAdd>[1];
+    return await originalAdd(jobName, enriched, opts);
+  }) as typeof queue.add;
 
-  if (typeof (queue as any).addBulk === 'function') {
-    const originalAddBulk = (queue as any).addBulk.bind(queue);
-    (queue as any).addBulk = (async (jobs: any[]) => {
+  if (typeof queue.addBulk === 'function') {
+    const originalAddBulk = queue.addBulk.bind(queue);
+    queue.addBulk = (async (jobs: Parameters<typeof originalAddBulk>[0]) => {
       const enrichedJobs = Array.isArray(jobs)
-        ? jobs.map((j) => ({ ...j, data: enrichJobPayload(j.data) }))
+        ? jobs.map((j) => ({ ...j, data: enrichJobPayload(j.data as object) }))
         : jobs;
-      return await originalAddBulk(enrichedJobs);
-    });
+      return await originalAddBulk(enrichedJobs as Parameters<typeof originalAddBulk>[0]);
+    }) as typeof queue.addBulk;
   }
 
   return queue;

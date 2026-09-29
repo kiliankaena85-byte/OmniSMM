@@ -1,0 +1,44 @@
+{
+  "actionId": "ACT-PAYMENT-ISSUE-RESOLVER-2026",
+  "intent": "Повышение надежности клиентского самообслуживания при проблемах с оплатой (payment-issue.ts)",
+  "category": "BUGFIX",
+  "options": [
+    {
+      "id": "OPT-CONSERVATIVE",
+      "title": "Консервативная дедупликация тикетов через findFirst",
+      "description": "Проверка наличия уже открытого тикета для paymentId перед созданием нового, предотвращающая дублирование",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 1,
+      "qualityScore": 80,
+      "paradigm": "CONSERVATIVE"
+    },
+    {
+      "id": "OPT-RADICAL-CLEAN",
+      "title": "Выделенный сервис PaymentIssueReconciler",
+      "description": "Вынос логики в отдельный DDD-доменный сервис с оркестрацией проверки статусов шлюзов",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 3,
+      "qualityScore": 85,
+      "paradigm": "RADICAL_CLEAN"
+    },
+    {
+      "id": "OPT-INVERSION-TRIZ",
+      "title": "Канонический синтез: RateLimit + Идемпотентный тикет + ExactMath + Multi-Gateway Sync",
+      "description": "Устранение первопричин: защита от спама через RateLimit, дедупликация тикетов по paymentId, ExactMath kopecks форматирование и проверка статуса шлюзов",
+      "riskLevel": "LOW",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 2,
+      "qualityScore": 95,
+      "paradigm": "INVERSION_TRIZ"
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE",
+    "hasBackup": true
+  }
+}

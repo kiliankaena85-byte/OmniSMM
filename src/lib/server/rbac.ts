@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/session";
 import { runWithTenantBypass } from "@/lib/tenant-context";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { User, StaffRole, StaffPermission } from "@prisma/client";
+import { User, StaffRole } from "@prisma/client";
 import { handleServerError } from "@/utils/error-handler";
 
 async function getSessionUserId(): Promise<string | null> {

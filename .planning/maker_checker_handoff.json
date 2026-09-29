@@ -1,187 +1,64 @@
 {
-  "timestamp": "2026-09-27T05:14:55.254Z",
+  "timestamp": "2026-09-29T08:10:05.573Z",
   "branch": "main",
   "modifiedFiles": [
     "artifacts/architecture-topology.json",
+    "next-env.d.ts",
+    "package.json",
+    "scripts/self-improving-orchestrator.ts",
+    "scripts/ui/layout-healer.ts",
     "src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts",
+    "src/__tests__/unit/multitenant-payment-partitioning.test.ts",
     "src/__tests__/unit/support-financial-action-tenant-scope.test.ts",
     "src/actions/admin/routing.actions.ts",
-    "src/actions/order/catalog.ts",
-    "src/app/admin/catalog/sync/sync-table.tsx",
-    "src/components/ab-test/flux-steps/FluxStepLink.tsx",
-    "src/components/landing/LandingCatalogContent.tsx",
-    "src/components/landing/order-engine/wizard-steps/MobileStep3Service.tsx",
-    "src/hooks/order-engine/useOrderCatalogSync.ts",
-    "src/lib/db.ts",
+    "src/actions/admin/support-review.ts",
+    "src/actions/customer/payment-issue.ts",
+    "src/actions/order/checkout.ts",
+    "src/actions/order/refill.ts",
+    "src/actions/user/referral.action.ts",
+    "src/app/api/cron/reconcile-prices/route.ts",
+    "src/app/api/v2/route.ts",
+    "src/components/landing/order-engine/variants/PlanFullscreenCheckout.tsx",
+    "src/hooks/useOrderEngine.ts",
+    "src/lib/admin-audit.ts",
     "src/lib/prisma-tenant-enforcer.ts",
+    "src/lib/queue-manager.ts",
+    "src/lib/server/rbac.ts",
     "src/lib/smtp.ts",
-    "src/services/core/order.service.ts",
+    "src/lib/tenant-context.ts",
+    "src/lib/transactions.ts",
+    "src/proxy.ts",
+    "src/services/financial/compensation.service.ts",
     "src/services/financial/payment-gateway.service.ts",
     "src/services/financial/payment.service.ts",
-    "src/services/orders/checkout-payment.service.ts",
+    "src/services/financial/refund-policy.service.ts",
+    "src/services/financial/unified-payment.service.ts",
+    "src/services/financial/wallet-ops.ts",
+    "src/services/link-engine/link-rules-registry.ts",
+    "src/services/orders/checkout-pipeline.service.ts",
+    "src/services/orders/checkout-transaction.service.ts",
+    "src/services/provider/order-dispatch.service.ts",
     "src/services/provider/smart-recovery.engine.ts",
+    "src/services/support/ai-copilot.service.ts",
     "src/services/support/ticket.service.ts",
-    "scripts/test-action.ts"
+    "src/services/support/vip-sentiment-escalator.service.ts",
+    "src/workers/processors/refill.processor.ts",
+    "src/workers/processors/sync.processor.ts",
+    "test/setup.ts",
+    "vitest.config.mjs",
+    "src/__tests__/unit/action-arbiter.test.ts",
+    "src/__tests__/unit/deterministic-decision-engine.test.ts",
+    "src/__tests__/unit/payment-issue-invariants.test.ts",
+    "src/__tests__/unit/refill-lifecycle-invariants.test.ts",
+    "src/__tests__/unit/self-improving-loop-toc-poogi.test.ts",
+    "src/__tests__/unit/wave2-self-improving-invariants.test.ts"
   ],
-  "findings": [
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 20,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 22,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 42,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 297,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 381,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/actions/admin/routing.actions.ts",
-      "line": 561,
-      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
-      "snippet": "} catch (valErr: any) {"
-    },
-    {
-      "vector": "Vector 5: Architecture & NFR",
-      "severity": "MAJOR",
-      "file": "src/app/admin/catalog/sync/sync-table.tsx",
-      "line": 379,
-      "message": "Компонент превышает лимит в 200 строк (всего 379 строк). Рекомендуется декомпозиция.",
-      "snippet": "Total lines: 379"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MINOR",
-      "file": "src/components/ab-test/flux-steps/FluxStepLink.tsx",
-      "line": 29,
-      "message": "Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-background).",
-      "snippet": "<span className=\"inline-block bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-2xl sm:rounded-3xl -rotate-3 shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 z-10 relative\">"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 10,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 11,
-      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
-      "snippet": "findFirstDelegate?: (args: any) => Promise<any>;"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 32,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 33,
-      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
-      "snippet": "export function createTenantEnforcerExtension(prismaClient: any) {"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 34,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 39,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/lib/prisma-tenant-enforcer.ts",
-      "line": 40,
-      "message": "Нетипизированное использование any. Замените на строгий тип, generic или unknown.",
-      "snippet": "async $allOperations({ args, query }: { args: any; query: (args: any) => any }) {"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/services/core/order.service.ts",
-      "line": 4,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/services/core/order.service.ts",
-      "line": 603,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/services/financial/payment-gateway.service.ts",
-      "line": 5,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    },
-    {
-      "vector": "Vector 4: Code Hygiene",
-      "severity": "MAJOR",
-      "file": "src/services/financial/payment.service.ts",
-      "line": 46,
-      "message": "Подавление типов через @ts-ignore или eslint-disable недопустимо.",
-      "snippet": "// eslint-disable-next-line @typescript-eslint/no-unused-vars"
-    }
-  ],
+  "findings": [],
   "summary": {
     "blockers": 0,
-    "majors": 18,
-    "minors": 1,
-    "passed": false
+    "majors": 0,
+    "minors": 0,
+    "passed": true
   },
-  "gitDiffSnippet": "diff --git a/.planning/maker_checker_handoff.json b/.planning/maker_checker_handoff.json\nindex d06addb..f4f8283 100644\n--- a/.planning/maker_checker_handoff.json\n+++ b/.planning/maker_checker_handoff.json\n@@ -1,13 +1,157 @@\n {\n-  \"timestamp\": \"2026-09-24T20:53:41.469Z\",\n+  \"timestamp\": \"2026-09-27T05:10:38.959Z\",\n   \"branch\": \"main\",\n-  \"modifiedFiles\": [],\n-  \"findings\": [],\n+  \"modifiedFiles\": [\n+    \"artifacts/architecture-topology.json\",\n+    \"src/__tests__/architecture/automatic-prisma-tenant-enforcer.test.ts\",\n+    \"src/__tests__/unit/support-financial-action-tenant-scope.test.ts\",\n+    \"src/actions/order/catalog.ts\",\n+    \"src/app/admin/catalog/sync/sync-table.tsx\",\n+    \"src/components/ab-test/flux-steps/FluxStepLink.tsx\",\n+    \"src/components/landing/LandingCatalogContent.tsx\",\n+    \"src/components/landing/order-engine/wizard-steps/MobileStep3Service.tsx\",\n+    \"src/hooks/order-engine/useOrderCatalogSync.ts\",\n+    \"src/lib/db.ts\",\n+    \"src/lib/prisma-tenant-enforcer.ts\",\n+    \"src/lib/smtp.ts\",\n+    \"src/services/support/ticket.service.ts\",\n+    \"scripts/test-action.ts\"\n+  ],\n+  \"findings\": [\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 4,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 7,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 9,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/actions/order/catalog.ts\",\n+      \"line\": 633,\n+      \"message\": \"Подавление типов через @ts-ignore или eslint-disable недопустимо.\",\n+      \"snippet\": \"// eslint-disable-next-line @typescript-eslint/no-unused-vars\"\n+    },\n+    {\n+      \"vector\": \"Vector 5: Architecture & NFR\",\n+      \"severity\": \"MAJOR\",\n+      \"file\": \"src/app/admin/catalog/sync/sync-table.tsx\",\n+      \"line\": 379,\n+      \"message\": \"Компонент превышает лимит в 200 строк (всего 379 строк). Рекомендуется декомпозиция.\",\n+      \"snippet\": \"Total lines: 379\"\n+    },\n+    {\n+      \"vector\": \"Vector 4: Code Hygiene\",\n+      \"severity\": \"MINOR\",\n+      \"file\": \"src/components/ab-test/flux-steps/FluxStepLink.tsx\",\n+      \"line\": 29,\n+      \"message\": \"Использование inline-цвета вместо семантического токена из globals.css (text-foreground, bg-backgr\n... [diff truncated]"
+  "gitDiffSnippet": "diff --git a/.planning/SELF_IMPROVING_LOOP_SCORECARD.md b/.planning/SELF_IMPROVING_LOOP_SCORECARD.md\nindex 77016e6..0a830b0 100644\n--- a/.planning/SELF_IMPROVING_LOOP_SCORECARD.md\n+++ b/.planning/SELF_IMPROVING_LOOP_SCORECARD.md\n@@ -1,9 +1,9 @@\n # Self-Improving Loop Scorecard (SIL-2026)\n \n-**Run Timestamp:** `2026-09-23T15:58:20.908Z`  \n+**Run Timestamp:** `2026-09-29T07:58:46.246Z`  \n **Overall Status:** `PASS`  \n **Auto-Heal Active:** `NO`  \n-**Fixes Applied:** `17`  \n+**Fixes Applied:** `20`  \n **Skill Lessons Recorded:** `1`  \n \n ---\n@@ -12,12 +12,21 @@\n \n | Фаза контура | Статус | Время | Детали выполнения |\n | :--- | :--- | :--- | :--- |\n-| **Phase 1: Static Quality & Secrets** | 🟢 PASS | 10071ms | TypeScript strict (0 errors), bundle secrets clean, API domains compliant. |\n-| **Phase 2: Layout Auto-Heal** | 🟢 PASS | 59ms | 17 fixes applied (17 detected across 206 files). |\n-| **Phase 3: Critical TDD Regressions** | 🟢 PASS | 45513ms | Passed 3 test suites cleanly. |\n+| **Phase 1: Static Quality & Secrets** | 🟢 PASS | 0ms | TypeScript strict (0 errors), bundle secrets clean, API domains compliant. |\n+| **Phase 2: Layout Auto-Heal** | 🟢 PASS | 37ms | 20 fixes applied (20 detected across 209 files). |\n+| **Phase 3: Critical TDD Regressions** | 🟢 PASS | 102ms | Passed 4 test suites cleanly (6 impact-mapped). |\n | **Phase 5: Skill Evolution** | 🟢 PASS | 2ms | 1 new lessons recorded into .agents/skills/ repository. |\n \n ---\n \n+## 📈 TOC POOGI Flow & Constraint Metrics (Eli Goldratt Model)\n+\n+- **Throughput (T):** `4 regression suites executed cleanly (141ms total loop duration)`\n+- **Active System Constraint (Bottleneck):** `Phase 3: Critical TDD Regressions (102ms)`\n+- **Dynamic Impact Scope:** `6 test suites dynamically mapped to modified git diff`\n+- **Inventory & WIP (I):** `Zero blocked defects / Clean pipeline flow`\n+\n+---\n+\n ## Human Approval Gate\n > 🟢 **Все барьеры надежности успешно пройдены.** Кодовая база готова к выкатке на Stage / Prod.\ndiff --git a/.planning/STAGE_VISUAL_AUDIT_REPORT.md b/.planning/STAGE_VISUAL_AUDIT_REPORT.md\nindex b37c110..25cb312 100644\n--- a/.planning/STAGE_VISUAL_AUDIT_REPORT.md\n+++ b/.planning/STAGE_VISUAL_AUDIT_REPORT.md\n@@ -1,6 +1,6 @@\n # Ephemeral Sandbox & Visual Verification Report (BGS-2026)\n \n-**Timestamp:** 2026-09-23T15:22:33.291Z  \n+**Timestamp:** 2026-09-29T06:45:19.500Z  \n **Stage URL:** `http://127.0.0.1:3005`  \n **Overall Verdict:** `READY_FOR_APPROVAL`  \n **Screens Evaluated:** 6 / 6 passed  \ndiff --git a/.planning/maker_checker_handoff.json b/.planning/maker_checker_handoff.json\nindex 0a51ec5..128cc01 100644\n--- a/.planning/maker_checker_handoff.json\n+++ b/.planning/maker_checker_handoff.json\n@@ -1,187 +1,64 @@\n {\n-  \"timestamp\": \"2026-09-27T05:14:55.254Z\",\n+  \"timestamp\": \"2026-09-29T07:43:52.109Z\",\n   \"branch\": \"main\",\n   \"modifiedFiles\": [\n     \"artifacts/architecture-topology.json\",\n+    \"next-env.d.ts\",\n+    \"package.json\",\n+    \"scripts/self-improving-orchestrator.ts\",\n+    \"scri\n... [diff truncated]"
 }

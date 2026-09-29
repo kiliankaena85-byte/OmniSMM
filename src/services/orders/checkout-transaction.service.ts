@@ -14,6 +14,7 @@ import { WalletOps } from '@/services/financial/wallet-ops';
 import { AccountExistsError } from '@/utils/error-handler';
 import { SmartDripService } from '@/services/dripfeed/smart-drip.service';
 import { MutexManager } from '@/lib/redis-lock';
+import { ExactMath } from '@/lib/financial/exact-math';
 import type { DbServiceWithCategory } from './checkout-preflight-guard.service';
 
 export class IdempotencyConflictError extends Error {
@@ -67,6 +68,30 @@ export class CheckoutTransactionService {
       where: { email: email.toLowerCase(), tenantId }
     });
 
+    let isNewUser = false;
+    if (!user) {
+      try {
+        user = await db.user.create({
+          data: {
+            email: email.toLowerCase(),
+            tenantId,
+            tosAcceptedAt: new Date(),
+            tosAcceptedIp: consentIp,
+          }
+        });
+        isNewUser = true;
+      } catch (err: unknown) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          user = await db.user.findFirst({
+            where: { email: email.toLowerCase(), tenantId }
+          });
+          if (!user) throw err;
+        } else {
+          throw err;
+        }
+      }
+    }
+
     if (user) {
       if (user.isDeleted === true || user.isActive === false) {
         throw new Error("Ваш аккаунт заблокирован или удален");
@@ -74,19 +99,6 @@ export class CheckoutTransactionService {
       if (user.passwordHash && (!currentSessionUserId || currentSessionUserId !== user.id)) {
         throw new AccountExistsError(user.email);
       }
-    }
-
-    let isNewUser = false;
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          email: email.toLowerCase(),
-          tenantId,
-          tosAcceptedAt: new Date(),
-          tosAcceptedIp: consentIp,
-        }
-      });
-      isNewUser = true;
     }
 
     // 2. Calculate price
@@ -123,10 +135,15 @@ export class CheckoutTransactionService {
     let finalTotalCents = pricing.totalCents * mediaGroupMultiplier;
 
     let smartConfig = null;
+    let smartMarkupCents = pricing.totalCents;
     if (isSmartDrip) {
       smartConfig = await db.serviceSmartConfig.findUnique({ where: { serviceId: service.id } });
       if (!smartConfig || !smartConfig.isEnabled) throw new Error("Эта услуга не поддерживает Умный Dripfeed");
-      finalTotalCents = Math.round(finalTotalCents * (1 + smartConfig.markup));
+      const markupBps = BigInt(Math.round(smartConfig.markup * 10000));
+      const scaledTotal = BigInt(finalTotalCents) * (ExactMath.BPS_BASE + markupBps);
+      finalTotalCents = Number(ExactMath.roundHalfEven(scaledTotal, ExactMath.BPS_BASE));
+      const scaledBase = BigInt(pricing.totalCents) * (ExactMath.BPS_BASE + markupBps);
+      smartMarkupCents = Number(ExactMath.roundHalfEven(scaledBase, ExactMath.BPS_BASE));
     }
 
     let paymentAmount = finalTotalCents;
@@ -188,7 +205,7 @@ export class CheckoutTransactionService {
             quantity: totalQuantity,
             email: email.toLowerCase(),
             status: orderStatus,
-            charge: isSmartDrip && smartConfig ? Math.round(pricing.totalCents * (1 + smartConfig.markup)) : pricing.totalCents,
+            charge: isSmartDrip && smartConfig ? smartMarkupCents : pricing.totalCents,
             providerCost: pricing.providerCostCents,
             isDripFeed: isDripFeedOrder,
             runs: effectiveRuns || null,
@@ -219,7 +236,7 @@ export class CheckoutTransactionService {
               quantity: totalQuantity,
               email: email.toLowerCase(),
               status: orderStatus,
-              charge: isSmartDrip && smartConfig ? Math.round(pricing.totalCents * (1 + smartConfig.markup)) : pricing.totalCents,
+              charge: isSmartDrip && smartConfig ? smartMarkupCents : pricing.totalCents,
               providerCost: pricing.providerCostCents,
               isDripFeed: isDripFeedOrder,
               runs: effectiveRuns || null,

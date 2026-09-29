@@ -57,16 +57,34 @@ export class OrderDispatchService {
     }
 
     if (!outbox) {
-      outbox = await db.providerOutbox.create({
-        data: {
-          orderId: input.orderId,
-          providerId: input.providerId,
-          idempotencyKey,
-          status: 'PENDING',
-          payload: input as unknown as Prisma.InputJsonValue,
-          attempts: 0,
-        },
-      });
+      try {
+        outbox = await db.providerOutbox.create({
+          data: {
+            orderId: input.orderId,
+            providerId: input.providerId,
+            idempotencyKey,
+            status: 'PENDING',
+            payload: input as unknown as Prisma.InputJsonValue,
+            attempts: 0,
+          },
+        });
+      } catch (err: unknown) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          outbox = await db.providerOutbox.findUnique({
+            where: { idempotencyKey },
+          });
+          if (outbox && outbox.status === 'SENT' && outbox.providerOrderId) {
+            console.info(`[OrderDispatch] Order ${input.orderId} race hit: already sent (Idempotency Hit: ${outbox.providerOrderId})`);
+            return { success: true, providerOrderId: outbox.providerOrderId, cached: true };
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (!outbox) {
+      return { success: false, error: 'Не удалось инициализировать Outbox запись для заказа' };
     }
 
     // 2. Fetch Provider configuration
@@ -112,6 +130,7 @@ export class OrderDispatchService {
         },
       });
 
+      // tenant-isolation-ignore: Internal order dispatch update by orderId
       await db.order.update({
         where: { id: input.orderId },
         data: {
@@ -168,21 +187,42 @@ export class OrderDispatchService {
     }
 
     // 3. Get order charge to verify margin
+    // tenant-isolation-ignore: Internal order lookup for margin verification during dispatch
     const order = await db.order.findUnique({
       where: { id: input.orderId },
       select: { charge: true, quantity: true }
     });
 
-    const clientPaidCents = order?.charge ? BigInt(Number(order.charge)) : BigInt(0);
+    const clientPaidCents = order?.charge != null ? BigInt(order.charge) : BigInt(0);
 
     // 4. Iterate over fallback routes in priority order
     for (const route of fallbackRoutes) {
-      const providerRate = (route as unknown as { rate?: number }).rate ?? 0;
+      let shadowSvc = null;
+      try {
+        shadowSvc = await db.shadowService.findUnique({
+          where: {
+            providerId_externalId: {
+              providerId: route.providerId,
+              externalId: String(route.providerServiceId),
+            },
+          },
+        });
+      } catch {
+        shadowSvc = null;
+      }
+
+      const providerRate = shadowSvc?.rate ?? 0;
+      if (providerRate <= 0) {
+        console.warn(`[OrderDispatch] Skipping fallback route ${route.id} (${route.provider.name}): rate not found in ShadowService`);
+        continue;
+      }
+
       const marginCheck = await MarginGuard.checkMargin(
         clientPaidCents,
         input.quantity,
         providerRate,
-        route.provider.balanceCurrency || 'USD'
+        route.provider.balanceCurrency || 'USD',
+        0.05
       );
 
       if (!marginCheck.isProfitable) {

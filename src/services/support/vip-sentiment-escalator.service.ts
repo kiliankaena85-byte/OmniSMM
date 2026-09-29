@@ -19,22 +19,28 @@ export class VipSentimentEscalatorService {
    */
   public static async evaluateEscalation(
     userId: string,
-    messageText: string
+    messageText: string,
+    tenantId?: string
   ): Promise<EscalationVerdict> {
     const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         orders: {
-          where: { status: { in: ['COMPLETED', 'PARTIAL'] } },
+          where: {
+            status: { in: ['COMPLETED', 'PARTIAL'] },
+            ...(tenantId ? { tenantId } : {})
+          },
           select: { charge: true },
         },
       },
     });
 
-    const totalSpendRub = user
-      ? user.orders.reduce((sum, o) => sum + Number(o.charge || 0) / 100, 0)
-      : 0;
+    const totalSpendCents = user
+      ? user.orders.reduce((sum, o) => sum + BigInt(o.charge || 0), 0n)
+      : 0n;
+    const totalSpendRub = Number(totalSpendCents / 100n);
+    const vipThresholdCents = BigInt(this.VIP_SPEND_THRESHOLD_RUB) * 100n;
 
     const lowerText = messageText.toLowerCase();
     const isAngry =
@@ -46,7 +52,7 @@ export class VipSentimentEscalatorService {
       lowerText.includes('где заказ') ||
       lowerText.includes('отвратительно');
 
-    const isVip = totalSpendRub >= this.VIP_SPEND_THRESHOLD_RUB;
+    const isVip = totalSpendCents >= vipThresholdCents;
 
     if (isVip && isAngry) {
       return {

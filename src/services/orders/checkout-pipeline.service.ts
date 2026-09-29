@@ -8,6 +8,7 @@ import { verifySession } from '@/lib/session';
 import { CheckoutPreflightGuard, type PreflightOrderInput } from './checkout-preflight-guard.service';
 import { CheckoutTransactionService, IdempotencyConflictError } from './checkout-transaction.service';
 import { CheckoutPaymentService } from './checkout-payment.service';
+import { generateGuestOrderToken } from '@/lib/order-token';
 
 export interface CheckoutPipelineInput extends PreflightOrderInput {
   idempotencyKey?: string;
@@ -84,7 +85,7 @@ export class CheckoutPipelineService {
           paymentId: existingOrder.paymentId || '',
           paymentUrl: existingOrder.payment?.checkoutUrl || null,
           redirectUrl: undefined,
-          guestOrderToken: undefined,
+          guestOrderToken: existingOrder.numericId ? generateGuestOrderToken(existingOrder.id, existingOrder.numericId) : undefined,
           remainingBalanceRub: undefined,
           totalKopecks: existingOrder.charge ? Number(existingOrder.charge) : 0,
         };
