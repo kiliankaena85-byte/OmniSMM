@@ -45,14 +45,14 @@ describe('Wave 4 Invariants: Perimeter Security, RBAC & Multi-Tenant', () => {
     // Mock regular user (role: 'USER')
     vi.spyOn(sessionModule, 'verifySession').mockResolvedValue({
       userId: 'user-regular-123',
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof sessionModule.verifySession>>);
 
     vi.spyOn(db.user, 'findUnique').mockResolvedValue({
       id: 'user-regular-123',
       role: 'USER',
       staffRoleId: null,
       tenantId: 'smmplan',
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.user.findUnique>>>);
 
     const regularUserResult = await requireStaffPermission('settings', 'view', async () => {
       return { success: true, data: 'secret_admin_data' };
@@ -68,14 +68,14 @@ describe('Wave 4 Invariants: Perimeter Security, RBAC & Multi-Tenant', () => {
     // Authenticated as user A
     vi.spyOn(sessionModule, 'verifySession').mockResolvedValue({
       userId: 'user-A',
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof sessionModule.verifySession>>);
 
     // Payment belongs to user B
     vi.spyOn(db.payment, 'findUnique').mockResolvedValue({
       id: 'pay-456',
       userId: 'user-B',
       orders: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>);
 
     const result = await reportPaymentIssueAction('pay-456');
 

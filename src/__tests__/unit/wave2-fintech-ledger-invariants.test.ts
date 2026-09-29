@@ -23,7 +23,7 @@ describe('Wave 2 Invariants: Fintech, Ledger & Webhooks', () => {
     const mockTx = {
       user: { findUnique: vi.fn() },
       ledgerEntry: { create: vi.fn(), findFirst: vi.fn() },
-    } as any;
+    } as unknown as Parameters<typeof WalletOps.charge>[0];
 
     await expect(WalletOps.charge(mockTx, 'u1', 0, 'test')).rejects.toThrow(WalletInvalidAmountError);
     await expect(WalletOps.charge(mockTx, 'u1', -500, 'test')).rejects.toThrow(WalletInvalidAmountError);
@@ -39,7 +39,7 @@ describe('Wave 2 Invariants: Fintech, Ledger & Webhooks', () => {
           tenantId: 'smmplan',
         }),
       },
-    } as any;
+    } as unknown as Parameters<typeof WalletOps.charge>[0];
 
     await expect(WalletOps.charge(mockTx, 'u1', 5000n, 'test')).rejects.toThrow(WalletInsufficientFundsError);
   });

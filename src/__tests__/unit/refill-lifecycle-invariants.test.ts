@@ -59,7 +59,7 @@ describe('Refill Lifecycle Invariants (Domain 9 - ActionArbiter Selected Option)
       userId: 'user-1',
       tenantId: 'smmplan',
       role: 'USER',
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof verifySession>>);
 
     // Lock is already taken by another concurrent request
     mockRedis.set.mockResolvedValue(null);
@@ -77,7 +77,7 @@ describe('Refill Lifecycle Invariants (Domain 9 - ActionArbiter Selected Option)
       userId: 'user-1',
       tenantId: 'smmplan',
       role: 'USER',
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof verifySession>>);
 
     vi.mocked(db.order.findFirst).mockResolvedValue({
       id: 'order-123',
@@ -87,14 +87,14 @@ describe('Refill Lifecycle Invariants (Domain 9 - ActionArbiter Selected Option)
       status: 'COMPLETED',
       service: { isRefillEnabled: true },
       refills: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.order.findFirst>>>);
 
     vi.mocked(db.refill.create).mockResolvedValue({
       id: 'refill-abc',
       orderId: 'order-123',
       status: 'PENDING',
       createdAt: new Date(),
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.refill.create>>>);
 
     const res = await requestClientRefillAction({ orderId: 'order-123' });
 

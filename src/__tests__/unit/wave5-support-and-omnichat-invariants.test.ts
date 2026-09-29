@@ -30,8 +30,8 @@ describe('Wave 5 Invariants: Support, OmniChat & AI Co-Pilot', () => {
       },
     };
 
-    vi.spyOn(db, '$transaction').mockImplementation(async (cb: any) => {
-      return cb(mockTx);
+    vi.spyOn(db, '$transaction').mockImplementation(async (cb: unknown) => {
+      return (cb as (tx: typeof mockTx) => unknown)(mockTx) as never;
     });
 
     const result = await ticketService.getOrCreateTicket('user-100', 'New Message', 'WEB', 'smmplan');
@@ -67,7 +67,7 @@ I need to check the status and be polite.
       id: 'staff-smmplan',
       role: 'SUPPORT',
       tenantId: 'smmplan',
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.user.findUnique>>>);
 
     // Ticket belongs to 'flux'
     vi.spyOn(db.ticket, 'findUnique').mockResolvedValue({
@@ -75,7 +75,7 @@ I need to check the status and be polite.
       tenantId: 'flux',
       user: { id: 'u-flux', tenantId: 'flux' },
       messages: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.ticket.findUnique>>>);
 
     const draftResult = await AiSupportCoPilotService.generateDraft('tick-flux-1', 'staff-smmplan');
 

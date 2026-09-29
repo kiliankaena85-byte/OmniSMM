@@ -59,7 +59,7 @@ describe('Customer Payment Issue Invariants (reportPaymentIssueAction)', () => {
       gatewayId: 'yoo-1',
       tenantId: 'smmplan',
       orders: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>);
 
     const result = await reportPaymentIssueAction('pay-success-1');
 
@@ -78,11 +78,11 @@ describe('Customer Payment Issue Invariants (reportPaymentIssueAction)', () => {
       gatewayId: null,
       tenantId: 'smmplan',
       orders: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>);
 
     vi.mocked(db.ticket.findFirst).mockResolvedValueOnce({
       id: 'ticket-existing-999',
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.ticket.findFirst>>>);
 
     const result = await reportPaymentIssueAction('pay-pending-1');
 
@@ -103,19 +103,19 @@ describe('Customer Payment Issue Invariants (reportPaymentIssueAction)', () => {
       gatewayId: 'inv-123',
       tenantId: 'smmplan',
       orders: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>);
 
     vi.mocked(db.ticket.findFirst).mockResolvedValueOnce(null);
     vi.mocked(ticketService.getOrCreateTicket).mockResolvedValueOnce({
       id: 'ticket-unified-777',
       tags: [],
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof ticketService.getOrCreateTicket>>>);
     vi.mocked(db.ticket.update).mockResolvedValueOnce({
       id: 'ticket-unified-777',
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof db.ticket.update>>>);
     vi.mocked(ticketService.addMessage).mockResolvedValueOnce({
       id: 'msg-sys-1',
-    } as any);
+    } as unknown as NonNullable<Awaited<ReturnType<typeof ticketService.addMessage>>>);
 
     const result = await reportPaymentIssueAction('pay-new-1');
 

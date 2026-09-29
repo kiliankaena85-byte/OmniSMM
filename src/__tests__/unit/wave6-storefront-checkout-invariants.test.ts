@@ -19,7 +19,7 @@ describe('Wave 6 Invariants: Storefront & Checkout Ergonomics', () => {
     categoryId: 'cat-tg',
     isActive: true,
     isDripFeedEnabled: true,
-  } as any;
+  } as unknown as PublicService;
 
   const dummyNetwork: PublicNetwork = {
     id: 'net-tg',
@@ -33,7 +33,7 @@ describe('Wave 6 Invariants: Storefront & Checkout Ergonomics', () => {
         slug: 'subscribers',
         networkId: 'net-tg',
         targetType: 'CHANNEL',
-      } as any,
+      } as unknown as PublicNetwork['categories'][number],
     ],
   };
 

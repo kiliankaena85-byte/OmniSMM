@@ -109,6 +109,7 @@ export async function reportPaymentIssueAction(paymentId: string): Promise<Repor
     // 2. Deduplication Invariant: Check if an active ticket already exists for this payment
     const existingTicket = await db.ticket.findFirst({
       where: {
+        tenantId: payment.tenantId,
         paymentId: payment.id,
         status: { in: ['OPEN', 'PENDING'] },
       },
