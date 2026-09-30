@@ -17,6 +17,8 @@ import {
   ensureGeoAvailabilityCron,
   ensureCBRSyncCron,
   ensureProxySubscriptionSyncCron,
+  ensureTelegramBoostSweepCron,
+  ensureDePinWatchdogCron,
   dlqQueue, 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   cleanupQueue, 
@@ -33,7 +35,9 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   aiObserverQueue,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  aiEconomicOptimizerQueue
+  aiEconomicOptimizerQueue,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  depinWatchdogQueue
 } from '../lib/queue-manager';
 import { sendAdminAlert, sendAdminAlertSync } from '../lib/notifications';
 import orderProcessor from './processors/order.processor';
@@ -88,6 +92,9 @@ const cleanupWorker = new Worker('cleanup', wrapWorkerProcessor('CleanupProcesso
   } else if (job.name === 'sync-proxy-subscriptions') {
     const { SubscriptionSyncService } = await import('@/services/providers/subscription-sync.service');
     await SubscriptionSyncService.syncAllActiveSubscriptions();
+  } else if (job.name === 'sweep-telegram-boosts') {
+    const { runTelegramBoostSweep } = await import('./processors/cleanup.processor');
+    await runTelegramBoostSweep();
   } else {
     await runCleanup(); 
   }
@@ -109,6 +116,10 @@ const articlePublishWorker = new Worker('articlePublishQueue', wrapWorkerProcess
 const aiObserverWorker = new Worker('aiObserverQueue', wrapWorkerProcessor('AiObserverProcessor', aiObserverProcessor), workerConfig);
 const aiEconomicOptimizerWorker = new Worker('aiEconomicOptimizerQueue', wrapWorkerProcessor('AiEconomicOptimizerProcessor', aiEconomicOptimizerProcessor), workerConfig);
 const geoAvailabilityWorker = new Worker('geoAvailabilityQueue', wrapWorkerProcessor('GeoAvailabilityProcessor', geoAvailabilityProcessor), workerConfig);
+const depinWatchdogWorker = new Worker('depinWatchdogQueue', wrapWorkerProcessor('DePinWatchdogProcessor', async (job) => {
+  const { processDePinWatchdog } = await import('./processors/depin-watchdog.processor');
+  await processDePinWatchdog(job);
+}), workerConfig);
 
 // ── P2.1: DLQ — Dead Letter Queue handler ────────────────────────────────────
 const MAX_ATTEMPTS = 3; // Must match createQueue defaults
@@ -224,6 +235,7 @@ paymentSyncWorker.on('failed', (job, err) => { handleDeadLetter('paymentSyncQueu
 paymentGatewayWorker.on('failed', (job, err) => { handleDeadLetter('paymentGatewayQueue', job, err); });
 refillWorker.on('failed', (job, err) => { handleDeadLetter('refillQueue', job, err); });
 articlePublishWorker.on('failed', (job, err) => { handleDeadLetter('articlePublishQueue', job, err); });
+depinWatchdogWorker.on('failed', (job, err) => { handleDeadLetter('depinWatchdogQueue', job, err); });
 // WRK-04: alert on consecutive ETA failures
 etaWorker.on('failed', (job, err) => {
   trackEtaFailure(job, err);
@@ -264,8 +276,10 @@ ensureAiEconomicOptimizerCron().catch(e => log.error('Failed to setup AI Economi
 ensureGeoAvailabilityCron().catch(e => log.error('Failed to setup Geo Availability Cron', { error: (e as Error).message }));
 ensureCBRSyncCron().catch(e => log.error('Failed to setup CBR Rate Sync Cron', { error: (e as Error).message }));
 ensureProxySubscriptionSyncCron().catch(e => log.error('Failed to setup Proxy Subscription Sync Cron', { error: (e as Error).message }));
+ensureTelegramBoostSweepCron().catch(e => log.error('Failed to setup Telegram Boost Sweep Cron', { error: (e as Error).message }));
+ensureDePinWatchdogCron().catch(e => log.error('Failed to setup DePin Watchdog Cron', { error: (e as Error).message }));
 
-log.info('All workers started', { queues: ['ordersQueue', 'refillQueue', 'syncQueue', 'catalogQueue', 'cleanup', 'paymentSyncQueue', 'articlePublishQueue', 'aiObserverQueue', 'aiEconomicOptimizerQueue', 'geoAvailabilityQueue'] });
+log.info('All workers started', { queues: ['ordersQueue', 'refillQueue', 'syncQueue', 'catalogQueue', 'cleanup', 'paymentSyncQueue', 'articlePublishQueue', 'aiObserverQueue', 'aiEconomicOptimizerQueue', 'geoAvailabilityQueue', 'depinWatchdogQueue'] });
 
 // ── Graceful Shutdown (12-Factor App) ────────────────────────────────────────
 const shutdown = async () => {
@@ -286,6 +300,7 @@ const shutdown = async () => {
     aiObserverWorker.close(),
     aiEconomicOptimizerWorker.close(),
     geoAvailabilityWorker.close(),
+    depinWatchdogWorker.close(),
   ]);
   await db.$disconnect();
   if (connection) await connection.quit();

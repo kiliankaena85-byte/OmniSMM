@@ -477,6 +477,24 @@ export async function ensureProxySubscriptionSyncCron() {
   );
 }
 
+/**
+ * FR-5: Schedule Telegram Boost & Cooldown Sweep every 5 minutes.
+ * Frees expired 30-day boosts, resets 24-hour cooldowns, and lifts FloodWait blocks.
+ */
+export async function ensureTelegramBoostSweepCron() {
+  await cleanupQueue.add(
+    'sweep-telegram-boosts',
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: '*/5 * * * *' // Every 5 minutes
+      },
+      jobId: 'sweep-telegram-boosts-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
+
 export async function ensurePaymentSyncCron() {
   await paymentSyncQueue.add(
     'payment-sync-tick',
@@ -614,6 +632,22 @@ export async function ensureGeoAvailabilityCron(): Promise<void> {
   );
 }
 
+export const depinWatchdogQueue = createQueue<Record<string, unknown>>('depinWatchdogQueue');
+
+export async function ensureDePinWatchdogCron() {
+  await depinWatchdogQueue.add(
+    'depin-watchdog-tick',
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: '0 */6 * * *' // Every 6 hours
+      },
+      jobId: 'depin-watchdog-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
+
 export const closeQueues = async () => {
     await ordersQueue.close();
     await syncQueue.close();
@@ -629,5 +663,7 @@ export const closeQueues = async () => {
     await aiObserverQueue.close();
     await aiEconomicOptimizerQueue.close();
     await geoAvailabilityQueue.close();
+    await depinWatchdogQueue.close();
     if (redisConnection) await redisConnection.quit();
 };
+
