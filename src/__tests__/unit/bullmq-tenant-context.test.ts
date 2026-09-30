@@ -237,7 +237,7 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
       attemptsMade: 0,
     } as unknown as Job;
 
-    await paymentGatewayProcessor(job as any);
+    await paymentGatewayProcessor(job);
 
     expect(wasBypassActive).toBe(true);
     expect(capturedTenantId).toBe('flux');
