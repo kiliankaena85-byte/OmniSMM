@@ -4,12 +4,11 @@
  * Детерминированный визуальный AST-движок на базе нативного TypeScript Compiler API
  * и tailwind-merge для Zero-Token визуальных правок и инъекции структурных путей.
  */
-
 import fs from 'fs';
 import ts from 'typescript';
 import { twMerge } from 'tailwind-merge';
 
-export interface JsxNodeInfo { tag: string; className: string; omniPath?: string; line: number; }
+export interface JsxNodeInfo { tag: string; className: string; omniPath?: string; structuralPath: string; line: number; }
 export interface ClassMutation { addClasses?: string[]; removeClasses?: string[]; }
 export interface MutationResult { success: boolean; modifiedCode?: string; oldClasses?: string; newClasses?: string; error?: string; }
 
@@ -25,18 +24,18 @@ function getTagName(tn: ts.JsxTagNameExpression, sf: ts.SourceFile): string {
 }
 
 function getJsxAttr(attrs: ts.JsxAttributes, name: string): ts.JsxAttribute | undefined {
-  for (const p of attrs.properties) {
-    if (ts.isJsxAttribute(p) && (ts.isIdentifier(p.name) ? p.name.text : p.name.name.text) === name) return p;
-  }
-  return undefined;
+  return attrs.properties.find((p): p is ts.JsxAttribute =>
+    ts.isJsxAttribute(p) && (ts.isIdentifier(p.name) ? p.name.text : p.name.name.text) === name
+  );
 }
 
 function getAttrValue(attr: ts.JsxAttribute | undefined, sf: ts.SourceFile): string | undefined {
   if (!attr?.initializer) return undefined;
-  if (ts.isStringLiteral(attr.initializer) || ts.isNoSubstitutionTemplateLiteral(attr.initializer)) return attr.initializer.text;
-  if (ts.isJsxExpression(attr.initializer) && attr.initializer.expression) {
-    const expr = attr.initializer.expression;
-    return (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) ? expr.text : expr.getText(sf);
+  const init = attr.initializer;
+  if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) return init.text;
+  if (ts.isJsxExpression(init) && init.expression) {
+    const e = init.expression;
+    return (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) ? e.text : e.getText(sf);
   }
   return undefined;
 }
@@ -48,19 +47,31 @@ export class OmniAstEngine {
     const sf = ts.createSourceFile(isTsx ? filePathOrCode : 'comp.tsx', code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const results: JsxNodeInfo[] = [];
 
-    const visit = (node: ts.Node) => {
+    const visit = (node: ts.Node, parentPath: string, counters: Record<string, number>) => {
       const elem = ts.isJsxElement(node) ? node.openingElement : ts.isJsxSelfClosingElement(node) ? node : undefined;
+      let currentPath = parentPath;
+      const childCounters: Record<string, number> = {};
       if (elem) {
         const tag = getTagName(elem.tagName, sf);
+        const idx = counters[tag] ?? 0;
+        counters[tag] = idx + 1;
+        currentPath = parentPath ? `${parentPath}/${tag}[${idx}]` : `${tag}[${idx}]`;
         const className = getAttrValue(getJsxAttr(elem.attributes, 'className'), sf) ?? '';
         const omniPath = getAttrValue(getJsxAttr(elem.attributes, 'data-omni-path'), sf);
         const { line } = sf.getLineAndCharacterOfPosition(elem.getStart(sf));
-        results.push({ tag, className, omniPath, line: line + 1 });
+        results.push({ tag, className, omniPath, structuralPath: currentPath, line: line + 1 });
+        for (const p of elem.attributes.properties) {
+          if (ts.isJsxAttribute(p) && p.initializer) visit(p.initializer, currentPath, childCounters);
+        }
       }
-      ts.forEachChild(node, visit);
+      if (ts.isJsxElement(node)) {
+        for (const child of node.children) visit(child, currentPath, childCounters);
+      } else if (!elem) {
+        ts.forEachChild(node, (c) => visit(c, parentPath, counters));
+      }
     };
 
-    visit(sf);
+    visit(sf, '', {});
     return results;
   }
 
@@ -98,9 +109,7 @@ export class OmniAstEngine {
 
     walk(sf, '', {});
     edits.sort((a, b) => b.start - a.start);
-    let result = code;
-    for (const e of edits) result = result.slice(0, e.start) + e.text + result.slice(e.end);
-    return result;
+    return edits.reduce((res, e) => res.slice(0, e.start) + e.text + res.slice(e.end), code);
   }
 
   mutateCode(code: string, structuralPath: string, mutation: ClassMutation, fileHint = 'comp.tsx'): MutationResult {
@@ -162,12 +171,11 @@ export class OmniAstEngine {
     const classAttr = getJsxAttr(targetElem.attributes, 'className');
     let tokens = targetOldClass.trim() ? targetOldClass.trim().split(/\s+/) : [];
     if (mutation.removeClasses?.length) {
-      const removeSet = new Set(mutation.removeClasses.flatMap((c) => c.trim().split(/\s+/)).filter(Boolean));
-      tokens = tokens.filter((c) => !removeSet.has(c));
+      const rm = new Set(mutation.removeClasses.flatMap((c) => c.trim().split(/\s+/)).filter(Boolean));
+      tokens = tokens.filter((c) => !rm.has(c));
     }
     if (mutation.addClasses?.length) {
-      const addTokens = mutation.addClasses.flatMap((c) => c.trim().split(/\s+/)).filter(Boolean);
-      tokens = [...tokens, ...addTokens];
+      tokens.push(...mutation.addClasses.flatMap((c) => c.trim().split(/\s+/)).filter(Boolean));
     }
     const newClasses = twMerge(tokens.join(' '));
 
@@ -179,15 +187,11 @@ export class OmniAstEngine {
   }
 
   mutateClasses(filePath: string, structuralPath: string, mutation: ClassMutation): MutationResult {
-    const isExistingFile = safeExists(filePath);
-    if (!isExistingFile && !filePath.includes('<')) {
-      return { success: false, error: `File not found: ${filePath}` };
-    }
-    const code = isExistingFile ? fs.readFileSync(filePath, 'utf-8') : filePath;
+    const isFile = safeExists(filePath);
+    if (!isFile && !filePath.includes('<')) return { success: false, error: `File not found: ${filePath}` };
+    const code = isFile ? fs.readFileSync(filePath, 'utf-8') : filePath;
     const result = this.mutateCode(code, structuralPath, mutation, filePath);
-    if (result.success && result.modifiedCode && isExistingFile) {
-      fs.writeFileSync(filePath, result.modifiedCode, 'utf-8');
-    }
+    if (result.success && result.modifiedCode && isFile) fs.writeFileSync(filePath, result.modifiedCode, 'utf-8');
     return result;
   }
 }

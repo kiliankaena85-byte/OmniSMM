@@ -18,6 +18,14 @@
       "tier": "LEVEL_2_VISUAL",
       "description": "Генеративный движок интерфейсов Google Stitch с делегированием решений в Laya MCP"
     },
+    "omnidesign-hub": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "scripts/mcp/omnidesign-mcp-server.ts"],
+      "enabled": true,
+      "tier": "LEVEL_2_VISUAL",
+      "description": "Единый MCP сервер дизайн-инженерии OmniDesign (AST инспекция, Zero-Token мутации, валидация токенов, генератор компонентов)"
+    },
     "layout-sentry": {
       "type": "stdio",
       "command": "npx",
