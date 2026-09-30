@@ -88,6 +88,17 @@ export async function loadStorefrontData(params: StorefrontDataParams) {
   let targetCategoryId = params.initialCategoryId;
   let targetNetworkId = params.initialNetworkId;
 
+  if (initialServiceId && !targetCategoryId) {
+    const service = await db.service.findUnique({
+      where: { id: initialServiceId },
+      select: { categoryId: true, category: { select: { networkId: true } } }
+    });
+    if (service) {
+      targetCategoryId = service.categoryId;
+      targetNetworkId = service.category.networkId || undefined;
+    }
+  }
+
   let catalog: PublicNetwork[] = [];
   let settings: ContactAndLegalSettings;
   let baseUrl = "";

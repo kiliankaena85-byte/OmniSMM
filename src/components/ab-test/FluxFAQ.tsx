@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function FluxFAQ({ companyName = "SMMflux" }: { companyName?: string }) {
@@ -131,6 +131,27 @@ export function FluxFAQ({ companyName = "SMMflux" }: { companyName?: string }) {
             </AnimatePresence>
           </div>
         ))}
+      </div>
+
+      {/* Карточка быстрой связи со службой заботы */}
+      <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-cyan-50 dark:from-purple-950/30 dark:via-indigo-950/30 dark:to-cyan-950/30 border border-purple-200/70 dark:border-purple-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 text-center sm:text-left">
+          <div className="w-11 h-11 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <MessageCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Не нашли ответ на свой вопрос?</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Служба заботы онлайн в Telegram — ответим в течение 3–5 минут</p>
+          </div>
+        </div>
+        <a
+          href="https://t.me/smmflux_support"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shrink-0 shadow-xs"
+        >
+          Задать вопрос в Telegram →
+        </a>
       </div>
     </section>
   );

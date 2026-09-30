@@ -7,14 +7,16 @@ import { PreLaunchHoldingScreen } from "@/components/landing/PreLaunchHoldingScr
 import { ROUTES } from "@/lib/routes";
 import { TENANTS } from "@/config/tenants";
 import { readSessionTokenFromCookies } from "@/lib/session";
-import { db } from "@/lib/db";
 import { headers, cookies } from "next/headers";
 import { normalizeTenantId } from "@/lib/tenant-resolver-edge";
 import { loadStorefrontData, generateStorefrontMetadata } from "@/lib/storefront-loader";
 
+const FluxHowItWorks = dynamicImport(() => import("@/components/ab-test/FluxHowItWorks").then(m => m.FluxHowItWorks));
+const FluxLivePulse = dynamicImport(() => import("@/components/ab-test/FluxLivePulse").then(m => m.FluxLivePulse));
 const FluxWhyUs = dynamicImport(() => import("@/components/ab-test/FluxWhyUs").then(m => m.FluxWhyUs));
 const FluxReviews = dynamicImport(() => import("@/components/ab-test/FluxReviews").then(m => m.FluxReviews));
 const FluxFAQ = dynamicImport(() => import("@/components/ab-test/FluxFAQ").then(m => m.FluxFAQ));
+const FluxPreFooterCTA = dynamicImport(() => import("@/components/ab-test/FluxPreFooterCTA").then(m => m.FluxPreFooterCTA));
 const MegaFooter = dynamicImport(() => import("@/components/landing/MegaFooter").then(m => m.MegaFooter));
 
 export const dynamic = "force-dynamic";
@@ -24,19 +26,6 @@ export const generateMetadata = generateStorefrontMetadata;
 export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const params = await searchParams;
   const initialServiceId = typeof params.serviceId === 'string' ? params.serviceId : undefined;
-  let initialCategoryId: string | undefined = undefined;
-  let initialNetworkId: string | undefined = undefined;
-
-  if (initialServiceId) {
-    const service = await db.service.findUnique({
-      where: { id: initialServiceId },
-      select: { categoryId: true, category: { select: { networkId: true } } }
-    });
-    if (service) {
-      initialCategoryId = service.categoryId;
-      initialNetworkId = service.category.networkId || undefined;
-    }
-  }
 
   const reqHeaders = await headers();
   const reqCookies = await cookies();
@@ -72,8 +61,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
     tenantId,
     isGuest,
     initialServiceId,
-    initialCategoryId,
-    initialNetworkId,
   });
 
   const tenantConfig = TENANTS.find(t => t.id === tenantId);
@@ -125,17 +112,21 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
             <section className="relative w-full flex-1 flex flex-col items-center">
               {/* Elastic Background Canvas extending under sticky header (-top-16) to bottom-0 */}
               <div className="absolute -top-16 inset-x-0 bottom-0 z-0 pointer-events-none overflow-hidden select-none bg-white dark:bg-[#070b14] transform-gpu contain-paint">
+                {/* Radiant Aurora v2: Rich vibrant mesh with warm sunset amber and electric indigo */}
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background:
-                      'radial-gradient(ellipse 60% 55% at 5% 25%, rgba(37, 99, 235, 0.58) 0%, rgba(59, 130, 246, 0.32) 50%, transparent 75%), ' +
-                      'radial-gradient(ellipse 60% 55% at 95% 25%, rgba(56, 189, 248, 0.58) 0%, rgba(37, 99, 235, 0.35) 45%, transparent 75%), ' +
-                      'radial-gradient(ellipse 95% 70% at 50% 88%, rgba(244, 63, 94, 0.62) 0%, rgba(236, 72, 153, 0.56) 35%, rgba(217, 70, 239, 0.40) 65%, transparent 92%), ' +
-                      'radial-gradient(ellipse 70% 60% at 15% 95%, rgba(236, 72, 153, 0.50) 0%, transparent 75%), ' +
-                      'radial-gradient(ellipse 70% 60% at 85% 95%, rgba(244, 63, 94, 0.50) 0%, transparent 75%)',
+                      'radial-gradient(ellipse 70% 60% at 18% 22%, rgba(99, 102, 241, 0.72) 0%, rgba(59, 130, 246, 0.45) 42%, transparent 78%), ' +
+                      'radial-gradient(ellipse 70% 60% at 82% 22%, rgba(6, 182, 212, 0.70) 0%, rgba(99, 102, 241, 0.42) 42%, transparent 78%), ' +
+                      'radial-gradient(ellipse 65% 55% at 50% 38%, rgba(168, 85, 247, 0.42) 0%, rgba(99, 102, 241, 0.22) 45%, transparent 80%), ' +
+                      'radial-gradient(ellipse 90% 70% at 50% 86%, rgba(244, 63, 94, 0.72) 0%, rgba(236, 72, 153, 0.65) 30%, rgba(251, 146, 60, 0.50) 60%, transparent 92%), ' +
+                      'radial-gradient(ellipse 60% 55% at 10% 94%, rgba(236, 72, 153, 0.62) 0%, transparent 75%), ' +
+                      'radial-gradient(ellipse 60% 55% at 90% 94%, rgba(251, 146, 60, 0.58) 0%, transparent 75%)',
                   }}
                 />
+                {/* Digital Canvas Blueprint Micro-Dot Matrix */}
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.14] dark:opacity-[0.22] mix-blend-multiply dark:mix-blend-screen" />
                 <div className="absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-background via-background/60 to-transparent" />
               </div>
 
@@ -149,13 +140,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
             </section>
 
             {/* Atmosphere underlay for lower page sections to eliminate white-on-white */}
-            <div className="relative z-10 bg-slate-50/75 dark:bg-[#070b14]/90 mx-2 sm:mx-4 lg:mx-6 rounded-t-[32px] md:rounded-t-[48px] border-t border-slate-200/60 dark:border-white/5 shadow-[0_-8px_30px_rgb(0,0,0,0.03)] pt-12 pb-16 overflow-hidden">
-              <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-500/5 blur-[120px] rounded-full pointer-events-none" />
-              <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
-              <div className="relative z-10">
+            <div className="relative z-10 bg-slate-50/80 dark:bg-[#070b14]/95 mx-2 sm:mx-4 lg:mx-6 rounded-t-[32px] md:rounded-t-[48px] border-t border-slate-200/70 dark:border-white/10 shadow-[0_-8px_30px_rgb(0,0,0,0.03)] pt-6 pb-16 overflow-hidden">
+              <div className="absolute top-16 left-1/4 w-[500px] h-[500px] bg-purple-500/12 blur-[140px] rounded-full pointer-events-none" />
+              <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 blur-[140px] rounded-full pointer-events-none" />
+              <div className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] bg-pink-500/10 blur-[150px] rounded-full pointer-events-none" />
+              <div className="relative z-10 flex flex-col gap-10 md:gap-14">
+                <FluxLivePulse />
+                <FluxHowItWorks />
                 <FluxWhyUs companyName={siteName} />
                 <FluxReviews />
                 <FluxFAQ companyName={siteName} />
+                <FluxPreFooterCTA siteName={siteName} />
               </div>
             </div>
 

@@ -1,4 +1,27 @@
-- [x] 🏆 [OMNISMM-STITCH-EXPANDED-SKILLS-AND-PIPELINE-2026] Расширенный пул скиллов Google Stitch, официальный скилл stitch-get-started и сквозной production-пайплайн с инструментами и референсами (100% COMPLETE & VERIFIED):
+- [x] 🏆 [OMNISMM-FLUX-VIBRANT-HERO-AND-LOWER-LANDING-BOOST-2026] Комплексный визуальный буст SMMflux: яркий Hero-градиент Aurora v2, живой пульс платформы, 3-шаговый интерактивный онбординг, обсидиановый Pre-Footer CTA и 100% гарантия отката (100% COMPLETE & VERIFIED ON STAGE :3005):
+  * 🛡️ **Гарантия мгновенного отката (100% Rollback Safety Net):**
+    - Зафиксирован Git-тег: `checkpoint-before-flux-visual-boost` (коммит `7c498ba`);
+    - Создан Docker snapshot образа: `omnismm-web:stage-backup-before-flux-visual-boost`;
+    - Документирован регламент мгновенного отката в 1 команду при необходимости.
+  * 🌈 **Яркий, насыщенный Hero-фон (Radiant Aurora v2 + Digital Blueprint Matrix):**
+    - В [`src/app/page.tsx`](file:///e:/OmniSMM/src/app/page.tsx) градиент усилен сочными радиальными вспышками: индиго (`rgba(99, 102, 241, 0.72)`), циан (`rgba(6, 182, 212, 0.70)`), маджента (`rgba(244, 63, 94, 0.72)`), закатный янтарь (`rgba(251, 146, 60, 0.58)`);
+    - Интегрирована тактильная микро-сетка точек blueprint (`[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px]`);
+    - Длина `src/app/page.tsx` сохранена на уровне 184 строк ($\le 200$ лимит).
+  * 🚀 **Новые высококонверсионные секции лендинга до подвала:**
+    - [`FluxLivePulse.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxLivePulse.tsx) (68 строк): Индикатор активности сети (`🟢 Сеть активна 99.98% • Запуск 4.2 сек`) и живая лента недавних анонимизированных заказов;
+    - [`FluxHowItWorks.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxHowItWorks.tsx) (142 строки): Интерактивный 3-шаговый сценарий («01 Укажите ссылку», «02 Выберите тариф и оплатите в 1 клик», «03 Наблюдайте за взрывным ростом») с кнопкой плавного скролла к форме;
+    - [`FluxWhyUs.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxWhyUs.tsx): Высококонтрастный Bento Grid с темной карточкой API Hub & Реселлеров;
+    - [`FluxReviews.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxReviews.tsx): Карточки отзывов с золотыми звездами и бейджами услуг;
+    - [`FluxFAQ.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxFAQ.tsx): Аккордеон с карточкой онлайн-поддержки Telegram;
+    - [`FluxPreFooterCTA.tsx`](file:///e:/OmniSMM/src/components/ab-test/FluxPreFooterCTA.tsx) (85 строк): Темный обсидиановый баннер перед футером с кнопкой старта и триадой гарантий (4 сек старт, 54-ФЗ, 100% Refill).
+  * 🧪 **CI-гейты и верификация на Stage (:3005) & Mobile (390x844):**
+    - `npx tsc --noEmit` — 0 ошибок (PASS);
+    - `npm run lint:zero-any` — 0 any (PASS);
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек (PASS);
+    - `vitest run src/__tests__/unit/flux-network-zero-scroll.test.tsx` — 16/16 тестов PASS;
+    - Playwright аудит мобильного экрана: `Mobile horizontal scroll detected: false` (Zero-Scroll PASS);
+    - Образ развернут в контейнере `smmplan_stage` (:3005). Боевой контейнер (:3000) защищен и не тронут (BGS-2026 Protocol).
+
   * 🌐 **Изучение официальной документации Google Stitch:**
     - Проанализирована документация `stitch.withgoogle.com/docs/` и официальное руководство `stitch.withgoogle.com/docs/skills/get-started/`;
     - Исследован официальный репозиторий `google-labs-code/stitch-skills` и открытый стандарт Agent Skills.
