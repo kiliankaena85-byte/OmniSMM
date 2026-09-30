@@ -1,3 +1,15 @@
+- [x] 🚀 [OMNISMM-CORE-REPOSITORY-MIGRATION-2026-09-30] Успешная миграция и синхронизация кодовой базы в новый чистый репозиторий `OmniSMM-Core` (https://github.com/kiliankaena85-byte/OmniSMM-Core):
+  * 🌐 **Настройка Git Remote:**
+    - Новый основной `origin`: `git@github.com:kiliankaena85-byte/OmniSMM-Core.git`;
+    - Предыдущий репозиторий переименован в `legacy-origin` (`git@github.com:kiliankaena85-byte/OmniSMM.git`) для сохранения доступа к истории;
+    - Основная ветка `main` и ветка `feat/depin-sprint3-omniorganic` полностью синхронизированы и запушены в `OmniSMM-Core`.
+  * 📦 **Состав перенесенной кодовой базы (100% COMPLETE & VERIFIED):**
+    - **OmniOrganic Sprint 3:** `NaturalChurnEngine` (алгоритм органического расписания с защитой от округления floor+remainder), модели БД `OrganicGrowthCampaign` и `OrganicDailyPlan`, часовой BullMQ-воркер `organic-campaign.processor.ts`, 4-я вкладка TMA «⚙️ Настройки» с риск-селекторами (VIEW/REACT/FOLLOW);
+    - **Laya Decision Gate:** локальный System 1 движок в Docker, standalone MCP-сервер, клиент `OmniDecisionClient` с Circuit Breaker;
+    - **Telegram MTProto Production Robots:** GramJS клиент, шифрование сессий AES-256-GCM, Private Channel Resolver, `TelegramBoostSweeperCron`, диспетчер внутренних заказов;
+    - **Безопасность:** npm overrides патчи для `brace-expansion` и `ip-address`, 0 утечек секретов в коде;
+    - **CI-контроль:** `npx tsc --noEmit` — 0 ошибок, 28/28 новых модульных тестов Sprint 3 PASS.
+
 - [x] 🚀 [OMNISMM-PHASE-4-DECISION-GATE-PRODUCTION-INTEGRATION-2026-09-30] Завершение Фазы 4 спецификации: боевая интеграция Laya Decision Gate в диспетчер внутренних заказов и автономный арбитр действий, ликвидация 4 дефектов движка, успешный аудит диска C (+62.2 GB) и 100% покрытие тестами (100% COMPLETE & VERIFIED — 27/27 TESTS PASS):
   * 🛡️ **Интеграция в InHouseOrderDispatcher (`src/workers/processors/order/in-house-order-dispatcher.ts`):**
     - Внедрен Pre-Flight Security Check через `decisionClient.score({ metricName: 'LINK_SAFETY' })`;
