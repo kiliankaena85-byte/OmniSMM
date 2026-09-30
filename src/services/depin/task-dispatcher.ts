@@ -15,15 +15,26 @@
 import { db } from '@/lib/db';
 import { redis } from '@/lib/redis';
 
+export type DePinTaskType = 'VIEW_POST' | 'REACT_POST' | 'FOLLOW_CHANNEL' | 'UNFOLLOW_CHANNEL' | 'STREAM_PING';
+
 export interface DePinTaskItem {
   taskId: string;
-  type: 'VIEW_POST' | 'STREAM_PING' | 'CHANNEL_CHECK';
+  type: DePinTaskType;
   targetUrl: string;
   channel: string;
   postId?: number;
   creditsReward: number;
   expiresAt: number;
 }
+
+/** Кредитные награды по типу задания (чем выше риск — тем выше награда) */
+const TASK_REWARDS: Record<DePinTaskType, number> = {
+  VIEW_POST:        5,   // 👁  ~0% риска для аккаунта
+  REACT_POST:       8,   // 👍  ~1% риска для аккаунта
+  FOLLOW_CHANNEL:   50,  // 👥  ~5% риска, только opt-in
+  UNFOLLOW_CHANNEL: 5,   // ↩️  вспомогательное
+  STREAM_PING:      2,
+};
 
 const TASK_TTL_SECONDS = 60;
 const DEMO_CHANNELS = [
@@ -80,11 +91,26 @@ export class DePinTaskDispatcher {
   public async acquireTasks(nodeId: string, limit = 3): Promise<DePinTaskItem[]> {
     await this.touchNode(nodeId);
 
-    // Ищем незавершённые коммерческие цели из PostgreSQL
+    // Читаем предпочтения ноды из PostgreSQL
+    const node = await db.dePinNode.findUnique({
+      where: { id: nodeId },
+      select: { acceptsViewTasks: true, acceptsReactTasks: true, acceptsFollowTasks: true },
+    });
+
+    const acceptedTypes: DePinTaskType[] = [];
+    if (node?.acceptsViewTasks !== false)  acceptedTypes.push('VIEW_POST');
+    if (node?.acceptsReactTasks !== false) acceptedTypes.push('REACT_POST');
+    if (node?.acceptsFollowTasks === true) acceptedTypes.push('FOLLOW_CHANNEL');
+
+    // Ищем незавершённые коммерческие цели из PostgreSQL (только принятые типы)
     const targets = await db.dePinTarget.findMany({
-      where: { completedViews: { lt: db.dePinTarget.fields.targetViews } },
+      where: {
+        completedViews: { lt: db.dePinTarget.fields.targetViews },
+        status: { in: ['QUEUED', 'ASSIGNED'] },
+        type: { in: acceptedTypes.length > 0 ? acceptedTypes : ['VIEW_POST'] },
+      },
       orderBy: { createdAt: 'asc' },
-      take: limit * 3, // берём с запасом, часть может быть уже назначена этому узлу
+      take: limit * 3,
     });
 
     const now = Date.now();
@@ -93,37 +119,34 @@ export class DePinTaskDispatcher {
     for (const target of targets) {
       if (tasks.length >= limit) break;
 
-      // Проверяем через Redis: не выполнял ли этот узел эту цель
       const assignedRedisKey = nodeAssignedKey(nodeId, target.id);
       const alreadyAssigned = await redis.exists(assignedRedisKey);
       if (alreadyAssigned) continue;
 
       const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const expiresAt = now + TASK_TTL_SECONDS * 1000;
+      const taskType = (target.type as DePinTaskType) ?? 'VIEW_POST';
 
-      // Сохраняем активную задачу в Redis с TTL 60s
       await redis.setex(
         taskKey(taskId),
         TASK_TTL_SECONDS,
-        JSON.stringify({ targetId: target.id, nodeId, targetKey: `${target.channel}:${target.postId}` })
+        JSON.stringify({ targetId: target.id, nodeId, targetKey: `${target.channel}:${target.postId}`, type: taskType })
       );
-
-      // Отмечаем назначение узлу (TTL 24h — один узел не повторяет одну цель в сутки)
       await redis.setex(assignedRedisKey, 86_400, '1');
 
       tasks.push({
         taskId,
-        type: 'VIEW_POST',
+        type: taskType,
         targetUrl: `https://t.me/s/${target.channel}/${target.postId}`,
         channel: target.channel,
         postId: target.postId,
-        creditsReward: 10,
+        creditsReward: TASK_REWARDS[taskType] ?? 5,
         expiresAt,
       });
     }
 
-    // Fallback демо-задачи если нет коммерческих заказов
-    if (tasks.length === 0) {
+    // Fallback демо-задачи (только VIEW — нулевой риск)
+    if (tasks.length === 0 && node?.acceptsViewTasks !== false) {
       for (const demo of DEMO_CHANNELS) {
         if (tasks.length >= limit) break;
         const taskId = `task_demo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -133,7 +156,7 @@ export class DePinTaskDispatcher {
           targetUrl: `https://t.me/s/${demo.channel}/${demo.postId}`,
           channel: demo.channel,
           postId: demo.postId,
-          creditsReward: 5,
+          creditsReward: TASK_REWARDS.VIEW_POST,
           expiresAt: now + TASK_TTL_SECONDS * 1000,
         });
       }
@@ -141,6 +164,7 @@ export class DePinTaskDispatcher {
 
     return tasks;
   }
+
 
   /**
    * Принимает отчёт и начисляет OmniCredits.

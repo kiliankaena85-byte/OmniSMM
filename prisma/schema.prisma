@@ -2278,8 +2278,16 @@ model DePinNode {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  // ─── Task Preferences (Risk Opt-In) ───────────────────────────────────────
+  // Нода сама выбирает какие типы заданий готова выполнять.
+  // VIEW и REACT включены по умолчанию (opt-out). FOLLOW выключен (opt-in).
+  acceptsViewTasks      Boolean   @default(true)  // 👁 Просмотры (~0% риска)
+  acceptsReactTasks     Boolean   @default(true)  // 👍 Реакции (~1% риска)
+  acceptsFollowTasks    Boolean   @default(false) // 👥 Подписки (~5% риска, opt-in!)
+
   @@index([lastActiveAt])
   @@index([reputation])
+  @@index([acceptsFollowTasks]) // быстрый поиск нод готовых к подпискам
 }
 
 /// Коммерческая цель для распределённого просмотра.
