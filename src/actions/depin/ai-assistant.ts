@@ -230,3 +230,77 @@ export async function convertCreditsToBalanceAction(rawInput: unknown) {
     };
   }
 }
+
+// ─── FOLLOW_CHANNEL верификация ────────────────────────────────────────────
+
+export const FollowChannelSchema = z.object({
+  nodeId: z.string().trim().min(3),
+  channel: z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9_]+$/, 'Некорректное имя канала'),
+  telegramUserId: z.string().trim().min(1),
+});
+
+export async function verifyFollowChannelAction(rawInput: unknown): Promise<{
+  success: boolean;
+  escrowId?: string;
+  creditsLocked?: number;
+  error?: string;
+}> {
+  try {
+    const parsed = FollowChannelSchema.safeParse(rawInput);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'INVALID_INPUT' };
+    const { nodeId, channel, telegramUserId } = parsed.data;
+
+    const botToken = process.env.TELEGRAM_BOT_TOKEN ?? '';
+    let isMember = true;
+    if (botToken) {
+      const res = await fetch(
+        `https://api.telegram.org/bot${botToken}/getChatMember?chat_id=@${channel}&user_id=${telegramUserId}`,
+        { signal: AbortSignal.timeout(10_000) }
+      );
+      if (res.ok) {
+        const data = (await res.json()) as { result?: { status?: string } };
+        const st = data.result?.status;
+        isMember = st === 'member' || st === 'administrator' || st === 'creator';
+      }
+    }
+    if (!isMember) return { success: false, error: 'NOT_A_MEMBER' };
+
+    const { db: dbClient } = await import('@/lib/db');
+    const target = await dbClient.dePinTarget.upsert({
+      where: { channel_postId: { channel, postId: 0 } },
+      create: { channel, postId: 0, type: 'FOLLOW_CHANNEL', status: 'PENDING_VERIFY', nodeId, targetViews: 1, completedViews: 0, startedAt: new Date() },
+      update: {},
+    });
+
+    const { DePinEscrowService } = await import('@/services/depin/escrow');
+    const { escrowId, amount } = await DePinEscrowService.lockEscrow(nodeId, target.id, 50);
+    return { success: true, escrowId, creditsLocked: amount };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'VERIFY_FOLLOW_FAILED' };
+  }
+}
+
+export const CancelDePinOrderSchema = z.object({
+  orderId: z.string().min(1),
+  reason: z.string().max(500).optional(),
+});
+
+export async function cancelDePinOrderAction(rawInput: unknown): Promise<{
+  success: boolean;
+  cancelledTasks?: number;
+  error?: string;
+}> {
+  try {
+    const parsed = CancelDePinOrderSchema.safeParse(rawInput);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'INVALID_INPUT' };
+    const { orderId } = parsed.data;
+    const { db: dbClient } = await import('@/lib/db');
+    const cancelled = await dbClient.dePinTarget.updateMany({
+      where: { orderId, status: { in: ['QUEUED', 'ASSIGNED', 'PENDING_VERIFY'] } },
+      data: { status: 'CANCELLED' },
+    });
+    return { success: true, cancelledTasks: cancelled.count };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'CANCEL_ORDER_FAILED' };
+  }
+}

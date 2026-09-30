@@ -2267,29 +2267,75 @@ model TelegramBoostSlot {
 /// Узел распределённой сети DePIN (пользователь, установивший OmniProxy/TMA).
 /// Хранит накопленный баланс кредитов и статистику. Персистирует между рестартами сервера.
 model DePinNode {
-  id                    String   @id         // nodeId: "tg_12345678" или "node_xxxxxx"
-  creditsBalance        Int      @default(0) // Текущий баланс OmniCredits
-  totalCompletedTasks   Int      @default(0) // Всего выполненных задач за всё время
-  lastActiveAt          DateTime @default(now())
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                    String    @id         // nodeId: "tg_12345678" или "node_xxxxxx"
+  creditsBalance        Int       @default(0)  // Текущий баланс OmniCredits
+  escrowCredits         Int       @default(0)  // Замороженные кредиты (залог за FOLLOW)
+  totalCompletedTasks   Int       @default(0)  // Всего выполненных задач за всё время
+  tasksFailed           Int       @default(0)  // Задания с фродом/отпиской
+  reputation            Int       @default(100) // 0-100, влияет на награды
+  lastActiveAt          DateTime  @default(now())
+  lastAuditAt           DateTime? // Когда последний раз проверяли
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([lastActiveAt])
+  @@index([reputation])
 }
 
 /// Коммерческая цель для распределённого просмотра.
 /// Заполняется через Admin Panel при создании заказа на просмотры.
 model DePinTarget {
-  id             String   @id @default(cuid())
-  channel        String   // e.g. "durov", "telegram"
+  id             String    @id @default(cuid())
+  channel        String    // e.g. "durov", "telegram"
   postId         Int
-  targetViews    Int      // Сколько просмотров нужно набрать
-  completedViews Int      @default(0)
-  tenantId       String   @default("smmplan")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  type           String    @default("VIEW_POST") // VIEW_POST|FOLLOW_CHANNEL|REACT_POST|UNFOLLOW_CHANNEL
+  status         String    @default("QUEUED")    // QUEUED|ASSIGNED|PENDING_VERIFY|COMPLETED|FAILED|CANCELLED
+  targetViews    Int       // Сколько просмотров/подписок нужно набрать
+  completedViews Int       @default(0)
+  nodeId         String?   // Какая нода выполняет задание
+  orderId        String?   // Связь с заказом клиента
+  auditCount     Int       @default(0)  // Сколько раз прошёл случайный аудит
+  startedAt      DateTime? // Когда нода взяла задание
+  verifiedAt     DateTime? // Когда финально верифицировано
+  tenantId       String    @default("smmplan")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@unique([channel, postId])
   @@index([tenantId])
-  @@index([completedViews, targetViews]) // Для быстрого поиска незавершённых целей
+  @@index([status])
+  @@index([type])
+  @@index([orderId])
+  @@index([completedViews, targetViews])
+}
+
+/// Эскроу замороженных кредитов за FOLLOW_CHANNEL задания.
+/// 30% от награды блокируется на 72 часа как залог против отписки.
+model DePinEscrow {
+  id        String   @id @default(cuid())
+  nodeId    String
+  targetId  String   @unique
+  amount    Int      // кредитов заморожено
+  status    String   @default("LOCKED") // LOCKED|RELEASED|BURNED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nodeId])
+  @@index([status, expiresAt])
+}
+
+/// Лог аудитов Watchdog — история проверок подписок.
+model DePinFollowAudit {
+  id              String   @id @default(cuid())
+  nodeId          String
+  targetId        String
+  telegramUserId  String
+  channelId       String
+  auditedAt       DateTime @default(now())
+  stillMember     Boolean
+  reputationDelta Int
+
+  @@index([nodeId])
+  @@index([auditedAt])
 }
