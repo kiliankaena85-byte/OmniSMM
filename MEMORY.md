@@ -194,6 +194,16 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     3. **Fail-Closed & CI Gate:** При обнаружении уязвимостей блокирует продвижение кода (`isImmune: false`) и формирует машиночитаемый аудит-репорт с точными номерами строк и рекомендациями.
     4. **Сквозная интеграция:** Добавлен CLI `task-pipeline audit-security <file.ts>` и MCP-инструмент `audit_security` для вызова любым ИИ-агентом (Claude, Cursor, Antigravity).
 
+ - **ADR-2026-47: SMMflux Vibrant Hero Aurora v2, Platform Live Pulse & Conversion Suite Architecture:**
+   - *Контекст:* Запрос на повышение визуальной привлекательности бренда SMMflux (`tenantId: 'flux'`), ликвидацию эффекта блеклого фона в Hero, добавление конверсионных секций онбординга и социальных доказательств до подвала с обязательной гарантией 100% отката.
+   - *Решение:*
+     1. **Гарантия мгновенного отката (100% Rollback Safety Net):** Зафиксирован Git-тег `checkpoint-before-flux-visual-boost` (коммит `7c498ba`) и Docker snapshot `omnismm-web:stage-backup-before-flux-visual-boost` для отката за 5 секунд при необходимости.
+     2. **Hero Radiant Aurora v2 & Digital Blueprint Matrix (`src/app/page.tsx`):** Фоновый холст усилен насыщенным многослойным градиентом (электрик-индиго `0.72`, циановый ультрамарин `0.70`, розовая маджента `0.72`, закатный янтарь `0.58`) с тактильной сеткой микроточек blueprint `24px`. Страница сохранена строго в пределах лимита $\le 200$ строк (184 строки).
+     3. **FluxLivePulse (`FluxLivePulse.tsx`, 68 строк):** Индикатор доступности сети (`🟢 Сеть активна 99.98% • Запуск 4.2 сек`) и живой горизонтальный тикер недавних анонимизированных заказов (YouTube, Telegram, ВКонтакте, Refill).
+     4. **FluxHowItWorks (`FluxHowItWorks.tsx`, 138 строк):** 3-шаговый интерактивный сценарий («01 Укажите ссылку», «02 Выберите тариф и оплатите в 1 клик через СБП 0%», «03 Наблюдайте за взрывным ростом») с кнопкой плавного возврата к форме заказа.
+     5. **FluxPreFooterCTA (`FluxPreFooterCTA.tsx`, 84 строки):** Темный обсидиановый конверсионный баннер-магнит перед футером со светящимися сферами, кнопками старта/каталога и триадой юридических гарантий (4 сек старт, чек 54-ФЗ, 100% Refill).
+     6. **Верификация & CI-гейты:** `tsc --noEmit` (0 ошибок), `lint:zero-any` (0 any), `check-bundle-secrets` (0 утечек), Vitest (16/16 PASS), Playwright Mobile Viewport (`Mobile horizontal scroll detected: false`, Zero-Scroll). Боевой порт `:3000` неприкосновенен (BGS-2026).
+
  - **ADR-2026-46: Standalone Agent Task Pipeline Module (@omnismm/agent-task-pipeline / Hexagonal Architecture):**
   - *Контекст:* Необходимость выноса логики декомпозиции задач (WBS) и детерминированного принятия решений (Action Arbiter) в независимый подключаемый модуль, который можно подключить к любому ИИ-агенту (Antigravity, Claude, Cursor, VS Code) или экспортировать в отдельный репозиторий.
   - *Решение:*
