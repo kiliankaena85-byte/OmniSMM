@@ -19,6 +19,7 @@ import {
   askOmniAiAction,
   reportDePinTaskAction,
   convertCreditsToBalanceAction,
+  updateNodePreferencesAction,
 } from '@/actions/depin/ai-assistant';
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ const CREDITS_PER_TAP  = 1;
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function DePinTelegramMiniAppPage() {
-  const [activeTab, setActiveTab] = useState<'ai' | 'node' | 'tap'>('tap');
+  const [activeTab, setActiveTab] = useState<'ai' | 'node' | 'tap' | 'settings'>('tap');
 
   // ── Auth State ───────────────────────────────────────────────────────────────
   const [nodeId,      setNodeId]      = useState('');
@@ -86,6 +87,12 @@ export default function DePinTelegramMiniAppPage() {
   const [nodeStatusText,       setNodeStatusText]       = useState('Синхронизация...');
   const [isConverting,         setIsConverting]         = useState(false);
   const [conversionMessage,    setConversionMessage]    = useState<string | null>(null);
+
+  // ── Настройки предпочтений узла ─────────────────────────────────────────────
+  const [acceptsViewTasks,   setAcceptsViewTasks]   = useState(true);
+  const [acceptsReactTasks,  setAcceptsReactTasks]  = useState(true);
+  const [acceptsFollowTasks, setAcceptsFollowTasks] = useState(false);
+  const [prefToast,          setPrefToast]          = useState<string | null>(null);
 
   // ── Gamification State ───────────────────────────────────────────────────────
   const [energy,     setEnergy]     = useState(ENERGY_MAX);
@@ -335,9 +342,10 @@ export default function DePinTelegramMiniAppPage() {
       {/* ── Навигация ─────────────────────────────────────────────────────────── */}
       <nav className="flex p-1.5 bg-neutral-900 border-b border-neutral-800 gap-1">
         {([
-          { key: 'tap',  icon: '🪙', label: 'Тапер'       },
-          { key: 'ai',   icon: '🧠', label: 'AI-Копирайтер'},
-          { key: 'node', icon: '⚡', label: 'DePIN Доход'  },
+          { key: 'tap',      icon: '🪙', label: 'Тапер'       },
+          { key: 'ai',       icon: '🧠', label: 'AI-Копирайтер'},
+          { key: 'node',     icon: '⚡', label: 'DePIN Доход'  },
+          { key: 'settings', icon: '⚙️', label: 'Настройки'   },
         ] as const).map(({ key, icon, label }) => (
           <button
             key={key}
@@ -345,9 +353,10 @@ export default function DePinTelegramMiniAppPage() {
             onClick={() => setActiveTab(key)}
             className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all min-h-[44px] flex items-center justify-center gap-1.5 ${
               activeTab === key
-                ? key === 'tap'  ? 'bg-amber-500 text-white shadow-sm'
-                : key === 'ai'   ? 'bg-blue-600 text-white shadow-sm'
-                :                  'bg-emerald-600 text-white shadow-sm'
+                ? key === 'tap'      ? 'bg-amber-500 text-white shadow-sm'
+                : key === 'ai'       ? 'bg-blue-600 text-white shadow-sm'
+                : key === 'settings' ? 'bg-violet-600 text-white shadow-sm'
+                :                      'bg-emerald-600 text-white shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
@@ -573,6 +582,123 @@ export default function DePinTelegramMiniAppPage() {
             <p>• Узел выполняет только открытые GET-запросы к публичным постам Telegram Web.</p>
             <p>• 0 доступа к вашим перепискам, паролям или телефону.</p>
             <p>• Трафик: &lt;10 КБ на просмотр. Батарея не нагревается.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          Вкладка 4: Настройки — типы задач DePIN-узла
+      ════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'settings' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+          {/* Toast-предупреждение */}
+          {prefToast && (
+            <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-300 flex items-start gap-2">
+              <span className="shrink-0 text-base">⚠️</span>
+              <span>{prefToast}</span>
+            </div>
+          )}
+
+          {/* Заголовок */}
+          <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+            <h2 className="text-sm font-semibold text-neutral-100 mb-1">Типы задач узла</h2>
+            <p className="text-[11px] text-neutral-400">
+              Выберите, какие органические задачи ваш узел готов выполнять. Отключённые задачи не поступают в очередь.
+            </p>
+          </div>
+
+          {/* Тоггл 1: Просмотры */}
+          <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <span className="text-2xl shrink-0">👁</span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-neutral-100">Просмотры</p>
+                <p className="text-[11px] text-neutral-400 truncate">~0% риска • +5 кредитов / задание</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs font-bold text-emerald-400">+5 кр.</span>
+              <label className="relative inline-flex items-center cursor-pointer min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={acceptsViewTasks}
+                  className="sr-only peer"
+                  onChange={async (e) => {
+                    const val = e.target.checked;
+                    setAcceptsViewTasks(val); // optimistic
+                    await updateNodePreferencesAction({ nodeId, acceptsViewTasks: val });
+                  }}
+                />
+                <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600" />
+              </label>
+            </div>
+          </div>
+
+          {/* Тоггл 2: Реакции */}
+          <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <span className="text-2xl shrink-0">👍</span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-neutral-100">Реакции</p>
+                <p className="text-[11px] text-neutral-400 truncate">~1% риска • +8 кредитов / задание</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs font-bold text-emerald-400">+8 кр.</span>
+              <label className="relative inline-flex items-center cursor-pointer min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={acceptsReactTasks}
+                  className="sr-only peer"
+                  onChange={async (e) => {
+                    const val = e.target.checked;
+                    setAcceptsReactTasks(val); // optimistic
+                    await updateNodePreferencesAction({ nodeId, acceptsReactTasks: val });
+                  }}
+                />
+                <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600" />
+              </label>
+            </div>
+          </div>
+
+          {/* Тоггл 3: Подписки */}
+          <div className="p-4 rounded-2xl bg-neutral-900 border border-amber-900/40 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <span className="text-2xl shrink-0">👥</span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-neutral-100">Подписки</p>
+                <p className="text-[11px] text-amber-400/80 truncate">~5% риска • +50 кредитов / задание</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs font-bold text-amber-400">+50 кр.</span>
+              <label className="relative inline-flex items-center cursor-pointer min-h-[44px]">
+                <input
+                  type="checkbox"
+                  checked={acceptsFollowTasks}
+                  className="sr-only peer"
+                  onChange={async (e) => {
+                    const val = e.target.checked;
+                    setAcceptsFollowTasks(val); // optimistic
+                    if (val) {
+                      setPrefToast('⚠️ Вы берёте риск временного ограничения аккаунта. Мы ограничиваем до 3 подписок в сутки.');
+                      setTimeout(() => setPrefToast(null), 6000);
+                    }
+                    await updateNodePreferencesAction({ nodeId, acceptsFollowTasks: val });
+                  }}
+                />
+                <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500" />
+              </label>
+            </div>
+          </div>
+
+          {/* Справка */}
+          <div className="p-3 bg-neutral-900/40 rounded-xl border border-neutral-800/60 text-[11px] text-neutral-500 space-y-1">
+            <p className="font-semibold text-neutral-400">ℹ️ Как это работает:</p>
+            <p>• Настройки сохраняются мгновенно и применяются к следующей задаче в очереди.</p>
+            <p>• Риск — вероятность временного ограничения аккаунта Telegram за один день работы.</p>
+            <p>• Подписки лимитированы: не более 3 в сутки на один узел.</p>
           </div>
         </div>
       )}

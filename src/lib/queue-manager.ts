@@ -648,6 +648,23 @@ export async function ensureDePinWatchdogCron() {
   );
 }
 
+// ─── OmniOrganic Campaign Executor ────────────────────────────────────────────
+export const organicCampaignQueue = createQueue<Record<string, unknown>>('organicCampaignQueue');
+
+export async function ensureOrganicCampaignCron() {
+  await organicCampaignQueue.add(
+    'organic-campaign-hourly',
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: '0 * * * *', // каждый час
+      },
+      jobId: 'organic-campaign-singleton',
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
+
 export const closeQueues = async () => {
     await ordersQueue.close();
     await syncQueue.close();
@@ -664,6 +681,7 @@ export const closeQueues = async () => {
     await aiEconomicOptimizerQueue.close();
     await geoAvailabilityQueue.close();
     await depinWatchdogQueue.close();
+    await organicCampaignQueue.close();
     if (redisConnection) await redisConnection.quit();
 };
 

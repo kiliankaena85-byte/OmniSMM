@@ -119,16 +119,17 @@ describe('DePinTaskDispatcher (P2P DePIN Queue — PostgreSQL + Redis edition)',
   // ── acquireTasks → commercial ────────────────────────────────────────────────
   it('должен выдавать коммерческую задачу при наличии незавершённых целей', async () => {
     mockTargetFindMany.mockResolvedValue([
-      { id: 'tgt_1', channel: 'smmplan_official', postId: 42, targetViews: 100, completedViews: 0 },
+      { id: 'tgt_1', channel: 'smmplan_official', postId: 42, type: 'VIEW_POST', status: 'QUEUED', targetViews: 100, completedViews: 0 },
     ]);
     mockRedisExists.mockResolvedValue(0);
 
     const tasks = await dispatcher.acquireTasks('node_alpha_1', 2);
     const task = tasks.find((t) => t.channel === 'smmplan_official' && t.postId === 42);
     expect(task).toBeDefined();
-    expect(task?.creditsReward).toBe(10);
+    expect(task?.creditsReward).toBe(5); // VIEW_POST reward = 5 (Sprint 3: risk-tiered rewards)
     expect(task?.targetUrl).toBe('https://t.me/s/smmplan_official/42');
   });
+
 
   // ── acquireTasks → anti-dup Redis ────────────────────────────────────────────
   it('не должен выдавать одну и ту же цель узлу дважды (Redis EXISTS)', async () => {

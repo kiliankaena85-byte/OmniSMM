@@ -121,6 +121,11 @@ const depinWatchdogWorker = new Worker('depinWatchdogQueue', wrapWorkerProcessor
   await processDePinWatchdog(job);
 }), workerConfig);
 
+const organicCampaignWorker = new Worker('organicCampaignQueue', wrapWorkerProcessor('OrganicCampaignProcessor', async (job) => {
+  const { processOrganicCampaign } = await import('./processors/organic-campaign.processor');
+  await processOrganicCampaign(job);
+}), workerConfig);
+
 // ── P2.1: DLQ — Dead Letter Queue handler ────────────────────────────────────
 const MAX_ATTEMPTS = 3; // Must match createQueue defaults
 
@@ -301,6 +306,8 @@ const shutdown = async () => {
     aiEconomicOptimizerWorker.close(),
     geoAvailabilityWorker.close(),
     depinWatchdogWorker.close(),
+    organicCampaignWorker.close(),
+
   ]);
   await db.$disconnect();
   if (connection) await connection.quit();

@@ -304,3 +304,51 @@ export async function cancelDePinOrderAction(rawInput: unknown): Promise<{
     return { success: false, error: err instanceof Error ? err.message : 'CANCEL_ORDER_FAILED' };
   }
 }
+
+// ── Настройки предпочтений узла ──────────────────────────────────────────────
+
+export const UpdateNodePreferencesSchema = z.object({
+  nodeId: z.string().trim().min(3),
+  acceptsViewTasks:   z.boolean().optional(),
+  acceptsReactTasks:  z.boolean().optional(),
+  acceptsFollowTasks: z.boolean().optional(),
+});
+
+export type UpdateNodePreferencesDto = z.infer<typeof UpdateNodePreferencesSchema>;
+
+/**
+ * Сохраняет предпочтения узла (типы задач, которые нода согласна выполнять).
+ * Используется вкладкой «Настройки» в DePIN TMA.
+ */
+export async function updateNodePreferencesAction(rawInput: unknown): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const parsed = UpdateNodePreferencesSchema.safeParse(rawInput);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'INVALID_INPUT' };
+    const { nodeId, acceptsViewTasks, acceptsReactTasks, acceptsFollowTasks } = parsed.data;
+
+    // Best-effort: сохраняем предпочтения в Redis-хэш узла (ttl 30 дней)
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        const key = `depin:node:${nodeId}:prefs`;
+        const patch: Record<string, string> = {};
+        if (acceptsViewTasks   !== undefined) patch['acceptsViewTasks']   = String(acceptsViewTasks);
+        if (acceptsReactTasks  !== undefined) patch['acceptsReactTasks']  = String(acceptsReactTasks);
+        if (acceptsFollowTasks !== undefined) patch['acceptsFollowTasks'] = String(acceptsFollowTasks);
+        if (Object.keys(patch).length > 0) {
+          await redis.hset(key, patch);
+          await redis.expire(key, 60 * 60 * 24 * 30);
+        }
+      }
+    } catch {
+      // Redis недоступен — настройки действуют только в рамках клиентской сессии
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'PREFERENCES_UPDATE_FAILED' };
+  }
+}

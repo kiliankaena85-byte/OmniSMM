@@ -2347,3 +2347,54 @@ model DePinFollowAudit {
   @@index([nodeId])
   @@index([auditedAt])
 }
+
+// ─── OmniOrganic Campaign Models ──────────────────────────────────────────────
+
+/// Кампания органического роста подписчиков с управляемым churn.
+/// Клиент заказывает не просто подписчиков, а органический паттерн роста.
+model OrganicGrowthCampaign {
+  id                  String    @id @default(cuid())
+  tenantId            String    @default("smmplan")
+  orderId             String    @unique           // связь с Order
+  channelUsername     String                      // @target_channel (без @)
+  targetNetGain       Int                         // целевой net прирост подписчиков
+  durationDays        Int       @default(30)      // срок выполнения в днях
+  churnRateMin        Float     @default(0.08)    // минимальный churn rate 8%
+  churnRateMax        Float     @default(0.12)    // максимальный churn rate 12%
+  activeHourStart     Int       @default(7)       // начало активных часов (МСК)
+  activeHourEnd       Int       @default(23)      // конец активных часов (МСК)
+  weekendMultiplier   Float     @default(0.6)     // множитель темпа в выходные
+  status              String    @default("SCHEDULED") // SCHEDULED|ACTIVE|PAUSED|COMPLETED|CANCELLED
+  followsDelivered    Int       @default(0)
+  unfollowsDelivered  Int       @default(0)
+  netGainActual       Int       @default(0)
+  startDate           DateTime
+  endDate             DateTime
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  dailyPlans          OrganicDailyPlan[]
+
+  @@index([tenantId])
+  @@index([status, startDate])
+  @@index([channelUsername])
+}
+
+/// Дневной план подписок/отписок для органической кампании.
+/// Генерируется при создании кампании NaturalChurnEngine.generateCampaignSchedule().
+model OrganicDailyPlan {
+  id               String   @id @default(cuid())
+  campaignId       String
+  planDate         DateTime
+  targetFollows    Int
+  targetUnfollows  Int
+  actualFollows    Int      @default(0)
+  actualUnfollows  Int      @default(0)
+  completed        Boolean  @default(false)
+
+  campaign         OrganicGrowthCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, planDate])
+  @@index([planDate, completed])
+  @@index([campaignId])
+}
