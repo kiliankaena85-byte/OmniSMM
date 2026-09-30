@@ -3,6 +3,7 @@ import { OrderJobPayload } from '@/lib/queue-manager';
 import { OrderPreflightGuard } from './order/order-preflight-guard';
 import { OrderRouteEvaluator } from './order/order-route-evaluator';
 import { OrderDispatchExecutor } from './order/order-dispatch-executor';
+import { InHouseOrderDispatcher } from './order/in-house-order-dispatcher';
 import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 import { registerValidTenant } from '@/lib/tenant-resolver-edge';
 import { db } from '@/lib/db';
@@ -54,6 +55,13 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
     }
     if (!order) return;
 
+    // 1. Приоритетное исполнение собственными мощностями (Tier-0 In-House Engine: Telegram / HLS Stream)
+    const inHouseResult = await InHouseOrderDispatcher.tryDispatchInHouse(order, redisKey);
+    if (inHouseResult.handled && inHouseResult.success) {
+      return;
+    }
+
+    // 2. Внешняя каскадная маршрутизация (если услуга внешняя или все внутренние слоты заняты)
     const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);
     const primaryProviderId = candidateRoutes.find(r => r.isPrimary)?.providerId || candidateRoutes[0]?.providerId;
 

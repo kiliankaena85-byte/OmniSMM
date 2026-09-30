@@ -173,6 +173,49 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 
 ## 1. 🏗️ Архитектурные решения (ADR)
 
+ - **ADR-2026-58: Strategic Integration of Gamified Tap-to-Earn (Hamster Kombat Mechanics) with Real-Yield DePIN SMM Infrastructure:**
+  - *Контекст:* Пользовательская инициатива синтеза виральных игровых механик «Хомяка» (Hamster Kombat TMA) с реальным производственным конвейером платформы OmniSMM для создания самоподдерживающейся краудсорсинговой сети исполнителей с нулевой себестоимостью привлечения.
+  - *Решение:*
+    1. **Анализ архитектуры Хомяка (Hamster Kombat):**
+       - Среда: 100% Telegram Mini App (TMA / WebView), React/Next.js, Pixi.js/Canvas для 60-120 FPS анимации кликов, Telegram WebApp SDK (@twa-dev/sdk) с тактильным HapticFeedback и TON Connect.
+       - Виральные драйверы: Тапы по монете, Profit Per Hour (карточки пассивного дохода), 3-часовой лимит удержания, Daily Combo (3 карты дня), Шифр Морзе (код дня), жесткие реферальные замки («Пригласи 3-10 друзей»).
+       - Роковая ошибка Хомяка: Экономика внимания (Attention Ponzi) без реального денежного потока привела к обесцениванию и разочарованию 300 млн пользователей при листинге.
+    2. **Синтез с OmniSMM (Real-Yield Architecture & Proof-of-Real-Action):**
+       - Каждое игровое действие (тап, таймер дохода, комбо) привязано к **реальным коммерческим заказам** в `DePinTaskDispatcher` (публичные веб-просмотры постов `t.me/s/...`, Headless HLS стримы Twitch/Kick, проверка прокси).
+       - Заказчик SMMplan платит 35 ₽ за 1 000 просмотров; платформа выплачивает пользователям 15 ₽ в виде `OmniCredits` (100 кредитов = 1.00 ₽), оставляя платформе +20 ₽ чистой прибыли (133% маржи) без расходов на модемы.
+    3. **Мгновенная ликвидность (Zero-Disappointment Guarantee):**
+       - Отказ от иллюзорных «эйрдропов через полгода». Заработанные `OmniCredits` можно мгновенно вывести:
+         а) на баланс SMMplan/SMMflux через `WalletOps.credit` для накрутки собственных каналов;
+         б) реальными деньгами через СБП/ЮKassa или криптовалютой TON/USDT/Telegram Stars.
+    4. **Игровая воронка для SMM-авторов (Barter Engine):**
+       - Начинающие блогеры и администраторы каналов тапают и выполняют задания $\to$ получают бесплатные просмотры и бусты на свои каналы.
+       - Реферальный лифт: «Пригласи 5 друзей $\to$ получи бесплатный Premium-буст своего канала на 30 дней».
+    5. **Артефакты и кодовая база:**
+       - Зафиксирован фундаментальный манифест: `docs/STRATEGIC_DEPIN_GAMIFICATION_BLUEPRINT.md`.
+       - Модуль очередей микро-заданий: `src/services/depin/task-dispatcher.ts`.
+       - Server Actions: `src/actions/depin/ai-assistant.ts`.
+       - Telegram Mini App UI: `src/app/depin/page.tsx`.
+
+ - **ADR-2026-57: Hardened In-House Robot Suite (AES-256-GCM, InHouseOrderDispatcher, Private Invites, Sweeper Cron, Bulk Ingestion) & P2P DePIN AI-Agent Architecture:**
+  - *Контекст:* Завершение сквозной закалки боевого производственного конвейера Tier-0 роботов OmniSMM (ликвидация 7 зон риска из SPEC-2026-09-30) и проектирование виральной децентрализованной P2P DePIN сети потребительских устройств для получения неограниченного резидентного пула IP.
+  - *Решение:*
+    1. **AES-256-GCM Encryption at Rest:** В `TelegramSessionPoolManager` запись `sessionString` в PostgreSQL производится строго в шифрованном виде `v1:iv:tag:cipher`. 0 секретов в открытом виде на диске.
+    2. **InHouseOrderDispatcher & Concurrency Guard:** Атомарный захват распределенного замка `lock:in_house_dispatch:{orderId}` через Redis (PX 5000, NX) исключает TOCTOU race conditions. Каскадный фоллбек (`shouldFallbackToExternal`) передает заказ на внешний шлюз при занятости слотов без отмены заказа.
+    3. **Private Channel Resolver (FR-4):** В `TelegramMtprotoExecutor` добавлены методы `extractInviteHash` и `resolveTargetChannelPeer` с вызовами `Api.messages.CheckChatInvite` и `ImportChatInvite`, обеспечивая бесшовное исполнение бустов на закрытые каналы (`t.me/+hash` / `t.me/joinchat/`).
+    4. **Фоновый Sweeper Cron (FR-5):** Демон `sweepExpiredBoostsAndCooldowns` каждые 5 минут освобождает истекшие 30-дневные слоты, снимает 24-часовой кулдаун с переключенных слотов и возвращает сессии из `COOLDOWN` в `READY` после `FLOOD_WAIT`.
+    5. **Server Action пакетного импорта (FR-6):** `importTelegramSessionsAction` в `src/actions/admin/production/sessions.ts` с Zod DTO `BulkSessionImportSchema` валидирует пачки аккаунтов Zelenka Market / Darkstore, конвертирует 256-байтные ключи в StringSession, валидирует SOCKS5-прокси и фиксирует маскированный аудит.
+    6. **P2P DePIN AI-Agent Blueprint (`docs/specs/SPEC-2026-09-30-P2P-VIRAL-AI-AGENT-DEPIN.md`):** Концепт вирального помощника (Telegram Mini App, Android Foreground Service, Chrome Extension). Пользователь получает бесплатный безлимитный Gemini 3 Flash Pro и VPN/прокси, а смартфон в фоне на зарядке выполняет просмотры постов и стримы для OmniSMM. Себестоимость 1.50 ₽/мес, выручка 190.00 ₽/мес (маржа 12 500%).
+    7. **Верификация и CI:** 75/75 unit-тестов PASS (100%), 0 новых `any` в `npm run lint:zero-any`, `npx tsc --noEmit` — 0 ошибок, 0 утечек секретов.
+
+ - **ADR-2026-56: Battle-Grade In-House Telegram MTProto Executor & PostgreSQL Session Persistence:**
+  - *Контекст:* Перевод in-house робота `TelegramMtprotoExecutor` из фазы архитектурной симуляции в полнофункциональный боевой режим с реальными бинарными RPC-вызовами Telegram MTProto 2.0, поддержкой персональных прокси, безопасным парсингом сессий без SMS и персистентностью в PostgreSQL/Prisma.
+  - *Решение:*
+    1. **Бинарный MTProto-клиент GramJS (`telegram` 2.26.22):** Реализованы реальные RPC-вызовы `Api.premium.ApplyBoost({ peer, slots })` и `Api.messages.SendReaction({ peer, msgId, reaction })` с пулом подключений `clientMap` и корректным жизненным циклом (`disconnectAll`).
+    2. **Конвертер AuthKey (256 байт) в StringSession:** Метод `createStringSessionFromAuthKey(authKey, dcId, serverAddress, port)` позволяет мгновенно конвертировать сырые ключи авторизации из Zelenka Market / Darkstore SQLite `.session` файлов в валидную GramJS сессию без SMS и риска блокировки.
+    3. **Изоляция IP на сессию (Per-Session Proxy):** Парсер `parseTelegramProxy()` поддерживает форматы SOCKS5 и HTTP с авторизацией, изолируя сетевые запросы каждого аккаунта и устраняя риск подсетевых банов Telegram.
+    4. **Персистентность в БД (Prisma):** Добавлены модели `TelegramSession` и `TelegramBoostSlot` в `prisma/schema.prisma`. Методы `syncSessionToDb()` и `loadAllFromDb()` обеспечивают сохранность сессий, Health Score (0–100) и 24-часовых кулдаунов бустов между перезапусками воркера.
+    5. **Строгая типизация и CI:** 0 ошибок `npx tsc --noEmit`, 100% прохождение ratchet-контроля `npm run lint:zero-any`, сьют `telegram-mtproto-executor.test.ts` расширен до 9/9 PASS (100%).
+
  - **ADR-2026-51: Laya Decision Engine & Dual Agent Self-Improving Loop (System 1 + System 2 CPU Architecture):**
   - *Контекст:* Дороговизна и задержки авторегрессионных LLM на микро-решениях (15 секунд на валидацию тач-таргета или контраста), авторская предвзятость (Confirmation Bias) моно-агентов и деградация интерфейсов в шаблонный AI-slop.
   - *Решение:*
@@ -180,6 +223,15 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     2. **Dual Agent с эпистемической изоляцией (Maker vs Checker):** Создатель обладает правами записи и авто-хилером верстки; Ревизор СТРОГО READ-ONLY (`canWrite: false`) с чистым контекстом, оценивающий 5-векторную матрицу вето (Spec, Data Integrity, Security, Hygiene, Laya UI/UX).
     3. **Непрерывное самообучение (Self-Improving Loop):** База знаний `docs/KNOWN_ANTI_PATTERNS.md` автоматически пополняется при обнаружении дефектов, исключая повторные регрессии (No Repeat Regressions).
     4. **MCP интеграция:** Поддержка HTTP и Stdio интерфейсов JSON-RPC 2.0 (`scripts/laya/laya-mcp-stdio.ts`), регистрация в `.mcp/mcp-servers.json`.
+
+ - **ADR-2026-51: Direct Wholesale SMM Provider Sourcing & Shadow Catalog Buffer Architecture:**
+  - *Контекст:* Необходимость поиска и подключения прямых первоисточников (Root Providers) с минимальными оптовыми ценами по стандарту SMM Panel API v2 (Telegram бусты, просмотры, VK, YouTube, Instagram, TikTok), исключая посредников-реселлеров и защищая БД PostgreSQL от замусоривания неактуальными каталогами.
+  - *Решение:*
+    1. **Реестр 12 Первоисточников:** Разработан нормативный документ `docs/SMM_PROVIDERS_REGISTRY.md` и JSON-база `src/data/providers/smm-direct-providers.json` с 12 поставщиками первого эшелона (JAP, SMM Raja, Peakerr, MTP, Soc-Proof, SMMLaba, SMMFlare, SMMStone, Secsers, PrimeLike, BoostProvider, SMMRoot).
+    2. **Движок Сканирования & Нормализации (`DirectProviderScannerService`):** Автоматическое зондирование API v2 по Zod-схеме, защита от SSRF (`assertSafeUrl`), строгие таймауты (`AbortSignal.timeout(12000)`), категоризация по `CANONICAL_NETWORKS` и `CANONICAL_CATEGORIES` с регулярными выражениями по границам слов (исключающими ложные срабатывания вроде `insta` в `instant`).
+    3. **Shadow Catalog Buffer (Redis):** Сырые каталоги сохраняются в Redis под ключом `provider:{id}:catalog` с TTL 24 часа и проверкой SHA-256 хэша `provider:{id}:catalog:hash`, исключая повторные перезаписи и нагрузку на СУБД.
+    4. **MarginGuard & ExactMath:** Расчет маржинальности в неделимых копейках BigInt через `ExactMath` без плавающей точки. Оптовые цены на бусты Telegram (от 12.95 ₽) и просмотры (от 0.28 ₽ за 1 000) обеспечивают маржу от +150% до +1800%.
+    5. **1-Click Admin Server Actions:** В `src/actions/admin/providers/crud.ts` добавлены `getDirectProvidersRegistryAction` и `connectDirectProviderPresetAction` с защитой RBAC `requireStaffPermission` и аудитом `auditAdminAwaitable`.
 
  - **ADR-2026-50: Hardened DB & Memory SRE Architecture (Pre-Mortem Failure Immunity):**
   - *Контекст:* Состязательный Pre-Mortem аудит Ревизора выявил риски деградации базы данных и хранилищ через 6–12 месяцев эксплуатации (табличный bloat из-за ложного fillfactor, $O(N)$ заморозки Redis от `KEYS`, V8 heap exhaustion из-за unbounded L1 cache, OOM воркеров из-за Rust Prisma Engine).
@@ -1008,6 +1060,79 @@ npx @next/codemod@latest middleware-to-proxy
   6. Evict domains from registry and unregister tenant slug upon `deleteTenantAction`.
 - **Consequences:** Zero-downtime, DDoS-immune custom domain routing across all deployment topologies and background queues.
 
+### [ADR-2026-51] Direct SMM Panel API v2 Wholesale Sourcing, Multi-Network Dynamic Shadow Catalog, and SmartRouting Cascade
+- **Status:** ACCEPTED & ENFORCED (2026-09-30)
+- **Context:**
+  1. Розничная маржинальность и стабильность платформы OmniSMM 1.0 (SMMplan / SMMflux) напрямую зависят от работы с прямыми поставщиками первого эшелона (Root Providers), а не цепочками мелких розничных реселлеров.
+  2. Требовалось охватить не только базовые соцсети (Telegram, VK, YouTube, Instagram, TikTok), но и специализированные ниши: стриминговые платформы (Twitch, Kick, Trovo, YouTube Live), Telegram Mini Apps боты, VK Музыку и отечественные площадки (Rutube, Дзен).
+  3. Необходим строгий финансовый учет оптовой стоимости в копейках BigInt через `ExactMath` без плавающей точки, буферизация внешних каталогов в Redis Shadow Catalog с SHA-256 дедупликацией и 1-click подключение шлюзов с шифрованием ключей в `VaultService`.
+- **Decision:**
+  1. Сформировать нормативный реестр 20 прямых поставщиков первого эшелона в `src/data/providers/smm-direct-providers.json` и `docs/SMM_PROVIDERS_REGISTRY.md`.
+  2. Добавить ключевые платформы по запросу оператора:
+     - **VexBoost** (`https://vexboost.ru/api/v2`): первоисточник под биржи/боты, бусты каналов Telegram, прослушивания плейлистов VK Музыки.
+     - **Soc-Rocket** (`https://soc-rocket.ru/api/v2`): прямой шлюз живых офферов ВКонтакте и Telegram с гарантией.
+     - **Tegram.shop** (`https://tegram.shop/api/v2`): моно-шлюз Telegram (бусты 7/30/90 дней, Telegram Stars, Premium-подписчики, рефералы Mini Apps).
+     - **Stream-Promotion** (`https://stream-promotion.ru/api/v2`): первоисточник №1 стриминга (Twitch, Kick, YouTube Live, Trovo — зрители онлайна на 60–360 мин).
+     - **EasyLiker**, **SMMCode**, **PRSkill**, **GlobalSMM** для микро-задач, Rutube/Дзен и быстрых лайков.
+  3. Реализовать сканер `DirectProviderScannerService` с SSRF-гардом `assertSafeUrl`, нормализацией сетей (включая Twitch, Kick, OK) и категорий (включая `STREAMS`, `BOOSTS`, `BOTS`).
+  4. Зафиксировать матрицу каскадной маршрутизации `SmartRouting Cascade` для автоматического переключения при сбоях нод провайдеров.
+- **Consequences:** Полная прозрачность себестоимости, гарантированная маржинальность от +60% до +1700%, нулевое раздувание PostgreSQL базы за счет Redis Shadow Catalog.
 
+### [ADR-2026-52] Telegram SMM Intelligence Harvester, Heuristic Scam Filtering, and 65-Provider Direct Wholesale Expansion
+- **Status:** ACCEPTED & ENFORCED (2026-09-30)
+- **Context:**
+  1. Необходимость поиска поставщиков в неиндексируемых и полузакрытых средах (Telegram-каналы, закрытые чаты софтеров, форумы Lolz/Zelenka/BHW) для получения минимальных оптовых цен на бусты каналов (Level Boost), Telegram Stars и авто-просмотры.
+  2. Риск блокировок личных номеров операторов при попытках парсить Telegram через MTProto с личных учетных записей.
+  3. Необходимость алгоритмической защиты от мошенников, фейковых панелей и скам-каналов без API.
+  4. Расширение базы прямых оптовых поставщиков до 65 шлюзов первого эшелона.
+- **Decision:**
+  1. Создан специализированный агентский скилл `.agents/skills/telegram-smm-intelligence/SKILL.md` со 100% оценкой **Grade A (100/100)** по архитектурному линтеру.
+  2. Реализована исполняемая утилита `scripts/providers/telegram-channel-harvester.ts`:
+     - Zero-Account-Risk Policy: сбор через официальный публичный веб-шлюз `https://t.me/s/{channel_slug}` без телефонных номеров и риска банов;
+     - Защита периметра: SSRF-гард `assertSafeUrl` и таймауты `AbortSignal.timeout(8000)`;
+     - Regex-анализ постов: детекция API v2 эндпоинтов, Telegram-ботов для закупок (`@...bot`), хэштегов (`#api`, `#бусты`, `#stars`), экстракция цен на бусты, звезды, просмотры и реакции в рублях, копейках и USD;
+     - Heuristic Trust Score (0.0 — 10.0 баллов): отбраковка скам-сигнатур (порог допуска $\ge 7.0$).
+  3. База данных `src/data/providers/smm-direct-providers.json` и нормативный реестр `docs/SMM_PROVIDERS_REGISTRY.md` расширены до 65 первоисточников (+16 новых: SMMWay, Market-SMM, SMM8, Soc-Service, SMMboom, SMM Craft, SMM Turbo, VKTarget, UNU, Everve, SMMPak, BulkFollows, SMM Haven, DoctorSMM, Avi1, Lowcost SMM).
+  4. Разработан сьют тестов `src/__tests__/unit/telegram-channel-harvester.test.ts` (7/7 PASS), общее покрытие провайдеров достигло 24/24 тестов.
+- **Consequences:** Безопасный и непрерывный сбор разведданных по новым поставщикам Telegram без угрозы для аккаунтов, доступ к живым биржам (VKTarget, UNU, Everve) и стабильный оптовый бенчмарк с маржинальностью до +2015%.
+
+### [ADR-2026-54] Tier-0 Deep Underworld Infrastructure: Hardware GSM Gateways, HeroSMS Protocol, Fragment Smart Contracts, and Headless HLS Stream Engines
+- **Status:** ACCEPTED & ENFORCED (2026-09-30)
+- **Context:**
+  1. Необходимость минимизации себестоимости SMM-услуг до физического предела за счет обхода не только розничных реселлеров, но и сторонних SMM-панелей Tier-1, переходя к аппаратным и протокольным первоисточникам нулевого уровня (Tier-0).
+  2. Закрытие 29.12.2025 сервиса SMS-Activate и переход отрасли на правопреемника HeroSMS (`hero-sms.com`) и агентскую модель SMSHub (`smshub.org`) со стандартным протоколом `stubs/handler_api.php`.
+  3. Прямая закупка Telegram Stars (XTR) и Premium по биржевому курсу TON без 30% наценок Apple/Google и посредников через смарт-контракты Fragment (`fragmentapi.com`).
+  4. Закупка прогретых Telegram сессий `session+json` / `TData` по 12–25 ₽ на Zelenka Market API и органических просмотров на P2P платформе LiveSurf REST API.
+- **Decision:**
+  1. Разработан модуль прямой интеграции с глубинной инфраструктурой `src/services/providers/deep-infrastructure-client.ts`:
+     - `orderSmsNumber` / `checkSmsCode`: универсальный клиент протокола `stubs/handler_api.php` для HeroSMS и SMSHub (заказ виртуальных номеров от 1.50 ₽ для Telegram/VK);
+     - `orderFragmentStars`: прямой шлюз Fragment с передачей `X-Idempotency-Key` для исключения двойных списаний в TON;
+     - `createLiveSurfTask`: REST API создания кампаний реального пользовательского серфинга и удержания на YouTube/RuTube;
+     - `queryMarketTelegramSessions`: программный поиск прогретых сессий с фильтром по отлежке на Zelenka Market API;
+     - Периметр защищен через SSRF-гард `assertSafeUrl` и таймауты `AbortSignal.timeout(8000)`.
+  2. Разработан сьют тестов `src/__tests__/unit/deep-infrastructure-client.test.ts` (9/9 PASS), общее покрытие тестами расширено до 33/33 тестов (100% PASS).
+  3. В нормативный реестр `docs/SMM_PROVIDERS_REGISTRY.md` добавлен Раздел 7 с архитектурной Mermaid-диаграммой глубинного стека.
+- **Consequences:** Полная независимость от любых монопольных поставщиков, возможность развертывания собственных автономных MTProto-воркеров с нулевой себестоимостью транзакций и максимальная маржинальность платформы OmniSMM.
+
+### [ADR-2026-55] SMM Root Provider Encyclopedia, Hardware Motherboard Farms, Protocol Reverse Engineering, and In-House Production Engines
+- **Status:** ACCEPTED & ENFORCED (2026-09-30)
+- **Context:**
+  1. Необходимость всестороннего раскрытия технических деталей функционирования мировой SMM-инфраструктуры первого эшелона (Tier-0 / Root Providers): физическое железо (20-in-1 Phone Motherboard Boxes, модемные пулы Huawei E3372h, SIM-банки GoIP/Dinstar), реверс-инжиниринг native библиотек (TikTok `libcms.so` / Gorgon, YouTube BotGuard PO-Token, Instagram Private API, VK `al_audio.php`, Telegram MTProto 2.0).
+  2. Предотвращение каскадных банов аккаунтов (Cascade Bans) при массовом вызове `channels.boostChannel` через трекинг Interaction Health Score и 24-часовые кулдауны слотов Telegram Premium.
+  3. Необходимость легковесной генерации зрителей прямых трансляций Twitch / Kick без расхода GPU и RAM через частичное скачивание чанков HLS (.ts Range requests).
+- **Decision:**
+  1. Создана всеобъемлющая нормативная энциклопедия первоисточников `docs/SMM_ROOT_PROVIDER_ENCYCLOPEDIA.md` (7 разделов, раскрывающих иерархию индустрии, аппаратный уровень, реверс протоколов, карту сырья, обход WAF/TLS JA4 и финтех-шлюзы).
+  2. Разработан модуль `src/services/production/telegram-session-pool.ts`:
+     - Управление пулом сессий с DC-роутингом (DC1–DC5);
+     - Скоринг надежности Interaction Health Score (0–100) и автоматическая фильтрация скомпрометированных аккаунтов;
+     - Атомарное выделение 4 слотов бустов на каждый аккаунт Telegram Premium с соблюдением 24-часового защитного кулдауна;
+     - Экспоненциальный откат при ошибках `FloodWait`.
+  3. Разработан модуль `src/services/production/headless-stream-engine.ts`:
+     - Легковесный Headless HLS стриминг-движок для Twitch и Kick;
+     - Парсинг `.m3u8` плейлистов и эмуляция воспроизведения через скачивание первых 64 КБ чанков (`Range: bytes=0-65535`);
+     - Управление жизненным циклом потоков и защита от SSRF (`assertSafeUrl`).
+  4. Создан сьют юнит-тестов `src/__tests__/unit/production-engines.test.ts` (**8/8 PASS**). Суммарное покрытие сьютов провайдеров и производства достигло **41/41 тестов (100% PASS)**.
+  5. Пройден строгий контроль: `npx tsc --noEmit` (**0 ошибок**), `check-bundle-secrets.mjs` (**0 утечек**).
+- **Consequences:** Платформа OmniSMM получила готовую программную базу для непосредственного производства собственных SMM-услуг (бусты, реакции, стримы) с минимальной себестоимостью, минуя любых посредников.
 
 

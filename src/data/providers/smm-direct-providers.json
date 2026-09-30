@@ -1,0 +1,5119 @@
+[
+  {
+    "id": "justanotherpanel",
+    "name": "JustAnotherPanel (JAP)",
+    "website": "https://justanotherpanel.com",
+    "apiUrl": "https://justanotherpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE",
+      "VK",
+      "TWITTER"
+    ],
+    "rating": 9.8,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "jap_tg_boost_7d",
+        "name": "Telegram Boosts for Channel [Level Unlock] - 7 Days",
+        "category": "Telegram - Boosts",
+        "rate": "0.19",
+        "min": "1",
+        "max": "500",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "jap_tg_subs_hq",
+        "name": "Telegram Channel Members [High Quality, Non-Drop]",
+        "category": "Telegram - Members",
+        "rate": "0.45",
+        "min": "20",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "jap_ig_likes",
+        "name": "Instagram Real Likes [Instant, Fast]",
+        "category": "Instagram - Likes",
+        "rate": "0.04",
+        "min": "10",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmraja",
+    "name": "SMM Raja",
+    "website": "https://smmraja.com",
+    "apiUrl": "https://smmraja.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK",
+      "FACEBOOK"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 310,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "raja_tg_views_fast",
+        "name": "Telegram Post Views [Super Fast, Any Link]",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "raja_tg_reactions",
+        "name": "Telegram Post Positive Reactions [Mix 👍🔥🎉]",
+        "category": "Telegram - Reactions",
+        "rate": "0.015",
+        "min": "10",
+        "max": "20000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "raja_tt_views",
+        "name": "TikTok Video Views [High Speed]",
+        "category": "TikTok - Views",
+        "rate": "0.004",
+        "min": "100",
+        "max": "5000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "peakerr",
+    "name": "Peakerr",
+    "website": "https://peakerr.com",
+    "apiUrl": "https://peakerr.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "SPOTIFY",
+      "TWITTER",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "peak_tg_boosts",
+        "name": "Telegram Channel Boosts [30 Days Guaranteed]",
+        "category": "Telegram - Boosts",
+        "rate": "0.45",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "peak_tt_followers",
+        "name": "TikTok Followers [Instant Start, Zero Drop]",
+        "category": "TikTok - Followers",
+        "rate": "0.95",
+        "min": "50",
+        "max": "50000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "morethanpanel",
+    "name": "MoreThanPanel (MTP)",
+    "website": "https://morethanpanel.com",
+    "apiUrl": "https://morethanpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TELEGRAM",
+      "FACEBOOK"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 350,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "mtp_yt_retention_views",
+        "name": "YouTube High Retention Views [Speed 20K/Day]",
+        "category": "YouTube - Views",
+        "rate": "1.25",
+        "min": "500",
+        "max": "1000000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "mtp_ig_followers_30d",
+        "name": "Instagram Real Followers [30 Days Auto-Refill]",
+        "category": "Instagram - Followers",
+        "rate": "0.85",
+        "min": "100",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "socproof",
+    "name": "Soc-Proof",
+    "website": "https://soc-proof.su",
+    "apiUrl": "https://soc-proof.su/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "RUTUBE",
+      "DZEN",
+      "OK"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 320,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sp_vk_members_live",
+        "name": "ВКонтакте Подписчики в группу [Живые офферы с гарантией]",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "195.00",
+        "min": "50",
+        "max": "20000",
+        "network": "VK"
+      },
+      {
+        "service": "sp_vk_likes",
+        "name": "ВКонтакте Лайки на посты [Быстрый старт, аккаунты РФ]",
+        "category": "ВКонтакте - Лайки",
+        "rate": "22.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "sp_tg_members_ru",
+        "name": "Telegram Русские подписчики в канал [Высокое удержание]",
+        "category": "Telegram - Подписчики",
+        "rate": "65.00",
+        "min": "50",
+        "max": "50000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmlaba",
+    "name": "SMMLaba",
+    "website": "https://smmlaba.com",
+    "apiUrl": "https://smmlaba.com/api",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "YOUTUBE",
+      "TWITCH"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 410,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "laba_vk_members_bots",
+        "name": "ВКонтакте Вступившие в сообщество [Эконом]",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "85.00",
+        "min": "100",
+        "max": "100000",
+        "network": "VK"
+      },
+      {
+        "service": "laba_vk_reposts",
+        "name": "ВКонтакте Репосты записей",
+        "category": "ВКонтакте - Репосты",
+        "rate": "48.00",
+        "min": "10",
+        "max": "10000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smmflare",
+    "name": "SMMFlare",
+    "website": "https://smmflare.com",
+    "apiUrl": "https://smmflare.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "DISCORD",
+      "INSTAGRAM",
+      "TWITTER"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "flare_tg_boost_7d",
+        "name": "Telegram Channel Boosts [7 Days Speed Delivery]",
+        "category": "Telegram - Boosts",
+        "rate": "0.15",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "flare_tg_autoviews",
+        "name": "Telegram Auto Views for Future 10 Posts",
+        "category": "Telegram - Views",
+        "rate": "0.025",
+        "min": "100",
+        "max": "50000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmstone",
+    "name": "SMMStone",
+    "website": "https://smmstone.com",
+    "apiUrl": "https://smmstone.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "stone_tg_members",
+        "name": "Telegram Real Looking Channel Subscribers",
+        "category": "Telegram - Members",
+        "rate": "0.38",
+        "min": "50",
+        "max": "100000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "secsers",
+    "name": "Secsers",
+    "website": "https://secsers.com",
+    "apiUrl": "https://secsers.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 305,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "secsers_yt_views_geo",
+        "name": "YouTube Views [Targeted Retention, Safe ADS]",
+        "category": "YouTube - Views",
+        "rate": "1.35",
+        "min": "1000",
+        "max": "500000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "primelike",
+    "name": "PrimeLike",
+    "website": "https://primelike.ru",
+    "apiUrl": "https://primelike.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 360,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "prime_vk_followers",
+        "name": "ВКонтакте Подписчики с гарантией от списаний",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "140.00",
+        "min": "50",
+        "max": "15000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "boostprovider",
+    "name": "BoostProvider",
+    "website": "https://boostprovider.com",
+    "apiUrl": "https://boostprovider.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "bp_tg_boost_7d",
+        "name": "Telegram Channel Boost Level Unlock [7 Days]",
+        "category": "Telegram - Boosts",
+        "rate": "0.14",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "bp_tg_boost_30d",
+        "name": "Telegram Channel Boost Level Unlock [30 Days]",
+        "category": "Telegram - Boosts",
+        "rate": "0.40",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmroot",
+    "name": "SMMRoot",
+    "website": "https://smmroot.com",
+    "apiUrl": "https://smmroot.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 330,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "root_tg_stars",
+        "name": "Telegram Stars Reactions [Star Emoji]",
+        "category": "Telegram - Reactions",
+        "rate": "0.016",
+        "min": "1",
+        "max": "10000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "root_tg_premium_subs",
+        "name": "Telegram Premium Account Subscribers",
+        "category": "Telegram - Members",
+        "rate": "0.95",
+        "min": "20",
+        "max": "5000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "vexboost",
+    "name": "VexBoost",
+    "website": "https://vexboost.ru",
+    "apiUrl": "https://vexboost.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "TIKTOK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "vex_tg_boost_7d",
+        "name": "Telegram Бусты для каналов (Level Boost) - 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.50",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "vex_tg_views_fast",
+        "name": "Telegram Просмотры постов моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.35",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "vex_vk_music_plays",
+        "name": "ВКонтакте Прослушивания плейлистов VK Музыка",
+        "category": "ВКонтакте - Просмотры",
+        "rate": "12.00",
+        "min": "100",
+        "max": "1000000",
+        "network": "VK"
+      },
+      {
+        "service": "vex_vk_members",
+        "name": "ВКонтакте Подписчики в группу/паблик",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "85.00",
+        "min": "50",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "socrocket",
+    "name": "Soc-Rocket",
+    "website": "https://soc-rocket.ru",
+    "apiUrl": "https://soc-rocket.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE",
+      "OK"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sr_vk_subscribers_live",
+        "name": "ВКонтакте Живые подписчики (офферы РФ с гарантией)",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "190.00",
+        "min": "50",
+        "max": "20000",
+        "network": "VK"
+      },
+      {
+        "service": "sr_vk_likes_instant",
+        "name": "ВКонтакте Лайки быстрые на посты",
+        "category": "ВКонтакте - Лайки",
+        "rate": "24.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "sr_tg_subscribers_ru",
+        "name": "Telegram Подписчики русскоязычные с аватарками",
+        "category": "Telegram - Подписчики",
+        "rate": "55.00",
+        "min": "20",
+        "max": "30000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "tegramshop",
+    "name": "Tegram.shop",
+    "website": "https://tegram.shop",
+    "apiUrl": "https://tegram.shop/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 180,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "teg_boost_7d",
+        "name": "Telegram Бусты для каналов (Level Boost) - 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "14.00",
+        "min": "1",
+        "max": "5000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "teg_boost_30d",
+        "name": "Telegram Бусты для каналов (Level Boost) - 30 дней",
+        "category": "Telegram - Бусты",
+        "rate": "38.00",
+        "min": "1",
+        "max": "5000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "teg_stars_reactions",
+        "name": "Telegram Stars (Звездные реакции и поддержка)",
+        "category": "Telegram - Реакции",
+        "rate": "1.55",
+        "min": "1",
+        "max": "20000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "teg_premium_subs",
+        "name": "Telegram Premium Подписчики с премиум-аккаунтов",
+        "category": "Telegram - Подписчики",
+        "rate": "89.00",
+        "min": "10",
+        "max": "10000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "teg_bot_referrals",
+        "name": "Telegram Рефералы в боты и Mini Apps (Запуск бота)",
+        "category": "Telegram - Боты и Рефералы",
+        "rate": "180.00",
+        "min": "50",
+        "max": "10000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "streampromotion",
+    "name": "Stream-Promotion",
+    "website": "https://stream-promotion.ru",
+    "apiUrl": "https://stream-promotion.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TWITCH",
+      "YOUTUBE",
+      "KICK",
+      "TROVO",
+      "TELEGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": false,
+      "refill": false,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "sp_twitch_viewers_60m",
+        "name": "Twitch Зрители на стрим (Live Viewers) на 60 минут",
+        "category": "Twitch - Стримы",
+        "rate": "180.00",
+        "min": "10",
+        "max": "5000",
+        "network": "TWITCH"
+      },
+      {
+        "service": "sp_kick_viewers_60m",
+        "name": "Kick Зрители на трансляцию онлайн (60 минут)",
+        "category": "Kick - Стримы",
+        "rate": "210.00",
+        "min": "10",
+        "max": "3000",
+        "network": "KICK"
+      },
+      {
+        "service": "sp_yt_stream_viewers",
+        "name": "YouTube Прямой эфир (Live Stream Viewers)",
+        "category": "YouTube - Стримы",
+        "rate": "240.00",
+        "min": "20",
+        "max": "10000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "sp_twitch_followers",
+        "name": "Twitch Фолловеры на канал (Followers)",
+        "category": "Twitch - Подписчики",
+        "rate": "15.00",
+        "min": "50",
+        "max": "100000",
+        "network": "TWITCH"
+      }
+    ]
+  },
+  {
+    "id": "easyliker",
+    "name": "EasyLiker",
+    "website": "https://easyliker.ru",
+    "apiUrl": "https://easyliker.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "el_tg_views_instant",
+        "name": "Telegram Просмотры постов моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.30",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "el_vk_likes_fast",
+        "name": "ВКонтакте Лайки на посты и фото",
+        "category": "ВКонтакте - Лайки",
+        "rate": "22.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "el_ig_likes",
+        "name": "Instagram Быстрые лайки",
+        "category": "Instagram - Лайки",
+        "rate": "7.50",
+        "min": "20",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmcode",
+    "name": "SMMCode",
+    "website": "https://smmcode.shop",
+    "apiUrl": "https://smmcode.shop/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "RUTUBE",
+      "DZEN",
+      "YOUTUBE"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sc_rutube_views",
+        "name": "Rutube Просмотры видео с удержанием",
+        "category": "Rutube - Просмотры",
+        "rate": "65.00",
+        "min": "100",
+        "max": "1000000",
+        "network": "RUTUBE"
+      },
+      {
+        "service": "sc_dzen_subs",
+        "name": "Дзен Подписчики на канал",
+        "category": "Дзен - Подписчики",
+        "rate": "180.00",
+        "min": "50",
+        "max": "20000",
+        "network": "DZEN"
+      },
+      {
+        "service": "sc_tg_subs_cis",
+        "name": "Telegram Подписчики СНГ",
+        "category": "Telegram - Подписчики",
+        "rate": "48.00",
+        "min": "20",
+        "max": "30000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "prskill",
+    "name": "PRSkill",
+    "website": "https://prskill.ru",
+    "apiUrl": "https://prskill.ru/api/v2",
+    "tier": 2,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK",
+      "OK",
+      "RUTUBE"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 340,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "prs_vk_subs_hq",
+        "name": "ВКонтакте Подписчики качественные с аватарками",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "210.00",
+        "min": "50",
+        "max": "20000",
+        "network": "VK"
+      },
+      {
+        "service": "prs_yt_subs",
+        "name": "YouTube Подписчики на канал живые",
+        "category": "YouTube - Подписчики",
+        "rate": "890.00",
+        "min": "50",
+        "max": "10000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "prs_ok_members",
+        "name": "Одноклассники Вступления в группу",
+        "category": "Одноклассники - Подписчики",
+        "rate": "140.00",
+        "min": "50",
+        "max": "15000",
+        "network": "OK"
+      }
+    ]
+  },
+  {
+    "id": "globalsmm",
+    "name": "GlobalSMM",
+    "website": "https://globalsmm.ru",
+    "apiUrl": "https://globalsmm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TIKTOK",
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TELEGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "gs_tt_views",
+        "name": "TikTok Просмотры видео ультра-быстрые",
+        "category": "TikTok - Просмотры",
+        "rate": "0.45",
+        "min": "100",
+        "max": "5000000",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "gs_tt_likes",
+        "name": "TikTok Лайки",
+        "category": "TikTok - Лайки",
+        "rate": "25.00",
+        "min": "20",
+        "max": "100000",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "gs_ig_reels_views",
+        "name": "Instagram Просмотры Reels",
+        "category": "Instagram - Просмотры",
+        "rate": "1.10",
+        "min": "100",
+        "max": "2000000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "prosmm",
+    "name": "ProSMM",
+    "website": "https://prosmm.io",
+    "apiUrl": "https://prosmm.io/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "pro_tg_boost_7d",
+        "name": "Telegram Бусты для каналов (Level Boost) - 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.00",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "pro_tg_premium_subs",
+        "name": "Telegram Premium Подписчики с премиум-аккаунтов",
+        "category": "Telegram - Подписчики",
+        "rate": "75.00",
+        "min": "20",
+        "max": "10000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "pro_tg_views",
+        "name": "Telegram Просмотры постов моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.28",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmmedia",
+    "name": "SMM.media",
+    "website": "https://smm.media",
+    "apiUrl": "https://smm.media/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "media_tg_subs_nondrop",
+        "name": "Telegram Подписчики без списаний (Non-Drop)",
+        "category": "Telegram - Подписчики",
+        "rate": "39.00",
+        "min": "50",
+        "max": "30000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "media_vk_subs",
+        "name": "ВКонтакте Подписчики в сообщество",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "80.00",
+        "min": "50",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "media_yt_views",
+        "name": "YouTube Просмотры с удержанием",
+        "category": "YouTube - Просмотры",
+        "rate": "110.00",
+        "min": "500",
+        "max": "2000000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "babama",
+    "name": "Babama",
+    "website": "https://babama.ru",
+    "apiUrl": "https://babama.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "bab_vk_subs_live",
+        "name": "ВКонтакте Живые подписчики",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "160.00",
+        "min": "50",
+        "max": "20000",
+        "network": "VK"
+      },
+      {
+        "service": "bab_tg_subs_ru",
+        "name": "Telegram Русские подписчики",
+        "category": "Telegram - Подписчики",
+        "rate": "52.00",
+        "min": "20",
+        "max": "30000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "bab_vk_likes",
+        "name": "ВКонтакте Быстрые лайки",
+        "category": "ВКонтакте - Лайки",
+        "rate": "20.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "prmotion",
+    "name": "PR Motion",
+    "website": "https://prmotion.me",
+    "apiUrl": "https://prmotion.me/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "prm_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.32",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "prm_yt_likes",
+        "name": "YouTube Лайки на видео",
+        "category": "YouTube - Лайки",
+        "rate": "25.00",
+        "min": "20",
+        "max": "100000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "prm_vk_views",
+        "name": "ВКонтакте Просмотры записей и клипов",
+        "category": "ВКонтакте - Просмотры",
+        "rate": "6.50",
+        "min": "100",
+        "max": "1000000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "telegramboostshop",
+    "name": "TelegramBoost.shop",
+    "website": "https://telegramboost.shop",
+    "apiUrl": "https://telegramboost.shop/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "tbs_boost_7d",
+        "name": "Telegram Channel Boost Level Unlock [7 Days]",
+        "category": "Telegram - Boosts",
+        "rate": "0.13",
+        "min": "1",
+        "max": "3000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tbs_boost_30d",
+        "name": "Telegram Channel Boost Level Unlock [30 Days]",
+        "category": "Telegram - Boosts",
+        "rate": "0.38",
+        "min": "1",
+        "max": "3000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tbs_premium_members",
+        "name": "Telegram Premium Account Members",
+        "category": "Telegram - Members",
+        "rate": "0.85",
+        "min": "20",
+        "max": "10000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "bosslike",
+    "name": "Bosslike (Биржа живых офферов)",
+    "website": "https://bosslike.ru",
+    "apiUrl": "https://api.bosslike.ru/v1",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TIKTOK"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 310,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "bl_vk_followers_live",
+        "name": "ВКонтакте Подписчики реальные живые пользователи",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "180.00",
+        "min": "10",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "bl_tg_members_live",
+        "name": "Telegram Подписчики живые исполнители",
+        "category": "Telegram - Подписчики",
+        "rate": "190.00",
+        "min": "10",
+        "max": "20000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "bl_vk_likes_live",
+        "name": "ВКонтакте Лайки от живых аккаунтов",
+        "category": "ВКонтакте - Лайки",
+        "rate": "45.00",
+        "min": "10",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "gramzone",
+    "name": "GramZone",
+    "website": "https://gramzone.net",
+    "apiUrl": "https://gramzone.net/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "gz_tg_views_instant",
+        "name": "Telegram Post Views Instant [Ultra Fast]",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "gz_tg_reactions",
+        "name": "Telegram Positive Reactions [Thumbs Up]",
+        "category": "Telegram - Reactions",
+        "rate": "0.012",
+        "min": "10",
+        "max": "30000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "gz_tg_members",
+        "name": "Telegram Channel Members [HQ]",
+        "category": "Telegram - Members",
+        "rate": "0.40",
+        "min": "50",
+        "max": "50000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmprime",
+    "name": "SMM Prime",
+    "website": "https://smmprime.com",
+    "apiUrl": "https://smmprime.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sp_tg_auto_views",
+        "name": "Telegram Auto Views on Future Posts",
+        "category": "Telegram - Views",
+        "rate": "0.020",
+        "min": "100",
+        "max": "200000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "sp_tt_views",
+        "name": "TikTok High Speed Views",
+        "category": "TikTok - Views",
+        "rate": "0.004",
+        "min": "100",
+        "max": "5000000",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "sp_ig_followers",
+        "name": "Instagram High Quality Followers",
+        "category": "Instagram - Followers",
+        "rate": "0.42",
+        "min": "20",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "partnersoc",
+    "name": "PartnerSoc (Soc-Proof B2B)",
+    "website": "https://partner.soc-proof.su",
+    "apiUrl": "https://partner.soc-proof.su/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "RUTUBE",
+      "DZEN"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ps_vk_subs_opt",
+        "name": "ВКонтакте Подписчики оптовый пул",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "72.00",
+        "min": "100",
+        "max": "100000",
+        "network": "VK"
+      },
+      {
+        "service": "ps_tg_views_bulk",
+        "name": "Telegram Просмотры опт",
+        "category": "Telegram - Просмотры",
+        "rate": "0.22",
+        "min": "500",
+        "max": "5000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmpanelus",
+    "name": "SmmPanelUS",
+    "website": "https://smmpanelus.com",
+    "apiUrl": "https://smmpanelus.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "spu_tg_members",
+        "name": "Telegram Channel Members [Global Non-Drop]",
+        "category": "Telegram - Members",
+        "rate": "0.38",
+        "min": "20",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "spu_tt_views",
+        "name": "TikTok Fast Video Views",
+        "category": "TikTok - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "10000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "websmm",
+    "name": "WebSMM",
+    "website": "https://websmm.ru",
+    "apiUrl": "https://websmm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ws_tg_views",
+        "name": "Telegram Просмотры быстрые",
+        "category": "Telegram - Просмотры",
+        "rate": "0.34",
+        "min": "100",
+        "max": "300000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "ws_vk_likes",
+        "name": "ВКонтакте Лайки",
+        "category": "ВКонтакте - Лайки",
+        "rate": "23.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smmpanel_ru",
+    "name": "SMMPanel.ru",
+    "website": "https://smmpanel.ru",
+    "apiUrl": "https://smmpanel.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "smp_vk_subs",
+        "name": "ВКонтакте Подписчики группы",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "82.00",
+        "min": "50",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "smp_tg_subs",
+        "name": "Telegram Подписчики",
+        "category": "Telegram - Подписчики",
+        "rate": "42.00",
+        "min": "50",
+        "max": "30000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "ssmm",
+    "name": "S-SMM",
+    "website": "https://s-smm.ru",
+    "apiUrl": "https://s-smm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ss_vk_likes",
+        "name": "ВКонтакте Лайки быстрые",
+        "category": "ВКонтакте - Лайки",
+        "rate": "21.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "ss_tg_views",
+        "name": "Telegram Просмотры моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.31",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "likedrom",
+    "name": "Likedrom",
+    "website": "https://likedrom.com",
+    "apiUrl": "https://likedrom.com/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ldr_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.33",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "ldr_vk_likes",
+        "name": "ВКонтакте Лайки на посты",
+        "category": "ВКонтакте - Лайки",
+        "rate": "22.50",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "ldr_ig_likes",
+        "name": "Instagram Быстрые лайки",
+        "category": "Instagram - Лайки",
+        "rate": "8.00",
+        "min": "20",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "streampromotion_com",
+    "name": "Stream-Promotion Global (USD)",
+    "website": "https://stream-promotion.com",
+    "apiUrl": "https://stream-promotion.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TWITCH",
+      "KICK",
+      "YOUTUBE",
+      "TROVO"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": false,
+      "refill": false,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "spg_twitch_viewers",
+        "name": "Twitch Live Stream Viewers [60 Min, Stable]",
+        "category": "Twitch - Streams",
+        "rate": "1.90",
+        "min": "10",
+        "max": "5000",
+        "network": "TWITCH"
+      },
+      {
+        "service": "spg_kick_viewers",
+        "name": "Kick Live Viewers [60 Min, Fast Start]",
+        "category": "Kick - Streams",
+        "rate": "2.20",
+        "min": "10",
+        "max": "3000",
+        "network": "KICK"
+      }
+    ]
+  },
+  {
+    "id": "tntsmm",
+    "name": "TNT SMM",
+    "website": "https://tntsmm.com",
+    "apiUrl": "https://tntsmm.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "tnt_tg_views",
+        "name": "Telegram Ultra Fast Views",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tnt_tt_views",
+        "name": "TikTok Video Views Instant",
+        "category": "TikTok - Views",
+        "rate": "0.004",
+        "min": "100",
+        "max": "5000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "karandash",
+    "name": "Karandash SMM",
+    "website": "https://karandash.im",
+    "apiUrl": "https://karandash.im/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "krd_tg_views_fast",
+        "name": "Telegram Просмотры моментальные без задержки",
+        "category": "Telegram - Просмотры",
+        "rate": "0.29",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "krd_tg_reactions",
+        "name": "Telegram Позитивные реакции",
+        "category": "Telegram - Реакции",
+        "rate": "1.20",
+        "min": "10",
+        "max": "20000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "krd_vk_likes",
+        "name": "ВКонтакте Лайки быстрые",
+        "category": "ВКонтакте - Лайки",
+        "rate": "21.50",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "boostlike",
+    "name": "Boost-Like",
+    "website": "https://boost-like.ru",
+    "apiUrl": "https://boost-like.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "bl_vk_followers",
+        "name": "ВКонтакте Подписчики группы",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "84.00",
+        "min": "50",
+        "max": "30000",
+        "network": "VK"
+      },
+      {
+        "service": "bl_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.35",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "toplike",
+    "name": "TopLike.io",
+    "website": "https://toplike.io",
+    "apiUrl": "https://toplike.io/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "tl_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.33",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tl_vk_likes",
+        "name": "ВКонтакте Лайки быстрые",
+        "category": "ВКонтакте - Лайки",
+        "rate": "22.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "tl_tt_views",
+        "name": "TikTok Просмотры видео",
+        "category": "TikTok - Просмотры",
+        "rate": "0.48",
+        "min": "100",
+        "max": "5000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "smmrise",
+    "name": "SMMRise",
+    "website": "https://smmrise.com",
+    "apiUrl": "https://smmrise.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sri_tg_views",
+        "name": "Telegram Post Views Fast",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "sri_ig_likes",
+        "name": "Instagram Real Likes",
+        "category": "Instagram - Likes",
+        "rate": "0.05",
+        "min": "20",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "looksmm",
+    "name": "LookSMM",
+    "website": "https://looksmm.ru",
+    "apiUrl": "https://looksmm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "lsm_tg_views",
+        "name": "Telegram Просмотры моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.30",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "lsm_vk_likes",
+        "name": "ВКонтакте Лайки на посты",
+        "category": "ВКонтакте - Лайки",
+        "rate": "22.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      },
+      {
+        "service": "lsm_tg_subs",
+        "name": "Telegram Подписчики русские",
+        "category": "Telegram - Подписчики",
+        "rate": "46.00",
+        "min": "20",
+        "max": "30000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "prm4u",
+    "name": "PRM4U",
+    "website": "https://prm4u.com",
+    "apiUrl": "https://prm4u.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "p4u_tg_views",
+        "name": "Telegram Post Views Real",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "2000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "p4u_yt_views",
+        "name": "YouTube Video Views High Retention",
+        "category": "YouTube - Views",
+        "rate": "1.20",
+        "min": "500",
+        "max": "5000000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "prosmm_shop",
+    "name": "ProSMM Shop",
+    "website": "https://prosmm.shop",
+    "apiUrl": "https://prosmm.shop/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "pshop_tg_boost",
+        "name": "Telegram Бусты для каналов (7 дней)",
+        "category": "Telegram - Бусты",
+        "rate": "13.20",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "pshop_tg_views",
+        "name": "Telegram Просмотры моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.29",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "tgpanel",
+    "name": "TGPanel (Специализированный шлюз Telegram)",
+    "website": "https://tgpanel.ru",
+    "apiUrl": "https://tgpanel.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 180,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "tgp_boost_7d",
+        "name": "Telegram Бусты для каналов (Level Boost) 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.80",
+        "min": "1",
+        "max": "3000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tgp_stars",
+        "name": "Telegram Stars (Звездные реакции)",
+        "category": "Telegram - Реакции",
+        "rate": "1.50",
+        "min": "1",
+        "max": "10000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "cheapsmm",
+    "name": "CheapSMM",
+    "website": "https://cheapsmm.ru",
+    "apiUrl": "https://cheapsmm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "cs_tg_views",
+        "name": "Telegram Просмотры постов дешевые",
+        "category": "Telegram - Просмотры",
+        "rate": "0.27",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "cs_vk_likes",
+        "name": "ВКонтакте Лайки",
+        "category": "ВКонтакте - Лайки",
+        "rate": "20.50",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "socbox",
+    "name": "SocBox",
+    "website": "https://socbox.ru",
+    "apiUrl": "https://socbox.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sb_vk_subs",
+        "name": "ВКонтакте Подписчики",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "86.00",
+        "min": "50",
+        "max": "30000",
+        "network": "VK"
+      },
+      {
+        "service": "sb_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.33",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "nakrutkacc",
+    "name": "Nakrutka.cc",
+    "website": "https://nakrutka.cc",
+    "apiUrl": "https://nakrutka.cc/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TELEGRAM",
+      "VK"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 200,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ncc_ig_likes",
+        "name": "Instagram Лайки быстрые",
+        "category": "Instagram - Лайки",
+        "rate": "6.80",
+        "min": "20",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "ncc_tg_views",
+        "name": "Telegram Просмотры моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.29",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "piar4you",
+    "name": "Piar4You",
+    "website": "https://piar4you.com",
+    "apiUrl": "https://piar4you.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "p4y_tg_subs",
+        "name": "Telegram Channel Subscribers High Quality",
+        "category": "Telegram - Members",
+        "rate": "0.45",
+        "min": "50",
+        "max": "30000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "p4y_yt_views",
+        "name": "YouTube Video Views Targeted",
+        "category": "YouTube - Views",
+        "rate": "1.30",
+        "min": "500",
+        "max": "2000000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "foxsmm",
+    "name": "FoxSMM",
+    "website": "https://foxsmm.ru",
+    "apiUrl": "https://foxsmm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "fox_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.30",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "fox_vk_likes",
+        "name": "ВКонтакте Лайки",
+        "category": "ВКонтакте - Лайки",
+        "rate": "21.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smmway",
+    "name": "SMMWay",
+    "website": "https://smmway.ru",
+    "apiUrl": "https://smmway.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sw_tg_boost_7d",
+        "name": "Telegram Бусты каналов (Level Boost) 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.90",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "sw_vk_subs",
+        "name": "ВКонтакте Подписчики в сообщество",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "88.00",
+        "min": "50",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "marketsmm",
+    "name": "Market-SMM",
+    "website": "https://market-smm.ru",
+    "apiUrl": "https://market-smm.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "msmm_tg_views",
+        "name": "Telegram Просмотры постов",
+        "category": "Telegram - Просмотры",
+        "rate": "0.29",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "msmm_vk_likes",
+        "name": "ВКонтакте Лайки быстрые",
+        "category": "ВКонтакте - Лайки",
+        "rate": "21.50",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smm8",
+    "name": "SMM8",
+    "website": "https://smm8.com",
+    "apiUrl": "https://smm8.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "smm8_tg_members",
+        "name": "Telegram Members Global High Quality",
+        "category": "Telegram - Members",
+        "rate": "0.39",
+        "min": "50",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "smm8_ig_likes",
+        "name": "Instagram Likes High Speed",
+        "category": "Instagram - Likes",
+        "rate": "0.045",
+        "min": "20",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "socservice",
+    "name": "Soc-Service",
+    "website": "https://soc-service.com",
+    "apiUrl": "https://soc-service.com/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "OK",
+      "YOUTUBE"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "socsrv_tg_views",
+        "name": "Telegram Просмотры записей моментально",
+        "category": "Telegram - Просмотры",
+        "rate": "0.32",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "socsrv_ok_members",
+        "name": "Одноклассники Вступившие в группу",
+        "category": "Одноклассники - Подписчики",
+        "rate": "120.00",
+        "min": "50",
+        "max": "20000",
+        "network": "OK"
+      }
+    ]
+  },
+  {
+    "id": "smmboom",
+    "name": "SMMboom",
+    "website": "https://smmboom.ru",
+    "apiUrl": "https://smmboom.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "boom_tg_boost_7d",
+        "name": "Telegram Бусты для историй и статусов (7 дней)",
+        "category": "Telegram - Бусты",
+        "rate": "14.20",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "boom_tg_stars",
+        "name": "Telegram Stars Звездные реакции",
+        "category": "Telegram - Реакции",
+        "rate": "1.52",
+        "min": "1",
+        "max": "15000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmcraft",
+    "name": "SMM Craft",
+    "website": "https://smm-craft.ru",
+    "apiUrl": "https://smm-craft.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TWITCH",
+      "YOUTUBE",
+      "KICK",
+      "TELEGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": false,
+      "refill": false,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "craft_twitch_viewers",
+        "name": "Twitch Зрители на трансляцию онлайн (60 мин)",
+        "category": "Twitch - Стримы",
+        "rate": "175.00",
+        "min": "10",
+        "max": "3000",
+        "network": "TWITCH"
+      },
+      {
+        "service": "craft_yt_stream",
+        "name": "YouTube Прямой эфир зрители",
+        "category": "YouTube - Стримы",
+        "rate": "230.00",
+        "min": "20",
+        "max": "5000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "smmturbo",
+    "name": "SMM Turbo",
+    "website": "https://smmturbo.ru",
+    "apiUrl": "https://smmturbo.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 200,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "turbo_tg_views_instant",
+        "name": "Telegram Скоростные авто-просмотры",
+        "category": "Telegram - Просмотры",
+        "rate": "0.28",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "turbo_tg_reactions",
+        "name": "Telegram Быстрые реакции микс",
+        "category": "Telegram - Реакции",
+        "rate": "1.90",
+        "min": "10",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "vktarget",
+    "name": "VKTarget",
+    "website": "https://vktarget.ru",
+    "apiUrl": "https://vktarget.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "YOUTUBE",
+      "OK"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 310,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "vkt_vk_subs_live",
+        "name": "ВКонтакте Живые исполнители с биржи заданий",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "290.00",
+        "min": "20",
+        "max": "10000",
+        "network": "VK"
+      },
+      {
+        "service": "vkt_tg_subs_live",
+        "name": "Telegram 100% Реальные подписчики с биржи",
+        "category": "Telegram - Подписчики",
+        "rate": "190.00",
+        "min": "20",
+        "max": "5000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "unu",
+    "name": "UNU",
+    "website": "https://unu.im",
+    "apiUrl": "https://unu.im/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 330,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "unu_microtasks_tg",
+        "name": "Telegram Живые подписки микрозадачи UNU",
+        "category": "Telegram - Подписчики",
+        "rate": "350.00",
+        "min": "10",
+        "max": "5000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "unu_reviews_live",
+        "name": "ВКонтакте Живые отзывы и комментарии от людей",
+        "category": "ВКонтакте - Комментарии",
+        "rate": "850.00",
+        "min": "5",
+        "max": "1000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "everve",
+    "name": "Everve",
+    "website": "https://everve.net",
+    "apiUrl": "https://everve.net/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TWITTER"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ev_vk_likes_p2p",
+        "name": "ВКонтакте Обмен действиями P2P Лайки",
+        "category": "ВКонтакте - Лайки",
+        "rate": "35.00",
+        "min": "20",
+        "max": "30000",
+        "network": "VK"
+      },
+      {
+        "service": "ev_tg_members_p2p",
+        "name": "Telegram P2P Подписчики",
+        "category": "Telegram - Подписчики",
+        "rate": "120.00",
+        "min": "20",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmpak",
+    "name": "SMMPak",
+    "website": "https://smmpak.com",
+    "apiUrl": "https://smmpak.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "pak_tg_members_cheap",
+        "name": "Telegram Members Cheap Bulk Server",
+        "category": "Telegram - Members",
+        "rate": "0.25",
+        "min": "100",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "pak_tt_views_cheap",
+        "name": "TikTok Views Instant Super Cheap",
+        "category": "TikTok - Views",
+        "rate": "0.002",
+        "min": "500",
+        "max": "10000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "bulkfollows",
+    "name": "BulkFollows",
+    "website": "https://bulkfollows.com",
+    "apiUrl": "https://bulkfollows.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TIKTOK",
+      "TELEGRAM"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "bf_ig_followers_refill",
+        "name": "Instagram Followers 30 Days Refill Guaranteed",
+        "category": "Instagram - Followers",
+        "rate": "0.68",
+        "min": "50",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "bf_yt_views_retention",
+        "name": "YouTube Views High Retention 10-30 min",
+        "category": "YouTube - Views",
+        "rate": "1.15",
+        "min": "500",
+        "max": "500000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "smmhaven",
+    "name": "SMM Haven",
+    "website": "https://smmhaven.com",
+    "apiUrl": "https://smmhaven.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "DISCORD",
+      "TWITTER"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sh_tg_boosts",
+        "name": "Telegram Channel Boosts High Speed Fast Level Up",
+        "category": "Telegram - Boosts",
+        "rate": "0.16",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "sh_tg_stars",
+        "name": "Telegram Stars Instant Delivery",
+        "category": "Telegram - Reactions",
+        "rate": "0.016",
+        "min": "1",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "doctorsmm",
+    "name": "DoctorSMM",
+    "website": "https://doctorsmm.com",
+    "apiUrl": "https://doctorsmm.com/api/v2",
+    "tier": 2,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 300,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "doc_vk_subs",
+        "name": "ВКонтакте Подписчики на страницу и в группу",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "92.00",
+        "min": "50",
+        "max": "30000",
+        "network": "VK"
+      },
+      {
+        "service": "doc_tg_views",
+        "name": "Telegram Просмотры постов ленты",
+        "category": "Telegram - Просмотры",
+        "rate": "0.34",
+        "min": "100",
+        "max": "300000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "avi1",
+    "name": "Avi1",
+    "website": "https://avi1.ru",
+    "apiUrl": "https://avi1.ru/api/v2",
+    "tier": 2,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "avi_tg_subs_ru",
+        "name": "Telegram Подписчики русскоязычные",
+        "category": "Telegram - Подписчики",
+        "rate": "59.00",
+        "min": "20",
+        "max": "25000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "avi_vk_likes",
+        "name": "ВКонтакте Лайки с быстрым стартом",
+        "category": "ВКонтакте - Лайки",
+        "rate": "23.00",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "lowcostsmm",
+    "name": "Lowcost SMM",
+    "website": "https://lowcostsmm.com",
+    "apiUrl": "https://lowcostsmm.com/api/v2",
+    "tier": 2,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "lcs_tg_views_eco",
+        "name": "Telegram Просмотры постов эконом",
+        "category": "Telegram - Просмотры",
+        "rate": "0.26",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "lcs_tg_boost_7d",
+        "name": "Telegram Бусты для каналов 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.60",
+        "min": "1",
+        "max": "1500",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmtelega",
+    "name": "SMMTelega",
+    "website": "https://smmtelega.com",
+    "apiUrl": "https://smmtelega.com/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "smt_tg_boost_7d",
+        "name": "Telegram Бусты каналов (Level Boost) 7 дней",
+        "category": "Telegram - Бусты",
+        "rate": "13.70",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "smt_tg_stars",
+        "name": "Telegram Stars Звездные реакции",
+        "category": "Telegram - Реакции",
+        "rate": "1.49",
+        "min": "1",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "fastfame",
+    "name": "FastFame",
+    "website": "https://fastfame.ru",
+    "apiUrl": "https://fastfame.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ff_tg_views",
+        "name": "Telegram Просмотры постов моментальные",
+        "category": "Telegram - Просмотры",
+        "rate": "0.27",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "ff_vk_likes",
+        "name": "ВКонтакте Лайки быстрые",
+        "category": "ВКонтакте - Лайки",
+        "rate": "20.80",
+        "min": "20",
+        "max": "50000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "ipweb",
+    "name": "IPweb",
+    "website": "https://ipweb.ru",
+    "apiUrl": "https://api.ipweb.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "DZEN",
+      "RUTUBE"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "ipw_real_clicks",
+        "name": "Поведенческие факторы Живые переходы и просмотры",
+        "category": "Telegram - Просмотры",
+        "rate": "95.00",
+        "min": "50",
+        "max": "10000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "ipw_vk_live_actions",
+        "name": "ВКонтакте Живые действия от реальных людей",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "180.00",
+        "min": "20",
+        "max": "10000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "socpublic",
+    "name": "Socpublic",
+    "website": "https://socpublic.com",
+    "apiUrl": "https://socpublic.com/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 320,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "spub_live_subscribers",
+        "name": "Telegram Реальные подписки от живых исполнителей",
+        "category": "Telegram - Подписчики",
+        "rate": "220.00",
+        "min": "10",
+        "max": "5000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "spub_vk_tasks",
+        "name": "ВКонтакте Выполнение заданий живыми людьми",
+        "category": "ВКонтакте - Подписчики",
+        "rate": "210.00",
+        "min": "10",
+        "max": "5000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smmcpan",
+    "name": "SmmCpan",
+    "website": "https://smmcpan.com",
+    "apiUrl": "https://smmcpan.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "cpan_tg_members",
+        "name": "Telegram Members Global Server",
+        "category": "Telegram - Members",
+        "rate": "0.28",
+        "min": "100",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "cpan_tt_views",
+        "name": "TikTok Views Instant Super Fast",
+        "category": "TikTok - Views",
+        "rate": "0.003",
+        "min": "500",
+        "max": "5000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "smmfollows",
+    "name": "SmmFollows",
+    "website": "https://smmfollows.com",
+    "apiUrl": "https://smmfollows.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TIKTOK",
+      "TELEGRAM"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "smf_ig_followers",
+        "name": "Instagram Followers Non-Drop 30 Days",
+        "category": "Instagram - Followers",
+        "rate": "0.72",
+        "min": "50",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "smf_yt_views",
+        "name": "YouTube High Retention Views",
+        "category": "YouTube - Views",
+        "rate": "1.20",
+        "min": "500",
+        "max": "1000000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "indiansmmpanel",
+    "name": "Indian SMM Panel",
+    "website": "https://indiansmmpanel.com",
+    "apiUrl": "https://indiansmmpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "YOUTUBE",
+      "TELEGRAM",
+      "INSTAGRAM",
+      "FACEBOOK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "isp_yt_views_cheap",
+        "name": "YouTube Views Worldwide Low Cost",
+        "category": "YouTube - Views",
+        "rate": "0.85",
+        "min": "500",
+        "max": "2000000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "isp_tg_views",
+        "name": "Telegram Post Views Indian / Global",
+        "category": "Telegram - Views",
+        "rate": "0.002",
+        "min": "100",
+        "max": "10000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "socialstreampanel",
+    "name": "SocialStreamPanel",
+    "website": "https://socialstreampanel.com",
+    "apiUrl": "https://socialstreampanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TWITCH",
+      "KICK",
+      "YOUTUBE",
+      "TROVO"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": false,
+      "refill": false,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "ssp_twitch_viewers",
+        "name": "Twitch Stream Viewers 60 Minutes Stable",
+        "category": "Twitch - Streams",
+        "rate": "1.85",
+        "min": "10",
+        "max": "5000",
+        "network": "TWITCH"
+      },
+      {
+        "service": "ssp_kick_viewers",
+        "name": "Kick Live Stream Viewers 60 Minutes",
+        "category": "Kick - Streams",
+        "rate": "2.10",
+        "min": "10",
+        "max": "3000",
+        "network": "KICK"
+      }
+    ]
+  },
+  {
+    "id": "sevenpanel",
+    "name": "7Panel",
+    "website": "https://7panel.net",
+    "apiUrl": "https://7panel.net/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "7p_tg_boost_7d",
+        "name": "Telegram Channel Boosts 7 Days Delivery",
+        "category": "Telegram - Boosts",
+        "rate": "0.15",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "7p_ig_likes",
+        "name": "Instagram Likes Instant Start",
+        "category": "Instagram - Likes",
+        "rate": "0.038",
+        "min": "20",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "bettersmm",
+    "name": "BetterSMM",
+    "website": "https://bettersmm.pro",
+    "apiUrl": "https://bettersmm.pro/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "bs_tg_subs_hq",
+        "name": "Telegram Channel Subscribers High Quality",
+        "category": "Telegram - Members",
+        "rate": "0.38",
+        "min": "50",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "bs_tt_likes",
+        "name": "TikTok Likes Fast Speed",
+        "category": "TikTok - Likes",
+        "rate": "0.19",
+        "min": "50",
+        "max": "20000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "smdpanel",
+    "name": "SMD Panel",
+    "website": "https://smdpanel.com",
+    "apiUrl": "https://smdpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "smd_tg_views",
+        "name": "Telegram Post Views Super Fast",
+        "category": "Telegram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "5000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "smd_yt_subs",
+        "name": "YouTube Subscribers Non Drop",
+        "category": "YouTube - Subscribers",
+        "rate": "14.50",
+        "min": "50",
+        "max": "10000",
+        "network": "YOUTUBE"
+      }
+    ]
+  },
+  {
+    "id": "smofast",
+    "name": "SMOFast",
+    "website": "https://smofast.com",
+    "apiUrl": "https://smofast.com/api/v2",
+    "tier": 2,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "VK",
+      "TELEGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.1,
+    "avgResponseMs": 310,
+    "features": {
+      "dripfeed": false,
+      "refill": false,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "smf_vk_likes",
+        "name": "ВКонтакте P2P Лайки на посты",
+        "category": "ВКонтакте - Лайки",
+        "rate": "32.00",
+        "min": "20",
+        "max": "30000",
+        "network": "VK"
+      },
+      {
+        "service": "smf_tg_members",
+        "name": "Telegram Взаимные подписки P2P",
+        "category": "Telegram - Подписчики",
+        "rate": "110.00",
+        "min": "20",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "cashbox",
+    "name": "CashBox",
+    "website": "https://cashbox.ru",
+    "apiUrl": "https://cashbox.ru/api/v2",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 330,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "cb_tg_live_subs",
+        "name": "Telegram Живые подписчики от верифицированных авторов",
+        "category": "Telegram - Подписчики",
+        "rate": "390.00",
+        "min": "10",
+        "max": "3000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "cb_vk_live_reposts",
+        "name": "ВКонтакте Живые репосты от владельцев аккаунтов WebMoney",
+        "category": "ВКонтакте - Репосты",
+        "rate": "280.00",
+        "min": "10",
+        "max": "2000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "smmsphere",
+    "name": "SMMSphere",
+    "website": "https://smmsphere.com",
+    "apiUrl": "https://smmsphere.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sph_tg_boosts",
+        "name": "Telegram Channel Boost Level Unlock 7 Days",
+        "category": "Telegram - Boosts",
+        "rate": "0.15",
+        "min": "1",
+        "max": "2000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "sph_tg_stars",
+        "name": "Telegram Stars Instant Reactions",
+        "category": "Telegram - Reactions",
+        "rate": "0.016",
+        "min": "1",
+        "max": "15000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmrush",
+    "name": "SMMRush",
+    "website": "https://smmrush.com",
+    "apiUrl": "https://smmrush.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE",
+      "TELEGRAM"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "rush_ig_likes",
+        "name": "Instagram Real Likes Instant",
+        "category": "Instagram - Likes",
+        "rate": "0.042",
+        "min": "20",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "rush_tt_views",
+        "name": "TikTok Fast Views",
+        "category": "TikTok - Views",
+        "rate": "0.003",
+        "min": "200",
+        "max": "1000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "mystars",
+    "name": "MyStars (FaaS Telegram Stars & Premium)",
+    "website": "https://mystars.tg",
+    "apiUrl": "https://api.mystars.tg/v1",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "stars",
+      "premium",
+      "orders",
+      "balance",
+      "webhooks",
+      "services",
+      "add",
+      "status"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.9,
+    "avgResponseMs": 140,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "mystars_xtr_100",
+        "name": "Telegram Stars (XTR) Direct Username Top-up [100 Stars]",
+        "category": "Telegram - Stars",
+        "rate": "145.00",
+        "min": "50",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "mystars_premium_3m",
+        "name": "Telegram Premium Gift Subscription 3 Months",
+        "category": "Telegram - Premium",
+        "rate": "890.00",
+        "min": "1",
+        "max": "100",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "gramix",
+    "name": "Gramix (Wholesale Stars & Premium API)",
+    "website": "https://gramix.io",
+    "apiUrl": "https://api.gramix.io/v1",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "orders",
+      "balance",
+      "services",
+      "status",
+      "add"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.8,
+    "avgResponseMs": 160,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "gramix_stars_50",
+        "name": "Telegram Stars Bulk Reseller Delivery",
+        "category": "Telegram - Stars",
+        "rate": "1.50",
+        "min": "25",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "gramix_prem_gift",
+        "name": "Telegram Premium Direct Activation",
+        "category": "Telegram - Premium",
+        "rate": "9.20",
+        "min": "1",
+        "max": "500",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmflash",
+    "name": "SMMFlash",
+    "website": "https://smmflash.ru",
+    "apiUrl": "https://smmflash.ru/api",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "flash_tg_views",
+        "name": "Telegram Просмотры постов быстрые",
+        "category": "Telegram - Views",
+        "rate": "0.32",
+        "min": "50",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "flash_vk_likes",
+        "name": "ВКонтакте Лайки на посты живые",
+        "category": "VK - Likes",
+        "rate": "29.00",
+        "min": "20",
+        "max": "20000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "fixedmember",
+    "name": "FixedMember",
+    "website": "https://fixedmember.com",
+    "apiUrl": "https://fixedmember.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "fm_tg_boost_lvl",
+        "name": "Telegram Level Boosts 30 Days Guaranteed",
+        "category": "Telegram - Boosts",
+        "rate": "0.48",
+        "min": "1",
+        "max": "200",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "fm_tg_nondrop",
+        "name": "Telegram Non-Drop Channel Members",
+        "category": "Telegram - Members",
+        "rate": "0.72",
+        "min": "50",
+        "max": "100000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmkings",
+    "name": "SMMKings",
+    "website": "https://smmkings.com",
+    "apiUrl": "https://smmkings.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM",
+      "YOUTUBE",
+      "TWITTER"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "kings_ig_followers",
+        "name": "Instagram Guaranteed Followers [High Quality]",
+        "category": "Instagram - Followers",
+        "rate": "0.45",
+        "min": "20",
+        "max": "200000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "kings_tt_views",
+        "name": "TikTok Ultra Fast Views",
+        "category": "TikTok - Views",
+        "rate": "0.0028",
+        "min": "500",
+        "max": "10000000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "nicesmmpanel",
+    "name": "Nice SMM Panel",
+    "website": "https://nicesmmpanel.com",
+    "apiUrl": "https://nicesmmpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 210,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "nice_tg_premium",
+        "name": "Telegram Premium Channel Subscribers",
+        "category": "Telegram - Members",
+        "rate": "0.85",
+        "min": "10",
+        "max": "25000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "nice_tg_boosts",
+        "name": "Telegram Channel Boost [Instant]",
+        "category": "Telegram - Boosts",
+        "rate": "0.22",
+        "min": "1",
+        "max": "500",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmcost",
+    "name": "SMMCost",
+    "website": "https://smmcost.com",
+    "apiUrl": "https://smmcost.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "VK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 270,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "cost_tg_views",
+        "name": "Telegram Mass Post Views Cheapest",
+        "category": "Telegram - Views",
+        "rate": "0.0032",
+        "min": "100",
+        "max": "500000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmturk",
+    "name": "SMMTurk",
+    "website": "https://smmturk.org",
+    "apiUrl": "https://smmturk.org/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM",
+      "TWITTER"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "turk_ig_likes",
+        "name": "Instagram Turkish & Global Real Likes",
+        "category": "Instagram - Likes",
+        "rate": "0.038",
+        "min": "20",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmroute",
+    "name": "SMMRoute",
+    "website": "https://smmroute.com",
+    "apiUrl": "https://smmroute.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "YOUTUBE",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 250,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "route_tg_reactions",
+        "name": "Telegram Custom Reactions High Speed",
+        "category": "Telegram - Reactions",
+        "rate": "0.08",
+        "min": "50",
+        "max": "50000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "smmwholesale",
+    "name": "SMMWholesale",
+    "website": "https://smmwholesale.com",
+    "apiUrl": "https://smmwholesale.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 220,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "ws_tt_likes",
+        "name": "TikTok Real Likes [Non-Drop]",
+        "category": "TikTok - Likes",
+        "rate": "0.18",
+        "min": "50",
+        "max": "100000",
+        "network": "TIKTOK"
+      }
+    ]
+  },
+  {
+    "id": "smmzy",
+    "name": "SMMZY",
+    "website": "https://smmzy.com",
+    "apiUrl": "https://smmzy.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 280,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "zy_tg_members",
+        "name": "Telegram Active Group & Channel Members",
+        "category": "Telegram - Members",
+        "rate": "0.42",
+        "min": "50",
+        "max": "50000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "medyabayim",
+    "name": "MedyaBayim",
+    "website": "https://medyabayim.com",
+    "apiUrl": "https://medyabayim.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM",
+      "TWITTER"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 200,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "mb_ig_followers",
+        "name": "Instagram Non-Drop Organic Followers",
+        "category": "Instagram - Followers",
+        "rate": "0.39",
+        "min": "20",
+        "max": "100000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "falconsmm",
+    "name": "FalconSMM",
+    "website": "https://falconsmm.com",
+    "apiUrl": "https://falconsmm.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "YOUTUBE",
+      "TIKTOK"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 260,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "falcon_tg_post_views",
+        "name": "Telegram Ultra Fast Post Views",
+        "category": "Telegram - Views",
+        "rate": "0.0035",
+        "min": "100",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "lightfollows",
+    "name": "LightFollows",
+    "website": "https://lightfollows.com",
+    "apiUrl": "https://lightfollows.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM"
+    ],
+    "rating": 9.2,
+    "avgResponseMs": 290,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "lf_ig_likes",
+        "name": "Instagram Instant Real Likes",
+        "category": "Instagram - Likes",
+        "rate": "0.035",
+        "min": "10",
+        "max": "50000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "bulkfollow_net",
+    "name": "BulkFollow.net",
+    "website": "https://bulkfollow.net",
+    "apiUrl": "https://bulkfollow.net/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.4,
+    "avgResponseMs": 230,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "bf_tg_channel_boost",
+        "name": "Telegram Boost Channel Level Unlocking",
+        "category": "Telegram - Boosts",
+        "rate": "0.21",
+        "min": "1",
+        "max": "300",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "1xpanel",
+    "name": "1xPanel",
+    "website": "https://1xpanel.com",
+    "apiUrl": "https://1xpanel.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "INSTAGRAM",
+      "TIKTOK"
+    ],
+    "rating": 9.6,
+    "avgResponseMs": 190,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": false,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "1x_tg_prem_members",
+        "name": "Telegram Premium Subscriber Inflow",
+        "category": "Telegram - Members",
+        "rate": "0.78",
+        "min": "20",
+        "max": "20000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "socialpanel24",
+    "name": "SocialPanel24",
+    "website": "https://socialpanel24.com",
+    "apiUrl": "https://socialpanel24.com/api/v2",
+    "tier": 2,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "INSTAGRAM",
+      "TIKTOK",
+      "TELEGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.3,
+    "avgResponseMs": 240,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "sp24_ig_views",
+        "name": "Instagram Reels Viral Views",
+        "category": "Instagram - Views",
+        "rate": "0.003",
+        "min": "100",
+        "max": "5000000",
+        "network": "INSTAGRAM"
+      }
+    ]
+  },
+  {
+    "id": "aviso",
+    "name": "Aviso.bz (Биржа живых микрозадач)",
+    "website": "https://aviso.bz",
+    "apiUrl": "https://aviso.bz/api",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "tasks",
+      "campaigns",
+      "balance",
+      "status",
+      "services",
+      "add"
+    ],
+    "primaryNetworks": [
+      "YOUTUBE",
+      "VK",
+      "TELEGRAM"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 150,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "aviso_yt_watch",
+        "name": "YouTube Живой просмотр с удержанием 60+ сек",
+        "category": "YouTube - Views",
+        "rate": "42.00",
+        "min": "10",
+        "max": "50000",
+        "network": "YOUTUBE"
+      },
+      {
+        "service": "aviso_vk_repost",
+        "name": "ВКонтакте Живые репосты реальных людей",
+        "category": "VK - Reposts",
+        "rate": "65.00",
+        "min": "10",
+        "max": "20000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "qcomment",
+    "name": "QComment (Биржа живых авторов и комментариев)",
+    "website": "https://qcomment.ru",
+    "apiUrl": "https://qcomment.ru/api",
+    "tier": 1,
+    "currency": "RUB",
+    "supportedMethods": [
+      "projects",
+      "comments",
+      "balance",
+      "status",
+      "services",
+      "add"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "VK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.8,
+    "avgResponseMs": 130,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": false
+    },
+    "benchmarkServices": [
+      {
+        "service": "qc_tg_comments",
+        "name": "Telegram Осмысленные живые комментарии от ранговых авторов",
+        "category": "Telegram - Comments",
+        "rate": "380.00",
+        "min": "5",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "qc_vk_comments",
+        "name": "ВКонтакте Индивидуальные комментарии по ТЗ",
+        "category": "VK - Comments",
+        "rate": "320.00",
+        "min": "5",
+        "max": "2000",
+        "network": "VK"
+      }
+    ]
+  },
+  {
+    "id": "tgpanel_org",
+    "name": "TGPanel.org",
+    "website": "https://tgpanel.org",
+    "apiUrl": "https://tgpanel.org/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 180,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "tgorg_boost_instant",
+        "name": "Telegram Channel Boosts [Fast Level Up]",
+        "category": "Telegram - Boosts",
+        "rate": "0.18",
+        "min": "1",
+        "max": "1000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "tgorg_premium_reactions",
+        "name": "Telegram Premium Emojis & Custom Reactions",
+        "category": "Telegram - Reactions",
+        "rate": "0.024",
+        "min": "20",
+        "max": "25000",
+        "network": "TELEGRAM"
+      }
+    ]
+  }
+]

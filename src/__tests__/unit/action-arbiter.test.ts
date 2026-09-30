@@ -198,4 +198,64 @@ describe('Autonomous Action Arbiter (AAA-2026 / Zero-Token Intent Gatekeeper)', 
     expect(decision.tokenCost).toBe(0);
     expect(decision.remediationAdvice.length).toBeGreaterThan(0);
   });
+
+  it('6. should asynchronously arbitrate via System 1 Laya Engine (PROCEED on safe refactor)', async () => {
+    const arbiter = new ActionArbiter({ logPath: testLogPath });
+    const proposal: ActionIntentProposal = {
+      actionId: 'ACT-SYS1-001',
+      intent: 'Безопасный рефакторинг UI хелпера',
+      category: 'REFACTOR',
+      options: [
+        {
+          id: 'OPT-SAFE',
+          title: 'Вынести функцию форматирования даты в отдельный модуль',
+          description: 'Локальная чистая функция без побочных эффектов',
+          riskLevel: 'LOW',
+          isDestructive: false,
+          hasRollbackPlan: true,
+          estimatedImpactFiles: 1,
+        },
+      ],
+      context: {
+        targetEnvironment: 'LOCAL',
+        hasBackup: true,
+      },
+    };
+
+    const decision = await arbiter.decideWithSystem1(proposal);
+
+    expect(decision.verdict).toBe('PROCEED');
+    expect(decision.selectedOptionId).toBe('OPT-SAFE');
+    expect(decision.tokenCost).toBe(0);
+  });
+
+  it('7. should escalate via System 1 Laya Engine on destructive action in PRODUCTION without rollback', async () => {
+    const arbiter = new ActionArbiter({ logPath: testLogPath });
+    const proposal: ActionIntentProposal = {
+      actionId: 'ACT-SYS1-002',
+      intent: 'DROP TABLE users в продакшне',
+      category: 'SCHEMA_MIGRATION',
+      options: [
+        {
+          id: 'OPT-DROP',
+          title: 'Удалить таблицу без плана отката',
+          description: 'Деструктивное удаление данных',
+          riskLevel: 'CRITICAL',
+          isDestructive: true,
+          hasRollbackPlan: false,
+          estimatedImpactFiles: 5,
+        },
+      ],
+      context: {
+        targetEnvironment: 'PRODUCTION',
+        hasBackup: false,
+      },
+    };
+
+    const decision = await arbiter.decideWithSystem1(proposal);
+
+    expect(decision.verdict).toBe('ESCALATE_TO_HUMAN');
+    expect(decision.tokenCost).toBe(0);
+  });
 });
+

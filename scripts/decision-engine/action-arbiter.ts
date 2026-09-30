@@ -8,6 +8,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { decisionClient } from '../../src/lib/decision-engine/client';
 
 export type ActionCategory = 
   | 'REFACTOR'
@@ -258,6 +259,44 @@ export class ActionArbiter {
     };
     this.recordDecision(proposal, result);
     return result;
+  }
+
+  /**
+   * Асинхронное принятие решения с консультацией локального System 1 Decision Gate (Laya Engine)
+   * с автоматическим фоллбеком на детерминированные правила при сбое или отсутствии связи.
+   */
+  public async decideWithSystem1(proposal: ActionIntentProposal): Promise<ActionDecisionResult> {
+    const topOption = proposal.options[0];
+    const isDestructive = proposal.options.some(o => o.isDestructive);
+    const hasRollbackPlan = proposal.options.every(o => o.hasRollbackPlan);
+
+    try {
+      const remote = await decisionClient.arbitrateAction({
+        actionId: proposal.actionId,
+        intent: proposal.intent,
+        category: proposal.category,
+        isDestructive,
+        hasRollbackPlan,
+        estimatedImpactFiles: topOption?.estimatedImpactFiles ?? 1,
+        touchesFinancialLedger: proposal.options.some(o => o.touchesFinancialLedger),
+        touchesAuthOrSecrets: proposal.options.some(o => o.touchesAuthOrSecrets),
+        environment: proposal.context.targetEnvironment,
+      });
+
+      if (remote && remote.verdict) {
+        const local = this.decide(proposal);
+        // Если Laya требует эскалации к человеку или отклонения — применяем этот приоритет
+        if (remote.verdict === 'ESCALATE_TO_HUMAN' || remote.verdict === 'REJECT') {
+          local.verdict = remote.verdict;
+          local.rationale = `[Laya System 1 Gate] ${remote.rationale}`;
+        }
+        return local;
+      }
+    } catch {
+      // Игнорируем сетевые ошибки, переходя к детерминированному решению
+    }
+
+    return this.decide(proposal);
   }
 
   /**
