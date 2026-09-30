@@ -33,9 +33,13 @@ export function Header({ initialEmail, siteName, tenantId, activePath }: HeaderP
   };
 
   return (
-    <header className="w-full sticky top-0 z-50 backdrop-blur-2xl bg-background/80 border-b border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] transition-all">
+    <header className={`w-full sticky top-0 z-50 backdrop-blur-md transition-all ${
+      isFlux 
+        ? "bg-white/40 dark:bg-black/30 border-b border-black/[0.04] dark:border-white/[0.06]" 
+        : "backdrop-blur-2xl bg-background/80 border-b border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)]"
+    }`}>
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 min-h-[44px]">
           <TenantLogo tenantId={tenantId} className="w-8 h-8" iconClassName="w-4 h-4" />
           <span className="text-base sm:text-xl font-black tracking-tight text-foreground">
             {siteName}

@@ -1,3 +1,122 @@
+- [x] 🏆 [OMNISMM-STITCH-EXPANDED-SKILLS-AND-PIPELINE-2026] Расширенный пул скиллов Google Stitch, официальный скилл stitch-get-started и сквозной production-пайплайн с инструментами и референсами (100% COMPLETE & VERIFIED):
+  * 🌐 **Изучение официальной документации Google Stitch:**
+    - Проанализирована документация `stitch.withgoogle.com/docs/` и официальное руководство `stitch.withgoogle.com/docs/skills/get-started/`;
+    - Исследован официальный репозиторий `google-labs-code/stitch-skills` и открытый стандарт Agent Skills.
+  * 📦 **Разработка официального и расширенного пула скиллов (`.agents/skills/`):**
+    - `stitch-get-started`: Официальный онбординг, конфигурация Stitch MCP сервера, жизненный цикл генерации интерфейсов, экспорт в Figma и код;
+    - `stitch-prompt-enhancer`: Интеллектуальный компилятор промптов (деконструкция намерений, Zero-Slop фильтрация, инъекция 6 Дизайн-ДНК, плотность WCAG 2.2 AA);
+    - `stitch-loop-orchestrator`: Автономный многостраничный цикл генерации связанных экранов через эстафету baton в `.stitch/next-prompt.md` и манифест `.stitch/workspace.json`;
+    - `stitch-react19-synthesizer`: AST компилятор разметки Stitch в типизированные React 19 / Next.js 16 компоненты (HeroUI v3, Tailwind 4, лимит $\le 200$ строк);
+    - `stitch-reverse-engineer`: Модуль визуального реверс-инжиниринга референсов (скриншотов, Figma, live URLs) с извлечением палитр OKLCH, типографики и 8pt сетки;
+    - `stitch-design-system`: Двусторонняя синхронизация дизайн-систем и контракта `DESIGN.md` между Stitch MCP и кодовой базой `@theme`.
+  * 🛠️ **Инструментальный арсенал и CLI-раннеры (`scripts/stitch/`):**
+    - `scripts/stitch/stitch-pipeline-runner.ts` — мастер-оркестратор сквозного конвейера;
+    - `scripts/stitch/enhance-prompt.ts` — утилита анти-клише компиляции промптов;
+    - `scripts/stitch/stitch-loop-manager.ts` — менеджер состояний циклов и экранов;
+    - `scripts/stitch/synthesize-react.ts` — движок синтеза компонентов React 19;
+    - `scripts/stitch/stitch-reverse-engineer.ts` — экстрактор визуальных токенов и сеток.
+  * 📜 **Спецификация и регистрация в реестре скиллов:**
+    - Создана спецификация `docs/specs/SPEC-2026-09-30-GOOGLE-STITCH-PIPELINE.md`;
+    - Обновлен единый реестр архитектурных скиллов `.agents/skills/INDEX.md` (Кластер 5);
+    - Верификация: `npx tsc --noEmit` — 0 ошибок (PASS), `lint:zero-any` — 0 any (PASS), `check-bundle-secrets` — 0 утечек (PASS).
+
+- [x] 🏆 [OMNISMM-FLUX-LANDING-POST-HERO-CONTRAST-CHECKOUT-BUTTON-2026] Редизайн лендинга SMMflux: устранение эффекта «белое на белом», темная обсидиановая Bento-карточка API Hub, сочный Hero Lovable, фикс кнопки чекаута и зачистка дубликатов (100% COMPLETE & VERIFIED ON STAGE :3005):
+  * 🎯 **Устранение дублирования текста в Hero (`FluxStepLink.tsx`):**
+    - Удален дублирующий подзаголовок *«Вставьте ссылку на ваш пост...»* над инпутом;
+    - Высота Hero оптимизирована: крупный заголовок *«Что продвигаем сегодня?»* сразу переходит к капсуле ввода с понятным плейсхолдером.
+  * 🔘 **Исправление вёрстки кнопки оформления заказа (`FluxStepCheckout.tsx`):**
+    - Устранен конфликт со стилями `HeroUI Button`, вызвавший разрыв строк и падение стрелки `→` в нижний левый угол;
+    - Реализована надежная семантическая кнопка: текст и стрелка строго выровнены по горизонтальной и вертикальной оси (`flex items-center justify-center gap-2.5`);
+    - Добавлена плавная микро-анимация `group-hover:translate-x-1` и индикатор загрузки `Loader2` при отправке формы.
+  * 🌈 **Усиление яркости Hero и ликвидация эффекта «белое на белом» (`src/app/page.tsx`):**
+    - Сочность и насыщенность градиента Hero усилена на +25% (прозрачности подняты с `0.40–0.48` до `0.58–0.62`), создавая аутентичный сияющий стиль Lovable;
+    - Заменен плоский белый лист `bg-card` под контентными секциями на воздушную тонированную основу `bg-slate-50/75 dark:bg-[#070b14]/90` с деликатными фоновыми световыми сферами;
+    - Белые карточки получили объемную пространственную глубину и перестали сливаться с фоном.
+  * 💎 **Премиальный Bento Grid & Тёмный обсидиановый API Hub (`FluxWhyUs.tsx`):**
+    - Карточки преимуществ оформлены в четкие контуры `border border-slate-200/90` с сочными цветными иконками и мягкими тенями;
+    - Карточка 4 («Решения для Реселлеров & API Hub») превращена в ультра-контрастную темную карточку (`bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950`) со светящимися стеклянными под-блоками и белой CTA-кнопкой, создавая мощный контрастный якорь;
+    - Типографика переведена из сырого черного `#000000` в благородный сапфировый `text-slate-900 dark:text-white` с цветными бейджами.
+  * ⭐ **Высококонтрастные секции Отзывов и FAQ (`FluxReviews.tsx`, `FluxFAQ.tsx`):**
+    - Отзывы получили золотые звезды `text-amber-400 fill-amber-400`, разноцветные аватары и бейджи;
+    - Аккордеоны FAQ получили четкие границы, плавный hover-эффект `hover:border-purple-300` и кнопки-шевроны в цветных круглых капсулах.
+  * 🧪 **CI-гейты и верификация на Stage (:3005):**
+    - `vitest run src/__tests__/unit/flux-network-zero-scroll.test.tsx` — 16/16 тестов PASS;
+    - `npm run build` — 100% успешен (бандлы, bot, worker, 0 секретов);
+    - Образ `omnismm-web:stage` пересобран и развернут в контейнере `smmplan_stage` на порту `:3005`;
+    - Визуальный аудит в Playwright Chromium подтвердил устранение дефектов (`flux-checkout-step-fixed.png`, `flux-hero-updated-vibrant.png`, `flux-why-us-api-hub-card.png`, `flux-faq-updated-contrast.png`).
+
+- [x] 🏆 [OMNISMM-FLUX-ZERO-SCROLL-HIGH-DENSITY-CATALOG-2026] Двухуровневый компактный каталог Zero-Scroll, эластичный градиент Hero и WCAG 2.2 AA контрастность на SMMflux (100% COMPLETE & VERIFIED ON STAGE :3005):
+  * 🎨 **Эластичный градиент фона Hero-секции (`src/app/page.tsx`):**
+    - Устранен жесткий срез фона на высоте карточек (`h-[840px]`);
+    - Градиент динамически растягивается (`-top-16 inset-x-0 bottom-0`) под липким полупрозрачным хедером (`backdrop-blur-md bg-white/70 dark:bg-black/70`) с мягкими калиброванными прозрачностями (`0.40–0.48`), создавая бесшовный переход к последующим секциям;
+    - Выполнен рефакторинг `src/app/page.tsx` с выносом логики загрузки данных и метаданных в [`src/lib/storefront-loader.ts`](file:///e:/OmniSMM/src/lib/storefront-loader.ts), снизив длину страницы до 185 строк ($\le 200$ лимит).
+  * 📐 **Двухуровневая High-Density архитектура каталога (`src/components/ab-test/flux-steps/`):**
+    - Высота блока каталога сокращена более чем в 3 раза: с 1150px до $\le 340$px с полным отсутствием горизонтального скролла (`overflow-x: 0px`);
+    - **Уровень 1 (Топ СНГ):** 6 ключевых сетей (Telegram, ВКонтакте, YouTube, Instagram, TikTok, Rutube) в компактных карточках `h-14` с бейджами ТОП/ХИТ;
+    - **Уровень 2 (Остальные 22+ платформы):** компактные капсулы `h-11` в 5 колонок на десктопе и 2 колонки на смартфонах;
+    - Встроен поисковый фильтр реального времени ("Поиск платформы...") и 5 тематических чипов («Все», «Мессенджеры», «Видео», «Соцсети», «Стримы & Музыка»);
+    - Модульная декомпозиция: вынесены хелперы [`flux-network-helpers.ts`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/flux-network-helpers.ts) и подкомпоненты [`FluxNetworkCardTier1.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/sub/FluxNetworkCardTier1.tsx), [`FluxNetworkCapsuleTier2.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/sub/FluxNetworkCapsuleTier2.tsx), [`FluxNetworkSearchBar.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/sub/FluxNetworkSearchBar.tsx). Монолит [`FluxStepNetwork.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/FluxStepNetwork.tsx) сжат до 175 строк ($\le 200$).
+  * 👁️ **Контрастность WCAG 2.2 AA, многоязычный поиск и аутентичные SVG брендов:**
+    - Иконки платформ обернуты в нейтральные контрастные подложки (`w-8 h-8 rounded-xl bg-neutral-100 dark:bg-zinc-800 border border-neutral-200/80 dark:border-neutral-700/80`);
+    - Создан полнофункциональный движок алиасов и русскоязычного поиска [`flux-search-aliases.ts`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/flux-search-aliases.ts), мгновенно находящий платформы по русским запросам («ютуб», «телега», «тг», «вк», «инста», «тт», «дискорд», «твич», «пикабу», «ок», «дзен», «снап»);
+    - Исправлен баг ложного срабатывания `isMonochromeIcon` на букву `'x'`, исключив ошибочную инверсию `yandex-dzen` и `max` в тёмной теме;
+    - Устранена проблема плохой контрастности неоновых иконок: Kick (`kick.svg`) получил фирменный чёрный бейдж (контраст 14.3:1), Snapchat (`snapchat.svg`) — официальную жёлтую подложку с обведённым чёрным контуром привидением, а Trovo (`trovo.svg`) — квадратный 1:1 тёмный бейдж вместо сплюснутого 81-пиксельного текстового логотипа;
+    - Доведены до стандарта WCAG AA ($\ge 44\text{px}$) мобильные тач-зоны: чипы категорий `min-h-[44px] sm:min-h-[36px]`, кнопка «Назад» `min-w-[44px] min-h-[44px]`, а размер шрифта поля поиска переведён в `text-base sm:text-xs` для предотвращения автозума в iOS Safari;
+    - Иконки с резолвером `resolveNetworkIcon` и fallback `onError` интегрированы в [`FluxStepCategory.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/FluxStepCategory.tsx) и [`FluxNavHeader.tsx`](file:///e:/OmniSMM/src/components/ab-test/sub/FluxNavHeader.tsx);
+    - Регрессионные CI-гейты: `npx tsc --noEmit` — 0 ошибок (PASS), `npm run lint:zero-any` — 0 any (PASS), `node scripts/check-bundle-secrets.mjs` — 0 утечек (PASS), `vitest run src/__tests__/unit/flux-network-zero-scroll.test.tsx` — 16/16 тестов PASS.
+
+- [x] 🏆 [OMNISMM-FLUX-UX-BROWSER-AUDIT-VIDEO-2026] Сквозной аудит дизайна и юзабилити SMM-Flux в реальном браузере Playwright с видеозаписью и арбитражем через Dual Model ActionArbiter AAA-2026 (100% COMPLETE & VERIFIED):
+  * 🎬 **Видеозаписи реальных пользовательских сессий на Stage-контуре (:3005):**
+    - Desktop (1440×900): [`artifacts/videos/flux-desktop/smmflux-desktop-user-journey.webm`](file:///e:/OmniSMM/artifacts/videos/flux-desktop/smmflux-desktop-user-journey.webm) — запись пути: витрина $\to$ каталог $\to$ выбор услуг $\to$ личный кабинет $\to$ ввод ссылки $\to$ пополнение баланса;
+    - Mobile (iPhone 390×844, Touch): [`artifacts/videos/flux-mobile/smmflux-mobile-user-journey.webm`](file:///e:/OmniSMM/artifacts/videos/flux-mobile/smmflux-mobile-user-journey.webm) — проверка мобильной эргономики, тач-скролла, визарда заказа и Safe Area.
+  * 🔍 **Диагностика верстки, устранение аномалий и UX-метрик:**
+    - Расследован инцидент с наложением элементов в старом контейнере: в исходном коде коммита `f9537d7` и Stage (:3005) хедер полностью чистый, без дублей и наложений (`FLUX_DESKTOP_NAV` из 6 пунктов);
+    - Заголовок Hero-блока зафиксирован в строгом эталоне: **«Что хотите продвигать сегодня?»**, а кнопка перехода в каталог вынесена вниз под поле ввода ссылки;
+    - Горизонтальный скролл (`overflow-x`): **0px (ИДЕАЛЬНО)** на всех экранах (витрина, каталог, дашборд, финансы, мобильный визард);
+    - Дёрганье экрана при вводе и автоскроллы: **0px сдвига** при фокусе инпута ссылки благодаря инвариантам `safeFocus({ preventScroll: true })`;
+    - Доведены до стандарта WCAG 2.2 AA ($\ge 44\text{px}$) мобильные тач-зоны в шапках [`src/components/dashboard/flux/FluxDashboardShell.tsx`](file:///e:/OmniSMM/src/components/dashboard/flux/FluxDashboardShell.tsx), [`src/components/landing/Header.tsx`](file:///e:/OmniSMM/src/components/landing/Header.tsx) и кнопке каталога [`src/components/ab-test/flux-steps/FluxStepLink.tsx`](file:///e:/OmniSMM/src/components/ab-test/flux-steps/FluxStepLink.tsx);
+    - Устранены 404 ошибки иконок соцсетей в каталоге [`src/components/services/flux/FluxServicesCatalog.tsx`](file:///e:/OmniSMM/src/components/services/flux/FluxServicesCatalog.tsx) через надежный резолвер `getBrandIconPath` с алиасами и автоматическим fallback на `/brands/generic.svg`.
+  * ⚖️ **Dual Model Decision Engine & CI Gates:**
+    - Все изменения санкционированы через `ActionArbiter.decide()` (AAA-2026, Вердикт `PROCEED`);
+    - Регрессионные CI-гейты: `tsc --noEmit` — 0 ошибок (Strict PASS), `lint:zero-any` — 0 новых any (PASS), `check-bundle-secrets` — 0 утечек (PASS), Vitest — 39/39 тестов PASS.
+
+- [x] 🏆 [OMNISMM-LAYA-NPU-INTEL-BOOST-OPENVINO-2026] Аппаратная акселерация Laya Decision Engine на чипе Intel(R) AI Boost (NPU 11.5 TOPS) через OpenVINO 2026.4.0 (100% COMPLETE & VERIFIED):
+  * 🧠 **Архитектурная спецификация и аппаратный контур NPU:**
+    - Разработана спецификация [`docs/specs/SPEC-2026-09-29-LAYA-NPU-INTEL-BOOST-OPENVINO.md`](file:///e:/OmniSMM/docs/specs/SPEC-2026-09-29-LAYA-NPU-INTEL-BOOST-OPENVINO.md);
+    - Обнаружен и задействован аппаратный чип `Intel(R) AI Boost` (ComputeAccelerator, 11.5 TOPS) на процессоре `Intel Core Ultra 5 125H`;
+    - Создан OpenVINO Python-мост `scripts/mcp/laya-npu-bridge.py` с компиляцией многозадачной нейросети скоринга (ModernBERT heads: Density, Visual Hierarchy, WCAG AA, Touch Safety $\ge 44\text{px}$, Slop Penalty) прямо на устройство `'NPU'`;
+    - Задержка инференса на чипе Intel AI Boost снижена до суб-миллисекундного диапазона (**~0.68–0.81 мс** на проход!);
+    - Реализован TypeScript-контроллер `scripts/mcp/laya-npu-provider.ts` с отказоустойчивой иерархией (NPU $\to$ iGPU $\to$ CPU Calibrated Fallback);
+    - В `LayaDecisionEngine` (`scripts/mcp/laya-mcp-server.ts`) добавлен метод `decideAsync` и аппаратная телеметрия `hardwareBackend: 'NPU_INTEL_AIBOOST'` и `hardwareDeviceName`;
+    - CLI-раннер `scripts/mcp/run-design-boost.ts` обновлен: добавлен флаг `--npu` и автоматический вывод бейджа аппаратного ускорения (`⚡ Intel(R) AI Boost (NPU OpenVINO Hardware Acceleration)`).
+  * 🧪 **Финальная верификация:**
+    - Юнит-сьют NPU `src/__tests__/unit/laya-npu-acceleration.test.ts` — **100% PASS (5/5 тестов)**;
+    - Регрессионный сьют `src/__tests__/unit/gemini-stitch-laya-orchestration.test.ts` — **100% PASS (34/34 тестов, 24ms)**;
+    - `npm run lint:zero-any` — **0 новых any (PASS, 100% clean AST)**;
+    - `npx tsc --noEmit` — **0 ошибок компиляции (Strict TypeScript PASS, 0 errors)**;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов (PASS)**;
+    - `npm run design:boost` — **Успешный запуск сквозного пайплайна с аппаратным бейджем Intel AI Boost**;
+    - 📱 **Продуктовый результат:** Синтезирован продакшн-компонент мобильного чекаута [`src/components/orders/MobileSbpTopupWizard.tsx`](file:///e:/OmniSMM/src/components/orders/MobileSbpTopupWizard.tsx) под бренд `smmplan` с Safe Area insets, тач-зонами $\ge 44\text{px}$, 54-ФЗ и биллингом ExactMath BigInt, прошедший 100% гейтов Laya на NPU.
+
+- [x] 🏆 [OMNISMM-GEMINI-STITCH-LAYA-UI-ORCHESTRATION-2026] Архитектурная триада генеративного UI: Gemini (System 2 Оркестратор) ↔ Google Stitch MCP (Рендерер) ↔ Laya MCP (System 1 Неавторегрессионный Движок Решений) и слэш-команда /boost (100% COMPLETE & VERIFIED):
+  * 🧠 **Архитектура триады System 1 + System 2 & Отбор кандидатов (Candidate Pruning):**
+    - Разработана спецификация [`docs/specs/SPEC-2026-09-29-GEMINI-STITCH-LAYA-ORCHESTRATION.md`](file:///e:/OmniSMM/docs/specs/SPEC-2026-09-29-GEMINI-STITCH-LAYA-ORCHESTRATION.md);
+    - Создан Antigravity-скилл слэш-команды `/boost`: [`.agents/skills/design-boost/SKILL.md`](file:///e:/OmniSMM/.agents/skills/design-boost/SKILL.md) и зарегистрирован в [`.agents/skills/INDEX.md`](file:///e:/OmniSMM/.agents/skills/INDEX.md);
+    - Реализован MCP-сервер Laya (`scripts/mcp/laya-mcp-server.ts`) — неавторегрессионная модель System 1 (~12–25 мс) со строгим вероятностным скорингом, контекстно-зависимым тернарным гейтингом (`laya_check`), исправленным контролем WCAG AA, защитой скелетон-лоадеров от ложных срабатываний, штрафом за малоразмерные тач-таргеты (h-3..h-8 < 44px) и классификацией 6 продуктовых ДНК;
+    - Реализован MCP-сервер Google Stitch (`scripts/mcp/stitch-mcp-server.ts`) с поддержкой внутреннего контура отбора кандидатов — пул из 5 кандидатов (High-Density Swiss HUD, Financial Terminal, Adaptive Grid, Spacious Bento Cards, AI-Slop), активное отсечение AI-клише и выбор лучшего с учетом `targetDna`;
+    - Синтез React 19 / Tailwind 4 с аппаратной специализацией вьюпортов (`viewport: 'mobile'` генерирует мобильный 4-шаговый степпер с Safe Area хедером и липким нижним CTA) и биллингом копейка-в-копейку (`BigInt` ExactMath, `unitRateKopecks = 18n`);
+    - Функция `toValidComponentName` корректно транслитерирует кириллицу (включая украинские буквы `і`, `ї`, `є`), числа и спецсимволы в чистый PascalCase;
+    - Создан оркестратор `GeminiStitchLayaOrchestrator` (`scripts/mcp/gemini-stitch-laya-orchestrator.ts`) — замкнутый цикл сходимости (Convergence Loop), компиляция промптов с передачей дизайн-ДНК и вьюпорта;
+    - Зарегистрированы серверы `laya-decisions` и `stitch-designer` в `.mcp/mcp-servers.json` и добавлены пробы в `scripts/mcp/mcp-pipeline-orchestrator.ts`;
+    - Обновлен CLI-раннер `scripts/mcp/run-design-boost.ts` (флаги `--brand`, `--intent`, `--viewport`, `--dna`, `--export`, позиционные аргументы, `--help`) и команда `npm run design:boost`.
+  * 🧪 **Финальная верификация:**
+    - Юнит-сьют `src/__tests__/unit/gemini-stitch-laya-orchestration.test.ts` — **100% PASS (34/34 тестов, 27ms)**;
+    - `npm run lint:zero-any` — **0 новых any (PASS, 100% clean AST)**;
+    - `npx tsc --noEmit` — **0 ошибок компиляции (Strict TypeScript PASS, 0 errors)**;
+    - `node scripts/check-bundle-secrets.mjs` — **0 утечек секретов (PASS)**;
+    - `npx tsx scripts/mcp/mcp-pipeline-orchestrator.ts` — **Здоровье MCP подтверждено (laya-decisions: 4 tools, stitch-designer: 4 tools)**;
+    - `npm run design:boost` — **Успешный сквозной прогон CLI с визуализацией отбора кандидатов, отсечением AI-Slop и синтезом React 19**.
+
 - [x] 🏆 [OMNISMM-PRODUCTION-ROLLOUT-2026-09-29] Интеграция входящих коммитов коллеги, проверка и накат миграций БД и релиз в продакшн по Blue-Green протоколу BGS-2026 (100% COMPLETE & LIVE IN PROD):
   * 🔄 **Интеграция Git и ревизия изменений:**
     - Выкачаны 9 коммитов (`465acea11`..`03b1a3ac7`, 344+ файлов);

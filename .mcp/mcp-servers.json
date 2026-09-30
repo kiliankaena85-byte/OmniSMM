@@ -2,6 +2,22 @@
   "$schema": "https://json.schemastore.org/mcp-servers.json",
   "version": "2026.1",
   "servers": {
+    "laya-decisions": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "scripts/mcp/laya-mcp-server.ts"],
+      "enabled": true,
+      "tier": "LEVEL_1_TYPES",
+      "description": "System 1 неавторегрессионная модель быстрых вероятностных решений (15-30мс)"
+    },
+    "stitch-designer": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "scripts/mcp/stitch-mcp-server.ts"],
+      "enabled": true,
+      "tier": "LEVEL_2_VISUAL",
+      "description": "Генеративный движок интерфейсов Google Stitch с делегированием решений в Laya MCP"
+    },
     "layout-sentry": {
       "type": "stdio",
       "command": "npx",

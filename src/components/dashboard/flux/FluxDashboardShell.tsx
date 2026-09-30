@@ -36,131 +36,137 @@ export function FluxDashboardShell({
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col relative overflow-x-clip">
       {/* ── FLUX VIBRANT AURORA BACKGROUND (Full Bleed Layer) ── */}
       <div 
-        className="absolute top-0 inset-x-0 h-[1800px] z-0 pointer-events-none overflow-hidden select-none bg-slate-50/90 dark:bg-[#090d16]"
+        className="absolute top-0 inset-x-0 h-[840px] sm:h-[920px] z-0 pointer-events-none overflow-hidden select-none bg-white dark:bg-[#070b14]"
         style={{ transform: 'translate3d(0,0,0)', contain: 'paint' }}
       >
         <div
-          className="absolute inset-0 pointer-events-none opacity-85 dark:opacity-60"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(65% 55% at 5% 5%, rgba(147, 51, 234, 0.16), transparent 70%), ' +
-              'radial-gradient(55% 50% at 95% 10%, rgba(56, 189, 248, 0.16), transparent 65%), ' +
-              'radial-gradient(60% 50% at 15% 45%, rgba(244, 63, 94, 0.12), transparent 60%), ' +
-              'radial-gradient(50% 50% at 85% 55%, rgba(249, 115, 22, 0.11), transparent 60%), ' +
-              'radial-gradient(70% 60% at 50% 25%, rgba(217, 70, 239, 0.14), transparent 70%)',
+              'radial-gradient(ellipse 55% 50% at 0% 30%, rgba(37, 99, 235, 0.85) 0%, rgba(59, 130, 246, 0.45) 50%, transparent 75%), ' +
+              'radial-gradient(ellipse 55% 50% at 100% 30%, rgba(56, 189, 248, 0.85) 0%, rgba(37, 99, 235, 0.55) 45%, transparent 75%), ' +
+              'radial-gradient(ellipse 95% 65% at 50% 90%, rgba(244, 63, 94, 0.95) 0%, rgba(236, 72, 153, 0.90) 35%, rgba(217, 70, 239, 0.65) 65%, transparent 90%), ' +
+              'radial-gradient(ellipse 65% 55% at 10% 95%, rgba(236, 72, 153, 0.85) 0%, transparent 75%), ' +
+              'radial-gradient(ellipse 65% 55% at 90% 95%, rgba(244, 63, 94, 0.85) 0%, transparent 75%)',
           }}
         />
-        <div className="absolute inset-0 pointer-events-none premium-dot-grid opacity-35 dark:opacity-20" />
-        <div className="absolute bottom-0 inset-x-0 h-[400px] bg-gradient-to-t from-background via-background/80 to-transparent" />
+        <div className="absolute inset-0 pointer-events-none premium-dot-grid opacity-20 dark:opacity-10" />
+        <div className="absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
-      {/* ── Top Navigation Bar ── */}
-      <header className="relative z-40 w-full px-2.5 sm:px-8 py-2.5 flex items-center justify-between backdrop-blur-2xl bg-card/85 dark:bg-card/75 border-b border-border/40 shadow-xs sticky top-0 min-h-[58px]">
-        {/* Left: Brand Logo & Title (Links to /) */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link 
-            href="/" 
-            className="flex items-center gap-2.5 font-black text-lg sm:text-xl text-foreground tracking-tight hover:opacity-90 transition-opacity shrink-0" 
-            title="Перейти на главную страницу (Витрина)" 
-            aria-label="На главную"
-          >
-            <TenantLogo tenantId="flux" className="w-8 h-8 sm:w-9 sm:h-9 shrink-0" iconClassName="w-4 h-4" />
-            <span className="tracking-tight font-black shrink-0">SMMflux</span>
-          </Link>
-        </div>
-
-        {/* Center: Navigation Links */}
-        <nav className="hidden xl:flex items-center gap-1 shrink-0">
-          {FLUX_DESKTOP_NAV.map((item) => {
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-            const isSupport = item.href === '/dashboard/tickets';
-            const hasUnread = isSupport && unreadCount > 0;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
-                  active
-                    ? 'bg-foreground text-background shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-                {hasUnread && (
-                  <span className="inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 rounded-full bg-rose-500 text-white font-extrabold text-[10px] animate-pulse ml-0.5">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Right: Balance, Quick Top-Up, Theme & User Menu */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <ThemeSwitcher variant="toggle" className="hidden min-[400px]:flex w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-border/70 bg-card/60 shrink-0" />
-          <BalanceDisplay initialBalance={balanceRub} variant="mobile-header" />
-          <Link
-            href="/dashboard/finance"
-            className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-h-[34px] sm:min-h-[38px] text-xs sm:text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
-            title="Пополнить баланс"
-            aria-label="Пополнить баланс"
-          >
-            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="hidden sm:inline">Пополнить</span>
-          </Link>
-
-          {/* Mobile Profile Avatar Link */}
-          <Link
-            href="/dashboard/settings"
-            className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-xs uppercase shrink-0"
-            title="Профиль и настройки"
-          >
-            {user.email.substring(0, 2)}
-          </Link>
-
-          {/* Desktop User Menu */}
-          <div className="hidden xl:flex items-center gap-2 pl-3 border-l border-border/40">
-            <Link
-              href="/dashboard/settings"
-              className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-muted/50 text-foreground transition-colors group shrink-0"
-              title="Настройки профиля"
+      {/* ── LOVABLE LIGHT VIBRANT FLOATING FROSTED PILL HEADER ── */}
+      <div className="sticky top-2 sm:top-4 z-40 w-full px-2.5 sm:px-6 pointer-events-none">
+        <header className="pointer-events-auto max-w-7xl mx-auto px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-2xl sm:rounded-full flex items-center justify-between backdrop-blur-2xl bg-white/85 dark:bg-[#0a0e17]/85 border border-white/90 dark:border-white/[0.08] shadow-[0_8px_30px_rgba(100,116,139,0.08)] min-h-[58px] transition-all">
+          {/* Left: Brand Logo & Title (Links to /) */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link 
+              href="/" 
+              className="flex items-center gap-2.5 font-black text-lg sm:text-xl text-slate-900 dark:text-foreground tracking-tight hover:opacity-90 transition-opacity shrink-0 min-h-[44px]" 
+              title="Перейти на главную страницу (Витрина)" 
+              aria-label="На главную"
             >
-              <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold uppercase group-hover:scale-105 transition-transform shrink-0">
-                {user.email.substring(0, 2)}
-              </div>
-              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground max-w-[130px] truncate shrink-0">
-                {user.email}
+              <TenantLogo tenantId="flux" className="w-8 h-8 sm:w-9 sm:h-9 shrink-0" iconClassName="w-4 h-4" />
+              <span className="tracking-tight font-black shrink-0 flex items-center gap-1.5">
+                <span className="text-slate-950 dark:text-white font-extrabold">SMMflux</span>
+                <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse hidden sm:inline-block" />
               </span>
             </Link>
+          </div>
 
+          {/* Center: Navigation Links */}
+          <nav className="hidden xl:flex items-center gap-1 shrink-0">
+            {FLUX_DESKTOP_NAV.map((item) => {
+              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+              const isSupport = item.href === '/dashboard/tickets';
+              const hasUnread = isSupport && unreadCount > 0;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all shrink-0 ${
+                    active
+                      ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-900 shadow-sm font-bold'
+                      : 'text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground hover:bg-slate-100/80 dark:hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{item.label}</span>
+                  {hasUnread && (
+                    <span className="inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 rounded-full bg-rose-500 text-white font-extrabold text-[10px] animate-pulse ml-0.5">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: Balance, Quick Top-Up, Theme & User Menu */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <ThemeSwitcher variant="toggle" className="hidden min-[400px]:flex w-10 h-10 min-w-[40px] min-h-[40px] rounded-full border border-slate-200/80 dark:border-border/70 bg-white/80 dark:bg-card/60 shrink-0" />
+            <BalanceDisplay initialBalance={balanceRub} variant="mobile-header" />
             <Link
-              href="/dashboard/settings"
-              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-xl transition-colors shrink-0"
-              title="Настройки профиля"
+              href="/dashboard/finance"
+              className="px-3 sm:px-5 py-2 min-h-[44px] text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-full hover:opacity-95 active:scale-95 transition-all shadow-[0_4px_16px_rgba(168,85,247,0.35)] flex items-center justify-center gap-1.5 shrink-0"
+              title="Пополнить баланс"
+              aria-label="Пополнить баланс"
             >
-              <Settings className="w-4 h-4" />
+              <Wallet className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Пополнить</span>
             </Link>
 
-            <button
-              type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  await fetch('/api/auth/logout', { method: 'POST', signal: AbortSignal.timeout(5000) });
-                } catch {}
-                window.location.href = '/login?tenant=flux';
-              }}
-              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors shrink-0 cursor-pointer"
-              title="Выйти из аккаунта"
+            {/* Mobile Profile Avatar Link */}
+            <Link
+              href="/dashboard/settings"
+              className="xl:hidden flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary border border-purple-200 dark:border-primary/20 font-bold text-xs uppercase shrink-0"
+              title="Профиль и настройки"
+              aria-label="Профиль и настройки"
             >
-              <LogOut className="w-4 h-4" />
-            </button>
+              {user.email.substring(0, 2)}
+            </Link>
+
+            {/* Desktop User Menu */}
+            <div className="hidden xl:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-border/40">
+              <Link
+                href="/dashboard/settings"
+                className="flex items-center gap-2 px-2.5 py-1 rounded-full hover:bg-slate-100/80 dark:hover:bg-white/[0.06] text-slate-900 dark:text-foreground transition-colors group shrink-0"
+                title="Настройки профиля"
+              >
+                <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary flex items-center justify-center text-xs font-bold uppercase group-hover:scale-105 transition-transform shrink-0">
+                  {user.email.substring(0, 2)}
+                </div>
+                <span className="text-xs font-semibold text-slate-600 dark:text-muted-foreground group-hover:text-slate-950 dark:group-hover:text-foreground max-w-[130px] truncate shrink-0">
+                  {user.email}
+                </span>
+              </Link>
+
+              <Link
+                href="/dashboard/settings"
+                className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-full transition-colors shrink-0"
+                title="Настройки профиля"
+              >
+                <Settings className="w-4 h-4" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  try {
+                    await fetch('/api/auth/logout', { method: 'POST', signal: AbortSignal.timeout(5000) });
+                  } catch {}
+                  window.location.href = '/login?tenant=flux';
+                }}
+                className="p-1.5 text-slate-500 hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors shrink-0 cursor-pointer"
+                title="Выйти из аккаунта"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* ── Mobile Navigation Bar (Bottom Sticky - 5 items) ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-2xl border-t border-border/40 px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-lg">

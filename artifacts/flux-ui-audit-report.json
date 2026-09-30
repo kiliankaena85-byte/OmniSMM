@@ -1,0 +1,190 @@
+[
+  {
+    "page": "http://127.0.0.1:3005/services?tenant=flux",
+    "viewport": "desktop",
+    "type": "CONSOLE_ERROR",
+    "details": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "severity": "MAJOR"
+  },
+  {
+    "page": "http://127.0.0.1:3005/services?tenant=flux",
+    "viewport": "desktop",
+    "type": "CONSOLE_ERROR",
+    "details": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "severity": "MAJOR"
+  },
+  {
+    "page": "http://127.0.0.1:3005/services?tenant=flux",
+    "viewport": "desktop",
+    "type": "CONSOLE_ERROR",
+    "details": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "severity": "MAJOR"
+  },
+  {
+    "page": "http://127.0.0.1:3005/services?tenant=flux",
+    "viewport": "desktop",
+    "type": "CONSOLE_ERROR",
+    "details": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "severity": "MAJOR"
+  },
+  {
+    "page": "Mobile Storefront /",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Перейти к основному конте\" (32x16px)",
+    "element": "a.sr-only focus:not-sr-only focus:absolute",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Storefront /",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"SMMflux\" (112x32px)",
+    "element": "a.flex items-center gap-2.5",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Storefront /",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: input \"\" (260x36px)",
+    "element": "input.flex-1 text-sm sm:text-base py-2 px-3 bg",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Storefront /",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: button \"Выбрать платформу из ката\" (247x34px)",
+    "element": "button.group inline-flex items-center gap-2 px-",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Storefront /",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Публичная оферта\" (358x20px)",
+    "element": "a.text-neutral-300 hover:text-purple-300 t",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Dashboard /dashboard",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Перейти к основному конте\" (32x16px)",
+    "element": "a.sr-only focus:not-sr-only focus:absolute",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Dashboard /dashboard",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"SMMflux\" (120x32px)",
+    "element": "a.flex items-center gap-2.5 font-black tex",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Dashboard /dashboard",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: button \"\" (22x22px)",
+    "element": "button.p-1 rounded-lg hover:bg-muted text-muted",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Dashboard /dashboard",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Пополнить\" (34x34px)",
+    "element": "a.px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-h-[3",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Dashboard /dashboard",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"qa\" (32x32px)",
+    "element": "a.xl:hidden flex items-center justify-cent",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Finance /dashboard/finance",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Перейти к основному конте\" (32x16px)",
+    "element": "a.sr-only focus:not-sr-only focus:absolute",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Finance /dashboard/finance",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"SMMflux\" (120x32px)",
+    "element": "a.flex items-center gap-2.5 font-black tex",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Finance /dashboard/finance",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: button \"\" (22x22px)",
+    "element": "button.p-1 rounded-lg hover:bg-muted text-muted",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Finance /dashboard/finance",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Пополнить\" (34x34px)",
+    "element": "a.px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-h-[3",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile Finance /dashboard/finance",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"qa\" (32x32px)",
+    "element": "a.xl:hidden flex items-center justify-cent",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile New Order Wizard /dashboard/new-order",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Перейти к основному конте\" (32x16px)",
+    "element": "a.sr-only focus:not-sr-only focus:absolute",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile New Order Wizard /dashboard/new-order",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"SMMflux\" (120x32px)",
+    "element": "a.flex items-center gap-2.5 font-black tex",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile New Order Wizard /dashboard/new-order",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: button \"\" (22x22px)",
+    "element": "button.p-1 rounded-lg hover:bg-muted text-muted",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile New Order Wizard /dashboard/new-order",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"Пополнить\" (34x34px)",
+    "element": "a.px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-h-[3",
+    "severity": "MINOR"
+  },
+  {
+    "page": "Mobile New Order Wizard /dashboard/new-order",
+    "viewport": "mobile",
+    "type": "TOUCH_TARGET_TOO_SMALL",
+    "details": "Тач-зона < 44px: a \"qa\" (32x32px)",
+    "element": "a.xl:hidden flex items-center justify-cent",
+    "severity": "MINOR"
+  }
+]

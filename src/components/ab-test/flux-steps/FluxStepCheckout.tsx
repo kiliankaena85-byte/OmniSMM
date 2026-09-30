@@ -1,8 +1,7 @@
 'use client';
 
 import React from "react";
-import { Button } from "@heroui/react";
-import { AlertCircle, ArrowRightIcon } from "lucide-react";
+import { AlertCircle, ArrowRightIcon, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { FluxStepCheckoutProps } from "./sub/types";
 import { FluxStepCheckoutHeader } from "./sub/FluxStepCheckoutHeader";
@@ -134,15 +133,23 @@ export function FluxStepCheckout({
             </div>
           </div>
 
-          <Button
+          <button
             type="submit"
-            size="lg"
-            className="w-full h-14 bg-foreground text-background font-bold text-base rounded-[1.25rem] sm:rounded-[1.5rem] shadow-lg hover:bg-foreground/90 transition-all cursor-pointer"
-            isPending={isPending}
+            disabled={isPending}
+            className="group relative w-full h-14 bg-slate-950 dark:bg-white text-white dark:text-slate-950 font-bold text-base rounded-[1.25rem] sm:rounded-[1.5rem] shadow-lg hover:shadow-xl hover:bg-black dark:hover:bg-slate-100 active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
           >
-            <span>{selectedGateway === "balance" ? "Оплатить с баланса" : "Перейти к оплате"}</span>
-            <ArrowRightIcon className="w-5 h-5 ml-2" />
-          </Button>
+            {isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Создание заказа...</span>
+              </>
+            ) : (
+              <>
+                <span>{selectedGateway === "balance" ? "Оплатить с баланса" : "Перейти к оплате"}</span>
+                <ArrowRightIcon className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>

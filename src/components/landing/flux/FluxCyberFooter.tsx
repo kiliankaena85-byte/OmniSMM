@@ -83,39 +83,39 @@ export function FluxCyberFooter({
             <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
             Документы
           </h4>
-          <ul className="space-y-3 text-sm font-medium">
+          <ul className="space-y-1 text-sm font-medium">
             <li>
-              <Link href={ROUTES.LEGAL.TERMS} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href={ROUTES.LEGAL.TERMS} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>Публичная оферта</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </li>
             <li>
-              <Link href={ROUTES.LEGAL.PRIVACY} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href={ROUTES.LEGAL.PRIVACY} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>Конфиденциальность</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </li>
             <li>
-              <Link href={ROUTES.LEGAL.REFUND} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href={ROUTES.LEGAL.REFUND} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>Возврат средств</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </li>
             <li>
-              <Link href={ROUTES.LEGAL.COOKIES} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href={ROUTES.LEGAL.COOKIES} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>Использование Cookie</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </li>
             <li>
-              <Link href={ROUTES.LEGAL.SERVICE_RULES} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href={ROUTES.LEGAL.SERVICE_RULES} className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>Правила сервиса</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </li>
             <li>
-              <Link href="/knowledge" className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group">
+              <Link href="/knowledge" className="text-neutral-300 hover:text-purple-300 transition-colors flex items-center justify-between group min-h-[44px] py-2">
                 <span>База знаний</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>

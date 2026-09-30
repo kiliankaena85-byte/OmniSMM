@@ -38,7 +38,7 @@ export function BalanceDisplay({ initialBalance, variant }: BalanceDisplayProps)
         <span className="text-[11px] sm:text-xs font-black font-mono tabular-nums tracking-tight sm:tracking-wide truncate max-w-[95px] sm:max-w-none" title={balance}>{balance}</span>
         <button
           onClick={handleManualClick}
-          className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90 cursor-pointer shrink-0"
+          className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-90 cursor-pointer shrink-0"
           title="Обновить баланс"
           aria-label="Обновить баланс"
           disabled={isRefreshing}

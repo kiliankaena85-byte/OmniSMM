@@ -6,15 +6,22 @@ services:
     ports:
       - "3005:3000"
     networks:
-      - smm_default
-    env_file:
-      - .env
+      - omnismm_frontend
+      - omnismm_backend
     environment:
       - NODE_ENV=production
       - NODE_OPTIONS=--max-old-space-size=512
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_lite?schema=public&connection_limit=5&pool_timeout=15
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-SmmP1anR3dis2026Secure!}@redis:6379
-      - CLASH_PROXY_URL=http://clash:7890
+      - APP_ENCRYPTION_KEY=c61f740b5508cf57a895a9456e3cc6f5b9dabfd7fdc72d348f7a6f69a5e809a1
+      - JWT_SECRET=ef4edc9fe34e3dea858e0a32308cbe956341934e0bcbd0f087af54501ffbc44e
+      - NEXTAUTH_SECRET=ef4edc9fe34e3dea858e0a32308cbe956341934e0bcbd0f087af54501ffbc44e
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smmplan_prod?schema=public
+      - REDIS_URL=redis://:SmmP1anR3dis2026Secure!@redis:6379
+      - REDIS_PASSWORD=SmmP1anR3dis2026Secure!
+      - DATA_SALT=smmplan-dev-data-salt-random-hex-token-2026
+      - CRON_SECRET=smmplan-dev-cron-secret-token
+      - INTERNAL_API_SECRET=smmplan-dev-internal-api-secret
+      - NEXT_PUBLIC_SMMPLAN_HOST=smmplan.pro
+      - NEXT_PUBLIC_SMMFLUX_HOST=smmflux.ru
       - RUN_MIGRATIONS=false
       - SKIP_BOT=true
       - HOSTNAME=0.0.0.0
@@ -22,5 +29,7 @@ services:
       - ALLOWED_ORIGINS=http://localhost:3005,http://127.0.0.1:3005
 
 networks:
-  smm_default:
+  omnismm_frontend:
+    external: true
+  omnismm_backend:
     external: true

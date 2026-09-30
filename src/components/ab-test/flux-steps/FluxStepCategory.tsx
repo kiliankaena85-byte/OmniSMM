@@ -6,6 +6,7 @@ import { motion, type Variants } from "framer-motion";
 import type { FluxNetwork, FluxCategory } from "@/types/flux";
 import { CategoryIcon, cleanCategoryName } from "@/components/ui/CategoryIcon";
 import { matchesSuggestedCategory } from "@/services/analyzer/category-matcher";
+import { resolveNetworkIcon, isMonochromeIcon } from "./flux-network-helpers";
 
 export interface FluxStepCategoryProps {
   activeNetwork: FluxNetwork;
@@ -34,13 +35,20 @@ export function FluxStepCategory({
     <div className="w-full transform-gpu">
       <div className="mb-6 w-full">
         <div className="flex items-center gap-3 mb-6">
-          <img 
-            src={activeNetwork.icon || undefined} 
-            alt={activeNetwork.name} 
-            className="w-8 h-8 object-contain" 
-            loading="lazy"
-            decoding="async"
-          />
+          <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-zinc-800 border border-neutral-200/80 dark:border-zinc-700/80 flex items-center justify-center p-1.5 shrink-0 shadow-2xs">
+            <img 
+              src={resolveNetworkIcon(activeNetwork)} 
+              alt={activeNetwork.name} 
+              onError={(e) => {
+                e.currentTarget.src = "/brands/generic.svg";
+              }}
+              className={`w-6 h-6 object-contain pointer-events-none ${
+                isMonochromeIcon(activeNetwork) ? "dark:invert" : ""
+              }`} 
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight">Выберите категорию</h2>
         </div>
       </div>

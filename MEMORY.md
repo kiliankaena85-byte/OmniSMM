@@ -203,6 +203,14 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     4. **3 Адаптера:** MCP-сервер (stdio JSON-RPC 2.0), CLI-утилита `task-pipeline`, программный SDK для Node.js / TypeScript.
     5. **Автономия:** Исключение переспроса человека при положительном вердикте арбитра (инвариант правила 0.12 AGENTS.md).
 
+ - **ADR-2026-46: SMMflux High-Density Zero-Scroll Catalog, Elastic Gradient & Brand Contrast Invariants:**
+   - *Контекст:* Жалобы пользователей на громоздкий каталог соцсетей (высота 1150px, требующий длинного скролла), резкий срез фонового градиента на десктопе (`h-[840px]`), принудительную темную тему и плохую читаемость/контрастность логотипов брендов.
+   - *Решение:*
+     1. **Эластичный фоновый градиент Hero (`src/app/page.tsx`):** Фоновый холст вынесен в относительную секцию `relative w-full flex-1 flex flex-col items-center` с позиционированием `absolute -top-16 inset-x-0 bottom-0 z-0` под полупрозрачный sticky header (`backdrop-blur-md bg-white/70 dark:bg-black/70`), обеспечивая непрерывное перетекание градиента без жестких срезов высоты.
+     2. **Двухуровневая High-Density архитектура каталога (`FluxStepNetwork.tsx`):** Высота каталога снижена до $\le 340$px (сокращение в 3.4 раза) с гарантией `overflow-x: 0px`. Уровень 1: 6 ключевых сетей СНГ (Telegram, ВКонтакте, YouTube, Instagram, TikTok, Rutube) в карточках `h-14` с бейджами ТОП/ХИТ. Уровень 2: 22+ капсулы `h-11` в 5 колонок (desktop) и 2 колонки (mobile). Встроен фильтр поиска и 5 категорийных чипов.
+     3. **Контрастность логотипов и WCAG 2.2 AA:** Иконки заключены в нейтральные контейнеры `w-8 h-8 rounded-xl bg-neutral-100 dark:bg-zinc-800 border`, монохромные бренды инвертируются через `dark:invert`, добавлены аутентичные SVG (`pikabu.svg`, `behance.svg`, `viber.svg`) с fallback `onError` на `generic.svg`.
+     4. **Декомпозиция Clean Architecture:** Разделение логики витрины `src/app/page.tsx` ($\le 185$ строк) и каталога `FluxStepNetwork.tsx` ($\le 175$ строк) на модули `storefront-loader.ts` и `sub/FluxNetwork*.tsx`.
+
  - **ADR-2026-45: Autonomous Action Arbiter & Intent Gatekeeper (AAA-2026 / Zero-Token Intent Arbitration):**
   - *Контекст:* Устранение простоя и лишних вопросов человеку («делать или не делать?») при выборе безопасных инженерных альтернатив и рефакторинге.
   - *Решение:*

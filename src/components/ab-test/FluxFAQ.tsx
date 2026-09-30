@@ -72,39 +72,42 @@ export function FluxFAQ({ companyName = "SMMflux" }: { companyName?: string }) {
   };
 
   return (
-    <section id="faq" aria-labelledby="faq-heading" className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-24">
+    <section id="faq" aria-labelledby="faq-heading" className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-20">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="text-center mb-12">
-        <h2 id="faq-heading" className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4 text-balance">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-4">
+          <span>База знаний & FAQ</span>
+        </div>
+        <h2 id="faq-heading" className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-3 text-balance">
           Частые вопросы
         </h2>
-        <p className="text-muted-foreground text-lg font-medium mt-2">
+        <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg font-medium mt-1">
           Всё, что нужно знать перед тем, как ваш бренд взлетит
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {FAQ_ITEMS.map((item, i) => (
           <div
             key={i}
-            className="bg-white dark:bg-content1 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300"
+            className="bg-white dark:bg-[#0f172a] rounded-2xl overflow-hidden border border-slate-200/90 dark:border-white/10 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_30px_rgb(0,0,0,0.06)] hover:border-purple-300/80 dark:hover:border-purple-500/40 transition-all duration-300"
           >
             <button
               type="button"
               onClick={() => setOpen(open === i ? null : i)}
               aria-expanded={open === i}
               aria-controls={`faq-answer-${i}`}
-              className="w-full text-left px-6 py-5 min-h-[44px] flex justify-between items-center gap-4 group transition-colors"
+              className="w-full text-left px-6 py-5 min-h-[44px] flex justify-between items-center gap-4 group transition-colors cursor-pointer"
             >
-              <span className="text-base font-bold text-foreground text-balance pr-4">{item.q}</span>
+              <span className="text-base font-bold text-slate-900 dark:text-white text-balance pr-4">{item.q}</span>
               <div 
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${open === i ? 'bg-fuchsia-50 text-fuchsia-500' : 'bg-default-50 text-default-400 group-hover:bg-default-100'}`}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-300 ${open === i ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}`}
               >
                 <ChevronDown
-                  className={`w-5 h-5 transition-transform duration-300 ${
+                  className={`w-4 h-4 transition-transform duration-300 ${
                     open === i ? 'rotate-180' : ''
                   }`}
                 />
@@ -120,8 +123,8 @@ export function FluxFAQ({ companyName = "SMMflux" }: { companyName?: string }) {
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="px-6 pb-6 pr-12 -mt-1">
-                    <p className="text-sm text-muted-foreground font-medium leading-relaxed text-pretty">{item.a}</p>
+                  <div className="px-6 pb-6 pr-12 -mt-1 border-t border-slate-100 dark:border-white/5 pt-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 font-normal leading-relaxed text-pretty">{item.a}</p>
                   </div>
                 </motion.div>
               )}

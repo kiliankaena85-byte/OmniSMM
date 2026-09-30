@@ -12,6 +12,8 @@
 import fs from 'fs';
 import path from 'path';
 import { handleMcpRequest, LAYOUT_MCP_TOOLS } from '../ui/layout-mcp-server';
+import { handleLayaMcpRequest } from './laya-mcp-server';
+import { handleStitchMcpRequest } from './stitch-mcp-server';
 
 export interface McpServerConfig {
   type: 'stdio' | 'http';
@@ -80,16 +82,18 @@ export async function probeServerHealth(name: string, config: McpServerConfig): 
       const pingRes = await handleMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
       const toolsRes = await handleMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
       const latencyMs = Date.now() - start;
+      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
       return {
         name,
         tier: config.tier,
         enabled: true,
         status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
         latencyMs,
-        toolsCount: toolsRes?.result?.tools?.length || 0,
+        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
         message: 'In-house layout & AST nesting healer active.'
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       return {
         name,
         tier: config.tier,
@@ -97,7 +101,67 @@ export async function probeServerHealth(name: string, config: McpServerConfig): 
         status: 'UNAVAILABLE',
         latencyMs: Date.now() - start,
         toolsCount: 0,
-        message: err.message
+        message: msg
+      };
+    }
+  }
+
+  // 1.1 In-house laya-decisions MCP
+  if (name === 'laya-decisions') {
+    try {
+      const pingRes = await handleLayaMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
+      const toolsRes = await handleLayaMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
+      const latencyMs = Date.now() - start;
+      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
+      return {
+        name,
+        tier: config.tier,
+        enabled: true,
+        status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
+        latencyMs,
+        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
+        message: 'In-house Laya System 1 decision engine active (~15ms latency).'
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        name,
+        tier: config.tier,
+        enabled: true,
+        status: 'UNAVAILABLE',
+        latencyMs: Date.now() - start,
+        toolsCount: 0,
+        message: msg
+      };
+    }
+  }
+
+  // 1.2 In-house stitch-designer MCP
+  if (name === 'stitch-designer') {
+    try {
+      const pingRes = await handleStitchMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
+      const toolsRes = await handleStitchMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
+      const latencyMs = Date.now() - start;
+      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
+      return {
+        name,
+        tier: config.tier,
+        enabled: true,
+        status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
+        latencyMs,
+        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
+        message: 'In-house Google Stitch Generative UI active with Laya delegation.'
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        name,
+        tier: config.tier,
+        enabled: true,
+        status: 'UNAVAILABLE',
+        latencyMs: Date.now() - start,
+        toolsCount: 0,
+        message: msg
       };
     }
   }

@@ -1,0 +1,19 @@
+{
+  "projectId": "proj-1790748942739",
+  "brand": "smmflux",
+  "designDna": "High-Frequency Financial Terminal",
+  "viewport": "desktop",
+  "status": "COMPLETED",
+  "activeScreenIndex": 0,
+  "screens": [
+    {
+      "id": "screen-1790748942739",
+      "route": "/",
+      "title": "screen-1790748942739",
+      "status": "APPROVED",
+      "promptRequirements": "Auto-registered screen",
+      "layaScore": 93,
+      "screenFile": "screen-1790748942739.html"
+    }
+  ]
+}

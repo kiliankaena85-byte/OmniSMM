@@ -26,6 +26,25 @@ interface FluxServicesCatalogProps {
   featuredArticles: FeaturedArticle[];
 }
 
+function getBrandIconPath(slug: string): string {
+  const normalized = slug.toLowerCase().trim();
+  const aliasMap: Record<string, string> = {
+    odnoklassniki: 'ok',
+    'yandex-dzen': 'dzen',
+    dzen: 'dzen',
+    vkontakte: 'vk',
+  };
+  const knownIcons = new Set([
+    'telegram', 'vk', 'youtube', 'instagram', 'tiktok', 'twitch',
+    'discord', 'dzen', 'ok', 'rutube', 'threads', 'twitter', 'x',
+    'facebook', 'whatsapp', 'spotify', 'soundcloud', 'reddit', 'linkedin',
+    'kick', 'likee', 'medium', 'pinterest', 'snapchat', 'steam', 'tumblr',
+    'trovo', 'github', 'google', 'appstore', 'googleplay'
+  ]);
+  const mapped = aliasMap[normalized] || normalized;
+  return knownIcons.has(mapped) ? `/brands/${mapped}.svg` : '/brands/generic.svg';
+}
+
 export function FluxServicesCatalog({ networks, featuredArticles }: FluxServicesCatalogProps) {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -68,7 +87,7 @@ export function FluxServicesCatalog({ networks, featuredArticles }: FluxServices
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {networks.map((net) => {
-              const slug = net.slug.toLowerCase();
+              const iconPath = getBrandIconPath(net.slug);
               return (
                 <Link
                   key={net.id}
@@ -79,11 +98,16 @@ export function FluxServicesCatalog({ networks, featuredArticles }: FluxServices
                     <div className="w-12 h-12 rounded-2xl bg-muted/60 border border-border flex items-center justify-center p-2.5 shadow-sm group-hover:scale-110 transition-transform">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`/brands/${slug}.svg`}
+                        src={iconPath}
                         alt={net.name}
                         className="w-full h-full object-contain"
                         onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
+                          const target = e.target as HTMLImageElement;
+                          if (target.src.includes('generic.svg')) {
+                            target.style.display = 'none';
+                          } else {
+                            target.src = '/brands/generic.svg';
+                          }
                         }}
                       />
                     </div>

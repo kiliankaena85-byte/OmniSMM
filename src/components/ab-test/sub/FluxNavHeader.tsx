@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowLeftIcon } from "lucide-react";
 import type { FluxNetwork } from "@/types/flux";
+import { resolveNetworkIcon, isMonochromeIcon } from "../flux-steps/flux-network-helpers";
 
 export type FluxStep = 'link' | 'network' | 'category' | 'service' | 'checkout';
 
@@ -33,14 +34,26 @@ export function FluxNavHeader({
       <button
         type="button"
         onClick={handleBack}
-        className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors mr-1.5 flex-shrink-0 cursor-pointer"
+        className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors mr-1.5 flex-shrink-0 cursor-pointer"
         title="Назад"
+        aria-label="Назад"
       >
         <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
       </button>
-      <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
-        {activeNetwork?.icon && (
-          <img src={activeNetwork.icon} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
+      <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+        {activeNetwork && (
+          <div className="w-6 h-6 rounded-lg bg-neutral-100 dark:bg-zinc-800 border border-neutral-200/80 dark:border-zinc-700/80 flex items-center justify-center p-1 shrink-0 shadow-2xs">
+            <img 
+              src={resolveNetworkIcon(activeNetwork)} 
+              alt={activeNetwork.name} 
+              onError={(e) => {
+                e.currentTarget.src = "/brands/generic.svg";
+              }}
+              className={`w-3.5 h-3.5 object-contain pointer-events-none ${
+                isMonochromeIcon(activeNetwork) ? "dark:invert" : ""
+              }`} 
+            />
+          </div>
         )}
         <span className="text-xs sm:text-sm font-semibold text-foreground truncate min-w-0">
           {link || (activeNetwork?.name ? `${activeNetwork.name} (из каталога)` : "Без ссылки")}
