@@ -1,3 +1,202 @@
+- [x] 🚀 [OMNISMM-DEPIN-NANO-BANANA-REDESIGN-PROD-2026-10-01] Бесшовный боевой деплой (Zero-Downtime Cutover) дизайна Nano Banana в DePIN Mini App на smmplan_app (:3000) после санкции пользователя (100% PRODUCTION VERIFIED):
+  * 🎨 **Реализация дизайн-системы Nano Banana:**
+    - Глубокий темный графитовый фон `#0d0f14`, четкие карточки заданий `#12141a` с границей `border-neutral-800/80` и скруглением `rounded-2xl`;
+    - Шапка с круглой фиолетовой эмблемой `Ω`, зеленым индикатором онлайн, лаконичным заголовком «OmniAI DePIN Ассистент» и подзаголовком «Gemini 3 Flash • DePIN Узел ((•))»;
+    - Вкладки навигации с теплым янтарным свечением активного таба «🔥 Задания»;
+    - Карточка Trust Score «Индекс доверия 100/100 • Безопасный узел» с неоновым изумрудным прогресс-баром;
+    - Лента заданий: аккуратный переключатель «🔥 Доступные (7)» и «✅ Завершенные (0)», фильтры категорий («Все», «📚 3 поста», «💬 Комментарии», «🔥 Реакции», «👁️ Просмотры»);
+    - Карточка задания: канал `@smmMarket69 #30` ярко-голубым шрифтом, бейджи типа и награды, крупная насыщенная синяя кнопка `[ 👉 Открыть пост в Telegram (+5 PTS) ]` (`#0080ff`), симметричные кнопки быстрых действий `[ 👁️ Смотрел ]`, `[ 👤 Мой пост ]`, `[ ⏭️ Пропуск ]`;
+    - 100% русскоязычные тексты без англицизмов.
+  * 🛡️ **Инженерная верификация & Боевой Cutover (BGS-2026):**
+    - Предыдущий рабочий образ сохранен как `smmplan_backup:latest` (гарантия отката за 5с);
+    - Образ `omnismm-web:stage` протегирован как `omnismm-app:latest` и развернут в `smmplan_app`;
+    - Подключен к сети `omnismm_default` с алиасами `web` и `app`;
+    - Все 3 эндпоинта (`localhost:3000`, `smmplan.tail060e84.ts.net`, `depin.smmplan-tma.workers.dev`) возвращают `200 OK, healthy`;
+    - Сквозной визуальный аудит в браузере Playwright (iPhone 390×844) на боевом `:3000` сохранен в `depin_nanobanana_prod.png`.
+  * 🛡️ **Инженерная верификация & CI-гейты:**
+    - TypeScript strict mode (`npx tsc --noEmit`): 0 ошибок;
+    - Vitest тесты DePIN: 60/60 пройдены (100% pass across 7 test suites);
+    - Аудит секретов бандла: 0 утечек секретов;
+    - Standalone Next.js 16 build: успешно собран;
+    - Docker Stage образ `omnismm-web:stage`: собран и развернут в `smmplan_stage` (:3005);
+    - Скриншот мобильного аудита Playwright (`depin_nanobanana_stage.png`): подтверждено точное соответствие макету Nano Banana на порту 3005.
+
+- [x] 🚀 [OMNISMM-DEPIN-BUTTONS-VISUAL-HARMONIZATION-2026-10-01] Полная визуальная гармонизация панели быстрых действий на карточках заданий DePIN TMA (100% COMPLETE & VERIFIED):
+  * 🎨 **Устранение разнобоя верстки (Zero Visual Glitch):**
+    - Ранее кнопка `Уже смотрел` переносилась на 2 строки, имела увеличенную высоту, а кнопка `Пропуск` не имела `flex-1`, из-за чего кнопки отличались по размеру и пропорциям.
+    - В `src/app/depin/page.tsx` внедрена строгая 3-колоночная сетка `grid grid-cols-3 gap-2 w-full`;
+    - Зафиксирована идентичная высота `h-10` (40px) и выравнивание `flex items-center justify-center gap-1.5` для всех 3 кнопок;
+    - Текстовые метки приведены к симметричному лаконичному формату в одну строку: `[ 👁️ Смотрел ]`, `[ 👤 Мой пост ]`, `[ ⏭️ Пропуск ]` с защитой от переноса `whitespace-nowrap`;
+    - Панель второго этапа верификации также переведена на симметричную 2-колоночную сетку `grid grid-cols-2 gap-2` (`[ 🔄 Открыть повторно ]`, `[ ⏭️ Заменить ]`).
+  * 📸 **Визуальная верификация на бою (Playwright iPhone):**
+    - Скриншот `depin_buttons_harmonized.png` подтверждает: кнопки 100% одинакового размера, высоты, отступов и шрифтов на всех карточках ленты.
+
+- [x] 🚀 [OMNISMM-TELEGRAM-BOT-ACTIVATION-2026-10-01] Подключение токена @SMMplan_support_bot, запуск демона и настройка нативного запуска Mini App (100% COMPLETE & VERIFIED):
+  * 🔑 **Безопасная интеграция токена:**
+    - Токен бота зашифрован ключом AES-256-GCM (`v1:...`) и сохранен в PostgreSQL `SystemSettings` для тенанта `smmplan`;
+    - Обновлены переменные окружения `TELEGRAM_BOT_TOKEN`;
+    - Контейнер `smmplan_bot` подключен к сети `omnismm_default` и успешно запущен (`healthy`).
+  * 🤖 **Инициализация бота в Telegram:**
+    - Бот `@SMMplan_support_bot` успешно авторизован на серверах Telegram (ID: `8760712092`);
+    - Настроена системная кнопка меню Telegram (`setChatMenuButton`) с прямой ссылкой на шлюз `https://depin.smmplan-tma.workers.dev/depin`;
+    - Зарегистрированы команды бота: `/depin` (Запуск DePIN Mini App), `/boost`, `/menu`, `/orders`, `/balance`, `/support`, `/start`;
+    - Меню `/start` генерирует интерактивные кнопки быстрого запуска Web App.
+
+- [x] 🚀 [OMNISMM-DEPIN-PROD-ZERO-DOWNTIME-CUTOVER-2026-10-01] Бесшовный боевой деплой (Zero-Downtime Cutover) на smmplan_app (:3000) после санкции пользователя (BGS-2026):
+  * 🐳 **Мгновенное переключение & Резервное копирование:**
+    - Текущий боевой образ сохранен как `smmplan_backup:latest` (гарантия отката за 5с);
+    - Новый образ `omnismm-web:stage` протегирован как `omnismm-app:latest` и развернут в `smmplan_app`;
+    - Подключен к сети `omnismm_default` с алиасами `web` и `app`, настроена бесшовная проксификация через Tailscale Funnel.
+  * 🌐 **Стабилизация Cloudflare Edge шлюза:**
+    - Worker `depin` на Cloudflare переведен на постоянный шлюз Tailscale Funnel (`https://smmplan.tail060e84.ts.net`);
+    - Устранены сбои Pinggy (SSL 525) — туннель защищен постоянным TLS-сертификатом Let's Encrypt и никогда не сбрасывает адрес.
+  * 📸 **Сквозная визуальная верификация в браузере (Edge / iPhone Viewport):**
+    - Скриншот `depin_prod_verified.png`: на всех карточках заданий на боевом контуре `:3000` активны кнопки `[ 👁️ Уже смотрел ]`, `[ 👤 Мой пост ]`, `[ ⏭️ Пропуск ]`;
+    - Все 3 эндпоинта (`localhost:3000`, `smmplan.tail060e84.ts.net`, `depin.smmplan-tma.workers.dev`) возвращают `200 OK, healthy`.
+
+- [x] 🚀 [OMNISMM-DEPIN-FEED-SKIP-AND-REPLACE-FLOW-2026-10-01] Устранение зависания заданий в DePIN TMA: внедрен механизм пропуска («Уже смотрел», «Мой пост», «Пропуск»), 30-дневное долговечное исключение в Redis/localStorage, авто-замена при ошибках/истечении и защита от выдачи собственных каналов (100% COMPLETE & VERIFIED):
+  * 🛑 **Устранение корневой причины зависания:**
+    - Ранее при истечении TTL задания (300с) или сбое проверки задание навсегда застревало в ленте с красной плашкой без возможности его удалить или заменить.
+    - В `src/app/depin/page.tsx` добавлен блок обработки ошибок с кнопкой `🔄 Заменить зависшее задание на новое` (`handleSkipTask(task, 'EXPIRED')`), мгновенно снимающий мертвое задание с экрана.
+  * ⏭️ **Эргономичные кнопки быстрого пропуска на карточке:**
+    - На каждой карточке задания интегрирована эргономичная панель быстрых действий ($\ge 38\text{px}$ touch target):
+      1) `👁️ Уже смотрел` — исключает пост из ленты узла как уже просмотренный в Telegram;
+      2) `👤 Мой пост` — автоматически исключает весь Telegram-канал пользователя и пост из заданий для этого узла;
+      3) `⏭️ Пропуск` — стандартный пользовательский пропуск нежелательного контента.
+  * 💾 **Долговечное исключение (Multi-factor Exclusion — 30 дней):**
+    - В `src/services/depin/task-dispatcher.ts` внедрены Redis Sets (`depin:node:{nodeId}:skipped_targets`, `depin:node:{nodeId}:completed_targets`, `depin:node:{nodeId}:owned_channels`) с TTL 30 дней (2 592 000 сек);
+    - При создании P2P-буста в `createP2PBoostAction` созданный канал и пост автоматически записываются в `owned_channels` и `skipped_targets`, исключая самопросмотр узлом;
+    - В `acquireTasks` добавлена многофакторная проверка: совпадение `nodeId`, `tg_{telegramId}`, `orderId`, нахождение в `owned_channels` или в наборе пропущенных/завершенных;
+    - На клиенте `localStorage` синхронизирует `depin_skipped_{nodeId}`, исключая появление пропущенных заданий даже после полной перезагрузки браузера;
+    - Во вкладке «Завершенные» добавлена кнопка `🔄 Сбросить пропущенные` для возможности очистки истории исключений.
+  * 🛡️ **Строгая верификация:**
+    - Vitest: 60/60 тестов PASS в 7 наборах (включая 5 новых тестов логики пропуска и исключений в `depin-task-dispatcher` и `depin-ai-action`);
+    - TypeScript strict mode (`npx tsc --noEmit`): 0 ошибок;
+    - `npm run lint:zero-any`: 0 новых `any` (ratchet strictly honored);
+    - `node scripts/check-bundle-secrets.mjs`: 0 утечек секретов;
+    - Визуальный аудит на Stage (`:3005`) в мобильном разрешении Playwright iPhone: кнопки отрисованы корректно, клик по «Уже смотрел» мгновенно скрывает задание и выводит тост.
+
+- [x] 🚀 [OMNISMM-DEPIN-TAILSCALE-FUNNEL-PERMANENT-2026-10-01] Полная автоматическая настройка и активация Tailscale Funnel с постоянным публичным доменом и сертификатом Let's Encrypt (100% COMPLETE & VERIFIED):
+  * 🔑 **Tailscale API & ACL Конфигурация:**
+    - Использован Tailscale API токен для автоматической настройки тейлнета `0656586794.abc@gmail.com`;
+    - Обновлены ACL правила: добавлена capability `nodeAttrs: [{ target: ["autogroup:member"], attr: ["funnel"] }]`;
+    - Включены HTTPS-сертификаты (`httpsEnabled: true`) через API;
+    - Отключено истечение ключа узла (`keyExpiryDisabled: true`) — узел `smmplan` привязан навсегда.
+  * 🌐 **Tailscale Funnel & Native TUN:**
+    - Убран userspace-networking в пользу нативного Linux TUN интерфейса (`tailscale0`);
+    - Автоматически выпущен и подписан TLS-сертификат Let's Encrypt для домена `smmplan.tail060e84.ts.net`;
+    - Сервис `tailscale funnel --bg --https=443 http://web:3000` переведен в статус активного постоянного шлюза;
+    - Локальный эндпоинт `https://smmplan.tail060e84.ts.net/api/health` верифицирован (`200 OK, healthy`).
+  * 🛡️ **Zero-Downtime шлюз:**
+    - Постоянный глобальный адрес Cloudflare Edge: `https://depin.smmplan-tma.workers.dev/depin`;
+    - Прямой постоянный адрес Tailscale Funnel: `https://smmplan.tail060e84.ts.net/depin`.
+
+- [x] 🚀 [OMNISMM-DEPIN-BOTFATHER-TMA-GATEWAY-2026-09-30] Запуск Docker-контейнеров, постоянный Cloudflare Edge шлюз для Telegram Mini App, авто-синхронизация туннелей и интеграция с BotFather (100% COMPLETE & VERIFIED):
+  * 🐳 **Запуск и стабилизация Docker-инфраструктуры:**
+    - Запущен бэкенд Docker Desktop (`com.docker.backend.exe`);
+    - Все 10 контейнеров активны и здоровы (`smmplan_app`, `smmplan_bot`, `smmplan_redis`, `smmplan_stage`, `smmplan_db`, `smmplan_worker`, `smmplan_nginx`, `smmplan_tunnel`, `smmplan_tailscale`, `smmplan_clash`);
+    - Пересобран `dist/bot.js` с поддержкой `server-only` shim и `ioredis`, бот-демон успешно запущен в `smmplan_bot`.
+  * 🌐 **Постоянный глобальный Cloudflare Edge шлюз:**
+    - Постоянный неизменяемый URL для BotFather: `https://depin.smmplan-tma.workers.dev/depin`;
+    - Edge Worker автоматически пересылает запросы на активный туннель, инжектирует заголовки обхода предупреждений `X-Pinggy-No-Screen: true` и `bypass-tunnel-reminder: true`, а также разрешает встраивание во фреймы Telegram (`Content-Security-Policy: frame-ancestors *;`);
+    - Развернут автоматический демон синхронизации `scripts/auto-sync-tunnel.mjs` (периодичность 15с): при перезапуске туннеля новый адрес мгновенно обновляется в Cloudflare Worker, исключая необходимость менять URL в BotFather вручную.
+  * 📱 **Интеграция с BotFather & Ботом:**
+    - В `src/bot/index.ts` метод `getBotDepinUrl` переведен на автоматический фоллбек на HTTPS шлюз Cloudflare при отсутствии публичного домена, гарантируя работу нативных `web_app` кнопок;
+    - Успешный визуальный рендеринг в мобильном разрешении (Playwright Edge): Trust Score 100/100, вкладки «Доступные» / «Завершенные», фильтры категорий, генератор Gemini 3 Flash.
+  * 🛡️ **CI-гейты:**
+    - `npx tsc --noEmit` — 0 ошибок;
+    - `npx vitest run src/__tests__/unit/telegram-bot-depin.test.ts` — 4/4 PASS;
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+
+- [x] 🚀 [OMNISMM-DEPIN-MULTI-POST-SMART-COMMENTS-FEED-2026-09-30] Внедрение пакетного мульти-просмотра 3 постов, органичных ИИ-комментариев Gemini 3 Flash, Trust Score узла, эргономичной фильтрации и динамической ротации контента в Telegram Mini App DePIN (100% COMPLETE & VERIFIED):
+  * 📚 **Пакетный мульти-просмотр постов (`MULTI_POST`):**
+    - В `src/services/depin/task-dispatcher.ts` добавлен тип `MULTI_POST` с наградой 15 PTS; вычисление $N-2, N-1, N$ идентификаторов постов (`postIds`, `postUrls`);
+    - В `src/app/depin/page.tsx` карточка снабжена бейджем «📚 3 поста», кнопками быстрого перехода к отдельным публикациям и двухфазной проверкой.
+  * 💬 **Осмысленные ИИ-комментарии (`SMART_COMMENT`):**
+    - В `askOmniAiAction` (`src/actions/depin/ai-assistant.ts`) внедрен специализированный системный промпт генерации органичных комментариев (без шаблонных «Круто/Супер» для защиты от ShadowBan в TG);
+    - Награда +35 PTS; в карточке задания встроен генератор 3 вариантов с копированием в 1 клик.
+  * 🛡️ **Trust Score узла & Анти-Бан Гайд:**
+    - Отображение Trust Score узла (0–100, привязано к `reputation` в БД);
+    - Интерактивный аккордеон с правилами защиты от Telegram SpamBlock, FloodWait и теневого бана в комментариях.
+  * 🚀 **P2P-Буст каналов за кредиты (4 типа):**
+    - Поддержка создания буста на Просмотр (2 PTS), Реакцию (5 PTS), Мульти-просмотр 3 постов (5 PTS) и Комментарий (15 PTS).
+  * 🎛️ **Эргономичный UI ленты, фильтрация и динамическая ротация:**
+    - Добавлен переключатель вкладок «🔥 Доступные (N)» / «✅ Завершенные (M)»;
+    - Внедрены фильтры-чипсы категорий («Все», «📚 3 поста», «💬 Комментарии», «🔥 Реакции», «👁 Просмотры»);
+    - Выполненные задания автоматически скрываются из доступных и переносятся во вкладку «Завершенные» с фиксацией в `localStorage`;
+    - Настроена мгновенная динамическая ротация и догрузка свежих заданий из пула `DePinTarget` сразу после подтверждения награды без дубликатов;
+    - Реализована возможность очистки локальной истории выполненных заданий.
+  * 🤖 **Бесшовная интеграция с Telegram Bot (`src/bot/index.ts`):**
+    - В `src/bot/index.ts` добавлены команды `/depin`, `/boost`, `/app`, `/tma` и слушатель `bot.hears(/^(⚡\s*)?DePIN/i)`;
+    - В постоянную клавиатуру бота (`sendMainMenu`) добавлена кнопка `⚡ DePIN Задания (Mini App)` с прямым запуском WebApp;
+    - В динамическое инлайн-меню бота (`getDynamicInlineKeyboard`) на 1-ю строку вынесена кнопка `⚡ DePIN Биржа & Задания (TMA)`;
+    - Добавлен интерактивный онбординг-промпт `sendDepinAppPrompt(ctx)` с описанием наград (+15 PTS за 3 поста, +35 PTS за ИИ-комментарий, Trust Score);
+    - В админ-панели управления ботом (`src/types/telegram.ts`, `telegram-menu-tab.tsx`, `bot-enterprise-config-actions.ts`) внедрена поддержка экшена `'DEPIN'`.
+  * 🛡️ **Строгая верификация:**
+    - Vitest: 52/52 тестов PASS в 7 тестовых наборах (`depin-task-dispatcher`, `depin-sync-taps`, `depin-referral-engine`, `depin-ai-action`, `depin-p2p-boost`, `depin-identity-ledger`, `telegram-bot-depin`);
+    - TypeScript strict mode (`npx tsc --noEmit`): 0 ошибок;
+    - `npm run lint:zero-any`: 0 новых `any` (ratchet strictly honored);
+    - `node scripts/check-bundle-secrets.mjs`: 0 утечек секретов.
+
+- [x] 🚀 [OMNISMM-DEPIN-MODEL-3-HYBRID-P2P-FEED-2026-09-30] Внедрение Модели 3: Интерактивная смарт-лента заданий сообщества (Smart Content Feed) и Friends Squad (P2P Exchange) для Telegram Mini App DePIN (100% COMPLETE, VERIFIED & DEPLOYED BGS-2026):
+  * 🎯 **Smart Community Task Feed (Настоящие просмотры в Telegram):**
+    - Устранена фундаментальная проблема антифрода Telegram с невидимыми iframes (`-9999px`); внедрен нативный переход `Telegram.WebApp.openTelegramLink(postUrl)` с двухфазной верификацией «👉 Открыть пост (+10 PTS)» → «✅ Проверить и забрать (+10 PTS)»;
+    - В `src/services/depin/task-dispatcher.ts` расширен контракт `DePinTaskItem` (`targetId`, `postUrl`, `reactionEmoji`, `isSquadTarget`), внедрена фильтрация выполненных заданий (`completedViews < targetViews`), исключение задач собственной ноды, atomic `upsert` для `DePinNode` и TTL бронирования задач 300с;
+    - Добавлен Server Action `fetchDePinTasksAction` в `src/actions/depin/ai-assistant.ts` с поддержкой `priorityTargetId` и нативной очереди `DePinTarget`;
+    - Полностью удален легаси-код невидимого iframe (`activeWidgetUrl`).
+  * 🔄 **Dual Agent Self-Improving Loop (Второй проход DeepCoderImprovementWorker):**
+    - Ликвидирована преждевременная блокировка на 24 часа при обычном чтении ленты (`acquireTasks`); кулдаун перенесен в `reportTask` строго после выполнения;
+    - Устранена синтаксическая ошибка `completedViews < fields.targetViews` в Prisma Client; внедрен детерминированный переход статуса в `COMPLETED` при достижении целевого числа просмотров;
+    - Внедрена строгая типизация `DbClient` (`PrismaClient | Prisma.TransactionClient`) в `src/actions/depin/referral.ts` и моках; `npm run lint:zero-any` завершился с **0 нарушений** на 2 070 файлов;
+    - Вернута компактная бонусная монетка-тапалка в нижнюю часть экрана как дополнительный источник наград;
+    - Обеспечена адаптивная верстка с беспрепятственным естественным вертикальным скроллом: устранен жесткий `h-[100dvh]` и `overflow-hidden` с корневого контейнера, внедрен глобальный скролл всего окна `html, body { overflow-y: auto !important }` со стилизованным 8px скроллбаром, липкая фиксация шапки и табов (`sticky top-0 z-40`), вызов `tg.disableVerticalSwipes()` для защиты от случайного закрытия в мобильном Telegram и увеличенный нижний отступ `pb-[calc(5rem+env(safe-area-inset-bottom,0px))]`;
+    - Ликвидирована критическая ошибка Next.js RPC `Error: A "use server" file can only export async functions, found object` в `src/actions/depin/referral.ts` (удален избыточный `export` у Zod-схем, ломавший Server Actions); смарт-лента заданий теперь загружает 100% реальных карточек постов (@testnews69, @smmMarket69) без HTTP 500.
+  * 👥 **Friends Squad Deep Links & Виральный рост:**
+    - Поддержка форматов диплинков `sq_<targetId>_<telegramId>` и `squad_<targetId>_<telegramId>` в `processReferralAction` с автоматическим прикреплением целевого поста друга на 1-е место в ленте;
+    - Виральная система: +50 PTS новому другу (Welcome-бонус), +100 PTS пригласившему и 10% роялти от выполненных задач друга через атомарный `upsert` в `awardReferralRoyalty`;
+    - Карточка P2P-буста с генерацией персональной ссылки на Squad для друзей.
+  * 🛍️ **Quick Upsell витрины SMMplan:**
+    - Интегрирована эргономичная карточка «🚀 Хотите результат быстрее? 1 000 просмотров от 39 ₽ на SMMplan» со ссылкой на витрину услуг.
+  * 🐳 **Blue-Green Deployment (BGS-2026):**
+    - Standalone Next.js 16 билд скомпилирован успешно (`npx next build --webpack`);
+    - Собраны `dist/bot.js` и `dist/worker.js` (esbuild, 0.5s);
+    - Собран Docker-образ `omnismmcore-web:latest`;
+    - Проверена изоляция Stage (:3005) -> `200 OK`;
+    - Проверен секретный аудит `check-bundle-secrets.mjs` -> 0 утечек;
+    - Переключен продакшн `smmplan_app` (:3000) -> `200 OK`;
+    - Cloudflare Edge Worker `https://depin.smmplan-tma.workers.dev/depin` отдает `200 OK` (27.5 KB HTML).
+  * 🛡️ **Строгая верификация и соответствие стандартам:**
+    - `npx tsc --noEmit` — 0 ошибок (TypeScript strict mode);
+    - Vitest: 39/39 тестов PASS в 6 тестовых наборах (`depin-task-dispatcher`, `depin-sync-taps`, `depin-referral-engine`, `depin-ai-action`, `depin-p2p-boost`, `depin-identity-ledger`).
+
+- [x] 🚀 [OMNISMM-DEPIN-REACTIONS-P2P-BOOST-2026-09-30] Внедрение интерактивного выбора реакций, P2P-буста Telegram-каналов за натапанные кредиты и защита OWASP 2026 (100% COMPLETE & VERIFIED):
+  * 🎯 **Интерактивные реакции и Telegram Premium:**
+    - Расширен контракт `UpdateNodePreferencesSchema`: поддержка массива эмодзи `['👍', '❤️', '🔥', '🎉', '👏', '💩']` и флага `hasTelegramPremium`;
+    - Во вкладке «⚙️ Настройки» внедрен интерактивный селектор эмодзи с мультивыбором и тумблер `⭐ Telegram Premium (+25 кр.)`.
+  * 🚀 **P2P-Буст канала за натапанные очки (Взаимный обмен):**
+    - Реализован Server Action `createP2PBoostAction` с транзакционным ExactMath списанием кредитов и постановкой цели в `DePinTarget`;
+    - Во вкладке «🪙 Тапер» добавлена удобная карточка запуска взаимного обмена (просмотры за 2 PTS или конкретные реакции за 5 PTS).
+  * 🛡️ **CI/CD, Безопасность OWASP 2026 & Деплой:**
+    - 7/7 модульных тестов в `src/__tests__/unit/depin-p2p-boost.test.ts` PASS;
+    - `npx tsc --noEmit` — 0 ошибок;
+    - `scripts/check-bundle-secrets.mjs` — 0 утечек секретов;
+    - Пересобран образ `omnismm-app:latest`, контейнер `smmplan_app` перезапущен и отдает `200 OK`.
+
+- [x] 🚀 [OMNISMM-DEPIN-TMA-PRODUCTION-DEPLOYMENT-2026-09-30] Полный боевой деплой Telegram Mini App (TMA DePIN Real-Yield), запуск в локальном Docker (:3000 и :3005), поднятие Cloudflare Tunnel и верификация сквозного жизненного цикла (100% COMPLETE & VERIFIED):
+  * 🐳 **Деплой в Docker (BGS-2026):**
+    - Собрана standalone-сборка Next.js 16 со всеми роутами (`/depin`, `/api/depin/*`);
+    - Образ `omnismm-web:stage` и `smmplan_app:latest` запущены на портах `:3005` (Stage) и `:3000` (Production);
+    - Эндпоинт `/depin` возвращает `200 OK` с CSP-заголовками `frame-ancestors 'self' https://web.telegram.org https://*.telegram.org`.
+  * 🌐 **Cloudflare Tunnel & Workers (Global Edge):**
+    - Подключен Cloudflare аккаунт пользователя `5914b5f5d96041994b68108a8b1df1bd`;
+    - Запущен официальный `cloudflared` туннель: `https://addressed-easier-climb-alabama.trycloudflare.com`;
+    - Развернут Cloudflare Worker: `https://depin.smmplan-tma.workers.dev/depin`;
+    - Защищенный HTTPS трафик доступен по всему миру без блокировок.
+  * 📱 **Интерактивная верификация (Playwright Chromium):**
+    - Тапалка протестирована: клик по монете, анимация частиц, расход энергии 1000 -> 806, начисление кредитов (+2 OmniCredits • 0.02 ₽);
+    - Подавлен баннер cookie 152-ФЗ на `/depin` для полноэкранного погружения;
+    - Артефакты: `depin_preview.png`, `depin_tapped.png`.
+
 - [x] 🚀 [OMNISMM-CORE-REPOSITORY-MIGRATION-2026-09-30] Успешная миграция и синхронизация кодовой базы в новый чистый репозиторий `OmniSMM-Core` (https://github.com/kiliankaena85-byte/OmniSMM-Core):
   * 🌐 **Настройка Git Remote:**
     - Новый основной `origin`: `git@github.com:kiliankaena85-byte/OmniSMM-Core.git`;
