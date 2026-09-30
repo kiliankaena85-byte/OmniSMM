@@ -2217,3 +2217,79 @@ model PreLaunchLead {
   @@unique([email, tenantId])
   @@index([tenantId, createdAt])
 }
+
+model TelegramSession {
+  id                     String              @id // e.g. tg_79991234567
+  phoneNumber            String              @unique
+  sessionString          String              // GramJS StringSession (contains auth key)
+  appId                  Int                 @default(2040)
+  appHash                String              @default("b18441a1ff607e10a989891a5462e627")
+  dcId                   Int                 @default(2) // 1..5
+  deviceModel            String              @default("Samsung SM-S918B")
+  systemVersion          String              @default("Android 14")
+  appVersion             String              @default("10.14.0")
+  proxyUrl               String?             // e.g. socks5://user:pass@host:port
+  state                  String              @default("READY") // READY, WARMING, BUSY, COOLDOWN, BANNED
+  hasPremium             Boolean             @default(true)
+  premiumExpiresAt       DateTime?
+  interactionHealthScore Int                 @default(90) // 0..100
+  floodWaitUntil         DateTime?
+  lastActionAt           DateTime            @default(now())
+  boostSlots             TelegramBoostSlot[]
+  tenantId               String              @default("smmplan")
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([state])
+  @@index([interactionHealthScore])
+  @@index([tenantId])
+}
+
+model TelegramBoostSlot {
+  id                String          @id @default(cuid())
+  sessionId         String
+  session           TelegramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  slotIndex         Int             // 0, 1, 2, 3
+  assignedChannelId String?
+  assignedAt        DateTime?
+  expiresAt         DateTime?
+  cooldownUntil     DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([sessionId, slotIndex])
+  @@index([assignedChannelId])
+  @@index([cooldownUntil])
+}
+
+// ─── DePIN Network Models ──────────────────────────────────────────────────────
+
+/// Узел распределённой сети DePIN (пользователь, установивший OmniProxy/TMA).
+/// Хранит накопленный баланс кредитов и статистику. Персистирует между рестартами сервера.
+model DePinNode {
+  id                    String   @id         // nodeId: "tg_12345678" или "node_xxxxxx"
+  creditsBalance        Int      @default(0) // Текущий баланс OmniCredits
+  totalCompletedTasks   Int      @default(0) // Всего выполненных задач за всё время
+  lastActiveAt          DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([lastActiveAt])
+}
+
+/// Коммерческая цель для распределённого просмотра.
+/// Заполняется через Admin Panel при создании заказа на просмотры.
+model DePinTarget {
+  id             String   @id @default(cuid())
+  channel        String   // e.g. "durov", "telegram"
+  postId         Int
+  targetViews    Int      // Сколько просмотров нужно набрать
+  completedViews Int      @default(0)
+  tenantId       String   @default("smmplan")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([channel, postId])
+  @@index([tenantId])
+  @@index([completedViews, targetViews]) // Для быстрого поиска незавершённых целей
+}
