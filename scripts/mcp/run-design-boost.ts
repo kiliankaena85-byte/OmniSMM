@@ -124,14 +124,24 @@ async function main() {
   console.log(`   • Эргономика Touch Target:  ${(result.finalScores.mobileSafety * 100).toFixed(0)}% (порог >= 65%)`);
   console.log('───────────────────────────────────────────────────────────────────────\n');
 
+  if (result.benchmarkResult) {
+    const b = result.benchmarkResult;
+    console.log(`🏆 Benchmark Improvement: ${b.verdict} (+${b.delta.compositeImprovementPercent}%)`);
+    b.keyAdvantages.forEach(adv => console.log(`   • ${adv}`));
+    console.log('');
+  }
+
+  if (result.tokenValidationResult) {
+    const t = result.tokenValidationResult;
+    console.log(`🛡️ OmniDesign Token Audit: ${t.valid ? '✅ Obsidian Slate Compliant' : `⚠️ ${t.violationsCount} violations`}\n`);
+  }
+
   if (result.candidateScorecards.length > 0) {
     console.log('🔍 Внутренний контур Stitch ↔ Laya (Отбор кандидатов):');
     for (const cand of result.candidateScorecards) {
       const statusIcon = cand.selected ? '✅ ВЫБРАН' : cand.decision === 'REJECTED' ? '❌ ОТКЛОНЕН' : '⚠️ ОТСЕЯН';
       console.log(`   • [${cand.candidateId}] ${cand.name} (${(cand.score * 100).toFixed(0)}% score) -> ${statusIcon}`);
-      if (cand.rejectionReason) {
-        console.log(`     └─ Причина: ${cand.rejectionReason}`);
-      }
+      if (cand.rejectionReason) console.log(`     └─ Причина: ${cand.rejectionReason}`);
     }
     console.log('');
   }
@@ -142,9 +152,7 @@ async function main() {
     const gateIcon = dec.gates.readyForSynthesis ? '✅' : '⚠️';
     console.log(`   [Итерация ${step.iteration}] Stitch кандидатов: ${step.stitchCandidatesEvaluated} | Laya вердикт: ${dec.decision} (${(dec.confidence * 100).toFixed(0)}% conf) ${gateIcon}`);
     console.log(`     └─ Действие Gemini: ${step.geminiAction}`);
-    if (dec.refinements.length > 0) {
-      console.log(`     └─ Рекомендации Laya: ${dec.refinements.join('; ')}`);
-    }
+    if (dec.refinements.length > 0) console.log(`     └─ Рекомендации Laya: ${dec.refinements.join('; ')}`);
   }
 
   if (result.synthesizedReactCode) {

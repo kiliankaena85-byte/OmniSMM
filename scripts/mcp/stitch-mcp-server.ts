@@ -701,7 +701,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
       </header>
 
       {/* Stepper Progress */}
-      <div className="px-4 py-2 border-b ${isFlux ? 'border-[#1f293d] bg-black/20' : 'border-border bg-muted/40'} flex items-center justify-between text-xs">
+      <div className="px-4 py-2 border-b ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/40' : 'border-border bg-muted/40'} flex items-center justify-between text-xs">
         <span className={step >= 1 ? 'font-bold text-primary' : 'text-muted-foreground'}>1. Услуга</span>
         <span>→</span>
         <span className={step >= 2 ? 'font-bold text-primary' : 'text-muted-foreground'}>2. Ссылка</span>
@@ -725,7 +725,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
                 placeholder="https://t.me/channel"
-                className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded text-xs focus:ring-1 focus:ring-primary outline-none"
+                className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded text-xs focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
 
@@ -737,7 +737,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                   min={10}
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(10, parseInt(e.target.value) || 10))}
-                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded text-xs"
+                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded text-xs"
                 />
               </div>
               <div>
@@ -824,7 +824,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
                   placeholder="https://t.me/channel"
-                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded font-mono text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded font-mono text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -836,7 +836,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                     min={10}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(10, parseInt(e.target.value) || 10))}
-                    className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded font-mono text-xs"
+                    className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded font-mono text-xs"
                   />
                 </div>
                 <div>
@@ -922,7 +922,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
                   placeholder="https://t.me/channel"
-                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -934,7 +934,7 @@ export function ${componentName}({ initialBalanceKopecks = 145000n, tenantId = '
                     min={10}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(10, parseInt(e.target.value) || 10))}
-                    className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-black/40' : 'border-border bg-card'} rounded text-xs"
+                    className="w-full min-h-[44px] px-3 border ${isFlux ? 'border-[#1f293d] bg-[#0B0E14]/60' : 'border-border bg-card'} rounded text-xs"
                   />
                 </div>
                 <div>

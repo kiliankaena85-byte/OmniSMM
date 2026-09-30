@@ -11,33 +11,14 @@
 
 import fs from 'fs';
 import path from 'path';
-import { handleMcpRequest, LAYOUT_MCP_TOOLS } from '../ui/layout-mcp-server';
-import { handleLayaMcpRequest } from './laya-mcp-server';
-import { handleStitchMcpRequest } from './stitch-mcp-server';
+import { probeServerHealth, McpServerConfig, ServerHealthResult } from './orchestrator/server-probes';
 
-export interface McpServerConfig {
-  type: 'stdio' | 'http';
-  command?: string;
-  args?: string[];
-  url?: string;
-  enabled: boolean;
-  tier: 'LEVEL_1_TYPES' | 'LEVEL_2_VISUAL' | 'LEVEL_3_DEVOPS';
-  description: string;
-}
+export { probeServerHealth };
+export type { McpServerConfig, ServerHealthResult };
 
 export interface McpPipelineConfig {
   version: string;
   servers: Record<string, McpServerConfig>;
-}
-
-export interface ServerHealthResult {
-  name: string;
-  tier: McpServerConfig['tier'];
-  enabled: boolean;
-  status: 'HEALTHY' | 'UNAVAILABLE' | 'DISABLED';
-  latencyMs: number;
-  toolsCount: number;
-  message: string;
 }
 
 export interface PipelineHealthSummary {
@@ -54,171 +35,7 @@ export function loadMcpConfig(): McpPipelineConfig {
   if (!fs.existsSync(configPath)) {
     throw new Error(`MCP config file not found at: ${configPath}`);
   }
-  const raw = fs.readFileSync(configPath, 'utf8');
-  return JSON.parse(raw);
-}
-
-/**
- * Health probe for in-house and remote MCP servers.
- */
-export async function probeServerHealth(name: string, config: McpServerConfig): Promise<ServerHealthResult> {
-  const start = Date.now();
-
-  if (!config.enabled) {
-    return {
-      name,
-      tier: config.tier,
-      enabled: false,
-      status: 'DISABLED',
-      latencyMs: 0,
-      toolsCount: 0,
-      message: 'Server is disabled in configuration.'
-    };
-  }
-
-  // 1. In-house layout-sentry MCP
-  if (name === 'layout-sentry') {
-    try {
-      const pingRes = await handleMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
-      const toolsRes = await handleMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
-      const latencyMs = Date.now() - start;
-      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
-        latencyMs,
-        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
-        message: 'In-house layout & AST nesting healer active.'
-      };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: 'UNAVAILABLE',
-        latencyMs: Date.now() - start,
-        toolsCount: 0,
-        message: msg
-      };
-    }
-  }
-
-  // 1.1 In-house laya-decisions MCP
-  if (name === 'laya-decisions') {
-    try {
-      const pingRes = await handleLayaMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
-      const toolsRes = await handleLayaMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
-      const latencyMs = Date.now() - start;
-      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
-        latencyMs,
-        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
-        message: 'In-house Laya System 1 decision engine active (~15ms latency).'
-      };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: 'UNAVAILABLE',
-        latencyMs: Date.now() - start,
-        toolsCount: 0,
-        message: msg
-      };
-    }
-  }
-
-  // 1.2 In-house stitch-designer MCP
-  if (name === 'stitch-designer') {
-    try {
-      const pingRes = await handleStitchMcpRequest({ jsonrpc: '2.0', id: 1, method: 'ping', params: {} });
-      const toolsRes = await handleStitchMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
-      const latencyMs = Date.now() - start;
-      const toolsList = (toolsRes?.result as { tools?: unknown[] })?.tools;
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: pingRes ? 'HEALTHY' : 'UNAVAILABLE',
-        latencyMs,
-        toolsCount: Array.isArray(toolsList) ? toolsList.length : 0,
-        message: 'In-house Google Stitch Generative UI active with Laya delegation.'
-      };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: 'UNAVAILABLE',
-        latencyMs: Date.now() - start,
-        toolsCount: 0,
-        message: msg
-      };
-    }
-  }
-
-  // 2. HTTP-based MCP (e.g. GraphRAG)
-  if (config.type === 'http' && config.url) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch(config.url, { signal: controller.signal }).catch(() => null);
-      clearTimeout(timeout);
-      const latencyMs = Date.now() - start;
-      const isOk = res && (res.status === 200 || res.status === 404 || res.status === 405);
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: isOk ? 'HEALTHY' : 'UNAVAILABLE',
-        latencyMs,
-        toolsCount: isOk ? 1 : 0,
-        message: isOk ? 'Knowledge memory service responding.' : 'Memory service port 8100 unreachable.'
-      };
-    } catch {
-      return {
-        name,
-        tier: config.tier,
-        enabled: true,
-        status: 'UNAVAILABLE',
-        latencyMs: Date.now() - start,
-        toolsCount: 0,
-        message: 'HTTP probe timeout or connection refused.'
-      };
-    }
-  }
-
-  // 3. Stdio CLI tools (e.g. git-sentinel, npx packages)
-  if (config.command) {
-    return {
-      name,
-      tier: config.tier,
-      enabled: true,
-      status: 'HEALTHY',
-      latencyMs: Date.now() - start,
-      toolsCount: name === 'puppeteer-visual' ? 3 : 1,
-      message: `Configured via CLI command "${config.command}". Ready for agent stdio spawn.`
-    };
-  }
-
-  return {
-    name,
-    tier: config.tier,
-    enabled: true,
-    status: 'UNAVAILABLE',
-    latencyMs: Date.now() - start,
-    toolsCount: 0,
-    message: 'Unknown server configuration type.'
-  };
+  return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
 export async function runMcpPipelineHealthCheck(): Promise<PipelineHealthSummary> {
@@ -230,16 +47,12 @@ export async function runMcpPipelineHealthCheck(): Promise<PipelineHealthSummary
     results.push(health);
   }
 
-  const healthyCount = results.filter(r => r.status === 'HEALTHY').length;
-  const unavailableCount = results.filter(r => r.status === 'UNAVAILABLE').length;
-  const disabledCount = results.filter(r => r.status === 'DISABLED').length;
-
   return {
     timestamp: new Date().toISOString(),
     totalConfigured: results.length,
-    healthyCount,
-    unavailableCount,
-    disabledCount,
+    healthyCount: results.filter(r => r.status === 'HEALTHY').length,
+    unavailableCount: results.filter(r => r.status === 'UNAVAILABLE').length,
+    disabledCount: results.filter(r => r.status === 'DISABLED').length,
     results
   };
 }

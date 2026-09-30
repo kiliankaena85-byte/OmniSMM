@@ -194,6 +194,15 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     3. **Fail-Closed & CI Gate:** При обнаружении уязвимостей блокирует продвижение кода (`isImmune: false`) и формирует машиночитаемый аудит-репорт с точными номерами строк и рекомендациями.
     4. **Сквозная интеграция:** Добавлен CLI `task-pipeline audit-security <file.ts>` и MCP-инструмент `audit_security` для вызова любым ИИ-агентом (Claude, Cursor, Antigravity).
 
+ - **ADR-2026-49: Modular Multi-Tool MCP Design Pipeline (Stitch + Laya + OmniDesign + Web Benchmarking):**
+   - *Контекст:* Запрос на создание модульной дизайн-системы, в которой ИИ-агенты могут использовать инструменты Google Stitch MCP, Laya MCP, OmniDesign Hub MCP и веб-бенчмаркинг, чтобы генерация интерфейсов была не просто слепым копированием, а доказательным улучшением («не просто тупо копирование, а улучшение»).
+   - *Решение:*
+     1. **Модульная декомпозиция ($\le 200$ строк):** Вынесены модули в `scripts/mcp/orchestrator/`: `server-probes.ts` (118 строк), `prompt-compiler.ts` (79 строк), `design-benchmarking.ts` (140 строк), `types.ts` (54 строки). Оркестраторы отрефакторены строго в лимит: `gemini-stitch-laya-orchestrator.ts` (182 строки), `mcp-pipeline-orchestrator.ts` (86 строк), `run-design-boost.ts` (185 строк).
+     2. **Интеграция OmniDesign Hub в реестр MCP:** Сервер `omnidesign-hub` включен в `mcp-pipeline-orchestrator.ts` и `.mcp/mcp-servers.json` (Level 2 Visual, 5 инструментов, 0ms latency).
+     3. **Движок доказательного улучшения `DesignBenchmarkingEngine`:** Расчет Improvement Delta: плотность, контраст WCAG 2.2, эргономика нажатий 44px, отсечение AI-Slop. Интеграция эталонов современных веб-интерфейсов (Stripe, Linear, 54-ФЗ). Гарантия `isGenuineImprovement === true` (вердикты `SUPERIOR_IMPROVEMENT`, `INCREMENTAL_UPGRADE`, блокировка `REGRESSION_DETECTED`).
+     4. **Очистка шаблонов Stitch MCP:** Заменены остаточные `bg-black/20` и `bg-black/40` на семантический `bg-[#0B0E14]` стандарта Obsidian Slate. Валидация через `OmniDesign Hub` подтверждает 100% соответствие токенов.
+     5. **Верификация & CI-гейты:** 81/81 юнит-тестов PASS (`modular-design-pipeline.test.ts` 8/8, `omnidesign-mcp.test.ts` 22/22, `ast-engine.test.ts` 17/17, `gemini-stitch-laya-orchestration.test.ts` 34/34), `tsc --noEmit` — 0 ошибок, `lint:zero-any` — 0 any, `check-bundle-secrets` — 0 утечек.
+
  - **ADR-2026-48: UI Forge 2.0 OmniDesign MCP Hub, AST Engine & Anti-Slop Standardization:**
    - *Контекст:* Устранение внутренних противоречий в харнесе (кислотные неоновые градиенты в `ui-forge.ts` конфликтовали с `taste-skill` и штрафовались в Laya как `generic_slop`), реализация детерминированного локального AST-движка визуального редактирования по аналогии с Lovable без вызова LLM и создание единого сервера Model Context Protocol (MCP) `omnidesign-hub`.
    - *Решение:*

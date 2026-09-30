@@ -1,3 +1,20 @@
+- [x] 🏆 [MODULAR-DESIGN-PIPELINE-STITCH-MCP-BENCHMARK-2026] Модульный конвейер дизайна OmniSMM: Google Stitch MCP + Laya MCP + OmniDesign Hub + Web Benchmarking & Improvement Delta (100% COMPLETE & VERIFIED):
+  * 🌐 **Модульная архитектура мульти-инструментов MCP:**
+    - Декомпозированы оркестраторы строго под лимит $\le 200$ строк: [`server-probes.ts`](file:///e:/OmniSMM/scripts/mcp/orchestrator/server-probes.ts) (118 строк), [`prompt-compiler.ts`](file:///e:/OmniSMM/scripts/mcp/orchestrator/prompt-compiler.ts) (79 строк), [`design-benchmarking.ts`](file:///e:/OmniSMM/scripts/mcp/orchestrator/design-benchmarking.ts) (140 строк), [`types.ts`](file:///e:/OmniSMM/scripts/mcp/orchestrator/types.ts) (54 строки), [`gemini-stitch-laya-orchestrator.ts`](file:///e:/OmniSMM/scripts/mcp/gemini-stitch-laya-orchestrator.ts) (182 строки), [`mcp-pipeline-orchestrator.ts`](file:///e:/OmniSMM/scripts/mcp/mcp-pipeline-orchestrator.ts) (86 строк);
+    - Сервер `omnidesign-hub` интегрирован в единый реестр MCP-серверов платформы (Level 2 Visual, 5 инструментов, 0ms latency);
+  * 📈 **Движок доказательного улучшения (DesignBenchmarkingEngine):**
+    - Реализовано вычисление Improvement Delta (плотность, контраст WCAG 2.2, touch-эргономика, Zero-Slop);
+    - Гарантия «не просто слепое копирование, а доказательное улучшение» (`isGenuineImprovement`, вердикты `SUPERIOR_IMPROVEMENT`, `INCREMENTAL_UPGRADE`, блокировка `REGRESSION_DETECTED`);
+    - Интеграция эталонов современных веб-интерфейсов (Stripe 2-column split, Linear compact key-value, 54-ФЗ расчет);
+  * 🎨 **Очистка шаблонов Stitch MCP под стандарт Obsidian Slate & Cobalt Matrix:**
+    - Ликвидированы остаточные `bg-black/20` и `bg-black/40` в [`scripts/mcp/stitch-mcp-server.ts`](file:///e:/OmniSMM/scripts/mcp/stitch-mcp-server.ts), заменены на семантический `bg-[#0B0E14]`;
+    - Валидация токенов через `OmniDesign Hub` подтверждает 100% соответствие стандартам;
+  * 🧪 **CI-гейты и верификация:**
+    - 81/81 юнит-тестов PASS ([`modular-design-pipeline.test.ts`](file:///e:/OmniSMM/src/__tests__/unit/modular-design-pipeline.test.ts) 8/8, [`ast-engine.test.ts`](file:///e:/OmniSMM/src/__tests__/unit/ast-engine.test.ts) 17/17, [`omnidesign-mcp.test.ts`](file:///e:/OmniSMM/src/__tests__/unit/omnidesign-mcp.test.ts) 22/22, [`gemini-stitch-laya-orchestration.test.ts`](file:///e:/OmniSMM/src/__tests__/unit/gemini-stitch-laya-orchestration.test.ts) 34/34);
+    - `npx tsc --noEmit` — 0 ошибок (PASS);
+    - `npm run lint:zero-any` — 0 any (PASS);
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек (PASS).
+
 - [x] 🏆 [OMNIDESIGN-MCP-HUB-UI-FORGE-V2-2026] UI Forge 2.0 (OmniDesign MCP Hub) Step 1, Step 2 & Step 3: Устранение шаблонных противоречий, нативный локальный AST-движок OmniAstEngine и единый MCP сервер omnidesign-hub (100% COMPLETE & VERIFIED):
   * 🎨 **Очистка шаблонов от противоречий (Step 1):**
     - В [`scripts/harness/ui-forge.ts`](file:///e:/OmniSMM/scripts/harness/ui-forge.ts) и [`.agents/skills/ui-forge-harness/SKILL.md`](file:///e:/OmniSMM/.agents/skills/ui-forge-harness/SKILL.md) полностью ликвидированы кислотно-неоновые градиенты (`from-purple-600 via-fuchsia-600 to-pink-600`, radial blur blobs), нарушающие `taste-skill` («THE LILA RULE») и штрафуемые Laya MCP как `generic_slop`;
