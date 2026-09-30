@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+import { redis } from '@/lib/redis';
 import { paginatedQuery, type PaginatedResult } from '@/lib/pagination';
 import { auditAdmin, auditAdminAwaitable } from '@/lib/admin-audit';
 import { WalletOps } from '../financial/wallet-ops';
@@ -326,6 +327,17 @@ class AdminUserService {
    * Get aggregate user stats for the header.
    */
   async getUserStats(startDate?: Date, endDate?: Date, tenantId?: string) {
+    const cacheKey = `user:stats:${tenantId || 'all'}:${startDate ? startDate.getTime() : 'all'}:${endDate ? endDate.getTime() : 'all'}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Redis error fallback
+    }
+
     const where: Prisma.UserWhereInput = { isDeleted: false };
     if (startDate && endDate) {
       where.createdAt = { gte: startDate, lte: endDate };
@@ -356,12 +368,20 @@ class AdminUserService {
       },
     });
 
-    return {
+    const result = {
       total,
       active,
       banned,
       totalLiability: totalBalance._sum.balance || 0,
     };
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+    } catch {
+      // Redis write failure is non-fatal
+    }
+
+    return result;
   }
 
   /**

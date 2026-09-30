@@ -17,6 +17,8 @@ describe('Admin Transactions (Ledger) Integrity (Step 10)', () => {
       'COMPENSATION',
       'REROUTE',
       'PAYMENT',
+      'REFERRAL_COMMISSION',
+      'REFERRAL_REVERSAL',
     ];
 
     expect(LEDGER_TRANSACTION_TYPES).toEqual(expectedTypes);

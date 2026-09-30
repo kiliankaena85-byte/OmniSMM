@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { redis } from '@/lib/redis';
 
 export class OrderTimeseriesService {
   /**
@@ -10,6 +11,16 @@ export class OrderTimeseriesService {
     step: 'hour' | 'day' | 'week' | 'month',
     tenantId?: string
   ) {
+    const cacheKey = `orders:timeseries:${tenantId || 'all'}:${step}:${startDate.getTime()}:${endDate.getTime()}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Redis error fallback
+    }
     const rawData = step === 'hour'
       ? await db.$queryRaw<{ date: Date; status: string; count: number }[]>`
         SELECT 
@@ -126,6 +137,12 @@ export class OrderTimeseriesService {
         else if (row.status === 'CANCELED' || row.status === 'ERROR') match.canceled += count;
         else if (row.status === 'PARTIAL' || row.status === 'REFUNDING') match.partial += count;
       }
+    }
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+    } catch {
+      // Redis write failure is non-fatal
     }
 
     return result;

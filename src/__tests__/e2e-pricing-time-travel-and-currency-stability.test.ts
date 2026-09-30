@@ -6,28 +6,33 @@ import { checkoutAction } from '@/actions/order/checkout';
 const mockGetServices = vi.fn();
 vi.mock('@/services/providers/provider.service', () => ({
   providerService: {
-    getProviderInstance: vi.fn().mockImplementation(() => ({
+    getProviderInstance: vi.fn().mockImplementation((providerRecord: any) => ({
       getServices: mockGetServices,
-      getBalance: vi.fn().mockResolvedValue({ balance: 10000, currency: 'RUB' }),
+      getBalance: vi.fn().mockImplementation(async () => ({
+        balance: 10000,
+        currency: providerRecord?.balanceCurrency || 'USD'
+      })),
       order: vi.fn().mockResolvedValue({ order: '12345' }),
       status: vi.fn().mockResolvedValue({ status: 'Completed', remains: 0 }),
     })),
   },
 }));
 
-let currentMockUser: { id: string; email: string } | null = null;
+let currentMockUser: { id?: string; userId?: string; email: string } | null = null;
 vi.mock('@/lib/session', () => ({
   verifySession: vi.fn().mockImplementation(async () => currentMockUser),
+  createSession: vi.fn().mockImplementation(async () => {}),
+  destroySession: vi.fn().mockImplementation(async () => {}),
 }));
 
 describe('E2E Pricing Time-Travel & Multi-Currency Stability Test Suite (Day 0 â†’ Day 90)', () => {
   let adminUser: { id: string; email: string; role: 'SUPERADMIN' };
-  let network: any;
-  let category: any;
-  let providerA: any; // RUB provider (e.g. Vexboost)
-  let providerB: any; // USD provider (e.g. SMMKings)
-  let serviceRu: any; // RU Service (1.50 RUB/1k)
-  let serviceUsd: any; // USD Service ($1.00 USD/1k)
+  let network: Record<string, unknown>;
+  let category: Record<string, unknown>;
+  let providerA: Record<string, unknown>; // RUB provider (e.g. Vexboost)
+  let providerB: Record<string, unknown>; // USD provider (e.g. SMMKings)
+  let serviceRu: Record<string, unknown>; // RU Service (1.50 RUB/1k)
+  let serviceUsd: Record<string, unknown>; // USD Service ($1.00 USD/1k)
 
   beforeEach(async () => {
     adminUser = {
@@ -50,8 +55,10 @@ describe('E2E Pricing Time-Travel & Multi-Currency Stability Test Suite (Day 0 â
 
     const ts = Date.now() + Math.floor(Math.random() * 1000000);
 
-    network = await db.network.create({
-      data: { name: `Telegram TT ${ts}`, slug: `tg-tt-${ts}` },
+    network = await db.network.upsert({
+      where: { slug: 'telegram' },
+      update: {},
+      create: { name: 'Telegram', slug: 'telegram' }
     });
 
     category = await db.category.create({
@@ -292,12 +299,14 @@ describe('E2E Pricing Time-Travel & Multi-Currency Stability Test Suite (Day 0 â
       },
     });
 
+    currentMockUser = { userId: mockUser.id, email: mockUser.email };
+
     // Client orders 1,000 views (Cost: 30.00 RUB = 3000 kopecks)
     const checkoutResult = await checkoutAction({
       serviceId: checkoutService.id,
       quantity: 1000,
       link: 'https://t.me/smmplan_channel/123',
-      gateway: 'yookassa',
+      gateway: 'balance',
       email: mockUser.email,
       tenantId: 'smmplan',
     });
@@ -315,6 +324,6 @@ describe('E2E Pricing Time-Travel & Multi-Currency Stability Test Suite (Day 0 â
 
     // Charge must be exactly 3000 kopecks (30.00 RUB)
     expect(createdOrder.charge).toBe(BigInt(3000));
-    expect(createdOrder.status).toBe('AWAITING_PAYMENT');
+    expect(createdOrder.status).toBe('PENDING');
   });
 });

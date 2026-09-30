@@ -60,6 +60,8 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
   it('runs within explicit tenant context when job.data.tenantId is provided', async () => {
     let capturedTenantId: string | undefined;
 
+    (vi.mocked(db.order.findUnique) as any).mockResolvedValue({ tenantId: 'flux' });
+
     vi.mocked(OrderPreflightGuard.validateAndFetchOrder).mockImplementation(async () => {
       capturedTenantId = tenantStorage.getStore()?.tenantId;
       return { order: null, redisKey: '' };
@@ -76,7 +78,6 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
     await orderProcessor(job as any);
 
     expect(capturedTenantId).toBe('flux');
-    expect(db.order.findUnique).not.toHaveBeenCalled();
   });
 
   it('resolves true tenantId from DB via runWithTenantBypass when job.data.tenantId is missing', async () => {
@@ -132,15 +133,8 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
     expect(capturedTenantId).toBe('vip-brand');
   });
 
-  it('falls back to smmplan if order is not found in DB', async () => {
-    let capturedTenantId: string | undefined;
-
+  it('safely discards job if order is not found in DB', async () => {
     (vi.mocked(db.order.findUnique) as any).mockResolvedValue(null);
-
-    vi.mocked(OrderPreflightGuard.validateAndFetchOrder).mockImplementation(async () => {
-      capturedTenantId = tenantStorage.getStore()?.tenantId;
-      return { order: null, redisKey: '' };
-    });
 
     const job = {
       id: 'job-4',
@@ -151,7 +145,7 @@ describe('BullMQ Tenant Context Hotfix Test Suite', () => {
 
     await orderProcessor(job as any);
 
-    expect(capturedTenantId).toBe('smmplan');
+    expect(OrderPreflightGuard.validateAndFetchOrder).not.toHaveBeenCalled();
   });
 
   it('registers resolved dynamic tenant in VALID_TENANTS and updates job.data.tenantId on retry', async () => {

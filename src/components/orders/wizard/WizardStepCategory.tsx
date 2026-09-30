@@ -2,6 +2,7 @@
 import React from 'react';
 import { Search, ArrowLeft, ArrowRight, Layers } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { CategoryIcon, cleanCategoryName } from '@/components/ui/CategoryIcon';
 import { PublicNetwork, PublicCategory } from '@/actions/order/catalog';
 import { formatDetectedTargetName } from './helpers';
 
@@ -124,11 +125,11 @@ export function WizardStepCategory({
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                    <Layers className="w-4 h-4 shrink-0" />
+                    <CategoryIcon name={cat.name} icon={(cat as { icon?: string | null }).icon} size={18} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <div className="text-sm font-semibold text-foreground truncate min-w-0">{cat.name}</div>
+                      <div className="text-sm font-semibold text-foreground truncate min-w-0">{cleanCategoryName(cat.name, selectedNetwork?.name)}</div>
                       {showAllCategories && isMatchedByFilter && (
                         <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md shrink-0 border border-emerald-500/20">
                           Подходит

@@ -120,7 +120,7 @@ export function CollapsibleWaveChart({ data, step }: Props) {
       </div>
 
       {/* Chart Body */}
-      {!isCollapsed && (
+      {isLoaded && !isCollapsed && (
         <div className="p-5 pt-3 space-y-3 animate-in fade-in duration-200">
           <OrdersChart data={data} />
         </div>

@@ -185,14 +185,16 @@ export default async function AdminSettingsPage({
         </div>
       </div>
 
-      {/* ── Onboarding Readiness & Goal-Gradient Bar ── */}
-      <OnboardingReadinessBar settings={sanitizedSettings} />
-
-      {/* ── Dynamic System Health Pulse & Quick Actions ── */}
-      <SystemHealthOverview settings={sanitizedSettings} />
-
-      {/* ── Level 1 & Level 2 Master Cluster Navigation ── */}
+      {/* ── High-Density Settings Navigation Strip (1-Click Direct Access) ── */}
       <SettingsClusterTabs activeTab={activeTab} />
+
+      {/* ── Onboarding Readiness & System Pulse (Isolated to 'system' tab to keep working forms above fold) ── */}
+      {activeTab === 'system' && (
+        <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+          <OnboardingReadinessBar settings={sanitizedSettings} />
+          <SystemHealthOverview settings={sanitizedSettings} />
+        </div>
+      )}
 
       <div className="space-y-8 mt-4">
         {/* ── TAB 1: SYSTEM ── */}
