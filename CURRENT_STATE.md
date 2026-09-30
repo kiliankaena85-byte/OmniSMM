@@ -1,3 +1,17 @@
+- [x] 🏆 [OMNIDESIGN-AST-ENGINE-AND-UI-FORGE-V2-2026] UI Forge 2.0 (OmniDesign MCP Hub) Step 1 & Step 2: Устранение шаблонных противоречий (Obsidian Slate & Cobalt Matrix standard) и нативный локальный AST-движок OmniAstEngine (100% COMPLETE & VERIFIED):
+  * 🎨 **Очистка шаблонов от противоречий (Step 1):**
+    - В [`scripts/harness/ui-forge.ts`](file:///e:/OmniSMM/scripts/harness/ui-forge.ts) и [`.agents/skills/ui-forge-harness/SKILL.md`](file:///e:/OmniSMM/.agents/skills/ui-forge-harness/SKILL.md) полностью ликвидированы кислотно-неоновые градиенты (`from-purple-600 via-fuchsia-600 to-pink-600`, radial blur blobs), нарушающие `taste-skill` («THE LILA RULE») и штрафуемые Laya MCP как `generic_slop`;
+    - Шаблон генерации страниц SMMflux переведен на премиальный стандарт **Obsidian Slate & Cobalt Matrix** (глубокий фон `bg-[#0B0E14]`, полупрозрачные карточки `border-border/40`, заголовки `text-foreground`, деликатные акцентные бейджи `bg-primary/10 text-primary border border-primary/20`);
+    - Размер файлов строго соблюден: `scripts/harness/ui-forge.ts` (199 строк, $\le 200$), `SKILL.md` (77 строк).
+  * ⚙️ **Локальный AST-движок OmniAstEngine (Step 2):**
+    - Реализован класс [`OmniAstEngine`](file:///e:/OmniSMM/scripts/design-engine/ast-engine.ts) (194 строки, $\le 200$) строго на базе нативного `typescript` Compiler API и `tailwind-merge` (без внешних парсеров Babel/Recast);
+    - Реализованы методы: `inspectJsxNodes` (извлечение тегов, классов, линий и путей), `tagComponentTree` (детерминированная иерархическая инъекция `data-omni-path`), `mutateClasses` / `mutateCode` (Zero-Token Visual Edits с разрешением конфликтов стилей через `twMerge`);
+  * 🧪 **CI-гейты и верификация (Step 3):**
+    - Unit-тесты [`src/__tests__/unit/ast-engine.test.ts`](file:///e:/OmniSMM/src/__tests__/unit/ast-engine.test.ts): 17/17 PASS (инспекция, иерархическое тегирование, мутация по тегу и structural path, разрешение конфликтов twMerge, template literals, JSX в пропсах/иконках, dot-notation компоненты Table.*, spread props);
+    - `npx tsc --noEmit` — 0 ошибок (PASS);
+    - `npm run lint:zero-any` — 0 any (PASS);
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек (PASS).
+
 - [x] 🏆 [OMNISMM-FLUX-VIBRANT-HERO-AND-LOWER-LANDING-BOOST-2026] Комплексный визуальный буст SMMflux: яркий Hero-градиент Aurora v2, живой пульс платформы, 3-шаговый интерактивный онбординг, обсидиановый Pre-Footer CTA и 100% гарантия отката (100% COMPLETE & VERIFIED ON STAGE :3005):
   * 🛡️ **Гарантия мгновенного отката (100% Rollback Safety Net):**
     - Зафиксирован Git-тег: `checkpoint-before-flux-visual-boost` (коммит `7c498ba`);

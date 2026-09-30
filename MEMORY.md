@@ -194,6 +194,13 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
     3. **Fail-Closed & CI Gate:** При обнаружении уязвимостей блокирует продвижение кода (`isImmune: false`) и формирует машиночитаемый аудит-репорт с точными номерами строк и рекомендациями.
     4. **Сквозная интеграция:** Добавлен CLI `task-pipeline audit-security <file.ts>` и MCP-инструмент `audit_security` для вызова любым ИИ-агентом (Claude, Cursor, Antigravity).
 
+ - **ADR-2026-48: UI Forge 2.0 OmniDesign AST Engine & Template Anti-Slop Standardization:**
+   - *Контекст:* Устранение внутренних противоречий в харнесе (кислотные неоновые градиенты в `ui-forge.ts` конфликтовали с `taste-skill` и штрафовались в Laya как `generic_slop`), реализация детерминированного локального AST-движка визуального редактирования по аналогии с Lovable без вызова LLM.
+   - *Решение:*
+     1. **Очистка шаблонов от противоречий (`ui-forge.ts`, `SKILL.md`):** Устранены градиенты `from-purple-600 via-fuchsia-600 to-pink-600`. Внедрен канонический стандарт **Obsidian Slate & Cobalt Matrix** (`bg-[#0B0E14]`, полупрозрачные рамки `border-border/40`, заголовки `text-foreground`, бейджи `bg-primary/10 text-primary border border-primary/20`). В команду `validate` добавлена поддержка таргетированных директорий.
+     2. **Нативный AST-движок (`scripts/design-engine/ast-engine.ts`, 194 строки):** Построен строго на TypeScript Compiler API (`import ts from 'typescript'`) и `tailwind-merge`. Без непроверенных зависимостей (Babel/Recast). Поддерживает инспекцию JSX, инъекцию устойчивых путей `data-omni-path`, мутацию `className` по тегам и путям, разрешение конфликтов классов (`twMerge`), JSX внутри атрибутов/иконок и шаблонные строки.
+     3. **Верификация & CI-гейты:** 17/17 тестов в `src/__tests__/unit/ast-engine.test.ts` (PASS), `tsc --noEmit` (0 ошибок), `lint:zero-any` (0 any), `check-bundle-secrets` (0 утечек).
+
  - **ADR-2026-47: SMMflux Vibrant Hero Aurora v2, Platform Live Pulse & Conversion Suite Architecture:**
    - *Контекст:* Запрос на повышение визуальной привлекательности бренда SMMflux (`tenantId: 'flux'`), ликвидацию эффекта блеклого фона в Hero, добавление конверсионных секций онбординга и социальных доказательств до подвала с обязательной гарантией 100% отката.
    - *Решение:*
