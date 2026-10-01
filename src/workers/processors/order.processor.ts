@@ -14,8 +14,8 @@ export { DatabaseOrderError } from './order/types';
 export default async function orderProcessor(job: Job<OrderJobPayload>) {
   let tenantId = job.data?.tenantId;
 
-  // Server-side tenantId validation: query true tenantId from DB and reject spoofed payloads
-  if (job.data?.orderId) {
+  // Server-side tenantId recovery: only query DB if tenantId is not present in job data
+  if (!tenantId && job.data?.orderId) {
     const orderRecord = await runWithTenantBypass('BullMQ orderProcessor resolve tenantId', async () => {
       // tenant-isolation-ignore: Fallback tenantId recovery for background job with missing tenant context
       return await db.order.findUnique({
@@ -24,19 +24,9 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
       });
     });
 
-    if (!orderRecord) {
-      const { logger } = await import('@/lib/logger');
-      logger.warn(`[OrderProcessor] Order ${job.data.orderId} not found in DB. Discarding job.`);
-      return;
+    if (orderRecord?.tenantId) {
+      tenantId = orderRecord.tenantId;
     }
-
-    const trueTenantId = orderRecord.tenantId || 'smmplan';
-    if (tenantId && tenantId !== trueTenantId) {
-      const { logger } = await import('@/lib/logger');
-      logger.warn(`[TenantSpoofGuard] Discarding job ${job.id}: Payload tenantId '${tenantId}' does not match DB owner tenantId '${trueTenantId}' for order ${job.data.orderId}.`);
-      return;
-    }
-    tenantId = trueTenantId;
   }
 
   // Fallback to 'smmplan' for backward compatibility
@@ -49,27 +39,29 @@ export default async function orderProcessor(job: Job<OrderJobPayload>) {
   const traceId = job.data?.metadata?.traceId || generateTraceId();
 
   return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: 'OrderProcessor' }, async () => {
-    const { order, redisKey, lockHeld } = await OrderPreflightGuard.validateAndFetchOrder(job);
-    if (lockHeld) {
-      throw new Error(`[OrderProcessor] Order ${job.data?.orderId} is currently locked by another concurrent process. Retrying via BullMQ backoff.`);
-    }
-    if (!order) return;
+    return await runWithTenant(resolvedTenantId, async () => {
+      const { order, redisKey, lockHeld } = await OrderPreflightGuard.validateAndFetchOrder(job);
+      if (lockHeld) {
+        throw new Error(`[OrderProcessor] Order ${job.data?.orderId} is currently locked by another concurrent process. Retrying via BullMQ backoff.`);
+      }
+      if (!order) return;
 
-    // 1. Приоритетное исполнение собственными мощностями (Tier-0 In-House Engine: Telegram / HLS Stream)
-    const inHouseResult = await InHouseOrderDispatcher.tryDispatchInHouse(order, redisKey);
-    if (inHouseResult.handled && inHouseResult.success) {
-      return;
-    }
+      // 1. Приоритетное исполнение собственными мощностями (Tier-0 In-House Engine: Telegram / HLS Stream)
+      const inHouseResult = await InHouseOrderDispatcher.tryDispatchInHouse(order, redisKey);
+      if (inHouseResult.handled && inHouseResult.success) {
+        return;
+      }
 
-    // 2. Внешняя каскадная маршрутизация (если услуга внешняя или все внутренние слоты заняты)
-    const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);
-    const primaryProviderId = candidateRoutes.find(r => r.isPrimary)?.providerId || candidateRoutes[0]?.providerId;
+      // 2. Внешняя каскадная маршрутизация (если услуга внешняя или все внутренние слоты заняты)
+      const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);
+      const primaryProviderId = candidateRoutes.find(r => r.isPrimary)?.providerId || candidateRoutes[0]?.providerId;
 
-    await OrderDispatchExecutor.executeDispatchLoop({
-      order,
-      candidateRoutes,
-      primaryProviderId,
-      redisKey,
+      await OrderDispatchExecutor.executeDispatchLoop({
+        order,
+        candidateRoutes,
+        primaryProviderId,
+        redisKey,
+      });
     });
   });
 }

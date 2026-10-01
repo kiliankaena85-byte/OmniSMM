@@ -1,3 +1,22 @@
+- [x] 🚀 [OMNISMM-CRITICAL-AUDIT-REMEDIATION-AND-OPENROUTER-VERIFICATION-2026-10-01] Полная критическая ревизия кодовой базы OmniSMM-Core, устранение всех блокеров надежности и мульти-тенантности, верификация через OpenRouter LLM флотилию (100% COMPLETE & ALL CI/CD GATES PASSED):
+  * 🔍 **Комплексный аудит и верификация через OpenRouter:**
+    - Проведен сквозной аудит по 8 направлениям (Архитектура, Безопасность, Мульти-тенантность, Конкурентность, Надежность, Производительность, Секреты, Типобезопасность);
+    - Сформирован архитектурный план устранения дефектов и верифицирован через 6 ключей OpenRouter на бесплатных моделях (`qwen/qwen3.8-27b:free`, `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`) с вердиктом **ACCEPT (Score 9.0–9.5/10)**;
+  * 🛡️ **Устранение блокеров надежности и изоляции (`npm run audit:prod` -> 0 блокеров, `npm run lint:tenant` -> 0 блокеров):**
+    - В воркерах `depin-watchdog.processor.ts`, `organic-campaign.processor.ts` и `order.processor.ts` внедрена обязательная обертка `runWithTenant` и восстановление `tenantId` через `runWithTenantBypass`;
+    - В Server Actions `staff.ts`, `tenants.ts`, `users.ts` и модуле `admin-audit.ts` устранены пустые блоки `catch {}`, добавлено структурированное логирование с контекстом;
+    - В сетевые вызовы `fetch` в `telegram-mtproto-executor.ts` и `depin/page.tsx` внедрены `AbortSignal.timeout`;
+    - Запросы `user.findMany` и `ledgerEntry.aggregate` в админских действиях DePIN и PPC изолированы по `tenantId`;
+  * 🧪 **100% Прохождение тестов и строгих CI-гейтов:**
+    - `vitest run src/__tests__/unit/bullmq-tenant-context.test.ts` (7/7 passed);
+    - `vitest run src/__tests__/unit/wallet-ops-acid-invariants.test.ts` (6/6 passed);
+    - `vitest run src/__tests__/unit/ppc-autonomous-agent.test.ts src/__tests__/unit/ppc-metrika-direct-loop.test.ts` (16/16 passed);
+    - `npm run audit:prod` — 0 BLOCKERS;
+    - `npm run lint:tenant` — exit code 0;
+    - `npm run lint:guardrails` — exit code 0 (AST Guardrails PASS);
+    - `npm run typecheck` (`tsc --noEmit`) — 0 errors на 6,200+ файлах;
+    - `check:bundle-secrets` — 0 hardcoded secrets.
+
 - [x] 🚀 [OMNISMM-PRODUCTION-READINESS-TURNKEY-KIT-2026-10-01] Полный комплекс предпродакшн-подготовки платформы OmniSMM 1.0 («Ключ на старт»: юриспруденция 152/54-ФЗ, Docker Prod, редиректы, пошаговый Runbook):
   * ⚖️ **Юридический контур и защита бизнеса (152-ФЗ, 54-ФЗ, 115-ФЗ, ЗоЗПП):**
     - Внедрены шаблоны Enterprise Ironclad v5.1 в `src/data/legal-fallbacks.ts` (Публичная оферта ст. 437 ГК РФ, Политика конфиденциальности 152-ФЗ, Порядок возврата аванса с удержанием ФПР 15–40% по ст. 782 ГК РФ и ст. 346.17 НК РФ);

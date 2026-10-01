@@ -56,7 +56,7 @@ export async function getDePinAdminDataAction(): Promise<{
   targets?: DePinTargetAdminItem[];
   error?: string;
 }> {
-  return requireStaffPermission('settings', 'view', async () => {
+  return requireStaffPermission('settings', 'view', async (staff) => {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -99,7 +99,10 @@ export async function getDePinAdminDataAction(): Promise<{
 
       const linkedUsers = telegramIdsToLookup.size > 0
         ? await db.user.findMany({
-            where: { telegramId: { in: Array.from(telegramIdsToLookup) } },
+            where: { 
+              telegramId: { in: Array.from(telegramIdsToLookup) },
+              tenantId: staff.tenantId || 'smmplan'
+            },
             select: { id: true, email: true, telegramId: true, balance: true },
           })
         : [];

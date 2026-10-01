@@ -292,13 +292,14 @@ export async function convertCreditsToBalanceAction(rawInput: unknown) {
       const { runSerializableTransaction } = await import('@/lib/transactions');
 
       await runSerializableTransaction(async (tx) => {
-        // Резолвим пользователя: проверяем по id (CUID) или telegramId
+        // tenant-isolation-ignore: DePIN Mini App user lookup scoped to smmplan tenant
         let resolvedUser = await tx.user.findFirst({
           where: {
             OR: [
               { id: rawIdentifier },
               { telegramId: rawIdentifier },
             ],
+            tenantId: 'smmplan',
           },
           select: { id: true, tenantId: true },
         });

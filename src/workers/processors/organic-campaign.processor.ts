@@ -1,15 +1,18 @@
 import type { Job } from 'bullmq';
 import { logger } from '@/lib/logger';
+import { runWithTenant } from '@/lib/tenant-context';
 
 /**
  * BullMQ processor для OmniOrganic кампаний.
  * Запускается каждый час (cron: 0 * * * *).
  * Находит активные кампании и выдаёт FOLLOW/UNFOLLOW задания для нод.
  */
-export async function processOrganicCampaign(_job: Job): Promise<void> {
-  logger.info('🌱 Organic campaign executor started', { component: 'OrganicCampaign' });
+export async function processOrganicCampaign(job: Job): Promise<void> {
+  const tenantId = job.data?.tenantId || 'smmplan';
+  return runWithTenant(tenantId, async () => {
+    logger.info('🌱 Organic campaign executor started', { component: 'OrganicCampaign', tenantId });
 
-  try {
+    try {
     const { db } = await import('@/lib/db');
 
     const now = new Date();
@@ -115,4 +118,5 @@ export async function processOrganicCampaign(_job: Job): Promise<void> {
     logger.error('Organic executor failed', { component: 'OrganicCampaign', err: String(err) });
     throw err;
   }
+  });
 }

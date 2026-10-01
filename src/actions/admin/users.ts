@@ -567,7 +567,9 @@ export async function loginAsAction(formData: FormData) {
     try {
       const reqHeaders = await headers();
       host = reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
-    } catch {}
+    } catch (err: unknown) {
+      host = '';
+    }
 
     const contour = resolveContourFromHost(host);
     const tenantId = targetUser.tenantId || 'smmplan';

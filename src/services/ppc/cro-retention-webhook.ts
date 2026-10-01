@@ -27,7 +27,8 @@ export class CroRetentionWebhook {
    */
   public async findZeroBalanceRegistrations(
     minMinutesAgo = 20,
-    maxMinutesAgo = 1440
+    maxMinutesAgo = 1440,
+    tenantId = 'smmplan'
   ): Promise<ZeroBalanceLead[]> {
     try {
       if (!db?.user?.findMany) {
@@ -40,6 +41,7 @@ export class CroRetentionWebhook {
 
       const users = await db.user.findMany({
         where: {
+          tenantId,
           balance: 0n,
           totalSpent: 0n,
           isActive: true,

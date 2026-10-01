@@ -66,7 +66,7 @@ export async function getDePinMiniAppAnalyticsAction(
   data?: DePinAnalyticsData;
   error?: string;
 }> {
-  return requireStaffPermission('settings', 'view', async () => {
+  return requireStaffPermission('settings', 'view', async (staff) => {
     try {
       const now = Date.now();
       const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
@@ -100,6 +100,7 @@ export async function getDePinMiniAppAnalyticsAction(
         }),
         db.ledgerEntry.aggregate({
           where: {
+            tenantId: staff.tenantId || 'smmplan',
             transactionType: 'COMPENSATION',
             reason: { contains: 'DePIN' },
           },
@@ -145,7 +146,10 @@ export async function getDePinMiniAppAnalyticsAction(
 
       const linkedUsers = candidateTgIds.size > 0
         ? await db.user.findMany({
-            where: { telegramId: { in: Array.from(candidateTgIds) } },
+            where: { 
+              telegramId: { in: Array.from(candidateTgIds) },
+              tenantId: staff.tenantId || 'smmplan'
+            },
             select: { email: true, telegramId: true },
           })
         : [];

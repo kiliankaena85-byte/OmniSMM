@@ -330,6 +330,7 @@ export default function DePinTelegramMiniAppPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData }),
+        signal: AbortSignal.timeout(8000),
       })
         .then((r) => r.json())
         .then((data: { success: boolean; nodeId?: string; telegramId?: string }) => {
