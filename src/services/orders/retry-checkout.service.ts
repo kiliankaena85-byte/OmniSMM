@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { SettingsManager, SettingsProvider } from '@/lib/settings';
 import { runSerializableTransaction } from '@/lib/transactions';
 import { WalletOps } from '@/services/financial/wallet-ops';
+import { getCanonicalTenantBaseUrl } from '@/utils/get-base-url';
 
 export async function checkYookassaStatusSync(gatewayId: string, tenantId: string = 'smmplan'): Promise<boolean> {
   try {
@@ -157,7 +158,7 @@ export class RetryCheckoutService {
       return { paymentId: paymentId!, totalPaymentAmount: paymentAmount, linkedOrderIds: ordersToProcess.map(o => o.id) };
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getCanonicalTenantBaseUrl(order.tenantId);
 
     if (gateway === 'balance') {
       const { ordersQueue } = await import('@/lib/queue-manager');

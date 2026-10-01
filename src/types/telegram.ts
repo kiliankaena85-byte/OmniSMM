@@ -252,7 +252,8 @@ export type TelegramMenuButtonAction =
   | 'URL'           // 🌐 Внешняя ссылка
   | 'WEB_APP'       // 📱 Telegram Mini App
   | 'COMMAND'       // ⚡ Команда (/start, /help)
-  | 'TEXT_REPLY';   // 💬 Быстрый текст / FAQ ответ
+  | 'TEXT_REPLY'    // 💬 Быстрый текст / FAQ ответ
+  | 'DEPIN';        // ⚡ DePIN Биржа и микро-задания (Mini App)
 
 export interface TelegramMenuButton {
   id: string;

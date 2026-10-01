@@ -4,6 +4,7 @@ import {
   fetchDePinTasksAction,
   reportDePinTaskAction,
   convertCreditsToBalanceAction,
+  skipDePinTaskAction,
 } from '@/actions/depin/ai-assistant';
 import { GeminiClient } from '@/services/ai/gemini-client';
 import { DePinTaskDispatcher } from '@/services/depin/task-dispatcher';
@@ -13,6 +14,12 @@ vi.mock('@/lib/redis', () => ({
     incr: vi.fn().mockResolvedValue(1),
     expire: vi.fn().mockResolvedValue(1),
     ttl: vi.fn().mockResolvedValue(3599),
+    exists: vi.fn().mockResolvedValue(0),
+    setex: vi.fn().mockResolvedValue('OK'),
+    get: vi.fn().mockResolvedValue(JSON.stringify({ targetId: 't1', nodeId: 'node_live_99' })),
+    del: vi.fn().mockResolvedValue(1),
+    sismember: vi.fn().mockResolvedValue(0),
+    sadd: vi.fn().mockResolvedValue(1),
   },
 }));
 
@@ -32,9 +39,33 @@ vi.mock('@/services/financial/wallet-ops', () => ({
   },
 }));
 
+vi.mock('@/lib/db', () => ({
+  db: {
+    user: {
+      findFirst: vi.fn().mockResolvedValue({ id: 'usr_mock_123', tenantId: 'smmplan' }),
+      create: vi.fn().mockResolvedValue({ id: 'usr_mock_123', tenantId: 'smmplan' }),
+    },
+    dePinNode: {
+      upsert: vi.fn().mockResolvedValue({ id: 'node_live_1' }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'node_live_1', creditsBalance: 10 }),
+      update: vi.fn().mockResolvedValue({ id: 'node_live_1', creditsBalance: 20 }),
+    },
+    dePinTarget: {
+      fields: { targetViews: 'targetViews' },
+      findMany: vi.fn().mockResolvedValue([]),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
+  },
+}));
+
 vi.mock('@/lib/transactions', () => ({
   runSerializableTransaction: vi.fn().mockImplementation(async (callback) => {
-    return callback({});
+    return callback({
+      user: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'usr_mock_123', tenantId: 'smmplan' }),
+        create: vi.fn().mockResolvedValue({ id: 'usr_mock_123', tenantId: 'smmplan' }),
+      },
+    });
   }),
 }));
 
@@ -71,6 +102,26 @@ describe('DePIN AI Assistant & Task Actions', () => {
       );
     });
 
+    it('должен генерировать осмысленные комментарии в режиме SMART_COMMENT', async () => {
+      vi.mocked(GeminiClient.generateContent).mockResolvedValueOnce(
+        '1. Отличная мысль, полностью согласен!\n2. Интересный подход к продвижению.\n3. Ждем продолжения поста!'
+      );
+
+      const res = await askOmniAiAction({
+        prompt: 'Пост про DePIN',
+        mode: 'SMART_COMMENT',
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.text).toContain('1. Отличная мысль');
+      expect(GeminiClient.generateContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          systemInstruction: expect.stringContaining('активный подписчик'),
+          temperature: 0.7,
+        })
+      );
+    });
+
     it('должен корректно обрабатывать ошибку генерации от модели', async () => {
       vi.mocked(GeminiClient.generateContent).mockRejectedValueOnce(
         new Error('QUOTA_EXCEEDED_429')
@@ -93,10 +144,11 @@ describe('DePIN AI Assistant & Task Actions', () => {
       expect(res.tasks).toHaveLength(0);
     });
 
-    it('должен выдавать задачи и принимать отчеты с начислением кредитов', async () => {
+    it('должен выдавать задачи, trustScore и принимать отчеты с начислением кредитов', async () => {
       const fetchRes = await fetchDePinTasksAction({ nodeId: 'node_live_99', limit: 2 });
       expect(fetchRes.success).toBe(true);
       expect(fetchRes.tasks.length).toBeGreaterThan(0);
+      expect(fetchRes.trustScore).toBeDefined();
 
       const firstTask = fetchRes.tasks[0];
       const reportRes = await reportDePinTaskAction({
@@ -140,6 +192,41 @@ describe('DePIN AI Assistant & Task Actions', () => {
         expect(res.rublesCredited).toBe(2);
         expect(res.remainingCredits).toBe(50);
       }
+    });
+  });
+
+  describe('skipDePinTaskAction', () => {
+    it('должен валидировать и отклонять пустые входные данные', async () => {
+      const res = await skipDePinTaskAction({ nodeId: '', taskId: '' });
+      expect(res.success).toBe(false);
+      expect(res.error).toBeDefined();
+    });
+
+    it('должен успешно пропускать задание и возвращать свежее задание на замену', async () => {
+      const res = await skipDePinTaskAction({
+        nodeId: 'node_live_99',
+        taskId: 'task_to_skip_1',
+        targetId: 't1',
+        channel: 'durov',
+        postId: 100,
+        reason: 'ALREADY_VIEWED',
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.skippedTaskId).toBe('task_to_skip_1');
+    });
+
+    it('должен поддерживать причину OWN_POST для исключения своего контента', async () => {
+      const res = await skipDePinTaskAction({
+        nodeId: 'node_live_99',
+        taskId: 'task_own_1',
+        channel: 'my_own_chan',
+        postId: 12,
+        reason: 'OWN_POST',
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.skippedTaskId).toBe('task_own_1');
     });
   });
 });

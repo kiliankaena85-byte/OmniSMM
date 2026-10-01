@@ -101,6 +101,13 @@ export function PlanCheckoutGateways({
           );
         })}
       </div>
+
+      {selectedGateway === 'yookassa' && (
+        <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 flex items-start gap-1.5">
+          <span className="text-xs shrink-0">💡</span>
+          <span>Для перехода в ЮKassa / СБП может потребоваться временно отключить VPN (российские банки блокируют зарубежные IP)</span>
+        </p>
+      )}
     </div>
   );
 }

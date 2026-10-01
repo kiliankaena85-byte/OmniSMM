@@ -4,11 +4,13 @@ import { VaultService } from '@/lib/vault';
 
 // Приоритетный каскад: всегда новейшая модель (gemini-flash-latest / gemini-latest) с плавным фоллбэком
 const FALLBACK_MODEL_CASCADES = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-3.8-flash',
   'gemini-flash-latest',
   'gemini-latest',
   'gemini-3-flash-preview',
   'gemini-3-flash',
-  'gemini-2.5-flash',
   'gemini-flash-lite-latest',
 ];
 
@@ -193,7 +195,7 @@ export class GeminiClient {
     if (process.env.GEMINI_MODEL) {
       return process.env.GEMINI_MODEL.trim();
     }
-    return 'gemini-3.8-flash';
+    return 'gemini-3.5-flash-lite';
   }
 
   /**
@@ -266,7 +268,7 @@ export class GeminiClient {
               break;
             }
 
-            if (res.status === 404 || res.status === 400) {
+            if (res.status === 404 || res.status === 400 || res.status === 503 || res.status === 500) {
               console.warn(`[GeminiClient] Model ${model} returned HTTP ${res.status} on stream. Trying next model...`);
               modelCache = null;
               break;
@@ -409,7 +411,7 @@ export class GeminiClient {
               break; // Меняем API-ключ
             }
 
-            if (res.status === 404 || res.status === 400) {
+            if (res.status === 404 || res.status === 400 || res.status === 503 || res.status === 500) {
               console.warn(`[GeminiClient] Model ${model} returned HTTP ${res.status}. Trying next model in cascade...`);
               modelCache = null;
               break; // Меняем модель

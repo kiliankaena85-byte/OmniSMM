@@ -8,7 +8,7 @@ import { SettingsProvider } from '@/lib/settings';
 import { createSession } from '@/lib/session';
 import { sendOrderBalanceDebitMail } from "@/lib/smtp";
 import { generateGuestOrderToken } from '@/lib/order-token';
-import { getBaseUrlSync } from "@/utils/get-base-url";
+import { getBaseUrlSync, getCanonicalTenantBaseUrl } from "@/utils/get-base-url";
 import type { User } from '@prisma/client';
 import type { DbServiceWithCategory } from './checkout-preflight-guard.service';
 
@@ -44,7 +44,7 @@ export class CheckoutPaymentService {
     } = input;
 
     let paymentUrl: string | null = null;
-    const baseUrl = getBaseUrlSync();
+    const baseUrl = getCanonicalTenantBaseUrl(tenantId);
     const successUrl = `${baseUrl}/success?orderId=${result.orderId}`;
 
     if (gateway === 'balance') {

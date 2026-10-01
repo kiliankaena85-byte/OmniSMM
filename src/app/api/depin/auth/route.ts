@@ -1,5 +1,3 @@
-'use server';
-
 import { createHmac } from 'crypto';
 import { redis } from '@/lib/redis';
 

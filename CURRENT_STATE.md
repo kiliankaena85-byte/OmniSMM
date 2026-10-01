@@ -1,3 +1,59 @@
+- [x] 🚀 [OMNISMM-PRODUCTION-STRESS-BENCHMARK-CERTIFIED-2026-10-01] Комплексное высоконагруженное стресс-тестирование OmniSMM 1.0 в продакшне (:3000) после боевого Blue-Green Cutover (100% COMPLETE & PRODUCTION CERTIFIED — RAC-2026 / BGS-2026):
+  * 🐳 **Боевой релиз в продакшн (`smmplan_app` :3000):**
+    - Успешный перенос проверенного standalone билда Next.js 16 из stage (`omnismm-web:stage`) в боевой контейнер `smmplan_app`;
+    - Предыдущий стабильный образ зафиксирован как `smmplan_backup:latest` (гарантия отката за 5 секунд);
+    - Устранен баг парсинга `.env` с инлайн-комментариями в `APP_ENCRYPTION_KEY` и `JWT_SECRET`;
+    - Все эндпоинты (`http://127.0.0.1:3000/api/health` и `https://smmplan.tail060e84.ts.net/api/health`) возвращают `200 OK, healthy`.
+  * ⚡ **Стресс-тестирование по 6 блокам стандартов RAC-2026 (`scripts/stress/omnismm-production-stress-orchestrator.ts`):**
+    1) **Storefront SSR & Каталог:** 200 запросов к `/` и `/services` -> 100% HTTP 200 OK (Avg: 18.72 ms, P50: 17.12 ms, P95: 33.00 ms, P99: 54.06 ms при SLA < 300 ms);
+    2) **ReDoS Link Engine:** 30 000 паттерн-матчей за 16.76 ms -> 0.56 мкс/матч при лимите SLA < 50 мкс (100% стабильность Event Loop, защита от ReDoS);
+    3) **PostgreSQL ACID & TOCTOU Balance Fuzzing:** 30 одновременных конкурирующих списаний по 50.00 ₽ с аккаунта с балансом 100.00 ₽:
+       - Успешных списаний (`200 OK`): **ровно 2**;
+       - Отклоненных списаний (`INSUFFICIENT_FUNDS`): **ровно 28**;
+       - Итоговый баланс пользователя: **строго 0,00 ₽**;
+       - Расхождение в леджере (Audit Delta): **строго 0 копеек**;
+       - Записей в леджере: **строго 2** (подтверждена изоляция `runInTransactionContext`);
+    4) **High-Density Admin Tables:** выборка 33 заказов со связанными пользователями и услугами за 52.12 ms (SLA < 150 ms), 1 SQL batch join, 0 N+1;
+    5) **BullMQ Queue & Redis Memory:** 2.94 МБ RAM, очередь без бэклога, флаг вытеснения `volatile-lru` активен;
+    6) **Node.js Heap Profile:** RSS 97.34 МБ, Heap Used 13.22 МБ (при потолке безопасности 250 МБ).
+  * 🚀 **Autocannon Sustained Concurrency Benchmark:**
+    - 50 одновременных соединений в течение 10 секунд на главной странице SSR;
+    - 756 полных SSR-отрисовок страниц, 45.4 МБ передано, 0 отвалов, 0 ошибок (70.6 req/sec).
+
+- [x] 🚀 [OMNISMM-CHECKOUT-VPN-RETURN-URL-REMEDIATION-2026-10-01] Ликвидация сбоя зависания return_url ЮKassa на временных туннелях и внедрение VPN-помощника для пользователей (100% COMPLETE & VERIFIED):
+  * 🔍 **Диагностика и устранение проблемы возврата ЮKassa (Dead Return URL):**
+    - Ранее при создании платежа ЮKassa в `confirmation.return_url` передавался временный хост `*.lhr.life` из заголовков запроса при тестировании туннелей;
+    - При завершении оплаты банк пытался перенаправить пользователя на уже закрытый SSH-туннель, вызывая бесконечную загрузку или ошибку соединения;
+    - В `src/utils/get-base-url.ts` создана функция `getCanonicalTenantBaseUrl(tenantId)`, принудительно возвращающая постоянные канонические домены (`https://smmplan.pro` / `https://smmflux.ru`) или Tailscale Funnel (`https://smmplan.tail060e84.ts.net`);
+    - В `src/services/orders/checkout-payment.service.ts`, `retry-checkout.service.ts` и `unified-payment.service.ts` формирование `return_url` переведено на `getCanonicalTenantBaseUrl`;
+    - Заказ пользователя `cmuow3ver000313thudslzgz1` (10 лайков на `https://t.me/smmMarket69`) и платёж `cmuow3vf8000513thl580rm5s` успешно подтверждены в PostgreSQL: статус `ORDER: PENDING`, `PAYMENT: SUCCEEDED`.
+  * 🛡️ **Решение проблемы блокировок ЮKassa при активном VPN:**
+    - В чекаут витрины добавлен янтарный инфо-блок прямо под выбором способа оплаты: «💡 Для перехода в ЮKassa / СБП может потребоваться временно отключить VPN (российские банки блокируют зарубежные IP)»;
+    - Разработана и интегрирована модалка `<PaymentVpnHelperModal>` с QR-кодом для оплаты со смартфона по СБП и фоновым поллингом статуса;
+    - Верифицировано в Playwright: скриншот `stage_checkout_ready.png` зафиксировал отображение подсказки в интерфейсе.
+  * 🧪 **CI-гейты:**
+    - TypeScript strict mode (`npx tsc --noEmit`): 0 ошибок;
+    - Аудит секретов (`scripts/check-bundle-secrets.mjs`): 0 утечек.
+
+- [x] 🚀 [OMNISMM-PROVIDER-CURRENCY-REMEDIATION-2026-10-01] Ликвидация 95-кратной инфляции цен из-за сбоя валют провайдеров (USD -> RUB) и пересчет каталога (100% COMPLETE & VERIFIED):
+  * 🔍 **Корневая причина:**
+    - У 5 российских поставщиков (Soc-Rocket, VexBoost, SMMPrime, ProSMM-Shop, Stream-Promotion) в таблице `Provider` стоял `balanceCurrency = 'USD'`.
+    - Из-за этого при импорте и снапшотировании цен их рублевые тарифы умножались на курс доллара (95.0 ₽/$), что искусственно завышало себестоимость и розницу в 95 раз (например, лайки Telegram отображались по 455–534 ₽ за 1 шт вместо 4.80–5.63 ₽).
+  * 🛠️ **Реализованные исправления:**
+    - Выполнен скрипт `scripts/remediate-provider-currency-prices.mjs`:
+    - Поставщикам `Soc-Rocket`, `VexBoost`, `SMMPrime`, `ProSMM-Shop`, `Stream-Promotion` проставлен `balanceCurrency = 'RUB'`;
+    - Зарубежный поставщик `SMMPanelUS` сохранен в `USD` (баланс $5.00);
+    - Обновлено 166 услуг: `providerCurrency = 'RUB'`, `costPer1kRub = rate`, `pricePer1000Cents = Math.round(rate * markup * 100)`;
+    - Создана запись в `RoutingAuditLog`;
+    - Произведен полный сброс кэша Redis (`FLUSHDB`) для мгновенного обновления витрины.
+  * 📊 **Результаты верификации (До -> После):**
+    - Telegram Лайки: 455.72 ₽ -> **4.80 ₽ / шт** (Soc-Rocket) и 534.40 ₽ -> **5.63 ₽ / шт** (VexBoost);
+    - Instagram Просмотры: 353.40 ₽ -> **3.72 ₽ / шт** (VexBoost);
+    - Instagram Подписчики: 45.93 ₽ -> **0.48 ₽ / шт** (ProSMM-Shop);
+    - TikTok Комментарии: 264.43 ₽ -> **2.78 ₽ / шт** (ProSMM-Shop);
+    - YouTube Комментарии: 253.46 ₽ -> **2.67 ₽ / шт** (ProSMM-Shop);
+    - Все контейнеры (`smmplan_app`, `smmplan_stage`, `smmplan_redis`, `smmplan_db`) активны и отдают здоровые ответы (200 OK, healthy).
+
 - [x] 🚀 [OMNISMM-DEPIN-NANO-BANANA-REDESIGN-PROD-2026-10-01] Бесшовный боевой деплой (Zero-Downtime Cutover) дизайна Nano Banana в DePIN Mini App на smmplan_app (:3000) после санкции пользователя (100% PRODUCTION VERIFIED):
   * 🎨 **Реализация дизайн-системы Nano Banana:**
     - Глубокий темный графитовый фон `#0d0f14`, четкие карточки заданий `#12141a` с границей `border-neutral-800/80` и скруглением `rounded-2xl`;

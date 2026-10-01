@@ -2348,6 +2348,47 @@ model DePinFollowAudit {
   @@index([auditedAt])
 }
 
+/// Реферальные связи DePIN TMA для вирусного роста
+model DePinReferral {
+  id                     String                 @id @default(cuid())
+  referrerTelegramId     String                 // telegramId пригласителя
+  referrerNodeId         String                 // nodeId пригласителя
+  refereeTelegramId      String                 @unique // telegramId приглашенного друга
+  refereeNodeId          String                 @unique // nodeId приглашенного друга
+  status                 String                 @default("PENDING_QUALIFICATION") // PENDING_QUALIFICATION | QUALIFIED | BLOCKED
+  welcomeBonusGranted    Boolean                @default(true)
+  activationBonusGranted Boolean                @default(false)
+  tapsRecorded           Int                    @default(0)
+  tasksCompleted         Int                    @default(0)
+  ipAddress              String?
+  userAgent              String?
+  qualifiedAt            DateTime?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  earnings               DePinReferralEarning[]
+
+  @@index([referrerTelegramId])
+  @@index([referrerNodeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Журнал начислений бонусов и 10% роялти от заданий рефералов
+model DePinReferralEarning {
+  id            String        @id @default(cuid())
+  referralId    String
+  referral      DePinReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  earningType   String        // 'ACTIVATION_BONUS' | 'TASK_ROYALTY'
+  amountCredits Int           // Начислено в OmniCredits
+  sourceTaskId  String?       // ID задания, с которого начислен процент
+  createdAt     DateTime      @default(now())
+
+  @@index([referralId])
+  @@index([earningType])
+  @@index([createdAt])
+}
+
 // ─── OmniOrganic Campaign Models ──────────────────────────────────────────────
 
 /// Кампания органического роста подписчиков с управляемым churn.

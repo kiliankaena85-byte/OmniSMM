@@ -20,6 +20,10 @@ function buildAllowedOrigins() {
     '*.ngrok-free.app',
     '*.ngrok.app',
     '*.ngrok.io',
+    '*.lhr.life',
+    '*.free.pinggy.net',
+    '*.pinggy-free.link',
+    '*.workers.dev',
   ];
 
   const baseWildcards = [

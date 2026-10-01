@@ -54,8 +54,98 @@ function killSsh(child) {
   }
 }
 
+const DEPIN_CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
+const DEPIN_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '5914b5f5d96041994b68108a8b1df1bd';
+const DEPIN_SCRIPT_NAME = 'depin';
+
+async function updateDepinWorker(tunnelUrl) {
+  console.log(`[Cloudflare] Updating DePIN Worker to PROXY -> ${tunnelUrl}...`);
+  const WORKER_CODE = `
+const TARGET_ORIGIN = '${tunnelUrl}';
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const destination = new URL(url.pathname + url.search, TARGET_ORIGIN);
+
+    const proxyHeaders = new Headers(request.headers);
+    proxyHeaders.set('host', destination.host);
+    proxyHeaders.set('x-forwarded-host', destination.host);
+    proxyHeaders.set('x-forwarded-proto', 'https');
+    proxyHeaders.set('X-Pinggy-No-Screen', 'true');
+    proxyHeaders.set('x-pinggy-no-screen', 'true');
+    proxyHeaders.set('bypass-tunnel-reminder', 'true');
+    if (proxyHeaders.has('origin')) {
+      proxyHeaders.set('origin', 'https://' + destination.host);
+    }
+    if (proxyHeaders.has('referer')) {
+      proxyHeaders.set('referer', 'https://' + destination.host + url.pathname + url.search);
+    }
+
+    const init = {
+      method: request.method,
+      headers: proxyHeaders,
+      redirect: 'manual'
+    };
+
+    if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
+      init.body = request.body;
+      init.duplex = 'half';
+    }
+
+    try {
+      const response = await fetch(destination.toString(), init);
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set('Access-Control-Allow-Origin', '*');
+      newHeaders.delete('X-Frame-Options');
+      newHeaders.delete('x-frame-options');
+      newHeaders.set('Content-Security-Policy', "frame-ancestors *; default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders
+      });
+    } catch (err) {
+      return new Response('DePIN Gateway Error: ' + err.message, { status: 502 });
+    }
+  }
+};
+`;
+
+  try {
+    const formData = new FormData();
+    const meta = {
+      main_module: 'worker.js',
+      compatibility_date: '2024-09-23',
+      compatibility_flags: ['nodejs_compat']
+    };
+    formData.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }), 'metadata.json');
+    formData.append('worker.js', new Blob([WORKER_CODE], { type: 'application/javascript+module' }), 'worker.js');
+
+    const uploadRes = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${DEPIN_ACCOUNT_ID}/workers/scripts/${DEPIN_SCRIPT_NAME}`,
+      {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${DEPIN_CF_TOKEN}` },
+        body: formData
+      }
+    );
+    const json = await uploadRes.json();
+    if (json.success) {
+      console.log(`[Cloudflare] ✅ DePIN Worker successfully updated -> https://depin.smmplan-tma.workers.dev/depin`);
+    } else {
+      console.warn(`[Cloudflare] ⚠️ DePIN Worker update failed:`, json.errors);
+    }
+  } catch (err) {
+    console.warn(`[Cloudflare] ⚠️ DePIN Worker update error:`, err.message);
+  }
+}
+
 async function updateCloudflareWorker(tunnelUrl) {
-  if (!CF_TOKEN || CF_TOKEN.startsWith('cfut_EFnUo')) {
+  // Always update DePIN proxy for Telegram Mini App
+  await updateDepinWorker(tunnelUrl);
+
+  if (!CF_TOKEN) {
     return;
   }
 

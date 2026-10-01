@@ -58,6 +58,10 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 **Что случилось:** В контейнерах на базе Alpine Linux утилита `wget` резолвит `localhost` в IPv6 адрес `::1`, в то время как процесс Node.js Next.js слушает порт IPv4 `0.0.0.0:3000`. Это вызывало ложное падение healthcheck (`wget: can't connect to remote host: Connection refused`) и статус `unhealthy`.
 **Правило:** Во всех Dockerfile и docker-compose healthcheck директивах всегда указывать явный IPv4 адрес: `http://127.0.0.1:3000/api/health`, а не `localhost`.
 
+### 🔴 УРОК 8.1 — Prisma Tenant Enforcer & Interactive Transaction Escape
+**Что случилось:** При выполнении интерактивных транзакций `db.$transaction(async (tx) => { ... })` расширение Prisma `createTenantEnforcerExtension` проверяет флаг `context.isInTransactionContext()`. Если транзакция не обёрнута в `runInTransactionContext()` (или `runSerializableTransaction`), расширение считает вызов вне транзакции и перенаправляет запросы моделей в отдельную транзакцию на базовом клиенте `prismaClient.$transaction(...)`, вызывая Transaction Escape (создание записей вне транзакции, не откатывающихся при rollback).
+**Правило:** Все интерактивные транзакции, выполняющие финансовые мутации и запись в леджер, ОБЯЗАНЫ запускаться через `runSerializableTransaction` или явно оборачиваться в `runInTransactionContext(async () => { ... })`.
+
 ### 🔴 УРОК 9 — Anti-Flicker Layout Protection & Runner Healthcheck
 **Что случилось:** При переключении категорий в `useOrderCatalogSync.ts` вызывался `setServices([])`. Витрина схлопывалась, выводя 8 пульсирующих серых блоков-скелетонов на 200–300мс. Кроме того, healthcheck воркера падал с `Cannot find module 'ioredis'`, поскольку runner-образ содержит только скомпилированный бандл.
 **Правило:**
@@ -169,9 +173,36 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 2. При проверке форматированного текста в DOM всегда нормализовать пробелы: `.replace(/[\u00a0\s]+/g, ' ')`.
 3. Для элементов формы с классом `sr-only` использовать `{ force: true }` или кликать по родительской метке `<label>`.
 
+### 🔴 УРОК 23 — Интеграция Telegram WebApp (Mini App) в Bot и строгая типизация InlineKeyboardButton (2026-09-30)
+**Что случилось:**
+1. При запуске Telegram Mini App DePIN из бота (`src/bot/index.ts`) требовалось бесшовное открытие через постоянную клавиатуру (`KeyboardButton.web_app`) и динамическое инлайн-меню (`InlineKeyboardButton.web_app`).
+2. В тестах с `typegram` тип `InlineKeyboardButton` является дискриминированным объединением (`CallbackButton | UrlButton | WebAppButton`). Попытка прямого доступа `btn.web_app` вызывала ошибку компиляции TS2339 / TS18048 (`Property 'web_app' does not exist on type 'CallbackButton'`).
+3. При расчете мульти-постов (`MULTI_POST`) в `task-dispatcher.ts` при `postId < 3` алгоритм `Math.max(1, postId - 2)` сжимал массив до 1 или 2 постов, нарушая инвариант пакетного просмотра 3 постов.
+**Правило:**
+1. Для проверок инлайн-кнопок Telegram WebApp использовать строгий type guard: `if ('web_app' in btn) { ... }`.
+2. При вычислении пакетных заданий учитывать граничные условия начальных постов: `postId >= 3 ? [id-2, id-1, id] : [1, 2, 3]`.
+3. Все демо-задания фиксировать в Redis с кулдауном 24ч (`depin:assigned:${nodeId}:demo:...`), а на клиенте кэшировать выполненные ключи для предотвращения мгновенного повторного появления в ленте.
+
+### 🔴 УРОК 24 — Эфемеральные туннели в платежных шлюзах и блокировки VPN в ЮKassa / СБП (2026-10-01)
+**Что случилось:**
+1. При создании платежа в ЮKassa поле `confirmation.return_url` генерировалось на базе заголовка `x-forwarded-host` или `Host` входящего запроса. При локальном тестировании через временные SSH-туннели (`localhost.run`, `pinggy`) в `return_url` попадал одноразовый хост (`*.lhr.life`). После оплаты банк перенаправлял клиента на уже отключенный туннель, вызывая вечное зависание страницы.
+2. При включенном у клиента VPN (зарубежный IP) ЮKassa и банки РФ блокируют соединение на сетевом уровне, делая невозможным завершение оплаты с десктопа.
+**Правило:**
+1. `return_url` в платежных шлюзах КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО формировать из клиентских заголовков хоста. Формирование осуществляется СТРОГО через `getCanonicalTenantBaseUrl(tenantId)`, возвращающую канонический боевой домен бренда (`https://smmplan.pro` / `https://smmflux.ru`) или постоянный Tailscale Funnel.
+2. Любые временные туннели (`.lhr.life`, `.loca.lt`, `.pinggy.net`, `.serveo.net`) заносятся в черный список `EPHEMERAL_TUNNEL_SUFFIXES` и никогда не используются в платежных колбэках.
+3. В интерфейсе чекаута перед кнопкой оплаты обязателен видимый дисклеймер о VPN для российских банков, а также модалка помощи (`PaymentVpnHelperModal`) с QR-кодом для бесшовной оплаты со смартфона по СБП.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)
+
+ - **ADR-2026-62: DePIN TMA Task Feed Anti-Stall Engine, Skip-and-Replace Flow & 30-Day Multi-Factor Content Exclusion:**
+  - *Контекст:* Зависание заданий в Telegram Mini App DePIN: если пользователь уже просмотрел пост ранее, если это его собственный пост/канал или если задание истекло в Redis (TTL 300с), верификация выдавала ошибку, а карточка оставалась на экране навечно без возможности её убрать или заменить.
+  - *Решение:*
+    1. **Anti-Stall Error Recovery Gate:** При ошибке проверки задания в `src/app/depin/page.tsx` отображается кнопка `🔄 Заменить зависшее задание на новое` (`handleSkipTask(task, 'EXPIRED')`), мгновенно очищающая ленту и запрашивающая замену.
+    2. **Эргономичный триплет действий:** На каждой карточке внедрены кнопки `👁️ Уже смотрел` (исключение поста), `👤 Мой пост` (исключение канала и поста), `⏭️ Пропуск` (пользовательский пропуск).
+    3. **Долговечное 30-дневное исключение:** Использование Redis Sets `depin:node:{nodeId}:skipped_targets`, `completed_targets` и `owned_channels` с TTL 30 дней (2 592 000 сек) + синхронизация с `localStorage` браузера (`depin_skipped_{nodeId}`).
+    4. **Защита от выдачи собственного контента:** Авто-исключение полей `target.nodeId`, `tg_{telegramId}`, `target.orderId`, а также авто-регистрация при создании P2P-бустов.
 
  - **ADR-2026-58: Strategic Integration of Gamified Tap-to-Earn (Hamster Kombat Mechanics) with Real-Yield DePIN SMM Infrastructure:**
   - *Контекст:* Пользовательская инициатива синтеза виральных игровых механик «Хомяка» (Hamster Kombat TMA) с реальным производственным конвейером платформы OmniSMM для создания самоподдерживающейся краудсорсинговой сети исполнителей с нулевой себестоимостью привлечения.

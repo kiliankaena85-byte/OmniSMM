@@ -83,20 +83,10 @@ const KNOWN_ROOT_DOMAINS = [
   'smmplan.ru',
 ];
 
-// Dynamic Tunnel & Testing Suffixes
+// Dynamic Tunnel & Testing Suffixes (Permanent Tailscale & Cloudflare tunnels only)
 const ALLOWED_TUNNEL_SUFFIXES = [
   '.ts.net',
   '.trycloudflare.com',
-  '.loca.lt',
-  '.ngrok-free.app',
-  '.ngrok.app',
-  '.ngrok.io',
-  '.lhr.life',
-  '.serveo.net',
-  '.pinggy-free.link',
-  '.pinggy.link',
-  '.free.pinggy.net',
-  '.pinggy.net',
 ];
 
 const ALLOWED_CONTOUR_DOMAINS = new Set([
@@ -306,8 +296,8 @@ export function buildCspHeader(nonce: string, isHttps: boolean, rawIncomingHost:
     object-src 'none';
     base-uri 'self';
     form-action 'self' https://yookassa.ru https://auth.robokassa.ru https://*.yoomoney.ru;
-    frame-ancestors 'self';
-    frame-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot https://smartcaptcha.yandexcloud.net https://*.sberbank.ru https://*.nspk.ru https://*.tinkoff.ru https://*.vtb.ru https://*.yoomoney.ru;
+    frame-ancestors 'self' https://web.telegram.org https://*.telegram.org;
+    frame-src 'self' https://t.me https://telegram.org https://*.telegram.org https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://pay.crypt.bot https://smartcaptcha.yandexcloud.net https://*.sberbank.ru https://*.nspk.ru https://*.tinkoff.ru https://*.vtb.ru https://*.yoomoney.ru;
     connect-src 'self' https://challenges.cloudflare.com https://yookassa.ru https://auth.robokassa.ru https://api.cryptobot.org https://api.telegram.org https://pay.crypt.bot https://mc.yandex.ru https://smartcaptcha.yandexcloud.net https://*.sberbank.ru https://*.nspk.ru https://*.tinkoff.ru https://*.vtb.ru;
     report-uri /api/telemetry/csp-report;
     ${shouldUpgradeInsecure ? 'upgrade-insecure-requests;' : ''}

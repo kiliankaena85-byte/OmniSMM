@@ -9,6 +9,7 @@ import { LinkModal } from "./order-engine/LinkModal";
 import { PlatformLinkGuideDrawer } from "./order-engine/PlatformLinkGuideDrawer";
 import { PaymentGatewaySelectionModal } from "./order-engine/PaymentGatewaySelectionModal";
 import { CheckoutAuthModal } from "./order-engine/modals/CheckoutAuthModal";
+import { PaymentVpnHelperModal } from "./order-engine/modals/PaymentVpnHelperModal";
 import { LegalDocumentModal } from "./order-engine/LegalDocumentModal";
 import { MobileCatalogModal } from "./order-engine/MobileCatalogModal";
 
@@ -48,6 +49,7 @@ export function LandingModals({
     authModalEmail, handleAuthSuccess,
     orderSnapshot, confirmAndPay, isSubmitting,
     handleCheckout,
+    pendingPayment, setPendingPayment,
   } = orchestrator;
 
   const handleSelectServiceFromCatalog = (srv: PublicService, catId: string, netId: string) => {
@@ -127,6 +129,17 @@ export function LandingModals({
           onClose={() => setShowCatalogModal(false)}
         />
       )}
+
+      <PaymentVpnHelperModal
+        isOpen={Boolean(pendingPayment)}
+        onClose={() => setPendingPayment(null)}
+        paymentUrl={pendingPayment?.paymentUrl || ''}
+        orderId={pendingPayment?.orderId}
+        numericId={pendingPayment?.numericId}
+        totalPrice={pendingPayment?.totalPrice}
+        paymentId={pendingPayment?.paymentId}
+        guestOrderToken={pendingPayment?.guestOrderToken}
+      />
     </>
   );
 }
