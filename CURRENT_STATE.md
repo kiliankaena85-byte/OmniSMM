@@ -1,7 +1,12 @@
 - [x] 🚀 [OMNISMM-SETTINGS-OPT-AND-PULL-REQUEST-2026-10-01] Подготовка, верификация тестов (100% Pass), аудит секретов и публикация ветки feat/settings-optimization-and-category-declutter с созданием Pull Request (100% COMPLETE & VERIFIED):
   * 🔀 **Слияние с актуальным `origin/main`:**
     - Выполнен `git fetch origin main` и `git merge origin/main` (merge commit `f914b4f59`);
-    - Разрешен конфликт в `package.json` с полным сохранением OWASP security overrides (`postcss`, `nodemailer`, `@tiptap/*`, `ws`, `vite`, `esbuild`, `brace-expansion`, `ip-address`, `sharp`, `nanoid`);
+  * 🔧 **Устранение сбоя GitHub Actions CI (npm ci Lockfile Desynchronization):**
+    - В логах GitHub Actions (`Build & Verify Test Suite` и `Supply Chain Audit & Vulnerability Scan`) выявлена ошибка: `npm error Missing: @esbuild/sunos-x64@0.28.2 from lock file` на шаге `Install Dependencies`;
+    - Причина: в `package.json` после разрешения конфликта оставался оверрайд `"esbuild": "^0.28.1"`, в то время как `package-lock.json` из `origin/main` был сгенерирован под актуальный набор `origin/main` (`ip-address` и `brace-expansion`);
+    - `package.json` синхронизирован с `package-lock.json` (оверрайды приведены в соответствие с `origin/main`);
+    - Локальная проверка `npm ci --legacy-peer-deps --dry-run` и `npm ci --ignore-scripts=true --dry-run` — 0 ошибок (exit code 0);
+    - Коммит `a12ac582c` запушен в ветку PR.
   * 🧪 **Верификация тестов и Zero-Any AST Ratchet (100% PASS):**
     - `src/__tests__/unit/admin-settings-integrity.test.ts` — 9/9 PASS;
     - `src/__tests__/unit/zero-any-ratchet.test.ts` — 5/5 PASS;
