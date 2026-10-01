@@ -27,12 +27,12 @@ vi.mock('@/lib/session', () => ({
 
 describe('E2E Pricing Time-Travel & Multi-Currency Stability Test Suite (Day 0 → Day 90)', () => {
   let adminUser: { id: string; email: string; role: 'SUPERADMIN' };
-  let network: Record<string, unknown>;
-  let category: Record<string, unknown>;
-  let providerA: Record<string, unknown>; // RUB provider (e.g. Vexboost)
-  let providerB: Record<string, unknown>; // USD provider (e.g. SMMKings)
-  let serviceRu: Record<string, unknown>; // RU Service (1.50 RUB/1k)
-  let serviceUsd: Record<string, unknown>; // USD Service ($1.00 USD/1k)
+  let network: { id: string; [key: string]: unknown };
+  let category: { id: string; [key: string]: unknown };
+  let providerA: { id: string; [key: string]: unknown }; // RUB provider (e.g. Vexboost)
+  let providerB: { id: string; [key: string]: unknown }; // USD provider (e.g. SMMKings)
+  let serviceRu: { id: string; [key: string]: unknown }; // RU Service (1.50 RUB/1k)
+  let serviceUsd: { id: string; [key: string]: unknown }; // USD Service ($1.00 USD/1k)
 
   beforeEach(async () => {
     adminUser = {
