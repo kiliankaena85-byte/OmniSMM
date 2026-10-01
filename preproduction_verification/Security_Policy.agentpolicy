@@ -1,0 +1,82 @@
+{
+  "ai_security": {
+    "covered_llm_vulnerabilities": [
+      "LLM01_PROMPT_INJECTION",
+      "LLM02_INSECURE_OUTPUT_HANDLING",
+      "LLM04_MODEL_DENIAL_OF_SERVICE",
+      "LLM06_SENSITIVE_INFO_DISCLOSURE",
+      "LLM08_EXCESSIVE_AGENCY"
+    ],
+    "model_context_protocol_auth": "BEARER_TOKEN",
+    "prompt_quarantine_enforced": true
+  },
+  "auth_mechanisms": [
+    "JWT_ED25519",
+    "MTLS"
+  ],
+  "data_encryption_at_rest": "GOST_KUZNYECHIK",
+  "data_encryption_in_transit": "TLS_1_3",
+  "fstec_gost_56939_certified": true,
+  "fstec_orders_classification": {
+    "order_17_gis": "К2",
+    "order_21_ispdn": "УЗ-2",
+    "order_239_kii": "КАТЕГОРИЯ_2"
+  },
+  "iso_42001_security_controls_active": true,
+  "mitre_atlas_matrix": [
+    {
+      "mitigation": "Enforce strict XML quarantine isolation and Pydantic V2 schema sanitization",
+      "tactic": "INITIAL_ACCESS",
+      "technique_id": "AML.T0043",
+      "technique_name": "Craft Adversarial Data"
+    },
+    {
+      "mitigation": "Multi-tier prompt quarantine tags and token-level sanitization filter",
+      "tactic": "EXECUTION",
+      "technique_id": "AML.T0054",
+      "technique_name": "LLM Prompt Injection"
+    }
+  ],
+  "nist_800_207_zero_trust": true,
+  "owasp_asvs_level": "L3",
+  "rate_limiting_rps_per_ip": 100,
+  "stride_matrix": [
+    {
+      "category": "SPOOFING",
+      "fstec_ubi_code": "УБИ.012",
+      "mitigation_strategy": "Mutual TLS certificate authentication and Ed25519 tokens",
+      "target_component": "AuthGateway"
+    },
+    {
+      "category": "TAMPERING",
+      "fstec_ubi_code": "УБИ.045",
+      "mitigation_strategy": "HMAC-SHA256 signature verification on every message frame",
+      "target_component": "MessageBus"
+    },
+    {
+      "category": "REPUDIATION",
+      "fstec_ubi_code": "УБИ.089",
+      "mitigation_strategy": "Append-only cryptographic write log with Merkle tree proofs",
+      "target_component": "AuditLogger"
+    },
+    {
+      "category": "INFO_DISCLOSURE",
+      "fstec_ubi_code": "УБИ.123",
+      "mitigation_strategy": "AES-256-GCM encryption at rest with HSM key management",
+      "target_component": "Database"
+    },
+    {
+      "category": "DENIAL_OF_SERVICE",
+      "fstec_ubi_code": "УБИ.031",
+      "mitigation_strategy": "Token-bucket rate limiting strictly capping IP requests",
+      "target_component": "IngressProxy"
+    },
+    {
+      "category": "ELEVATION_OF_PRIVILEGE",
+      "fstec_ubi_code": "УБИ.067",
+      "mitigation_strategy": "Hardware sandbox isolation and capability dropping",
+      "target_component": "CoreExecutor"
+    }
+  ],
+  "zero_trust_enforced": true
+}

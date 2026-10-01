@@ -2,19 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { 
-  Store, 
-  CreditCard, 
-  ShieldCheck, 
-  Settings, 
-  Database, 
-  Link as LinkIcon, 
-  Bot, 
-  Server, 
-  Users, 
-  MessageSquare, 
-  History 
-} from 'lucide-react';
 
 export { 
   type SettingsMasterCluster,

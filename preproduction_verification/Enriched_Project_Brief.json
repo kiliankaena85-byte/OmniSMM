@@ -1,0 +1,105 @@
+{
+  "project_name": "Интеллектуальная панель системного мониторинга и аппаратного контроля (СМ-панель)",
+  "target_domain": "SYSTEM_INFRASTRUCTURE_MONITORING",
+  "vagueness_score": 0.566,
+  "actors": [
+    {
+      "role_name": "SRE_Operator",
+      "jtbd_goal": "Непрерывный мониторинг задержек P95/P99, контроль FSM переходов и подтверждение деградации",
+      "privilege_level": "OPERATOR"
+    },
+    {
+      "role_name": "Security_Auditor",
+      "jtbd_goal": "Аудит журналов доступа по ГОСТ Р 56939-2024 и контроль Zero-Trust mTLS сертификатов",
+      "privilege_level": "ADMIN"
+    },
+    {
+      "role_name": "Hardware_Supervisor",
+      "jtbd_goal": "Наблюдение за аппаратным сторожевым таймером MAX6369 и состоянием силовых реле",
+      "privilege_level": "SYSTEM"
+    }
+  ],
+  "functional_requirements": [
+    "Визуализация графа состояний FSM и текущего режима автоматизации в реальном времени",
+    "Адаптивная деградация UX при снижении уверенности модели ниже 0.70 (ISO 9241-210)",
+    "Сбор телеметрии аппаратного оконного сторожевого таймера MAX6369 с порогом 50-200 мс",
+    "Авторизация операторов через Zero-Trust mTLS по ГОСТ Р 56939-2024 с отсечением атак < 1.0 мс",
+    "Атомарное журналирование транзакций через SQLite WAL с возможностью LIFO компенсации"
+  ],
+  "hardware_envelope": {
+    "target_npu": "Intel AI Boost (Meteor Lake NPU)",
+    "ram_budget_mb": 512,
+    "dma_pinned_zero_copy": true,
+    "watchdog_type": "MAX6369_WINDOWED_SUPERVISION",
+    "watchdog_window_ms": [
+      50.0,
+      200.0
+    ],
+    "max_actuator_latency_ms": 50.0
+  },
+  "compliance_regime": [
+    "152-ФЗ (Локализация телеметрии и логов в РФ)",
+    "ГОСТ Р 56939-2024 (Безопасная разработка ПО / УД 4)",
+    "IEC 61508 SIL-3 (Аппаратные блокировки приводов)",
+    "ISO 9241-210 (Человеко-ориентированная деградация UX)"
+  ],
+  "ears_requirements_draft": [
+    {
+      "req_id": "REQ-EARS-01",
+      "pattern_type": "STATE_DRIVEN",
+      "text": "WHILE system is in RUNTIME mode, the system SHALL визуализация графа состояний fsm и текущего режима автоматизации в реальном времени",
+      "source_persona": "SRE_Operator",
+      "source_ac_id": "AC-INC-01"
+    },
+    {
+      "req_id": "REQ-EARS-02",
+      "pattern_type": "STATE_DRIVEN",
+      "text": "WHILE system is in RUNTIME mode, the system SHALL адаптивная деградация ux при снижении уверенности модели ниже 0.70 (iso 9241-210)",
+      "source_persona": "SRE_Operator",
+      "source_ac_id": "AC-INC-02"
+    },
+    {
+      "req_id": "REQ-EARS-03",
+      "pattern_type": "STATE_DRIVEN",
+      "text": "WHILE system is in RUNTIME mode, the system SHALL сбор телеметрии аппаратного оконного сторожевого таймера max6369 с порогом 50-200 мс",
+      "source_persona": "SRE_Operator",
+      "source_ac_id": "AC-INC-03"
+    },
+    {
+      "req_id": "REQ-EARS-04",
+      "pattern_type": "STATE_DRIVEN",
+      "text": "WHILE system is in RUNTIME mode, the system SHALL авторизация операторов через zero-trust mtls по гост р 56939-2024 с отсечением атак < 1.0 мс",
+      "source_persona": "SRE_Operator",
+      "source_ac_id": "AC-INC-04"
+    }
+  ],
+  "acceptance_criteria_draft": [
+    {
+      "id": "AC-INC-01",
+      "given": "Система инициализирована и подключена к шине телеметрии",
+      "when": "Оператор или контроллер выполняет: Визуализация графа состояний FSM и текущего режима автоматизации в реальном времени",
+      "then": "Система фиксирует состояние без ошибок и соблюдает SLA отклика < 50мс"
+    },
+    {
+      "id": "AC-INC-02",
+      "given": "Система инициализирована и подключена к шине телеметрии",
+      "when": "Оператор или контроллер выполняет: Адаптивная деградация UX при снижении уверенности модели ниже 0.70 (ISO 9241-210)",
+      "then": "Система фиксирует состояние без ошибок и соблюдает SLA отклика < 50мс"
+    },
+    {
+      "id": "AC-INC-03",
+      "given": "Система инициализирована и подключена к шине телеметрии",
+      "when": "Оператор или контроллер выполняет: Сбор телеметрии аппаратного оконного сторожевого таймера MAX6369 с порогом 50-200 мс",
+      "then": "Система фиксирует состояние без ошибок и соблюдает SLA отклика < 50мс"
+    },
+    {
+      "id": "AC-INC-04",
+      "given": "Система инициализирована и подключена к шине телеметрии",
+      "when": "Оператор или контроллер выполняет: Авторизация операторов через Zero-Trust mTLS по ГОСТ Р 56939-2024 с отсечением атак < 1.0 мс",
+      "then": "Система фиксирует состояние без ошибок и соблюдает SLA отклика < 50мс"
+    }
+  ],
+  "is_fully_enriched": true,
+  "source_prompt_hash": "7c229e27dfbc2c922fed0e1af984a0a5fceeb07c9e0b3923da44f4ecc2aa4daf",
+  "sanitized_prompt": "Создай комплексную программу приемо-сдаточных испытаний и pre-production тестирования проекта omnismmcore (E:\\omnismmcore) по стандартам ISO/IEC/IEEE 29119, ISO 25010, ГОСТ Р 56939-2024, OWASP ASVS и ГОСТ 34.602 с валидацией Double-Entry Ledger, Keyset Pagination, Vitest 100% coverage и Stryker mutation testing"
+}

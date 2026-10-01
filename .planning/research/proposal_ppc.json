@@ -1,0 +1,28 @@
+{
+  "actionId": "PPC-STRAT-SELECTION-2026",
+  "intent": "Выбор оптимальной стратегии холодного старта в Яндекс.Директ для платформы SMMplan",
+  "category": "OPTIMIZATION",
+  "options": [
+    {
+      "id": "STRAT-COMBO-TRIAD",
+      "title": "Синтезированная Триада Холодного Старта: Поиск MAX (50%) + Telegram Core (30%) + Перехват Конкурентов (20%) с ручными ставками и Hardened Shield",
+      "riskLevel": "LOW",
+      "description": "Фокусировка на горячем поисковом спросе, маржинальности 85% в MAX, проверенном спросе в Telegram и теплой аудитории конкурентов без риска слива на ботах.",
+      "isDestructive": false,
+      "hasRollbackPlan": true,
+      "estimatedImpactFiles": 1
+    },
+    {
+      "id": "STRAT-UNSHIELDED-YAN",
+      "title": "Широкий запуск РСЯ и Мастера Кампаний без блеклиста мобильных DSP",
+      "riskLevel": "CRITICAL",
+      "description": "Попытка быстрого охвата в сетях без предварительного отсечения мусорных мобильных площадок и без накопленной истории конверсий.",
+      "isDestructive": true,
+      "hasRollbackPlan": false,
+      "estimatedImpactFiles": 1
+    }
+  ],
+  "context": {
+    "targetEnvironment": "STAGE"
+  }
+}

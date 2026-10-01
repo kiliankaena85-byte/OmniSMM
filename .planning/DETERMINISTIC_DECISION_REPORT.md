@@ -1,10 +1,10 @@
 # Deterministic Decision Engine Report (DDE-2026)
 
-**Decision Timestamp:** `2026-09-29T09:11:20.471Z`  
+**Decision Timestamp:** `2026-10-01T17:10:01.852Z`  
 **Final Verdict:** `PASS`  
 **Token Expenditure:** `0 Tokens (Zero-Token Verification)`  
-**Execution Duration:** `17744ms`  
-**Files Audited:** `66`  
+**Execution Duration:** `32988ms`  
+**Files Audited:** `149`  
 
 ---
 
@@ -12,10 +12,10 @@
 
 | Сенсор арбитража | Вердикт | Время | Подробности |
 | :--- | :---: | :---: | :--- |
-| **Sensor 1: AST Method & Invariant Sensor** | 🟢 PASS | 474ms | Проверено 66 файлов: все синтаксические инварианты (No Transaction Escape, Clean Boundaries) соблюдены. |
-| **Sensor 3: Static Hygiene & No-Crutch Sensor** | 🟢 PASS | 11593ms | Строгий контроль пройден: 0 ошибок tsc, 0 утечек секретов, 0 костылей (0 any, 0 подавлений). |
-| **Sensor 2: Runtime TDD Proof Sensor** | 🟢 PASS | 5561ms | Выполнено 3 сьютов тестов: 100% ассертов успешно подтверждены средой выполнения. |
-| **Sensor 4: DOM Geometry & Mobile Ergonomics Sensor** | 🟢 PASS | 1ms | Проверено 3 UI компонентов: все мобильные эргономические инварианты соблюдены. |
+| **Sensor 1: AST Method & Invariant Sensor** | 🟢 PASS | 469ms | Проверено 149 файлов: все синтаксические инварианты (No Transaction Escape, Clean Boundaries) соблюдены. |
+| **Sensor 3: Static Hygiene & No-Crutch Sensor** | 🟢 PASS | 20033ms | Строгий контроль пройден: 0 ошибок tsc, 0 утечек секретов, 0 костылей (0 any, 0 подавлений). |
+| **Sensor 2: Runtime TDD Proof Sensor** | 🟢 PASS | 12213ms | Выполнено 3 сьютов тестов: 100% ассертов успешно подтверждены средой выполнения. |
+| **Sensor 4: DOM Geometry & Mobile Ergonomics Sensor** | 🟢 PASS | 6ms | Проверено 79 UI компонентов: все мобильные эргономические инварианты соблюдены. |
 
 ---
 

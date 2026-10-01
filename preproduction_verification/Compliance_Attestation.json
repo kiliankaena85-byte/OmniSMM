@@ -1,0 +1,48 @@
+{
+  "ai_act_risk_category": "LIMITED",
+  "approved_open_source_licenses": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause"
+  ],
+  "eu_ai_act_dossier": {
+    "article_14_human_oversight": true,
+    "article_15_robustness_accuracy": true,
+    "high_risk_conformity_assessment": "INTERNAL_CONTROL",
+    "technical_documentation_annex_iv": true
+  },
+  "fiscal_receipts_54fz": true,
+  "fstec_gis_class": "К2",
+  "fstec_ispdn_level": "УЗ-2",
+  "fstec_kii_category": "КАТЕГОРИЯ_2",
+  "gost_7_0_97_doc_attributes_present": true,
+  "iso_27701_privacy_controls": true,
+  "iso_42001_ai_management": true,
+  "jurisdiction": [
+    "RUS",
+    "EAEU"
+  ],
+  "personal_data": {
+    "cross_border_transfer_allowed": false,
+    "crypto_algorithm": "ГОСТ_Р_34.12-2015_КУЗНЕЧИК",
+    "data_localization_rf": true,
+    "data_subjects": [
+      "Clients",
+      "Operators"
+    ],
+    "fz152_level": "УЗ-2",
+    "gdpr_dpa_required": true,
+    "localization_country": "RUS",
+    "personal_data_categories": [
+      "ОБЩИЕ"
+    ],
+    "processes_personal_data": true
+  },
+  "pp_1119_threat_model": {
+    "biometric_data_used": false,
+    "employee_data_only": false,
+    "skzi_class": "КС2",
+    "threat_type": "ТИП_3"
+  },
+  "spdx_license_standard": "SPDX-2.3"
+}

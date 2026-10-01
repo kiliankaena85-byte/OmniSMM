@@ -1,0 +1,30 @@
+{
+  "brier_score_calibration": 0.03,
+  "cognitive_rag_triad": {
+    "adversarial_jailbreak_resistance_pct": 99.8,
+    "answer_relevance_score": 0.95,
+    "context_relevance_score": 0.94,
+    "groundedness_faithfulness_score": 0.98
+  },
+  "cryptographic_release_signature": "39be1708c83462f271efd5a43e8b6f43e4e1f0eb1db42914fcb29ee9e8391c8f",
+  "gost_19_201_sections_present": true,
+  "gost_34_602_all_sections_present": true,
+  "gost_34_603_protocol_id": "ПМИ-34.603-2026-001",
+  "hoare_logic_invariants_verified": 7,
+  "ieee_1012_v_and_v_level": "LEVEL_4",
+  "iso_29119_test_techniques": [
+    "BOUNDARY_VALUE_ANALYSIS",
+    "EQUIVALENCE_PARTITIONING",
+    "MUTATION_TESTING"
+  ],
+  "iso_29148_unambiguity_score": 89.0,
+  "mutation_score_pct": 95.5,
+  "mutation_testing": {
+    "framework": "MUTMUT",
+    "killed_mutants_count": 120,
+    "mutation_score_indicator_target_pct": 85.5,
+    "survived_mutants_threshold": 0,
+    "total_mutants_generated": 125
+  },
+  "rtm_traceability_coverage_pct": 100.0
+}

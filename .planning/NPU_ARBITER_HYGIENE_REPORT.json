@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-10-01T17:10:11Z",
+  "hardware": {
+    "device": "NPU",
+    "device_name": "Intel(R) AI Boost",
+    "npu_active": true,
+    "latency_ms": 0.036600002204068005
+  },
+  "telemetry": {
+    "total_files": 2107,
+    "unused_imports": 770,
+    "orphan_files": 91,
+    "test_only_files": 93,
+    "unused_exports": 602,
+    "duplicate_blocks": 100
+  },
+  "evaluations": [
+    {
+      "id": "H0_CURRENT_STATUS_QUO",
+      "vector": [
+        0.0,
+        0.88,
+        0.85,
+        0.6325000000000001,
+        0.6499999999999999
+      ],
+      "asf_distance": 1.0019875,
+      "status": "DISQUALIFIED"
+    },
+    {
+      "id": "H1_REMEDIATED_TARGET",
+      "vector": [
+        1.0,
+        0.98,
+        0.96,
+        0.97,
+        0.95
+      ],
+      "asf_distance": 0.050140000000000046,
+      "status": "FEASIBLE"
+    }
+  ],
+  "verdict": "REMEDIATION_REQUIRED"
+}

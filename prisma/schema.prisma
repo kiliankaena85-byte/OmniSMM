@@ -2271,9 +2271,11 @@ model DePinNode {
   creditsBalance        Int       @default(0)  // Текущий баланс OmniCredits
   escrowCredits         Int       @default(0)  // Замороженные кредиты (залог за FOLLOW)
   totalCompletedTasks   Int       @default(0)  // Всего выполненных задач за всё время
+  totalTapsCount        Int       @default(0)  // Физически выполненные клики-тапы в Mini App
   tasksFailed           Int       @default(0)  // Задания с фродом/отпиской
   reputation            Int       @default(100) // 0-100, влияет на награды
   lastActiveAt          DateTime  @default(now())
+  lastVisitedAt         DateTime  @default(now()) // Время открытия Mini App
   lastAuditAt           DateTime? // Когда последний раз проверяли
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -2285,9 +2287,30 @@ model DePinNode {
   acceptsReactTasks     Boolean   @default(true)  // 👍 Реакции (~1% риска)
   acceptsFollowTasks    Boolean   @default(false) // 👥 Подписки (~5% риска, opt-in!)
 
+  executions            DePinTaskExecution[]
+
   @@index([lastActiveAt])
   @@index([reputation])
   @@index([acceptsFollowTasks]) // быстрый поиск нод готовых к подпискам
+}
+
+/// Журнал выполнения микро-задач для детальной продуктовой аналитики
+model DePinTaskExecution {
+  id             String    @id @default(cuid())
+  nodeId         String
+  taskId         String
+  targetId       String?
+  channel        String?
+  postId         Int?
+  type           String
+  creditsAwarded Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  node           DePinNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([nodeId])
+  @@index([type])
 }
 
 /// Коммерческая цель для распределённого просмотра.

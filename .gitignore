@@ -220,3 +220,6 @@ launch_docker.ps1
 wait_docker.ps1
 scripts/test-action.ts
 .env.docker
+.yandex-oauth-token
+.*-oauth-token
+/dist/

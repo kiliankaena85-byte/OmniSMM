@@ -1,0 +1,88 @@
+{
+  "architecture_decision_records": [
+    {
+      "adr_id": "ADR-001",
+      "compliance_verification": "Automated zero-trust stage gate linter",
+      "considered_options": [
+        "Option 1: Inverted File Index with Flat Quantization (IVFFLAT)",
+        "Option 2: Hierarchical Navigable Small World Graphs (HNSW)"
+      ],
+      "context_and_problem_statement": "The cognitive pipeline requires high-throughput semantic similarity search over embeddings with p99 latency < 10ms.",
+      "deciders": [
+        "Chief Architect",
+        "System Analyst"
+      ],
+      "decision_drivers": [
+        "Sub-millisecond latency",
+        "High recall at k=10",
+        "Zero-trust memory footprint"
+      ],
+      "decision_outcome": "Adopt HNSW due to superior logarithmic search complexity and high recall on 1024-dim dense vectors.",
+      "negative_consequences": [
+        "Increased RAM footprint during index construction (~1.5x of raw vectors)"
+      ],
+      "positive_consequences": [
+        "Sub-5ms search latency across 100k embedded vectors",
+        "High recall (>98%) without lossy scalar quantization"
+      ],
+      "status": "ACCEPTED",
+      "title": "Selection of HNSW Vector Index for Sub-Millisecond In-Memory Retrieval"
+    }
+  ],
+  "architecture_pattern": "MODULAR_MONOLITH",
+  "async_message_bus": null,
+  "async_topics": [
+    {
+      "event_type": "com.cognitive.artifact.committed",
+      "retention_hours": 48,
+      "schema_format": "JSON_SCHEMA",
+      "topic_name": "cognitive.hypotheses.committed"
+    }
+  ],
+  "asyncapi_version": "3.0.0",
+  "c4_model_level": "COMPONENT",
+  "cyclic_dependencies_detected": false,
+  "database_normalization": "3NF",
+  "endpoints": [
+    {
+      "idempotent": true,
+      "method": "GET",
+      "path": "/api/v1/health",
+      "requires_auth": false,
+      "timeout_ms": 500
+    },
+    {
+      "idempotent": true,
+      "method": "POST",
+      "path": "/api/v1/hypotheses",
+      "requires_auth": true,
+      "timeout_ms": 1500
+    }
+  ],
+  "error_response_standard": "RFC_7807",
+  "iso_42010_viewpoints_defined": true,
+  "memory_architecture": {
+    "context_caching_strategy": "EXPLICIT_PREFIX",
+    "graph_rag_enabled": true,
+    "long_term_vector_memory_enabled": true,
+    "short_term_context_window_tokens": 32768
+  },
+  "openapi_version": "3.1.0",
+  "rag_pipeline": {
+    "chunk_overlap_tokens": 64,
+    "chunk_size_tokens": 512,
+    "embedding_dimension": 1024,
+    "embedding_model": "bge-m3",
+    "hybrid_search_enabled": true,
+    "reranker_model": "bge-reranker-large",
+    "similarity_metric": "COSINE",
+    "vector_index_type": "HNSW"
+  },
+  "self_rag": {
+    "critique_threshold": 0.88,
+    "is_rel_reflection_token": true,
+    "is_sup_reflection_token": true,
+    "is_use_reflection_token": true,
+    "retrieve_reflection_token": true
+  }
+}

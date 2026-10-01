@@ -19,24 +19,12 @@ import {
   ensureProxySubscriptionSyncCron,
   ensureTelegramBoostSweepCron,
   ensureDePinWatchdogCron,
-  dlqQueue, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  cleanupQueue, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  telegramQueue, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  etaQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dlqQueue,
   paymentSyncQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   refillQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   articlePublishQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   aiObserverQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   aiEconomicOptimizerQueue,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   depinWatchdogQueue
 } from '../lib/queue-manager';
 import { sendAdminAlert, sendAdminAlertSync } from '../lib/notifications';
@@ -100,7 +88,10 @@ const cleanupWorker = new Worker('cleanup', wrapWorkerProcessor('CleanupProcesso
   }
 }), workerConfig);
 const telegramWorker = new Worker('telegram-notifications', wrapWorkerProcessor('TelegramNotifications', async (job) => {
-  await sendAdminAlertSync((job.data as any)?.message, (job.data as any)?.severity);
+  const data = job.data as { message?: string; severity?: Parameters<typeof sendAdminAlertSync>[1] };
+  if (data?.message) {
+    await sendAdminAlertSync(data.message, data.severity);
+  }
 }), {
   ...workerConfig,
   limiter: {

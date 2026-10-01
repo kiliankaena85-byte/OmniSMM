@@ -593,6 +593,27 @@ export class DePinTaskDispatcher {
       },
     });
 
+    // Фиксируем выполнение в DePinTaskExecution для детальной продуктовой аналитики
+    try {
+      if (db.dePinTaskExecution) {
+        const execType = isDemoTask
+          ? (report.taskId.includes('_comment_') ? 'SMART_COMMENT' : report.taskId.includes('_multi_') ? 'MULTI_POST' : 'VIEW_POST')
+          : (report.taskId.includes('react') ? 'REACT_POST' : 'VIEW_POST');
+
+        await db.dePinTaskExecution.create({
+          data: {
+            nodeId: report.nodeId,
+            taskId: report.taskId,
+            targetId: report.target ? `demo:${report.target}` : undefined,
+            type: execType,
+            creditsAwarded: reward,
+          },
+        });
+      }
+    } catch {
+      // non-blocking
+    }
+
     return {
       success: true,
       creditsAwarded: reward,

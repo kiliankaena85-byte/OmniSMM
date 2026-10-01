@@ -686,10 +686,11 @@ export async function syncTapsAction(rawInput: unknown): Promise<{
         where: { id: nodeId },
         data: {
           creditsBalance: { increment: tapCount },
+          totalTapsCount: { increment: tapCount },
           lastActiveAt: new Date(),
           updatedAt: new Date(),
         },
-        select: { creditsBalance: true },
+        select: { creditsBalance: true, totalTapsCount: true },
       });
     } catch {
       updatedNode = await db.dePinNode.upsert({
@@ -697,14 +698,16 @@ export async function syncTapsAction(rawInput: unknown): Promise<{
         create: {
           id: nodeId,
           creditsBalance: tapCount,
+          totalTapsCount: tapCount,
           lastActiveAt: new Date(),
         },
         update: {
           creditsBalance: { increment: tapCount },
+          totalTapsCount: { increment: tapCount },
           lastActiveAt: new Date(),
           updatedAt: new Date(),
         },
-        select: { creditsBalance: true },
+        select: { creditsBalance: true, totalTapsCount: true },
       });
     }
 
