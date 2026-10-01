@@ -51,23 +51,51 @@ export const CategoryIcon = ({ name = "", icon, className, size = 20 }: Category
 };
 
 /**
- * Strips leading decorative emojis from category names
- * (to prevent duplicating the left-hand visual SVG icon)
- * while safely preserving inline reaction emojis (e.g. "Реакции (👍, ❤️, 🔥)"), Cyrillic text, numbers, and punctuation.
+ * Strips leading decorative emojis, technical tags, and redundant social network prefixes
+ * from category names to ensure a clean, minimalist storefront hierarchy.
+ * E.g. "Telegram — Подписчики (Обычные)" -> "Подписчики (Обычные)"
+ * E.g. "TikTok > Лайки" -> "Лайки"
+ * E.g. "VK — Просмотры видео" -> "Просмотры видео"
  */
-export const cleanCategoryName = (rawName: string): string => {
+export const cleanCategoryName = (rawName?: string | null, networkName?: string | null): string => {
   if (!rawName) return "";
   let stripped = rawName
+    // 1. Strip leading decorative emojis
     .replace(/^[\p{Extended_Pictographic}\p{Emoji_Presentation}\u200d\uFE0E\uFE0F\u2700-\u27BF\uE000-\uF8FF\s]+/gu, '')
+    // 2. Strip technical tags & provider artifacts
     .replace(/\s*\[(?:Сервер|Server|Srv|API|Провайдер)[\s:]*\d+\]/gi, '')
     .replace(/\s*\((?:vexboost live|vexboost|api\s*\d+|srv\s*\d+|сервер\s*\d+)\)/gi, '')
     .replace(/\bvexboost live\b/gi, 'Онлайн-просмотры')
     .replace(/\bvexboost\b/gi, '')
-    .replace(/\s*♻️/g, '')
+    .replace(/\s*♻️/gu, '')
+    // Strip trailing warranty / guarantee badges in category titles
+    .replace(/\s*\|?\s*[\p{Extended_Pictographic}\p{Emoji_Presentation}\u200d\uFE0E\uFE0F]*\s*(?:С гарантией|Без гарантии)/gui, '')
+    .replace(/\s*\|\s*$/g, '')
+    .trim();
+
+  // 3. Strip dynamic network prefix if networkName is provided
+  if (networkName && networkName.trim()) {
+    const escapedNet = networkName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const dynamicNetRegex = new RegExp(`^${escapedNet}\\s*(?:—|–|-|>|:|\/|\\s)\\s*`, 'i');
+    stripped = stripped.replace(dynamicNetRegex, '').trim();
+  }
+
+  // 4. Strip known hardcoded network prefixes (Telegram, VK, TikTok, YouTube, etc.)
+  const knownNetworksRegex = /^(?:Telegram\s+Premium|Telegram|ВКонтакте|Вконтакте|VK|YouTube|Youtube|TikTok|Tiktok|Instagram|Insta|Rutube|Twitch|Facebook|Twitter|Discord)\s*(?:—|–|-|>|:|\/|\s)\s*/i;
+  stripped = stripped.replace(knownNetworksRegex, '').trim();
+
+  // 5. Clean up duplicate spaces and symbols
+  stripped = stripped
+    .replace(/^[—–\-:>\/\s]+/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
-  
-  // If the string consisted solely of emojis (e.g. "👍"), fallback to trimmed original
-  return stripped.length > 0 ? stripped : rawName.trim();
+
+  // 6. Fallback if stripping emptied the string (e.g. if the category was just named "Telegram")
+  if (!stripped || stripped.length === 0) {
+    return rawName.trim();
+  }
+
+  // Capitalize first character
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
 };
 

@@ -131077,8 +131077,8 @@ var init_provider_balance_service = __esm({
     init_provider_service();
     init_provider_diagnostic_service();
     ProviderBalanceService = class {
-      CACHE_TTL_SECONDS = 60;
-      ERROR_CACHE_TTL_SECONDS = 15;
+      CACHE_TTL_SECONDS = 120;
+      ERROR_CACHE_TTL_SECONDS = 30;
       TIMEOUT_MS = 5e3;
       /**
        * Retrieves current balance for a specific provider with 60-second Redis caching
@@ -131228,14 +131228,20 @@ var init_provider_balance_service = __esm({
                   formattedBalance = `${numBalance.toFixed(2)} ${currency} (~$${balanceUsd.toFixed(2)} / ~${balanceRub.toFixed(2)} \u20BD)`;
                   formattedThreshold = `$${thresholdUsd}.00 (~${thresholdRub.toLocaleString("ru-RU")} \u20BD)`;
                 }
-                await sendAdminAlert2(
-                  `${emoji} \u0411\u0430\u043B\u0430\u043D\u0441 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 "${provider.name}" = ${formattedBalance} \u2014 \u043D\u0438\u0436\u0435 \u043F\u043E\u0440\u043E\u0433\u0430 ${formattedThreshold}. \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442!`,
-                  level
-                );
-                await redis.set(alertKey, "1", "EX", 3600);
+                void (async () => {
+                  try {
+                    await sendAdminAlert2(
+                      `${emoji} \u0411\u0430\u043B\u0430\u043D\u0441 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 "${provider.name}" = ${formattedBalance} \u2014 \u043D\u0438\u0436\u0435 \u043F\u043E\u0440\u043E\u0433\u0430 ${formattedThreshold}. \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442!`,
+                      level
+                    );
+                    await redis.set(alertKey, "1", "EX", 3600);
+                  } catch (alertErr) {
+                    console.warn(`[ProviderBalanceService] Async balance alert failed for ${provider.name}:`, alertErr);
+                  }
+                })();
               }
             } catch (alertErr) {
-              console.warn(`[ProviderBalanceService] Balance alert failed for ${provider.name}:`, alertErr);
+              console.warn(`[ProviderBalanceService] Balance alert check failed for ${provider.name}:`, alertErr);
             }
           }
           try {
@@ -131303,12 +131309,18 @@ var init_provider_balance_service = __esm({
               const alertKey = `provider:${provider.id}:error_alert`;
               const alreadyAlerted = await redis.get(alertKey).catch(() => null);
               if (!alreadyAlerted) {
-                const { sendAdminAlert: sendAdminAlert2 } = await Promise.resolve().then(() => (init_notifications(), notifications_exports));
-                await sendAdminAlert2(
-                  `\u26A0\uFE0F \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 "${provider.name}" \u043D\u0430\u043A\u043E\u043F\u0438\u043B ${updated.errorCount5m} \u043E\u0448\u0438\u0431\u043E\u043A \u0437\u0430 5 \u043C\u0438\u043D. \u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0438. \u0410\u0432\u0442\u043E-\u043E\u0442\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435 \u0412\u042B\u041A\u041B\u042E\u0427\u0415\u041D\u041E \u2014 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0439 \u0432\u0440\u0443\u0447\u043D\u0443\u044E \u0432 /admin/providers.`,
-                  "WARNING"
-                );
-                await redis.set(alertKey, "1", "EX", 3600).catch(() => null);
+                void (async () => {
+                  try {
+                    const { sendAdminAlert: sendAdminAlert2 } = await Promise.resolve().then(() => (init_notifications(), notifications_exports));
+                    await sendAdminAlert2(
+                      `\u26A0\uFE0F \u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 "${provider.name}" \u043D\u0430\u043A\u043E\u043F\u0438\u043B ${updated.errorCount5m} \u043E\u0448\u0438\u0431\u043E\u043A \u0437\u0430 5 \u043C\u0438\u043D. \u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0438. \u0410\u0432\u0442\u043E-\u043E\u0442\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435 \u0412\u042B\u041A\u041B\u042E\u0427\u0415\u041D\u041E \u2014 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0439 \u0432\u0440\u0443\u0447\u043D\u0443\u044E \u0432 /admin/providers.`,
+                      "WARNING"
+                    );
+                    await redis.set(alertKey, "1", "EX", 3600).catch(() => null);
+                  } catch (alertErr) {
+                    console.warn(`[ProviderBalanceService] Async error alert failed for ${provider.name}:`, alertErr);
+                  }
+                })();
               }
             }
           } catch (dbErr) {

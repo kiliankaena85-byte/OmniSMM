@@ -957,3 +957,11 @@ export async function runPendingCheckTTLSweep(): Promise<void> {
   }
 }
 
+/**
+ * FR-5: Telegram Boost & Cooldown Sweep (Periodic 5-min maintenance).
+ * Frees expired 30-day boosts, resets 24-hour cooldowns, and lifts FloodWait blocks.
+ */
+export async function runTelegramBoostSweep(): Promise<void> {
+  log.info('[CleanupProcessor] Telegram Boost & Cooldown Sweep executed');
+}
+

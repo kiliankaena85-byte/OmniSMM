@@ -109,7 +109,7 @@
 Полные нормативные инварианты зафиксированы в [`.agents/rules/architecture-and-security.md`](.agents/rules/architecture-and-security.md):
 - **Server/Client:** Server Components по умолчанию; `"use server"` строго в `src/actions/` (запрещен в `page.tsx`); возврат typed `{ success, error }`.
 - **Multi-Tenant OmniSMM 1.0:** Платформа OmniSMM обслуживает бренды **SMMplan** (`smmplan.pro`) и **SMMflux** (`smmflux.ru`). Брендов Lovable и SMMboost не существует. Переключение сайтов оператором — глобально в шапке (`<GlobalSiteSwitcher />`).
-- **Сетевой биндинг:** Tailscale Funnel (`https://desktop-25m6el7.tailbb9d28.ts.net` $\to$ `http://127.0.0.1:3000`). Сервер Next.js запускается с `HOSTNAME="0.0.0.0"` и `PORT="3000"`.
+- **Сетевой биндинг:** Tailscale Funnel (`https://smmplan.tail7c98b4.ts.net` $\to$ `http://127.0.0.1:3000`). Сервер Next.js запускается с `HOSTNAME="0.0.0.0"` и `PORT="3000"`.
 - **Финансовая безопасность & Ledger:** Все изменения баланса — строго через `WalletOps` в BigInt (копейки) с `idempotencyKey` и `auditAdminAwaitable()`. Ledger-First: запись в леджер ДО мутации баланса. Запрещен Transaction Escape (`tx.*` внутри транзакций).
 - **Безопасность секретов & Webhooks:** Fail-Closed (500 при отсутствии секрета, 401/403 при несовпадении подписи). Сравнение строго через `crypto.timingSafeEqual`. Запрещены секреты в клиентском бандле.
 - **Zero-Trust & RBAC:** Guest-Proof проверки IDOR. Гранулярный RBAC через `requireStaffPermission()`. Зафиксирован `src/proxy.ts` (не `src/middleware.ts`).
@@ -124,6 +124,8 @@
 - 🧹 [`.agents/rules/code-hygiene-lint.md`](.agents/rules/code-hygiene-lint.md) — Strict Types, No-Crutch Policy (анти-костыли), Server Actions, React 19 / Next.js 16.
 - 🧠 [`.agents/rules/memory-and-swarms.md`](.agents/rules/memory-and-swarms.md) — 4-Tier Memory, GraphRAG (:8100), Состязательный аудит Red Team, Zero-Hallucination 3-Tier Hierarchy.
 - 🛡️ [`.agents/rules/security-and-postmortem.md`](.agents/rules/security-and-postmortem.md) — Pentest Immunity (OWASP Top 10:2025, PCI DSS 4.0), RFC 9116/9331, Production Post-Mortem Hard Invariants.
+- ⚖️ [`.agents/rules/decision-model-arbitration.md`](.agents/rules/decision-model-arbitration.md) — Регламент использования внешней модели принятия решений (Laya Decision Engine / ActionArbiter MCP) в обвязке Antigravity.
+- 🏷️ [`.agents/rules/catalog-taxonomy-and-naming.md`](.agents/rules/catalog-taxonomy-and-naming.md) — Каноническая таксономия категорий, услуг и описаний (запрет соцсетей в категориях, 3-блочные описания, защита от слома при рефакторинге).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

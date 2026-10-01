@@ -71,31 +71,45 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
   const [isClient, setIsClient] = React.useState(false);
   const [healthReport, setHealthReport] = React.useState<SystemHealthReport | null>(null);
   const [isLoadingHealth, setIsLoadingHealth] = React.useState(false);
+  const isMountedRef = React.useRef(true);
 
   const fetchHealthReport = React.useCallback(async () => {
+    if (!isMountedRef.current) return;
     setIsLoadingHealth(true);
     try {
       const res = await getSystemHealthReportAction();
-      if (res && res.success && res.data) {
+      if (isMountedRef.current && res && res.success && res.data) {
         setHealthReport(res.data);
       }
-    } catch (e) {
-      console.error('Failed to load system health report:', e);
+    } catch (e: unknown) {
+      // Suppress unmount / abort network cancellations silently
+      if (isMountedRef.current) {
+        const errString = String(e);
+        if (!errString.includes('aborted') && !errString.includes('Failed to fetch')) {
+          console.error('Failed to load system health report:', e);
+        }
+      }
     } finally {
-      setIsLoadingHealth(false);
+      if (isMountedRef.current) {
+        setIsLoadingHealth(false);
+      }
     }
   }, []);
 
   React.useEffect(() => {
+    isMountedRef.current = true;
     setIsClient(true);
     fetchHealthReport();
     const interval = setInterval(fetchHealthReport, 30000); // 30s auto-refresh
-    return () => clearInterval(interval);
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
   }, [fetchHealthReport]);
 
   const formatTime = (d?: Date | string | null) => {
     if (!d) return 'Не синхронизировался';
-    if (!isClient) return 'Загрузка...';
+    if (!isClient) return '—';
     try {
       const date = new Date(d);
       return date.toLocaleString('ru-RU', {
@@ -284,7 +298,7 @@ export function SystemHealthOverview({ settings }: SystemHealthOverviewProps) {
             </div>
             <div className="flex justify-between items-center text-[10px]">
               <span>Обновлено:</span>
-              <span className="text-muted-foreground">{formatTime(settings.exchangeRateUpdatedAt)}</span>
+              <span className="text-muted-foreground" suppressHydrationWarning>{formatTime(settings.exchangeRateUpdatedAt)}</span>
             </div>
           </div>
         </div>

@@ -6,3 +6,5 @@
 3. `.agents/rules/code-hygiene-lint.md` — Качество кода, No-Crutch Policy, строгие типы, React 19.
 4. `.agents/rules/memory-and-swarms.md` — Векторная память GraphRAG, Состязательный аудит Red Team, Zero-Hallucination.
 5. `.agents/rules/security-and-postmortem.md` — Pentest Immunity (OWASP Top 10:2025, PCI DSS 4.0) и инварианты постмортема.
+6. `.agents/rules/decision-model-arbitration.md` — Использование внешней модели принятия решений (Laya / ActionArbiter MCP) в обвязке Antigravity.
+7. `.agents/rules/catalog-taxonomy-and-naming.md` — Стандарт именования категорий, услуг и описаний (CTN-2026, запрет соцсетей в категориях).
