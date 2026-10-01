@@ -126,6 +126,26 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/terms',
+        destination: '/legal/terms',
+        permanent: true,
+      },
+      {
+        source: '/privacy',
+        destination: '/legal/privacy',
+        permanent: true,
+      },
+      {
+        source: '/refund',
+        destination: '/legal/refund',
+        permanent: true,
+      },
+      {
+        source: '/offer',
+        destination: '/legal/terms',
+        permanent: true,
+      },
+      {
         source: '/services/vkontakte/:path*',
         destination: '/services/vk/:path*',
         permanent: true,

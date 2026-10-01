@@ -1,3 +1,22 @@
+- [x] 🚀 [OMNISMM-PRODUCTION-READINESS-TURNKEY-KIT-2026-10-01] Полный комплекс предпродакшн-подготовки платформы OmniSMM 1.0 («Ключ на старт»: юриспруденция 152/54-ФЗ, Docker Prod, редиректы, пошаговый Runbook):
+  * ⚖️ **Юридический контур и защита бизнеса (152-ФЗ, 54-ФЗ, 115-ФЗ, ЗоЗПП):**
+    - Внедрены шаблоны Enterprise Ironclad v5.1 в `src/data/legal-fallbacks.ts` (Публичная оферта ст. 437 ГК РФ, Политика конфиденциальности 152-ФЗ, Порядок возврата аванса с удержанием ФПР 15–40% по ст. 782 ГК РФ и ст. 346.17 НК РФ);
+    - Динамическая подстановка реквизитов ИП (`COMPANY_NAME`, `COMPANY_INN`, `COMPANY_OGRNIP`, `COMPANY_ADDRESS`) в `LegalPageContent.tsx` с правилом защиты домашнего адреса (Zero-Home-Address Disclosure);
+    - Добавлены постоянные SEO-редиректы в `next.config.mjs` (`/terms` -> `/legal/terms`, `/privacy` -> `/legal/privacy`, `/refund` -> `/legal/refund`, `/offer` -> `/legal/terms`);
+  * 🐳 **Боевая Docker-инфраструктура (`docker-compose.prod.yml` & `nginx/default.conf`):**
+    - Изолированная внутренняя сеть backend для PostgreSQL 15 и Redis 7 (без наружной публикации портов);
+    - Multi-tenant Nginx reverse proxy с поддержкой доменов `smmplan.pro` и `smmflux.ru`, HTTP -> HTTPS 301, HSTS, SSE стриминга и Let's Encrypt Certbot;
+    - Лимиты памяти, ротация логов 50MB (макс 3 файла) и опции безопасности `no-new-privileges: true`;
+  * 📘 **Исчерпывающий манифест запуска (`docs/DEPLOYMENT_RUNBOOK.md`):**
+    - Пошаговое руководство от А до Я:
+      1. Открытие ИП (УСН 6% «Доходы», ОКВЭД 62.01, выбор банка с бесплатной бухгалтерией);
+      2. Аренда VPS в РФ (Selectel / Timeweb ~1k ₽/мес, Ubuntu 24.04);
+      3. Привязка DNS (A-записи `@` и `www`);
+      4. Развертывание Docker в 3 команды и выпуск SSL;
+      5. Ввод реквизитов ИП в `/admin/settings?tab=general` за 2 минуты;
+      6. Подключение эквайринга ЮKassa (карты, СБП, авто-чеки 54-ФЗ);
+      7. Запуск рекламы в Яндекс.Директ (`yandex_direct_smmplan_import.tsv`) и планировщик автопилота.
+
 - [x] 🚀 [OMNISMM-AUTONOMOUS-PPC-GROWTH-AGENT-IMPLEMENTATION-2026-10-01] Полная реализация и верификация Автономного PPC Growth-Агента Яндекс.Директ по стандарту SDD-TDD 2026 (100% COMPLETE & 16/16 TESTS PASSED):
   * 🛠️ **Модульные сервисы рантайма (`src/services/ppc/`):**
     - `types.ts`: Zod-схемы DTO (`YandexDirectBidsPayloadSchema`, `YandexMetrikaResponseSchema`), инварианты `validateBudgetCeiling` (лимит 4 000 ₽/день), `validatePolicy15Compliant` (защита от бана по п. 15), `CircuitBreaker` (отсечка сбоев на 30 сек/3 сбоя);
