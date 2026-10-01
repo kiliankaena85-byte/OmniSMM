@@ -33,6 +33,8 @@ export function StepByStepWizard({
   // Step 4 Form State
   const [targetUrl, setTargetUrl] = useState('');
   const [quantity, setQuantity] = useState(500);
+  const [runs, setRuns] = useState(1);
+  const [dripFeedEnabled, setDripFeedEnabled] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('sbp');
   const [availableGateways, setAvailableGateways] = useState<{
     yookassa: boolean;
@@ -103,6 +105,8 @@ export function StepByStepWizard({
       service: selectedService,
       targetUrl,
       quantity,
+      // Pass runs if Drip-Feed is active
+      ...(dripFeedEnabled ? { runs } : {}),
       paymentMethod,
     });
   };
@@ -149,6 +153,10 @@ export function StepByStepWizard({
               setTargetUrl={setTargetUrl}
               quantity={quantity}
               setQuantity={setQuantity}
+              runs={runs}
+              setRuns={setRuns}
+              dripFeedEnabled={dripFeedEnabled}
+              setDripFeedEnabled={setDripFeedEnabled}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               availableGateways={availableGateways}

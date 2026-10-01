@@ -1,11 +1,10 @@
 import type { Job } from 'bullmq';
 import { logger } from '@/lib/logger';
-import { runWithTenant } from '@/lib/tenant-context';
+import { runWithTenant, runWithTenantBypass } from '@/lib/tenant-context';
 
 export async function processDePinWatchdog(job: Job): Promise<void> {
-  const tenantId = job.data?.tenantId || 'smmplan';
-  return runWithTenant(tenantId, async () => {
-    logger.info('🔍 Watchdog round started', { component: 'DePinWatchdog', tenantId });
+  const executeRound = async () => {
+    logger.info('🔍 Watchdog round started', { component: 'DePinWatchdog', tenantId: job.data?.tenantId || 'all' });
     try {
       const { runFollowAuditRound } = await import('@/services/depin/follow-watchdog');
       const result = await runFollowAuditRound();
@@ -28,5 +27,10 @@ export async function processDePinWatchdog(job: Job): Promise<void> {
       logger.error('Watchdog failed', { component: 'DePinWatchdog', err: String(err) });
       throw err;
     }
-  });
+  };
+
+  if (job.data?.tenantId) {
+    return runWithTenant(job.data.tenantId, executeRound);
+  }
+  return runWithTenantBypass('DePin Global Watchdog Escrow Audit', executeRound);
 }

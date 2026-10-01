@@ -21,6 +21,7 @@ import { getCostRub, reconcileCurrencyBeforeSync } from '@/lib/pricing/currency-
 import { SecuritySanitizer } from '@/utils/security-sanitizer';
 import { SmartAnalyzerLogic } from '@/services/providers/smart-analyzer.logic';
 import { parseProviderBoolean } from './catalog-taxonomy.service';
+import { ProviderCurrencyEngine } from '@/services/providers/currency-detector.service';
 
 export type ProviderExternalService = {
   service: string;
@@ -109,7 +110,27 @@ export class CatalogSyncService {
     }
 
     const usdRate = await SettingsProvider.getExchangeRateUSD();
-    const currency = providerDbRecord.balanceCurrency || 'USD';
+
+    // 0.1 Direct Probe Currency Shift Detection
+    try {
+      const balanceData = await providerInstance.getBalance().catch(() => null);
+      if (balanceData?.currency) {
+        const probeShift = ProviderCurrencyEngine.detectShiftFromProbe(
+          providerDbRecord.balanceCurrency || 'USD',
+          balanceData.currency
+        );
+        if (probeShift.isShiftDetected && probeShift.detectedCurrency) {
+          await ProviderCurrencyEngine.autoHealProviderServices(
+            providerDbRecord.id,
+            probeShift.detectedCurrency,
+            usdRate
+          );
+          providerDbRecord.balanceCurrency = probeShift.detectedCurrency;
+        }
+      }
+    } catch {
+      // Ignore probe failure
+    }
 
     const validRawServices: z.infer<typeof rawServiceSchema>[] = [];
     let invalidCount = 0;
@@ -122,6 +143,45 @@ export class CatalogSyncService {
         invalidCount++;
       }
     }
+
+    // 0.2 Statistical Shift Detection across catalog
+    try {
+      // tenant-isolation-ignore: Provider catalog sync operates across all tenants (shared provider services)
+      const ourExistingServices = await db.service.findMany({
+        where: { providerId: providerDbRecord.id, isActive: true },
+        select: {
+          id: true,
+          externalId: true,
+          rate: true,
+          providerCurrency: true,
+          costPer1kRub: true,
+          markup: true,
+          pricePer1000Cents: true
+        }
+      });
+
+      if (ourExistingServices.length >= ProviderCurrencyEngine.MIN_SERVICES_FOR_BATCH_CHECK) {
+        const catalogShift = ProviderCurrencyEngine.detectShiftFromCatalog(
+          providerDbRecord.balanceCurrency || 'USD',
+          ourExistingServices.map(s => ({ ...s, externalId: s.externalId || '' })),
+          validRawServices.map(s => ({ externalId: String(s.service), rate: typeof s.rate === 'number' ? s.rate : parseFloat(String(s.rate)) || 0 })),
+          usdRate
+        );
+
+        if (catalogShift.isShiftDetected && catalogShift.detectedCurrency) {
+          await ProviderCurrencyEngine.autoHealProviderServices(
+            providerDbRecord.id,
+            catalogShift.detectedCurrency,
+            usdRate
+          );
+          providerDbRecord.balanceCurrency = catalogShift.detectedCurrency;
+        }
+      }
+    } catch (shiftErr) {
+      console.warn('[CatalogSyncService] Shift detection error:', shiftErr);
+    }
+
+    const currency = providerDbRecord.balanceCurrency || 'USD';
 
     if (invalidCount > 0) {
       console.warn(`[Provider Sync] Ignored ${invalidCount} invalid services from provider ${providerDbRecord.name}`);
@@ -337,105 +397,62 @@ export class CatalogSyncService {
           await db.$transaction(auditPayloads as Prisma.PrismaPromise<unknown>[]);
         }
 
-        if (!s.isActive && s.cooldownReason === 'ZOMBIE_AUTO_DISABLED') {
-          const oldCurrency = s.providerCurrency || 'USD';
-          const oldExchangeRate = oldCurrency === 'RUB' ? 1.0 : usdToRub;
-          const oldCostRub = s.rate * oldExchangeRate;
-          const newCostRub = rawRate * exchangeRate;
-          const EPSILON_RUB = 0.01;
+        const isResurrection = !s.isActive && s.cooldownReason === 'ZOMBIE_AUTO_DISABLED';
+        const isRateChanged = Math.abs(s.rate - rawRate) > 0.000001;
 
-          if (newCostRub > UPPER_SANITY_LIMIT_RUB) {
+        if (isResurrection || isRateChanged) {
+          const evaluation = ProviderCurrencyEngine.evaluateServicePriceChange(
+            {
+              id: s.id,
+              externalId: s.externalId,
+              rate: s.rate,
+              providerCurrency: s.providerCurrency || providerCurrency,
+              costPer1kRub: s.costPer1kRub,
+              markup: s.markup,
+              pricePer1000Cents: s.pricePer1000Cents
+            },
+            rawRate,
+            providerCurrency,
+            usdToRub,
+            { isResurrection, quarantineThreshold: QUARANTINE_THRESHOLD }
+          );
+
+          if (evaluation.action === 'QUARANTINE_SANITY_LIMIT' || evaluation.action === 'QUARANTINE_PRICE_SPIKE') {
             await db.service.update({
               where: { id: s.id },
               data: {
+                isActive: false,
                 isQuarantined: true,
                 pendingRate: rawRate,
-                quarantineReason: `Upper Sanity Limit Exceeded: себестоимость ${newCostRub.toFixed(2)} ₽/1k превышает лимит ${UPPER_SANITY_LIMIT_RUB.toLocaleString('ru-RU')} ₽ (${rawRate} ${providerCurrency})`,
-                quarantinedAt: new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (oldCostRub > 0 && (newCostRub - oldCostRub) / oldCostRub >= ANOMALY_PRICE_SPIKE_THRESHOLD) {
-            const spikePct = Math.round(((newCostRub - oldCostRub) / oldCostRub) * 100);
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Price Spike on Resurrection (+${spikePct}%): себестоимость выросла с ${oldCostRub.toFixed(2)} ₽ до ${newCostRub.toFixed(2)} ₽/1k`,
+                quarantineReason: evaluation.quarantineReason,
                 quarantinedAt: new Date()
               }
             });
             priceAnomalies++;
           } else {
+            if (isResurrection) {
+              resurrected++;
+            } else if (isRateChanged) {
+              priceUpdatedSilent++;
+            }
+
             pendingUpdates.push({
               id: s.id,
               data: {
                 isActive: true,
                 rate: rawRate,
                 providerCurrency,
+                costPer1kRub: evaluation.newCostRub,
+                currencyCapturedAt: new Date(),
+                usdRateAtCapture: usdToRub,
+                pricePer1000Cents: evaluation.newRetailPriceCents,
                 cooldownReason: null,
                 isQuarantined: false,
-                quarantineReason: null,
+                quarantineReason: null
               },
               oldRate: s.rate,
-              newRate: rawRate,
+              newRate: rawRate
             });
-            resurrected++;
-          }
-        } else if (Math.abs(s.rate - rawRate) > 0.000001) {
-          const oldCostRub = s.rate * (s.providerCurrency === 'RUB' ? 1.0 : usdToRub);
-          const newCostRub = rawRate * exchangeRate;
-          const relChange = oldCostRub > 0 ? (newCostRub - oldCostRub) / oldCostRub : 0;
-
-          if (newCostRub > UPPER_SANITY_LIMIT_RUB) {
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isActive: false,
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Upper Sanity Limit Exceeded: себестоимость ${newCostRub.toFixed(2)} ₽/1k превышает лимит ${UPPER_SANITY_LIMIT_RUB.toLocaleString('ru-RU')} ₽ (${rawRate} ${providerCurrency})`,
-                quarantinedAt: new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (relChange >= ANOMALY_PRICE_SPIKE_THRESHOLD) {
-            const spikePct = Math.round(relChange * 100);
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isActive: false,
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Price Spike (+${spikePct}%): себестоимость выросла с ${oldCostRub.toFixed(2)} ₽ до ${newCostRub.toFixed(2)} ₽/1k`,
-                quarantinedAt: new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (Math.abs(relChange) >= QUARANTINE_THRESHOLD) {
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Поставщик изменил цену: ${s.rate} -> ${rawRate} ${providerCurrency} (${relChange > 0 ? '+' : ''}${(relChange * 100).toFixed(1)}%)`,
-                quarantinedAt: new Date(),
-              }
-            });
-            priceAnomalies++;
-          } else {
-            pendingUpdates.push({
-              id: s.id,
-              data: {
-                rate: rawRate,
-                providerCurrency,
-                pricePer1000Cents: Math.round(applyBeautifulRounding(newCostRub * s.markup) * 100)
-              },
-              oldRate: s.rate,
-              newRate: rawRate,
-            });
-            priceUpdatedSilent++;
           }
         }
       }

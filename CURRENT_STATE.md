@@ -1,3 +1,20 @@
+- [x] 🚀 [OMNISMM-DUAL-PROJECT-ARBITRATION-AND-PARITY-REMEDIATION-2026-10-02] Межпроектный арбитраж (omnismm vs omnismmcore), верификация OpenRouter и устранение расхождений (100% COMPLETE & ALL CI/CD GATES PASSED):
+  * ⚖️ **Арбитраж и выбор проекта для продакшена (ActionArbiter & OpenRouter):**
+    - Канонический кандидат для продакшн-деплоя: `omnismmcore` (чистая финансовая модель без денормализованной рассинхронизации `ordersCount`, чистый аудит 0 блокеров);
+    - Верификация находок проведена через бесплатные модели OpenRouter (`qwen/qwen3.8-27b:free`, `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`) с вердиктом ACCEPT;
+  * 🛡️ **Устранение расхождений и перенос ключевых активов:**
+    - `depin-watchdog.processor.ts`: добавлен глобальный bypass `runWithTenantBypass('DePin Global Watchdog Escrow Audit')` для проверки заданий всех брендов (`smmplan` и `smmflux`);
+    - Интегрирован `ProviderCurrencyEngine` (`currency-detector.service.ts`) с авто-карантином при скачках валют провайдеров (защита от 100x демпинга);
+    - Перенесен и дедуплицирован `renderMarkdown` в shared компонент `src/components/ui/markdown-renderer.tsx` (устранено 200+ строк дубликатов в `ArticleForm.tsx` и `[slug]/page.tsx`);
+    - Перенесен и интегрирован чекаут-визард (`StepByStepWizard.tsx`, `WizardStepCheckout.tsx`, `WizardDripFeedSection.tsx`, `WizardLinkField.tsx`) с проверкой Drip-Feed Floor ($\lfloor Q/N \rfloor \ge \text{minQty}$) и валидацией ссылок;
+  * 🧪 **100% Прохождение всех CI/CD и QA гейтов:**
+    - `tsc --noEmit` — 0 errors;
+    - `npm run audit:prod` — 0 BLOCKERS;
+    - `npm run lint:tenant` — exit code 0;
+    - `npm run lint:guardrails` — exit code 0 (AST Guardrails PASS);
+    - `npm run check:bundle-secrets` — 0 leaked secrets;
+    - Vitest suites (`bullmq-tenant-context`, `wallet-ops-acid-invariants`, `provider-currency-engine`, `ppc-autonomous-agent`) — 39 passed из 39.
+
 - [x] 🚀 [OMNISMM-CRITICAL-AUDIT-REMEDIATION-AND-OPENROUTER-VERIFICATION-2026-10-01] Полная критическая ревизия кодовой базы OmniSMM-Core, устранение всех блокеров надежности и мульти-тенантности, верификация через OpenRouter LLM флотилию (100% COMPLETE & ALL CI/CD GATES PASSED):
   * 🔍 **Комплексный аудит и верификация через OpenRouter:**
     - Проведен сквозной аудит по 8 направлениям (Архитектура, Безопасность, Мульти-тенантность, Конкурентность, Надежность, Производительность, Секреты, Типобезопасность);

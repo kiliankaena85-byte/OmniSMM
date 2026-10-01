@@ -2,14 +2,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
-import {
-  getSocialLinkConfig,
-  normalizeUserLink,
-  detectMismatchedNetwork,
-} from '@/utils/social-link-placeholder';
+import { ArrowLeft } from 'lucide-react';
+import { detectMismatchedNetwork } from '@/utils/social-link-placeholder';
 import { CatalogPlatform, CatalogCategory, CatalogServiceItem } from '../catalog-data';
 import { WizardPaymentGateways, type PaymentMethodType } from './WizardPaymentGateways';
+import { WizardLinkField, validateOrderLink } from './WizardLinkField';
+import { WizardDripFeedSection } from './WizardDripFeedSection';
+
 export type { PaymentMethodType };
 
 interface GatewaysConfig {
@@ -27,6 +26,10 @@ interface WizardStepCheckoutProps {
   setTargetUrl: (url: string) => void;
   quantity: number;
   setQuantity: (qty: number) => void;
+  runs?: number;
+  setRuns?: (runs: number) => void;
+  dripFeedEnabled?: boolean;
+  setDripFeedEnabled?: (enabled: boolean) => void;
   paymentMethod: PaymentMethodType;
   setPaymentMethod: (method: PaymentMethodType) => void;
   availableGateways: GatewaysConfig | null;
@@ -44,6 +47,10 @@ export function WizardStepCheckout({
   setTargetUrl,
   quantity,
   setQuantity,
+  runs = 1,
+  setRuns,
+  dripFeedEnabled = false,
+  setDripFeedEnabled,
   paymentMethod,
   setPaymentMethod,
   availableGateways,
@@ -52,8 +59,16 @@ export function WizardStepCheckout({
   onBack,
   onSubmit,
 }: WizardStepCheckoutProps) {
-  const cfg = getSocialLinkConfig(platform.id, category?.id, service?.title);
   const mismatch = detectMismatchedNetwork(targetUrl, platform.id);
+  const { isValid: isLinkValid, error: linkError } = validateOrderLink(targetUrl, platform.id);
+
+  const parsedMin = parseInt(service.minMax.match(/\d[\d\s]*\b/)?.[0]?.replace(/\s/g, '') || '100', 10);
+  const parsedMaxMatch = service.minMax.match(/—\s*(\d[\d\s]*)\b/);
+  const parsedMax = parsedMaxMatch ? parseInt(parsedMaxMatch[1].replace(/\s/g, ''), 10) : 10000;
+
+  // Drip-Feed Floor Invariant: Q/N >= minQty
+  const isDripFeedValid = !dripFeedEnabled || (Math.floor(quantity / runs) >= parsedMin);
+  const canSubmit = Boolean(targetUrl && isLinkValid && !mismatch.isMismatch && isDripFeedValid);
 
   return (
     <motion.div
@@ -84,50 +99,22 @@ export function WizardStepCheckout({
 
       <div className="space-y-4">
         {/* Ссылка */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              Ссылка для заказа:
-              {cfg.badge && (
-                <span className="text-[10px] lowercase font-bold px-2 py-0.2 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {cfg.badge}
-                </span>
-              )}
-            </label>
-          </div>
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={targetUrl}
-              onChange={(e) => setTargetUrl(e.target.value)}
-              onBlur={(e) => setTargetUrl(normalizeUserLink(e.target.value))}
-              placeholder={cfg.placeholder}
-              className={`w-full px-4 py-3 rounded-2xl bg-muted/50 border text-foreground font-medium text-sm focus:outline-none transition-all ${
-                mismatch.isMismatch
-                  ? 'border-amber-500/80 focus:ring-2 focus:ring-amber-500/30'
-                  : 'border-border focus:ring-2 focus:ring-primary/40'
-              }`}
-            />
-            {mismatch.isMismatch ? (
-              <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium px-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>
-                  Внимание: ссылка на <strong>{mismatch.detectedNetworkName}</strong>, хотя выбран сервис <strong>{mismatch.expectedNetworkName}</strong>.
-                </span>
-              </div>
-            ) : (
-              <div className="text-xs text-muted-foreground font-medium px-1">
-                💡 {cfg.hint}
-              </div>
-            )}
-          </div>
-        </div>
+        <WizardLinkField
+          targetUrl={targetUrl}
+          setTargetUrl={setTargetUrl}
+          platformId={platform.id}
+          categoryId={category?.id}
+          serviceTitle={service?.title}
+          isLinkValid={isLinkValid}
+          linkError={linkError}
+          mismatch={mismatch}
+        />
 
         {/* Количество */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Количество:
+              {dripFeedEnabled ? 'Общее количество:' : 'Количество:'}
             </label>
             <span className="font-mono font-black text-foreground text-sm tabular-nums">
               {quantity} шт
@@ -135,14 +122,30 @@ export function WizardStepCheckout({
           </div>
           <input
             type="range"
-            min={100}
-            max={10000}
-            step={100}
+            min={parsedMin}
+            max={parsedMax}
+            step={parsedMin >= 100 ? 100 : parsedMin >= 10 ? 10 : 1}
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
             className="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer"
           />
+          <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1 px-1">
+            <span>min {parsedMin}</span>
+            <span>max {parsedMax}</span>
+          </div>
         </div>
+
+        {/* Drip-Feed (Плавное налитие) */}
+        <WizardDripFeedSection
+          dripFeedEnabled={dripFeedEnabled}
+          setDripFeedEnabled={setDripFeedEnabled}
+          runs={runs}
+          setRuns={setRuns}
+          quantity={quantity}
+          setQuantity={setQuantity}
+          parsedMin={parsedMin}
+          isDripFeedValid={isDripFeedValid}
+        />
 
         {/* Выбор способа оплаты */}
         <WizardPaymentGateways
@@ -165,8 +168,13 @@ export function WizardStepCheckout({
 
           <button
             type="button"
-            className="px-6 py-3.5 min-h-[48px] text-sm font-bold bg-primary text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 hover:opacity-95 active:scale-98 transition-all"
+            className={`px-6 py-3.5 min-h-[48px] text-sm font-bold rounded-2xl shadow-lg transition-all ${
+              canSubmit
+                ? 'bg-primary text-primary-foreground shadow-primary/25 hover:opacity-95 active:scale-98'
+                : 'bg-muted text-muted-foreground shadow-none cursor-not-allowed opacity-70'
+            }`}
             onClick={onSubmit}
+            disabled={!canSubmit}
           >
             Оплатить заказ →
           </button>

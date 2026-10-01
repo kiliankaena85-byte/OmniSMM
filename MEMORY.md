@@ -213,6 +213,20 @@ onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); ... }}
 2. Категорически запрещены пустые блоки `catch {}` — любые перехваченные исключения обязаны логироваться через структурированный логгер (`logger.warn`/`logger.error`) или возвращать типизированный результат.
 3. Любые сетевые вызовы `fetch()` обязаны сопровождаться детерминированным таймаутом `AbortSignal.timeout(ms)`.
 
+### 🔴 УРОК 27 — Межпроектный арбитраж: слепота глобального DePIN Watchdog, защита от валютного сдвига (DPC-Engine) и дедупликация markdown (2026-10-02)
+**Что случилось:**
+1. При сравнении `omnismm` и `omnismmcore` обнаружено:
+   - В `omnismmcore` фоновый сторож эскроу `depin-watchdog.processor.ts` жестко задавал `runWithTenant('smmplan')`, игнорируя задания DePIN бренда `smmflux` и оставляя замороженный эскроу без аудита.
+   - В `omnismm` в модель `User` было добавлено денормализованное поле `ordersCount`, однако в `checkout-transaction.service.ts` инкремент отсутствовал, создавая рассинхронизацию счетчиков.
+   - В `omnismmcore` отсутствовал `ProviderCurrencyEngine` (DPC-Engine), защищающий каталог от 100-кратного финансового демпинга при внезапной смене валюты внешнего API провайдера (с USD на RUB).
+   - В `ArticleForm.tsx` и `[slug]/page.tsx` была продублирована функция `renderMarkdown` (~120 строк).
+2. Верификация через флот OpenRouter (`qwen/qwen3.8-27b:free`, `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`) и ActionArbiter определила `omnismmcore` как канонический проект для продакшн-деплоя с переносом лучших наработок.
+**Правило:**
+1. В глобальных фоновых аудиторах (DePIN Watchdog Escrow) при отсутствии явного `job.data.tenantId` использовать `runWithTenantBypass('DePin Global Watchdog Escrow Audit')` для охвата всех тенантов платформы.
+2. Вся синхронизация каталогов обязана защищаться `ProviderCurrencyEngine` с авто-карантином при скачках себестоимости и обнаружении валютного сдвига (`detectShiftFromCatalog`).
+3. Markdown-рендеры обязаны быть централизованы в `@/components/ui/markdown-renderer`.
+4. В чекаут-визарде обязательна валидация Drip-Feed Floor ($\lfloor Q/N \rfloor \ge \text{minQty}$) и URL сети соцсети.
+
 ---
 
 ## 1. 🏗️ Архитектурные решения (ADR)
