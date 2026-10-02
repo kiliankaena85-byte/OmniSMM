@@ -16,6 +16,7 @@ import { ErrorTracker } from './error-tracker';
 import { SecurityPanel } from './security-panel';
 import { BotConstructorTab } from './bot-constructor-tab';
 import { DePinNodesTab } from './depin-nodes-tab';
+import { TelegramMtprotoTab } from './telegram-mtproto-tab';
 
 interface TelegramBotTabsContentProps {
   activeTab: TelegramSubTab;
@@ -72,6 +73,11 @@ export function TelegramBotTabsContent({
       {/* TAB DEPIN: NODES & EARNINGS */}
       {activeTab === 'depin' && (
         <DePinNodesTab tenantId={tenantId} />
+      )}
+
+      {/* TAB MTPROTO: PRODUCTION CLUSTER */}
+      {activeTab === 'mtproto' && (
+        <TelegramMtprotoTab tenantId={tenantId} />
       )}
 
       {/* TAB 3: MESSAGE TEMPLATES */}

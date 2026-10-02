@@ -186,3 +186,196 @@ export async function getTelegramPoolStatsAction() {
     };
   });
 }
+
+export interface SessionListItem {
+  id: string;
+  phoneNumber: string;
+  phoneMasked: string;
+  dcId: number;
+  state: string;
+  hasPremium: boolean;
+  interactionHealthScore: number;
+  deviceModel: string;
+  hasProxy: boolean;
+  proxyUrl?: string;
+  totalBoostSlots: number;
+  freeBoostSlots: number;
+  boostSlots: Array<{
+    slotIndex: number;
+    assignedChannelId?: string;
+    expiresAt?: number;
+    cooldownUntil?: number;
+  }>;
+  lastActionAt: number;
+}
+
+/**
+ * Возвращает список всех сессий с подробным статусом и слотами
+ */
+export async function listTelegramSessionsAction(filter?: {
+  state?: string;
+  search?: string;
+}) {
+  return requireStaffPermission('providers', 'view', async () => {
+    const pool = TelegramSessionPoolManager.getInstance();
+    await pool.loadAllFromDb();
+    let all = pool.getAllSessions();
+
+    if (filter?.state && filter.state !== 'ALL') {
+      all = all.filter((s) => s.state === filter.state);
+    }
+
+    if (filter?.search && filter.search.trim()) {
+      const q = filter.search.trim().toLowerCase();
+      all = all.filter((s) => s.phoneNumber.includes(q) || s.id.toLowerCase().includes(q));
+    }
+
+    const now = Date.now();
+    const items: SessionListItem[] = all.map((s) => {
+      const masked = s.phoneNumber.length > 6
+        ? `${s.phoneNumber.slice(0, 4)}***${s.phoneNumber.slice(-2)}`
+        : s.phoneNumber;
+
+      let freeSlots = 0;
+      const slots = s.boostSlots.map((sl) => {
+        const isFree = !sl.assignedChannelId || (sl.expiresAt && sl.expiresAt <= now);
+        const isCooledDown = !sl.cooldownUntil || sl.cooldownUntil <= now;
+        if (isFree && isCooledDown && s.hasPremium && s.state !== 'BANNED') {
+          freeSlots++;
+        }
+        return {
+          slotIndex: sl.slotIndex,
+          assignedChannelId: sl.assignedChannelId,
+          expiresAt: sl.expiresAt,
+          cooldownUntil: sl.cooldownUntil,
+        };
+      });
+
+      return {
+        id: s.id,
+        phoneNumber: s.phoneNumber,
+        phoneMasked: masked,
+        dcId: s.dcId,
+        state: s.state,
+        hasPremium: s.hasPremium,
+        interactionHealthScore: s.interactionHealthScore,
+        deviceModel: s.deviceModel,
+        hasProxy: Boolean(s.proxyUrl),
+        proxyUrl: s.proxyUrl,
+        totalBoostSlots: s.boostSlots.length,
+        freeBoostSlots: freeSlots,
+        boostSlots: slots,
+        lastActionAt: s.lastActionAt,
+      };
+    });
+
+    return {
+      success: true as const,
+      sessions: items,
+      total: items.length,
+    };
+  });
+}
+
+/**
+ * Выполняет ручной тестовый буст канала из панели оператора
+ */
+export async function executeManualBoostAction(rawInput: unknown) {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    const Schema = z.object({
+      channel: z.string().min(1, 'Укажите канал для буста'),
+      durationDays: z.number().int().min(1).max(90).default(30),
+    });
+
+    const parsed = Schema.safeParse(rawInput);
+    if (!parsed.success) {
+      return { success: false as const, error: parsed.error.issues[0]?.message ?? 'Неверные параметры' };
+    }
+
+    const { getSharedTelegramExecutor } = await import('@/workers/processors/order/in-house-order-dispatcher');
+    const executor = getSharedTelegramExecutor();
+    const result = await executor.executeBoostChannel(parsed.data.channel, parsed.data.durationDays);
+
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_MANUAL_BOOST',
+      target: parsed.data.channel,
+      targetType: 'TELEGRAM_CHANNEL',
+      newValue: result,
+    });
+
+    return {
+      success: result.success,
+      action: result.action,
+      sessionId: result.sessionId,
+      slotIndex: result.slotIndex,
+      allocatedUntil: result.allocatedUntil,
+      error: result.error,
+    };
+  });
+}
+
+/**
+ * Выполняет ручную тестовую реакцию из панели оператора
+ */
+export async function executeManualReactionAction(rawInput: unknown) {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    const Schema = z.object({
+      channel: z.string().min(1, 'Укажите канал'),
+      postId: z.number().int().positive('Укажите ID поста'),
+      reaction: z.string().default('👍'),
+    });
+
+    const parsed = Schema.safeParse(rawInput);
+    if (!parsed.success) {
+      return { success: false as const, error: parsed.error.issues[0]?.message ?? 'Неверные параметры' };
+    }
+
+    const { getSharedTelegramExecutor } = await import('@/workers/processors/order/in-house-order-dispatcher');
+    const executor = getSharedTelegramExecutor();
+    const postUrl = `https://t.me/${parsed.data.channel.replace(/^@/, '')}/${parsed.data.postId}`;
+    const result = await executor.executePostReaction(postUrl, parsed.data.reaction);
+
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_MANUAL_REACTION',
+      target: `${parsed.data.channel}/${parsed.data.postId}`,
+      targetType: 'TELEGRAM_POST',
+      newValue: result,
+    });
+
+    return {
+      success: result.success,
+      action: result.action,
+      sessionId: result.sessionId,
+      error: result.error,
+    };
+  });
+}
+
+/**
+ * Очищает просроченные бусты и разблокирует кулдауны
+ */
+export async function sweepExpiredBoostsAction() {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    const pool = TelegramSessionPoolManager.getInstance();
+    const result = await pool.sweepExpiredBoostsAndCooldowns();
+
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_BOOSTS_SWEEP',
+      target: 'global_sweep',
+      targetType: 'TELEGRAM_SESSION_POOL',
+      newValue: result,
+    });
+
+    return {
+      success: true as const,
+      ...result,
+    };
+  });
+}
+

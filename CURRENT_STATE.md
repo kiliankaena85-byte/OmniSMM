@@ -1,3 +1,19 @@
+- [x] 🚀 [OMNISMM-IN-HOUSE-MTPROTO-CLUSTER-ADMIN-SUITE-2026-10-03] Запуск собственного Telegram MTProto Кластера (Tier-0 In-House Production) для исполнения бустов каналов (себестоимость 11.25–45.00 ₽) и реакций/просмотров (себестоимость 0.00 ₽):
+  * 🖥️ **Админский интерфейс мониторинга и управления (`/admin/settings/telegram` -> таб «MTProto Кластер»):**
+    - Создан компонент `telegram-mtproto-tab.tsx` с 4 KPI карточками (Активные сессии, Свободные слоты бустов из 400+, Среднее здоровье Interaction Health, Себестоимость 0-10%);
+    - Таблица сессий с маскированными номерами, DC1-DC5, статусами (READY/BUSY/COOLDOWN/BANNED), Premium-звездами, индикатором SOCKS5-прокси и визуальными чипсами 4 слотов бустов;
+    - Модальные окна: «Массовый импорт Session+JSON (Zelenka/Darkstore)», «Тестовый буст канала», «Тестовая реакция», кнопка «Сброс кулдаунов (Sweep)»;
+    - Интеграция в сайдбар `telegram-bot-sidebar.tsx` (вкладка с бейджем ROOT) и `telegram-bot-tabs-content.tsx`.
+  * ⚡ **Серверные экшены (`src/actions/admin/production/sessions.ts`):**
+    - `listTelegramSessionsAction`: список сессий со статусами слотов, поиском и фильтром по состояниям;
+    - `executeManualBoostAction`: ручной тестовый запуск буста канала с выделением слота;
+    - `executeManualReactionAction`: ручной тестовый запуск реакции с ротацией здоровых сессий;
+    - `sweepExpiredBoostsAction`: плановый сброс просроченных бустов и кулдаунов `sweepExpiredBoostsAndCooldowns`.
+  * 🧪 **CI/CD и тесты:**
+    - Новый юнит-тест `src/__tests__/unit/telegram-mtproto-tab-actions.test.ts` (6/6 PASS);
+    - Весь MTProto-пакет тестов: 26/26 PASS (`telegram-mtproto-executor`, `telegram-sessions-action`, `telegram-mtproto-tab-actions`);
+    - `npx tsc --noEmit` — 0 ошибок компиляции TypeScript.
+
 - [x] 🚀 [OMNISMM-PROVIDER-DISCOVERY-EXPANSION-125-WHOLESALE-HUBS-2026-10-03] Автоматический поиск, скоринг и интеграция 25 новых прямых оптовых поставщиков первого эшелона (расширение реестра со 100 до 125 первоисточников) по стандартам SMM Panel API v2:
   * 🌐 **Новые оптовые кластеры и прямые шлюзы:**
     - **Индонезийский кластер (Android Phone Farms):** `KlikSosmed` (репосты/сохранения TikTok по 4.16 ₽ / 1K, маржа +2304%), `BuzzerPanel` (просмотры TikTok по 0.83 ₽ / 1K), `ProviderSMM.id` (просмотры TG по 0.56 ₽ / 1K, маржа +882%);

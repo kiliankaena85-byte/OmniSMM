@@ -13,6 +13,7 @@ import {
   Activity,
   AlertTriangle,
   Shield,
+  Zap,
 } from 'lucide-react';
 
 export type TelegramSubTab =
@@ -20,6 +21,7 @@ export type TelegramSubTab =
   | 'general'
   | 'menu'
   | 'depin'
+  | 'mtproto'
   | 'templates'
   | 'csat'
   | 'feedback'
@@ -88,6 +90,20 @@ export function TelegramBotSidebar({ activeTab, setActiveTab }: TelegramBotSideb
         <Coins className="w-4 h-4 text-amber-400" />
         <span className="flex-1">Узлы DePIN и Доход</span>
         <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-extrabold shrink-0">PTS</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setActiveTab('mtproto')}
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer w-full text-left ${
+          activeTab === 'mtproto'
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+        }`}
+      >
+        <Zap className="w-4 h-4 text-amber-400" />
+        <span className="flex-1">MTProto Кластер</span>
+        <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-extrabold shrink-0">ROOT</span>
       </button>
 
       <button
