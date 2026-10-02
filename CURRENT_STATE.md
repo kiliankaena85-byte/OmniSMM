@@ -1,3 +1,19 @@
+- [x] 🚀 [OMNISMM-PROVIDER-DISCOVERY-EXPANSION-125-WHOLESALE-HUBS-2026-10-03] Автоматический поиск, скоринг и интеграция 25 новых прямых оптовых поставщиков первого эшелона (расширение реестра со 100 до 125 первоисточников) по стандартам SMM Panel API v2:
+  * 🌐 **Новые оптовые кластеры и прямые шлюзы:**
+    - **Индонезийский кластер (Android Phone Farms):** `KlikSosmed` (репосты/сохранения TikTok по 4.16 ₽ / 1K, маржа +2304%), `BuzzerPanel` (просмотры TikTok по 0.83 ₽ / 1K), `ProviderSMM.id` (просмотры TG по 0.56 ₽ / 1K, маржа +882%);
+    - **Азиатский масс-трафик:** `BZKJ.io` (минимальная в мире цена на просмотры Telegram — 0.46 ₽ / 1K, маржа +1096%);
+    - **Турецкий хаб:** `SMMPanelcimm` (прямые мобильные фермы под Instagram Reels по 2.31 ₽ / 1K, маржа +549%);
+    - **Прямые бусты Telegram:** `BoostGram.pro` (7-дневные бусты от 13.88 ₽, маржа +224%), `Followeran` (бусты 15.73 ₽);
+    - **Стриминг-кластеры:** `MitikLive` (Twitch Live Stream по 62.90 ₽, маржа +679%), `AutoSMO` (Kick Live по 69.38 ₽, маржа +693%);
+    - **Индийские хабы:** `Dream SMM Panel` (YouTube часы монетизации по 180 ₽), `SMMPanel.in`, `TheSoulSMM`;
+    - **Международные BHW шлюзы:** `SocialMatrix`, `SMM Orange`, `LikeTide`, `LuvSMM`, `SMM Panelix`, `BuildFollows`, `CEOFame`.
+  * 📊 **Кодовая база и верификация:**
+    - База данных `src/data/providers/smm-direct-providers.json` расширена до 125 профилей;
+    - Создан скрипт автоматического пополнения `scripts/providers/expand-providers-registry.ts`;
+    - Обновлен нормативный реестр `docs/SMM_PROVIDERS_REGISTRY.md` (версия 6.0);
+    - Сформирован подробный отчет `artifacts/AUTOMATED_PROVIDER_DISCOVERY_REPORT.md`;
+    - CI/CD контроль: `npx tsc --noEmit` — 0 ошибок, юнит-тесты сканера `17/17 PASS`, коммит отправлен в `origin/main`.
+
 - [x] 🚀 [OMNISMM-DUAL-PROJECT-ARBITRATION-AND-PARITY-REMEDIATION-2026-10-02] Межпроектный арбитраж (omnismm vs omnismmcore), верификация OpenRouter и устранение расхождений (100% COMPLETE & ALL CI/CD GATES PASSED):
   * ⚖️ **Арбитраж и выбор проекта для продакшена (ActionArbiter & OpenRouter):**
     - Канонический кандидат для продакшн-деплоя: `omnismmcore` (чистая финансовая модель без денормализованной рассинхронизации `ordersCount`, чистый аудит 0 блокеров);
