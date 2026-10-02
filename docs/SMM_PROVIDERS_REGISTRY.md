@@ -1,7 +1,7 @@
 # Реестр и бенчмарк прямых оптовых поставщиков SMM-услуг (SMM Panel API v2)
 
 > **Статус документа:** Действующий нормативный справочник для OmniSMM 1.0 (SMMplan / SMMflux)  
-> **Версия:** 5.0 (Сентябрь 2026 — Реестр 100 прямых первоисточников / Century Milestone)  
+> **Версия:** 6.0 (Октябрь 2026 — Реестр 125 прямых первоисточников / Expansion Edition)  
 > **Стандарт протокола:** SMM Panel API v2 (JSON-RPC / REST Form-Encoded)  
 > **Область применения:** Закупка оптовых услуг, авто-маршрутизация (`SmartRoutingService`), Shadow Catalog и балансировка маржинальности (`MarginGuard`).
 
@@ -18,7 +18,7 @@
 
 ---
 
-## 2. Сводный реестр 100 проверенных поставщиков первого эшелона
+## 2. Сводный реестр 125 проверенных поставщиков первого эшелона
 
 | # | Провайдер | API Endpoint | Валюта | Базовые сети | Специализация | Рейтинг |
 |---|-----------|--------------|--------|--------------|---------------|---------|
@@ -122,6 +122,31 @@
 | 98 | **Aviso.bz** | `https://aviso.bz/api` | RUB | YT, VK, TG | Крупнейшая биржа 100% живых микрозадач и авторов в РФ/СНГ | 9.7 / 10 |
 | 99 | **QComment** | `https://qcomment.ru/api` | RUB | TG, VK, YT, IG | Биржа ранговых авторов: живые осмысленные комментарии по ТЗ | 9.8 / 10 |
 | 100 | **TGPanel.org** | `https://tgpanel.org/api/v2` | USD | Telegram | Международный Telegram-only шлюз мгновенных бустов и реакций | 9.7 / 10 |
+| 101 | **SocialMatrix** | `https://socialmatrix.io/api/v2` | USD | TG, IG, YT, TT | Американский шлюз Perfect Panel: бусты и ультра-быстрые посты | 9.6 / 10 |
+| 102 | **SMM Orange** | `https://smmorange.com/api/v2` | USD | TG, TT, IG, YT | Международный оптовый дискаунтер TikTok просмотров и TG | 9.5 / 10 |
+| 103 | **Dream SMM Panel** | `https://dreamsmmpanel.com/api/v2` | USD | YT, TG, FB, IG | Прямые часы просмотров YouTube Watch Hours под монетизацию | 9.3 / 10 |
+| 104 | **LikeTide** | `https://liketide.com/api/v2` | USD | TG, IG, TT | Моментальные позитивные реакции и скоростные лайки Instagram | 9.4 / 10 |
+| 105 | **AutoSMO** | `https://autosmo.com/api/v2` | USD | TG, X, Twitch, Kick | Выделенные зрители Kick/Twitch стримов на 60 мин | 9.4 / 10 |
+| 106 | **MitikLive** | `https://mitiklive.com/api/v2` | USD | Twitch, Kick, YT | Специализированный первоисточник живых зрителей трансляций | 9.6 / 10 |
+| 107 | **LuvSMM** | `https://luvsmm.com/api/v2` | USD | IG, TT, TG | Прямой поставщик с BHW: Instagram фолловеры без списаний 365д | 9.5 / 10 |
+| 108 | **SMM-Hub.com** | `https://smm-hub.com/api/v2` | USD | TG, VK, YT, TT | B2B агрегатор авто-просмотров будущих публикаций Telegram | 9.3 / 10 |
+| 109 | **SMM Panelix** | `https://smmpanelix.com/api/v2` | USD | TT, IG, TG | Собственные серверные пулы реальных лайков TikTok | 9.4 / 10 |
+| 110 | **iLuvSMMPanel** | `https://iluvsmmpanel.com/api/v2` | USD | TG, YT, IG | Азиатский оптовый хаб мгновенных бустов уровней Telegram | 9.4 / 10 |
+| 111 | **BuildFollows** | `https://buildfollows.com/api/v2` | USD | IG, TT, FB | Надежный зарубежный оптовик Instagram фолловеров с авто-рефиллом | 9.3 / 10 |
+| 112 | **GetMyFollow** | `https://getmyfollow.com/api/v2` | USD | YT, TT, TG | YouTube просмотры с высоким удержанием из похожих видео | 9.3 / 10 |
+| 113 | **CEOFame** | `https://ceofame.com/api/v2` | USD | TG, IG, TT | Шлюз оптовых Telegram Star реакций с подтверждением | 9.5 / 10 |
+| 114 | **SMMPanelcimm** | `https://smmpanelcimm.com.tr/api/v2` | USD | IG, TT, TG | Турецкий первоисточник мобильных ферм Instagram Reels и TG | 9.6 / 10 |
+| 115 | **KlikSosmed** | `https://kliksosmed.id/api/v2` | USD | TT, FB, TG, YT | Индонезийская Android-ферма: репосты и сохранения TikTok под рекомендации | 9.6 / 10 |
+| 116 | **BuzzerPanel** | `https://buzzerpanel.id/api/v2` | USD | TT, IG, Twitter | Прямой индонезийский кластер ультрадешевых просмотров TikTok | 9.5 / 10 |
+| 117 | **ProviderSMM.id** | `https://providersmm.id/api/v2` | USD | TG, TT, YT, IG | Прямой азиатский шлюз: Telegram просмотры от 0.56 ₽ за 1K | 9.7 / 10 |
+| 118 | **SMMPanel.in** | `https://smm-panel.in/api/v2` | USD | YT, TG, IG | Индийский первоисточник просмотров YouTube с реальных устройств | 9.5 / 10 |
+| 119 | **TheSoulSMM** | `https://thesoulsmm.in/api/v2` | USD | YT, TT, TG | Пользовательские осмысленные комментарии YouTube на английском/хинди | 9.4 / 10 |
+| 120 | **EthicalSMM** | `https://ethicalsmm.in/api/v2` | USD | IG, TG, LinkedIn | Узкая специализация: безопасная раскрутка страниц LinkedIn | 9.3 / 10 |
+| 121 | **Followeran** | `https://followeran.in/api/v2` | USD | TG, VK, IG, TT | Азиатский шлюз с дешевыми бустами TG (15.70 ₽) и VK подписчиками | 9.6 / 10 |
+| 122 | **BZKJ.io** | `https://bzkj.io/api/v2` | USD | TG, TT, Twitter | Азиатский гигант масс-трафика: Telegram просмотры от 0.46 ₽ за 1K | 9.6 / 10 |
+| 123 | **SMMHeavy** | `https://smmheavy.com/api/v2` | USD | TG, IG, TT, YT | Оптовые объемы подписчиков Telegram без списаний с гарантией 30 дней | 9.5 / 10 |
+| 124 | **SocialBoss.io** | `https://socialboss.io/api/v2` | USD | TG, IG, YT, Spotify | Международный шлюз прослушиваний треков Spotify из США и Европы | 9.4 / 10 |
+| 125 | **BoostGram.pro** | `https://boostgram.pro/api/v2` | USD | TG | Премиальный моно-шлюз бустов историй каналов от 13.88 ₽ | 9.8 / 10 |
 
 ---
 
