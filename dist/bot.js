@@ -16091,7 +16091,7 @@ async function resolveAuditTenant(explicitTenant) {
     if (storeTenant && storeTenant.trim() !== "") {
       return normalizeTenantId(storeTenant) || "smmplan";
     }
-  } catch {
+  } catch (err) {
   }
   try {
     const { cookies, headers: headers2 } = await Promise.resolve().then(() => __toESM(require_headers3()));
@@ -16101,7 +16101,7 @@ async function resolveAuditTenant(explicitTenant) {
       if (cookieTenant && cookieTenant.trim() !== "") {
         return normalizeTenantId(cookieTenant) || "smmplan";
       }
-    } catch {
+    } catch (err) {
     }
     try {
       const headerStore = await headers2();
@@ -16109,9 +16109,9 @@ async function resolveAuditTenant(explicitTenant) {
       if (headerTenant && headerTenant.trim() !== "") {
         return normalizeTenantId(headerTenant) || "smmplan";
       }
-    } catch {
+    } catch (err) {
     }
-  } catch {
+  } catch (err) {
   }
   return "smmplan";
 }

@@ -51750,35 +51750,13 @@ var init_tenant_context = __esm({
 });
 
 // src/lib/logger.ts
-var logger_exports = {};
-__export2(logger_exports, {
-  generateTraceId: () => generateTraceId,
-  getCorrelationId: () => getCorrelationId,
-  getTraceId: () => getTraceId,
-  logContextStorage: () => logContextStorage,
-  logger: () => logger,
-  runWithLogContext: () => runWithLogContext,
-  withTelemetryContext: () => withTelemetryContext
-});
 function getTraceId() {
   const store = logContextStorage.getStore();
   return store?.traceId || store?.correlationId;
 }
-function getCorrelationId() {
-  const store = logContextStorage.getStore();
-  return store?.correlationId || store?.traceId;
-}
 function generateTraceId() {
   const randomPart = Math.random().toString(36).substring(2, 10);
   return `trc_${Date.now().toString(36)}_${randomPart}`;
-}
-function runWithLogContext(context, fn) {
-  const effectiveTraceId = context.traceId || context.correlationId || generateTraceId();
-  return logContextStorage.run({
-    ...context,
-    traceId: effectiveTraceId,
-    correlationId: context.correlationId || effectiveTraceId
-  }, fn);
 }
 async function withTelemetryContext(context, fn) {
   const parentStore = logContextStorage.getStore();
@@ -111251,7 +111229,7 @@ async function resolveAuditTenant(explicitTenant) {
     if (storeTenant && storeTenant.trim() !== "") {
       return normalizeTenantId(storeTenant) || "smmplan";
     }
-  } catch {
+  } catch (err) {
   }
   try {
     const { cookies, headers: headers2 } = await Promise.resolve().then(() => __toESM(require_headers3()));
@@ -111261,7 +111239,7 @@ async function resolveAuditTenant(explicitTenant) {
       if (cookieTenant && cookieTenant.trim() !== "") {
         return normalizeTenantId(cookieTenant) || "smmplan";
       }
-    } catch {
+    } catch (err) {
     }
     try {
       const headerStore = await headers2();
@@ -111269,9 +111247,9 @@ async function resolveAuditTenant(explicitTenant) {
       if (headerTenant && headerTenant.trim() !== "") {
         return normalizeTenantId(headerTenant) || "smmplan";
       }
-    } catch {
+    } catch (err) {
     }
-  } catch {
+  } catch (err) {
   }
   return "smmplan";
 }
@@ -163950,8 +163928,8 @@ var init_provider_balance_service = __esm({
           if (status === "critical" || status === "warning") {
             const alertKey = `provider:${provider.id}:balance_alert:${status}`;
             try {
-              const alreadyAlerted = await redis.get(alertKey);
-              if (!alreadyAlerted) {
+              const lockAcquired = await redis.set(alertKey, "1", "EX", 3600, "NX");
+              if (lockAcquired === "OK") {
                 const { sendAdminAlert: sendAdminAlert2 } = await Promise.resolve().then(() => (init_notifications(), notifications_exports));
                 const emoji = status === "critical" ? "\u{1F6A8}" : "\u26A0\uFE0F";
                 const level = status === "critical" ? "CRITICAL" : "WARNING";
@@ -163978,8 +163956,9 @@ var init_provider_balance_service = __esm({
                       `${emoji} \u0411\u0430\u043B\u0430\u043D\u0441 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 "${provider.name}" = ${formattedBalance} \u2014 \u043D\u0438\u0436\u0435 \u043F\u043E\u0440\u043E\u0433\u0430 ${formattedThreshold}. \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0434\u0435\u043F\u043E\u0437\u0438\u0442!`,
                       level
                     );
-                    await redis.set(alertKey, "1", "EX", 3600);
                   } catch (alertErr) {
+                    await redis.del(alertKey).catch(() => {
+                    });
                     console.warn(`[ProviderBalanceService] Async balance alert failed for ${provider.name}:`, alertErr);
                   }
                 })();
@@ -197546,34 +197525,41 @@ var depin_watchdog_processor_exports = {};
 __export2(depin_watchdog_processor_exports, {
   processDePinWatchdog: () => processDePinWatchdog
 });
-async function processDePinWatchdog(_job) {
-  logger.info("\u{1F50D} Watchdog round started", { component: "DePinWatchdog" });
-  try {
-    const { runFollowAuditRound: runFollowAuditRound2 } = await Promise.resolve().then(() => (init_follow_watchdog(), follow_watchdog_exports));
-    const result = await runFollowAuditRound2();
-    logger.info("\u2705 Audit done", { component: "DePinWatchdog", ...result });
-    const { DePinEscrowService: DePinEscrowService2 } = await Promise.resolve().then(() => (init_escrow(), escrow_exports));
-    const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-    const expired = await DePinEscrowService2.getExpiredEscrows();
-    let released = 0;
-    for (const escrow of expired) {
-      await DePinEscrowService2.releaseEscrow(escrow.targetId);
-      await db2.dePinTarget.updateMany({
-        where: { id: escrow.targetId, status: "PENDING_VERIFY" },
-        data: { status: "COMPLETED", verifiedAt: /* @__PURE__ */ new Date() }
-      });
-      released++;
+async function processDePinWatchdog(job) {
+  const executeRound = async () => {
+    logger.info("\u{1F50D} Watchdog round started", { component: "DePinWatchdog", tenantId: job.data?.tenantId || "all" });
+    try {
+      const { runFollowAuditRound: runFollowAuditRound2 } = await Promise.resolve().then(() => (init_follow_watchdog(), follow_watchdog_exports));
+      const result = await runFollowAuditRound2();
+      logger.info("\u2705 Audit done", { component: "DePinWatchdog", ...result });
+      const { DePinEscrowService: DePinEscrowService2 } = await Promise.resolve().then(() => (init_escrow(), escrow_exports));
+      const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      const expired = await DePinEscrowService2.getExpiredEscrows();
+      let released = 0;
+      for (const escrow of expired) {
+        await DePinEscrowService2.releaseEscrow(escrow.targetId);
+        await db2.dePinTarget.updateMany({
+          where: { id: escrow.targetId, status: "PENDING_VERIFY" },
+          data: { status: "COMPLETED", verifiedAt: /* @__PURE__ */ new Date() }
+        });
+        released++;
+      }
+      if (released > 0) logger.info(`\u{1F4B0} Released ${released} escrows`, { component: "DePinWatchdog", released });
+    } catch (err) {
+      logger.error("Watchdog failed", { component: "DePinWatchdog", err: String(err) });
+      throw err;
     }
-    if (released > 0) logger.info(`\u{1F4B0} Released ${released} escrows`, { component: "DePinWatchdog", released });
-  } catch (err) {
-    logger.error("Watchdog failed", { component: "DePinWatchdog", err: String(err) });
-    throw err;
+  };
+  if (job.data?.tenantId) {
+    return runWithTenant(job.data.tenantId, executeRound);
   }
+  return runWithTenantBypass("DePin Global Watchdog Escrow Audit", executeRound);
 }
 var init_depin_watchdog_processor = __esm({
   "src/workers/processors/depin-watchdog.processor.ts"() {
     "use strict";
     init_logger();
+    init_tenant_context();
   }
 });
 
@@ -197582,103 +197568,107 @@ var organic_campaign_processor_exports = {};
 __export2(organic_campaign_processor_exports, {
   processOrganicCampaign: () => processOrganicCampaign
 });
-async function processOrganicCampaign(_job) {
-  logger.info("\u{1F331} Organic campaign executor started", { component: "OrganicCampaign" });
-  try {
-    const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-    const now = /* @__PURE__ */ new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
-    const activePlans = await db2.organicDailyPlan.findMany({
-      where: {
-        completed: false,
-        planDate: { gte: todayStart, lt: todayEnd },
-        campaign: { status: "ACTIVE" }
-      },
-      include: {
-        campaign: {
-          select: {
-            id: true,
-            channelUsername: true,
-            activeHourStart: true,
-            activeHourEnd: true
+async function processOrganicCampaign(job) {
+  const tenantId = job.data?.tenantId || "smmplan";
+  return runWithTenant(tenantId, async () => {
+    logger.info("\u{1F331} Organic campaign executor started", { component: "OrganicCampaign", tenantId });
+    try {
+      const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      const now = /* @__PURE__ */ new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(todayStart);
+      todayEnd.setDate(todayEnd.getDate() + 1);
+      const activePlans = await db2.organicDailyPlan.findMany({
+        where: {
+          completed: false,
+          planDate: { gte: todayStart, lt: todayEnd },
+          campaign: { status: "ACTIVE" }
+        },
+        include: {
+          campaign: {
+            select: {
+              id: true,
+              channelUsername: true,
+              activeHourStart: true,
+              activeHourEnd: true
+            }
           }
         }
-      }
-    });
-    const currentHour = now.getHours();
-    let followsQueued = 0;
-    let unfollowsQueued = 0;
-    for (const plan of activePlans) {
-      const { campaign } = plan;
-      if (currentHour < campaign.activeHourStart || currentHour > campaign.activeHourEnd) {
-        continue;
-      }
-      const activeWindowHours = campaign.activeHourEnd - campaign.activeHourStart + 1;
-      const hourlyFollows = Math.ceil(plan.targetFollows / activeWindowHours);
-      const hourlyUnfollows = Math.ceil(plan.targetUnfollows / activeWindowHours);
-      if (hourlyFollows > 0) {
-        const followNodes = await db2.dePinNode.findMany({
-          where: {
-            acceptsFollowTasks: true,
-            reputation: { gte: 30 }
-            // только надёжные ноды
-          },
-          orderBy: { lastActiveAt: "desc" },
-          take: hourlyFollows,
-          select: { id: true }
-        });
-        for (const node of followNodes) {
-          await db2.dePinTarget.upsert({
+      });
+      const currentHour = now.getHours();
+      let followsQueued = 0;
+      let unfollowsQueued = 0;
+      for (const plan of activePlans) {
+        const { campaign } = plan;
+        if (currentHour < campaign.activeHourStart || currentHour > campaign.activeHourEnd) {
+          continue;
+        }
+        const activeWindowHours = campaign.activeHourEnd - campaign.activeHourStart + 1;
+        const hourlyFollows = Math.ceil(plan.targetFollows / activeWindowHours);
+        const hourlyUnfollows = Math.ceil(plan.targetUnfollows / activeWindowHours);
+        if (hourlyFollows > 0) {
+          const followNodes = await db2.dePinNode.findMany({
             where: {
-              channel_postId: { channel: campaign.channelUsername, postId: 0 }
+              acceptsFollowTasks: true,
+              reputation: { gte: 30 }
+              // только надёжные ноды
             },
-            create: {
-              channel: campaign.channelUsername,
-              postId: 0,
-              type: "FOLLOW_CHANNEL",
-              status: "QUEUED",
-              nodeId: node.id,
-              orderId: plan.campaignId,
-              targetViews: 1
-            },
-            update: { status: "QUEUED", nodeId: node.id }
+            orderBy: { lastActiveAt: "desc" },
+            take: hourlyFollows,
+            select: { id: true }
           });
-          followsQueued++;
+          for (const node of followNodes) {
+            await db2.dePinTarget.upsert({
+              where: {
+                channel_postId: { channel: campaign.channelUsername, postId: 0 }
+              },
+              create: {
+                channel: campaign.channelUsername,
+                postId: 0,
+                type: "FOLLOW_CHANNEL",
+                status: "QUEUED",
+                nodeId: node.id,
+                orderId: plan.campaignId,
+                targetViews: 1
+              },
+              update: { status: "QUEUED", nodeId: node.id }
+            });
+            followsQueued++;
+          }
         }
+        await db2.organicDailyPlan.update({
+          where: { id: plan.id },
+          data: {
+            actualFollows: { increment: followsQueued },
+            actualUnfollows: { increment: unfollowsQueued },
+            completed: followsQueued >= plan.targetFollows && unfollowsQueued >= plan.targetUnfollows
+          }
+        });
+        await db2.organicGrowthCampaign.update({
+          where: { id: campaign.id },
+          data: {
+            followsDelivered: { increment: followsQueued },
+            unfollowsDelivered: { increment: unfollowsQueued },
+            netGainActual: { increment: followsQueued - unfollowsQueued }
+          }
+        });
       }
-      await db2.organicDailyPlan.update({
-        where: { id: plan.id },
-        data: {
-          actualFollows: { increment: followsQueued },
-          actualUnfollows: { increment: unfollowsQueued },
-          completed: followsQueued >= plan.targetFollows && unfollowsQueued >= plan.targetUnfollows
-        }
-      });
-      await db2.organicGrowthCampaign.update({
-        where: { id: campaign.id },
-        data: {
-          followsDelivered: { increment: followsQueued },
-          unfollowsDelivered: { increment: unfollowsQueued },
-          netGainActual: { increment: followsQueued - unfollowsQueued }
-        }
-      });
+      logger.info(
+        "\u2705 Organic hour slot processed",
+        { component: "OrganicCampaign", followsQueued, unfollowsQueued, plans: activePlans.length }
+      );
+    } catch (err) {
+      logger.error("Organic executor failed", { component: "OrganicCampaign", err: String(err) });
+      throw err;
     }
-    logger.info(
-      "\u2705 Organic hour slot processed",
-      { component: "OrganicCampaign", followsQueued, unfollowsQueued, plans: activePlans.length }
-    );
-  } catch (err) {
-    logger.error("Organic executor failed", { component: "OrganicCampaign", err: String(err) });
-    throw err;
-  }
+  });
 }
 var init_organic_campaign_processor = __esm({
   "src/workers/processors/organic-campaign.processor.ts"() {
     "use strict";
     init_logger();
+    init_tenant_context();
   }
 });
 
@@ -198639,7 +198629,8 @@ var TelegramMtprotoExecutor = class {
         method: "GET",
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
-        }
+        },
+        signal: AbortSignal.timeout(5e3)
       });
       return {
         success: res.ok,
@@ -199372,25 +199363,16 @@ init_db();
 init_logger();
 async function orderProcessor(job) {
   let tenantId = job.data?.tenantId;
-  if (job.data?.orderId) {
+  if (!tenantId && job.data?.orderId) {
     const orderRecord = await runWithTenantBypass("BullMQ orderProcessor resolve tenantId", async () => {
       return await db.order.findUnique({
         where: { id: job.data.orderId },
         select: { tenantId: true }
       });
     });
-    if (!orderRecord) {
-      const { logger: logger2 } = await Promise.resolve().then(() => (init_logger(), logger_exports));
-      logger2.warn(`[OrderProcessor] Order ${job.data.orderId} not found in DB. Discarding job.`);
-      return;
+    if (orderRecord?.tenantId) {
+      tenantId = orderRecord.tenantId;
     }
-    const trueTenantId = orderRecord.tenantId || "smmplan";
-    if (tenantId && tenantId !== trueTenantId) {
-      const { logger: logger2 } = await Promise.resolve().then(() => (init_logger(), logger_exports));
-      logger2.warn(`[TenantSpoofGuard] Discarding job ${job.id}: Payload tenantId '${tenantId}' does not match DB owner tenantId '${trueTenantId}' for order ${job.data.orderId}.`);
-      return;
-    }
-    tenantId = trueTenantId;
   }
   const resolvedTenantId = tenantId || "smmplan";
   registerValidTenant(resolvedTenantId);
@@ -199399,22 +199381,24 @@ async function orderProcessor(job) {
   }
   const traceId = job.data?.metadata?.traceId || generateTraceId();
   return await withTelemetryContext({ traceId, tenantId: resolvedTenantId, component: "OrderProcessor" }, async () => {
-    const { order, redisKey, lockHeld } = await OrderPreflightGuard.validateAndFetchOrder(job);
-    if (lockHeld) {
-      throw new Error(`[OrderProcessor] Order ${job.data?.orderId} is currently locked by another concurrent process. Retrying via BullMQ backoff.`);
-    }
-    if (!order) return;
-    const inHouseResult = await InHouseOrderDispatcher.tryDispatchInHouse(order, redisKey);
-    if (inHouseResult.handled && inHouseResult.success) {
-      return;
-    }
-    const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);
-    const primaryProviderId = candidateRoutes.find((r) => r.isPrimary)?.providerId || candidateRoutes[0]?.providerId;
-    await OrderDispatchExecutor.executeDispatchLoop({
-      order,
-      candidateRoutes,
-      primaryProviderId,
-      redisKey
+    return await runWithTenant(resolvedTenantId, async () => {
+      const { order, redisKey, lockHeld } = await OrderPreflightGuard.validateAndFetchOrder(job);
+      if (lockHeld) {
+        throw new Error(`[OrderProcessor] Order ${job.data?.orderId} is currently locked by another concurrent process. Retrying via BullMQ backoff.`);
+      }
+      if (!order) return;
+      const inHouseResult = await InHouseOrderDispatcher.tryDispatchInHouse(order, redisKey);
+      if (inHouseResult.handled && inHouseResult.success) {
+        return;
+      }
+      const candidateRoutes = await OrderRouteEvaluator.resolveRoutes(order);
+      const primaryProviderId = candidateRoutes.find((r) => r.isPrimary)?.providerId || candidateRoutes[0]?.providerId;
+      await OrderDispatchExecutor.executeDispatchLoop({
+        order,
+        candidateRoutes,
+        primaryProviderId,
+        redisKey
+      });
     });
   });
 }
@@ -200904,6 +200888,305 @@ function formatFullServiceName(rawName, categoryName, networkName) {
   return clean;
 }
 
+// src/services/providers/currency-detector.service.ts
+init_db();
+init_logger();
+init_admin_audit();
+init_financial_constants();
+var ProviderCurrencyEngine = class {
+  static MIN_SERVICES_FOR_BATCH_CHECK = 3;
+  static SHIFT_CONFIDENCE_THRESHOLD = 0.7;
+  // 70%
+  /**
+   * 1. Direct Probe Currency Detection
+   * Evaluates whether the provider explicitly reported a different currency in /balance
+   */
+  static detectShiftFromProbe(storedCurrency, probeCurrency) {
+    const normStored = (storedCurrency || "USD").toUpperCase().trim();
+    if (!probeCurrency || typeof probeCurrency !== "string") {
+      return {
+        isShiftDetected: false,
+        detectedCurrency: null,
+        previousCurrency: normStored,
+        confidence: 0,
+        reason: "Probe currency not provided",
+        affectedServiceCount: 0
+      };
+    }
+    const normProbe = probeCurrency.toUpperCase().trim();
+    if (normProbe === normStored) {
+      return {
+        isShiftDetected: false,
+        detectedCurrency: null,
+        previousCurrency: normStored,
+        confidence: 1,
+        reason: "Probe currency matches stored currency",
+        affectedServiceCount: 0
+      };
+    }
+    if (normProbe === "RUB" || normProbe === "USD") {
+      return {
+        isShiftDetected: true,
+        detectedCurrency: normProbe,
+        previousCurrency: normStored,
+        confidence: 1,
+        reason: `Provider /balance explicitly returned ${normProbe}, while database stored ${normStored}`,
+        affectedServiceCount: 0
+      };
+    }
+    return {
+      isShiftDetected: false,
+      detectedCurrency: null,
+      previousCurrency: normStored,
+      confidence: 0,
+      reason: `Unsupported probe currency: ${probeCurrency}`,
+      affectedServiceCount: 0
+    };
+  }
+  /**
+   * 2. Statistical Shift Detection across Catalog (Batch Heuristic)
+   * Detects if the provider flipped their account currency (USD <-> RUB) by comparing
+   * new rates with existing rates across all active services.
+   */
+  static detectShiftFromCatalog(storedCurrency, currentServices, incomingStaging, usdRate) {
+    const normStored = (storedCurrency || "USD").toUpperCase().trim();
+    const stagingMap = new Map(incomingStaging.map((s) => [String(s.externalId), s.rate]));
+    const pairs = [];
+    for (const cur of currentServices) {
+      if (!cur.externalId || cur.rate <= 0) continue;
+      const newRate = stagingMap.get(String(cur.externalId));
+      if (newRate !== void 0 && newRate > 0) {
+        pairs.push({
+          oldRate: cur.rate,
+          newRate,
+          ratio: newRate / cur.rate
+        });
+      }
+    }
+    if (pairs.length < this.MIN_SERVICES_FOR_BATCH_CHECK) {
+      return {
+        isShiftDetected: false,
+        detectedCurrency: null,
+        previousCurrency: normStored,
+        confidence: 0,
+        reason: `Insufficient overlapping services for statistical detection (${pairs.length} < ${this.MIN_SERVICES_FOR_BATCH_CHECK})`,
+        affectedServiceCount: 0
+      };
+    }
+    const usdToRubMin = 0.65 * usdRate;
+    const usdToRubMax = 1.35 * usdRate;
+    const usdToRubMatches = pairs.filter((p) => p.ratio >= usdToRubMin && p.ratio <= usdToRubMax).length;
+    const usdToRubShare = usdToRubMatches / pairs.length;
+    if (usdToRubShare >= this.SHIFT_CONFIDENCE_THRESHOLD) {
+      return {
+        isShiftDetected: true,
+        detectedCurrency: "RUB",
+        previousCurrency: normStored,
+        confidence: Math.round(usdToRubShare * 100) / 100,
+        reason: `Statistical shift detected: ${usdToRubMatches}/${pairs.length} (${Math.round(usdToRubShare * 100)}%) rates shifted by ~${usdRate.toFixed(1)}x factor (USD -> RUB switch)`,
+        affectedServiceCount: usdToRubMatches
+      };
+    }
+    const rubToUsdMin = 0.65 / usdRate;
+    const rubToUsdMax = 1.35 / usdRate;
+    const rubToUsdMatches = pairs.filter((p) => p.ratio >= rubToUsdMin && p.ratio <= rubToUsdMax).length;
+    const rubToUsdShare = rubToUsdMatches / pairs.length;
+    if (rubToUsdShare >= this.SHIFT_CONFIDENCE_THRESHOLD) {
+      return {
+        isShiftDetected: true,
+        detectedCurrency: "USD",
+        previousCurrency: normStored,
+        confidence: Math.round(rubToUsdShare * 100) / 100,
+        reason: `Statistical shift detected: ${rubToUsdMatches}/${pairs.length} (${Math.round(rubToUsdShare * 100)}%) rates dropped by ~${usdRate.toFixed(1)}x factor (RUB -> USD switch)`,
+        affectedServiceCount: rubToUsdMatches
+      };
+    }
+    return {
+      isShiftDetected: false,
+      detectedCurrency: null,
+      previousCurrency: normStored,
+      confidence: 0,
+      reason: "No uniform multi-service currency shift detected",
+      affectedServiceCount: 0
+    };
+  }
+  /**
+   * 3. Intelligent Dynamic Price & Quarantine Evaluator
+   * Isolates genuine provider spikes from harmless exchange rate movements.
+   */
+  static evaluateServicePriceChange(service, newRawRate, providerCurrency, usdRate, options) {
+    const normProviderCurr = (providerCurrency || "USD").toUpperCase().trim();
+    const normServiceCurr = (service.providerCurrency || normProviderCurr).toUpperCase().trim();
+    let oldCostRub = service.costPer1kRub ?? 0;
+    if (oldCostRub <= 0) {
+      oldCostRub = normServiceCurr === "RUB" ? service.rate : service.rate * usdRate;
+    }
+    const newCostRub = normProviderCurr === "RUB" ? newRawRate : newRawRate * usdRate;
+    let realOldRateInCurrentCurr;
+    if (normServiceCurr === normProviderCurr) {
+      realOldRateInCurrentCurr = service.rate;
+    } else if (normProviderCurr === "RUB") {
+      realOldRateInCurrentCurr = service.rate * usdRate;
+    } else {
+      realOldRateInCurrentCurr = service.rate / usdRate;
+    }
+    let rawRateChangePct = realOldRateInCurrentCurr > 0 ? (newRawRate - realOldRateInCurrentCurr) / realOldRateInCurrentCurr : 0;
+    let rubCostChangePct = oldCostRub > 0 ? (newCostRub - oldCostRub) / oldCostRub : 0;
+    if (Math.abs(rawRateChangePct) < 1e-6) rawRateChangePct = 0;
+    if (Math.abs(rubCostChangePct) < 1e-6) rubCostChangePct = 0;
+    if (newCostRub > UPPER_SANITY_LIMIT_RUB) {
+      return {
+        action: "QUARANTINE_SANITY_LIMIT",
+        oldRate: service.rate,
+        newRate: newRawRate,
+        oldCostRub,
+        newCostRub,
+        newRetailPriceCents: service.pricePer1000Cents,
+        rawRateChangePct,
+        rubCostChangePct,
+        quarantineReason: `Upper Sanity Limit Exceeded: \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C ${newCostRub.toFixed(2)} \u20BD/1k \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u043B\u0438\u043C\u0438\u0442 ${UPPER_SANITY_LIMIT_RUB.toLocaleString("ru-RU")} \u20BD (${newRawRate} ${normProviderCurr})`
+      };
+    }
+    const spikeThreshold = options?.quarantineThreshold ?? ANOMALY_PRICE_SPIKE_THRESHOLD;
+    if (rawRateChangePct >= spikeThreshold) {
+      const spikePct = Math.round(rawRateChangePct * 100);
+      const prefix = options?.isResurrection ? "Price Spike on Resurrection" : "Price Spike";
+      return {
+        action: "QUARANTINE_PRICE_SPIKE",
+        oldRate: service.rate,
+        newRate: newRawRate,
+        oldCostRub,
+        newCostRub,
+        newRetailPriceCents: service.pricePer1000Cents,
+        rawRateChangePct,
+        rubCostChangePct,
+        quarantineReason: `${prefix} (+${spikePct}%): \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u0432\u044B\u0440\u043E\u0441\u043B\u0430 \u0441 ${oldCostRub.toFixed(2)} \u20BD \u0434\u043E ${newCostRub.toFixed(2)} \u20BD/1k (${realOldRateInCurrentCurr} ${normProviderCurr} \u2192 ${newRawRate} ${normProviderCurr})`
+      };
+    }
+    const calculatedRetailRub = applyBeautifulRounding(newCostRub * service.markup);
+    let newRetailPriceCents = Math.round(calculatedRetailRub * 100);
+    const minSafeRetailCents = Math.round(newCostRub * 1.1 * 100);
+    if (newRetailPriceCents < minSafeRetailCents) {
+      newRetailPriceCents = minSafeRetailCents;
+    }
+    return {
+      action: "UPDATE_SILENT",
+      oldRate: service.rate,
+      newRate: newRawRate,
+      oldCostRub,
+      newCostRub,
+      newRetailPriceCents,
+      rawRateChangePct,
+      rubCostChangePct
+    };
+  }
+  /**
+   * 4. Auto-Heal Provider Services
+   * Atomically updates provider currency and reconciles all service currencies & cost snapshots.
+   * Can also heal individual mismatched services when provider currency is already set.
+   */
+  static async autoHealProviderServices(providerId, newCurrency, usdRate, admin, options) {
+    const provider = await db.provider.findUnique({
+      where: { id: providerId },
+      select: { id: true, name: true, balanceCurrency: true }
+    });
+    if (!provider) {
+      throw new Error(`Provider ${providerId} not found`);
+    }
+    const previousCurrency = provider.balanceCurrency || "USD";
+    const isProviderCurrencyChanging = previousCurrency !== newCurrency;
+    if (isProviderCurrencyChanging) {
+      await db.provider.update({
+        where: { id: providerId },
+        data: { balanceCurrency: newCurrency }
+      });
+    }
+    const services2 = await db.service.findMany({
+      where: {
+        providerId,
+        ...isProviderCurrencyChanging || options?.forceReconcileAll ? {} : {
+          OR: [
+            { providerCurrency: { not: newCurrency } },
+            { costPer1kRub: null },
+            { isQuarantined: true, quarantineReason: { contains: "Anomaly" } },
+            { isQuarantined: true, quarantineReason: { contains: "Currency" } },
+            { isQuarantined: true, quarantineReason: { contains: "Shift" } }
+          ]
+        }
+      },
+      select: { id: true, rate: true, markup: true, providerCurrency: true }
+    });
+    if (services2.length === 0 && !isProviderCurrencyChanging) {
+      return { updatedCount: 0, previousCurrency };
+    }
+    logger.info("[ProviderCurrencyEngine] Healing provider services", {
+      providerId,
+      providerName: provider.name,
+      previousCurrency,
+      newCurrency,
+      serviceCountToHeal: services2.length,
+      usdRate
+    });
+    const CHUNK_SIZE = 100;
+    let updatedCount = 0;
+    for (let i = 0; i < services2.length; i += CHUNK_SIZE) {
+      const chunk = services2.slice(i, i + CHUNK_SIZE);
+      await db.$transaction(async (tx) => {
+        for (const svc of chunk) {
+          const costPer1kRub = newCurrency === "RUB" ? svc.rate : svc.rate * usdRate;
+          if (costPer1kRub > UPPER_SANITY_LIMIT_RUB) {
+            await tx.service.update({
+              where: { id: svc.id },
+              data: {
+                providerCurrency: newCurrency,
+                costPer1kRub,
+                currencyCapturedAt: /* @__PURE__ */ new Date(),
+                usdRateAtCapture: usdRate,
+                isActive: false,
+                isQuarantined: true,
+                quarantineReason: `[UPPER_SANITY_LIMIT] Cost per 1k (${costPer1kRub.toFixed(2)} \u20BD) exceeds sanity limit (${UPPER_SANITY_LIMIT_RUB} \u20BD)`
+              }
+            });
+            continue;
+          }
+          const markup = svc.markup && svc.markup > 0 ? svc.markup : 3;
+          const retailRub = applyBeautifulRounding(costPer1kRub * markup);
+          const pricePer1000Cents = Math.min(Math.round(retailRub * 100), 2e9);
+          await tx.service.update({
+            where: { id: svc.id },
+            data: {
+              providerCurrency: newCurrency,
+              costPer1kRub,
+              currencyCapturedAt: /* @__PURE__ */ new Date(),
+              usdRateAtCapture: usdRate,
+              pricePer1000Cents,
+              isQuarantined: false,
+              quarantineReason: null
+            }
+          });
+        }
+      });
+      updatedCount += chunk.length;
+    }
+    if (admin) {
+      auditAdmin({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: "PROVIDER_CURRENCY_SHIFT_HEALED",
+        target: providerId,
+        targetType: "PROVIDER",
+        newValue: {
+          previousCurrency,
+          newCurrency,
+          updatedServicesCount: updatedCount,
+          usdRate
+        }
+      });
+    }
+    return { updatedCount, previousCurrency };
+  }
+};
+
 // src/services/admin/catalog/catalog-sync.service.ts
 var rawServiceSchema = external_exports.object({
   service: external_exports.union([external_exports.string(), external_exports.number()]),
@@ -200967,7 +201250,24 @@ var CatalogSyncService = class {
       console.warn("[CatalogSyncService] Redis hash cache lookup error:", cacheErr);
     }
     const usdRate = await SettingsProvider.getExchangeRateUSD();
-    const currency = providerDbRecord.balanceCurrency || "USD";
+    try {
+      const balanceData = await providerInstance.getBalance().catch(() => null);
+      if (balanceData?.currency) {
+        const probeShift = ProviderCurrencyEngine.detectShiftFromProbe(
+          providerDbRecord.balanceCurrency || "USD",
+          balanceData.currency
+        );
+        if (probeShift.isShiftDetected && probeShift.detectedCurrency) {
+          await ProviderCurrencyEngine.autoHealProviderServices(
+            providerDbRecord.id,
+            probeShift.detectedCurrency,
+            usdRate
+          );
+          providerDbRecord.balanceCurrency = probeShift.detectedCurrency;
+        }
+      }
+    } catch {
+    }
     const validRawServices = [];
     let invalidCount = 0;
     for (const s of rawServices) {
@@ -200978,6 +201278,39 @@ var CatalogSyncService = class {
         invalidCount++;
       }
     }
+    try {
+      const ourExistingServices = await db.service.findMany({
+        where: { providerId: providerDbRecord.id, isActive: true },
+        select: {
+          id: true,
+          externalId: true,
+          rate: true,
+          providerCurrency: true,
+          costPer1kRub: true,
+          markup: true,
+          pricePer1000Cents: true
+        }
+      });
+      if (ourExistingServices.length >= ProviderCurrencyEngine.MIN_SERVICES_FOR_BATCH_CHECK) {
+        const catalogShift = ProviderCurrencyEngine.detectShiftFromCatalog(
+          providerDbRecord.balanceCurrency || "USD",
+          ourExistingServices.map((s) => ({ ...s, externalId: s.externalId || "" })),
+          validRawServices.map((s) => ({ externalId: String(s.service), rate: typeof s.rate === "number" ? s.rate : parseFloat(String(s.rate)) || 0 })),
+          usdRate
+        );
+        if (catalogShift.isShiftDetected && catalogShift.detectedCurrency) {
+          await ProviderCurrencyEngine.autoHealProviderServices(
+            providerDbRecord.id,
+            catalogShift.detectedCurrency,
+            usdRate
+          );
+          providerDbRecord.balanceCurrency = catalogShift.detectedCurrency;
+        }
+      }
+    } catch (shiftErr) {
+      console.warn("[CatalogSyncService] Shift detection error:", shiftErr);
+    }
+    const currency = providerDbRecord.balanceCurrency || "USD";
     if (invalidCount > 0) {
       console.warn(`[Provider Sync] Ignored ${invalidCount} invalid services from provider ${providerDbRecord.name}`);
     }
@@ -201156,42 +201489,52 @@ var CatalogSyncService = class {
         if (auditPayloads.length > 0) {
           await db.$transaction(auditPayloads);
         }
-        if (!s.isActive && s.cooldownReason === "ZOMBIE_AUTO_DISABLED") {
-          const oldCurrency = s.providerCurrency || "USD";
-          const oldExchangeRate = oldCurrency === "RUB" ? 1 : usdToRub;
-          const oldCostRub = s.rate * oldExchangeRate;
-          const newCostRub = rawRate * exchangeRate;
-          const EPSILON_RUB = 0.01;
-          if (newCostRub > UPPER_SANITY_LIMIT_RUB) {
+        const isResurrection = !s.isActive && s.cooldownReason === "ZOMBIE_AUTO_DISABLED";
+        const isRateChanged = Math.abs(s.rate - rawRate) > 1e-6;
+        if (isResurrection || isRateChanged) {
+          const evaluation = ProviderCurrencyEngine.evaluateServicePriceChange(
+            {
+              id: s.id,
+              externalId: s.externalId,
+              rate: s.rate,
+              providerCurrency: s.providerCurrency || providerCurrency,
+              costPer1kRub: s.costPer1kRub,
+              markup: s.markup,
+              pricePer1000Cents: s.pricePer1000Cents
+            },
+            rawRate,
+            providerCurrency,
+            usdToRub,
+            { isResurrection, quarantineThreshold: QUARANTINE_THRESHOLD }
+          );
+          if (evaluation.action === "QUARANTINE_SANITY_LIMIT" || evaluation.action === "QUARANTINE_PRICE_SPIKE") {
             await db.service.update({
               where: { id: s.id },
               data: {
+                isActive: false,
                 isQuarantined: true,
                 pendingRate: rawRate,
-                quarantineReason: `Upper Sanity Limit Exceeded: \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C ${newCostRub.toFixed(2)} \u20BD/1k \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u043B\u0438\u043C\u0438\u0442 ${UPPER_SANITY_LIMIT_RUB.toLocaleString("ru-RU")} \u20BD (${rawRate} ${providerCurrency})`,
-                quarantinedAt: /* @__PURE__ */ new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (oldCostRub > 0 && (newCostRub - oldCostRub) / oldCostRub >= ANOMALY_PRICE_SPIKE_THRESHOLD) {
-            const spikePct = Math.round((newCostRub - oldCostRub) / oldCostRub * 100);
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Price Spike on Resurrection (+${spikePct}%): \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u0432\u044B\u0440\u043E\u0441\u043B\u0430 \u0441 ${oldCostRub.toFixed(2)} \u20BD \u0434\u043E ${newCostRub.toFixed(2)} \u20BD/1k`,
+                quarantineReason: evaluation.quarantineReason,
                 quarantinedAt: /* @__PURE__ */ new Date()
               }
             });
             priceAnomalies++;
           } else {
+            if (isResurrection) {
+              resurrected++;
+            } else if (isRateChanged) {
+              priceUpdatedSilent++;
+            }
             pendingUpdates.push({
               id: s.id,
               data: {
                 isActive: true,
                 rate: rawRate,
                 providerCurrency,
+                costPer1kRub: evaluation.newCostRub,
+                currencyCapturedAt: /* @__PURE__ */ new Date(),
+                usdRateAtCapture: usdToRub,
+                pricePer1000Cents: evaluation.newRetailPriceCents,
                 cooldownReason: null,
                 isQuarantined: false,
                 quarantineReason: null
@@ -201199,60 +201542,6 @@ var CatalogSyncService = class {
               oldRate: s.rate,
               newRate: rawRate
             });
-            resurrected++;
-          }
-        } else if (Math.abs(s.rate - rawRate) > 1e-6) {
-          const oldCostRub = s.rate * (s.providerCurrency === "RUB" ? 1 : usdToRub);
-          const newCostRub = rawRate * exchangeRate;
-          const relChange = oldCostRub > 0 ? (newCostRub - oldCostRub) / oldCostRub : 0;
-          if (newCostRub > UPPER_SANITY_LIMIT_RUB) {
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isActive: false,
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Upper Sanity Limit Exceeded: \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C ${newCostRub.toFixed(2)} \u20BD/1k \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u043B\u0438\u043C\u0438\u0442 ${UPPER_SANITY_LIMIT_RUB.toLocaleString("ru-RU")} \u20BD (${rawRate} ${providerCurrency})`,
-                quarantinedAt: /* @__PURE__ */ new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (relChange >= ANOMALY_PRICE_SPIKE_THRESHOLD) {
-            const spikePct = Math.round(relChange * 100);
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isActive: false,
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `Price Spike (+${spikePct}%): \u0441\u0435\u0431\u0435\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C \u0432\u044B\u0440\u043E\u0441\u043B\u0430 \u0441 ${oldCostRub.toFixed(2)} \u20BD \u0434\u043E ${newCostRub.toFixed(2)} \u20BD/1k`,
-                quarantinedAt: /* @__PURE__ */ new Date()
-              }
-            });
-            priceAnomalies++;
-          } else if (Math.abs(relChange) >= QUARANTINE_THRESHOLD) {
-            await db.service.update({
-              where: { id: s.id },
-              data: {
-                isQuarantined: true,
-                pendingRate: rawRate,
-                quarantineReason: `\u041F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A \u0438\u0437\u043C\u0435\u043D\u0438\u043B \u0446\u0435\u043D\u0443: ${s.rate} -> ${rawRate} ${providerCurrency} (${relChange > 0 ? "+" : ""}${(relChange * 100).toFixed(1)}%)`,
-                quarantinedAt: /* @__PURE__ */ new Date()
-              }
-            });
-            priceAnomalies++;
-          } else {
-            pendingUpdates.push({
-              id: s.id,
-              data: {
-                rate: rawRate,
-                providerCurrency,
-                pricePer1000Cents: Math.round(applyBeautifulRounding(newCostRub * s.markup) * 100)
-              },
-              oldRate: s.rate,
-              newRate: rawRate
-            });
-            priceUpdatedSilent++;
           }
         }
       }
@@ -204559,7 +204848,10 @@ var cleanupWorker = new import_bullmq7.Worker("cleanup", wrapWorkerProcessor("Cl
   }
 }), workerConfig);
 var telegramWorker = new import_bullmq7.Worker("telegram-notifications", wrapWorkerProcessor("TelegramNotifications", async (job) => {
-  await sendAdminAlertSync(job.data?.message, job.data?.severity);
+  const data = job.data;
+  if (data?.message) {
+    await sendAdminAlertSync(data.message, data.severity);
+  }
 }), {
   ...workerConfig,
   limiter: {

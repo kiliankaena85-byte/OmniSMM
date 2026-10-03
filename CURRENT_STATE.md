@@ -1,3 +1,19 @@
+- [x] 🚀 [OMNISMM-DOCKER-DEPLOYMENT-ZERO-MIGRATION-2026-10-03] Полное развертывание последнего варианта в Docker и подтверждение Zero-Migration статуса БД:
+  * 🗄️ **Статус схемы и миграций базы данных:**
+    - Выполнен аудит схемы: в текущем PR схема `prisma/schema.prisma` не изменялась (100% идентична ветке `main`);
+    - Выполнен `prisma migrate deploy` и `prisma migrate status` — все исторические миграции синхронизированы в таблице `_prisma_migrations`, статус: `Database schema is up to date!`;
+    - Подтверждено: для текущего кода **миграция базы данных НЕ требуется** (Zero Database Drift);
+    - При старте контейнера скрипт `docker-entrypoint.sh` автоматически подтверждает: `No pending migrations to apply. Database schema sync check completed.`
+  * 🐳 **Сборка и развертывание в Docker:**
+    - Успешно скомпилирован Next.js 16.3.6 Standalone билд с генерацией 30 статических страниц;
+    - Собраны модули `dist/bot.js` (5.9 MB) и `dist/worker.js` (8.2 MB);
+    - Пересобраны и запущены целевые образы стека `smm`: `smm-web`, `smm-worker`, `smm-bot`;
+    - Контейнеры пересозданы и работают в статусе Healthy (`smmplan_web`, `smmplan_lite_worker`, `smmplan_bot`);
+    - Пройдены runtime-проверки: `curl -i http://127.0.0.1:3000/api/health` -> HTTP 200 `{"status":"healthy"}`, `curl http://127.0.0.1:3000/` -> HTTP 200, защищенные маршруты отдают корректные 307/401 и строгие заголовки CSP.
+  * 🛡️ **Контроль безопасности и типов:**
+    - `npx tsc --noEmit` — 0 ошибок;
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов.
+
 - [x] 🛡️ [OMNISMM-ZERO-DEFECT-PARITY-REMEDIATION-2026-10-03] Полное устранение 5 скрытых дефектов переноса (Zero-Defect Protocol BGS-2026):
   * 🔧 **Устраненные скрытые дефекты архитектуры и рантайма:**
     1. **BigInt сериализация в Redis (`src/services/admin/user.service.ts`):** `totalLiability` конвертируется через `Number(totalBalance._sum.balance || 0n)` перед `JSON.stringify()`, исключая падение сериализации в пустом блоке catch. Обновлен и пройден тест `src/__tests__/clients/admin-user-sorting.test.ts`;

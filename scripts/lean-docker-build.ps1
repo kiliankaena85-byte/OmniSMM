@@ -34,6 +34,15 @@ if ($totalCores -gt 2) {
 $env:Path = "C:\Program Files\nodejs;" + [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 $env:NODE_OPTIONS = "--max-old-space-size=2560"
 $env:UV_THREADPOOL_SIZE = [math]::Min(4, $totalCores).ToString()
+if (-not $env:DATABASE_URL) {
+    $env:DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5435/smmplan_lite?schema=public"
+}
+if (-not $env:REDIS_URL) {
+    $env:REDIS_URL = "redis://:SmmP1anR3dis2026Secure!@127.0.0.1:6379"
+}
+if (-not $env:REDIS_PASSWORD) {
+    $env:REDIS_PASSWORD = "SmmP1anR3dis2026Secure!"
+}
 
 Write-Host "[3/4] Compiling Next.js Standalone with BelowNormal priority..." -ForegroundColor Yellow
 
