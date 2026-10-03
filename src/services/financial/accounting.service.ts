@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { redis } from '@/lib/redis';
 import { Prisma, UsnScheme } from '@prisma/client';
 import { calculatePartialRefund } from '@/utils/refund';
 
@@ -23,6 +24,16 @@ interface FinancialMetrics {
 class AccountingService {
   async getMetrics(startDate?: Date, endDate?: Date, tenantId?: string): Promise<FinancialMetrics> {
     const isSingleTenant = tenantId && tenantId !== 'all';
+    const cacheKey = `accounting:metrics:${tenantId || 'all'}:${startDate ? startDate.getTime() : 'all'}:${endDate ? endDate.getTime() : 'all'}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached) as FinancialMetrics;
+      }
+    } catch {
+      // Redis error fallback
+    }
     
     const dateFilter = startDate && endDate ? { createdAt: { gte: startDate, lte: endDate } } : {};
 
@@ -232,7 +243,7 @@ class AccountingService {
     const profitNet = marginGross - taxes - opex;
     const marginPercentage = revenueNet > 0 ? (marginGross / revenueNet) * 100 : 0;
 
-    return {
+    const result: FinancialMetrics = {
       revenueGross,
       refunds,
       gatewayFees,
@@ -249,6 +260,14 @@ class AccountingService {
       isVatThresholdExceeded,
       usnScheme
     };
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+    } catch {
+      // Redis write failure is non-fatal
+    }
+
+    return result;
   }
 
   async getSettings(tenantId?: string) {

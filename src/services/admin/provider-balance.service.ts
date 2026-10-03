@@ -35,8 +35,8 @@ export interface GlobalLiquiditySummary {
 }
 
 export class ProviderBalanceService {
-  private readonly CACHE_TTL_SECONDS = 60;
-  private readonly ERROR_CACHE_TTL_SECONDS = 15;
+  private readonly CACHE_TTL_SECONDS = 120;
+  private readonly ERROR_CACHE_TTL_SECONDS = 30;
   private readonly TIMEOUT_MS = 5000;
 
   /**
@@ -209,15 +209,22 @@ export class ProviderBalanceService {
               formattedThreshold = `$${thresholdUsd}.00 (~${thresholdRub.toLocaleString('ru-RU')} ₽)`;
             }
 
-            await sendAdminAlert(
-              `${emoji} Баланс провайдера "${provider.name}" = ${formattedBalance} — ниже порога ${formattedThreshold}. Пополните депозит!`,
-              level
-            );
-            // Deduplicate: suppress repeat alerts for 1 hour
-            await redis.set(alertKey, '1', 'EX', 3600);
+            // Asynchronous fire-and-forget alert: SMTP latency never blocks the HTTP response
+            void (async () => {
+              try {
+                await sendAdminAlert(
+                  `${emoji} Баланс провайдера "${provider.name}" = ${formattedBalance} — ниже порога ${formattedThreshold}. Пополните депозит!`,
+                  level
+                );
+                // Deduplicate: suppress repeat alerts for 1 hour
+                await redis.set(alertKey, '1', 'EX', 3600);
+              } catch (alertErr) {
+                console.warn(`[ProviderBalanceService] Async balance alert failed for ${provider.name}:`, alertErr);
+              }
+            })();
           }
         } catch (alertErr) {
-          console.warn(`[ProviderBalanceService] Balance alert failed for ${provider.name}:`, alertErr);
+          console.warn(`[ProviderBalanceService] Balance alert check failed for ${provider.name}:`, alertErr);
         }
       }
 
@@ -304,12 +311,18 @@ export class ProviderBalanceService {
           const alertKey = `provider:${provider.id}:error_alert`;
           const alreadyAlerted = await redis.get(alertKey).catch(() => null);
           if (!alreadyAlerted) {
-            const { sendAdminAlert } = await import('@/lib/notifications');
-            await sendAdminAlert(
-              `⚠️ Провайдер "${provider.name}" накопил ${updated.errorCount5m} ошибок за 5 мин. Требует проверки. Авто-отключение ВЫКЛЮЧЕНО — действуй вручную в /admin/providers.`,
-              'WARNING'
-            );
-            await redis.set(alertKey, '1', 'EX', 3600).catch(() => null);
+            void (async () => {
+              try {
+                const { sendAdminAlert } = await import('@/lib/notifications');
+                await sendAdminAlert(
+                  `⚠️ Провайдер "${provider.name}" накопил ${updated.errorCount5m} ошибок за 5 мин. Требует проверки. Авто-отключение ВЫКЛЮЧЕНО — действуй вручную в /admin/providers.`,
+                  'WARNING'
+                );
+                await redis.set(alertKey, '1', 'EX', 3600).catch(() => null);
+              } catch (alertErr) {
+                console.warn(`[ProviderBalanceService] Async error alert failed for ${provider.name}:`, alertErr);
+              }
+            })();
           }
         }
       } catch (dbErr) {
