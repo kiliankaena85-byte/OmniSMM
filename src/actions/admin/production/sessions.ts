@@ -379,3 +379,160 @@ export async function sweepExpiredBoostsAction() {
   });
 }
 
+/**
+ * FR-7: Генерация виртуального пула сессий для симулятора (Scenario 2 / Dry-Run Mode)
+ * Создает 5 реалистичных Telegram Premium сессий с 20 слотами бустов
+ */
+export async function seedMockTelegramSessionsAction() {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    const pool = TelegramSessionPoolManager.getInstance();
+
+    const mockProfiles: Array<Omit<TelegramSessionProfile, 'boostSlots'>> = [
+      {
+        id: 'tg_79165551234',
+        phoneNumber: '+79165551234',
+        dcId: 2,
+        state: 'READY',
+        hasPremium: true,
+        premiumExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000,
+        interactionHealthScore: 96,
+        deviceModel: 'Samsung Galaxy S24 Ultra',
+        appVersion: '10.14.0',
+        systemVersion: 'Android 14',
+        lastActionAt: Date.now(),
+      },
+      {
+        id: 'tg_79251234567',
+        phoneNumber: '+79251234567',
+        dcId: 2,
+        state: 'READY',
+        hasPremium: true,
+        premiumExpiresAt: Date.now() + 60 * 24 * 60 * 60 * 1000,
+        interactionHealthScore: 93,
+        deviceModel: 'Xiaomi 14 Pro',
+        appVersion: '10.14.0',
+        systemVersion: 'Android 14',
+        lastActionAt: Date.now(),
+      },
+      {
+        id: 'tg_79039876543',
+        phoneNumber: '+79039876543',
+        dcId: 4,
+        state: 'READY',
+        hasPremium: true,
+        premiumExpiresAt: Date.now() + 120 * 24 * 60 * 60 * 1000,
+        interactionHealthScore: 98,
+        deviceModel: 'Google Pixel 8 Pro',
+        appVersion: '10.14.0',
+        systemVersion: 'Android 14',
+        lastActionAt: Date.now(),
+      },
+      {
+        id: 'tg_447123456789',
+        phoneNumber: '+447123456789',
+        dcId: 1,
+        state: 'READY',
+        hasPremium: true,
+        premiumExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        interactionHealthScore: 95,
+        deviceModel: 'Apple iPhone 15 Pro Max',
+        appVersion: '10.14.0',
+        systemVersion: 'iOS 17.5',
+        lastActionAt: Date.now(),
+      },
+      {
+        id: 'tg_12125550199',
+        phoneNumber: '+12125550199',
+        dcId: 5,
+        state: 'READY',
+        hasPremium: true,
+        premiumExpiresAt: Date.now() + 45 * 24 * 60 * 60 * 1000,
+        interactionHealthScore: 91,
+        deviceModel: 'Nothing Phone (2)',
+        appVersion: '10.14.0',
+        systemVersion: 'Android 14',
+        lastActionAt: Date.now(),
+      },
+    ];
+
+    for (const p of mockProfiles) {
+      pool.registerSession({
+        ...p,
+        boostSlots: [
+          { slotIndex: 0 },
+          { slotIndex: 1 },
+          { slotIndex: 2 },
+          { slotIndex: 3 },
+        ],
+      });
+      await pool.syncSessionToDb(p.id);
+    }
+
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_SEED_MOCK_SESSIONS',
+      target: 'simulator_pool',
+      targetType: 'TELEGRAM_SESSION_POOL',
+      newValue: { count: mockProfiles.length },
+    });
+
+    return {
+      success: true as const,
+      seededCount: mockProfiles.length,
+      totalSlots: mockProfiles.length * 4,
+    };
+  });
+}
+
+/**
+ * Очищает тестовые виртуальные сессии из пула
+ */
+export async function clearMockTelegramSessionsAction() {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    const pool = TelegramSessionPoolManager.getInstance();
+    const mockIds = [
+      'tg_79165551234',
+      'tg_79251234567',
+      'tg_79039876543',
+      'tg_447123456789',
+      'tg_12125550199',
+    ];
+
+    if (!(process.env.NODE_ENV === 'test' && !process.env.ENABLE_TEST_DB)) {
+      try {
+        const { db } = await import('@/lib/db');
+        await db.telegramBoostSlot.deleteMany({
+          where: { sessionId: { in: mockIds } },
+        });
+        await db.telegramSession.deleteMany({
+          where: { id: { in: mockIds } },
+        });
+      } catch {
+        // Fallback
+      }
+    }
+
+    for (const id of mockIds) {
+      pool.markBanned(id);
+    }
+    TelegramSessionPoolManager.resetInstance();
+    await TelegramSessionPoolManager.getInstance().loadAllFromDb();
+
+    await auditAdminAwaitable({
+      adminId: admin.id,
+      adminEmail: admin.email,
+      action: 'TELEGRAM_CLEAR_MOCK_SESSIONS',
+      target: 'simulator_pool',
+      targetType: 'TELEGRAM_SESSION_POOL',
+      newValue: { cleared: mockIds.length },
+    });
+
+    return {
+      success: true as const,
+      clearedCount: mockIds.length,
+    };
+  });
+}
+
+

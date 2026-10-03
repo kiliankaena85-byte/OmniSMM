@@ -4,6 +4,8 @@ import {
   executeManualBoostAction,
   executeManualReactionAction,
   sweepExpiredBoostsAction,
+  seedMockTelegramSessionsAction,
+  clearMockTelegramSessionsAction,
 } from '@/actions/admin/production/sessions';
 import { TelegramSessionPoolManager } from '@/services/production/telegram-session-pool';
 
@@ -115,6 +117,36 @@ describe('MTProto Cluster Admin Tab Actions', () => {
         expect(res.expiredSlotsFreed).toBeDefined();
         expect(res.cooledDownSlotsReset).toBeDefined();
         expect(res.sessionsRestored).toBeDefined();
+      }
+    });
+  });
+
+  describe('seedMockTelegramSessionsAction and clearMockTelegramSessionsAction', () => {
+    it('seeds 5 realistic mock sessions with 20 boost slots', async () => {
+      const res = await seedMockTelegramSessionsAction();
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.seededCount).toBe(5);
+        expect(res.totalSlots).toBe(20);
+      }
+
+      const listRes = await listTelegramSessionsAction();
+      expect(listRes.success).toBe(true);
+      if (listRes.success) {
+        expect(listRes.sessions.length).toBeGreaterThanOrEqual(5);
+        const samsung = listRes.sessions.find(s => s.id === 'tg_79165551234');
+        expect(samsung).toBeDefined();
+        expect(samsung?.hasPremium).toBe(true);
+        expect(samsung?.totalBoostSlots).toBe(4);
+      }
+    });
+
+    it('clears mock sessions from pool', async () => {
+      await seedMockTelegramSessionsAction();
+      const clearRes = await clearMockTelegramSessionsAction();
+      expect(clearRes.success).toBe(true);
+      if (clearRes.success) {
+        expect(clearRes.clearedCount).toBe(5);
       }
     });
   });

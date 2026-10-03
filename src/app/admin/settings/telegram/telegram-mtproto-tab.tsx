@@ -26,6 +26,8 @@ import {
   executeManualBoostAction,
   executeManualReactionAction,
   sweepExpiredBoostsAction,
+  seedMockTelegramSessionsAction,
+  clearMockTelegramSessionsAction,
   type SessionListItem,
 } from '@/actions/admin/production/sessions';
 
@@ -185,6 +187,40 @@ export function TelegramMtprotoTab({ tenantId: _tenantId }: TelegramMtprotoTabPr
     }
   };
 
+  // Handle seed mock simulator
+  const handleSeedMock = async () => {
+    setActionLoading(true);
+    try {
+      const res = await seedMockTelegramSessionsAction();
+      if (res.success) {
+        loadData();
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle clear mock simulator
+  const handleClearMock = async () => {
+    setActionLoading(true);
+    try {
+      const res = await clearMockTelegramSessionsAction();
+      if (res.success) {
+        loadData();
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const hasMockSessions = sessions.some((s) =>
+    s.id.startsWith('tg_79165551234') ||
+    s.id.startsWith('tg_79251234567') ||
+    s.id.startsWith('tg_79039876543') ||
+    s.id.startsWith('tg_447123456789') ||
+    s.id.startsWith('tg_12125550199')
+  );
+
   return (
     <div className="space-y-6">
       {/* HEADER CARD */}
@@ -209,6 +245,29 @@ export function TelegramMtprotoTab({ tenantId: _tenantId }: TelegramMtprotoTabPr
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {hasMockSessions ? (
+              <button
+                type="button"
+                onClick={handleClearMock}
+                disabled={actionLoading}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all flex items-center gap-2 cursor-pointer"
+                title="Очистить тестовые симуляторные сессии"
+              >
+                <span>Очистить симулятор</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSeedMock}
+                disabled={actionLoading}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+                title="Создать 5 виртуальных Telegram Premium сессий для тестирования бустов и реакций"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Заполнить симулятор (5 сессий)</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleSweep}
