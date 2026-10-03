@@ -1,7 +1,7 @@
 # Реестр и бенчмарк прямых оптовых поставщиков SMM-услуг (SMM Panel API v2)
 
 > **Статус документа:** Действующий нормативный справочник для OmniSMM 1.0 (SMMplan / SMMflux)  
-> **Версия:** 6.0 (Октябрь 2026 — Реестр 125 прямых первоисточников / Expansion Edition)  
+> **Версия:** 7.0 (Октябрь 2026 — Реестр 141 прямого первоисточника / Global Hubs Edition)  
 > **Стандарт протокола:** SMM Panel API v2 (JSON-RPC / REST Form-Encoded)  
 > **Область применения:** Закупка оптовых услуг, авто-маршрутизация (`SmartRoutingService`), Shadow Catalog и балансировка маржинальности (`MarginGuard`).
 
@@ -18,7 +18,7 @@
 
 ---
 
-## 2. Сводный реестр 125 проверенных поставщиков первого эшелона
+## 2. Сводный реестр 141 проверенного поставщика первого эшелона
 
 | # | Провайдер | API Endpoint | Валюта | Базовые сети | Специализация | Рейтинг |
 |---|-----------|--------------|--------|--------------|---------------|---------|
@@ -147,6 +147,22 @@
 | 123 | **SMMHeavy** | `https://smmheavy.com/api/v2` | USD | TG, IG, TT, YT | Оптовые объемы подписчиков Telegram без списаний с гарантией 30 дней | 9.5 / 10 |
 | 124 | **SocialBoss.io** | `https://socialboss.io/api/v2` | USD | TG, IG, YT, Spotify | Международный шлюз прослушиваний треков Spotify из США и Европы | 9.4 / 10 |
 | 125 | **BoostGram.pro** | `https://boostgram.pro/api/v2` | USD | TG | Премиальный моно-шлюз бустов историй каналов от 13.88 ₽ | 9.8 / 10 |
+| 126 | **Palladium SMM** | `https://palladium-smm.com/api/v2` | RUB | VK, TG, YT | Прямой российский оптовик под ВКонтакте (подписчики, клипы, истории) и Telegram | 9.7 / 10 |
+| 127 | **SMMflow App** | `https://smmflow.app/api/v2` | RUB | TG, VK | B2B оптовый шлюз с авто-dripfeed и премиум-подписчиками Telegram | 9.5 / 10 |
+| 128 | **MrPopular API** | `https://mrpopular.net/api/v2` | RUB | VK, TG, YT, TT | Прямой RuNet первоисточник с собственной базой офферов и ботов | 9.6 / 10 |
+| 129 | **EngageGate** | `https://engagegate.app/api/v2` | USD | TG, IG, TT | Высокоскоростной API v2 шлюз с живыми реакциями эмодзи | 9.4 / 10 |
+| 130 | **VNSMM Vietnam** | `https://vnsmm.net/api/v2` | USD | TT, YT, IG | Вьетнамский первоисточник дешевых просмотров TikTok (0.65 ₽ / 1K) | 9.6 / 10 |
+| 131 | **AutoLike VN** | `https://autolike.com.vn/api/v2` | USD | TT, YT, IG | Вьетнамские Android USB-фермы: мгновенный старт YouTube Shorts | 9.3 / 10 |
+| 132 | **TangTuongTac MXH** | `https://tangtuongtacmxh.vn/api/v2` | USD | TT, IG, TG | Азиатский серверный хаб: сохранения и репосты TikTok под рекомендации | 9.2 / 10 |
+| 133 | **BulkFollow Brasil** | `https://bulkfollow.com/api/v2` | USD | IG, TT, YT | Прямые латиноамериканские мобильные фермы (PIX gateway, Instagram лайки) | 9.6 / 10 |
+| 134 | **GramLikes Brasil** | `https://gramlikes.com.br/api/v2` | USD | IG, TT | Быстрый региональный шлюз Бразилии под Instagram Reels и TikTok | 9.3 / 10 |
+| 135 | **Top Fama SMM** | `https://topfama.com/api/v2` | USD | IG, TT, YT | Латиноамериканская B2B инфраструктура с Child-Panel архитектурой | 9.1 / 10 |
+| 136 | **HypeSMM** | `https://hypesmm.com/api/v2` | USD | TG, IG, TT | Специализированный шлюз Telegram: Story Boosts от 12.95 ₽ с авто-рефиллом | 9.8 / 10 |
+| 137 | **SMMSoc Direct** | `https://smmsoc.com/api/v2` | USD | TG | Моно-провайдер Telegram бустов (1-5 уровень) и премиум-аудитории | 9.5 / 10 |
+| 138 | **Followdeh** | `https://followdeh.com/api/v2` | USD | TG, IG | Ближневосточный хаб с пулом сессий для международных Telegram каналов | 9.4 / 10 |
+| 139 | **SMM Raja Hub** | `https://smmraja.com/api/v2` | USD | YT, IG, TG | Индийский гигант первого эшелона: YouTube 4000 часов монетизации | 9.6 / 10 |
+| 140 | **SosyalBayiniz Turkey** | `https://sosyalbayiniz.net/api/v2` | USD | IG, TT, TG | Прямой турецкий пул SIM-ферм для Instagram Reels и бустов TG | 9.5 / 10 |
+| 141 | **Growtak** | `https://growtak.com/api/v2` | USD | YT, TT | Прямой шлюз YouTube High Retention и параллельных зрителей TikTok Live | 9.4 / 10 |
 
 ---
 

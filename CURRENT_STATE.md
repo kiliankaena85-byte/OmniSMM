@@ -1,3 +1,16 @@
+- [x] 🚀 [OMNISMM-PROVIDER-DISCOVERY-EXPANSION-141-WHOLESALE-HUBS-2026-10-03] Расширение реестра прямых оптовых поставщиков со 125 до 141 первоисточника (+16 глобальных хабов):
+  * 🌐 **Новые оптовые кластеры и прямые шлюзы:**
+    - **Российский и СНГ первоисточник (VKontakte, Telegram, OK.ru с балансом в RUB):** `Palladium SMM` (прямой оптовик под VK, клипы, истории и TG), `SMMflow App` (B2B шлюз с авто-dripfeed и премиум-подписчиками TG), `MrPopular API` (RuNet первоисточник с собственной базой офферов и ботов), `EngageGate` (высокоскоростной API v2 шлюз с живыми реакциями);
+    - **Вьетнамские мобильные фермы (Android USB Hubs, супер-дешевый масс-трафик):** `VNSMM Vietnam` (просмотры TikTok по 0.65 ₽ / 1K, фолловеры 32.38 ₽), `AutoLike VN` (Shorts/Reels мгновенный старт), `TangTuongTac MXH` (сохранения/репосты TikTok под рекомендации);
+    - **Бразильский кластер (LATAM Phone Farms с PIX шлюзом):** `BulkFollow Brasil` (ультра-дешевые лайки Instagram по 2.31 ₽ / 1K), `GramLikes Brasil`, `Top Fama SMM` (Child-Panel инфраструктура);
+    - **Специализированные шлюзы Telegram Бустов и Премиум:** `HypeSMM` (Story Boosts от 12.95 ₽ с авто-рефиллом), `SMMSoc Direct` (бусты 1-5 уровней и премиум-аудитория), `Followdeh` (Ближний Восток, международный пул сессий);
+    - **Индийские и турецкие первоисточники:** `SMM Raja Hub` (YouTube 4000 часов монетизации по 171 ₽), `SosyalBayiniz Turkey` (турецкий пул SIM-ферм для Instagram Reels и TG);
+    - **Стриминг и удержание:** `Growtak` (YouTube High Retention и параллельные зрители TikTok Live).
+  * 📊 **Кодовая база и верификация:**
+    - База данных `src/data/providers/smm-direct-providers.json` расширена до 141 профиля;
+    - Обновлен нормативный реестр `docs/SMM_PROVIDERS_REGISTRY.md` (версия 7.0);
+    - Тесты: 19/19 PASS, компиляция `tsc --noEmit` — 0 ошибок.
+
 - [x] 🚀 [OMNISMM-IN-HOUSE-MTPROTO-CLUSTER-ADMIN-SUITE-2026-10-03] Запуск собственного Telegram MTProto Кластера (Tier-0 In-House Production) для исполнения бустов каналов (себестоимость 11.25–45.00 ₽) и реакций/просмотров (себестоимость 0.00 ₽):
   * 🖥️ **Админский интерфейс мониторинга и управления (`/admin/settings/telegram` -> таб «MTProto Кластер»):**
     - Создан компонент `telegram-mtproto-tab.tsx` с 4 KPI карточками (Активные сессии, Свободные слоты бустов из 400+, Среднее здоровье Interaction Health, Себестоимость 0-10%);
