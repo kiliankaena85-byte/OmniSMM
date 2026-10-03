@@ -47,8 +47,8 @@ describe.sequential('Zombie Eraser & Pricing Auto-recalculation / Quarantine Tes
     // 2. Setup systemSettings with exchange rates
     await db.systemSettings.upsert({
       where: { id: 'smmplan' },
-      update: { isTestMode: true, exchangeRateUSD: 100.0 },
-      create: { id: 'smmplan', isTestMode: true, exchangeRateUSD: 100.0 },
+      update: { isTestMode: true, exchangeRateUSD: 100.0, quarantineThreshold: 0.20 },
+      create: { id: 'smmplan', isTestMode: true, exchangeRateUSD: 100.0, quarantineThreshold: 0.20 },
     });
 
     // 3. Create Admin

@@ -30,7 +30,6 @@ export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
     },
     [searchParams]
   );
-
   // Flatten all 9 sub-tabs for direct, 1-click access without multi-level clicking
   const allSubTabs = React.useMemo(() => {
     return SETTINGS_CLUSTERS.flatMap(cluster => 

@@ -7,6 +7,7 @@ import { formatEtaSpeedBadge } from '@/utils/format-eta';
 import { formatPricePerUnit } from '@/utils/format-price';
 import { TariffSubtypeFilter } from './types';
 import { ServiceIdBadge } from '@/components/ui/service-id-badge';
+import { cleanCategoryName } from '@/components/ui/CategoryIcon';
 
 interface WizardStepServiceProps {
   selectedNetwork: PublicNetwork | null;
@@ -40,7 +41,7 @@ export function WizardStepService({
           </button>
           <div>
             <h2 className="text-xl font-bold text-foreground">Шаг 3: Выберите тариф / услугу</h2>
-            <p className="text-muted-foreground text-xs">{selectedNetwork?.name} — {selectedCategory?.name}</p>
+            <p className="text-muted-foreground text-xs">{selectedNetwork?.name} — {cleanCategoryName(selectedCategory?.name, selectedNetwork?.name)}</p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Loader2, AlertTriangle, Link as LinkIcon, HelpCircle, Info, Sparkles, Hash, Zap, ShieldCheck } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { cleanCategoryName } from '@/components/ui/CategoryIcon';
 import { formatEtaSpeedBadge } from '@/utils/format-eta';
 import { formatPricePerUnit, formatRubles } from '@/utils/format-price';
 import { checkServiceRefill } from '@/utils/service-refill';
@@ -44,7 +45,7 @@ export function WizardStepCheckout(props: WizardStepCheckoutProps) {
         <div className="flex items-center gap-3 min-w-0">
           {selectedNetwork && <SocialIcon slug={selectedNetwork.slug || selectedNetwork.name} className="w-8 h-8 shrink-0" />}
           <div className="min-w-0 flex-1">
-            <span className="text-xs font-semibold text-muted-foreground block truncate min-w-0">{selectedNetwork?.name} / {selectedCategory?.name}</span>
+            <span className="text-xs font-semibold text-muted-foreground block truncate min-w-0">{selectedNetwork?.name} / {cleanCategoryName(selectedCategory?.name, selectedNetwork?.name)}</span>
             <h3 className="text-sm sm:text-base font-bold text-foreground truncate min-w-0">{selectedService.name}</h3>
             <span className="text-xs text-primary font-semibold block mt-0.5">{formatEtaSpeedBadge(selectedService)}</span>
           </div>

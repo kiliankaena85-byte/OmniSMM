@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { CatalogPlatform, CatalogCategory } from '../catalog-data';
+import { cleanCategoryName } from '@/components/ui/CategoryIcon';
 
 interface WizardStepCategoryProps {
   platform: CatalogPlatform;
@@ -62,7 +63,7 @@ export function WizardStepCategory({
             >
               <div className="space-y-1 truncate">
                 <div className="font-extrabold text-foreground text-sm sm:text-base tracking-tight">
-                  {cat.title}
+                  {cleanCategoryName(cat.title, platform.name)}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {cat.services.length} доступных тарифов
