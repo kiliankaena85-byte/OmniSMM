@@ -7007,5 +7007,83 @@
         "network": "TIKTOK"
       }
     ]
+  },
+  {
+    "id": "g1618_com",
+    "name": "G1618 SMM Hub",
+    "website": "https://g1618.com",
+    "apiUrl": "https://g1618.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TIKTOK",
+      "INSTAGRAM",
+      "FACEBOOK",
+      "TELEGRAM",
+      "YOUTUBE"
+    ],
+    "rating": 9.5,
+    "avgResponseMs": 140,
+    "features": {
+      "dripfeed": false,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": false,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "674",
+        "name": "Instagram Video Views | All Link | Instant Start",
+        "category": "Instagram Video Views",
+        "rate": "0.0006",
+        "min": "100",
+        "max": "2147483647",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "579",
+        "name": "Instagram Shares | High Quality | 500K/Day",
+        "category": "Instagram Impression/Save Services",
+        "rate": "0.0006",
+        "min": "10",
+        "max": "100000000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "135",
+        "name": "TikTok Video Views | Real Accounts | High speed",
+        "category": "TikTok Video Views",
+        "rate": "0.0019",
+        "min": "100",
+        "max": "2147483647",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "3203",
+        "name": "Telegram Post View",
+        "category": "Telegram Views",
+        "rate": "0.0017",
+        "min": "10",
+        "max": "10000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "565",
+        "name": "Telegram Reaction Mix Positive 👍🤩❤️🔥",
+        "category": "Telegram Reactions",
+        "rate": "0.0120",
+        "min": "8",
+        "max": "100000",
+        "network": "TELEGRAM"
+      }
+    ]
   }
 ]
