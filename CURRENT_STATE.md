@@ -1,3 +1,16 @@
+- [x] 🚀 [OMNISMM-MTPROTO-MOCK-SIMULATOR-SUITE-2026-10-03] Реализация тестового симулятора MTProto-кластера (Сценарий 2 — Dry-Run без покупки реальных аккаунтов):
+  * 🖥️ **Интерактивный симулятор в админ-панели (`/admin/settings/telegram` -> таб «MTProto Кластер»):**
+    - Добавлены кнопки быстрого заполнения симулятора «Заполнить симулятор (5 сессий)» и «Очистить симулятор»;
+    - Встроенная генерация 5 реалистичных виртуальных профилей Telegram Premium (Samsung S24 Ultra, Xiaomi 14, Pixel 8, iPhone 15 Pro, Nothing Phone 2) с DC1–DC5, Health Score 91–98% и 20 свободными слотами бустов;
+    - Режим симуляции в `telegram-mtproto-executor.ts`: автоматическое исполнение бустов каналов и реакций без `sessionString` с атомарным резервированием слота в пуле, установкой кулдаунов и синхронизацией в PostgreSQL;
+  * ⚡ **Серверные экшены (`src/actions/admin/production/sessions.ts`):**
+    - `seedMockTelegramSessionsAction`: безопасная инициализация 5 тестовых сессий с аудитом действий администратора;
+    - `clearMockTelegramSessionsAction`: корректный сброс тестового пула из памяти и базы данных;
+  * 🧪 **CI/CD и тесты:**
+    - Расширен юнит-тест `src/__tests__/unit/telegram-mtproto-tab-actions.test.ts` (8/8 PASS);
+    - Пакет тестов MTProto: 28/28 PASS (`telegram-mtproto-executor`, `telegram-sessions-action`, `telegram-mtproto-tab-actions`);
+    - `npx tsc --noEmit` — 0 ошибок компиляции TypeScript, 0 утечек секретов.
+
 - [x] 🚀 [OMNISMM-PROVIDER-INTEGRATION-RESELLERSMM-2026-10-03] Интеграция и аудит оптового провайдера ResellerSMM (4 679 услуг, подтвержденный API v2, расширение базы до 142 первоисточников):
   * 🌐 **Анализ каталога и ценового бенчмарка:**
     - Успешный опрос API v2 (`https://resellersmm.com/api/v2`) через ключ авторизации, выгружен каталог из 4 679 активных услуг;
