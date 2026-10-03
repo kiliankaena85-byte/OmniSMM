@@ -35,7 +35,8 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
 
       // 2. Check if Yandex Metrika is available
       if (window.ym) {
-        window.ym(96000000, "reachGoal", eventName, params);
+        const ymCounterId = Number(process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID) || 113263331;
+        window.ym(ymCounterId, "reachGoal", eventName, params);
       }
       
       // 3. 152-FZ Compliance (Cross-border data transfer guard):

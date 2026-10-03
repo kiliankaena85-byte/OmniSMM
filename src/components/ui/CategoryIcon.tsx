@@ -99,3 +99,4 @@ export const cleanCategoryName = (rawName?: string | null, networkName?: string 
   return stripped.charAt(0).toUpperCase() + stripped.slice(1);
 };
 
+

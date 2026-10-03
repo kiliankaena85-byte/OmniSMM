@@ -52,6 +52,7 @@ const ACTION_LABELS: Record<TelegramMenuButtonAction, { label: string; icon: Rea
   WEB_APP: { label: 'Telegram Mini App (Web)', icon: Smartphone, desc: 'Открывает Web App версию платформы внутри Telegram' },
   COMMAND: { label: 'Системная команда', icon: Zap, desc: 'Выполняет команду бота (например, /start, /help)' },
   TEXT_REPLY: { label: 'Быстрый автоответ (FAQ)', icon: MessageSquare, desc: 'Отправляет готовый текст или инструкцию клиенту' },
+  DEPIN: { label: 'DePIN Биржа (Mini App)', icon: Smartphone, desc: 'Запускает Telegram Mini App биржи микро-заданий (/depin)' },
 };
 
 export function TelegramMenuTab({ initialButtons, onButtonsChange, tenantId = 'smmplan' }: TelegramMenuTabProps) {

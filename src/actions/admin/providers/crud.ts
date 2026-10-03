@@ -670,3 +670,130 @@ export async function createMockProviderPresetAction() {
     }
   });
 }
+
+/**
+ * Retrieves the verified direct providers registry with DB connection status
+ */
+export async function getDirectProvidersRegistryAction() {
+  return requireStaffPermission('providers', 'view', async () => {
+    try {
+      const { DirectProviderScannerService } = await import('@/services/providers/direct-provider-scanner');
+      const knownProfiles = DirectProviderScannerService.getKnownDirectProviders();
+
+      const existing = await db.provider.findMany({
+        select: { id: true, name: true, apiUrl: true, isActive: true },
+      });
+
+      const enriched = knownProfiles.map((profile) => {
+        let hostname = '';
+        try {
+          hostname = new URL(profile.apiUrl).hostname.toLowerCase();
+        } catch {
+          hostname = profile.apiUrl.toLowerCase();
+        }
+
+        const dbMatch = existing.find((p) => {
+          const pUrl = p.apiUrl.toLowerCase();
+          const pName = p.name.toLowerCase();
+          return (
+            (hostname && pUrl.includes(hostname)) ||
+            pName.includes(profile.name.toLowerCase()) ||
+            profile.name.toLowerCase().includes(pName)
+          );
+        });
+
+        return {
+          ...profile,
+          connected: Boolean(dbMatch),
+          connectedProviderId: dbMatch?.id,
+          isDbActive: dbMatch?.isActive,
+        };
+      });
+
+      return { success: true as const, data: enriched };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return { success: false as const, error: errMsg };
+    }
+  });
+}
+
+/**
+ * One-click connect or update a direct SMM provider preset from registry
+ */
+export async function connectDirectProviderPresetAction(presetId: string, customApiKey?: string) {
+  return requireStaffPermission('providers', 'edit', async (admin) => {
+    try {
+      const { DirectProviderScannerService } = await import('@/services/providers/direct-provider-scanner');
+      const knownProfiles = DirectProviderScannerService.getKnownDirectProviders();
+      const profile = knownProfiles.find((p) => p.id === presetId);
+
+      if (!profile) {
+        return { success: false as const, error: `Провайдер с ID "${presetId}" не найден в реестре.` };
+      }
+
+      let hostname = '';
+      try {
+        hostname = new URL(profile.apiUrl).hostname.toLowerCase();
+      } catch {
+        hostname = profile.apiUrl.toLowerCase();
+      }
+
+      const existing = await db.provider.findFirst({
+        where: {
+          OR: [
+            { apiUrl: { contains: hostname } },
+            { name: { contains: profile.name, mode: 'insensitive' } },
+          ],
+        },
+      });
+
+      if (existing) {
+        return {
+          success: true as const,
+          message: `Провайдер "${profile.name}" уже подключен (ID: ${existing.id}).`,
+          providerId: existing.id,
+        };
+      }
+
+      const effectiveApiKey = customApiKey?.trim() || `placeholder_key_${Date.now()}`;
+      const encryptedKey = VaultService.encrypt(effectiveApiKey);
+
+      const provider = await db.provider.create({
+        data: {
+          name: profile.name,
+          apiUrl: profile.apiUrl,
+          apiKey: encryptedKey,
+          isActive: false, // Inactive until live API key is tested
+          balanceCurrency: profile.currency,
+          metadata: {
+            presetId: profile.id,
+            tier: profile.tier,
+            rating: profile.rating,
+            primaryNetworks: profile.primaryNetworks,
+            features: profile.features,
+          },
+        },
+      });
+
+      await auditAdminAwaitable({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: 'PROVIDER_CREATE_DIRECT_PRESET',
+        target: provider.id,
+        targetType: 'PROVIDER',
+        newValue: { name: provider.name, apiUrl: provider.apiUrl, presetId: profile.id },
+      });
+
+      revalidatePath('/admin/providers');
+      return {
+        success: true as const,
+        message: `Провайдер "${profile.name}" успешно добавлен в базу! Укажите рабочий API-ключ для активации.`,
+        providerId: provider.id,
+      };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return { success: false as const, error: errMsg };
+    }
+  });
+}

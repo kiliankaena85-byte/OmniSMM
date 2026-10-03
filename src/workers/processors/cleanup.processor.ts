@@ -958,10 +958,17 @@ export async function runPendingCheckTTLSweep(): Promise<void> {
 }
 
 /**
- * FR-5: Telegram Boost & Cooldown Sweep (Periodic 5-min maintenance).
- * Frees expired 30-day boosts, resets 24-hour cooldowns, and lifts FloodWait blocks.
+ * FR-5: Фоновый процесс очистки слотов бустов и кулдаунов сессий Telegram MTProto
  */
-export async function runTelegramBoostSweep(): Promise<void> {
-  log.info('[CleanupProcessor] Telegram Boost & Cooldown Sweep executed');
+export async function runTelegramBoostSweep(nowMs?: number): Promise<{
+  expiredSlotsFreed: number;
+  cooledDownSlotsReset: number;
+  sessionsRestored: number;
+}> {
+  const { TelegramSessionPoolManager } = await import('@/services/production/telegram-session-pool');
+  const pool = TelegramSessionPoolManager.getInstance();
+  const result = await pool.sweepExpiredBoostsAndCooldowns(nowMs);
+  log.info('Telegram boost and cooldown sweep completed', result);
+  return result;
 }
 

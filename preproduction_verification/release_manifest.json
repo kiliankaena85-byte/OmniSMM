@@ -1,0 +1,229 @@
+{
+  "artifacts": {
+    "Compliance_Attestation.json": {
+      "byte_size": 1278,
+      "ministry_name": "LegalCompliance",
+      "node_id": 3,
+      "schema_class": "LegalComplianceContract",
+      "sha256_file_digest": "214b38e070475a7cf7f05d77fcea5e99bfdb895e9f691b25a0885536e7aaa975",
+      "utf8_encoded": true
+    },
+    "Hardware_Runtime_Manifest.json": {
+      "byte_size": 1625,
+      "ministry_name": "HardwareRuntime",
+      "node_id": 6,
+      "schema_class": "HardwareRuntimeContract",
+      "sha256_file_digest": "d40afbf0e1802d677e1a97c51b77f30e83a7fbd68c16f4833cf9f9156f951aa7",
+      "utf8_encoded": true
+    },
+    "PRD_Specification.json": {
+      "byte_size": 1776,
+      "ministry_name": "StrategyCJM",
+      "node_id": 1,
+      "schema_class": "StrategyCJMContract",
+      "sha256_file_digest": "8fa9dc400ea27b7b9868586651133fe08aab04d5580c0b2f8b7c3b0c4c826d24",
+      "utf8_encoded": true
+    },
+    "Release_Certified_Artifacts.json": {
+      "byte_size": 1006,
+      "ministry_name": "VVQualityGate",
+      "node_id": 7,
+      "schema_class": "VVQualityContract",
+      "sha256_file_digest": "130270379b35ca15c922820dbc64e16055d92ff84a6ef13f48a2a46b07226d63",
+      "utf8_encoded": true
+    },
+    "Security_Policy.agentpolicy": {
+      "byte_size": 2638,
+      "ministry_name": "SecurityPolicy",
+      "node_id": 4,
+      "schema_class": "SecurityPolicyContract",
+      "sha256_file_digest": "fc93c61c8a1526965b5f6a6b1587138edcfef56507721899ea5165a31c679ae4",
+      "utf8_encoded": true
+    },
+    "System_Contracts.json": {
+      "byte_size": 2826,
+      "ministry_name": "SystemAnalysis",
+      "node_id": 5,
+      "schema_class": "SystemAnalysisContract",
+      "sha256_file_digest": "9db63f902a99ec2098f047cd64f640a78b4cb759304fa78f4dc91b8e6f2fd90e",
+      "utf8_encoded": true
+    },
+    "Unit_Economics_Budget.json": {
+      "byte_size": 793,
+      "ministry_name": "Finance",
+      "node_id": 2,
+      "schema_class": "FinanceBudgetContract",
+      "sha256_file_digest": "22d5abd98ea456c59d066fc06150e42b7d613365ffbfb018b834832627778850",
+      "utf8_encoded": true
+    }
+  },
+  "cryptographic_release_signature": "39be1708c83462f271efd5a43e8b6f43e4e1f0eb1db42914fcb29ee9e8391c8f",
+  "intent_file": null,
+  "manifest_version": "1.1.0",
+  "pipeline_status": "SUCCESS",
+  "standards_compliance": {
+    "all_compliant": true,
+    "enforced_standards": [
+      "AI_NATIVE_RAG",
+      "ASYNCAPI_3.0",
+      "BABOK_BACCM",
+      "C4_MODEL",
+      "CRYPTOGRAPHIC_RELEASE",
+      "EU_AI_ACT",
+      "EU_AI_ACT_DOSSIER",
+      "FINOPS_FOCUS_1.0",
+      "FMEA_RPN",
+      "FSTEC_17_21_239",
+      "FSTEC_17_21_239_SECURITY",
+      "FSTEC_BDU",
+      "FTA_IEC_61025",
+      "FZ_152",
+      "GOST_19_201",
+      "GOST_19_ESPD",
+      "GOST_34.602_89",
+      "GOST_34.603_92",
+      "GOST_R_56939_2024",
+      "IAS_38",
+      "IEC_61508_SIL",
+      "IEEE_1012_2016",
+      "IEEE_754_2019",
+      "ISO_27701",
+      "ISO_29119_4",
+      "ISO_29148",
+      "ISO_29148_ATTRIBUTES",
+      "ISO_29148_EARS",
+      "ISO_31000",
+      "ISO_42001",
+      "ISO_42001_SECURITY",
+      "ISO_42010",
+      "MADR_3.0",
+      "MITRE_ATLAS_AI",
+      "MONTE_CARLO_VAR",
+      "MUTATION_MSI_85",
+      "NIST_SP_800_207",
+      "OPENAPI_3.1",
+      "OPENVINO_METEOR_LAKE",
+      "OWASP_ASVS_4.0",
+      "OWASP_LLM_TOP10",
+      "PP_1119_THREAT",
+      "RAG_TRIAD_METRICS",
+      "RFC_7807_9457",
+      "SELF_RAG_TOKENS",
+      "SMT_FORMAL_PROOFS",
+      "SPDX_2.3",
+      "THERAC_25_INTERLOCK",
+      "TOKEN_FINOPS"
+    ],
+    "enforced_standards_count": 49,
+    "overall_score_pct": 100.0,
+    "per_ministry": {
+      "Ministry_1": {
+        "checked_standards": [
+          "BABOK_BACCM",
+          "GOST_19_ESPD",
+          "ISO_29148",
+          "ISO_29148_ATTRIBUTES",
+          "ISO_29148_EARS"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_2": {
+        "checked_standards": [
+          "FINOPS_FOCUS_1.0",
+          "IAS_38",
+          "ISO_31000",
+          "MONTE_CARLO_VAR",
+          "TOKEN_FINOPS"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_3": {
+        "checked_standards": [
+          "EU_AI_ACT",
+          "EU_AI_ACT_DOSSIER",
+          "FSTEC_17_21_239",
+          "FZ_152",
+          "ISO_27701",
+          "ISO_42001",
+          "PP_1119_THREAT",
+          "SPDX_2.3"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_4": {
+        "checked_standards": [
+          "FSTEC_17_21_239_SECURITY",
+          "FSTEC_BDU",
+          "GOST_R_56939_2024",
+          "ISO_42001_SECURITY",
+          "MITRE_ATLAS_AI",
+          "NIST_SP_800_207",
+          "OWASP_ASVS_4.0",
+          "OWASP_LLM_TOP10"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_5": {
+        "checked_standards": [
+          "AI_NATIVE_RAG",
+          "ASYNCAPI_3.0",
+          "C4_MODEL",
+          "ISO_42010",
+          "MADR_3.0",
+          "OPENAPI_3.1",
+          "RFC_7807_9457",
+          "SELF_RAG_TOKENS"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_6": {
+        "checked_standards": [
+          "FMEA_RPN",
+          "FTA_IEC_61025",
+          "IEC_61508_SIL",
+          "IEEE_754_2019",
+          "OPENVINO_METEOR_LAKE",
+          "THERAC_25_INTERLOCK"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      },
+      "Ministry_7": {
+        "checked_standards": [
+          "CRYPTOGRAPHIC_RELEASE",
+          "GOST_19_201",
+          "GOST_34.602_89",
+          "GOST_34.603_92",
+          "IEEE_1012_2016",
+          "ISO_29119_4",
+          "MUTATION_MSI_85",
+          "RAG_TRIAD_METRICS",
+          "SMT_FORMAL_PROOFS"
+        ],
+        "compliance_score_pct": 100.0,
+        "is_compliant": true,
+        "violations": []
+      }
+    }
+  },
+  "task_prompt": "Создай комплексную программу приемо-сдаточных испытаний и pre-production тестирования проекта omnismmcore (E:\\omnismmcore) по стандартам ISO/IEC/IEEE 29119, ISO 25010, ГОСТ Р 56939-2024, OWASP ASVS и ГОСТ 34.602 с валидацией Double-Entry Ledger, Keyset Pagination, Vitest 100% coverage и Stryker mutation testing",
+  "timestamp_utc": "2026-10-01T12:59:15Z",
+  "total_artifacts": 7,
+  "verification_telemetry": {
+    "iso_29148_unambiguity_score": 89.0,
+    "mutation_score_pct": 95.5,
+    "saga_compensations_count": 0,
+    "simplex_downgrades_count": 0
+  }
+}

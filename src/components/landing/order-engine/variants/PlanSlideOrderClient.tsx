@@ -5,6 +5,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import type { PublicNetwork } from "@/actions/order/catalog";
 import { PlatformLinkGuideDrawer } from "@/components/landing/order-engine/PlatformLinkGuideDrawer";
 import { CheckoutAuthModal } from "@/components/landing/order-engine/modals/CheckoutAuthModal";
+import { PaymentVpnHelperModal } from "@/components/landing/order-engine/modals/PaymentVpnHelperModal";
 import { toast } from "sonner";
 import { StepLinkInput } from "./slide/StepLinkInput";
 import { StepNetworkGrid } from "./slide/StepNetworkGrid";
@@ -280,6 +281,17 @@ function PlanSlideOrderClientInner(props: PlanSlideOrderClientProps) {
             description: "Теперь вы можете оплатить заказ с баланса или картой."
           });
         }}
+      />
+
+      <PaymentVpnHelperModal
+        isOpen={Boolean(state.pendingPayment)}
+        onClose={() => state.setPendingPayment(null)}
+        paymentUrl={state.pendingPayment?.paymentUrl || ''}
+        orderId={state.pendingPayment?.orderId}
+        numericId={state.pendingPayment?.numericId}
+        totalPrice={state.pendingPayment?.totalPrice}
+        paymentId={state.pendingPayment?.paymentId}
+        guestOrderToken={state.pendingPayment?.guestOrderToken}
       />
     </div>
   );

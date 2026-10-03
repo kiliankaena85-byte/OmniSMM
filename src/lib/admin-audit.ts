@@ -22,7 +22,9 @@ async function resolveAuditTenant(explicitTenant?: string | null): Promise<strin
     if (storeTenant && storeTenant.trim() !== '') {
       return (normalizeTenantId(storeTenant) as string) || 'smmplan';
     }
-  } catch {}
+  } catch (err: unknown) {
+    // Non-fatal store read error
+  }
 
   // 3. Check Next.js request context (cookies & headers)
   try {
@@ -33,7 +35,9 @@ async function resolveAuditTenant(explicitTenant?: string | null): Promise<strin
       if (cookieTenant && cookieTenant.trim() !== '') {
         return (normalizeTenantId(cookieTenant) as string) || 'smmplan';
       }
-    } catch {}
+    } catch (err: unknown) {
+      // Cookies unavailable in current context
+    }
 
     try {
       const headerStore = await headers();
@@ -41,8 +45,10 @@ async function resolveAuditTenant(explicitTenant?: string | null): Promise<strin
       if (headerTenant && headerTenant.trim() !== '') {
         return (normalizeTenantId(headerTenant) as string) || 'smmplan';
       }
-    } catch {}
-  } catch {
+    } catch (err: unknown) {
+      // Headers unavailable in current context
+    }
+  } catch (err: unknown) {
     // Outside Next.js request context (worker, queue, test, script)
   }
 

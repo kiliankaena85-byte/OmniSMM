@@ -24,7 +24,9 @@ interface FinancialMetrics {
 class AccountingService {
   async getMetrics(startDate?: Date, endDate?: Date, tenantId?: string): Promise<FinancialMetrics> {
     const isSingleTenant = tenantId && tenantId !== 'all';
-    const cacheKey = `accounting:metrics:${tenantId || 'all'}:${startDate ? startDate.getTime() : 'all'}:${endDate ? endDate.getTime() : 'all'}`;
+    // Quantize timestamps to 30-second buckets to ensure high cache hit rate across frequent dashboard renders
+    const quantizeTimestamp = (d?: Date) => (d ? Math.floor(d.getTime() / 30_000) * 30_000 : 'all');
+    const cacheKey = `accounting:metrics:${tenantId || 'all'}:${quantizeTimestamp(startDate)}:${quantizeTimestamp(endDate)}`;
 
     try {
       const cached = await redis.get(cacheKey);

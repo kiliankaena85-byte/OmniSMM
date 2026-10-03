@@ -61,6 +61,14 @@ export function usePlanSlideOrderState({
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalEmail, setAuthModalEmail] = useState("");
+  const [pendingPayment, setPendingPayment] = useState<{
+    paymentUrl: string;
+    orderId?: string;
+    numericId?: number;
+    totalPrice?: string;
+    paymentId?: string;
+    guestOrderToken?: string;
+  } | null>(null);
 
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
@@ -247,7 +255,19 @@ export function usePlanSlideOrderState({
             } catch {}
           }
           if (paymentUrl) {
-            window.location.href = paymentUrl;
+            setPendingPayment({
+              paymentUrl,
+              orderId: res.data.orderId,
+              numericId: res.data.numericId,
+              totalPrice,
+              paymentId: res.data.paymentId,
+              guestOrderToken
+            });
+            try {
+              window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+            } catch {
+              // popup was blocked by browser, modal is already shown on screen
+            }
             return { error: undefined };
           }
           if (redirectUrl) {
@@ -451,6 +471,8 @@ export function usePlanSlideOrderState({
     showAuthModal,
     setShowAuthModal,
     authModalEmail,
+    pendingPayment,
+    setPendingPayment,
     promoCode,
     setPromoCode,
     appliedPromo,

@@ -1,5 +1,3 @@
-'use server';
-
 import { createHmac } from 'crypto';
 import { redis } from '@/lib/redis';
 
@@ -96,6 +94,25 @@ export async function POST(request: Request): Promise<Response> {
     const telegramId = validation.telegramId!;
     // nodeId детерминирован: tg_{telegram_id} — стабилен при смене устройства/браузера
     const nodeId = `tg_${telegramId}`;
+
+    // Touch / upsert DePinNode visit for DAU/MAU analytics
+    try {
+      const { db } = await import('@/lib/db');
+      await db.dePinNode.upsert({
+        where: { id: nodeId },
+        create: {
+          id: nodeId,
+          lastVisitedAt: new Date(),
+          lastActiveAt: new Date(),
+        },
+        update: {
+          lastVisitedAt: new Date(),
+          lastActiveAt: new Date(),
+        },
+      });
+    } catch {
+      // non-blocking
+    }
 
     return Response.json({
       success: true,

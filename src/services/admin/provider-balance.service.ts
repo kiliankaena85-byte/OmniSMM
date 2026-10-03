@@ -180,12 +180,13 @@ export class ProviderBalanceService {
         console.warn(`[ProviderBalanceService] Redis write error for ${cacheKey}:`, cacheErr);
       }
 
-      // ── Balance Alert (deduped per 1h via Redis flag) ──────────────────────
+      // ── Balance Alert (deduped per 1h via Redis atomic lock) ───────────────
       if (status === 'critical' || status === 'warning') {
         const alertKey = `provider:${provider.id}:balance_alert:${status}`;
         try {
-          const alreadyAlerted = await redis.get(alertKey);
-          if (!alreadyAlerted) {
+          // Atomic lock: 'NX' prevents TOCTOU alert storms during concurrent checks
+          const lockAcquired = await redis.set(alertKey, '1', 'EX', 3600, 'NX');
+          if (lockAcquired === 'OK') {
             const { sendAdminAlert } = await import('@/lib/notifications');
             const emoji = status === 'critical' ? '🚨' : '⚠️';
             const level = status === 'critical' ? 'CRITICAL' : 'WARNING';
@@ -216,9 +217,9 @@ export class ProviderBalanceService {
                   `${emoji} Баланс провайдера "${provider.name}" = ${formattedBalance} — ниже порога ${formattedThreshold}. Пополните депозит!`,
                   level
                 );
-                // Deduplicate: suppress repeat alerts for 1 hour
-                await redis.set(alertKey, '1', 'EX', 3600);
               } catch (alertErr) {
+                // If delivery fails, release lock early so next check can retry alerting
+                await redis.del(alertKey).catch(() => {});
                 console.warn(`[ProviderBalanceService] Async balance alert failed for ${provider.name}:`, alertErr);
               }
             })();

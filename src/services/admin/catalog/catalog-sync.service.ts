@@ -146,6 +146,7 @@ export class CatalogSyncService {
 
     // 0.2 Statistical Shift Detection across catalog
     try {
+      // tenant-isolation-ignore: Provider catalog sync operates across all tenants (shared provider services)
       const ourExistingServices = await db.service.findMany({
         where: { providerId: providerDbRecord.id, isActive: true },
         select: {

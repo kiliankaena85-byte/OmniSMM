@@ -66,6 +66,19 @@ export const bot = new Telegraf<BotContext>(TOKEN || 'dummy_token', {
 const botTenantId = process.env.BOT_TENANT_ID || 'smmplan';
 const botSiteName = getTenantSiteName(botTenantId);
 
+export function getBotDepinUrl(): string {
+  if (process.env.DEPIN_TMA_URL) {
+    return process.env.DEPIN_TMA_URL;
+  }
+  const resolvedHost = getTenantHost(botTenantId);
+  const host = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || (resolvedHost.startsWith('http') ? resolvedHost : `https://${resolvedHost}`);
+  const cleanHost = host.replace(/\/+$/, '');
+  if (!cleanHost.startsWith('https://') || cleanHost.includes('localhost') || cleanHost.includes('127.0.0.1')) {
+    return 'https://depin.smmplan-tma.workers.dev/depin';
+  }
+  return `${cleanHost}/depin`;
+}
+
 // ── STAGE ──
 const stage = new Scenes.Stage<BotContext>([
   orderWizard,
@@ -448,11 +461,19 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
     }
   }
 
-  // Clean up old bottom reply keyboards and set new persistent one
-  const persistentKeyboard = Markup.keyboard([
-    ['📱 Главное меню', '📦 Мои заказы'],
-    ['💰 Баланс', '🆘 Поддержка']
-  ]).resize().persistent();
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith('https://');
+
+  // Clean up old bottom reply keyboards and set new persistent one with Mini App launcher
+  const persistentRows: any[][] = [
+    isHttps
+      ? [Markup.button.webApp('⚡ DePIN Задания (Mini App)', depinUrl), '📦 Мои заказы']
+      : ['⚡ DePIN Задания', '📦 Мои заказы'],
+    ['📱 Главное меню', '💰 Баланс'],
+    ['🆘 Поддержка', '🚀 Быстрый заказ'],
+  ];
+
+  const persistentKeyboard = Markup.keyboard(persistentRows).resize().persistent();
 
   await ctx.reply('🧹 <i>Обновление меню...</i>', {
     parse_mode: 'HTML',
@@ -470,10 +491,17 @@ export async function sendMainMenu(ctx: BotContext, isEdit = false) {
   });
 }
 
-async function getDynamicInlineKeyboard(tgId?: string | number) {
+export async function getDynamicInlineKeyboard(tgId?: string | number) {
   const isOwner = tgId ? await isOwnerOrAdmin(tgId) : false;
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith('https://');
+
+  const depinBtn = isHttps
+    ? Markup.button.webApp('⚡ DePIN Биржа & Задания (TMA)', depinUrl)
+    : Markup.button.callback('⚡ DePIN Биржа & Задания', 'nav_depin');
 
   let baseRows: any[][] = [
+    [depinBtn],
     [Markup.button.callback('🚀 Быстрый заказ по ссылке', 'start_fast_order')],
     [Markup.button.callback('🛍 Каталог услуг', 'shop'), Markup.button.callback('💰 Пополнить баланс', 'deposit')],
     [Markup.button.callback('👤 Личный кабинет', 'profile'), Markup.button.callback('📦 Мои заказы', 'my_orders')],
@@ -495,9 +523,22 @@ async function getDynamicInlineKeyboard(tgId?: string | number) {
         const grid: any[][] = [];
         for (const r of sortedRows) {
           const rowBtns = rowMap.get(r)!.sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-          grid.push(rowBtns.map(b => Markup.button.callback(b.label, `menu_action_${b.id}`)));
+          grid.push(rowBtns.map(b => {
+            if (b.action === 'WEB_APP' && b.value) {
+              const url = b.value.startsWith('http') ? b.value : `${getBotDepinUrl().replace(/\/depin$/, '')}${b.value}`;
+              return Markup.button.webApp(b.label, url);
+            }
+            if (b.action === 'DEPIN') {
+              return isHttps ? Markup.button.webApp(b.label, depinUrl) : Markup.button.callback(b.label, 'nav_depin');
+            }
+            return Markup.button.callback(b.label, `menu_action_${b.id}`);
+          }));
         }
         if (grid.length > 0) {
+          const hasDepin = active.some(b => b.action === 'DEPIN' || (b.action === 'WEB_APP' && (b.value || '').includes('depin')));
+          if (!hasDepin) {
+            grid.unshift([depinBtn]);
+          }
           baseRows = grid;
         }
       }
@@ -600,6 +641,10 @@ async function executeDynamicAction(ctx: BotContext, btn: any) {
       );
       return true;
     }
+    case 'DEPIN': {
+      await sendDepinAppPrompt(ctx);
+      return true;
+    }
   }
   return false;
 }
@@ -677,7 +722,50 @@ export async function sendFastOrderPrompt(ctx: BotContext) {
   );
 }
 
-bot.action(['nav_start', 'start', 'main_menu', 'home'], async (ctx: BotContext) => {
+export async function sendDepinAppPrompt(ctx: BotContext) {
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith('https://');
+
+  const text =
+    `⚡ <b>DePIN Биржа микро-заданий SMMplan</b>\n\n` +
+    `Выполняйте задания сообщества, копите очки PTS и продвигайте свои Telegram-каналы бесплатно!\n\n` +
+    `📚 <b>Пакетный просмотр:</b> 3 поста подряд (+15 PTS)\n` +
+    `💬 <b>Умные комментарии:</b> ИИ-генерация органичных мнений (+35 PTS)\n` +
+    `🔥 <b>Реакции и просмотры:</b> мгновенное зачисление очков\n` +
+    `🚀 <b>P2P-буст:</b> обмен очков на реальные просмотры вашего канала\n` +
+    `🛡️ <b>Trust Score:</b> защита аккаунта от спам-блока и теневого бана\n\n` +
+    `👇 <i>Нажмите кнопку ниже, чтобы запустить приложение:</i>`;
+
+  const inlineKeyboard = Markup.inlineKeyboard([
+    [
+      isHttps
+        ? Markup.button.webApp('🚀 Запустить DePIN Mini App', depinUrl)
+        : Markup.button.url('🚀 Открыть DePIN в браузере', depinUrl)
+    ],
+    [Markup.button.callback('« Назад в главное меню', 'nav_start')]
+  ]);
+
+  return ctx.reply(text, {
+    parse_mode: 'HTML',
+    ...inlineKeyboard
+  });
+}
+
+bot.action('nav_depin', async (ctx: BotContext) => {
+  await ctx.answerCbQuery().catch(() => {});
+  return sendDepinAppPrompt(ctx);
+});
+
+bot.command(['depin', 'boost', 'app', 'tma'], async (ctx: BotContext) => {
+  return sendDepinAppPrompt(ctx);
+});
+
+bot.hears(/^(⚡\s*)?DePIN(\s*Задания)?(\s*\(Mini\s*App\))?$/i, async (ctx: BotContext) => {
+  if (ctx.scene) await ctx.scene.leave().catch(() => {});
+  return sendDepinAppPrompt(ctx);
+});
+
+bot.action(['nav_start', 'start', 'main_menu', 'home', 'nav_main_menu'], async (ctx: BotContext) => {
   await ctx.answerCbQuery().catch(() => {});
   if (ctx.scene) {
     await ctx.scene.leave().catch(() => {});
@@ -690,7 +778,7 @@ bot.action('start_fast_order', async (ctx: BotContext) => {
   return sendFastOrderPrompt(ctx);
 });
 
-bot.hears(['🚀 Заказать по ссылке', 'Заказать по ссылке', 'Быстрый заказ', 'Ввести ссылку'], async (ctx: BotContext) => {
+bot.hears(['🚀 Заказать по ссылке', 'Заказать по ссылке', 'Быстрый заказ', 'Ввести ссылку', '🚀 Быстрый заказ'], async (ctx: BotContext) => {
   return sendFastOrderPrompt(ctx);
 });
 
@@ -1565,6 +1653,8 @@ export async function launchBot() {
 
       try {
         await bot.telegram.setMyCommands([
+          { command: 'depin', description: '⚡ Запустить DePIN Mini App' },
+          { command: 'boost', description: '🚀 P2P-буст и задания' },
           { command: 'menu', description: '📱 Главное меню' },
           { command: 'orders', description: '📦 Мои заказы' },
           { command: 'balance', description: '💰 Баланс и пополнение' },
@@ -1615,8 +1705,9 @@ export async function launchBot() {
           if (directNow) {
             // Direct connection recovered — clear proxy and retry without it
             console.info('[Bot] 🔄 Direct connectivity restored — clearing proxy, retrying without proxy...');
-            (bot.telegram as any).options = (bot.telegram as any).options || {};
-            (bot.telegram as any).options.agent = undefined;
+            const tgOpts = bot.telegram as unknown as { options?: { agent?: unknown } };
+            tgOpts.options = tgOpts.options || {};
+            tgOpts.options.agent = undefined;
             currentProxyUrl = undefined;
             await new Promise(r => setTimeout(r, 1000));
             continue;

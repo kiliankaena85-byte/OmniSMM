@@ -72309,6 +72309,7 @@ __export2(queue_manager_exports, {
   createQueue: () => createQueue,
   criticalQueue: () => criticalQueue,
   defaultQueue: () => defaultQueue,
+  depinWatchdogQueue: () => depinWatchdogQueue,
   dlqQueue: () => dlqQueue,
   enrichJobPayload: () => enrichJobPayload,
   ensureAiEconomicOptimizerCron: () => ensureAiEconomicOptimizerCron,
@@ -72317,20 +72318,24 @@ __export2(queue_manager_exports, {
   ensureCBRSyncCron: () => ensureCBRSyncCron,
   ensureCatalogSyncCron: () => ensureCatalogSyncCron,
   ensureCleanupCron: () => ensureCleanupCron,
+  ensureDePinWatchdogCron: () => ensureDePinWatchdogCron,
   ensureDripfeedCron: () => ensureDripfeedCron,
   ensureETACron: () => ensureETACron,
   ensureGeoAvailabilityCron: () => ensureGeoAvailabilityCron,
+  ensureOrganicCampaignCron: () => ensureOrganicCampaignCron,
   ensureOrphanSweepCron: () => ensureOrphanSweepCron,
   ensurePaymentSyncCron: () => ensurePaymentSyncCron,
   ensurePendingCheckCron: () => ensurePendingCheckCron,
   ensureProxySubscriptionSyncCron: () => ensureProxySubscriptionSyncCron,
   ensureSyncCron: () => ensureSyncCron,
+  ensureTelegramBoostSweepCron: () => ensureTelegramBoostSweepCron,
   etaQueue: () => etaQueue,
   geoAvailabilityQueue: () => geoAvailabilityQueue,
   getQueuePrefix: () => getQueuePrefix,
   getRedisConnection: () => getRedisConnection,
   jitteredBackoff: () => jitteredBackoff,
   ordersQueue: () => ordersQueue,
+  organicCampaignQueue: () => organicCampaignQueue,
   paymentGatewayQueue: () => paymentGatewayQueue,
   paymentSyncQueue: () => paymentSyncQueue,
   queueOrder: () => queueOrder,
@@ -72483,6 +72488,20 @@ async function ensureProxySubscriptionSyncCron() {
     }
   );
 }
+async function ensureTelegramBoostSweepCron() {
+  await cleanupQueue.add(
+    "sweep-telegram-boosts",
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: "*/5 * * * *"
+        // Every 5 minutes
+      },
+      jobId: "sweep-telegram-boosts-singleton",
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
 async function ensurePaymentSyncCron() {
   await paymentSyncQueue.add(
     "payment-sync-tick",
@@ -72567,7 +72586,35 @@ async function ensureGeoAvailabilityCron() {
     }
   );
 }
-var import_bullmq, import_ioredis2, redisConnection, getQueuePrefix, getRedisConnection, jitteredBackoff, REPEATABLE_JOB_CLEANUP_OPTS, createQueue, QUEUE_TIMEOUTS, ordersQueue, syncQueue, catalogQueue, dlqQueue, cleanupQueue, telegramQueue, etaQueue, paymentSyncQueue, refillQueue, criticalQueue, defaultQueue, bulkQueue, queuePayment, queueOrder, queueSync, paymentGatewayQueue, articlePublishQueue, aiObserverQueue, aiEconomicOptimizerQueue, geoAvailabilityQueue, closeQueues;
+async function ensureDePinWatchdogCron() {
+  await depinWatchdogQueue.add(
+    "depin-watchdog-tick",
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: "0 */6 * * *"
+        // Every 6 hours
+      },
+      jobId: "depin-watchdog-singleton",
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
+async function ensureOrganicCampaignCron() {
+  await organicCampaignQueue.add(
+    "organic-campaign-hourly",
+    { timestamp: Date.now() },
+    {
+      repeat: {
+        pattern: "0 * * * *"
+        // каждый час
+      },
+      jobId: "organic-campaign-singleton",
+      ...REPEATABLE_JOB_CLEANUP_OPTS
+    }
+  );
+}
+var import_bullmq, import_ioredis2, redisConnection, getQueuePrefix, getRedisConnection, jitteredBackoff, REPEATABLE_JOB_CLEANUP_OPTS, createQueue, QUEUE_TIMEOUTS, ordersQueue, syncQueue, catalogQueue, dlqQueue, cleanupQueue, telegramQueue, etaQueue, paymentSyncQueue, refillQueue, criticalQueue, defaultQueue, bulkQueue, queuePayment, queueOrder, queueSync, paymentGatewayQueue, articlePublishQueue, aiObserverQueue, aiEconomicOptimizerQueue, geoAvailabilityQueue, depinWatchdogQueue, organicCampaignQueue, closeQueues;
 var init_queue_manager = __esm({
   "src/lib/queue-manager.ts"() {
     "use strict";
@@ -72767,6 +72814,8 @@ var init_queue_manager = __esm({
         backoff: { type: "fixed", delay: 1e4 }
       }
     );
+    depinWatchdogQueue = createQueue("depinWatchdogQueue");
+    organicCampaignQueue = createQueue("organicCampaignQueue");
     closeQueues = async () => {
       await ordersQueue.close();
       await syncQueue.close();
@@ -72782,6 +72831,8 @@ var init_queue_manager = __esm({
       await aiObserverQueue.close();
       await aiEconomicOptimizerQueue.close();
       await geoAvailabilityQueue.close();
+      await depinWatchdogQueue.close();
+      await organicCampaignQueue.close();
       if (redisConnection) await redisConnection.quit();
     };
   }
@@ -99651,7 +99702,28 @@ function isAllowedHost(host) {
   if (!host) return false;
   const cleanHost = host.split(":")[0].toLowerCase();
   if (cleanHost === "0.0.0.0" || cleanHost === "host.docker.internal") return false;
-  return ALLOWED_HOST_DOMAINS.includes(cleanHost) || cleanHost.endsWith(".smmplan.pro") || cleanHost.endsWith(".smmflux.ru") || cleanHost.endsWith(".ts.net") || cleanHost.endsWith(".trycloudflare.com") || cleanHost === "desktop-25m6el7.tailbb9d28.ts.net";
+  if (EPHEMERAL_TUNNEL_SUFFIXES.some((s) => cleanHost.endsWith(s))) return false;
+  return ALLOWED_HOST_DOMAINS.includes(cleanHost) || cleanHost.endsWith(".smmplan.pro") || cleanHost.endsWith(".smmflux.ru") || cleanHost.endsWith(".ts.net") || cleanHost.endsWith(".trycloudflare.com") || cleanHost === "desktop-25m6el7.tailbb9d28.ts.net" || cleanHost === "smmplan.tail060e84.ts.net";
+}
+function getCanonicalTenantBaseUrl(tenantId) {
+  const normTenant = (tenantId || "").toLowerCase().trim();
+  const isFlux = normTenant === "flux" || normTenant === "smmflux" || normTenant === "lovable";
+  const canonicalDomain = isFlux ? "smmflux.ru" : "smmplan.pro";
+  if (process.env.NODE_ENV === "production") {
+    const envUrl = process.env.APP_URL || process.env.WEBAPP_URL;
+    if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+      const cleanEnv = envUrl.replace(/\/$/, "");
+      if (!EPHEMERAL_TUNNEL_SUFFIXES.some((s) => cleanEnv.includes(s))) {
+        return cleanEnv;
+      }
+    }
+    return `https://${canonicalDomain}`;
+  }
+  const base2 = getBaseUrlSync();
+  if (EPHEMERAL_TUNNEL_SUFFIXES.some((s) => base2.includes(s))) {
+    return `https://${canonicalDomain}`;
+  }
+  return base2;
 }
 async function getBaseUrlAsync(reqHost, reqProto) {
   const envUrl = process.env.WEBAPP_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL;
@@ -99710,7 +99782,38 @@ async function getBaseUrlAsync(reqHost, reqProto) {
   }
   return process.env.NODE_ENV === "production" ? "https://test.smmplan.pro" : "http://localhost:3000";
 }
-var import_headers, ALLOWED_HOST_DOMAINS;
+function getBaseUrlSync(reqHost, reqProto) {
+  const envUrl = process.env.WEBAPP_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL;
+  if (reqHost) {
+    try {
+      if (reqHost.startsWith("http://") || reqHost.startsWith("https://")) {
+        const u = new URL(reqHost);
+        if (isAllowedHost(u.host)) {
+          return `${u.protocol}//${u.host}`;
+        }
+      }
+    } catch {
+    }
+    let host = reqHost;
+    if (host.includes("0.0.0.0") || host.includes("host.docker.internal")) {
+      host = process.env.NODE_ENV === "production" ? process.env.APP_URL ? new URL(process.env.APP_URL).host : "test.smmplan.pro" : "localhost:3000";
+    }
+    if (isAllowedHost(host)) {
+      const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+      const isTunnel = host.includes(".ts.net") || host.includes(".trycloudflare.com");
+      const proto = isTunnel ? "https" : reqProto || (isLocal ? "http" : process.env.NODE_ENV === "production" ? "https" : "http");
+      return `${proto}://${host}`;
+    }
+  }
+  if (envUrl) {
+    const isLocalEnvUrl = envUrl.includes("localhost") || envUrl.includes("127.0.0.1");
+    if (!isLocalEnvUrl || process.env.NODE_ENV !== "production") {
+      return envUrl.endsWith("/") ? envUrl.slice(0, -1) : envUrl;
+    }
+  }
+  return process.env.NODE_ENV === "production" ? "https://test.smmplan.pro" : "http://localhost:3000";
+}
+var import_headers, ALLOWED_HOST_DOMAINS, EPHEMERAL_TUNNEL_SUFFIXES;
 var init_get_base_url = __esm({
   "src/utils/get-base-url.ts"() {
     "use strict";
@@ -99724,6 +99827,15 @@ var init_get_base_url = __esm({
       "test.smmflux.ru",
       "localhost",
       "127.0.0.1"
+    ];
+    EPHEMERAL_TUNNEL_SUFFIXES = [
+      ".lhr.life",
+      ".loca.lt",
+      ".pinggy-free.link",
+      ".pinggy.link",
+      ".free.pinggy.net",
+      ".pinggy.net",
+      ".serveo.net"
     ];
   }
 });
@@ -102558,48 +102670,24 @@ var require_util4 = __commonJS({
   }
 });
 
-// node_modules/ip-address/dist/address-error.js
-var require_address_error = __commonJS({
-  "node_modules/ip-address/dist/address-error.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.AddressError = void 0;
-    var AddressError = class extends Error {
-      constructor(message, parseMessage) {
-        super(message);
-        this.name = "AddressError";
-        this.parseMessage = parseMessage;
-      }
-    };
-    exports2.AddressError = AddressError;
-  }
-});
-
-// node_modules/ip-address/dist/common.js
+// node_modules/socks/node_modules/ip-address/dist/common.js
 var require_common2 = __commonJS({
-  "node_modules/ip-address/dist/common.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/common.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.isInSubnet = isInSubnet;
-    exports2.isHostInSubnet = isHostInSubnet;
-    exports2.isCorrect = isCorrect;
-    exports2.prefixLengthFromMask = prefixLengthFromMask;
-    exports2.assertByteArray = assertByteArray;
-    exports2.numberToPaddedHex = numberToPaddedHex;
-    exports2.stringToPaddedHex = stringToPaddedHex;
-    exports2.testBit = testBit;
-    var address_error_1 = require_address_error();
+    exports2.isCorrect = exports2.isInSubnet = void 0;
     function isInSubnet(address) {
       if (this.subnetMask < address.subnetMask) {
         return false;
       }
-      return isHostInSubnet.call(this, address);
+      if (this.mask(address.subnetMask) === address.mask()) {
+        return true;
+      }
+      return false;
     }
-    function isHostInSubnet(address) {
-      return this.mask(address.subnetMask) === address.mask();
-    }
+    exports2.isInSubnet = isInSubnet;
     function isCorrect(defaultBits) {
-      return function isCorrectForm() {
+      return function() {
         if (this.addressMinusSuffix !== this.correctForm()) {
           return false;
         }
@@ -102609,63 +102697,1519 @@ var require_common2 = __commonJS({
         return this.parsedSubnet === String(this.subnetMask);
       };
     }
-    function prefixLengthFromMask(value, totalBits) {
-      const binary = value.toString(2).padStart(totalBits, "0");
-      if (binary.length > totalBits) {
-        throw new address_error_1.AddressError("Invalid subnet mask.");
-      }
-      const firstZero = binary.indexOf("0");
-      if (firstZero === -1) {
-        return totalBits;
-      }
-      if (binary.slice(firstZero).includes("1")) {
-        throw new address_error_1.AddressError("Invalid subnet mask.");
-      }
-      return firstZero;
-    }
-    function assertByteArray(bytes, byteCount, family, minimum) {
-      if (bytes.length !== byteCount) {
-        throw new address_error_1.AddressError(`${family} addresses require exactly ${byteCount} bytes`);
-      }
-      for (let i = 0; i < bytes.length; i++) {
-        if (!Number.isInteger(bytes[i]) || bytes[i] < minimum || bytes[i] > 255) {
-          throw new address_error_1.AddressError(`All bytes must be integers between ${minimum} and 255`);
-        }
-      }
-    }
-    function numberToPaddedHex(number) {
-      return number.toString(16).padStart(2, "0");
-    }
-    function stringToPaddedHex(numberString) {
-      return numberToPaddedHex(parseInt(numberString, 10));
-    }
-    function testBit(binaryValue, position) {
-      const { length } = binaryValue;
-      if (position > length) {
-        return false;
-      }
-      const positionInString = length - position;
-      return binaryValue.substring(positionInString, positionInString + 1) === "1";
-    }
+    exports2.isCorrect = isCorrect;
   }
 });
 
-// node_modules/ip-address/dist/v4/constants.js
+// node_modules/socks/node_modules/ip-address/dist/v4/constants.js
 var require_constants7 = __commonJS({
-  "node_modules/ip-address/dist/v4/constants.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/v4/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RE_SUBNET_STRING = exports2.RE_ADDRESS = exports2.GROUPS = exports2.BITS = void 0;
     exports2.BITS = 32;
     exports2.GROUPS = 4;
-    exports2.RE_ADDRESS = /^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/g;
+    exports2.RE_ADDRESS = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g;
     exports2.RE_SUBNET_STRING = /\/\d{1,2}$/;
   }
 });
 
-// node_modules/ip-address/dist/ipv4.js
+// node_modules/socks/node_modules/ip-address/dist/address-error.js
+var require_address_error = __commonJS({
+  "node_modules/socks/node_modules/ip-address/dist/address-error.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.AddressError = void 0;
+    var AddressError = class extends Error {
+      constructor(message, parseMessage) {
+        super(message);
+        this.name = "AddressError";
+        if (parseMessage !== null) {
+          this.parseMessage = parseMessage;
+        }
+      }
+    };
+    exports2.AddressError = AddressError;
+  }
+});
+
+// node_modules/jsbn/index.js
+var require_jsbn = __commonJS({
+  "node_modules/jsbn/index.js"(exports2, module2) {
+    (function() {
+      var dbits;
+      var canary = 244837814094590;
+      var j_lm = (canary & 16777215) == 15715070;
+      function BigInteger(a, b, c) {
+        if (a != null)
+          if ("number" == typeof a) this.fromNumber(a, b, c);
+          else if (b == null && "string" != typeof a) this.fromString(a, 256);
+          else this.fromString(a, b);
+      }
+      function nbi() {
+        return new BigInteger(null);
+      }
+      function am1(i, x, w, j, c, n) {
+        while (--n >= 0) {
+          var v = x * this[i++] + w[j] + c;
+          c = Math.floor(v / 67108864);
+          w[j++] = v & 67108863;
+        }
+        return c;
+      }
+      function am2(i, x, w, j, c, n) {
+        var xl = x & 32767, xh = x >> 15;
+        while (--n >= 0) {
+          var l = this[i] & 32767;
+          var h = this[i++] >> 15;
+          var m = xh * l + h * xl;
+          l = xl * l + ((m & 32767) << 15) + w[j] + (c & 1073741823);
+          c = (l >>> 30) + (m >>> 15) + xh * h + (c >>> 30);
+          w[j++] = l & 1073741823;
+        }
+        return c;
+      }
+      function am3(i, x, w, j, c, n) {
+        var xl = x & 16383, xh = x >> 14;
+        while (--n >= 0) {
+          var l = this[i] & 16383;
+          var h = this[i++] >> 14;
+          var m = xh * l + h * xl;
+          l = xl * l + ((m & 16383) << 14) + w[j] + c;
+          c = (l >> 28) + (m >> 14) + xh * h;
+          w[j++] = l & 268435455;
+        }
+        return c;
+      }
+      var inBrowser = typeof navigator !== "undefined";
+      if (inBrowser && j_lm && navigator.appName == "Microsoft Internet Explorer") {
+        BigInteger.prototype.am = am2;
+        dbits = 30;
+      } else if (inBrowser && j_lm && navigator.appName != "Netscape") {
+        BigInteger.prototype.am = am1;
+        dbits = 26;
+      } else {
+        BigInteger.prototype.am = am3;
+        dbits = 28;
+      }
+      BigInteger.prototype.DB = dbits;
+      BigInteger.prototype.DM = (1 << dbits) - 1;
+      BigInteger.prototype.DV = 1 << dbits;
+      var BI_FP = 52;
+      BigInteger.prototype.FV = Math.pow(2, BI_FP);
+      BigInteger.prototype.F1 = BI_FP - dbits;
+      BigInteger.prototype.F2 = 2 * dbits - BI_FP;
+      var BI_RM = "0123456789abcdefghijklmnopqrstuvwxyz";
+      var BI_RC = new Array();
+      var rr, vv;
+      rr = "0".charCodeAt(0);
+      for (vv = 0; vv <= 9; ++vv) BI_RC[rr++] = vv;
+      rr = "a".charCodeAt(0);
+      for (vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
+      rr = "A".charCodeAt(0);
+      for (vv = 10; vv < 36; ++vv) BI_RC[rr++] = vv;
+      function int2char(n) {
+        return BI_RM.charAt(n);
+      }
+      function intAt(s, i) {
+        var c = BI_RC[s.charCodeAt(i)];
+        return c == null ? -1 : c;
+      }
+      function bnpCopyTo(r) {
+        for (var i = this.t - 1; i >= 0; --i) r[i] = this[i];
+        r.t = this.t;
+        r.s = this.s;
+      }
+      function bnpFromInt(x) {
+        this.t = 1;
+        this.s = x < 0 ? -1 : 0;
+        if (x > 0) this[0] = x;
+        else if (x < -1) this[0] = x + this.DV;
+        else this.t = 0;
+      }
+      function nbv(i) {
+        var r = nbi();
+        r.fromInt(i);
+        return r;
+      }
+      function bnpFromString(s, b) {
+        var k;
+        if (b == 16) k = 4;
+        else if (b == 8) k = 3;
+        else if (b == 256) k = 8;
+        else if (b == 2) k = 1;
+        else if (b == 32) k = 5;
+        else if (b == 4) k = 2;
+        else {
+          this.fromRadix(s, b);
+          return;
+        }
+        this.t = 0;
+        this.s = 0;
+        var i = s.length, mi = false, sh = 0;
+        while (--i >= 0) {
+          var x = k == 8 ? s[i] & 255 : intAt(s, i);
+          if (x < 0) {
+            if (s.charAt(i) == "-") mi = true;
+            continue;
+          }
+          mi = false;
+          if (sh == 0)
+            this[this.t++] = x;
+          else if (sh + k > this.DB) {
+            this[this.t - 1] |= (x & (1 << this.DB - sh) - 1) << sh;
+            this[this.t++] = x >> this.DB - sh;
+          } else
+            this[this.t - 1] |= x << sh;
+          sh += k;
+          if (sh >= this.DB) sh -= this.DB;
+        }
+        if (k == 8 && (s[0] & 128) != 0) {
+          this.s = -1;
+          if (sh > 0) this[this.t - 1] |= (1 << this.DB - sh) - 1 << sh;
+        }
+        this.clamp();
+        if (mi) BigInteger.ZERO.subTo(this, this);
+      }
+      function bnpClamp() {
+        var c = this.s & this.DM;
+        while (this.t > 0 && this[this.t - 1] == c) --this.t;
+      }
+      function bnToString(b) {
+        if (this.s < 0) return "-" + this.negate().toString(b);
+        var k;
+        if (b == 16) k = 4;
+        else if (b == 8) k = 3;
+        else if (b == 2) k = 1;
+        else if (b == 32) k = 5;
+        else if (b == 4) k = 2;
+        else return this.toRadix(b);
+        var km = (1 << k) - 1, d, m = false, r = "", i = this.t;
+        var p = this.DB - i * this.DB % k;
+        if (i-- > 0) {
+          if (p < this.DB && (d = this[i] >> p) > 0) {
+            m = true;
+            r = int2char(d);
+          }
+          while (i >= 0) {
+            if (p < k) {
+              d = (this[i] & (1 << p) - 1) << k - p;
+              d |= this[--i] >> (p += this.DB - k);
+            } else {
+              d = this[i] >> (p -= k) & km;
+              if (p <= 0) {
+                p += this.DB;
+                --i;
+              }
+            }
+            if (d > 0) m = true;
+            if (m) r += int2char(d);
+          }
+        }
+        return m ? r : "0";
+      }
+      function bnNegate() {
+        var r = nbi();
+        BigInteger.ZERO.subTo(this, r);
+        return r;
+      }
+      function bnAbs() {
+        return this.s < 0 ? this.negate() : this;
+      }
+      function bnCompareTo(a) {
+        var r = this.s - a.s;
+        if (r != 0) return r;
+        var i = this.t;
+        r = i - a.t;
+        if (r != 0) return this.s < 0 ? -r : r;
+        while (--i >= 0) if ((r = this[i] - a[i]) != 0) return r;
+        return 0;
+      }
+      function nbits(x) {
+        var r = 1, t2;
+        if ((t2 = x >>> 16) != 0) {
+          x = t2;
+          r += 16;
+        }
+        if ((t2 = x >> 8) != 0) {
+          x = t2;
+          r += 8;
+        }
+        if ((t2 = x >> 4) != 0) {
+          x = t2;
+          r += 4;
+        }
+        if ((t2 = x >> 2) != 0) {
+          x = t2;
+          r += 2;
+        }
+        if ((t2 = x >> 1) != 0) {
+          x = t2;
+          r += 1;
+        }
+        return r;
+      }
+      function bnBitLength() {
+        if (this.t <= 0) return 0;
+        return this.DB * (this.t - 1) + nbits(this[this.t - 1] ^ this.s & this.DM);
+      }
+      function bnpDLShiftTo(n, r) {
+        var i;
+        for (i = this.t - 1; i >= 0; --i) r[i + n] = this[i];
+        for (i = n - 1; i >= 0; --i) r[i] = 0;
+        r.t = this.t + n;
+        r.s = this.s;
+      }
+      function bnpDRShiftTo(n, r) {
+        for (var i = n; i < this.t; ++i) r[i - n] = this[i];
+        r.t = Math.max(this.t - n, 0);
+        r.s = this.s;
+      }
+      function bnpLShiftTo(n, r) {
+        var bs = n % this.DB;
+        var cbs = this.DB - bs;
+        var bm = (1 << cbs) - 1;
+        var ds = Math.floor(n / this.DB), c = this.s << bs & this.DM, i;
+        for (i = this.t - 1; i >= 0; --i) {
+          r[i + ds + 1] = this[i] >> cbs | c;
+          c = (this[i] & bm) << bs;
+        }
+        for (i = ds - 1; i >= 0; --i) r[i] = 0;
+        r[ds] = c;
+        r.t = this.t + ds + 1;
+        r.s = this.s;
+        r.clamp();
+      }
+      function bnpRShiftTo(n, r) {
+        r.s = this.s;
+        var ds = Math.floor(n / this.DB);
+        if (ds >= this.t) {
+          r.t = 0;
+          return;
+        }
+        var bs = n % this.DB;
+        var cbs = this.DB - bs;
+        var bm = (1 << bs) - 1;
+        r[0] = this[ds] >> bs;
+        for (var i = ds + 1; i < this.t; ++i) {
+          r[i - ds - 1] |= (this[i] & bm) << cbs;
+          r[i - ds] = this[i] >> bs;
+        }
+        if (bs > 0) r[this.t - ds - 1] |= (this.s & bm) << cbs;
+        r.t = this.t - ds;
+        r.clamp();
+      }
+      function bnpSubTo(a, r) {
+        var i = 0, c = 0, m = Math.min(a.t, this.t);
+        while (i < m) {
+          c += this[i] - a[i];
+          r[i++] = c & this.DM;
+          c >>= this.DB;
+        }
+        if (a.t < this.t) {
+          c -= a.s;
+          while (i < this.t) {
+            c += this[i];
+            r[i++] = c & this.DM;
+            c >>= this.DB;
+          }
+          c += this.s;
+        } else {
+          c += this.s;
+          while (i < a.t) {
+            c -= a[i];
+            r[i++] = c & this.DM;
+            c >>= this.DB;
+          }
+          c -= a.s;
+        }
+        r.s = c < 0 ? -1 : 0;
+        if (c < -1) r[i++] = this.DV + c;
+        else if (c > 0) r[i++] = c;
+        r.t = i;
+        r.clamp();
+      }
+      function bnpMultiplyTo(a, r) {
+        var x = this.abs(), y = a.abs();
+        var i = x.t;
+        r.t = i + y.t;
+        while (--i >= 0) r[i] = 0;
+        for (i = 0; i < y.t; ++i) r[i + x.t] = x.am(0, y[i], r, i, 0, x.t);
+        r.s = 0;
+        r.clamp();
+        if (this.s != a.s) BigInteger.ZERO.subTo(r, r);
+      }
+      function bnpSquareTo(r) {
+        var x = this.abs();
+        var i = r.t = 2 * x.t;
+        while (--i >= 0) r[i] = 0;
+        for (i = 0; i < x.t - 1; ++i) {
+          var c = x.am(i, x[i], r, 2 * i, 0, 1);
+          if ((r[i + x.t] += x.am(i + 1, 2 * x[i], r, 2 * i + 1, c, x.t - i - 1)) >= x.DV) {
+            r[i + x.t] -= x.DV;
+            r[i + x.t + 1] = 1;
+          }
+        }
+        if (r.t > 0) r[r.t - 1] += x.am(i, x[i], r, 2 * i, 0, 1);
+        r.s = 0;
+        r.clamp();
+      }
+      function bnpDivRemTo(m, q, r) {
+        var pm = m.abs();
+        if (pm.t <= 0) return;
+        var pt = this.abs();
+        if (pt.t < pm.t) {
+          if (q != null) q.fromInt(0);
+          if (r != null) this.copyTo(r);
+          return;
+        }
+        if (r == null) r = nbi();
+        var y = nbi(), ts = this.s, ms = m.s;
+        var nsh = this.DB - nbits(pm[pm.t - 1]);
+        if (nsh > 0) {
+          pm.lShiftTo(nsh, y);
+          pt.lShiftTo(nsh, r);
+        } else {
+          pm.copyTo(y);
+          pt.copyTo(r);
+        }
+        var ys = y.t;
+        var y0 = y[ys - 1];
+        if (y0 == 0) return;
+        var yt = y0 * (1 << this.F1) + (ys > 1 ? y[ys - 2] >> this.F2 : 0);
+        var d1 = this.FV / yt, d2 = (1 << this.F1) / yt, e = 1 << this.F2;
+        var i = r.t, j = i - ys, t2 = q == null ? nbi() : q;
+        y.dlShiftTo(j, t2);
+        if (r.compareTo(t2) >= 0) {
+          r[r.t++] = 1;
+          r.subTo(t2, r);
+        }
+        BigInteger.ONE.dlShiftTo(ys, t2);
+        t2.subTo(y, y);
+        while (y.t < ys) y[y.t++] = 0;
+        while (--j >= 0) {
+          var qd = r[--i] == y0 ? this.DM : Math.floor(r[i] * d1 + (r[i - 1] + e) * d2);
+          if ((r[i] += y.am(0, qd, r, j, 0, ys)) < qd) {
+            y.dlShiftTo(j, t2);
+            r.subTo(t2, r);
+            while (r[i] < --qd) r.subTo(t2, r);
+          }
+        }
+        if (q != null) {
+          r.drShiftTo(ys, q);
+          if (ts != ms) BigInteger.ZERO.subTo(q, q);
+        }
+        r.t = ys;
+        r.clamp();
+        if (nsh > 0) r.rShiftTo(nsh, r);
+        if (ts < 0) BigInteger.ZERO.subTo(r, r);
+      }
+      function bnMod(a) {
+        var r = nbi();
+        this.abs().divRemTo(a, null, r);
+        if (this.s < 0 && r.compareTo(BigInteger.ZERO) > 0) a.subTo(r, r);
+        return r;
+      }
+      function Classic(m) {
+        this.m = m;
+      }
+      function cConvert(x) {
+        if (x.s < 0 || x.compareTo(this.m) >= 0) return x.mod(this.m);
+        else return x;
+      }
+      function cRevert(x) {
+        return x;
+      }
+      function cReduce(x) {
+        x.divRemTo(this.m, null, x);
+      }
+      function cMulTo(x, y, r) {
+        x.multiplyTo(y, r);
+        this.reduce(r);
+      }
+      function cSqrTo(x, r) {
+        x.squareTo(r);
+        this.reduce(r);
+      }
+      Classic.prototype.convert = cConvert;
+      Classic.prototype.revert = cRevert;
+      Classic.prototype.reduce = cReduce;
+      Classic.prototype.mulTo = cMulTo;
+      Classic.prototype.sqrTo = cSqrTo;
+      function bnpInvDigit() {
+        if (this.t < 1) return 0;
+        var x = this[0];
+        if ((x & 1) == 0) return 0;
+        var y = x & 3;
+        y = y * (2 - (x & 15) * y) & 15;
+        y = y * (2 - (x & 255) * y) & 255;
+        y = y * (2 - ((x & 65535) * y & 65535)) & 65535;
+        y = y * (2 - x * y % this.DV) % this.DV;
+        return y > 0 ? this.DV - y : -y;
+      }
+      function Montgomery(m) {
+        this.m = m;
+        this.mp = m.invDigit();
+        this.mpl = this.mp & 32767;
+        this.mph = this.mp >> 15;
+        this.um = (1 << m.DB - 15) - 1;
+        this.mt2 = 2 * m.t;
+      }
+      function montConvert(x) {
+        var r = nbi();
+        x.abs().dlShiftTo(this.m.t, r);
+        r.divRemTo(this.m, null, r);
+        if (x.s < 0 && r.compareTo(BigInteger.ZERO) > 0) this.m.subTo(r, r);
+        return r;
+      }
+      function montRevert(x) {
+        var r = nbi();
+        x.copyTo(r);
+        this.reduce(r);
+        return r;
+      }
+      function montReduce(x) {
+        while (x.t <= this.mt2)
+          x[x.t++] = 0;
+        for (var i = 0; i < this.m.t; ++i) {
+          var j = x[i] & 32767;
+          var u0 = j * this.mpl + ((j * this.mph + (x[i] >> 15) * this.mpl & this.um) << 15) & x.DM;
+          j = i + this.m.t;
+          x[j] += this.m.am(0, u0, x, i, 0, this.m.t);
+          while (x[j] >= x.DV) {
+            x[j] -= x.DV;
+            x[++j]++;
+          }
+        }
+        x.clamp();
+        x.drShiftTo(this.m.t, x);
+        if (x.compareTo(this.m) >= 0) x.subTo(this.m, x);
+      }
+      function montSqrTo(x, r) {
+        x.squareTo(r);
+        this.reduce(r);
+      }
+      function montMulTo(x, y, r) {
+        x.multiplyTo(y, r);
+        this.reduce(r);
+      }
+      Montgomery.prototype.convert = montConvert;
+      Montgomery.prototype.revert = montRevert;
+      Montgomery.prototype.reduce = montReduce;
+      Montgomery.prototype.mulTo = montMulTo;
+      Montgomery.prototype.sqrTo = montSqrTo;
+      function bnpIsEven() {
+        return (this.t > 0 ? this[0] & 1 : this.s) == 0;
+      }
+      function bnpExp(e, z2) {
+        if (e > 4294967295 || e < 1) return BigInteger.ONE;
+        var r = nbi(), r2 = nbi(), g = z2.convert(this), i = nbits(e) - 1;
+        g.copyTo(r);
+        while (--i >= 0) {
+          z2.sqrTo(r, r2);
+          if ((e & 1 << i) > 0) z2.mulTo(r2, g, r);
+          else {
+            var t2 = r;
+            r = r2;
+            r2 = t2;
+          }
+        }
+        return z2.revert(r);
+      }
+      function bnModPowInt(e, m) {
+        var z2;
+        if (e < 256 || m.isEven()) z2 = new Classic(m);
+        else z2 = new Montgomery(m);
+        return this.exp(e, z2);
+      }
+      BigInteger.prototype.copyTo = bnpCopyTo;
+      BigInteger.prototype.fromInt = bnpFromInt;
+      BigInteger.prototype.fromString = bnpFromString;
+      BigInteger.prototype.clamp = bnpClamp;
+      BigInteger.prototype.dlShiftTo = bnpDLShiftTo;
+      BigInteger.prototype.drShiftTo = bnpDRShiftTo;
+      BigInteger.prototype.lShiftTo = bnpLShiftTo;
+      BigInteger.prototype.rShiftTo = bnpRShiftTo;
+      BigInteger.prototype.subTo = bnpSubTo;
+      BigInteger.prototype.multiplyTo = bnpMultiplyTo;
+      BigInteger.prototype.squareTo = bnpSquareTo;
+      BigInteger.prototype.divRemTo = bnpDivRemTo;
+      BigInteger.prototype.invDigit = bnpInvDigit;
+      BigInteger.prototype.isEven = bnpIsEven;
+      BigInteger.prototype.exp = bnpExp;
+      BigInteger.prototype.toString = bnToString;
+      BigInteger.prototype.negate = bnNegate;
+      BigInteger.prototype.abs = bnAbs;
+      BigInteger.prototype.compareTo = bnCompareTo;
+      BigInteger.prototype.bitLength = bnBitLength;
+      BigInteger.prototype.mod = bnMod;
+      BigInteger.prototype.modPowInt = bnModPowInt;
+      BigInteger.ZERO = nbv(0);
+      BigInteger.ONE = nbv(1);
+      function bnClone() {
+        var r = nbi();
+        this.copyTo(r);
+        return r;
+      }
+      function bnIntValue() {
+        if (this.s < 0) {
+          if (this.t == 1) return this[0] - this.DV;
+          else if (this.t == 0) return -1;
+        } else if (this.t == 1) return this[0];
+        else if (this.t == 0) return 0;
+        return (this[1] & (1 << 32 - this.DB) - 1) << this.DB | this[0];
+      }
+      function bnByteValue() {
+        return this.t == 0 ? this.s : this[0] << 24 >> 24;
+      }
+      function bnShortValue() {
+        return this.t == 0 ? this.s : this[0] << 16 >> 16;
+      }
+      function bnpChunkSize(r) {
+        return Math.floor(Math.LN2 * this.DB / Math.log(r));
+      }
+      function bnSigNum() {
+        if (this.s < 0) return -1;
+        else if (this.t <= 0 || this.t == 1 && this[0] <= 0) return 0;
+        else return 1;
+      }
+      function bnpToRadix(b) {
+        if (b == null) b = 10;
+        if (this.signum() == 0 || b < 2 || b > 36) return "0";
+        var cs = this.chunkSize(b);
+        var a = Math.pow(b, cs);
+        var d = nbv(a), y = nbi(), z2 = nbi(), r = "";
+        this.divRemTo(d, y, z2);
+        while (y.signum() > 0) {
+          r = (a + z2.intValue()).toString(b).substr(1) + r;
+          y.divRemTo(d, y, z2);
+        }
+        return z2.intValue().toString(b) + r;
+      }
+      function bnpFromRadix(s, b) {
+        this.fromInt(0);
+        if (b == null) b = 10;
+        var cs = this.chunkSize(b);
+        var d = Math.pow(b, cs), mi = false, j = 0, w = 0;
+        for (var i = 0; i < s.length; ++i) {
+          var x = intAt(s, i);
+          if (x < 0) {
+            if (s.charAt(i) == "-" && this.signum() == 0) mi = true;
+            continue;
+          }
+          w = b * w + x;
+          if (++j >= cs) {
+            this.dMultiply(d);
+            this.dAddOffset(w, 0);
+            j = 0;
+            w = 0;
+          }
+        }
+        if (j > 0) {
+          this.dMultiply(Math.pow(b, j));
+          this.dAddOffset(w, 0);
+        }
+        if (mi) BigInteger.ZERO.subTo(this, this);
+      }
+      function bnpFromNumber(a, b, c) {
+        if ("number" == typeof b) {
+          if (a < 2) this.fromInt(1);
+          else {
+            this.fromNumber(a, c);
+            if (!this.testBit(a - 1))
+              this.bitwiseTo(BigInteger.ONE.shiftLeft(a - 1), op_or, this);
+            if (this.isEven()) this.dAddOffset(1, 0);
+            while (!this.isProbablePrime(b)) {
+              this.dAddOffset(2, 0);
+              if (this.bitLength() > a) this.subTo(BigInteger.ONE.shiftLeft(a - 1), this);
+            }
+          }
+        } else {
+          var x = new Array(), t2 = a & 7;
+          x.length = (a >> 3) + 1;
+          b.nextBytes(x);
+          if (t2 > 0) x[0] &= (1 << t2) - 1;
+          else x[0] = 0;
+          this.fromString(x, 256);
+        }
+      }
+      function bnToByteArray() {
+        var i = this.t, r = new Array();
+        r[0] = this.s;
+        var p = this.DB - i * this.DB % 8, d, k = 0;
+        if (i-- > 0) {
+          if (p < this.DB && (d = this[i] >> p) != (this.s & this.DM) >> p)
+            r[k++] = d | this.s << this.DB - p;
+          while (i >= 0) {
+            if (p < 8) {
+              d = (this[i] & (1 << p) - 1) << 8 - p;
+              d |= this[--i] >> (p += this.DB - 8);
+            } else {
+              d = this[i] >> (p -= 8) & 255;
+              if (p <= 0) {
+                p += this.DB;
+                --i;
+              }
+            }
+            if ((d & 128) != 0) d |= -256;
+            if (k == 0 && (this.s & 128) != (d & 128)) ++k;
+            if (k > 0 || d != this.s) r[k++] = d;
+          }
+        }
+        return r;
+      }
+      function bnEquals(a) {
+        return this.compareTo(a) == 0;
+      }
+      function bnMin(a) {
+        return this.compareTo(a) < 0 ? this : a;
+      }
+      function bnMax(a) {
+        return this.compareTo(a) > 0 ? this : a;
+      }
+      function bnpBitwiseTo(a, op, r) {
+        var i, f, m = Math.min(a.t, this.t);
+        for (i = 0; i < m; ++i) r[i] = op(this[i], a[i]);
+        if (a.t < this.t) {
+          f = a.s & this.DM;
+          for (i = m; i < this.t; ++i) r[i] = op(this[i], f);
+          r.t = this.t;
+        } else {
+          f = this.s & this.DM;
+          for (i = m; i < a.t; ++i) r[i] = op(f, a[i]);
+          r.t = a.t;
+        }
+        r.s = op(this.s, a.s);
+        r.clamp();
+      }
+      function op_and(x, y) {
+        return x & y;
+      }
+      function bnAnd(a) {
+        var r = nbi();
+        this.bitwiseTo(a, op_and, r);
+        return r;
+      }
+      function op_or(x, y) {
+        return x | y;
+      }
+      function bnOr(a) {
+        var r = nbi();
+        this.bitwiseTo(a, op_or, r);
+        return r;
+      }
+      function op_xor(x, y) {
+        return x ^ y;
+      }
+      function bnXor(a) {
+        var r = nbi();
+        this.bitwiseTo(a, op_xor, r);
+        return r;
+      }
+      function op_andnot(x, y) {
+        return x & ~y;
+      }
+      function bnAndNot(a) {
+        var r = nbi();
+        this.bitwiseTo(a, op_andnot, r);
+        return r;
+      }
+      function bnNot() {
+        var r = nbi();
+        for (var i = 0; i < this.t; ++i) r[i] = this.DM & ~this[i];
+        r.t = this.t;
+        r.s = ~this.s;
+        return r;
+      }
+      function bnShiftLeft(n) {
+        var r = nbi();
+        if (n < 0) this.rShiftTo(-n, r);
+        else this.lShiftTo(n, r);
+        return r;
+      }
+      function bnShiftRight(n) {
+        var r = nbi();
+        if (n < 0) this.lShiftTo(-n, r);
+        else this.rShiftTo(n, r);
+        return r;
+      }
+      function lbit(x) {
+        if (x == 0) return -1;
+        var r = 0;
+        if ((x & 65535) == 0) {
+          x >>= 16;
+          r += 16;
+        }
+        if ((x & 255) == 0) {
+          x >>= 8;
+          r += 8;
+        }
+        if ((x & 15) == 0) {
+          x >>= 4;
+          r += 4;
+        }
+        if ((x & 3) == 0) {
+          x >>= 2;
+          r += 2;
+        }
+        if ((x & 1) == 0) ++r;
+        return r;
+      }
+      function bnGetLowestSetBit() {
+        for (var i = 0; i < this.t; ++i)
+          if (this[i] != 0) return i * this.DB + lbit(this[i]);
+        if (this.s < 0) return this.t * this.DB;
+        return -1;
+      }
+      function cbit(x) {
+        var r = 0;
+        while (x != 0) {
+          x &= x - 1;
+          ++r;
+        }
+        return r;
+      }
+      function bnBitCount() {
+        var r = 0, x = this.s & this.DM;
+        for (var i = 0; i < this.t; ++i) r += cbit(this[i] ^ x);
+        return r;
+      }
+      function bnTestBit(n) {
+        var j = Math.floor(n / this.DB);
+        if (j >= this.t) return this.s != 0;
+        return (this[j] & 1 << n % this.DB) != 0;
+      }
+      function bnpChangeBit(n, op) {
+        var r = BigInteger.ONE.shiftLeft(n);
+        this.bitwiseTo(r, op, r);
+        return r;
+      }
+      function bnSetBit(n) {
+        return this.changeBit(n, op_or);
+      }
+      function bnClearBit(n) {
+        return this.changeBit(n, op_andnot);
+      }
+      function bnFlipBit(n) {
+        return this.changeBit(n, op_xor);
+      }
+      function bnpAddTo(a, r) {
+        var i = 0, c = 0, m = Math.min(a.t, this.t);
+        while (i < m) {
+          c += this[i] + a[i];
+          r[i++] = c & this.DM;
+          c >>= this.DB;
+        }
+        if (a.t < this.t) {
+          c += a.s;
+          while (i < this.t) {
+            c += this[i];
+            r[i++] = c & this.DM;
+            c >>= this.DB;
+          }
+          c += this.s;
+        } else {
+          c += this.s;
+          while (i < a.t) {
+            c += a[i];
+            r[i++] = c & this.DM;
+            c >>= this.DB;
+          }
+          c += a.s;
+        }
+        r.s = c < 0 ? -1 : 0;
+        if (c > 0) r[i++] = c;
+        else if (c < -1) r[i++] = this.DV + c;
+        r.t = i;
+        r.clamp();
+      }
+      function bnAdd(a) {
+        var r = nbi();
+        this.addTo(a, r);
+        return r;
+      }
+      function bnSubtract(a) {
+        var r = nbi();
+        this.subTo(a, r);
+        return r;
+      }
+      function bnMultiply(a) {
+        var r = nbi();
+        this.multiplyTo(a, r);
+        return r;
+      }
+      function bnSquare() {
+        var r = nbi();
+        this.squareTo(r);
+        return r;
+      }
+      function bnDivide(a) {
+        var r = nbi();
+        this.divRemTo(a, r, null);
+        return r;
+      }
+      function bnRemainder(a) {
+        var r = nbi();
+        this.divRemTo(a, null, r);
+        return r;
+      }
+      function bnDivideAndRemainder(a) {
+        var q = nbi(), r = nbi();
+        this.divRemTo(a, q, r);
+        return new Array(q, r);
+      }
+      function bnpDMultiply(n) {
+        this[this.t] = this.am(0, n - 1, this, 0, 0, this.t);
+        ++this.t;
+        this.clamp();
+      }
+      function bnpDAddOffset(n, w) {
+        if (n == 0) return;
+        while (this.t <= w) this[this.t++] = 0;
+        this[w] += n;
+        while (this[w] >= this.DV) {
+          this[w] -= this.DV;
+          if (++w >= this.t) this[this.t++] = 0;
+          ++this[w];
+        }
+      }
+      function NullExp() {
+      }
+      function nNop(x) {
+        return x;
+      }
+      function nMulTo(x, y, r) {
+        x.multiplyTo(y, r);
+      }
+      function nSqrTo(x, r) {
+        x.squareTo(r);
+      }
+      NullExp.prototype.convert = nNop;
+      NullExp.prototype.revert = nNop;
+      NullExp.prototype.mulTo = nMulTo;
+      NullExp.prototype.sqrTo = nSqrTo;
+      function bnPow(e) {
+        return this.exp(e, new NullExp());
+      }
+      function bnpMultiplyLowerTo(a, n, r) {
+        var i = Math.min(this.t + a.t, n);
+        r.s = 0;
+        r.t = i;
+        while (i > 0) r[--i] = 0;
+        var j;
+        for (j = r.t - this.t; i < j; ++i) r[i + this.t] = this.am(0, a[i], r, i, 0, this.t);
+        for (j = Math.min(a.t, n); i < j; ++i) this.am(0, a[i], r, i, 0, n - i);
+        r.clamp();
+      }
+      function bnpMultiplyUpperTo(a, n, r) {
+        --n;
+        var i = r.t = this.t + a.t - n;
+        r.s = 0;
+        while (--i >= 0) r[i] = 0;
+        for (i = Math.max(n - this.t, 0); i < a.t; ++i)
+          r[this.t + i - n] = this.am(n - i, a[i], r, 0, 0, this.t + i - n);
+        r.clamp();
+        r.drShiftTo(1, r);
+      }
+      function Barrett(m) {
+        this.r2 = nbi();
+        this.q3 = nbi();
+        BigInteger.ONE.dlShiftTo(2 * m.t, this.r2);
+        this.mu = this.r2.divide(m);
+        this.m = m;
+      }
+      function barrettConvert(x) {
+        if (x.s < 0 || x.t > 2 * this.m.t) return x.mod(this.m);
+        else if (x.compareTo(this.m) < 0) return x;
+        else {
+          var r = nbi();
+          x.copyTo(r);
+          this.reduce(r);
+          return r;
+        }
+      }
+      function barrettRevert(x) {
+        return x;
+      }
+      function barrettReduce(x) {
+        x.drShiftTo(this.m.t - 1, this.r2);
+        if (x.t > this.m.t + 1) {
+          x.t = this.m.t + 1;
+          x.clamp();
+        }
+        this.mu.multiplyUpperTo(this.r2, this.m.t + 1, this.q3);
+        this.m.multiplyLowerTo(this.q3, this.m.t + 1, this.r2);
+        while (x.compareTo(this.r2) < 0) x.dAddOffset(1, this.m.t + 1);
+        x.subTo(this.r2, x);
+        while (x.compareTo(this.m) >= 0) x.subTo(this.m, x);
+      }
+      function barrettSqrTo(x, r) {
+        x.squareTo(r);
+        this.reduce(r);
+      }
+      function barrettMulTo(x, y, r) {
+        x.multiplyTo(y, r);
+        this.reduce(r);
+      }
+      Barrett.prototype.convert = barrettConvert;
+      Barrett.prototype.revert = barrettRevert;
+      Barrett.prototype.reduce = barrettReduce;
+      Barrett.prototype.mulTo = barrettMulTo;
+      Barrett.prototype.sqrTo = barrettSqrTo;
+      function bnModPow(e, m) {
+        var i = e.bitLength(), k, r = nbv(1), z2;
+        if (i <= 0) return r;
+        else if (i < 18) k = 1;
+        else if (i < 48) k = 3;
+        else if (i < 144) k = 4;
+        else if (i < 768) k = 5;
+        else k = 6;
+        if (i < 8)
+          z2 = new Classic(m);
+        else if (m.isEven())
+          z2 = new Barrett(m);
+        else
+          z2 = new Montgomery(m);
+        var g = new Array(), n = 3, k1 = k - 1, km = (1 << k) - 1;
+        g[1] = z2.convert(this);
+        if (k > 1) {
+          var g2 = nbi();
+          z2.sqrTo(g[1], g2);
+          while (n <= km) {
+            g[n] = nbi();
+            z2.mulTo(g2, g[n - 2], g[n]);
+            n += 2;
+          }
+        }
+        var j = e.t - 1, w, is1 = true, r2 = nbi(), t2;
+        i = nbits(e[j]) - 1;
+        while (j >= 0) {
+          if (i >= k1) w = e[j] >> i - k1 & km;
+          else {
+            w = (e[j] & (1 << i + 1) - 1) << k1 - i;
+            if (j > 0) w |= e[j - 1] >> this.DB + i - k1;
+          }
+          n = k;
+          while ((w & 1) == 0) {
+            w >>= 1;
+            --n;
+          }
+          if ((i -= n) < 0) {
+            i += this.DB;
+            --j;
+          }
+          if (is1) {
+            g[w].copyTo(r);
+            is1 = false;
+          } else {
+            while (n > 1) {
+              z2.sqrTo(r, r2);
+              z2.sqrTo(r2, r);
+              n -= 2;
+            }
+            if (n > 0) z2.sqrTo(r, r2);
+            else {
+              t2 = r;
+              r = r2;
+              r2 = t2;
+            }
+            z2.mulTo(r2, g[w], r);
+          }
+          while (j >= 0 && (e[j] & 1 << i) == 0) {
+            z2.sqrTo(r, r2);
+            t2 = r;
+            r = r2;
+            r2 = t2;
+            if (--i < 0) {
+              i = this.DB - 1;
+              --j;
+            }
+          }
+        }
+        return z2.revert(r);
+      }
+      function bnGCD(a) {
+        var x = this.s < 0 ? this.negate() : this.clone();
+        var y = a.s < 0 ? a.negate() : a.clone();
+        if (x.compareTo(y) < 0) {
+          var t2 = x;
+          x = y;
+          y = t2;
+        }
+        var i = x.getLowestSetBit(), g = y.getLowestSetBit();
+        if (g < 0) return x;
+        if (i < g) g = i;
+        if (g > 0) {
+          x.rShiftTo(g, x);
+          y.rShiftTo(g, y);
+        }
+        while (x.signum() > 0) {
+          if ((i = x.getLowestSetBit()) > 0) x.rShiftTo(i, x);
+          if ((i = y.getLowestSetBit()) > 0) y.rShiftTo(i, y);
+          if (x.compareTo(y) >= 0) {
+            x.subTo(y, x);
+            x.rShiftTo(1, x);
+          } else {
+            y.subTo(x, y);
+            y.rShiftTo(1, y);
+          }
+        }
+        if (g > 0) y.lShiftTo(g, y);
+        return y;
+      }
+      function bnpModInt(n) {
+        if (n <= 0) return 0;
+        var d = this.DV % n, r = this.s < 0 ? n - 1 : 0;
+        if (this.t > 0)
+          if (d == 0) r = this[0] % n;
+          else for (var i = this.t - 1; i >= 0; --i) r = (d * r + this[i]) % n;
+        return r;
+      }
+      function bnModInverse(m) {
+        var ac = m.isEven();
+        if (this.isEven() && ac || m.signum() == 0) return BigInteger.ZERO;
+        var u = m.clone(), v = this.clone();
+        var a = nbv(1), b = nbv(0), c = nbv(0), d = nbv(1);
+        while (u.signum() != 0) {
+          while (u.isEven()) {
+            u.rShiftTo(1, u);
+            if (ac) {
+              if (!a.isEven() || !b.isEven()) {
+                a.addTo(this, a);
+                b.subTo(m, b);
+              }
+              a.rShiftTo(1, a);
+            } else if (!b.isEven()) b.subTo(m, b);
+            b.rShiftTo(1, b);
+          }
+          while (v.isEven()) {
+            v.rShiftTo(1, v);
+            if (ac) {
+              if (!c.isEven() || !d.isEven()) {
+                c.addTo(this, c);
+                d.subTo(m, d);
+              }
+              c.rShiftTo(1, c);
+            } else if (!d.isEven()) d.subTo(m, d);
+            d.rShiftTo(1, d);
+          }
+          if (u.compareTo(v) >= 0) {
+            u.subTo(v, u);
+            if (ac) a.subTo(c, a);
+            b.subTo(d, b);
+          } else {
+            v.subTo(u, v);
+            if (ac) c.subTo(a, c);
+            d.subTo(b, d);
+          }
+        }
+        if (v.compareTo(BigInteger.ONE) != 0) return BigInteger.ZERO;
+        if (d.compareTo(m) >= 0) return d.subtract(m);
+        if (d.signum() < 0) d.addTo(m, d);
+        else return d;
+        if (d.signum() < 0) return d.add(m);
+        else return d;
+      }
+      var lowprimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997];
+      var lplim = (1 << 26) / lowprimes[lowprimes.length - 1];
+      function bnIsProbablePrime(t2) {
+        var i, x = this.abs();
+        if (x.t == 1 && x[0] <= lowprimes[lowprimes.length - 1]) {
+          for (i = 0; i < lowprimes.length; ++i)
+            if (x[0] == lowprimes[i]) return true;
+          return false;
+        }
+        if (x.isEven()) return false;
+        i = 1;
+        while (i < lowprimes.length) {
+          var m = lowprimes[i], j = i + 1;
+          while (j < lowprimes.length && m < lplim) m *= lowprimes[j++];
+          m = x.modInt(m);
+          while (i < j) if (m % lowprimes[i++] == 0) return false;
+        }
+        return x.millerRabin(t2);
+      }
+      function bnpMillerRabin(t2) {
+        var n1 = this.subtract(BigInteger.ONE);
+        var k = n1.getLowestSetBit();
+        if (k <= 0) return false;
+        var r = n1.shiftRight(k);
+        t2 = t2 + 1 >> 1;
+        if (t2 > lowprimes.length) t2 = lowprimes.length;
+        var a = nbi();
+        for (var i = 0; i < t2; ++i) {
+          a.fromInt(lowprimes[Math.floor(Math.random() * lowprimes.length)]);
+          var y = a.modPow(r, this);
+          if (y.compareTo(BigInteger.ONE) != 0 && y.compareTo(n1) != 0) {
+            var j = 1;
+            while (j++ < k && y.compareTo(n1) != 0) {
+              y = y.modPowInt(2, this);
+              if (y.compareTo(BigInteger.ONE) == 0) return false;
+            }
+            if (y.compareTo(n1) != 0) return false;
+          }
+        }
+        return true;
+      }
+      BigInteger.prototype.chunkSize = bnpChunkSize;
+      BigInteger.prototype.toRadix = bnpToRadix;
+      BigInteger.prototype.fromRadix = bnpFromRadix;
+      BigInteger.prototype.fromNumber = bnpFromNumber;
+      BigInteger.prototype.bitwiseTo = bnpBitwiseTo;
+      BigInteger.prototype.changeBit = bnpChangeBit;
+      BigInteger.prototype.addTo = bnpAddTo;
+      BigInteger.prototype.dMultiply = bnpDMultiply;
+      BigInteger.prototype.dAddOffset = bnpDAddOffset;
+      BigInteger.prototype.multiplyLowerTo = bnpMultiplyLowerTo;
+      BigInteger.prototype.multiplyUpperTo = bnpMultiplyUpperTo;
+      BigInteger.prototype.modInt = bnpModInt;
+      BigInteger.prototype.millerRabin = bnpMillerRabin;
+      BigInteger.prototype.clone = bnClone;
+      BigInteger.prototype.intValue = bnIntValue;
+      BigInteger.prototype.byteValue = bnByteValue;
+      BigInteger.prototype.shortValue = bnShortValue;
+      BigInteger.prototype.signum = bnSigNum;
+      BigInteger.prototype.toByteArray = bnToByteArray;
+      BigInteger.prototype.equals = bnEquals;
+      BigInteger.prototype.min = bnMin;
+      BigInteger.prototype.max = bnMax;
+      BigInteger.prototype.and = bnAnd;
+      BigInteger.prototype.or = bnOr;
+      BigInteger.prototype.xor = bnXor;
+      BigInteger.prototype.andNot = bnAndNot;
+      BigInteger.prototype.not = bnNot;
+      BigInteger.prototype.shiftLeft = bnShiftLeft;
+      BigInteger.prototype.shiftRight = bnShiftRight;
+      BigInteger.prototype.getLowestSetBit = bnGetLowestSetBit;
+      BigInteger.prototype.bitCount = bnBitCount;
+      BigInteger.prototype.testBit = bnTestBit;
+      BigInteger.prototype.setBit = bnSetBit;
+      BigInteger.prototype.clearBit = bnClearBit;
+      BigInteger.prototype.flipBit = bnFlipBit;
+      BigInteger.prototype.add = bnAdd;
+      BigInteger.prototype.subtract = bnSubtract;
+      BigInteger.prototype.multiply = bnMultiply;
+      BigInteger.prototype.divide = bnDivide;
+      BigInteger.prototype.remainder = bnRemainder;
+      BigInteger.prototype.divideAndRemainder = bnDivideAndRemainder;
+      BigInteger.prototype.modPow = bnModPow;
+      BigInteger.prototype.modInverse = bnModInverse;
+      BigInteger.prototype.pow = bnPow;
+      BigInteger.prototype.gcd = bnGCD;
+      BigInteger.prototype.isProbablePrime = bnIsProbablePrime;
+      BigInteger.prototype.square = bnSquare;
+      BigInteger.prototype.Barrett = Barrett;
+      var rng_state;
+      var rng_pool;
+      var rng_pptr;
+      function rng_seed_int(x) {
+        rng_pool[rng_pptr++] ^= x & 255;
+        rng_pool[rng_pptr++] ^= x >> 8 & 255;
+        rng_pool[rng_pptr++] ^= x >> 16 & 255;
+        rng_pool[rng_pptr++] ^= x >> 24 & 255;
+        if (rng_pptr >= rng_psize) rng_pptr -= rng_psize;
+      }
+      function rng_seed_time() {
+        rng_seed_int((/* @__PURE__ */ new Date()).getTime());
+      }
+      if (rng_pool == null) {
+        rng_pool = new Array();
+        rng_pptr = 0;
+        var t;
+        if (typeof window !== "undefined" && window.crypto) {
+          if (window.crypto.getRandomValues) {
+            var ua = new Uint8Array(32);
+            window.crypto.getRandomValues(ua);
+            for (t = 0; t < 32; ++t)
+              rng_pool[rng_pptr++] = ua[t];
+          } else if (navigator.appName == "Netscape" && navigator.appVersion < "5") {
+            var z = window.crypto.random(32);
+            for (t = 0; t < z.length; ++t)
+              rng_pool[rng_pptr++] = z.charCodeAt(t) & 255;
+          }
+        }
+        while (rng_pptr < rng_psize) {
+          t = Math.floor(65536 * Math.random());
+          rng_pool[rng_pptr++] = t >>> 8;
+          rng_pool[rng_pptr++] = t & 255;
+        }
+        rng_pptr = 0;
+        rng_seed_time();
+      }
+      function rng_get_byte() {
+        if (rng_state == null) {
+          rng_seed_time();
+          rng_state = prng_newstate();
+          rng_state.init(rng_pool);
+          for (rng_pptr = 0; rng_pptr < rng_pool.length; ++rng_pptr)
+            rng_pool[rng_pptr] = 0;
+          rng_pptr = 0;
+        }
+        return rng_state.next();
+      }
+      function rng_get_bytes(ba) {
+        var i;
+        for (i = 0; i < ba.length; ++i) ba[i] = rng_get_byte();
+      }
+      function SecureRandom() {
+      }
+      SecureRandom.prototype.nextBytes = rng_get_bytes;
+      function Arcfour() {
+        this.i = 0;
+        this.j = 0;
+        this.S = new Array();
+      }
+      function ARC4init(key) {
+        var i, j, t2;
+        for (i = 0; i < 256; ++i)
+          this.S[i] = i;
+        j = 0;
+        for (i = 0; i < 256; ++i) {
+          j = j + this.S[i] + key[i % key.length] & 255;
+          t2 = this.S[i];
+          this.S[i] = this.S[j];
+          this.S[j] = t2;
+        }
+        this.i = 0;
+        this.j = 0;
+      }
+      function ARC4next() {
+        var t2;
+        this.i = this.i + 1 & 255;
+        this.j = this.j + this.S[this.i] & 255;
+        t2 = this.S[this.i];
+        this.S[this.i] = this.S[this.j];
+        this.S[this.j] = t2;
+        return this.S[t2 + this.S[this.i] & 255];
+      }
+      Arcfour.prototype.init = ARC4init;
+      Arcfour.prototype.next = ARC4next;
+      function prng_newstate() {
+        return new Arcfour();
+      }
+      var rng_psize = 256;
+      if (typeof exports2 !== "undefined") {
+        exports2 = module2.exports = {
+          default: BigInteger,
+          BigInteger,
+          SecureRandom
+        };
+      } else {
+        this.jsbn = {
+          BigInteger,
+          SecureRandom
+        };
+      }
+    }).call(exports2);
+  }
+});
+
+// node_modules/socks/node_modules/sprintf-js/src/sprintf.js
+var require_sprintf = __commonJS({
+  "node_modules/socks/node_modules/sprintf-js/src/sprintf.js"(exports2) {
+    !(function() {
+      "use strict";
+      var re = {
+        not_string: /[^s]/,
+        not_bool: /[^t]/,
+        not_type: /[^T]/,
+        not_primitive: /[^v]/,
+        number: /[diefg]/,
+        numeric_arg: /[bcdiefguxX]/,
+        json: /[j]/,
+        not_json: /[^j]/,
+        text: /^[^\x25]+/,
+        modulo: /^\x25{2}/,
+        placeholder: /^\x25(?:([1-9]\d*)\$|\(([^)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-gijostTuvxX])/,
+        key: /^([a-z_][a-z_\d]*)/i,
+        key_access: /^\.([a-z_][a-z_\d]*)/i,
+        index_access: /^\[(\d+)\]/,
+        sign: /^[+-]/
+      };
+      function sprintf(key) {
+        return sprintf_format(sprintf_parse(key), arguments);
+      }
+      function vsprintf(fmt, argv) {
+        return sprintf.apply(null, [fmt].concat(argv || []));
+      }
+      function sprintf_format(parse_tree, argv) {
+        var cursor = 1, tree_length = parse_tree.length, arg, output = "", i, k, ph, pad, pad_character, pad_length, is_positive, sign2;
+        for (i = 0; i < tree_length; i++) {
+          if (typeof parse_tree[i] === "string") {
+            output += parse_tree[i];
+          } else if (typeof parse_tree[i] === "object") {
+            ph = parse_tree[i];
+            if (ph.keys) {
+              arg = argv[cursor];
+              for (k = 0; k < ph.keys.length; k++) {
+                if (arg == void 0) {
+                  throw new Error(sprintf('[sprintf] Cannot access property "%s" of undefined value "%s"', ph.keys[k], ph.keys[k - 1]));
+                }
+                arg = arg[ph.keys[k]];
+              }
+            } else if (ph.param_no) {
+              arg = argv[ph.param_no];
+            } else {
+              arg = argv[cursor++];
+            }
+            if (re.not_type.test(ph.type) && re.not_primitive.test(ph.type) && arg instanceof Function) {
+              arg = arg();
+            }
+            if (re.numeric_arg.test(ph.type) && (typeof arg !== "number" && isNaN(arg))) {
+              throw new TypeError(sprintf("[sprintf] expecting number but found %T", arg));
+            }
+            if (re.number.test(ph.type)) {
+              is_positive = arg >= 0;
+            }
+            switch (ph.type) {
+              case "b":
+                arg = parseInt(arg, 10).toString(2);
+                break;
+              case "c":
+                arg = String.fromCharCode(parseInt(arg, 10));
+                break;
+              case "d":
+              case "i":
+                arg = parseInt(arg, 10);
+                break;
+              case "j":
+                arg = JSON.stringify(arg, null, ph.width ? parseInt(ph.width) : 0);
+                break;
+              case "e":
+                arg = ph.precision ? parseFloat(arg).toExponential(ph.precision) : parseFloat(arg).toExponential();
+                break;
+              case "f":
+                arg = ph.precision ? parseFloat(arg).toFixed(ph.precision) : parseFloat(arg);
+                break;
+              case "g":
+                arg = ph.precision ? String(Number(arg.toPrecision(ph.precision))) : parseFloat(arg);
+                break;
+              case "o":
+                arg = (parseInt(arg, 10) >>> 0).toString(8);
+                break;
+              case "s":
+                arg = String(arg);
+                arg = ph.precision ? arg.substring(0, ph.precision) : arg;
+                break;
+              case "t":
+                arg = String(!!arg);
+                arg = ph.precision ? arg.substring(0, ph.precision) : arg;
+                break;
+              case "T":
+                arg = Object.prototype.toString.call(arg).slice(8, -1).toLowerCase();
+                arg = ph.precision ? arg.substring(0, ph.precision) : arg;
+                break;
+              case "u":
+                arg = parseInt(arg, 10) >>> 0;
+                break;
+              case "v":
+                arg = arg.valueOf();
+                arg = ph.precision ? arg.substring(0, ph.precision) : arg;
+                break;
+              case "x":
+                arg = (parseInt(arg, 10) >>> 0).toString(16);
+                break;
+              case "X":
+                arg = (parseInt(arg, 10) >>> 0).toString(16).toUpperCase();
+                break;
+            }
+            if (re.json.test(ph.type)) {
+              output += arg;
+            } else {
+              if (re.number.test(ph.type) && (!is_positive || ph.sign)) {
+                sign2 = is_positive ? "+" : "-";
+                arg = arg.toString().replace(re.sign, "");
+              } else {
+                sign2 = "";
+              }
+              pad_character = ph.pad_char ? ph.pad_char === "0" ? "0" : ph.pad_char.charAt(1) : " ";
+              pad_length = ph.width - (sign2 + arg).length;
+              pad = ph.width ? pad_length > 0 ? pad_character.repeat(pad_length) : "" : "";
+              output += ph.align ? sign2 + arg + pad : pad_character === "0" ? sign2 + pad + arg : pad + sign2 + arg;
+            }
+          }
+        }
+        return output;
+      }
+      var sprintf_cache = /* @__PURE__ */ Object.create(null);
+      function sprintf_parse(fmt) {
+        if (sprintf_cache[fmt]) {
+          return sprintf_cache[fmt];
+        }
+        var _fmt = fmt, match, parse_tree = [], arg_names = 0;
+        while (_fmt) {
+          if ((match = re.text.exec(_fmt)) !== null) {
+            parse_tree.push(match[0]);
+          } else if ((match = re.modulo.exec(_fmt)) !== null) {
+            parse_tree.push("%");
+          } else if ((match = re.placeholder.exec(_fmt)) !== null) {
+            if (match[2]) {
+              arg_names |= 1;
+              var field_list = [], replacement_field = match[2], field_match = [];
+              if ((field_match = re.key.exec(replacement_field)) !== null) {
+                field_list.push(field_match[1]);
+                while ((replacement_field = replacement_field.substring(field_match[0].length)) !== "") {
+                  if ((field_match = re.key_access.exec(replacement_field)) !== null) {
+                    field_list.push(field_match[1]);
+                  } else if ((field_match = re.index_access.exec(replacement_field)) !== null) {
+                    field_list.push(field_match[1]);
+                  } else {
+                    throw new SyntaxError("[sprintf] failed to parse named argument key");
+                  }
+                }
+              } else {
+                throw new SyntaxError("[sprintf] failed to parse named argument key");
+              }
+              match[2] = field_list;
+            } else {
+              arg_names |= 2;
+            }
+            if (arg_names === 3) {
+              throw new Error("[sprintf] mixing positional and named placeholders is not (yet) supported");
+            }
+            parse_tree.push(
+              {
+                placeholder: match[0],
+                param_no: match[1],
+                keys: match[2],
+                sign: match[3],
+                pad_char: match[4],
+                align: match[5],
+                width: match[6],
+                precision: match[7],
+                type: match[8]
+              }
+            );
+          } else {
+            throw new SyntaxError("[sprintf] unexpected placeholder");
+          }
+          _fmt = _fmt.substring(match[0].length);
+        }
+        return sprintf_cache[fmt] = parse_tree;
+      }
+      if (typeof exports2 !== "undefined") {
+        exports2["sprintf"] = sprintf;
+        exports2["vsprintf"] = vsprintf;
+      }
+      if (typeof window !== "undefined") {
+        window["sprintf"] = sprintf;
+        window["vsprintf"] = vsprintf;
+        if (typeof define === "function" && define["amd"]) {
+          define(function() {
+            return {
+              "sprintf": sprintf,
+              "vsprintf": vsprintf
+            };
+          });
+        }
+      }
+    })();
+  }
+});
+
+// node_modules/socks/node_modules/ip-address/dist/ipv4.js
 var require_ipv4 = __commonJS({
-  "node_modules/ip-address/dist/ipv4.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/ipv4.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -102699,19 +104243,18 @@ var require_ipv4 = __commonJS({
     var common = __importStar(require_common2());
     var constants = __importStar(require_constants7());
     var address_error_1 = require_address_error();
-    var isCorrect4 = common.isCorrect(constants.BITS);
+    var jsbn_1 = require_jsbn();
+    var sprintf_js_1 = require_sprintf();
     var Address4 = class _Address4 {
       constructor(address) {
-        this.addressMinusSuffix = "";
         this.groups = constants.GROUPS;
         this.parsedAddress = [];
         this.parsedSubnet = "";
         this.subnet = "/32";
         this.subnetMask = 32;
         this.v4 = true;
-        this.isCorrect = isCorrect4;
+        this.isCorrect = common.isCorrect(constants.BITS);
         this.isInSubnet = common.isInSubnet;
-        this.isHostInSubnet = common.isHostInSubnet;
         this.address = address;
         const subnet = constants.RE_SUBNET_STRING.exec(address);
         if (subnet) {
@@ -102726,140 +104269,64 @@ var require_ipv4 = __commonJS({
         this.addressMinusSuffix = address;
         this.parsedAddress = this.parse(address);
       }
-      /**
-       * Returns true if the given string is a valid IPv4 address (with optional
-       * CIDR subnet), false otherwise. Host bits in the subnet portion are
-       * allowed (e.g. `192.168.1.5/24` is valid); for strict network-address
-       * validation compare `correctForm()` to `startAddress().correctForm()`,
-       * or use `networkForm()`.
-       */
       static isValid(address) {
         try {
           new _Address4(address);
           return true;
-        } catch {
+        } catch (e) {
           return false;
         }
       }
-      /**
-       * Parses an IPv4 address string into its four octet groups and stores the
-       * result on `this.parsedAddress`. Called automatically by the constructor;
-       * you typically don't need to call it directly. Throws `AddressError` if
-       * the input is not a valid IPv4 address.
+      /*
+       * Parses a v4 address
        */
       parse(address) {
         const groups = address.split(".");
-        if (groups.some((group) => /^0\d/.test(group))) {
-          throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.");
-        }
         if (!address.match(constants.RE_ADDRESS)) {
           throw new address_error_1.AddressError("Invalid IPv4 address.");
         }
         return groups;
       }
       /**
-       * Returns the address in correct form: octets joined with `.` and any
-       * leading zeros stripped (e.g. `192.168.1.1`). For IPv4 this matches the
-       * canonical dotted-decimal representation.
+       * Returns the correct form of an address
+       * @memberof Address4
+       * @instance
+       * @returns {String}
        */
       correctForm() {
         return this.parsedAddress.map((part) => parseInt(part, 10)).join(".");
       }
       /**
-       * Construct an `Address4` from an address and a dotted-decimal subnet
-       * mask given as separate strings (e.g. as returned by Node's
-       * `os.networkInterfaces()`). Throws `AddressError` if the mask is
-       * non-contiguous (e.g. `255.0.255.0`).
-       * @example
-       * var address = Address4.fromAddressAndMask('192.168.1.1', '255.255.255.0');
-       * address.subnetMask; // 24
-       */
-      static fromAddressAndMask(address, mask) {
-        const bits = common.prefixLengthFromMask(new _Address4(mask).bigInt(), constants.BITS);
-        return new _Address4(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address4` from an address and a Cisco-style wildcard mask
-       * given as separate strings (e.g. `0.0.0.255` for a `/24`). The wildcard
-       * mask is the bitwise inverse of the subnet mask. Throws `AddressError`
-       * if the mask is non-contiguous (e.g. `0.255.0.255`).
-       * @example
-       * var address = Address4.fromAddressAndWildcardMask('10.0.0.1', '0.0.0.255');
-       * address.subnetMask; // 24
-       */
-      static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new _Address4(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants.BITS)) - BigInt(1);
-        const mask = wildcard ^ allOnes;
-        const bits = common.prefixLengthFromMask(mask, constants.BITS);
-        return new _Address4(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address4` from a wildcard pattern with trailing `*`
-       * octets. The number of trailing wildcards determines the prefix
-       * length: each `*` represents 8 bits.
-       *
-       * Only trailing whole-octet wildcards are supported. Partial-octet
-       * wildcards (e.g. `192.168.0.1*`) and interior wildcards (e.g.
-       * `192.*.0.1`) throw `AddressError`.
-       * @example
-       * Address4.fromWildcard('192.168.0.*').subnet;   // '/24'
-       * Address4.fromWildcard('192.168.*.*').subnet;   // '/16'
-       * Address4.fromWildcard('*.*.*.*').subnet;       // '/0'
-       */
-      static fromWildcard(input) {
-        const groups = input.split(".");
-        if (groups.length !== constants.GROUPS) {
-          throw new address_error_1.AddressError("Wildcard pattern must have 4 octets");
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-          if (groups[i] === "*") {
-            if (firstWildcard === -1) {
-              firstWildcard = i;
-            }
-          } else if (firstWildcard !== -1) {
-            throw new address_error_1.AddressError("Wildcard `*` must only appear in trailing octets (e.g. `192.168.0.*`)");
-          }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => g === "*" ? "0" : g);
-        const subnetBits = constants.BITS - trailing * 8;
-        return new _Address4(`${replaced.join(".")}/${subnetBits}`);
-      }
-      /**
-       * Converts a hex string to an IPv4 address object. Accepts 8 hex digits
-       * with optional `:` separators (e.g. `'7f000001'` or `'7f:00:00:01'`).
-       * Throws `AddressError` for any other length or for non-hex characters.
+       * Converts a hex string to an IPv4 address object
+       * @memberof Address4
+       * @static
        * @param {string} hex - a hex string to convert
        * @returns {Address4}
        */
       static fromHex(hex) {
-        const stripped = hex.replace(/:/g, "");
-        if (!/^[0-9a-fA-F]{8}$/.test(stripped)) {
-          throw new address_error_1.AddressError("IPv4 hex must be exactly 8 hex digits");
-        }
+        const padded = hex.replace(/:/g, "").padStart(8, "0");
         const groups = [];
-        for (let i = 0; i < 8; i += 2) {
-          groups.push(parseInt(stripped.slice(i, i + 2), 16));
+        let i;
+        for (i = 0; i < 8; i += 2) {
+          const h = padded.slice(i, i + 2);
+          groups.push(parseInt(h, 16));
         }
         return new _Address4(groups.join("."));
       }
       /**
-       * Converts an integer into a IPv4 address object. The integer must be a
-       * non-negative safe integer in the range `[0, 2**32 - 1]`; otherwise
-       * `AddressError` is thrown.
+       * Converts an integer into a IPv4 address object
+       * @memberof Address4
+       * @static
        * @param {integer} integer - a number to convert
        * @returns {Address4}
        */
       static fromInteger(integer) {
-        if (!Number.isInteger(integer) || integer < 0 || integer > 4294967295) {
-          throw new address_error_1.AddressError("IPv4 integer must be in the range 0 to 2**32 - 1");
-        }
-        return _Address4.fromHex(integer.toString(16).padStart(8, "0"));
+        return _Address4.fromHex(integer.toString(16));
       }
       /**
        * Return an address from in-addr.arpa form
+       * @memberof Address4
+       * @static
        * @param {string} arpaFormAddress - an 'in-addr.arpa' form ipv4 address
        * @returns {Adress4}
        * @example
@@ -102873,15 +104340,17 @@ var require_ipv4 = __commonJS({
       }
       /**
        * Converts an IPv4 address object to a hex string
+       * @memberof Address4
+       * @instance
        * @returns {String}
        */
       toHex() {
-        return this.parsedAddress.map((part) => common.stringToPaddedHex(part)).join(":");
+        return this.parsedAddress.map((part) => (0, sprintf_js_1.sprintf)("%02x", parseInt(part, 10))).join(":");
       }
       /**
-       * Converts an IPv4 address object to an array of bytes.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toArray())`.
+       * Converts an IPv4 address object to an array of bytes
+       * @memberof Address4
+       * @instance
        * @returns {Array}
        */
       toArray() {
@@ -102889,143 +104358,103 @@ var require_ipv4 = __commonJS({
       }
       /**
        * Converts an IPv4 address object to an IPv6 address group
+       * @memberof Address4
+       * @instance
        * @returns {String}
        */
       toGroup6() {
         const output = [];
         let i;
         for (i = 0; i < constants.GROUPS; i += 2) {
-          output.push(`${common.stringToPaddedHex(this.parsedAddress[i])}${common.stringToPaddedHex(this.parsedAddress[i + 1])}`);
+          const hex = (0, sprintf_js_1.sprintf)("%02x%02x", parseInt(this.parsedAddress[i], 10), parseInt(this.parsedAddress[i + 1], 10));
+          output.push((0, sprintf_js_1.sprintf)("%x", parseInt(hex, 16)));
         }
         return output.join(":");
       }
       /**
-       * Returns the address as a `bigint`
-       * @returns {bigint}
+       * Returns the address as a BigInteger
+       * @memberof Address4
+       * @instance
+       * @returns {BigInteger}
        */
-      bigInt() {
-        return BigInt(`0x${this.parsedAddress.map((n) => common.stringToPaddedHex(n)).join("")}`);
+      bigInteger() {
+        return new jsbn_1.BigInteger(this.parsedAddress.map((n) => (0, sprintf_js_1.sprintf)("%02x", parseInt(n, 10))).join(""), 16);
       }
       /**
        * Helper function getting start address.
-       * @returns {bigint}
+       * @memberof Address4
+       * @instance
+       * @returns {BigInteger}
        */
       _startAddress() {
-        return BigInt(`0b${this.mask() + "0".repeat(constants.BITS - this.subnetMask)}`);
+        return new jsbn_1.BigInteger(this.mask() + "0".repeat(constants.BITS - this.subnetMask), 2);
       }
       /**
        * The first address in the range given by this address' subnet.
        * Often referred to as the Network Address.
+       * @memberof Address4
+       * @instance
        * @returns {Address4}
        */
       startAddress() {
-        return _Address4.fromBigInt(this._startAddress());
+        return _Address4.fromBigInteger(this._startAddress());
       }
       /**
        * The first host address in the range given by this address's subnet ie
        * the first address after the Network Address
+       * @memberof Address4
+       * @instance
        * @returns {Address4}
        */
       startAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address4.fromBigInt(this._startAddress() + adjust);
+        const adjust = new jsbn_1.BigInteger("1");
+        return _Address4.fromBigInteger(this._startAddress().add(adjust));
       }
       /**
        * Helper function getting end address.
-       * @returns {bigint}
+       * @memberof Address4
+       * @instance
+       * @returns {BigInteger}
        */
       _endAddress() {
-        return BigInt(`0b${this.mask() + "1".repeat(constants.BITS - this.subnetMask)}`);
+        return new jsbn_1.BigInteger(this.mask() + "1".repeat(constants.BITS - this.subnetMask), 2);
       }
       /**
        * The last address in the range given by this address' subnet
        * Often referred to as the Broadcast
+       * @memberof Address4
+       * @instance
        * @returns {Address4}
        */
       endAddress() {
-        return _Address4.fromBigInt(this._endAddress());
+        return _Address4.fromBigInteger(this._endAddress());
       }
       /**
        * The last host address in the range given by this address's subnet ie
        * the last address prior to the Broadcast Address
+       * @memberof Address4
+       * @instance
        * @returns {Address4}
        */
       endAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address4.fromBigInt(this._endAddress() - adjust);
+        const adjust = new jsbn_1.BigInteger("1");
+        return _Address4.fromBigInteger(this._endAddress().subtract(adjust));
       }
       /**
-       * The dotted-decimal form of the subnet mask, e.g. `255.255.240.0` for
-       * a `/20`. Returns an `Address4`; call `.correctForm()` for the string.
+       * Converts a BigInteger to a v4 address object
+       * @memberof Address4
+       * @static
+       * @param {BigInteger} bigInteger - a BigInteger to convert
        * @returns {Address4}
        */
-      subnetMaskAddress() {
-        return _Address4.fromBigInt(BigInt(`0b${"1".repeat(this.subnetMask)}${"0".repeat(constants.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The Cisco-style wildcard mask, e.g. `0.0.0.255` for a `/24`. This is
-       * the bitwise inverse of `subnetMaskAddress()`. Returns an `Address4`;
-       * call `.correctForm()` for the string.
-       * @returns {Address4}
-       */
-      wildcardMask() {
-        return _Address4.fromBigInt(BigInt(`0b${"0".repeat(this.subnetMask)}${"1".repeat(constants.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The network address in CIDR string form, e.g. `192.168.1.0/24` for
-       * `192.168.1.5/24`. For an address with no explicit subnet the prefix is
-       * `/32`, e.g. `networkForm()` on `192.168.1.5` returns `192.168.1.5/32`.
-       * @returns {string}
-       */
-      networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-      }
-      /**
-       * Converts a BigInt to a v4 address object. The value must be in the
-       * range `[0, 2**32 - 1]`; otherwise `AddressError` is thrown.
-       * @param {bigint} bigInt - a BigInt to convert
-       * @returns {Address4}
-       */
-      static fromBigInt(bigInt) {
-        if (bigInt < BigInt(0) || bigInt > BigInt(4294967295)) {
-          throw new address_error_1.AddressError("IPv4 BigInt must be in the range 0 to 2**32 - 1");
-        }
-        return _Address4.fromHex(bigInt.toString(16).padStart(8, "0"));
-      }
-      /**
-       * Convert a byte array to an Address4 object. Throws `AddressError` unless
-       * given exactly 4 integers from 0 to 255. Signed bytes are rejected, so
-       * this differs from `Address6.fromByteArray`, which folds them; the two
-       * contracts converge on this stricter form in the next major version.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address4.fromByteArray([...buf])`.
-       * @param {Array<number>} bytes - an array of 4 bytes (0-255)
-       * @returns {Address4}
-       */
-      static fromByteArray(bytes) {
-        common.assertByteArray(bytes, 4, "IPv4", 0);
-        return this.fromUnsignedByteArray(bytes);
-      }
-      /**
-       * Convert an unsigned byte array to an Address4 object. Throws
-       * `AddressError` unless given exactly 4 bytes, and rejects values outside
-       * 0 to 255 when parsing the resulting address.
-       *
-       * To convert from a Node.js `Buffer`, spread it:
-       * `Address4.fromUnsignedByteArray([...buf])`.
-       * @param {Array<number>} bytes - an array of 4 unsigned bytes (0-255)
-       * @returns {Address4}
-       */
-      static fromUnsignedByteArray(bytes) {
-        if (bytes.length !== 4) {
-          throw new address_error_1.AddressError("IPv4 addresses require exactly 4 bytes");
-        }
-        const address = bytes.join(".");
-        return new _Address4(address);
+      static fromBigInteger(bigInteger) {
+        return _Address4.fromInteger(parseInt(bigInteger.toString(), 10));
       }
       /**
        * Returns the first n bits of the address, defaulting to the
        * subnet mask
+       * @memberof Address4
+       * @instance
        * @returns {String}
        */
       mask(mask) {
@@ -103036,16 +104465,19 @@ var require_ipv4 = __commonJS({
       }
       /**
        * Returns the bits in the given range as a base-2 string
+       * @memberof Address4
+       * @instance
        * @returns {string}
        */
       getBitsBase2(start, end) {
         return this.binaryZeroPad().slice(start, end);
       }
       /**
-       * Return the reversed in-addr.arpa form of the address, e.g.
-       * `42.2.0.192.in-addr.arpa.` for `192.0.2.42`.
+       * Return the reversed ip6.arpa form of the address
+       * @memberof Address4
        * @param {Object} options
        * @param {boolean} options.omitSuffix - omit the "in-addr.arpa" suffix
+       * @instance
        * @returns {String}
        */
       reverseForm(options) {
@@ -103056,99 +104488,42 @@ var require_ipv4 = __commonJS({
         if (options.omitSuffix) {
           return reversed;
         }
-        return `${reversed}.in-addr.arpa.`;
+        return (0, sprintf_js_1.sprintf)("%s.in-addr.arpa.", reversed);
       }
       /**
        * Returns true if the given address is a multicast address
+       * @memberof Address4
+       * @instance
        * @returns {boolean}
        */
       isMulticast() {
-        return this.isHostInSubnet(MULTICAST_V4);
-      }
-      /**
-       * Returns true if the address is in one of the [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private address ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-       * @returns {boolean}
-       */
-      isPrivate() {
-        return PRIVATE_V4.some((subnet) => this.isHostInSubnet(subnet));
-      }
-      /**
-       * Returns true if the address is in the loopback range `127.0.0.0/8` ([RFC 1122](https://datatracker.ietf.org/doc/html/rfc1122)).
-       * @returns {boolean}
-       */
-      isLoopback() {
-        return this.isHostInSubnet(LOOPBACK_V4);
-      }
-      /**
-       * Returns true if the address is in the link-local range `169.254.0.0/16` ([RFC 3927](https://datatracker.ietf.org/doc/html/rfc3927)).
-       * @returns {boolean}
-       */
-      isLinkLocal() {
-        return this.isHostInSubnet(LINK_LOCAL_V4);
-      }
-      /**
-       * Returns true if the address is the unspecified address `0.0.0.0`.
-       * @returns {boolean}
-       */
-      isUnspecified() {
-        return this.isHostInSubnet(UNSPECIFIED_V4);
-      }
-      /**
-       * Returns true if the address is the limited broadcast address `255.255.255.255` ([RFC 919](https://datatracker.ietf.org/doc/html/rfc919)).
-       * @returns {boolean}
-       */
-      isBroadcast() {
-        return this.isHostInSubnet(BROADCAST_V4);
-      }
-      /**
-       * Returns true if the address is in the carrier-grade NAT range `100.64.0.0/10` ([RFC 6598](https://datatracker.ietf.org/doc/html/rfc6598)).
-       * @returns {boolean}
-       */
-      isCGNAT() {
-        return this.isHostInSubnet(CGNAT_V4);
+        return this.isInSubnet(new _Address4("224.0.0.0/4"));
       }
       /**
        * Returns a zero-padded base-2 string representation of the address
+       * @memberof Address4
+       * @instance
        * @returns {string}
        */
       binaryZeroPad() {
-        if (this._binaryZeroPad === void 0) {
-          this._binaryZeroPad = this.bigInt().toString(2).padStart(constants.BITS, "0");
-        }
-        return this._binaryZeroPad;
+        return this.bigInteger().toString(2).padStart(constants.BITS, "0");
       }
       /**
-       * Groups an IPv4 address for inclusion at the end of an IPv6 address.
-       *
-       * Returns an HTML fragment: each half of the address is wrapped in a
-       * `<span>` carrying the group classes an address-inspector UI hovers on.
-       * The address content is HTML-escaped; anything you concatenate around it
-       * is your responsibility.
+       * Groups an IPv4 address for inclusion at the end of an IPv6 address
        * @returns {String}
        */
       groupForV6() {
         const segments = this.parsedAddress;
-        return this.correctForm().replace(constants.RE_ADDRESS, `<span class="hover-group group-v4 group-6">${segments.slice(0, 2).join(".")}</span>.<span class="hover-group group-v4 group-7">${segments.slice(2, 4).join(".")}</span>`);
+        return this.address.replace(constants.RE_ADDRESS, (0, sprintf_js_1.sprintf)('<span class="hover-group group-v4 group-6">%s</span>.<span class="hover-group group-v4 group-7">%s</span>', segments.slice(0, 2).join("."), segments.slice(2, 4).join(".")));
       }
     };
     exports2.Address4 = Address4;
-    var MULTICAST_V4 = new Address4("224.0.0.0/4");
-    var PRIVATE_V4 = [
-      new Address4("10.0.0.0/8"),
-      new Address4("172.16.0.0/12"),
-      new Address4("192.168.0.0/16")
-    ];
-    var LOOPBACK_V4 = new Address4("127.0.0.0/8");
-    var LINK_LOCAL_V4 = new Address4("169.254.0.0/16");
-    var UNSPECIFIED_V4 = new Address4("0.0.0.0/32");
-    var BROADCAST_V4 = new Address4("255.255.255.255/32");
-    var CGNAT_V4 = new Address4("100.64.0.0/10");
   }
 });
 
-// node_modules/ip-address/dist/v6/constants.js
+// node_modules/socks/node_modules/ip-address/dist/v6/constants.js
 var require_constants8 = __commonJS({
-  "node_modules/ip-address/dist/v6/constants.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/v6/constants.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RE_URL_WITH_PORT = exports2.RE_URL = exports2.RE_ZONE_STRING = exports2.RE_SUBNET_STRING = exports2.RE_BAD_ADDRESS = exports2.RE_BAD_CHARACTERS = exports2.TYPES = exports2.SCOPES = exports2.GROUPS = exports2.BITS = void 0;
@@ -103185,66 +104560,61 @@ var require_constants8 = __commonJS({
       "ff05::1:3/128": "Multicast (All DHCP servers in this site)",
       "::/128": "Unspecified",
       "::1/128": "Loopback",
-      "::ffff:0:0/96": "IPv4-mapped",
       "ff00::/8": "Multicast",
-      "fe80::/10": "Link-local unicast",
-      "fc00::/7": "Unique local",
-      "2002::/16": "6to4",
-      "2001:db8::/32": "Documentation",
-      "64:ff9b::/96": "NAT64 (well-known)",
-      "64:ff9b:1::/48": "NAT64 (local-use)"
+      "fe80::/10": "Link-local unicast"
     };
     exports2.RE_BAD_CHARACTERS = /([^0-9a-f:/%])/gi;
     exports2.RE_BAD_ADDRESS = /([0-9a-f]{5,}|:{3,}|[^:]:$|^:[^:]|\/$)/gi;
     exports2.RE_SUBNET_STRING = /\/\d{1,3}(?=%|$)/;
     exports2.RE_ZONE_STRING = /%.*$/;
-    exports2.RE_URL = /^(?:\[([0-9a-f:.]+)\]|([0-9a-f:.]+))(?:[/?#].*)?$/i;
-    exports2.RE_URL_WITH_PORT = /^\[([0-9a-f:.]+)\]:([0-9]{1,5})(?:[/?#].*)?$/i;
+    exports2.RE_URL = new RegExp(/^\[{0,1}([0-9a-f:]+)\]{0,1}/);
+    exports2.RE_URL_WITH_PORT = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/);
   }
 });
 
-// node_modules/ip-address/dist/v6/helpers.js
+// node_modules/socks/node_modules/ip-address/dist/v6/helpers.js
 var require_helpers2 = __commonJS({
-  "node_modules/ip-address/dist/v6/helpers.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/v6/helpers.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.escapeHtml = escapeHtml4;
-    exports2.spanAllZeroes = spanAllZeroes;
-    exports2.spanAll = spanAll;
-    exports2.spanLeadingZeroes = spanLeadingZeroes;
-    exports2.simpleGroup = simpleGroup;
-    function escapeHtml4(s) {
-      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-    }
+    exports2.simpleGroup = exports2.spanLeadingZeroes = exports2.spanAll = exports2.spanAllZeroes = void 0;
+    var sprintf_js_1 = require_sprintf();
     function spanAllZeroes(s) {
-      return escapeHtml4(s).replace(/(0+)/g, '<span class="zero">$1</span>');
+      return s.replace(/(0+)/g, '<span class="zero">$1</span>');
     }
+    exports2.spanAllZeroes = spanAllZeroes;
     function spanAll(s, offset = 0) {
       const letters = s.split("");
-      return letters.map((n, i) => `<span class="digit value-${escapeHtml4(n)} position-${i + offset}">${spanAllZeroes(n)}</span>`).join("");
+      return letters.map(
+        (n, i) => (0, sprintf_js_1.sprintf)('<span class="digit value-%s position-%d">%s</span>', n, i + offset, spanAllZeroes(n))
+        // XXX Use #base-2 .value-0 instead?
+      ).join("");
     }
+    exports2.spanAll = spanAll;
     function spanLeadingZeroesSimple(group) {
-      return escapeHtml4(group).replace(/^(0+)/, '<span class="zero">$1</span>');
+      return group.replace(/^(0+)/, '<span class="zero">$1</span>');
     }
     function spanLeadingZeroes(address) {
       const groups = address.split(":");
       return groups.map((g) => spanLeadingZeroesSimple(g)).join(":");
     }
+    exports2.spanLeadingZeroes = spanLeadingZeroes;
     function simpleGroup(addressString, offset = 0) {
       const groups = addressString.split(":");
       return groups.map((g, i) => {
         if (/group-v4/.test(g)) {
           return g;
         }
-        return `<span class="hover-group group-${i + offset}">${spanLeadingZeroesSimple(g)}</span>`;
+        return (0, sprintf_js_1.sprintf)('<span class="hover-group group-%d">%s</span>', i + offset, spanLeadingZeroesSimple(g));
       });
     }
+    exports2.simpleGroup = simpleGroup;
   }
 });
 
-// node_modules/ip-address/dist/v6/regular-expressions.js
+// node_modules/socks/node_modules/ip-address/dist/v6/regular-expressions.js
 var require_regular_expressions = __commonJS({
-  "node_modules/ip-address/dist/v6/regular-expressions.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/v6/regular-expressions.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -103274,21 +104644,20 @@ var require_regular_expressions = __commonJS({
       return result;
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.ADDRESS_BOUNDARY = void 0;
-    exports2.groupPossibilities = groupPossibilities;
-    exports2.padGroup = padGroup;
-    exports2.simpleRegularExpression = simpleRegularExpression;
-    exports2.possibleElisions = possibleElisions;
+    exports2.possibleElisions = exports2.simpleRegularExpression = exports2.ADDRESS_BOUNDARY = exports2.padGroup = exports2.groupPossibilities = void 0;
     var v6 = __importStar(require_constants8());
+    var sprintf_js_1 = require_sprintf();
     function groupPossibilities(possibilities) {
-      return `(${possibilities.join("|")})`;
+      return (0, sprintf_js_1.sprintf)("(%s)", possibilities.join("|"));
     }
+    exports2.groupPossibilities = groupPossibilities;
     function padGroup(group) {
       if (group.length < 4) {
-        return `0{0,${4 - group.length}}${group}`;
+        return (0, sprintf_js_1.sprintf)("0{0,%d}%s", 4 - group.length, group);
       }
       return group;
     }
+    exports2.padGroup = padGroup;
     exports2.ADDRESS_BOUNDARY = "[^A-Fa-f0-9:]";
     function simpleRegularExpression(groups) {
       const zeroIndexes = [];
@@ -103308,6 +104677,7 @@ var require_regular_expressions = __commonJS({
       possibilities.push(groups.map(padGroup).join(":"));
       return groupPossibilities(possibilities);
     }
+    exports2.simpleRegularExpression = simpleRegularExpression;
     function possibleElisions(elidedGroups, moreLeft, moreRight) {
       const left = moreLeft ? "" : ":";
       const right = moreRight ? "" : ":";
@@ -103321,22 +104691,23 @@ var require_regular_expressions = __commonJS({
       if (moreRight && !moreLeft || !moreRight && moreLeft) {
         possibilities.push(":");
       }
-      possibilities.push(`${left}(:0{1,4}){1,${elidedGroups - 1}}`);
-      possibilities.push(`(0{1,4}:){1,${elidedGroups - 1}}${right}`);
-      possibilities.push(`(0{1,4}:){${elidedGroups - 1}}0{1,4}`);
+      possibilities.push((0, sprintf_js_1.sprintf)("%s(:0{1,4}){1,%d}", left, elidedGroups - 1));
+      possibilities.push((0, sprintf_js_1.sprintf)("(0{1,4}:){1,%d}%s", elidedGroups - 1, right));
+      possibilities.push((0, sprintf_js_1.sprintf)("(0{1,4}:){%d}0{1,4}", elidedGroups - 1));
       for (let groups = 1; groups < elidedGroups - 1; groups++) {
         for (let position = 1; position < elidedGroups - groups; position++) {
-          possibilities.push(`(0{1,4}:){${position}}:(0{1,4}:){${elidedGroups - position - groups - 1}}0{1,4}`);
+          possibilities.push((0, sprintf_js_1.sprintf)("(0{1,4}:){%d}:(0{1,4}:){%d}0{1,4}", position, elidedGroups - position - groups - 1));
         }
       }
       return groupPossibilities(possibilities);
     }
+    exports2.possibleElisions = possibleElisions;
   }
 });
 
-// node_modules/ip-address/dist/ipv6.js
+// node_modules/socks/node_modules/ip-address/dist/ipv6.js
 var require_ipv6 = __commonJS({
-  "node_modules/ip-address/dist/ipv6.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/ipv6.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -103374,8 +104745,8 @@ var require_ipv6 = __commonJS({
     var ipv4_1 = require_ipv4();
     var regular_expressions_1 = require_regular_expressions();
     var address_error_1 = require_address_error();
-    var common_1 = require_common2();
-    var isCorrect6 = common.isCorrect(constants6.BITS);
+    var jsbn_1 = require_jsbn();
+    var sprintf_js_1 = require_sprintf();
     function assert2(condition) {
       if (!condition) {
         throw new Error("Assertion failed.");
@@ -103407,7 +104778,7 @@ var require_ipv6 = __commonJS({
       return s1.concat(["compact"]).concat(s2);
     }
     function paddedHex(octet) {
-      return parseInt(octet, 16).toString(16).padStart(4, "0");
+      return (0, sprintf_js_1.sprintf)("%04x", parseInt(octet, 16));
     }
     function unsignByte(b) {
       return b & 255;
@@ -103421,8 +104792,7 @@ var require_ipv6 = __commonJS({
         this.v4 = false;
         this.zone = "";
         this.isInSubnet = common.isInSubnet;
-        this.isHostInSubnet = common.isHostInSubnet;
-        this.isCorrect = isCorrect6;
+        this.isCorrect = common.isCorrect(constants6.BITS);
         if (optionalGroups === void 0) {
           this.groups = constants6.GROUPS;
         } else {
@@ -103438,8 +104808,7 @@ var require_ipv6 = __commonJS({
             throw new address_error_1.AddressError("Invalid subnet mask.");
           }
           address = address.replace(constants6.RE_SUBNET_STRING, "");
-        }
-        if (/\//.test(address)) {
+        } else if (/\//.test(address)) {
           throw new address_error_1.AddressError("Invalid subnet mask.");
         }
         const zone = constants6.RE_ZONE_STRING.exec(address);
@@ -103450,174 +104819,90 @@ var require_ipv6 = __commonJS({
         this.addressMinusSuffix = address;
         this.parsedAddress = this.parse(this.addressMinusSuffix);
       }
-      /**
-       * Returns true if the given string is a valid IPv6 address (with optional
-       * CIDR subnet and zone identifier), false otherwise. Host bits in the
-       * subnet portion are allowed (e.g. `2001:db8::1/32` is valid); for strict
-       * network-address validation compare `correctForm()` to
-       * `startAddress().correctForm()`, or use `networkForm()`.
-       */
       static isValid(address) {
         try {
           new _Address6(address);
           return true;
-        } catch {
+        } catch (e) {
           return false;
         }
       }
       /**
-       * Convert a BigInt to a v6 address object. The value must be in the
-       * range `[0, 2**128 - 1]`; otherwise `AddressError` is thrown.
-       * @param {bigint} bigInt - a BigInt to convert
+       * Convert a BigInteger to a v6 address object
+       * @memberof Address6
+       * @static
+       * @param {BigInteger} bigInteger - a BigInteger to convert
        * @returns {Address6}
        * @example
-       * var bigInt = BigInt('1000000000000');
-       * var address = Address6.fromBigInt(bigInt);
+       * var bigInteger = new BigInteger('1000000000000');
+       * var address = Address6.fromBigInteger(bigInteger);
        * address.correctForm(); // '::e8:d4a5:1000'
        */
-      static fromBigInt(bigInt) {
-        if (bigInt < BigInt(0) || bigInt > (BigInt(1) << BigInt(constants6.BITS)) - BigInt(1)) {
-          throw new address_error_1.AddressError("IPv6 BigInt must be in the range 0 to 2**128 - 1");
-        }
-        const hex = bigInt.toString(16).padStart(32, "0");
+      static fromBigInteger(bigInteger) {
+        const hex = bigInteger.toString(16).padStart(32, "0");
         const groups = [];
-        for (let i = 0; i < constants6.GROUPS; i++) {
+        let i;
+        for (i = 0; i < constants6.GROUPS; i++) {
           groups.push(hex.slice(i * 4, (i + 1) * 4));
         }
         return new _Address6(groups.join(":"));
       }
       /**
-       * Parse a URL (with optional bracketed host and port) into an address and
-       * port. Returns either `{ address, port }` on success or
-       * `{ error, address: null, port: null }` if the URL could not be parsed.
-       * Ports are returned as numbers (or `null` if absent or out of range).
+       * Convert a URL (with optional port number) to an address object
+       * @memberof Address6
+       * @static
+       * @param {string} url - a URL with optional port number
        * @example
        * var addressAndPort = Address6.fromURL('http://[ffff::]:8080/foo/');
        * addressAndPort.address.correctForm(); // 'ffff::'
        * addressAndPort.port; // 8080
        */
       static fromURL(url) {
-        var _a;
         let host;
         let port = null;
         let result;
-        let error2;
-        const stripped = url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "");
-        if (stripped.indexOf("[") !== -1 && stripped.indexOf("]:") !== -1) {
-          error2 = "failed to parse address with port";
-          result = constants6.RE_URL_WITH_PORT.exec(stripped);
+        if (url.indexOf("[") !== -1 && url.indexOf("]:") !== -1) {
+          result = constants6.RE_URL_WITH_PORT.exec(url);
           if (result === null) {
-            return { error: error2, address: null, port: null };
+            return {
+              error: "failed to parse address with port",
+              address: null,
+              port: null
+            };
           }
           host = result[1];
           port = result[2];
-        } else {
-          error2 = "failed to parse address from URL";
-          result = constants6.RE_URL.exec(stripped);
+        } else if (url.indexOf("/") !== -1) {
+          url = url.replace(/^[a-z0-9]+:\/\//, "");
+          result = constants6.RE_URL.exec(url);
           if (result === null) {
-            return { error: error2, address: null, port: null };
+            return {
+              error: "failed to parse address from URL",
+              address: null,
+              port: null
+            };
           }
-          host = (_a = result[1]) !== null && _a !== void 0 ? _a : result[2];
+          host = result[1];
+        } else {
+          host = url;
         }
         if (port) {
           port = parseInt(port, 10);
-          if (port < 0 || port > 65535) {
+          if (port < 0 || port > 65536) {
             port = null;
           }
         } else {
           port = null;
         }
-        let address;
-        try {
-          address = new _Address6(host);
-        } catch {
-          return { error: error2, address: null, port: null };
-        }
-        return { address, port };
-      }
-      /**
-       * Construct an `Address6` from an address and a hex subnet mask given as
-       * separate strings (e.g. as returned by Node's `os.networkInterfaces()`).
-       * Throws `AddressError` if the mask is non-contiguous (e.g.
-       * `ffff::ffff`).
-       * @example
-       * var address = Address6.fromAddressAndMask('fe80::1', 'ffff:ffff:ffff:ffff::');
-       * address.subnetMask; // 64
-       */
-      static fromAddressAndMask(address, mask) {
-        const bits = common.prefixLengthFromMask(new _Address6(mask).bigInt(), constants6.BITS);
-        return new _Address6(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address6` from an address and a Cisco-style wildcard mask
-       * given as separate strings (e.g. `::ffff:ffff:ffff:ffff` for a `/64`).
-       * The wildcard mask is the bitwise inverse of the subnet mask. Throws
-       * `AddressError` if the mask is non-contiguous.
-       * @example
-       * var address = Address6.fromAddressAndWildcardMask('fe80::1', '::ffff:ffff:ffff:ffff');
-       * address.subnetMask; // 64
-       */
-      static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new _Address6(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants6.BITS)) - BigInt(1);
-        const mask = wildcard ^ allOnes;
-        const bits = common.prefixLengthFromMask(mask, constants6.BITS);
-        return new _Address6(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address6` from a wildcard pattern with trailing `*`
-       * groups. The number of trailing wildcards determines the prefix
-       * length: each `*` represents 16 bits. `::` is expanded to zero groups
-       * (not wildcards) before evaluating trailing wildcards.
-       *
-       * Only trailing whole-group wildcards are supported. Partial-group
-       * wildcards (e.g. `2001:db8::0*`) and interior wildcards (e.g.
-       * `*::1`) throw `AddressError`.
-       * @example
-       * Address6.fromWildcard('2001:db8:*:*:*:*:*:*').subnet;  // '/32'
-       * Address6.fromWildcard('2001:db8::*').subnet;           // '/112'
-       * Address6.fromWildcard('*:*:*:*:*:*:*:*').subnet;       // '/0'
-       */
-      static fromWildcard(input) {
-        if (input.includes("%") || input.includes("/")) {
-          throw new address_error_1.AddressError("Wildcard pattern must not include a zone or CIDR suffix");
-        }
-        const halves = input.split("::");
-        if (halves.length > 2) {
-          throw new address_error_1.AddressError("Wildcard pattern cannot contain more than one '::'");
-        }
-        let groups;
-        if (halves.length === 2) {
-          const left = halves[0] === "" ? [] : halves[0].split(":");
-          const right = halves[1] === "" ? [] : halves[1].split(":");
-          const remaining = constants6.GROUPS - left.length - right.length;
-          if (remaining < 1) {
-            throw new address_error_1.AddressError("Wildcard pattern with '::' has too many groups");
-          }
-          groups = [...left, ...new Array(remaining).fill("0"), ...right];
-        } else {
-          groups = input.split(":");
-        }
-        if (groups.length !== constants6.GROUPS) {
-          throw new address_error_1.AddressError("Wildcard pattern must have 8 groups");
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-          if (groups[i] === "*") {
-            if (firstWildcard === -1) {
-              firstWildcard = i;
-            }
-          } else if (firstWildcard !== -1) {
-            throw new address_error_1.AddressError("Wildcard `*` must only appear in trailing groups (e.g. `2001:db8:*:*:*:*:*:*`)");
-          }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => g === "*" ? "0" : g);
-        const subnetBits = constants6.BITS - trailing * 16;
-        return new _Address6(`${replaced.join(":")}/${subnetBits}`);
+        return {
+          address: new _Address6(host),
+          port
+        };
       }
       /**
        * Create an IPv6-mapped address given an IPv4 address
+       * @memberof Address6
+       * @static
        * @param {string} address - An IPv4 address string
        * @returns {Address6}
        * @example
@@ -103632,6 +104917,8 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return an address from ip6.arpa form
+       * @memberof Address6
+       * @static
        * @param {string} arpaFormAddress - an 'ip6.arpa' form address
        * @returns {Adress6}
        * @example
@@ -103654,13 +104941,17 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return the Microsoft UNC transcription of the address
+       * @memberof Address6
+       * @instance
        * @returns {String} the Microsoft UNC transcription of the address
        */
       microsoftTranscription() {
-        return `${this.correctForm().replace(/:/g, "-")}.ipv6-literal.net`;
+        return (0, sprintf_js_1.sprintf)("%s.ipv6-literal.net", this.correctForm().replace(/:/g, "-"));
       }
       /**
        * Return the first n bits of the address, defaulting to the subnet mask
+       * @memberof Address6
+       * @instance
        * @param {number} [mask=subnet] - the number of bits to mask
        * @returns {String} the first n bits of the address as a string
        */
@@ -103669,7 +104960,9 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return the number of possible subnets of a given size in the address
-       * @param {number} [subnetSize=128] - the subnet size
+       * @memberof Address6
+       * @instance
+       * @param {number} [size=128] - the subnet size
        * @returns {String}
        */
       // TODO: probably useful to have a numeric version of this too
@@ -103680,127 +104973,108 @@ var require_ipv6 = __commonJS({
         if (subnetPowers < 0) {
           return "0";
         }
-        return addCommas((BigInt("2") ** BigInt(subnetPowers)).toString(10));
+        return addCommas(new jsbn_1.BigInteger("2", 10).pow(subnetPowers).toString(10));
       }
       /**
        * Helper function getting start address.
-       * @returns {bigint}
+       * @memberof Address6
+       * @instance
+       * @returns {BigInteger}
        */
       _startAddress() {
-        return BigInt(`0b${this.mask() + "0".repeat(constants6.BITS - this.subnetMask)}`);
+        return new jsbn_1.BigInteger(this.mask() + "0".repeat(constants6.BITS - this.subnetMask), 2);
       }
       /**
        * The first address in the range given by this address' subnet
        * Often referred to as the Network Address.
+       * @memberof Address6
+       * @instance
        * @returns {Address6}
        */
       startAddress() {
-        return _Address6.fromBigInt(this._startAddress());
+        return _Address6.fromBigInteger(this._startAddress());
       }
       /**
        * The first host address in the range given by this address's subnet ie
        * the first address after the Network Address
+       * @memberof Address6
+       * @instance
        * @returns {Address6}
        */
       startAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address6.fromBigInt(this._startAddress() + adjust);
+        const adjust = new jsbn_1.BigInteger("1");
+        return _Address6.fromBigInteger(this._startAddress().add(adjust));
       }
       /**
        * Helper function getting end address.
-       * @returns {bigint}
+       * @memberof Address6
+       * @instance
+       * @returns {BigInteger}
        */
       _endAddress() {
-        return BigInt(`0b${this.mask() + "1".repeat(constants6.BITS - this.subnetMask)}`);
+        return new jsbn_1.BigInteger(this.mask() + "1".repeat(constants6.BITS - this.subnetMask), 2);
       }
       /**
        * The last address in the range given by this address' subnet
        * Often referred to as the Broadcast
+       * @memberof Address6
+       * @instance
        * @returns {Address6}
        */
       endAddress() {
-        return _Address6.fromBigInt(this._endAddress());
+        return _Address6.fromBigInteger(this._endAddress());
       }
       /**
        * The last host address in the range given by this address's subnet ie
        * the last address prior to the Broadcast Address
+       * @memberof Address6
+       * @instance
        * @returns {Address6}
        */
       endAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address6.fromBigInt(this._endAddress() - adjust);
+        const adjust = new jsbn_1.BigInteger("1");
+        return _Address6.fromBigInteger(this._endAddress().subtract(adjust));
       }
       /**
-       * The hex form of the subnet mask, e.g. `ffff:ffff:ffff:ffff::` for a
-       * `/64`. Returns an `Address6`; call `.correctForm()` for the string.
-       * @returns {Address6}
-       */
-      subnetMaskAddress() {
-        return _Address6.fromBigInt(BigInt(`0b${"1".repeat(this.subnetMask)}${"0".repeat(constants6.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The Cisco-style wildcard mask, e.g. `::ffff:ffff:ffff:ffff` for a
-       * `/64`. This is the bitwise inverse of `subnetMaskAddress()`. Returns
-       * an `Address6`; call `.correctForm()` for the string.
-       * @returns {Address6}
-       */
-      wildcardMask() {
-        return _Address6.fromBigInt(BigInt(`0b${"0".repeat(this.subnetMask)}${"1".repeat(constants6.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The network address in CIDR string form, e.g. `2001:db8::/32` for
-       * `2001:db8::1/32`. For an address with no explicit subnet the prefix
-       * is `/128`, e.g. `networkForm()` on `2001:db8::1` returns
-       * `2001:db8::1/128`.
-       * @returns {string}
-       */
-      networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-      }
-      /**
-       * Return the scope of the address. The 4-bit scope field
-       * ([RFC 4291 §2.7](https://datatracker.ietf.org/doc/html/rfc4291#section-2.7))
-       * is only defined for multicast addresses; for unicast addresses the scope
-       * is derived from the address type per
-       * [RFC 4007 §6](https://datatracker.ietf.org/doc/html/rfc4007#section-6).
+       * Return the scope of the address
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       getScope() {
-        const type = this.getType();
-        if (type === "Multicast" || type.startsWith("Multicast ")) {
-          const scope = constants6.SCOPES[parseInt(this.getBits(12, 16).toString(10), 10)];
-          return scope || "Unknown";
+        let scope = constants6.SCOPES[this.getBits(12, 16).intValue()];
+        if (this.getType() === "Global unicast" && scope !== "Link local") {
+          scope = "Global";
         }
-        if (type === "Link-local unicast" || type === "Loopback") {
-          return "Link local";
-        }
-        if (type === "Unspecified") {
-          return "Unknown";
-        }
-        return "Global";
+        return scope || "Unknown";
       }
       /**
        * Return the type of the address
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       getType() {
-        for (let i = 0; i < TYPE_SUBNETS.length; i++) {
-          const entry = TYPE_SUBNETS[i];
-          if (this.isHostInSubnet(entry[0])) {
-            return entry[1];
+        for (const subnet of Object.keys(constants6.TYPES)) {
+          if (this.isInSubnet(new _Address6(subnet))) {
+            return constants6.TYPES[subnet];
           }
         }
         return "Global unicast";
       }
       /**
-       * Return the bits in the given range as a BigInt
-       * @returns {bigint}
+       * Return the bits in the given range as a BigInteger
+       * @memberof Address6
+       * @instance
+       * @returns {BigInteger}
        */
       getBits(start, end) {
-        return BigInt(`0b${this.getBitsBase2(start, end)}`);
+        return new jsbn_1.BigInteger(this.getBitsBase2(start, end), 2);
       }
       /**
        * Return the bits in the given range as a base-2 string
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       getBitsBase2(start, end) {
@@ -103808,6 +105082,8 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return the bits in the given range as a base-16 string
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       getBitsBase16(start, end) {
@@ -103819,6 +105095,8 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return the bits that are set past the subnet mask length
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       getBitsPastSubnet() {
@@ -103826,8 +105104,10 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Return the reversed ip6.arpa form of the address
+       * @memberof Address6
        * @param {Object} options
        * @param {boolean} options.omitSuffix - omit the "ip6.arpa" suffix
+       * @instance
        * @returns {String}
        */
       reverseForm(options) {
@@ -103840,7 +105120,7 @@ var require_ipv6 = __commonJS({
           if (options.omitSuffix) {
             return reversed;
           }
-          return `${reversed}.ip6.arpa.`;
+          return (0, sprintf_js_1.sprintf)("%s.ip6.arpa.", reversed);
         }
         if (options.omitSuffix) {
           return "";
@@ -103848,10 +105128,10 @@ var require_ipv6 = __commonJS({
         return "ip6.arpa.";
       }
       /**
-       * Returns the address in correct form, per
-       * [RFC 5952](https://datatracker.ietf.org/doc/html/rfc5952): leading zeros
-       * stripped, the longest run of zero groups collapsed to `::`, and hex digits
-       * lowercased (e.g. `2001:db8::1`). This is the recommended form for display.
+       * Return the correct form of the address
+       * @memberof Address6
+       * @instance
+       * @returns {String}
        */
       correctForm() {
         let i;
@@ -103887,12 +105167,14 @@ var require_ipv6 = __commonJS({
         }
         let correct = groups.join(":");
         correct = correct.replace(/^compact$/, "::");
-        correct = correct.replace(/(^compact)|(compact$)/, ":");
+        correct = correct.replace(/^compact|compact$/, ":");
         correct = correct.replace(/compact/, "");
         return correct;
       }
       /**
        * Return a zero-padded base-2 string representation of the address
+       * @memberof Address6
+       * @instance
        * @returns {String}
        * @example
        * var address = new Address6('2001:4860:4001:803::1011');
@@ -103901,61 +105183,37 @@ var require_ipv6 = __commonJS({
        * //  0000000000000000000000000000000000000000000000000001000000010001'
        */
       binaryZeroPad() {
-        if (this._binaryZeroPad === void 0) {
-          this._binaryZeroPad = this.bigInt().toString(2).padStart(constants6.BITS, "0");
-        }
-        return this._binaryZeroPad;
+        return this.bigInteger().toString(2).padStart(constants6.BITS, "0");
       }
-      /**
-       * Parses a v4-in-v6 string (e.g. `::ffff:192.168.0.1`) by extracting the
-       * trailing IPv4 address into `this.address4` / `this.parsedAddress4` and
-       * returning the address with the v4 portion converted to two v6 groups.
-       * Used internally by `parse()`.
-       */
       // TODO: Improve the semantics of this helper function
       parse4in6(address) {
-        if (address.indexOf(".") === -1) {
-          return address;
-        }
         const groups = address.split(":");
         const lastGroup = groups.slice(-1)[0];
-        const v4Octets = lastGroup.split(".");
-        if (v4Octets.length === constants4.GROUPS && v4Octets.every((octet) => /^\d{1,3}$/.test(octet))) {
-          if (v4Octets.some((octet) => /^0\d/.test(octet))) {
-            const highlighted = v4Octets.map(spanLeadingZeroes4).join(".");
-            const prefix = groups.slice(0, -1).map(helpers.escapeHtml).join(":");
-            const separator = groups.length > 1 ? ":" : "";
-            throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.", `${prefix}${separator}${highlighted}`);
-          }
-        }
         const address4 = lastGroup.match(constants4.RE_ADDRESS);
         if (address4) {
           this.parsedAddress4 = address4[0];
-          const v4Suffix = this.subnetMask >= 96 ? `/${this.subnetMask - 96}` : "";
-          this.address4 = new ipv4_1.Address4(`${this.parsedAddress4}${v4Suffix}`);
+          this.address4 = new ipv4_1.Address4(this.parsedAddress4);
+          for (let i = 0; i < this.address4.groups; i++) {
+            if (/^0[0-9]+/.test(this.address4.parsedAddress[i])) {
+              throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.", address.replace(constants4.RE_ADDRESS, this.address4.parsedAddress.map(spanLeadingZeroes4).join(".")));
+            }
+          }
           this.v4 = true;
           groups[groups.length - 1] = this.address4.toGroup6();
           address = groups.join(":");
         }
         return address;
       }
-      /**
-       * Parses an IPv6 address string into its 8 hexadecimal groups (expanding
-       * any `::` elision and any trailing v4-in-v6 portion) and stores the result
-       * on `this.parsedAddress`. Called automatically by the constructor; you
-       * typically don't need to call it directly. Throws `AddressError` if the
-       * input is malformed.
-       */
       // TODO: Make private?
       parse(address) {
         address = this.parse4in6(address);
         const badCharacters = address.match(constants6.RE_BAD_CHARACTERS);
         if (badCharacters) {
-          throw new address_error_1.AddressError(`Bad character${badCharacters.length > 1 ? "s" : ""} detected in address: ${badCharacters.join("")}`, address.replace(constants6.RE_BAD_CHARACTERS, '<span class="parse-error">$1</span>'));
+          throw new address_error_1.AddressError((0, sprintf_js_1.sprintf)("Bad character%s detected in address: %s", badCharacters.length > 1 ? "s" : "", badCharacters.join("")), address.replace(constants6.RE_BAD_CHARACTERS, '<span class="parse-error">$1</span>'));
         }
         const badAddress = address.match(constants6.RE_BAD_ADDRESS);
         if (badAddress) {
-          throw new address_error_1.AddressError(`Address failed regex: ${badAddress.join("")}`, address.replace(constants6.RE_BAD_ADDRESS, '<span class="parse-error">$1</span>'));
+          throw new address_error_1.AddressError((0, sprintf_js_1.sprintf)("Address failed regex: %s", badAddress.join("")), address.replace(constants6.RE_BAD_ADDRESS, '<span class="parse-error">$1</span>'));
         }
         let groups = [];
         const halves = address.split("::");
@@ -103986,41 +105244,43 @@ var require_ipv6 = __commonJS({
         } else {
           throw new address_error_1.AddressError("Too many :: groups found");
         }
-        groups = groups.map((group) => parseInt(group, 16).toString(16));
+        groups = groups.map((group) => (0, sprintf_js_1.sprintf)("%x", parseInt(group, 16)));
         if (groups.length !== this.groups) {
           throw new address_error_1.AddressError("Incorrect number of groups found");
         }
         return groups;
       }
       /**
-       * Returns the canonical (fully expanded) form of the address: all 8 groups,
-       * each padded to 4 hex digits, with no `::` collapsing
-       * (e.g. `2001:0db8:0000:0000:0000:0000:0000:0001`). Useful for sorting and
-       * byte-exact comparison.
+       * Return the canonical form of the address
+       * @memberof Address6
+       * @instance
+       * @returns {String}
        */
       canonicalForm() {
         return this.parsedAddress.map(paddedHex).join(":");
       }
       /**
        * Return the decimal form of the address
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       decimal() {
-        return this.parsedAddress.map((n) => parseInt(n, 16).toString(10).padStart(5, "0")).join(":");
+        return this.parsedAddress.map((n) => (0, sprintf_js_1.sprintf)("%05d", parseInt(n, 16))).join(":");
       }
       /**
-       * Return the address as a BigInt
-       * @returns {bigint}
+       * Return the address as a BigInteger
+       * @memberof Address6
+       * @instance
+       * @returns {BigInteger}
        */
-      bigInt() {
-        return BigInt(`0x${this.parsedAddress.map(paddedHex).join("")}`);
+      bigInteger() {
+        return new jsbn_1.BigInteger(this.parsedAddress.map(paddedHex).join(""), 16);
       }
       /**
-       * Return the last two groups of this address as an IPv4 address string.
-       * If this address carries a CIDR prefix that covers the trailing 32 bits
-       * (i.e. `subnetMask >= 96`), the resulting `Address4` inherits the
-       * corresponding v4 prefix (`subnetMask - 96`); otherwise it defaults to
-       * `/32`.
+       * Return the last two groups of this address as an IPv4 address string
+       * @memberof Address6
+       * @instance
        * @returns {Address4}
        * @example
        * var address = new Address6('2001:4860:4001::1825:bf11');
@@ -104028,19 +105288,12 @@ var require_ipv6 = __commonJS({
        */
       to4() {
         const binary = this.binaryZeroPad().split("");
-        const hex = BigInt(`0b${binary.slice(96, 128).join("")}`).toString(16).padStart(8, "0");
-        if (this.subnetMask >= 96) {
-          const v4Mask = this.subnetMask - 96;
-          const groups = [];
-          for (let i = 0; i < 8; i += 2) {
-            groups.push(parseInt(hex.slice(i, i + 2), 16));
-          }
-          return new ipv4_1.Address4(`${groups.join(".")}/${v4Mask}`);
-        }
-        return ipv4_1.Address4.fromHex(hex);
+        return ipv4_1.Address4.fromHex(new jsbn_1.BigInteger(binary.slice(96, 128).join(""), 2).toString(16));
       }
       /**
        * Return the v4-in-v6 form of the address
+       * @memberof Address6
+       * @instance
        * @returns {String}
        */
       to4in6() {
@@ -104051,29 +105304,28 @@ var require_ipv6 = __commonJS({
         if (!/:$/.test(correct)) {
           infix = ":";
         }
-        return correct + infix + address4.correctForm();
+        return correct + infix + address4.address;
       }
       /**
-       * Decodes the Teredo tunneling fields embedded in this address. Returns the
-       * Teredo prefix, server IPv4, client IPv4, raw flag bits, cone-NAT flag,
-       * UDP port, and Microsoft-format flag breakdown (reserved, universal/local,
-       * group/individual, nonce). Only meaningful for addresses in `2001::/32`.
+       * Return an object containing the Teredo properties of the address
+       * @memberof Address6
+       * @instance
+       * @returns {Object}
        */
       inspectTeredo() {
         const prefix = this.getBitsBase16(0, 32);
-        const bitsForUdpPort = this.getBits(80, 96);
-        const udpPort = (bitsForUdpPort ^ BigInt("0xffff")).toString();
+        const udpPort = this.getBits(80, 96).xor(new jsbn_1.BigInteger("ffff", 16)).toString();
         const server4 = ipv4_1.Address4.fromHex(this.getBitsBase16(32, 64));
-        const bitsForClient4 = this.getBits(96, 128);
-        const client4 = ipv4_1.Address4.fromHex((bitsForClient4 ^ BigInt("0xffffffff")).toString(16).padStart(8, "0"));
+        const client4 = ipv4_1.Address4.fromHex(this.getBits(96, 128).xor(new jsbn_1.BigInteger("ffffffff", 16)).toString(16));
+        const flags = this.getBits(64, 80);
         const flagsBase2 = this.getBitsBase2(64, 80);
-        const coneNat = (0, common_1.testBit)(flagsBase2, 15);
-        const reserved = (0, common_1.testBit)(flagsBase2, 14);
-        const groupIndividual = (0, common_1.testBit)(flagsBase2, 8);
-        const universalLocal = (0, common_1.testBit)(flagsBase2, 9);
-        const nonce = BigInt(`0b${flagsBase2.slice(2, 6) + flagsBase2.slice(8, 16)}`).toString(10);
+        const coneNat = flags.testBit(15);
+        const reserved = flags.testBit(14);
+        const groupIndividual = flags.testBit(8);
+        const universalLocal = flags.testBit(9);
+        const nonce = new jsbn_1.BigInteger(flagsBase2.slice(2, 6) + flagsBase2.slice(8, 16), 2).toString(10);
         return {
-          prefix: `${prefix.slice(0, 4)}:${prefix.slice(4, 8)}`,
+          prefix: (0, sprintf_js_1.sprintf)("%s:%s", prefix.slice(0, 4), prefix.slice(4, 8)),
           server4: server4.address,
           client4: client4.address,
           flags: flagsBase2,
@@ -104088,20 +105340,23 @@ var require_ipv6 = __commonJS({
         };
       }
       /**
-       * Decodes the 6to4 tunneling fields embedded in this address. Returns the
-       * 6to4 prefix and the embedded IPv4 gateway address. Only meaningful for
-       * addresses in `2002::/16`.
+       * Return an object containing the 6to4 properties of the address
+       * @memberof Address6
+       * @instance
+       * @returns {Object}
        */
       inspect6to4() {
         const prefix = this.getBitsBase16(0, 16);
         const gateway = ipv4_1.Address4.fromHex(this.getBitsBase16(16, 48));
         return {
-          prefix: prefix.slice(0, 4),
+          prefix: (0, sprintf_js_1.sprintf)("%s", prefix.slice(0, 4)),
           gateway: gateway.address
         };
       }
       /**
        * Return a v6 6to4 address from a v6 v4inv6 address
+       * @memberof Address6
+       * @instance
        * @returns {Address6}
        */
       to6to4() {
@@ -104118,135 +105373,56 @@ var require_ipv6 = __commonJS({
         return new _Address6(addr6to4);
       }
       /**
-       * Embed an IPv4 address into a NAT64 IPv6 address using the encoding
-       * defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-       * The default prefix is the well-known prefix `64:ff9b::/96`. The prefix
-       * length must be one of 32, 40, 48, 56, 64, or 96; for prefixes shorter
-       * than /64 the IPv4 octets are split around the reserved bits 64–71.
-       * @example
-       * Address6.fromAddress4Nat64('192.0.2.33').correctForm(); // '64:ff9b::c000:221'
-       * Address6.fromAddress4Nat64('192.0.2.33', '2001:db8::/32').correctForm(); // '2001:db8:c000:221::'
-       */
-      static fromAddress4Nat64(address, prefix = "64:ff9b::/96") {
-        const v4 = new ipv4_1.Address4(address);
-        const prefix6 = new _Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-          throw new address_error_1.AddressError("NAT64 prefix length must be 32, 40, 48, 56, 64, or 96");
-        }
-        const prefixBits = prefix6.binaryZeroPad();
-        const v4Bits = v4.binaryZeroPad();
-        let bits;
-        if (pl === 96) {
-          bits = prefixBits.slice(0, 96) + v4Bits;
-        } else {
-          const beforeU = 64 - pl;
-          bits = [
-            prefixBits.slice(0, pl),
-            v4Bits.slice(0, beforeU),
-            // Bits 64 to 71 are the reserved u octet and are always zero.
-            "00000000",
-            v4Bits.slice(beforeU),
-            "0".repeat(128 - 72 - (32 - beforeU))
-          ].join("");
-        }
-        const hex = BigInt(`0b${bits}`).toString(16).padStart(32, "0");
-        const groups = [];
-        for (let i = 0; i < 8; i++) {
-          groups.push(hex.slice(i * 4, (i + 1) * 4));
-        }
-        return new _Address6(groups.join(":"));
-      }
-      /**
-       * Extract the embedded IPv4 address from a NAT64 IPv6 address using the
-       * encoding defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-       * The default prefix is the well-known prefix `64:ff9b::/96`. Returns
-       * `null` if this address is not contained within the given prefix.
-       * @example
-       * new Address6('64:ff9b::c000:221').toAddress4Nat64()!.correctForm(); // '192.0.2.33'
-       */
-      toAddress4Nat64(prefix = "64:ff9b::/96") {
-        const prefix6 = new _Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-          throw new address_error_1.AddressError("NAT64 prefix length must be 32, 40, 48, 56, 64, or 96");
-        }
-        if (!this.isHostInSubnet(prefix6)) {
-          return null;
-        }
-        const bits = this.binaryZeroPad();
-        let v4Bits;
-        if (pl === 96) {
-          v4Bits = bits.slice(96, 128);
-        } else {
-          const beforeU = 64 - pl;
-          v4Bits = bits.slice(pl, pl + beforeU) + bits.slice(72, 72 + (32 - beforeU));
-        }
-        const octets = [];
-        for (let i = 0; i < 4; i++) {
-          octets.push(parseInt(v4Bits.slice(i * 8, (i + 1) * 8), 2).toString());
-        }
-        return new ipv4_1.Address4(octets.join("."));
-      }
-      /**
-       * Return a byte array.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toByteArray())`.
+       * Return a byte array
+       * @memberof Address6
+       * @instance
        * @returns {Array}
        */
       toByteArray() {
-        const value = this.bigInt().toString(16).padStart(constants6.BITS / 4, "0");
-        const bytes = [];
-        for (let i = 0, length = value.length; i < length; i += 2) {
-          bytes.push(parseInt(value.substring(i, i + 2), 16));
+        const byteArray = this.bigInteger().toByteArray();
+        if (byteArray.length === 17 && byteArray[0] === 0) {
+          return byteArray.slice(1);
         }
-        return bytes;
+        return byteArray;
       }
       /**
-       * Return an unsigned byte array.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toUnsignedByteArray())`.
+       * Return an unsigned byte array
+       * @memberof Address6
+       * @instance
        * @returns {Array}
        */
       toUnsignedByteArray() {
         return this.toByteArray().map(unsignByte);
       }
       /**
-       * Convert a byte array to an Address6 object.
-       *
-       * Accepts unsigned bytes (0 to 255) or signed bytes (-128 to 127, as an
-       * `Int8Array` or a Java `byte[]` holds them), folding signed values to their
-       * unsigned equivalent. Throws `AddressError` unless given exactly 16
-       * integers from -128 to 255.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address6.fromByteArray([...buf])`.
+       * Convert a byte array to an Address6 object
+       * @memberof Address6
+       * @static
        * @returns {Address6}
        */
       static fromByteArray(bytes) {
-        common.assertByteArray(bytes, 16, "IPv6", -128);
         return this.fromUnsignedByteArray(bytes.map(unsignByte));
       }
       /**
-       * Convert an unsigned byte array to an Address6 object.
-       *
-       * Throws `AddressError` unless given exactly 16 integers from 0 to 255.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address6.fromUnsignedByteArray([...buf])`.
+       * Convert an unsigned byte array to an Address6 object
+       * @memberof Address6
+       * @static
        * @returns {Address6}
        */
       static fromUnsignedByteArray(bytes) {
-        common.assertByteArray(bytes, 16, "IPv6", 0);
-        const BYTE_MAX = BigInt("256");
-        let result = BigInt("0");
-        let multiplier = BigInt("1");
+        const BYTE_MAX = new jsbn_1.BigInteger("256", 10);
+        let result = new jsbn_1.BigInteger("0", 10);
+        let multiplier = new jsbn_1.BigInteger("1", 10);
         for (let i = bytes.length - 1; i >= 0; i--) {
-          result += multiplier * BigInt(bytes[i].toString(10));
-          multiplier *= BYTE_MAX;
+          result = result.add(multiplier.multiply(new jsbn_1.BigInteger(bytes[i].toString(10), 10)));
+          multiplier = multiplier.multiply(BYTE_MAX);
         }
-        return _Address6.fromBigInt(result);
+        return _Address6.fromBigInteger(result);
       }
       /**
        * Returns true if the address is in the canonical form, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       isCanonical() {
@@ -104254,13 +105430,11 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Returns true if the address is a link local address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       isLinkLocal() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isLinkLocal();
-        }
         if (this.getBitsBase2(0, 64) === "1111111010000000000000000000000000000000000000000000000000000000") {
           return true;
         }
@@ -104268,179 +105442,64 @@ var require_ipv6 = __commonJS({
       }
       /**
        * Returns true if the address is a multicast address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       isMulticast() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isMulticast();
-        }
-        const type = this.getType();
-        return type === "Multicast" || type.startsWith("Multicast ");
+        return this.getType() === "Multicast";
       }
       /**
-       * Returns true if the address was written in v4-in-v6 dotted-quad notation
-       * (e.g. `::ffff:127.0.0.1`), false otherwise. This is a notation-level flag
-       * and does not reflect whether the address bits lie in the IPv4-mapped
-       * (`::ffff:0:0/96`) subnet — for that, see {@link isMapped4}.
+       * Returns true if the address is a v4-in-v6 address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       is4() {
         return this.v4;
       }
       /**
-       * Returns true if the address is an IPv4-mapped IPv6 address in
-       * `::ffff:0:0/96` ([RFC 4291 §2.5.5.2](https://datatracker.ietf.org/doc/html/rfc4291#section-2.5.5.2)),
-       * false otherwise. Unlike {@link is4}, this checks the underlying address
-       * bits rather than the textual notation, so `::ffff:127.0.0.1` and
-       * `::ffff:7f00:1` both return true.
-       * @returns {boolean}
-       */
-      isMapped4() {
-        return this.isHostInSubnet(IPV4_MAPPED_SUBNET);
-      }
-      /**
-       * If this address embeds a routable IPv4 address — i.e. it is IPv4-mapped
-       * (`::ffff:0:0/96`) or sits in the NAT64 well-known prefix (`64:ff9b::/96`,
-       * [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052)) — return that
-       * embedded address as an {@link Address4}; otherwise return null.
-       *
-       * The special-property checks (`isLoopback`, `isLinkLocal`, `isMulticast`,
-       * `isUnspecified`, `isPrivate`, `isCGNAT`, `isBroadcast`) call this first and
-       * delegate to the embedded {@link Address4} when present, so a literal such as
-       * `::ffff:127.0.0.1` is classified by what it actually reaches (loopback)
-       * rather than by its IPv6 wrapper (which `getType()` reports as IPv4-mapped).
-       * This matters wherever the checks back a trust-boundary decision (e.g. an
-       * SSRF allow/deny filter): without normalization, `::ffff:10.0.0.1`,
-       * `::ffff:169.254.169.254`, `64:ff9b::7f00:1`, etc. would all read as
-       * non-internal.
-       * @returns {Address4 | null}
-       */
-      embeddedIPv4() {
-        if (this.isMapped4() || this.isHostInSubnet(NAT64_WELL_KNOWN_SUBNET)) {
-          return this.to4();
-        }
-        return null;
-      }
-      /**
        * Returns true if the address is a Teredo address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       isTeredo() {
-        return this.isHostInSubnet(TEREDO_SUBNET);
+        return this.isInSubnet(new _Address6("2001::/32"));
       }
       /**
        * Returns true if the address is a 6to4 address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       is6to4() {
-        return this.isHostInSubnet(SIX_TO_FOUR_SUBNET);
+        return this.isInSubnet(new _Address6("2002::/16"));
       }
       /**
        * Returns true if the address is a loopback address, false otherwise
+       * @memberof Address6
+       * @instance
        * @returns {boolean}
        */
       isLoopback() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isLoopback();
-        }
         return this.getType() === "Loopback";
-      }
-      /**
-       * Returns true if the address is a Unique Local Address in `fc00::/7` ([RFC 4193](https://datatracker.ietf.org/doc/html/rfc4193)). ULAs are the IPv6 equivalent of IPv4 [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private addresses.
-       * @returns {boolean}
-       */
-      isULA() {
-        return this.isHostInSubnet(ULA_SUBNET);
-      }
-      /**
-       * Returns true if the address is private, i.e. a Unique Local Address in
-       * `fc00::/7` ([RFC 4193](https://datatracker.ietf.org/doc/html/rfc4193)) or an
-       * IPv4-mapped / NAT64 address whose embedded IPv4 address is in one of the
-       * [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private ranges
-       * (e.g. `::ffff:10.0.0.1`). This is the IPv6 counterpart to
-       * {@link Address4.isPrivate}; use it instead of {@link isULA} when you need to
-       * catch mapped RFC 1918 addresses as well as native ULAs.
-       * @returns {boolean}
-       */
-      isPrivate() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isPrivate();
-        }
-        return this.isULA();
-      }
-      /**
-       * Returns true if the address is an IPv4-mapped / NAT64 address whose embedded
-       * IPv4 address is in the carrier-grade NAT range `100.64.0.0/10`
-       * ([RFC 6598](https://datatracker.ietf.org/doc/html/rfc6598)), false
-       * otherwise. There is no native IPv6 CGNAT range, so this only ever returns
-       * true for an embedded IPv4 address (e.g. `::ffff:100.64.0.1`).
-       * @returns {boolean}
-       */
-      isCGNAT() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isCGNAT();
-        }
-        return false;
-      }
-      /**
-       * Returns true if the address is an IPv4-mapped / NAT64 address whose embedded
-       * IPv4 address is the limited broadcast address `255.255.255.255`
-       * ([RFC 919](https://datatracker.ietf.org/doc/html/rfc919)), false otherwise.
-       * There is no IPv6 broadcast, so this only ever returns true for an embedded
-       * IPv4 address (e.g. `::ffff:255.255.255.255`).
-       * @returns {boolean}
-       */
-      isBroadcast() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isBroadcast();
-        }
-        return false;
-      }
-      /**
-       * Returns true if the address is the unspecified address `::`.
-       * @returns {boolean}
-       */
-      isUnspecified() {
-        const embedded = this.embeddedIPv4();
-        if (embedded) {
-          return embedded.isUnspecified();
-        }
-        return this.getType() === "Unspecified";
-      }
-      /**
-       * Returns true if the address is in the documentation prefix `2001:db8::/32` ([RFC 3849](https://datatracker.ietf.org/doc/html/rfc3849)).
-       * @returns {boolean}
-       */
-      isDocumentation() {
-        return this.isHostInSubnet(DOCUMENTATION_SUBNET);
       }
       // #endregion
       // #region HTML
       /**
-       * Returns the address as an HTTP URL with the host bracketed, e.g.
-       * `http://[2001:db8::1]/`. If `optionalPort` is provided it is appended,
-       * e.g. `http://[2001:db8::1]:8080/`.
+       * @returns {String} the address in link form with a default port of 80
        */
       href(optionalPort) {
         if (optionalPort === void 0) {
           optionalPort = "";
         } else {
-          optionalPort = `:${optionalPort}`;
+          optionalPort = (0, sprintf_js_1.sprintf)(":%s", optionalPort);
         }
-        return `http://[${this.correctForm()}]${optionalPort}/`;
+        return (0, sprintf_js_1.sprintf)("http://[%s]%s/", this.correctForm(), optionalPort);
       }
       /**
-       * Returns an HTML `<a>` element whose `href` encodes the address in a URL
-       * hash fragment (default prefix `/#address=`). Useful for linking between
-       * pages of an address-inspector UI.
-       * @param options.className - CSS class for the rendered `<a>` element
-       * @param options.prefix - hash prefix prepended to the address (default `/#address=`)
-       * @param options.v4 - when true, render the address in v4-in-v6 form
+       * @returns {String} a link suitable for conveying the address via a URL hash
        */
       link(options) {
         if (!options) {
@@ -104459,32 +105518,23 @@ var require_ipv6 = __commonJS({
         if (options.v4) {
           formFunction = this.to4in6;
         }
-        const form = formFunction.call(this);
-        const safeHref = helpers.escapeHtml(`${options.prefix}${form}`);
-        const safeForm = helpers.escapeHtml(form);
         if (options.className) {
-          const safeClass = helpers.escapeHtml(options.className);
-          return `<a href="${safeHref}" class="${safeClass}">${safeForm}</a>`;
+          return (0, sprintf_js_1.sprintf)('<a href="%1$s%2$s" class="%3$s">%2$s</a>', options.prefix, formFunction.call(this), options.className);
         }
-        return `<a href="${safeHref}">${safeForm}</a>`;
+        return (0, sprintf_js_1.sprintf)('<a href="%1$s%2$s">%2$s</a>', options.prefix, formFunction.call(this));
       }
       /**
-       * Groups an address.
-       *
-       * Returns an HTML fragment: each group is wrapped in a `<span>` carrying
-       * the group classes an address-inspector UI hovers on. The address content
-       * is HTML-escaped; anything you concatenate around it is your
-       * responsibility.
+       * Groups an address
        * @returns {String}
        */
       group() {
         if (this.elidedGroups === 0) {
-          return helpers.simpleGroup(this.addressMinusSuffix).join(":");
+          return helpers.simpleGroup(this.address).join(":");
         }
         assert2(typeof this.elidedGroups === "number");
         assert2(typeof this.elisionBegin === "number");
         const output = [];
-        const [left, right] = this.addressMinusSuffix.split("::");
+        const [left, right] = this.address.split("::");
         if (left.length) {
           output.push(...helpers.simpleGroup(left));
         } else {
@@ -104492,9 +105542,9 @@ var require_ipv6 = __commonJS({
         }
         const classes = ["hover-group"];
         for (let i = this.elisionBegin; i < this.elisionBegin + this.elidedGroups; i++) {
-          classes.push(`group-${i}`);
+          classes.push((0, sprintf_js_1.sprintf)("group-%d", i));
         }
-        output.push(`<span class="${classes.join(" ")}"></span>`);
+        output.push((0, sprintf_js_1.sprintf)('<span class="%s"></span>', classes.join(" ")));
         if (right.length) {
           output.push(...helpers.simpleGroup(right, this.elisionEnd));
         } else {
@@ -104512,6 +105562,8 @@ var require_ipv6 = __commonJS({
       /**
        * Generate a regular expression string that can be used to find or validate
        * all variations of this address
+       * @memberof Address6
+       * @instance
        * @param {boolean} substringSearch
        * @returns {string}
        */
@@ -104550,6 +105602,8 @@ var require_ipv6 = __commonJS({
       /**
        * Generate a regular expression that can be used to find or validate all
        * variations of this address.
+       * @memberof Address6
+       * @instance
        * @param {boolean} substringSearch
        * @returns {RegExp}
        */
@@ -104558,22 +105612,12 @@ var require_ipv6 = __commonJS({
       }
     };
     exports2.Address6 = Address6;
-    var TYPE_SUBNETS = Object.keys(constants6.TYPES).map((subnet) => [
-      new Address6(subnet),
-      constants6.TYPES[subnet]
-    ]);
-    var TEREDO_SUBNET = new Address6("2001::/32");
-    var SIX_TO_FOUR_SUBNET = new Address6("2002::/16");
-    var ULA_SUBNET = new Address6("fc00::/7");
-    var DOCUMENTATION_SUBNET = new Address6("2001:db8::/32");
-    var IPV4_MAPPED_SUBNET = new Address6("::ffff:0:0/96");
-    var NAT64_WELL_KNOWN_SUBNET = new Address6("64:ff9b::/96");
   }
 });
 
-// node_modules/ip-address/dist/ip-address.js
+// node_modules/socks/node_modules/ip-address/dist/ip-address.js
 var require_ip_address = __commonJS({
-  "node_modules/ip-address/dist/ip-address.js"(exports2) {
+  "node_modules/socks/node_modules/ip-address/dist/ip-address.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -134829,7 +135873,7 @@ var init_unified_payment_service = __esm({
           });
           const { SettingsProvider: SettingsProvider2 } = await Promise.resolve().then(() => (init_settings(), settings_exports));
           const supportDomain = await SettingsProvider2.getSupportEmailDomain(resolvedTenantId);
-          let successUrl = `${await getBaseUrlAsync(supportDomain)}/dashboard`;
+          let successUrl = `${getCanonicalTenantBaseUrl(resolvedTenantId)}/dashboard`;
           if (metadata?.source === "BOT") {
             const botUsername = process.env.TELEGRAM_BOT_USERNAME || (resolvedTenantId === "flux" ? "smmflux_support_bot" : "SMMplansapport_bot");
             successUrl = `https://t.me/${botUsername.replace("@", "")}?start=pay_ok_${payment.id}`;
@@ -146903,7 +147947,10 @@ var index_exports = {};
 __export2(index_exports, {
   bot: () => bot,
   dispatchDynamicMenuAction: () => dispatchDynamicMenuAction,
+  getBotDepinUrl: () => getBotDepinUrl,
+  getDynamicInlineKeyboard: () => getDynamicInlineKeyboard,
   launchBot: () => launchBot,
+  sendDepinAppPrompt: () => sendDepinAppPrompt,
   sendFastOrderPrompt: () => sendFastOrderPrompt,
   sendMainMenu: () => sendMainMenu,
   sendNetworkCatalogMenu: () => sendNetworkCatalogMenu,
@@ -146915,6 +147962,18 @@ module.exports = __toCommonJS(index_exports);
 function sanitizeTelegramTemplate(template) {
   if (!template) return "";
   return template.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "").replace(/on\w+\s*=\s*["'][^"']*["']/gi, "");
+}
+function getBotDepinUrl() {
+  if (process.env.DEPIN_TMA_URL) {
+    return process.env.DEPIN_TMA_URL;
+  }
+  const resolvedHost = getTenantHost(botTenantId4);
+  const host = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || (resolvedHost.startsWith("http") ? resolvedHost : `https://${resolvedHost}`);
+  const cleanHost = host.replace(/\/+$/, "");
+  if (!cleanHost.startsWith("https://") || cleanHost.includes("localhost") || cleanHost.includes("127.0.0.1")) {
+    return "https://depin.smmplan-tma.workers.dev/depin";
+  }
+  return `${cleanHost}/depin`;
 }
 function escapeHtml3(text) {
   if (!text) return "";
@@ -146956,10 +148015,14 @@ async function sendMainMenu(ctx, isEdit = false) {
     } catch {
     }
   }
-  const persistentKeyboard = import_telegraf7.Markup.keyboard([
-    ["\u{1F4F1} \u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B"],
-    ["\u{1F4B0} \u0411\u0430\u043B\u0430\u043D\u0441", "\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430"]
-  ]).resize().persistent();
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith("https://");
+  const persistentRows = [
+    isHttps ? [import_telegraf7.Markup.button.webApp("\u26A1 DePIN \u0417\u0430\u0434\u0430\u043D\u0438\u044F (Mini App)", depinUrl), "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B"] : ["\u26A1 DePIN \u0417\u0430\u0434\u0430\u043D\u0438\u044F", "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B"],
+    ["\u{1F4F1} \u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "\u{1F4B0} \u0411\u0430\u043B\u0430\u043D\u0441"],
+    ["\u{1F198} \u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430", "\u{1F680} \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437"]
+  ];
+  const persistentKeyboard = import_telegraf7.Markup.keyboard(persistentRows).resize().persistent();
   await ctx.reply("\u{1F9F9} <i>\u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043C\u0435\u043D\u044E...</i>", {
     parse_mode: "HTML",
     ...persistentKeyboard
@@ -146977,7 +148040,11 @@ async function sendMainMenu(ctx, isEdit = false) {
 }
 async function getDynamicInlineKeyboard(tgId) {
   const isOwner = tgId ? await isOwnerOrAdmin(tgId) : false;
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith("https://");
+  const depinBtn = isHttps ? import_telegraf7.Markup.button.webApp("\u26A1 DePIN \u0411\u0438\u0440\u0436\u0430 & \u0417\u0430\u0434\u0430\u043D\u0438\u044F (TMA)", depinUrl) : import_telegraf7.Markup.button.callback("\u26A1 DePIN \u0411\u0438\u0440\u0436\u0430 & \u0417\u0430\u0434\u0430\u043D\u0438\u044F", "nav_depin");
   let baseRows = [
+    [depinBtn],
     [import_telegraf7.Markup.button.callback("\u{1F680} \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "start_fast_order")],
     [import_telegraf7.Markup.button.callback("\u{1F6CD} \u041A\u0430\u0442\u0430\u043B\u043E\u0433 \u0443\u0441\u043B\u0443\u0433", "shop"), import_telegraf7.Markup.button.callback("\u{1F4B0} \u041F\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u044C \u0431\u0430\u043B\u0430\u043D\u0441", "deposit")],
     [import_telegraf7.Markup.button.callback("\u{1F464} \u041B\u0438\u0447\u043D\u044B\u0439 \u043A\u0430\u0431\u0438\u043D\u0435\u0442", "profile"), import_telegraf7.Markup.button.callback("\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B", "my_orders")],
@@ -146998,9 +148065,22 @@ async function getDynamicInlineKeyboard(tgId) {
         const grid = [];
         for (const r of sortedRows) {
           const rowBtns = rowMap.get(r).sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-          grid.push(rowBtns.map((b) => import_telegraf7.Markup.button.callback(b.label, `menu_action_${b.id}`)));
+          grid.push(rowBtns.map((b) => {
+            if (b.action === "WEB_APP" && b.value) {
+              const url = b.value.startsWith("http") ? b.value : `${getBotDepinUrl().replace(/\/depin$/, "")}${b.value}`;
+              return import_telegraf7.Markup.button.webApp(b.label, url);
+            }
+            if (b.action === "DEPIN") {
+              return isHttps ? import_telegraf7.Markup.button.webApp(b.label, depinUrl) : import_telegraf7.Markup.button.callback(b.label, "nav_depin");
+            }
+            return import_telegraf7.Markup.button.callback(b.label, `menu_action_${b.id}`);
+          }));
         }
         if (grid.length > 0) {
+          const hasDepin = active.some((b) => b.action === "DEPIN" || b.action === "WEB_APP" && (b.value || "").includes("depin"));
+          if (!hasDepin) {
+            grid.unshift([depinBtn]);
+          }
           baseRows = grid;
         }
       }
@@ -147084,6 +148164,10 @@ async function executeDynamicAction(ctx, btn) {
       );
       return true;
     }
+    case "DEPIN": {
+      await sendDepinAppPrompt(ctx);
+      return true;
+    }
   }
   return false;
 }
@@ -147150,6 +148234,31 @@ async function sendFastOrderPrompt(ctx) {
       ])
     }
   );
+}
+async function sendDepinAppPrompt(ctx) {
+  const depinUrl = getBotDepinUrl();
+  const isHttps = depinUrl.startsWith("https://");
+  const text = `\u26A1 <b>DePIN \u0411\u0438\u0440\u0436\u0430 \u043C\u0438\u043A\u0440\u043E-\u0437\u0430\u0434\u0430\u043D\u0438\u0439 SMMplan</b>
+
+\u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0439\u0442\u0435 \u0437\u0430\u0434\u0430\u043D\u0438\u044F \u0441\u043E\u043E\u0431\u0449\u0435\u0441\u0442\u0432\u0430, \u043A\u043E\u043F\u0438\u0442\u0435 \u043E\u0447\u043A\u0438 PTS \u0438 \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u0439\u0442\u0435 \u0441\u0432\u043E\u0438 Telegram-\u043A\u0430\u043D\u0430\u043B\u044B \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E!
+
+\u{1F4DA} <b>\u041F\u0430\u043A\u0435\u0442\u043D\u044B\u0439 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440:</b> 3 \u043F\u043E\u0441\u0442\u0430 \u043F\u043E\u0434\u0440\u044F\u0434 (+15 PTS)
+\u{1F4AC} <b>\u0423\u043C\u043D\u044B\u0435 \u043A\u043E\u043C\u043C\u0435\u043D\u0442\u0430\u0440\u0438\u0438:</b> \u0418\u0418-\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \u043E\u0440\u0433\u0430\u043D\u0438\u0447\u043D\u044B\u0445 \u043C\u043D\u0435\u043D\u0438\u0439 (+35 PTS)
+\u{1F525} <b>\u0420\u0435\u0430\u043A\u0446\u0438\u0438 \u0438 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B:</b> \u043C\u0433\u043D\u043E\u0432\u0435\u043D\u043D\u043E\u0435 \u0437\u0430\u0447\u0438\u0441\u043B\u0435\u043D\u0438\u0435 \u043E\u0447\u043A\u043E\u0432
+\u{1F680} <b>P2P-\u0431\u0443\u0441\u0442:</b> \u043E\u0431\u043C\u0435\u043D \u043E\u0447\u043A\u043E\u0432 \u043D\u0430 \u0440\u0435\u0430\u043B\u044C\u043D\u044B\u0435 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u044B \u0432\u0430\u0448\u0435\u0433\u043E \u043A\u0430\u043D\u0430\u043B\u0430
+\u{1F6E1}\uFE0F <b>Trust Score:</b> \u0437\u0430\u0449\u0438\u0442\u0430 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0430 \u043E\u0442 \u0441\u043F\u0430\u043C-\u0431\u043B\u043E\u043A\u0430 \u0438 \u0442\u0435\u043D\u0435\u0432\u043E\u0433\u043E \u0431\u0430\u043D\u0430
+
+\u{1F447} <i>\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043A\u043D\u043E\u043F\u043A\u0443 \u043D\u0438\u0436\u0435, \u0447\u0442\u043E\u0431\u044B \u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u0435:</i>`;
+  const inlineKeyboard = import_telegraf7.Markup.inlineKeyboard([
+    [
+      isHttps ? import_telegraf7.Markup.button.webApp("\u{1F680} \u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C DePIN Mini App", depinUrl) : import_telegraf7.Markup.button.url("\u{1F680} \u041E\u0442\u043A\u0440\u044B\u0442\u044C DePIN \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435", depinUrl)
+    ],
+    [import_telegraf7.Markup.button.callback("\xAB \u041D\u0430\u0437\u0430\u0434 \u0432 \u0433\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E", "nav_start")]
+  ]);
+  return ctx.reply(text, {
+    parse_mode: "HTML",
+    ...inlineKeyboard
+  });
 }
 async function sendUserProfile(ctx) {
   if (!ctx.from) return;
@@ -147475,6 +148584,8 @@ async function launchBot() {
       console.info(`[Bot] \u2705 Telegram bot @${me.username} (ID: ${me.id}) initialized.`);
       try {
         await bot.telegram.setMyCommands([
+          { command: "depin", description: "\u26A1 \u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C DePIN Mini App" },
+          { command: "boost", description: "\u{1F680} P2P-\u0431\u0443\u0441\u0442 \u0438 \u0437\u0430\u0434\u0430\u043D\u0438\u044F" },
           { command: "menu", description: "\u{1F4F1} \u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E" },
           { command: "orders", description: "\u{1F4E6} \u041C\u043E\u0438 \u0437\u0430\u043A\u0430\u0437\u044B" },
           { command: "balance", description: "\u{1F4B0} \u0411\u0430\u043B\u0430\u043D\u0441 \u0438 \u043F\u043E\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435" },
@@ -147518,8 +148629,9 @@ async function launchBot() {
           ]);
           if (directNow) {
             console.info("[Bot] \u{1F504} Direct connectivity restored \u2014 clearing proxy, retrying without proxy...");
-            bot.telegram.options = bot.telegram.options || {};
-            bot.telegram.options.agent = void 0;
+            const tgOpts = bot.telegram;
+            tgOpts.options = tgOpts.options || {};
+            tgOpts.options.agent = void 0;
             currentProxyUrl = void 0;
             await new Promise((r) => setTimeout(r, 1e3));
             continue;
@@ -147886,7 +148998,20 @@ var init_index = __esm({
       }
       return executeDynamicAction(ctx, btn);
     });
-    bot.action(["nav_start", "start", "main_menu", "home"], async (ctx) => {
+    bot.action("nav_depin", async (ctx) => {
+      await ctx.answerCbQuery().catch(() => {
+      });
+      return sendDepinAppPrompt(ctx);
+    });
+    bot.command(["depin", "boost", "app", "tma"], async (ctx) => {
+      return sendDepinAppPrompt(ctx);
+    });
+    bot.hears(/^(⚡\s*)?DePIN(\s*Задания)?(\s*\(Mini\s*App\))?$/i, async (ctx) => {
+      if (ctx.scene) await ctx.scene.leave().catch(() => {
+      });
+      return sendDepinAppPrompt(ctx);
+    });
+    bot.action(["nav_start", "start", "main_menu", "home", "nav_main_menu"], async (ctx) => {
       await ctx.answerCbQuery().catch(() => {
       });
       if (ctx.scene) {
@@ -147900,7 +149025,7 @@ var init_index = __esm({
       });
       return sendFastOrderPrompt(ctx);
     });
-    bot.hears(["\u{1F680} \u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437", "\u0412\u0432\u0435\u0441\u0442\u0438 \u0441\u0441\u044B\u043B\u043A\u0443"], async (ctx) => {
+    bot.hears(["\u{1F680} \u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0417\u0430\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435", "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437", "\u0412\u0432\u0435\u0441\u0442\u0438 \u0441\u0441\u044B\u043B\u043A\u0443", "\u{1F680} \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0437\u0430\u043A\u0430\u0437"], async (ctx) => {
       return sendFastOrderPrompt(ctx);
     });
     bot.command("menu", async (ctx) => {
@@ -148373,7 +149498,10 @@ init_index();
 0 && (module.exports = {
   bot,
   dispatchDynamicMenuAction,
+  getBotDepinUrl,
+  getDynamicInlineKeyboard,
   launchBot,
+  sendDepinAppPrompt,
   sendFastOrderPrompt,
   sendMainMenu,
   sendNetworkCatalogMenu,

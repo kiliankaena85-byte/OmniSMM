@@ -28,6 +28,14 @@ export function useCheckoutOrchestrator({
   const [authModalEmail, setAuthModalEmail] = useState('');
   const [pendingCheckoutParams, setPendingCheckoutParams] = useState<OrchestratorCheckoutParams | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<{
+    paymentUrl: string;
+    orderId?: string;
+    numericId?: number;
+    totalPrice?: string;
+    paymentId?: string;
+    guestOrderToken?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (checkoutError) setCheckoutError(null);
@@ -107,6 +115,21 @@ export function useCheckoutOrchestrator({
         const res = await checkoutAction({ ...checkoutParams, gateway: resolvedGateway });
         if (res.success) {
           setStableIdempotencyKey(generateStableIdempotencyKey());
+          if (res.data?.paymentUrl) {
+            setIsSubmitting(false);
+            setPendingPayment({
+              paymentUrl: res.data.paymentUrl,
+              orderId: res.data.orderId,
+              numericId: res.data.numericId,
+              totalPrice: engine.pricing ? (engine.pricing.totalCents / 100).toFixed(2) : undefined,
+              paymentId: res.data.paymentId,
+              guestOrderToken: res.data.guestOrderToken
+            });
+            try {
+              window.open(res.data.paymentUrl, '_blank', 'noopener,noreferrer');
+            } catch {}
+            return;
+          }
           const ok = handlePaymentSuccess(res.data as OrderCheckoutResultData, resolvedGateway, true);
           if (!ok) setIsSubmitting(false);
           return;
@@ -176,6 +199,22 @@ export function useCheckoutOrchestrator({
 
       if (res.success) {
         setStableIdempotencyKey(generateStableIdempotencyKey());
+        if (res.data?.paymentUrl) {
+          setIsSubmitting(false);
+          setShowPaymentModal(false);
+          setPendingPayment({
+            paymentUrl: res.data.paymentUrl,
+            orderId: res.data.orderId,
+            numericId: res.data.numericId,
+            totalPrice: engine.pricing ? (engine.pricing.totalCents / 100).toFixed(2) : undefined,
+            paymentId: res.data.paymentId,
+            guestOrderToken: res.data.guestOrderToken
+          });
+          try {
+            window.open(res.data.paymentUrl, '_blank', 'noopener,noreferrer');
+          } catch {}
+          return;
+        }
         handlePaymentSuccess(res.data as OrderCheckoutResultData, gateway, false);
       } else {
         handlePaymentFailure(
@@ -257,6 +296,8 @@ export function useCheckoutOrchestrator({
     },
     confirmAndPay,
     checkoutError,
-    setCheckoutError
+    setCheckoutError,
+    pendingPayment,
+    setPendingPayment
   };
 }

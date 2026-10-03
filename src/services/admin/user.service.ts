@@ -372,7 +372,7 @@ class AdminUserService {
       total,
       active,
       banned,
-      totalLiability: totalBalance._sum.balance || 0,
+      totalLiability: Number(totalBalance._sum.balance || 0n),
     };
 
     try {

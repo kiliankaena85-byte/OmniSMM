@@ -73,10 +73,19 @@ const JUROR_POOLS = {
   DEEPSEEK: ['nvidia/nemotron-3-ultra-550b-a55b:free', 'poolside/laguna-s-2.1:free', 'thinkingmachines/inkling-small:free'],
 };
 
+interface JurorRawResponse {
+  verdict?: 'ACCEPT' | 'REJECT' | 'VETO';
+  score?: number;
+  confidence?: number;
+  blockers?: string[];
+  suggestions?: string[];
+  reasoning?: string;
+}
+
 /**
  * Очистка JSON от маркдауна и think тегов
  */
-function cleanJsonText(raw: string): any {
+function cleanJsonText(raw: string): JurorRawResponse | null {
   let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
   if (cleaned.includes('```json')) {
     cleaned = cleaned.split('```json')[1].split('```')[0].trim();
@@ -98,7 +107,7 @@ function cleanJsonText(raw: string): any {
 /**
  * Запрос к OpenRouter с каскадным перебором пула моделей
  */
-async function queryOpenRouter(
+async function queryOpenRouterWithPool(
   models: string[],
   systemPrompt: string,
   userPrompt: string,
@@ -163,7 +172,7 @@ async function queryGeminiFallback(
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -293,7 +302,7 @@ Perform your specialized blind review and output strict JSON.`;
     response = await queryGeminiFallback(systemPrompt, userPrompt);
   }
 
-  let parsed: any = null;
+  let parsed: JurorRawResponse | null = null;
   if (response?.raw) {
     parsed = cleanJsonText(response.raw);
   }

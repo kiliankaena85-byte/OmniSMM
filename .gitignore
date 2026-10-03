@@ -7,6 +7,8 @@ node_modules
 .env.development
 .env.test
 .env.test.local
+.env.docker*
+.env*.utf8
 *.tsbuildinfo
 
 # ── Staging env (contains real secrets — treat as compromised) ──
@@ -218,3 +220,6 @@ launch_docker.ps1
 wait_docker.ps1
 scripts/test-action.ts
 .env.docker
+.yandex-oauth-token
+.*-oauth-token
+/dist/

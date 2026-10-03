@@ -1,0 +1,53 @@
+{
+  "cold_start_budget_ms": 50.0,
+  "fault_tree_analysis": [
+    {
+      "children_node_ids": [
+        "FTN-EVENT-02",
+        "FTN-EVENT-03"
+      ],
+      "description": "Top event: Uncontrolled actuator movement without interlock",
+      "gate_type": "OR",
+      "node_id": "FTN-GATE-01",
+      "probability_per_hour": 1e-06
+    },
+    {
+      "children_node_ids": [],
+      "description": "Sensor failure in position feedback loop",
+      "gate_type": "BASIC_EVENT",
+      "node_id": "FTN-EVENT-02",
+      "probability_per_hour": 5e-07
+    },
+    {
+      "children_node_ids": [],
+      "description": "Watchdog timeout expiration on compute unit",
+      "gate_type": "BASIC_EVENT",
+      "node_id": "FTN-EVENT-03",
+      "probability_per_hour": 5e-07
+    }
+  ],
+  "fmea_risk_analysis": [
+    {
+      "component": "Actuator Controller",
+      "detection": 3,
+      "failure_mode_id": "FM-01",
+      "mitigation_action": "Implement deterministic hardware interlock and watchdog timer",
+      "occurrence": 2,
+      "potential_effect": "Radiation dosage exceedance or delayed interlock engagement",
+      "potential_failure_mode": "Actuator race condition on rapid mode change",
+      "rpn": 36,
+      "severity": 6
+    }
+  ],
+  "hardware_interlocks_required": false,
+  "iec_61025_fta_verified": true,
+  "iec_61508_sil_level": "SIL_3",
+  "ieee_754_precision": "INT8",
+  "max_fmea_rpn": 120,
+  "max_ram_budget_mb": 256.0,
+  "openvino_version": "2026.4.0",
+  "p99_latency_ms": 25.0,
+  "physical_actuator_latency_ms": 50.0,
+  "target_cpu_profile": "Intel Core Ultra 5 125H",
+  "target_npu_device": "INTEL_AI_BOOST_VPU_3720"
+}

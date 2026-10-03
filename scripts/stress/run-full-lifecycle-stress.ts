@@ -57,7 +57,7 @@ async function main() {
   console.log('========================================================================\n');
 
   // Setup: Ensure Sandbox Mode (100% Mock isolation)
-  await SettingsManager.setEnvironmentMode('SANDBOX');
+  await SettingsManager.setEnvironmentMode('SANDBOX', 'smmplan');
   console.log('🔒 Environment configured: SANDBOX (Mock Payment + Mock Provider)\n');
 
   // 1. Find or create stress test user
@@ -317,6 +317,10 @@ async function main() {
   console.log(`✅ Passed: ${passed} / ${results.length} (100%)`);
   console.log(`❌ Failed: ${failed}`);
   console.log(`⏱️ Total Execution Time: ${(totalDuration / 1000).toFixed(2)}s\n`);
+
+  // Teardown: Restore Production Mode
+  await SettingsManager.setEnvironmentMode('PRODUCTION', 'smmplan');
+  console.log('🔒 Environment restored to PRODUCTION.\n');
 
   if (failed > 0) {
     process.exit(1);

@@ -1,0 +1,639 @@
+[
+  {
+    "originalPath": "src/actions/admin/catalog/ai-enrich.action.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/catalog/ai-enrich.action.ts",
+    "sha256": "ae806bb908f7555413f16a131300e72134bd6320f0db9e39e2ff9b45bb32461a",
+    "linesCount": 80,
+    "quarantinedAt": "2026-10-01T16:57:40.425Z"
+  },
+  {
+    "originalPath": "src/actions/admin/catalog/enrichment.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/catalog/enrichment.ts",
+    "sha256": "f42c217e63968ff0c46fcb6a333843433d336d5a0b7ee80d4ae737758ab8de3d",
+    "linesCount": 39,
+    "quarantinedAt": "2026-10-01T16:57:40.427Z"
+  },
+  {
+    "originalPath": "src/actions/admin/catalog/soft-delete.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/catalog/soft-delete.ts",
+    "sha256": "5e94641896e68f41e4f0f7532a22fea803b45cf94ff7dddbecdfa3ff88cd9317",
+    "linesCount": 44,
+    "quarantinedAt": "2026-10-01T16:57:40.428Z"
+  },
+  {
+    "originalPath": "src/actions/admin/legal-consent.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/legal-consent.ts",
+    "sha256": "f38125fdc0fd44ed517c35a698f584b93121c1de16ab6e8dfcaab28ca9757b46",
+    "linesCount": 115,
+    "quarantinedAt": "2026-10-01T16:57:40.429Z"
+  },
+  {
+    "originalPath": "src/actions/admin/pii-audit.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/pii-audit.ts",
+    "sha256": "37b5216d91f99f88ed4e1963e135059bcb64f075b23a6031be39f701545734e4",
+    "linesCount": 52,
+    "quarantinedAt": "2026-10-01T16:57:40.430Z"
+  },
+  {
+    "originalPath": "src/actions/admin/providers/search-services.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/providers/search-services.ts",
+    "sha256": "1100f863602b0252c731a84600c7ab4456e100d2eac6f542d76d714019f182a3",
+    "linesCount": 43,
+    "quarantinedAt": "2026-10-01T16:57:40.431Z"
+  },
+  {
+    "originalPath": "src/actions/admin/services-lifecycle.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/admin/services-lifecycle.ts",
+    "sha256": "1523a5955398ceb0254ac197bf9526ad8ce6d2e9d44025caaf2979bfec356c36",
+    "linesCount": 202,
+    "quarantinedAt": "2026-10-01T16:57:40.432Z"
+  },
+  {
+    "originalPath": "src/actions/auth/logout.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/auth/logout.ts",
+    "sha256": "ac219dda4df8263ace2d6403ced75b6478c0b3feb167687b5f2e4a569d86b823",
+    "linesCount": 38,
+    "quarantinedAt": "2026-10-01T16:57:40.433Z"
+  },
+  {
+    "originalPath": "src/actions/auth/mfa-settings.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/auth/mfa-settings.ts",
+    "sha256": "5606507b67f83b6e98cb08398923444285baa92da25116697dce3931e3c2d79f",
+    "linesCount": 175,
+    "quarantinedAt": "2026-10-01T16:57:40.433Z"
+  },
+  {
+    "originalPath": "src/actions/operator/dashboard/get-operator-dashboard.action.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/operator/dashboard/get-operator-dashboard.action.ts",
+    "sha256": "4b8722a5dae0d9b796b34d927ea523ba6ae71c5500dfe5d812f040b8a28875c8",
+    "linesCount": 33,
+    "quarantinedAt": "2026-10-01T16:57:40.434Z"
+  },
+  {
+    "originalPath": "src/actions/operator/users/get-user-financial-summary.action.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/operator/users/get-user-financial-summary.action.ts",
+    "sha256": "4dd93205983c8d6b5595a1cf151307b0c29855d4c6488998824e7c8b3174be2d",
+    "linesCount": 25,
+    "quarantinedAt": "2026-10-01T16:57:40.435Z"
+  },
+  {
+    "originalPath": "src/actions/operator/users/get-users-list.action.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/operator/users/get-users-list.action.ts",
+    "sha256": "c73d12ccc89896e6e72a7d5dbbef5b0f4ced76eb0e6c46e025302adfaa1c9730",
+    "linesCount": 31,
+    "quarantinedAt": "2026-10-01T16:57:40.436Z"
+  },
+  {
+    "originalPath": "src/actions/order/link-guide.ts",
+    "archivePath": ".archive/orphans_2026/src/actions/order/link-guide.ts",
+    "sha256": "a971fd770c4fb4859cca6b76fbe02b8bd0ef92b4ef13bae6402f8f1fc2f4411c",
+    "linesCount": 38,
+    "quarantinedAt": "2026-10-01T16:57:40.436Z"
+  },
+  {
+    "originalPath": "src/app/admin/orders/components/flux-orders-grid.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/orders/components/flux-orders-grid.tsx",
+    "sha256": "fc2a4354ac0a531e52ed21813e2d0caa2b13f19adece021cd839bc77eac95233",
+    "linesCount": 185,
+    "quarantinedAt": "2026-10-01T16:57:40.437Z"
+  },
+  {
+    "originalPath": "src/app/admin/orders/components/flux-orders-kanban.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/orders/components/flux-orders-kanban.tsx",
+    "sha256": "22058e817310bf4d98dcff96cb6a45ae07c559a82f4b8a3d6c1164d5051a986c",
+    "linesCount": 121,
+    "quarantinedAt": "2026-10-01T16:57:40.438Z"
+  },
+  {
+    "originalPath": "src/app/admin/providers/import/components/wizard/confirmation-modal.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/providers/import/components/wizard/confirmation-modal.tsx",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "linesCount": 1,
+    "quarantinedAt": "2026-10-01T16:57:40.439Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/audit-columns.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/audit-columns.tsx",
+    "sha256": "4c6e7b94f58ce40659604ad600b448651c072a80ae6e4c4249ae11cd0001ad90",
+    "linesCount": 54,
+    "quarantinedAt": "2026-10-01T16:57:40.440Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/telegram/button-manager.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/telegram/button-manager.tsx",
+    "sha256": "a3a17aefb8dbe92aad8fea38413e3b222cddcbcea3ab693864276562f06923b0",
+    "linesCount": 337,
+    "quarantinedAt": "2026-10-01T16:57:40.441Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/telegram/telegram-live-preview.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/telegram/telegram-live-preview.tsx",
+    "sha256": "5dfead9dfa994049463d6f793ef400322c9ff608c155e4eb00f74a50a0b9f9cd",
+    "linesCount": 360,
+    "quarantinedAt": "2026-10-01T16:57:40.442Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/telegram/telegram-simulator.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/telegram/telegram-simulator.tsx",
+    "sha256": "e01f68930e4711a235c638a991e2f2ce7d8627babeb667b1e96223ac58d9e539",
+    "linesCount": 150,
+    "quarantinedAt": "2026-10-01T16:57:40.443Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/telegram/template-manager.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/telegram/template-manager.tsx",
+    "sha256": "b75f04c66c107876cd2857f08cd530a5028f747cd540adeb29c2eacc7485140b",
+    "linesCount": 253,
+    "quarantinedAt": "2026-10-01T16:57:40.444Z"
+  },
+  {
+    "originalPath": "src/app/admin/settings/telegram/welcome-editor.tsx",
+    "archivePath": ".archive/orphans_2026/src/app/admin/settings/telegram/welcome-editor.tsx",
+    "sha256": "239472a9fad304fb2b0238063411b248749d941d94bdf4c2f82d50c6e4329e0d",
+    "linesCount": 202,
+    "quarantinedAt": "2026-10-01T16:57:40.445Z"
+  },
+  {
+    "originalPath": "src/components/admin/balance/BalanceAdjustmentRequestForm.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/balance/BalanceAdjustmentRequestForm.tsx",
+    "sha256": "ef79dc7966ac64d7f1607a55082ac69eba53bbba9a70b3949d907aa41e714e4e",
+    "linesCount": 219,
+    "quarantinedAt": "2026-10-01T16:57:40.447Z"
+  },
+  {
+    "originalPath": "src/components/admin/EmployeeConsentModalGuard.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/EmployeeConsentModalGuard.tsx",
+    "sha256": "f4c1c066033352914236585e74d61d784111265efc78dfc31ceeda233eae47de",
+    "linesCount": 115,
+    "quarantinedAt": "2026-10-01T16:57:40.448Z"
+  },
+  {
+    "originalPath": "src/components/admin/filters/QuickFilterChips.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/filters/QuickFilterChips.tsx",
+    "sha256": "6fc60d320b5774005fb6019e7a1971d1e4e36dcb9b7daf49ec9c354260575443",
+    "linesCount": 149,
+    "quarantinedAt": "2026-10-01T16:57:40.449Z"
+  },
+  {
+    "originalPath": "src/components/admin/filters/SmartSearch.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/filters/SmartSearch.tsx",
+    "sha256": "4db012ebc620ae0840b469dc2e99a14fd80c942b66e9cf825e48c17926bb3f90",
+    "linesCount": 68,
+    "quarantinedAt": "2026-10-01T16:57:40.450Z"
+  },
+  {
+    "originalPath": "src/components/admin/OrderDrawer.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/OrderDrawer.tsx",
+    "sha256": "e75a60eef51cd66e7d7349ff6e46840dbc7f854a3c8b11efcdcd45e05f2e55b9",
+    "linesCount": 20,
+    "quarantinedAt": "2026-10-01T16:57:40.451Z"
+  },
+  {
+    "originalPath": "src/components/admin/tenant-selector.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/admin/tenant-selector.tsx",
+    "sha256": "6f011fa3e3adf60335204f8aece7cf8feee90b5e48865e496eaafae0c1f1661e",
+    "linesCount": 60,
+    "quarantinedAt": "2026-10-01T16:57:40.452Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/FluxDock.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/FluxDock.tsx",
+    "sha256": "b5a2c6c813410aaa502298ea9cad6c184979550e09757b23e65562d436b431fb",
+    "linesCount": 68,
+    "quarantinedAt": "2026-10-01T16:57:40.453Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/order-wizard/WizardCategoryStep.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/order-wizard/WizardCategoryStep.tsx",
+    "sha256": "9d742fe04d0668ec051bdc8e871e2de3d0887bd3ee903d4aa363adf2c399bf9f",
+    "linesCount": 70,
+    "quarantinedAt": "2026-10-01T16:57:40.455Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/order-wizard/WizardNetworkStep.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/order-wizard/WizardNetworkStep.tsx",
+    "sha256": "f4fedccf82089146cebde0df6f7aa1df3d323e58dd3a83799298a6363d4fc9a9",
+    "linesCount": 90,
+    "quarantinedAt": "2026-10-01T16:57:40.455Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/order-wizard/WizardServiceStep.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/order-wizard/WizardServiceStep.tsx",
+    "sha256": "5267e3e5e765de96dff6d612693316f0f84d48c38617420e598eb05a895a3241",
+    "linesCount": 106,
+    "quarantinedAt": "2026-10-01T16:57:40.456Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/order-wizard/WizardStepIndicator.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/order-wizard/WizardStepIndicator.tsx",
+    "sha256": "e9aabc76e8554e6b4d094b5d4aa83a8d73e9fe70d370ca8be796b7ece55ba503",
+    "linesCount": 76,
+    "quarantinedAt": "2026-10-01T16:57:40.457Z"
+  },
+  {
+    "originalPath": "src/components/dashboard/prime/PrimeCatalogGrid.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/dashboard/prime/PrimeCatalogGrid.tsx",
+    "sha256": "6079b655b0724c98d40c742a6e3da0a7c6d363ca92b18df9c1fe0f854a25be7d",
+    "linesCount": 228,
+    "quarantinedAt": "2026-10-01T16:57:40.458Z"
+  },
+  {
+    "originalPath": "src/components/landing/catalog/DualModeOrderEngine.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/catalog/DualModeOrderEngine.tsx",
+    "sha256": "b9b54ed2dea541ddcdacd4d4b0d8f947e18febd07efb68ab9bbbf4e5eb7b4e92",
+    "linesCount": 79,
+    "quarantinedAt": "2026-10-01T16:57:40.460Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/drawer/CheckoutDrawer.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/drawer/CheckoutDrawer.tsx",
+    "sha256": "491c7b98c37e75b14d9f3e3295f006783c857150bc3256bb2246c619e58011c7",
+    "linesCount": 200,
+    "quarantinedAt": "2026-10-01T16:57:40.462Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/drawer/DrawerFooter.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/drawer/DrawerFooter.tsx",
+    "sha256": "793e7926ae39fa1f45208b7b38f916d8a87559115d258b86e0b6249e86555a93",
+    "linesCount": 123,
+    "quarantinedAt": "2026-10-01T16:57:40.462Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/drawer/DrawerOrderSummary.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/drawer/DrawerOrderSummary.tsx",
+    "sha256": "f670da0cfceedb3d9a07e7a144307b8622b3e4aa7866950f305f671b9342ae80",
+    "linesCount": 143,
+    "quarantinedAt": "2026-10-01T16:57:40.463Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/FullscreenCheckoutVariantC.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/FullscreenCheckoutVariantC.tsx",
+    "sha256": "9af964b264aba471e34dfe52fcca8c6b071bca9a88bbe18dec6f71ee118f7e3a",
+    "linesCount": 240,
+    "quarantinedAt": "2026-10-01T16:57:40.465Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/InlineCheckoutForm.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/InlineCheckoutForm.tsx",
+    "sha256": "d6692a8ff0b0d4a84c6e26da14e17174517d3098a563c071bb30b05af4ef44b4",
+    "linesCount": 240,
+    "quarantinedAt": "2026-10-01T16:57:40.466Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/modals/EmailPromptModal.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/modals/EmailPromptModal.tsx",
+    "sha256": "4cbf66b22c8023c1081ade6e6afbdbbd0cf89639188bb7af8a9857a9bb9a9ce9",
+    "linesCount": 125,
+    "quarantinedAt": "2026-10-01T16:57:40.468Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/ServiceCard.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/ServiceCard.tsx",
+    "sha256": "ae58400d8eb440e46be3d4dbdef0afa0f1fdaf1fa8743deae3a5841b7f23e90f",
+    "linesCount": 67,
+    "quarantinedAt": "2026-10-01T16:57:40.469Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/StickyCheckoutTriggerBar.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/StickyCheckoutTriggerBar.tsx",
+    "sha256": "a2369964d5d4feec578a33e3b16b1fec124b392e1c48a9952a8fe111df7b4637",
+    "linesCount": 127,
+    "quarantinedAt": "2026-10-01T16:57:40.470Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/AdminCheckoutVariantSwitcher.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/AdminCheckoutVariantSwitcher.tsx",
+    "sha256": "347ef1442396542623fbe6f66a0e8cfb9d3cd6ed3dd25aa3d7b1c2b3cc36f14d",
+    "linesCount": 108,
+    "quarantinedAt": "2026-10-01T16:57:40.471Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/BottomSheetCheckout.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/BottomSheetCheckout.tsx",
+    "sha256": "232ffb9dafe03aaf7fa93eb6577f204c69c50302698562a8cf2c84c9044b30f6",
+    "linesCount": 218,
+    "quarantinedAt": "2026-10-01T16:57:40.471Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/CenteredDialogCheckout.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/CenteredDialogCheckout.tsx",
+    "sha256": "04474e347850612af05d97a2362c1e05963dc9200449da86e63c4b481c5e8d79",
+    "linesCount": 215,
+    "quarantinedAt": "2026-10-01T16:57:40.472Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/FloatingHudCheckout.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/FloatingHudCheckout.tsx",
+    "sha256": "13b6ff5dad23cc0bfa20081ee74f7b59016552d233eb36ffe38c050adbc9d322",
+    "linesCount": 194,
+    "quarantinedAt": "2026-10-01T16:57:40.473Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/QuickTableRowCheckout.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/QuickTableRowCheckout.tsx",
+    "sha256": "2ca783113a25870cbec2f9bc6ad1fcde3cb9171cf61a291e97644786c9d58a80",
+    "linesCount": 160,
+    "quarantinedAt": "2026-10-01T16:57:40.474Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/step-wizard/StepWizardFooter.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/step-wizard/StepWizardFooter.tsx",
+    "sha256": "bc0964c4953c6c41388344a230cbb942cab0c460dca46108b4239d08abe90880",
+    "linesCount": 94,
+    "quarantinedAt": "2026-10-01T16:57:40.474Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/step-wizard/StepWizardHeader.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/step-wizard/StepWizardHeader.tsx",
+    "sha256": "dc617d6520445e033b466114322b16f16916b839c0eb9c73eeada445ea9f3f4f",
+    "linesCount": 42,
+    "quarantinedAt": "2026-10-01T16:57:40.475Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/step-wizard/StepWizardParamsStep.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/step-wizard/StepWizardParamsStep.tsx",
+    "sha256": "fdac0300576589700f7e5d203074d9a7a005b573ccf14e35680525728888c44a",
+    "linesCount": 96,
+    "quarantinedAt": "2026-10-01T16:57:40.475Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/step-wizard/StepWizardPaymentStep.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/step-wizard/StepWizardPaymentStep.tsx",
+    "sha256": "aea50e3e5224981f03c543055f7a649e1a10dcc8abf1924649101e71419bf68d",
+    "linesCount": 152,
+    "quarantinedAt": "2026-10-01T16:57:40.476Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/step-wizard/StepWizardStepper.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/step-wizard/StepWizardStepper.tsx",
+    "sha256": "7e7b09134099eac661cef63ed173a9aca47d110cd584d1d3bdc22178d35cc1db",
+    "linesCount": 74,
+    "quarantinedAt": "2026-10-01T16:57:40.477Z"
+  },
+  {
+    "originalPath": "src/components/landing/order-engine/variants/StepWizardCheckout.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/landing/order-engine/variants/StepWizardCheckout.tsx",
+    "sha256": "367d51d18f224273022315f88d4c92b17a85d8e1f6257f64d7d0d00b5de36d85",
+    "linesCount": 181,
+    "quarantinedAt": "2026-10-01T16:57:40.477Z"
+  },
+  {
+    "originalPath": "src/components/layout/custom-app-shell.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/layout/custom-app-shell.tsx",
+    "sha256": "c8a7236b873dbd385a6e9689ba0d8a329a8d54a3df456596f3eb8a130eba9ae8",
+    "linesCount": 124,
+    "quarantinedAt": "2026-10-01T16:57:40.480Z"
+  },
+  {
+    "originalPath": "src/components/layout/custom-app-sidebar.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/layout/custom-app-sidebar.tsx",
+    "sha256": "de4d93074d022118c9554b91281c7d022a033cdb8a0316406c0a3a3c78c75b5b",
+    "linesCount": 196,
+    "quarantinedAt": "2026-10-01T16:57:40.481Z"
+  },
+  {
+    "originalPath": "src/components/orders/DripFeedSettings.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/DripFeedSettings.tsx",
+    "sha256": "985e4e95997e06f6a6d6448702c6bdc9e2cdc1a74dd34ee5ff5c804bf6afc103",
+    "linesCount": 77,
+    "quarantinedAt": "2026-10-01T16:57:40.483Z"
+  },
+  {
+    "originalPath": "src/components/orders/LiveOrderProgressDrawer.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/LiveOrderProgressDrawer.tsx",
+    "sha256": "7dd67968e1b1c4325ca6ec054407653ed034e666d43642d8a3e996336043da84",
+    "linesCount": 114,
+    "quarantinedAt": "2026-10-01T16:57:40.483Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/OrderSummaryCard.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/OrderSummaryCard.tsx",
+    "sha256": "9a6d42599e798d7ccfd2f4a0041c694482a07f3771a8211fb51ff30fd8bcd584",
+    "linesCount": 141,
+    "quarantinedAt": "2026-10-01T16:57:40.484Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/order-summary-preflight.ts",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/order-summary-preflight.ts",
+    "sha256": "fefcc992c92636a62fb668833e96a5b2a47d67023b28b04d88ce35de022ba9e9",
+    "linesCount": 81,
+    "quarantinedAt": "2026-10-01T16:57:40.486Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderRequirementsModal.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderRequirementsModal.tsx",
+    "sha256": "48820ccbff058dc2a977ffb24af383a118cf560a59c9967bfc185f7907d8c194",
+    "linesCount": 56,
+    "quarantinedAt": "2026-10-01T16:57:40.487Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummaryCustomData.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummaryCustomData.tsx",
+    "sha256": "32522ba19696bd10fae82bdf20c74c9e24db712702d8596143926314ff202bff",
+    "linesCount": 91,
+    "quarantinedAt": "2026-10-01T16:57:40.489Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummaryDripSection.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummaryDripSection.tsx",
+    "sha256": "59db0e15f3def9290721a5be125f24d11defc99f5729e2f5281ff372b0163f25",
+    "linesCount": 149,
+    "quarantinedAt": "2026-10-01T16:57:40.490Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummaryEmptyState.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummaryEmptyState.tsx",
+    "sha256": "29f11949f23073af1b0defc74a62253317b7d707019e30f702839d73595d5ec7",
+    "linesCount": 60,
+    "quarantinedAt": "2026-10-01T16:57:40.490Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummaryInputs.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummaryInputs.tsx",
+    "sha256": "bbd01263ad3fc2f227099b89e54cf7db6f9d85a19354a3682a9d6773f6e09940",
+    "linesCount": 130,
+    "quarantinedAt": "2026-10-01T16:57:40.492Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummaryPricingGateway.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummaryPricingGateway.tsx",
+    "sha256": "4382f647ac7d66817b173829c9412f0dbe152e02ddc0a72a1f0a52a9b1be0db1",
+    "linesCount": 98,
+    "quarantinedAt": "2026-10-01T16:57:40.492Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/OrderSummarySubmitBar.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/OrderSummarySubmitBar.tsx",
+    "sha256": "4cd35d771a2715a53a65bafce718c5bdb1c5c36722bf57e6a47bc3d8e751cc7e",
+    "linesCount": 77,
+    "quarantinedAt": "2026-10-01T16:57:40.493Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/types.ts",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/types.ts",
+    "sha256": "9eb68e03435d3cb0b75b750efd94aae58ba8d728d150a8f993960c2264042ce6",
+    "linesCount": 14,
+    "quarantinedAt": "2026-10-01T16:57:40.495Z"
+  },
+  {
+    "originalPath": "src/components/orders/sub/summary/useOrderSummarySubmit.ts",
+    "archivePath": ".archive/orphans_2026/src/components/orders/sub/summary/useOrderSummarySubmit.ts",
+    "sha256": "6395950649ae74c606313df6c527a81675b5e57a775a175b0fac46dd90f49fdd",
+    "linesCount": 173,
+    "quarantinedAt": "2026-10-01T16:57:40.496Z"
+  },
+  {
+    "originalPath": "src/components/settings/index.ts",
+    "archivePath": ".archive/orphans_2026/src/components/settings/index.ts",
+    "sha256": "b5b0ab79660e74040054c81378b8940d1e12702d46eb868f1e768479ab825924",
+    "linesCount": 4,
+    "quarantinedAt": "2026-10-01T16:57:40.498Z"
+  },
+  {
+    "originalPath": "src/components/support/ManualRefillModal.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/support/ManualRefillModal.tsx",
+    "sha256": "933dbf2aee520097472e0b5ba7cfd684f284cd7008e3505651195c5b804fabac",
+    "linesCount": 130,
+    "quarantinedAt": "2026-10-01T16:57:40.500Z"
+  },
+  {
+    "originalPath": "src/components/support/TemplateCommandPalette.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/support/TemplateCommandPalette.tsx",
+    "sha256": "f1f0ee86a479372b6b5513a963f07601a587d786aabb5ad0ee7a8044c7efc4c1",
+    "linesCount": 150,
+    "quarantinedAt": "2026-10-01T16:57:40.500Z"
+  },
+  {
+    "originalPath": "src/components/ui/HeartFunnelLogo.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/ui/HeartFunnelLogo.tsx",
+    "sha256": "18b6b862edd310f267865d0e088285a12c193d4fe61d83db2bf05f308c544e7a",
+    "linesCount": 78,
+    "quarantinedAt": "2026-10-01T16:57:40.502Z"
+  },
+  {
+    "originalPath": "src/components/ui/TurnstileWidget.tsx",
+    "archivePath": ".archive/orphans_2026/src/components/ui/TurnstileWidget.tsx",
+    "sha256": "9901e48dbf5949f786008052edb00a4bb710999df1b562fd0234b1029abbaff0",
+    "linesCount": 113,
+    "quarantinedAt": "2026-10-01T16:57:40.503Z"
+  },
+  {
+    "originalPath": "src/hooks/admin/use-orders.ts",
+    "archivePath": ".archive/orphans_2026/src/hooks/admin/use-orders.ts",
+    "sha256": "d4707a593d4abd906aad40489ad3ef571398296ea4cd231e9c3dec9f3672f9ae",
+    "linesCount": 120,
+    "quarantinedAt": "2026-10-01T16:57:40.504Z"
+  },
+  {
+    "originalPath": "src/hooks/use-range-selection.ts",
+    "archivePath": ".archive/orphans_2026/src/hooks/use-range-selection.ts",
+    "sha256": "d321d3066ea179ff2088b076d13f503bd3bd28333adfcbf52b2f0ef9fe1765fa",
+    "linesCount": 94,
+    "quarantinedAt": "2026-10-01T16:57:40.505Z"
+  },
+  {
+    "originalPath": "src/hooks/useOrderWizardCore.ts",
+    "archivePath": ".archive/orphans_2026/src/hooks/useOrderWizardCore.ts",
+    "sha256": "c026d90d2bda170b13d3bfd28ea7d2185a06c8490ec94f695d3f9e796c109764",
+    "linesCount": 51,
+    "quarantinedAt": "2026-10-01T16:57:40.506Z"
+  },
+  {
+    "originalPath": "src/lib/auth/require-session.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/auth/require-session.ts",
+    "sha256": "abe1521165e16e8839d911f98b8ad6ecaf964aa0bd2229d075e86e58ec9939ed",
+    "linesCount": 75,
+    "quarantinedAt": "2026-10-01T16:57:40.507Z"
+  },
+  {
+    "originalPath": "src/lib/catalog/category-demand.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/catalog/category-demand.ts",
+    "sha256": "993bce7d22af69a75cdc160e1a444951d00280443cb15725c51a15ea29df122b",
+    "linesCount": 7,
+    "quarantinedAt": "2026-10-01T16:57:40.508Z"
+  },
+  {
+    "originalPath": "src/lib/constants/brandColors.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/constants/brandColors.ts",
+    "sha256": "a30cf35d57109e9868d9694a3fa88e19a64244aa8ba6c3bddb9f503963e84849",
+    "linesCount": 39,
+    "quarantinedAt": "2026-10-01T16:57:40.509Z"
+  },
+  {
+    "originalPath": "src/lib/fraud/manual-review-queue.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/fraud/manual-review-queue.ts",
+    "sha256": "7da03641dd4fce571732866737ee951b115ee8fb31365a671a87e72512b30225",
+    "linesCount": 146,
+    "quarantinedAt": "2026-10-01T16:57:40.511Z"
+  },
+  {
+    "originalPath": "src/lib/prisma-tenant-scope.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/prisma-tenant-scope.ts",
+    "sha256": "2a81de130bec5eafe2ccdc2877c345c65ab79925f9ae280a150eb8f803187723",
+    "linesCount": 141,
+    "quarantinedAt": "2026-10-01T16:57:40.511Z"
+  },
+  {
+    "originalPath": "src/lib/tenant-resolver.ts",
+    "archivePath": ".archive/orphans_2026/src/lib/tenant-resolver.ts",
+    "sha256": "0e781f67d1d031bfc3c4ae5450cb70a061cc8faf2a5e909c191a97a315bc706c",
+    "linesCount": 56,
+    "quarantinedAt": "2026-10-01T16:57:40.513Z"
+  },
+  {
+    "originalPath": "src/services/admin/ai-pricing-telegram-dispatcher.ts",
+    "archivePath": ".archive/orphans_2026/src/services/admin/ai-pricing-telegram-dispatcher.ts",
+    "sha256": "2bea0232fb8fdc68936cff86c24ec2b73f9f649715da2318d12bfaca707f3fe0",
+    "linesCount": 47,
+    "quarantinedAt": "2026-10-01T16:57:40.515Z"
+  },
+  {
+    "originalPath": "src/services/admin/catalog/index.ts",
+    "archivePath": ".archive/orphans_2026/src/services/admin/catalog/index.ts",
+    "sha256": "6f3bd4b75d8b28cb7a10cbf7e2cac57daa5a90f725f2875a0f9d7a68f81fe91d",
+    "linesCount": 5,
+    "quarantinedAt": "2026-10-01T16:57:40.516Z"
+  },
+  {
+    "originalPath": "src/services/admin/smart-provider-matcher.ts",
+    "archivePath": ".archive/orphans_2026/src/services/admin/smart-provider-matcher.ts",
+    "sha256": "0abe18bf487de01d2497beba26face73bb28110118daee50254369bdff0e9829",
+    "linesCount": 138,
+    "quarantinedAt": "2026-10-01T16:57:40.517Z"
+  },
+  {
+    "originalPath": "src/services/api/webhook-dispatcher.ts",
+    "archivePath": ".archive/orphans_2026/src/services/api/webhook-dispatcher.ts",
+    "sha256": "34ad6e5c0e4afd41766a8f21a4c94146742728b296039b3630688183fae65103",
+    "linesCount": 88,
+    "quarantinedAt": "2026-10-01T16:57:40.518Z"
+  },
+  {
+    "originalPath": "src/services/financial/audit-log.service.ts",
+    "archivePath": ".archive/orphans_2026/src/services/financial/audit-log.service.ts",
+    "sha256": "9853e90a4b23e8ff060dbd47bff9f1b48600f7604e88d68349424869368617c8",
+    "linesCount": 55,
+    "quarantinedAt": "2026-10-01T16:57:40.519Z"
+  },
+  {
+    "originalPath": "src/services/legal-war-room/legal-war-room.service.ts",
+    "archivePath": ".archive/orphans_2026/src/services/legal-war-room/legal-war-room.service.ts",
+    "sha256": "157407bc036078b70183f1d10d313cff22e948ffed4ab229cbe144f77674c2e4",
+    "linesCount": 131,
+    "quarantinedAt": "2026-10-01T16:57:40.521Z"
+  },
+  {
+    "originalPath": "src/utils/url-analyzer.ts",
+    "archivePath": ".archive/orphans_2026/src/utils/url-analyzer.ts",
+    "sha256": "e828ed519c27156707324842cdea82e607a2e351e33fd8ee8e353a5948f60391",
+    "linesCount": 45,
+    "quarantinedAt": "2026-10-01T16:57:40.522Z"
+  },
+  {
+    "originalPath": "src/workers/processors/dripfeed-watchdog.ts",
+    "archivePath": ".archive/orphans_2026/src/workers/processors/dripfeed-watchdog.ts",
+    "sha256": "6d5c22227e194e22108c0523a855942ae008efc86a4394224f209f70eea36a83",
+    "linesCount": 78,
+    "quarantinedAt": "2026-10-01T16:57:40.524Z"
+  }
+]

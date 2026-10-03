@@ -11,7 +11,9 @@ export class OrderTimeseriesService {
     step: 'hour' | 'day' | 'week' | 'month',
     tenantId?: string
   ) {
-    const cacheKey = `orders:timeseries:${tenantId || 'all'}:${step}:${startDate.getTime()}:${endDate.getTime()}`;
+    // Quantize timestamps to 30-second buckets to ensure high cache hit rate across frequent dashboard renders
+    const quantizeTimestamp = (d: Date) => Math.floor(d.getTime() / 30_000) * 30_000;
+    const cacheKey = `orders:timeseries:${tenantId || 'all'}:${step}:${quantizeTimestamp(startDate)}:${quantizeTimestamp(endDate)}`;
 
     try {
       const cached = await redis.get(cacheKey);

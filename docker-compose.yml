@@ -252,7 +252,7 @@ services:
     volumes:
       - smm_tailscale_data:/var/lib/tailscale
     entrypoint: tailscaled
-    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock --tun=userspace-networking
+    command: --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock
     depends_on:
       web:
         condition: service_healthy

@@ -50,7 +50,7 @@ const saveMenuConfigSchema = z.array(
   z.object({
     id: z.string(),
     label: z.string().min(1, 'Название кнопки не может быть пустым').max(50),
-    action: z.enum(['CATALOG', 'ORDERS', 'REFILL', 'PROFILE', 'SUPPORT', 'REFERRALS', 'URL', 'WEB_APP', 'COMMAND', 'TEXT_REPLY']),
+    action: z.enum(['CATALOG', 'ORDERS', 'REFILL', 'PROFILE', 'SUPPORT', 'REFERRALS', 'URL', 'WEB_APP', 'COMMAND', 'TEXT_REPLY', 'FAST_ORDER', 'DEPIN']),
     row: z.number().int().min(0).max(10),
     col: z.number().int().min(0).max(5),
     value: z.string().optional(),

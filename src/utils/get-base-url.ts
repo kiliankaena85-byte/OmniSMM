@@ -13,18 +13,59 @@ const ALLOWED_HOST_DOMAINS = [
 
 export const ALLOWED_TUNNEL_SUFFIXES = ['.ts.net', '.trycloudflare.com'] as const;
 
+export const EPHEMERAL_TUNNEL_SUFFIXES = [
+  '.lhr.life',
+  '.loca.lt',
+  '.pinggy-free.link',
+  '.pinggy.link',
+  '.free.pinggy.net',
+  '.pinggy.net',
+  '.serveo.net'
+] as const;
+
 export function isAllowedHost(host: string): boolean {
   if (!host) return false;
   const cleanHost = host.split(':')[0].toLowerCase();
   if (cleanHost === '0.0.0.0' || cleanHost === 'host.docker.internal') return false;
+  // Strictly reject dead/ephemeral SSH tunnels from being treated as allowed hosts
+  if (EPHEMERAL_TUNNEL_SUFFIXES.some(s => cleanHost.endsWith(s))) return false;
+
   return (
     ALLOWED_HOST_DOMAINS.includes(cleanHost) ||
     cleanHost.endsWith('.smmplan.pro') ||
     cleanHost.endsWith('.smmflux.ru') ||
     cleanHost.endsWith('.ts.net') ||
     cleanHost.endsWith('.trycloudflare.com') ||
-    cleanHost === 'desktop-25m6el7.tailbb9d28.ts.net'
+    cleanHost === 'desktop-25m6el7.tailbb9d28.ts.net' ||
+    cleanHost === 'smmplan.tail060e84.ts.net'
   );
+}
+
+/**
+ * Returns canonical, permanent base URL for tenant payment redirects and success pages.
+ * Never redirects to dead or ephemeral tunnels.
+ */
+export function getCanonicalTenantBaseUrl(tenantId?: string | null): string {
+  const normTenant = (tenantId || '').toLowerCase().trim();
+  const isFlux = normTenant === 'flux' || normTenant === 'smmflux' || normTenant === 'lovable';
+  const canonicalDomain = isFlux ? 'smmflux.ru' : 'smmplan.pro';
+
+  if (process.env.NODE_ENV === 'production') {
+    const envUrl = process.env.APP_URL || process.env.WEBAPP_URL;
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      const cleanEnv = envUrl.replace(/\/$/, '');
+      if (!EPHEMERAL_TUNNEL_SUFFIXES.some(s => cleanEnv.includes(s))) {
+        return cleanEnv;
+      }
+    }
+    return `https://${canonicalDomain}`;
+  }
+
+  const base = getBaseUrlSync();
+  if (EPHEMERAL_TUNNEL_SUFFIXES.some(s => base.includes(s))) {
+    return `https://${canonicalDomain}`;
+  }
+  return base;
 }
 
 export async function getBaseUrlAsync(reqHost?: string | null, reqProto?: string | null): Promise<string> {

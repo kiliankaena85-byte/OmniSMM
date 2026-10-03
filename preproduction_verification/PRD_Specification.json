@@ -1,0 +1,56 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "Edge processor executes locally",
+      "id": "AC-FRU-01",
+      "then": "Result is computed in RAM under 128MB",
+      "when": "Input tensor is supplied"
+    }
+  ],
+  "babok_baccm_aligned": true,
+  "business_rules": [
+    {
+      "description": "Zero external cloud dependencies for core inference",
+      "rule_id": "BR-01",
+      "source_ac_id": "AC-FRU-01"
+    }
+  ],
+  "ears_requirements": [
+    {
+      "pattern_type": "EVENT_DRIVEN",
+      "req_id": "REQ-EARS-01",
+      "source_ac_id": "AC-FRU-01",
+      "source_persona": "Enterprise Architect",
+      "text": "When valid specification input is supplied, the system shall execute cognitive decomposition."
+    },
+    {
+      "pattern_type": "UBIQUITOUS",
+      "req_id": "REQ-EARS-02",
+      "source_ac_id": "AC-FRU-01",
+      "source_persona": "Safety Auditor",
+      "text": "The system shall continuously enforce zero-trust schema validation across all stage gates."
+    }
+  ],
+  "gherkin_dialect": "en",
+  "gost_19_espd_sections_defined": true,
+  "gost_7_0_97_requisites": {
+    "approval_stamp": "УТВЕРЖДАЮ",
+    "city": "Москва",
+    "doc_code": "ТЗ-2026.01",
+    "organization": "АО «Когнитивные Системы»"
+  },
+  "iso_29148_quality_attributes_verified": true,
+  "iso_29148_syntax_validated": true,
+  "jobs_to_be_done": [
+    "Decompose product requirements",
+    "Guarantee mathematical solvency and security"
+  ],
+  "product_vision": "Autonomous Cognitive Decomposition Engine with Formal Verification Gates",
+  "project_id": "UCDE-Cognitive-Pipeline",
+  "target_document_profile": "GOST_34_AUTOMATED_SYSTEM",
+  "target_personas": [
+    "Enterprise Architect",
+    "Safety Auditor",
+    "Chief Financial Officer"
+  ]
+}

@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { getBaseUrlAsync } from '@/utils/get-base-url';
+import { getBaseUrlAsync, getCanonicalTenantBaseUrl } from '@/utils/get-base-url';
 import { SettingsManager } from '@/lib/settings';
 import { ExactMath } from '@/lib/financial/exact-math';
 
@@ -41,7 +41,7 @@ export class UnifiedPaymentService {
       });
       const { SettingsProvider } = await import('@/lib/settings');
       const supportDomain = await SettingsProvider.getSupportEmailDomain(resolvedTenantId);
-      let successUrl = `${await getBaseUrlAsync(supportDomain)}/dashboard`;
+      let successUrl = `${getCanonicalTenantBaseUrl(resolvedTenantId)}/dashboard`;
 
       // If initiated from Telegram Bot, return directly back into the bot!
       if (metadata?.source === 'BOT') {

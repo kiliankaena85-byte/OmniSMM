@@ -160,7 +160,9 @@ export async function getStaffMembersWithMetrics(dateParam?: string, tenantParam
       const { cookies } = await import('next/headers');
       const c = await cookies();
       cookieTenant = c.get('x_admin_tenant')?.value || null;
-    } catch {}
+    } catch (err: unknown) {
+      cookieTenant = null;
+    }
 
     const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
     const resolvedTenant = resolveAdminTenantContext(admin, tenantParam, cookieTenant);
@@ -315,7 +317,9 @@ export async function getStaffPersonalLogsAction(staffUserId: string, limit = 50
       const { cookies } = await import('next/headers');
       const c = await cookies();
       cookieTenant = c.get('x_admin_tenant')?.value || null;
-    } catch {}
+    } catch (err: unknown) {
+      cookieTenant = null;
+    }
 
     const { resolveAdminTenantContext } = await import('@/utils/admin-tenant');
     const resolvedTenant = resolveAdminTenantContext(admin, tenantParam, cookieTenant);

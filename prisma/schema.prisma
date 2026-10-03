@@ -2271,9 +2271,11 @@ model DePinNode {
   creditsBalance        Int       @default(0)  // Текущий баланс OmniCredits
   escrowCredits         Int       @default(0)  // Замороженные кредиты (залог за FOLLOW)
   totalCompletedTasks   Int       @default(0)  // Всего выполненных задач за всё время
+  totalTapsCount        Int       @default(0)  // Физически выполненные клики-тапы в Mini App
   tasksFailed           Int       @default(0)  // Задания с фродом/отпиской
   reputation            Int       @default(100) // 0-100, влияет на награды
   lastActiveAt          DateTime  @default(now())
+  lastVisitedAt         DateTime  @default(now()) // Время открытия Mini App
   lastAuditAt           DateTime? // Когда последний раз проверяли
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -2285,9 +2287,30 @@ model DePinNode {
   acceptsReactTasks     Boolean   @default(true)  // 👍 Реакции (~1% риска)
   acceptsFollowTasks    Boolean   @default(false) // 👥 Подписки (~5% риска, opt-in!)
 
+  executions            DePinTaskExecution[]
+
   @@index([lastActiveAt])
   @@index([reputation])
   @@index([acceptsFollowTasks]) // быстрый поиск нод готовых к подпискам
+}
+
+/// Журнал выполнения микро-задач для детальной продуктовой аналитики
+model DePinTaskExecution {
+  id             String    @id @default(cuid())
+  nodeId         String
+  taskId         String
+  targetId       String?
+  channel        String?
+  postId         Int?
+  type           String
+  creditsAwarded Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  node           DePinNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([nodeId])
+  @@index([type])
 }
 
 /// Коммерческая цель для распределённого просмотра.
@@ -2346,4 +2369,96 @@ model DePinFollowAudit {
 
   @@index([nodeId])
   @@index([auditedAt])
+}
+
+/// Реферальные связи DePIN TMA для вирусного роста
+model DePinReferral {
+  id                     String                 @id @default(cuid())
+  referrerTelegramId     String                 // telegramId пригласителя
+  referrerNodeId         String                 // nodeId пригласителя
+  refereeTelegramId      String                 @unique // telegramId приглашенного друга
+  refereeNodeId          String                 @unique // nodeId приглашенного друга
+  status                 String                 @default("PENDING_QUALIFICATION") // PENDING_QUALIFICATION | QUALIFIED | BLOCKED
+  welcomeBonusGranted    Boolean                @default(true)
+  activationBonusGranted Boolean                @default(false)
+  tapsRecorded           Int                    @default(0)
+  tasksCompleted         Int                    @default(0)
+  ipAddress              String?
+  userAgent              String?
+  qualifiedAt            DateTime?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  earnings               DePinReferralEarning[]
+
+  @@index([referrerTelegramId])
+  @@index([referrerNodeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Журнал начислений бонусов и 10% роялти от заданий рефералов
+model DePinReferralEarning {
+  id            String        @id @default(cuid())
+  referralId    String
+  referral      DePinReferral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  earningType   String        // 'ACTIVATION_BONUS' | 'TASK_ROYALTY'
+  amountCredits Int           // Начислено в OmniCredits
+  sourceTaskId  String?       // ID задания, с которого начислен процент
+  createdAt     DateTime      @default(now())
+
+  @@index([referralId])
+  @@index([earningType])
+  @@index([createdAt])
+}
+
+// ─── OmniOrganic Campaign Models ──────────────────────────────────────────────
+
+/// Кампания органического роста подписчиков с управляемым churn.
+/// Клиент заказывает не просто подписчиков, а органический паттерн роста.
+model OrganicGrowthCampaign {
+  id                  String    @id @default(cuid())
+  tenantId            String    @default("smmplan")
+  orderId             String    @unique           // связь с Order
+  channelUsername     String                      // @target_channel (без @)
+  targetNetGain       Int                         // целевой net прирост подписчиков
+  durationDays        Int       @default(30)      // срок выполнения в днях
+  churnRateMin        Float     @default(0.08)    // минимальный churn rate 8%
+  churnRateMax        Float     @default(0.12)    // максимальный churn rate 12%
+  activeHourStart     Int       @default(7)       // начало активных часов (МСК)
+  activeHourEnd       Int       @default(23)      // конец активных часов (МСК)
+  weekendMultiplier   Float     @default(0.6)     // множитель темпа в выходные
+  status              String    @default("SCHEDULED") // SCHEDULED|ACTIVE|PAUSED|COMPLETED|CANCELLED
+  followsDelivered    Int       @default(0)
+  unfollowsDelivered  Int       @default(0)
+  netGainActual       Int       @default(0)
+  startDate           DateTime
+  endDate             DateTime
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  dailyPlans          OrganicDailyPlan[]
+
+  @@index([tenantId])
+  @@index([status, startDate])
+  @@index([channelUsername])
+}
+
+/// Дневной план подписок/отписок для органической кампании.
+/// Генерируется при создании кампании NaturalChurnEngine.generateCampaignSchedule().
+model OrganicDailyPlan {
+  id               String   @id @default(cuid())
+  campaignId       String
+  planDate         DateTime
+  targetFollows    Int
+  targetUnfollows  Int
+  actualFollows    Int      @default(0)
+  actualUnfollows  Int      @default(0)
+  completed        Boolean  @default(false)
+
+  campaign         OrganicGrowthCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, planDate])
+  @@index([planDate, completed])
+  @@index([campaignId])
 }
