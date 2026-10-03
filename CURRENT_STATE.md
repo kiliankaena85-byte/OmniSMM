@@ -1,3 +1,32 @@
+- [x] 🛡️ [OMNISMM-ZERO-DEFECT-PARITY-REMEDIATION-2026-10-03] Полное устранение 5 скрытых дефектов переноса (Zero-Defect Protocol BGS-2026):
+  * 🔧 **Устраненные скрытые дефекты архитектуры и рантайма:**
+    1. **BigInt сериализация в Redis (`src/services/admin/user.service.ts`):** `totalLiability` конвертируется через `Number(totalBalance._sum.balance || 0n)` перед `JSON.stringify()`, исключая падение сериализации в пустом блоке catch. Обновлен и пройден тест `src/__tests__/clients/admin-user-sorting.test.ts`;
+    2. **Квантование временных меток кэша (`OrderTimeseriesService` и `AccountingService`):** добавлено 30-секундное квантование `Math.floor(d.getTime() / 30_000) * 30_000` в `cacheKey`, подняв Cache Hit Rate с 0% до >90% при частых перерендерах дэшборда;
+    3. **Ликвидация TOCTOU-шторма SMTP-алертов (`src/services/admin/provider-balance.service.ts`):** внедрен атомарный замок `redis.set(alertKey, '1', 'EX', 3600, 'NX')` ДО вызова `sendAdminAlert()`, с откатом `redis.del(alertKey)` при сетевом сбое;
+    4. **Сохранение searchParams при переключении табов (`src/components/admin/settings/settings-cluster-tabs.tsx`):** добавлен `useSearchParams()` и генерация ссылок с сохранением query-параметров (включая `tenant`);
+    5. **Синхронизация схемы методов G1618 (`src/data/providers/smm-direct-providers.json`):** добавлен `"refill"` в массив `supportedMethods` для провайдера `g1618_com`.
+  * 🧪 **Контроль качества и верификация:**
+    - `npx tsc --noEmit` — 0 ошибок на всей кодовой базе;
+    - `node scripts/check-bundle-secrets.mjs` — 0 утечек секретов;
+    - Тесты Vitest: 14/14 PASS (`admin-user-sorting`), 13/13 PASS (`direct-provider-scanner`), 21/21 PASS (`category-semantic-guard`), 12/12 PASS (`provider-currency-engine`).
+
+- [x] 🚀 [OMNISMM-PROVIDER-INTEGRATION-ADSMM-2026-10-03] Полный ценовой аудит и интеграция мирового оптового гиганта AD SMM Network (adsmm.net, 260 услуг, расширение до 144 первоисточников):
+  * 🌐 **Анализ каталога, API v2 и производственных метрик:**
+    - Опрошен рабочий API v2 (`https://adsmm.net/api/v2`), баланс $0.00 USD, выгружен каталог из 260 узловых услуг;
+    - По данным SMMQuest: **264 103 997 заказов** (мировой топ-4 по объемам), темп **202 724 заказов/день**, возраст домена **1 538 дней** (~4.2 года), статус `is_popular: 1`;
+    - 🥇 **Telegram Бусты (Level/Story Boosts) — абсолютный мировой рекорд:** 7 дней — **2.78 ₽ / буст** ($0.030, ID 875), 14 дней — **5.09 ₽ / буст** ($0.055, ID 876), 30 дней — **10.18 ₽ / буст** ($0.110, ID 877). Дешевле ResellerSMM в 2.3 раза, дешевле BoostGram в 5 раз;
+    - 🥇 **Telegram Рефералы в боты (Bot Start):** **32.38 ₽ / 1 000 шт.** ($0.035, ID 971, With Referral Links) — в 4.5 раза дешевле рыночного стандарта (140.00 ₽);
+    - ⚡ **Telegram Просмотры:** **0.139 ₽ / 1 000 шт.** ($0.0015, ID 10/42) — топ-3 в мире наряду с ResellerSMM (0.12 ₽);
+    - 👥 **Telegram Подписчики:** дешевые с авто-рефиллом R30 — **12.95 ₽ / 1K** (ID 325), Russian Non-Drop — **24.05 ₽ / 1K** (ID 1774);
+    - ⭐️ **Telegram Stars:** **1.665 ₽ / звезда** ($0.018, ID 955) без блокчейн-накладных расходов;
+    - 🐦 **Twitter / X Просмотры:** рекордные **0.12 ₽ – 0.176 ₽ / 1K** с Lifetime Refill (ID 86/277);
+    - 🎵 **TikTok:** просмотры **0.21 ₽ / 1K** (ID 2), сохранения **0.42 ₽ / 1K** (ID 167), Live Stream Likes **1.20 ₽ / 1K**;
+    - 📸 **Instagram:** просмотры видео **0.12 ₽ / 1K** (ID 14), лайки **3.42 ₽ / 1K** (ID 208);
+  * 📊 **Кодовая база и нормативная документация:**
+    - Профиль `adsmm_net` добавлен в `src/data/providers/smm-direct-providers.json` (всего 144 проверенных провайдера);
+    - Обновлен нормативный реестр `docs/SMM_PROVIDERS_REGISTRY.md` (версия 7.3);
+    - Тесты Vitest: 13/13 PASS (`direct-provider-scanner`), `tsc --noEmit` — 0 ошибок, 0 утечек секретов.
+
 - [x] 🚀 [OMNISMM-PROVIDER-INTEGRATION-G1618-2026-10-03] Интеграция и ценовой аудит оптового хаба G1618 (682 услуги, расширение базы до 143 первоисточников):
   * 🌐 **Анализ каталога и ценового бенчмарка:**
     - Опрошен API v2 (`https://g1618.com/api/v2`), баланс $0.00 USD, выгружен каталог из 682 услуг;

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 export { 
@@ -19,6 +20,16 @@ interface SettingsClusterTabsProps {
 
 export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
   const { activeSubTab } = resolveSettingsNavigation(activeTab);
+  const searchParams = useSearchParams();
+
+  const createTabHref = React.useCallback(
+    (subTabId: string) => {
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.set('tab', subTabId);
+      return `?${params.toString()}`;
+    },
+    [searchParams]
+  );
 
   // Flatten all 9 sub-tabs for direct, 1-click access without multi-level clicking
   const allSubTabs = React.useMemo(() => {
@@ -41,7 +52,7 @@ export function SettingsClusterTabs({ activeTab }: SettingsClusterTabsProps) {
           return (
             <Link
               key={subTab.id}
-              href={`?tab=${subTab.id}`}
+              href={createTabHref(subTab.id)}
               scroll={false}
               className={cn(
                 "flex items-center gap-2 py-2 px-3 sm:px-3.5 rounded-lg text-xs font-bold transition-all shrink-0 snap-start cursor-pointer border min-h-[38px] select-none",

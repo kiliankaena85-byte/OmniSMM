@@ -733,16 +733,17 @@
   },
   {
     "id": "tegramshop",
-    "name": "Tegram.shop",
-    "website": "https://tegram.shop",
-    "apiUrl": "https://tegram.shop/api/v2",
+    "name": "Telegram.shop (Tegram)",
+    "website": "https://telegram.shop",
+    "apiUrl": "https://telegram.shop/api/v2",
     "tier": 1,
-    "currency": "RUB",
+    "currency": "USD",
     "supportedMethods": [
       "services",
       "add",
       "status",
       "balance",
+      "refill",
       "cancel"
     ],
     "primaryNetworks": [
@@ -751,7 +752,7 @@
     "rating": 9.7,
     "avgResponseMs": 180,
     "features": {
-      "dripfeed": false,
+      "dripfeed": true,
       "refill": true,
       "cancel": true,
       "channelBoosts": true,
@@ -759,48 +760,66 @@
     },
     "benchmarkServices": [
       {
-        "service": "teg_boost_7d",
-        "name": "Telegram Бусты для каналов (Level Boost) - 7 дней",
-        "category": "Telegram - Бусты",
-        "rate": "14.00",
+        "service": "75",
+        "name": "⚡️BOOST channel | 7+ days",
+        "category": "Telegram Boosts",
+        "rate": "0.0650",
         "min": "1",
-        "max": "5000",
+        "max": "100000",
         "network": "TELEGRAM"
       },
       {
-        "service": "teg_boost_30d",
-        "name": "Telegram Бусты для каналов (Level Boost) - 30 дней",
-        "category": "Telegram - Бусты",
-        "rate": "38.00",
+        "service": "73",
+        "name": "⚡️BOOST channel | 30+ days",
+        "category": "Telegram Boosts",
+        "rate": "0.2000",
         "min": "1",
-        "max": "5000",
+        "max": "100000",
         "network": "TELEGRAM"
       },
       {
-        "service": "teg_stars_reactions",
-        "name": "Telegram Stars (Звездные реакции и поддержка)",
-        "category": "Telegram - Реакции",
-        "rate": "1.55",
-        "min": "1",
-        "max": "20000",
-        "network": "TELEGRAM"
-      },
-      {
-        "service": "teg_premium_subs",
-        "name": "Telegram Premium Подписчики с премиум-аккаунтов",
-        "category": "Telegram - Подписчики",
-        "rate": "89.00",
+        "service": "88",
+        "name": "🤖 BOT START | Non Drop | NOT ACTIVITY",
+        "category": "Telegram Bot Start",
+        "rate": "0.1500",
         "min": "10",
-        "max": "10000",
+        "max": "1000000",
         "network": "TELEGRAM"
       },
       {
-        "service": "teg_bot_referrals",
-        "name": "Telegram Рефералы в боты и Mini Apps (Запуск бота)",
-        "category": "Telegram - Боты и Рефералы",
-        "rate": "180.00",
-        "min": "50",
-        "max": "10000",
+        "service": "96",
+        "name": "🤖 BOT START | Non Drop | 30 DAYS ACTIVITY",
+        "category": "Telegram Bot Start",
+        "rate": "1.0500",
+        "min": "10",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "126",
+        "name": "💎 Premium 20% + Non premium 80% [Non Drop 30]",
+        "category": "Telegram Blended Members",
+        "rate": "1.6400",
+        "min": "10",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "1",
+        "name": "🇷🇺[Russian] Telegram Members [Non Drop 30 days]",
+        "category": "Telegram Members",
+        "rate": "0.6400",
+        "min": "10",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "512",
+        "name": "AUTO Reactions + view posts | 👍 ❤️ 🔥 🎉 👏 💯",
+        "category": "Telegram Auto Reactions",
+        "rate": "0.0500",
+        "min": "10",
+        "max": "500000",
         "network": "TELEGRAM"
       }
     ]
@@ -7020,6 +7039,7 @@
       "add",
       "status",
       "balance",
+      "refill",
       "cancel"
     ],
     "primaryNetworks": [
@@ -7082,6 +7102,140 @@
         "rate": "0.0120",
         "min": "8",
         "max": "100000",
+        "network": "TELEGRAM"
+      }
+    ]
+  },
+  {
+    "id": "adsmm_net",
+    "name": "AD SMM Network",
+    "website": "https://adsmm.net",
+    "apiUrl": "https://adsmm.net/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "INSTAGRAM",
+      "TWITTER",
+      "FACEBOOK",
+      "YOUTUBE"
+    ],
+    "rating": 9.8,
+    "avgResponseMs": 120,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "875",
+        "name": "Telegram Premium BOOST⚡ Channel - 7 Days",
+        "category": "Telegram Boosts",
+        "rate": "0.0300",
+        "min": "10",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "877",
+        "name": "Telegram Premium BOOST⚡ Channel - 30 Days",
+        "category": "Telegram Boosts",
+        "rate": "0.1100",
+        "min": "10",
+        "max": "50000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "971",
+        "name": "Telegram Bot Start [With Referal Links]",
+        "category": "Telegram Bot Start",
+        "rate": "0.3500",
+        "min": "1",
+        "max": "1000000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "10",
+        "name": "Telegram Post Views | ALWAYS STABLE",
+        "category": "Telegram Views",
+        "rate": "0.0015",
+        "min": "100",
+        "max": "30000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "325",
+        "name": "Telegram Cheap Members [R30 Refill]",
+        "category": "Telegram Members",
+        "rate": "0.1400",
+        "min": "1",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "2",
+        "name": "TikTok Video Views | UPDATED | UltraFast",
+        "category": "TikTok Views",
+        "rate": "0.0023",
+        "min": "100",
+        "max": "100000000",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "167",
+        "name": "TikTok Save | 1M/DAY | Cancel Enable | 0% drop",
+        "category": "TikTok Saves",
+        "rate": "0.0045",
+        "min": "100",
+        "max": "10000000",
+        "network": "TIKTOK"
+      },
+      {
+        "service": "14",
+        "name": "Instagram Video Views | All Links",
+        "category": "Instagram Views",
+        "rate": "0.0013",
+        "min": "100",
+        "max": "2147483647",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "208",
+        "name": "Instagram Likes | Fast Delivery | 300K/day",
+        "category": "Instagram Likes",
+        "rate": "0.0370",
+        "min": "5",
+        "max": "10000000",
+        "network": "INSTAGRAM"
+      },
+      {
+        "service": "277",
+        "name": "Twitter Tweet Views [Speed: 10M/Day]",
+        "category": "Twitter Views",
+        "rate": "0.0013",
+        "min": "100",
+        "max": "10000000",
+        "network": "TWITTER"
+      },
+      {
+        "service": "955",
+        "name": "Telegram Stars to Username",
+        "category": "Telegram Stars",
+        "rate": "18.0000",
+        "min": "50",
+        "max": "1000000",
         "network": "TELEGRAM"
       }
     ]
