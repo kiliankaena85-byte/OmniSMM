@@ -6929,5 +6929,83 @@
         "network": "TIKTOK"
       }
     ]
+  },
+  {
+    "id": "resellersmm_com",
+    "name": "ResellerSMM",
+    "website": "https://resellersmm.com",
+    "apiUrl": "https://resellersmm.com/api/v2",
+    "tier": 1,
+    "currency": "USD",
+    "supportedMethods": [
+      "services",
+      "add",
+      "status",
+      "balance",
+      "refill",
+      "cancel"
+    ],
+    "primaryNetworks": [
+      "TELEGRAM",
+      "TIKTOK",
+      "YOUTUBE",
+      "INSTAGRAM"
+    ],
+    "rating": 9.7,
+    "avgResponseMs": 135,
+    "features": {
+      "dripfeed": true,
+      "refill": true,
+      "cancel": true,
+      "channelBoosts": true,
+      "autoViews": true
+    },
+    "benchmarkServices": [
+      {
+        "service": "5155",
+        "name": "Telegram Boost Channel [Active Channel Story 7 Days]",
+        "category": "Telegram Boosts",
+        "rate": "0.0587",
+        "min": "10",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "5151",
+        "name": "Telegram Boost Channel [Active Channel Story Monthly / 30 Days]",
+        "category": "Telegram Boosts",
+        "rate": "0.2516",
+        "min": "10",
+        "max": "100000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "4794",
+        "name": "Telegram 1 Post Views [Speed: Fast, Refill: Lifetime]",
+        "category": "Telegram Views",
+        "rate": "0.0013",
+        "min": "10",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "1438",
+        "name": "Telegram Positive Reactions [👍 ❤️ 🔥 🎉 👏 + Bonus View]",
+        "category": "Telegram Reactions",
+        "rate": "0.0098",
+        "min": "50",
+        "max": "500000",
+        "network": "TELEGRAM"
+      },
+      {
+        "service": "1587",
+        "name": "TikTok Video Views [Speed: 10M+/Day]",
+        "category": "TikTok Views",
+        "rate": "0.0028",
+        "min": "100",
+        "max": "100000000",
+        "network": "TIKTOK"
+      }
+    ]
   }
 ]
